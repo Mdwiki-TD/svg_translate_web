@@ -3,11 +3,7 @@
 from __future__ import annotations
 import logging
 from flask import Flask, render_template, flash
-
-try:  # pragma: no cover - import guard exercised via tests
-    from flask_wtf import CSRFProtect  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover - fallback used when dependency unavailable
-    from .csrf import CSRFProtect
+from flask_wtf import CSRFProtect
 from typing import Tuple
 from .config import settings
 from .app_routes import (
