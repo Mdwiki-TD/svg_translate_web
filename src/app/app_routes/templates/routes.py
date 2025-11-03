@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 import re
 import json
+import copy
 
 from flask import (
     Blueprint,
@@ -51,7 +52,7 @@ def temps_main_files(data: dict) -> dict:
     # ---
     temp_list = {x.title: x.main_file for x in get_templates_db().list() if x.main_file}
     # ---
-    for title in data.copy().keys():
+    for title in copy.deepcopy(data).keys():
         # ---
         data[title].setdefault("main_file", "")
         # ---
