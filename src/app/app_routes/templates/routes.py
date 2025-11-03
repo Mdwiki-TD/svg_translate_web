@@ -4,7 +4,6 @@ from pathlib import Path
 import logging
 import re
 import json
-import copy
 
 from flask import (
     Blueprint,
@@ -55,7 +54,7 @@ def temps_main_files(data: dict) -> dict:
     # temp_file = Path("I:/mdwiki/pybot/md_core/commons_svg/svg_languages.json")
     # temp_data = json.loads(temp_file.read_text(encoding="utf-8")) if temp_file.exists() else {}
     # ---
-    for title in copy.deepcopy(data).keys():
+    for title in list(data):
         # ---
         data[title].setdefault("main_file", "")
         # ---
