@@ -198,7 +198,7 @@ function result_html(r) {
             }
 
             if (lastUpdate) {
-                let time_now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true})
+                let time_now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true })
                 lastUpdate.innerHTML = `Last updated: ${time_now}`;
             }
 
