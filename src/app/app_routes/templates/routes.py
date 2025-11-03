@@ -51,7 +51,10 @@ def temps_main_files(data: dict) -> dict:
     # ---
     temp_list = {x.title: x.main_file for x in get_templates_db().list() if x.main_file}
     # ---
-    for title in data.copy().keys():
+    # temp_file = Path("I:/mdwiki/pybot/md_core/commons_svg/svg_languages.json")
+    # temp_data = json.loads(temp_file.read_text(encoding="utf-8")) if temp_file.exists() else {}
+    # ---
+    for title in list(data):
         # ---
         data[title].setdefault("main_file", "")
         # ---
@@ -65,6 +68,8 @@ def temps_main_files(data: dict) -> dict:
         if not main_file and title_dir:
             main_data = get_main_data(title_dir) or {}
             main_file = main_data.get("main_title")
+        # ---
+        # if not main_file: main_file = temp_data.get(title, "")
         # ---
         value = ""
         # ---
