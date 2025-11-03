@@ -8,7 +8,7 @@ logger = logging.getLogger("svg_translate")
 
 
 def file_langs(file_path: Path):
-    languages = set()
+    languages = set("en")
     # ---
     try:
         parser = etree.XMLParser(remove_blank_text=True)
