@@ -88,9 +88,8 @@ def task(task_id: str | None = None):
     )
 
 
-@bp_tasks.get("/task2")
-def task2():
-    task_id = request.args.get("task_id")
+@bp_tasks.get("/task2/<task_id>")
+def task2(task_id: str | None = None):
 
     if not task_id:
         flash("No task id provided", "warning")

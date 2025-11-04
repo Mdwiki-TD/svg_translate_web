@@ -31,6 +31,7 @@ def index():
     return render_template(
         "index.html",
         form={},
+        set_titles_limit=False,
         current_user=current_user_obj,
     )
 
