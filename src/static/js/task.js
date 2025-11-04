@@ -43,11 +43,20 @@ function formatStageTimestamp(updatedAtRaw) {
         });
     }
 }
-
+function toTitleCase(str) {
+    return str.replace(/\w\S*/g, (txt) =>
+        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+}
 function stages_html_new(st, name) {
     const subname = st.sub_name ? ` <small class="text-muted">(${st.sub_name})</small>` : '';
     const color = STATUS_CLASSES[st.status] || "secondary";
-    const percent = st.status === "Completed" ? 100 : st.status === "Running" ? 60 : st.status === "Pending" ? 10 : 0;
+    const percents = {
+        "Completed": 100,
+        "Running": 60,
+        "Pending": 10,
+    };
+    const percent = percents[st.status] || 0;
 
     const cls = st.status === "Running" ? "running" : "";
 
@@ -62,7 +71,7 @@ function stages_html_new(st, name) {
         <li class="list-group-item ${cls} border border-${color}">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-bold">
-                ${st.number}. ${name} ${subname}
+                ${st.number}. ${toTitleCase(name)} ${subname}
                 </span>
                 <span class="badge text-bg-${color} border border-${color}">${st.status}</span>
             </div>
