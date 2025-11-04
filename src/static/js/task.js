@@ -63,9 +63,6 @@ function stages_html_new(st, name) {
     const messageHtml = st.message ? `<div class="small text-muted">${st.message}</div>` : '';
     const timestamp = formatStageTimestamp(st.updated_at);
     const timestampHtml = timestamp ? `<div class="stage-timestamp text-muted">Updated: ${timestamp}</div>` : '';
-    const infoSection = (messageHtml || timestampHtml)
-        ? `<div class="stage-card-body">${messageHtml}${timestampHtml}</div>`
-        : '';
 
     return `
         <li class="list-group-item ${cls} border border-${color}">
@@ -75,7 +72,10 @@ function stages_html_new(st, name) {
                 </span>
                 <span class="badge text-bg-${color} border border-${color}">${st.status}</span>
             </div>
-            ${infoSection}
+            <div class="d-flex justify-content-between align-items-center mb-1 stage-card-body">
+                ${messageHtml}
+                ${timestampHtml}
+            </div>
             <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-${color}" style="width:${percent}%"></div>
             </div>
@@ -204,11 +204,15 @@ function result_html(r) {
                 if (timer) {
                     clearInterval(timer);
                 }
-            }
-
-            if (lastUpdate) {
-                let time_now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true })
-                lastUpdate.innerHTML = `Last updated: ${time_now}`;
+                if (lastUpdate && taskData.updated_at) {
+                    let updated_at = formatStageTimestamp(taskData.updated_at)
+                    lastUpdate.innerHTML = `Last updated: ${updated_at}`;
+                }
+            } else {
+                if (lastUpdate) {
+                    let time_now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true })
+                    lastUpdate.innerHTML = `Last updated: ${time_now}`;
+                }
             }
 
         } catch (e) { /* ignore transient errors */ }
@@ -231,7 +235,9 @@ function result_html(r) {
             let message = 'Unable to cancel the task.';
             let showmessage = true;
             try {
-                const response = await fetch(`/tasks/${taskId}/cancel`, { method: 'POST' });
+                const response = await fetch(`/tasks/${taskId}/cancel`, {
+                    method: 'POST',
+                });
                 let result = await response.json();
                 if (result && result.error) {
                     throw new Error(result.error);
@@ -273,7 +279,9 @@ function result_html(r) {
             let showmessage = true;
 
             try {
-                const response = await fetch(`/tasks/${taskId}/restart`, { method: 'POST' });
+                const response = await fetch(`/tasks/${taskId}/restart`, {
+                    method: 'POST',
+                });
                 let data = await response.json();
                 if (data && data.error) {
                     throw new Error(data.error);

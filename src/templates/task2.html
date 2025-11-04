@@ -9,9 +9,7 @@
     }
 
     .stage-card-body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
+        padding-top: 1rem;
     }
 
     .stage-card-body .stage-timestamp {
@@ -32,25 +30,32 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2 class="mb-3">{{ form.title if form and form.title else ''}}</h2>
-        <h3 class="mb-3">{{ task.username }}</h3>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="h2">{{ form.title if form and form.title else ''}}</span>
+        <span class="h3">{{ task.username }}</span>
     </div>
-    <div class="row gy-2 gx-3 align-items-center mb-4">
+    <div class="row gy-2 gx-3 align-items-center mb-2">
         <div class="row justify-content-between align-items-center">
-            <div class="col-sm-12 col-md-6">
-                <label for="manual_main_title" class="form-label">Main File</label>
-                {% set commons_link = task.main_file or form.manual_main_title or "!" %}
+            <div class="col-sm-12 col-md-9">
+                <span class="fw-bold">
+                    Main File:
+
+                </span>
+                {% set commons_link = task.main_file or form.manual_main_title or "" %}
                 {% if commons_link %}
                 <a href='https://commons.wikimedia.org/wiki/{{ commons_link }}' target='_blank'
                     rel='noopener noreferrer'>
                     {{ commons_link }}
                 </a>
+                <a href='https://svgtranslate.toolforge.org/{{ commons_link }}' target='_blank'
+                    rel='noopener noreferrer' class="fw-bold">
+                    (SvgTranslate)
+                </a>
                 {% endif %}
             </div>
-            <div class="col-sm-12 col-md-6">
+            <div class="col-sm-12 col-md-3">
                 <div class="row">
-                    <div class="col-md-6 col-sm-12">
+                    <div class="col-md-12 col-sm-12">
                         <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" value="z" id="overwrite" name="overwrite"
                                 {{ 'checked' if not form or form.overwrite == "z" else '' }} disabled>
@@ -59,12 +64,12 @@
                             </label>
                         </div>
                     </div>
-                    <div class="col-md-6 col-sm-12">
+                    <div class="col-md-12 col-sm-12">
                         <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" value="1" id="upload" name="upload"
                                 {{ 'checked' if form and form.upload else '' }} disabled>
                             <label class="form-check-label" for="upload">
-                                Upload New translations
+                                Upload Files
                             </label>
                         </div>
                     </div>
@@ -119,7 +124,7 @@
                 {{ title if title else (task.title if task and task.title else '') }}
             </span>
             <div class="small text-muted" id="last-update">
-                Last updated: {{ task.updated_at if task and task.updated_at else '' }}
+                Last updated: {{ task.updated_at | format_stage_timestamp }}
             </div>
         </div>
         <div class="progress mb-3" style="height:8px;">
@@ -135,10 +140,9 @@
             {% set percent = percents.get(status, 0) %}
             {% set cls = 'running' if status == 'Running' else '' %}
             {% set subname = ' <small class="text-muted">(' ~ st.sub_name ~ ')</small>' if st.sub_name else '' %}
-            {% set message_html = '<div class="small text-muted">' ~ st.message ~ '</div>' if st.message else '' %}
+            {% set message_html = '' ~ st.message ~ '' if st.message else '' %}
             {% set timestamp = st.updated_at | format_stage_timestamp %}
-            {% set timestamp_html = '<div class="stage-timestamp text-muted">Updated: ' ~ timestamp ~ '</div>' if timestamp else '' %}
-            {% set info_section = (message_html or timestamp_html) and ('<div class="stage-card-body">' ~ message_html ~ timestamp_html ~ '</div>') or '' %}
+            {% set timestamp_html = 'Updated: ' ~ timestamp ~ '' if timestamp else '' %}
             <li class="list-group-item {{ cls }} border border-{{ color }}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold">
@@ -146,14 +150,20 @@
                     </span>
                     <span class="badge text-bg-{{ color }} border border-{{ color }}">{{ status }}</span>
                 </div>
-                {{ info_section | safe }}
+                <div class="d-flex justify-content-between align-items-center mb-1 stage-card-body">
+                    <div class="small text-muted">
+                        {{ message_html | safe }}
+                    </div>
+                    <div class="stage-timestamp text-muted">
+                        {{ timestamp_html | safe }}
+                    </div>
+                </div>
                 <div class="progress mt-2" style="height: 6px;">
                     <div class="progress-bar bg-{{ color }}" style="width:{{ percent }}%"></div>
                 </div>
             </li>
             {% endfor %}
         </ul>
-
         <div class="mt-4" id="results">
         </div>
     </div>

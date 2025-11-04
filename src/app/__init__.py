@@ -26,19 +26,22 @@ from .cookies import CookieHeaderClient
 logger = logging.getLogger("svg_translate")
 
 
-def format_stage_timestamp(value):
-    """Format timestamp for display."""
+def format_stage_timestamp(value: str) -> str:
+    """Format ISO8601 like '2025-10-27T04:41:07' to 'Oct 27, 2025, 4:41 AM'."""
     if not value:
         return ""
-    # If value is a datetime object
-    if isinstance(value, datetime):
-        return value.strftime("%Y-%m-%d %H:%M")
-    # If it's a string timestamp
     try:
-        dt = datetime.fromisoformat(str(value))
-        return dt.strftime("%Y-%m-%d %H:%M")
+        dt = datetime.fromisoformat(value)
     except Exception:
-        return str(value)
+        logger.exception("Failed to parse timestamp: %s", value)
+        return ""
+    # convert 24h → 12h with AM/PM
+    hour24 = dt.hour
+    ampm = "AM" if hour24 < 12 else "PM"
+    hour12 = hour24 % 12 or 12
+    minute = f"{dt.minute:02d}"
+    month = dt.strftime("%b")  # Oct
+    return f"{month} {dt.day}, {dt.year}, {hour12}:{minute} {ampm}"
 
 
 def create_app() -> Flask:
