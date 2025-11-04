@@ -23,6 +23,16 @@
     {% block extra_css %}{% endblock %}
 </head>
 
+{% set status_classes = {
+    "Completed": "success",
+    "Failed": "danger",
+    "Skipped": "warning",
+    "Running": "primary",
+    "Pending": "secondary",
+    "Cancelled": "warning",
+    "error": "danger"
+} %}
+
 <body>
     {% include "_navbar.html" %}
 
