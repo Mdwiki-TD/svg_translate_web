@@ -14,10 +14,10 @@ if _HOME is None or _HOME == "":
 
 load_dotenv(_env_file_path)
 
-CopySvgTranslate_PATH = os.getenv("CopySvgTranslate_PATH", "")
+CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "")
 
 try:
-    import CopySvgTranslate  # type: ignore  # noqa: F401
+    import CopySVGTranslation  # type: ignore  # noqa: F401
 except ImportError:
-    if CopySvgTranslate_PATH and Path(CopySvgTranslate_PATH).is_dir():
-        sys.path.insert(0, str(Path(CopySvgTranslate_PATH).parent))
+    if CopySVGTranslation_PATH and Path(CopySVGTranslation_PATH).is_dir():
+        sys.path.insert(0, str(Path(CopySVGTranslation_PATH).parent))

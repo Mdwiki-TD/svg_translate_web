@@ -1,7 +1,7 @@
 
 import logging
 from typing import Any
-from CopySvgTranslate import start_injects  # type: ignore
+from CopySVGTranslation import start_injects  # type: ignore
 
 logger = logging.getLogger("svg_translate")
 
