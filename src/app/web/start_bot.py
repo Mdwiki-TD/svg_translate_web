@@ -2,7 +2,7 @@ import json
 import html
 from urllib.parse import quote
 import logging
-from CopySvgTranslate import extract  # type: ignore
+from CopySVGTranslation import extract  # type: ignore
 
 from .commons import get_files, get_wikitext
 from ..download_tasks import download_one_file

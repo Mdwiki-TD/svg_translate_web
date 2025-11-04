@@ -10,10 +10,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT/"src"))
     sys.path.insert(0, str(ROOT))
 # ---
-CopySvgTranslate_PATH = os.getenv("CopySvgTranslate_PATH", "I:/SVG_PY/CopySvgTranslate/CopySvgTranslate")
+CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
 # ---
-if CopySvgTranslate_PATH and Path(CopySvgTranslate_PATH).is_dir():
-    sys.path.insert(0, str(Path(CopySvgTranslate_PATH).parent))
+if CopySVGTranslation_PATH and Path(CopySVGTranslation_PATH).is_dir():
+    sys.path.insert(0, str(Path(CopySVGTranslation_PATH).parent))
 # ---
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
