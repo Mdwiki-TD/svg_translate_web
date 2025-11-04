@@ -94,13 +94,13 @@ def create_app() -> Flask:
         """Handle 404 errors"""
         logger.error("Page not found: %s", e)
         flash("Page not found", "warning")
-        return render_template("error.html", title="Page Not Found", tt="invalid_url"), 404
+        return render_template("index.html", title="Page Not Found"), 404
 
     @app.errorhandler(500)
     def internal_server_error(e: Exception) -> Tuple[str, int]:
         """Handle 500 errors"""
         logger.error("Internal Server Error: %s", e)
         flash("Internal Server Error", "danger")
-        return render_template("error.html", title="Internal Server Error", tt="unexpected_error"), 500
+        return render_template("index.html", title="Internal Server Error"), 500
 
     return app
