@@ -1,12 +1,4 @@
 """
-TODO:
-CSRF protection is missing on state‑changing POST endpoints.
-
-Admin writes (add/toggle/delete) should be CSRF‑protected. The three POST forms in templates/admins/templates.html lack CSRF tokens, and create_app() does not initialize CSRFProtect.
-
-Enable Flask‑WTF CSRFProtect globally in create_app() and add {{ csrf_token() }} in all three forms.
-Or implement a custom double‑submit header/token check for POST requests under /admin.
-Affected forms in templates/admins/templates.html:
 
 """
 
