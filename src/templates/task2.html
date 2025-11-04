@@ -140,9 +140,9 @@
             {% set percent = percents.get(status, 0) %}
             {% set cls = 'running' if status == 'Running' else '' %}
             {% set subname = ' <small class="text-muted">(' ~ st.sub_name ~ ')</small>' if st.sub_name else '' %}
-            {% set message_html = '' ~ st.message ~ '' if st.message else '' %}
+            {% set message_html = st.message or '' %}
             {% set timestamp = st.updated_at | format_stage_timestamp %}
-            {% set timestamp_html = 'Updated: ' ~ timestamp ~ '' if timestamp else '' %}
+            {% set timestamp_html = 'Updated: ' ~ timestamp if timestamp else '' %}
             <li class="list-group-item {{ cls }} border border-{{ color }}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold">
