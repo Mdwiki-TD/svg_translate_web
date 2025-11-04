@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from flask import Flask, render_template, flash
 from typing import Tuple
+from datetime import datetime
 from .config import settings
 from .app_routes import (
     bp_admin,
@@ -23,6 +24,21 @@ from .db import close_cached_db
 from .cookies import CookieHeaderClient
 
 logger = logging.getLogger("svg_translate")
+
+
+def format_stage_timestamp(value):
+    """Format timestamp for display."""
+    if not value:
+        return ""
+    # If value is a datetime object
+    if isinstance(value, datetime):
+        return value.strftime("%Y-%m-%d %H:%M")
+    # If it's a string timestamp
+    try:
+        dt = datetime.fromisoformat(str(value))
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except Exception:
+        return str(value)
 
 
 def create_app() -> Flask:
@@ -63,6 +79,7 @@ def create_app() -> Flask:
         return context_user()
 
     app.jinja_env.globals.setdefault("USE_MW_OAUTH", settings.use_mw_oauth)
+    app.jinja_env.filters["format_stage_timestamp"] = format_stage_timestamp
 
     @app.teardown_appcontext
     def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
