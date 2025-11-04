@@ -30,7 +30,6 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center">
@@ -38,8 +37,9 @@
         <h3 class="mb-3">{{ task.username }}</h3>
     </div>
     <form method="post" action="{{ url_for('tasks.start') }}" class="row gy-2 gx-3 align-items-center mb-4">
+
         <div class="row justify-content-between align-items-center">
-            <div class="col-sm-12 col-md-3">
+            <div class="col-sm-12 col-md-6">
                 <label for="manual_main_title" class="form-label">Main File</label>
                 {% set commons_link = task.main_file or form.manual_main_title or "!" %}
                 {% if commons_link %}
@@ -49,11 +49,6 @@
                 </a>
                 {% endif %}
             </div>
-            <!-- <div class="col-sm-12 col-md-4">
-        <label for="titles_limit" class="form-label">Titles Limit</label>
-        <input type="number" class="form-control" id="titles_limit" name="titles_limit" min="1"
-            value="{{ form.titles_limit if form and form.titles_limit else 1000 }}" disabled>
-    </div> -->
             <div class="col-sm-12 col-md-6">
                 <div class="row">
                     <div class="col-md-6 col-sm-12">
@@ -76,30 +71,11 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-12 col-md-3">
-                <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="1" id="ignore_existing_task"
-                        name="ignore_existing_task" {{ 'checked' if form and form.ignore_existing_task else '' }}
-                        disabled>
-                    <label class="form-check-label" for="ignore_existing_task">
-                        Ignore existing tasks
-                    </label>
-                </div>
-            </div>
         </div>
     </form>
     <hr />
     {% if task_id %}
     <div id="progress-section" data-task-id="{{ task_id }}">
-        {% set status_classes = {
-        'Completed': 'success',
-        'Failed': 'danger',
-        'Skipped': 'warning',
-        'Running': 'primary',
-        'Pending': 'secondary',
-        'Cancelled': 'warning',
-        'error': 'danger'
-    } %}
         {% set current_status = task.status if task and task.status else '' %}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h2 class="h5 m-0 d-flex align-items-center gap-2">
@@ -113,17 +89,27 @@
                     {% endif %}
                 </span>
             </h2>
+            {% set show_all = task_id == "e5d15757419d497290a7eaba52b531e8" %}
             {% set hide_cancel = (current_status in ['Completed', 'Failed', 'Cancelled', 'error']) or (task and task.error == 'not-found') %}
             {% set show_restart = current_status in ['Completed', 'Failed', 'Cancelled'] %}
-            <div class="btn-group" role="group" aria-label="Task actions">
-                <button type="button" class="btn btn-outline-danger {% if hide_cancel %}d-none{% endif %}"
-                    id="cancel-task-btn" data-task-id="{{ task_id }}">
+            <div class="btn-group gap-2" role="group" aria-label="Task actions">
+                {% if not hide_cancel or show_all %}
+                <button type="button" class="btn btn-outline-danger" id="cancel-task-btn" data-task-id="{{ task_id }}">
                     Stop
                 </button>
-                <button type="button" class="btn btn-outline-primary {% if not show_restart %}d-none{% endif %}"
-                    id="restart-task-btn" data-task-id="{{ task_id }}">
+                {% endif %}
+                {% if show_restart or show_all %}
+                <button type="button" class="btn btn-outline-primary btn-rounded" id="restart-task-btn"
+                    data-task-id="{{ task_id }}">
                     Restart
                 </button>
+                {% endif %}
+                {% if is_admin or show_all %}
+                <form action="{{ url_for('tasks.delete_task', task_id=task_id) }}" method="post" class="d-inline">
+
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
+                {% endif %}
             </div>
         </div>
 
@@ -134,7 +120,9 @@
             <span id="task-title" class="fw-bold">
                 {{ title if title else (task.title if task and task.title else '') }}
             </span>
-            <div class="small text-muted" id="last-update"></div>
+            <div class="small text-muted" id="last-update">
+                Last updated: {{ task.updated_at if task and task.updated_at else '' }}
+            </div>
         </div>
         <div class="progress mb-3" style="height:8px;">
             <div id="global-progress" class="progress-bar bg-primary" style="width:0%"></div>
@@ -145,47 +133,36 @@
             {% for name, st in stages %}
             {% set status = st.status or 'Pending' %}
             {% set color = status_classes.get(status, 'secondary') %}
-            {% if status == 'Completed' %}
-            {% set percent = 100 %}
-            {% elif status == 'Running' %}
-            {% set percent = 60 %}
-            {% elif status == 'Pending' %}
-            {% set percent = 10 %}
-            {% else %}
-            {% set percent = 0 %}
-            {% endif %}
-            {% set running_class = 'running' if status == 'Running' else '' %}
-            <li class="list-group-item {{ running_class }} border border-{{ color }}">
+            {% set percents = {'Completed': 100, 'Running': 60, 'Pending': 10} %}
+            {% set percent = percents.get(status, 0) %}
+            {% set cls = 'running' if status == 'Running' else '' %}
+            {% set subname = ' <small class="text-muted">(' ~ st.sub_name ~ ')</small>' if st.sub_name else '' %}
+            {% set message_html = '<div class="small text-muted">' ~ st.message ~ '</div>' if st.message else '' %}
+            {% set timestamp = st.updated_at | format_stage_timestamp %}
+            {% set timestamp_html = '<div class="stage-timestamp text-muted">Updated: ' ~ timestamp ~ '</div>' if timestamp else '' %}
+            {% set info_section = (message_html or timestamp_html) and ('<div class="stage-card-body">' ~ message_html ~ timestamp_html ~ '</div>') or '' %}
+            <li class="list-group-item {{ cls }} border border-{{ color }}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold">{{ name }}{% if st.sub_name %} <small
-                            class="text-muted">({{ st.sub_name }})</small>{% endif %}</span>
+                    <span class="fw-bold">
+                        {{ st.number }}. {{ name.title() | safe }}{{ subname | safe }}
+                    </span>
                     <span class="badge text-bg-{{ color }} border border-{{ color }}">{{ status }}</span>
                 </div>
-                <div class="small text-muted">{{ st.message or '' }}</div>
+                {{ info_section | safe }}
                 <div class="progress mt-2" style="height: 6px;">
                     <div class="progress-bar bg-{{ color }}" style="width:{{ percent }}%"></div>
                 </div>
             </li>
             {% endfor %}
         </ul>
-        <!-- <div class="mt-4" id="results">
-            {% if task and task.results %}
-            <h3 class="h6">Summary</h3>
-            <ul class="list-group">
-                <li class="list-group-item">Total files: {{ task.results.total_files }}</li>
-                <li class="list-group-item">Ready to upload: {{ task.results.files_to_upload_count }}</li>
-                <li class="list-group-item">No file path: {{ task.results.no_file_path }}</li>
-                <li class="list-group-item">Nested files:
-                    {{ (task.results or {}).get('injects_result', {}).get('nested_files', 0) }}</li>
-                <li class="list-group-item">New translations: {{ task.results.new_translations_count }}</li>
-            </ul>
-            {% endif %}
-        </div> -->
+
+        <div class="mt-4" id="results">
+        </div>
     </div>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/task.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/task.js') }}"></script> -->
 {% endblock %}
