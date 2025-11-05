@@ -41,8 +41,8 @@ import pytest
     ("src.app.threads.web_run_task", "web_run_task"),
     ("src.app.users.admin_service", "admin_service"),
     ("src.app.users.store", "user_store"),
-    ("src.app.web.commons.category", "category"),
-    ("src.app.web.commons.text_bot", "text_bot"),
+    ("src.app.commons.category", "category"),
+    ("src.app.commons.text_bot", "text_bot"),
     ("src.log", "log"),
 ])
 def test_module_logger_name(module_path, module_name):

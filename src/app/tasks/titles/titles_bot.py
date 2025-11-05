@@ -1,6 +1,6 @@
 #
 import logging
-from ...web.commons import get_files
+from ...commons import get_files
 
 logger = logging.getLogger("svg_translate")
 
