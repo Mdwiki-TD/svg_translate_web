@@ -9,7 +9,7 @@ from flask import (
 )
 
 # from ...users.current import current_user
-from .admin_required import admin_required
+from .admins_required import admin_required
 from .admin_routes.coordinators import Coordinators
 from .admin_routes.recent import Recent
 from .admin_routes.templates import Templates

@@ -32,3 +32,4 @@ src/.env
 src/test_site.py
 *.env
 .vscode/settings.json
+tests/app/change_to_tests.py
