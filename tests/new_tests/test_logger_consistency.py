@@ -41,7 +41,7 @@ import pytest
     ("src.app.users.store", "user_store"),
     ("src.app.web.commons.category", "category"),
     ("src.app.web.commons.text_bot", "text_bot"),
-    ("src.app.tasks.start_bot", "start_bot"),
+    ("src.app.tasks.texts.start_bot", "start_bot"),
     ("src.app.tasks.uploads.wiki_site", "wiki_site"),
     ("src.log", "log"),
 ])

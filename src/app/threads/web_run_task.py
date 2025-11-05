@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from ..tasks.extract import translations_task
-from ..tasks.start_bot import (
+from ..tasks.texts.start_bot import (
     text_task,
     titles_task,
 )
