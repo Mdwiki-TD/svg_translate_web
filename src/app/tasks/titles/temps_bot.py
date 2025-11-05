@@ -76,3 +76,11 @@ def get_files_list(text):
         main_title = main_title.replace("_", " ").strip()
 
     return main_title, titles
+
+
+__all__ = [
+    "match_main_title",
+    "find_main_title",
+    "get_titles",
+    "get_files_list",
+]

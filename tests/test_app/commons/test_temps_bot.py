@@ -14,7 +14,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.app.commons.temps_bot import match_main_title, find_main_title, get_titles, get_files_list
+from src.app.tasks.titles.temps_bot import match_main_title, find_main_title, get_titles, get_files_list
 
 
 # ---------- Fixtures with realistic wikitext samples ----------
