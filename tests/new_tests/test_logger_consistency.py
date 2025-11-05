@@ -27,7 +27,7 @@ import pytest
     ("src.app.db.db_class", "db_class"),
     ("src.app.db.svg_db", "svg_db"),
     ("src.app.db.task_store_pymysql", "task_store_pymysql"),
-    ("src.app.tasks.download_tasks.download", "download"),
+    ("src.app.tasks.downloads.download", "download"),
     ("src.app.routes_utils", "routes_utils"),
     ("src.app.template_service", "template_service"),
     ("src.app.threads.fix_nested_tasks", "fix_nested_tasks"),

@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import pytest
-from src.app.tasks.extracts_tasks import extract_task
+from src.app.tasks.extract import extract_task
 
 
 @pytest.mark.parametrize(
