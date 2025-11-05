@@ -10,8 +10,8 @@ from urllib.parse import quote
 
 import requests
 from tqdm import tqdm
-from ..db.task_store_pymysql import TaskStorePyMysql
-from ..config import settings
+from ...db.task_store_pymysql import TaskStorePyMysql
+from ...config import settings
 
 logger = logging.getLogger("svg_translate")
 

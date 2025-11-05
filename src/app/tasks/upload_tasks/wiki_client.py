@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import mwclient
 
-from .config import settings
-from .crypto import decrypt_value
+from ...config import settings
+from ...crypto import decrypt_value
 
 
 def _build_site(access_key: str, access_secret: str) -> mwclient.Site:

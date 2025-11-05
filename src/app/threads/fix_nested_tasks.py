@@ -1,7 +1,7 @@
 
 import logging
 from pathlib import Path
-from CopySVGTranslation import match_nested_tags, fix_nested_file
+from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
 
 logger = logging.getLogger("svg_translate")
 

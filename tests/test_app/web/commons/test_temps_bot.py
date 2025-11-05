@@ -12,10 +12,9 @@ Assumes the functions are available from the target module.
 Replace `from your_module import ...` with your actual module name.
 """
 
-import os
 import pytest
 
-from app.web.commons.temps_bot import match_main_title, find_main_title, get_titles, get_files
+from src.app.web.commons.temps_bot import match_main_title, find_main_title, get_titles, get_files
 
 
 # ---------- Fixtures with realistic wikitext samples ----------

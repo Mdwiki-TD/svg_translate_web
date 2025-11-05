@@ -3,8 +3,7 @@ import requests
 from pathlib import Path
 import logging
 
-
-from ..web.wiki_site import Site, FileExists, InsufficientPermission
+from .wiki_site import Site, FileExists, InsufficientPermission
 
 logger = logging.getLogger("svg_translate")
 

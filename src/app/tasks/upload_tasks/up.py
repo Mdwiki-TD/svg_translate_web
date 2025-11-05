@@ -9,10 +9,10 @@ from tqdm import tqdm
 
 from .upload_bot import upload_file
 
-from ..users.store import mark_token_used
-from ..wiki_client import build_upload_site
+from ...users.store import mark_token_used
+from .wiki_client import build_upload_site
 
-from ..db.task_store_pymysql import TaskStorePyMysql
+from ...db.task_store_pymysql import TaskStorePyMysql
 
 logger = logging.getLogger("svg_translate")
 

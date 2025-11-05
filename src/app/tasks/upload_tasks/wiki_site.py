@@ -2,10 +2,9 @@
 """
 import requests
 import logging
-import os
 
 from requests_oauthlib import OAuth1
-from ..config import settings
+from ...config import settings
 
 logger = logging.getLogger("svg_translate")
 

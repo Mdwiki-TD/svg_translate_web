@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import pytest
-from src.app.web import start_bot
+from src.app.tasks.translations_tasks import translation_task
 
 
 @pytest.mark.parametrize(
@@ -38,10 +38,10 @@ def test_translations_task_stops_on_failure(
         assert Path(path) == fake_svg_path
         return extract_return
 
-    monkeypatch.setattr(start_bot, "download_one_file", fake_download_one_file)
-    monkeypatch.setattr(start_bot, "extract", fake_extract)
+    monkeypatch.setattr(translation_task, "download_one_file", fake_download_one_file)
+    monkeypatch.setattr(translation_task, "extract", fake_extract)
 
-    translations, updated_stages = start_bot.translations_task(
+    translations, updated_stages = translation_task.translations_task(
         stages, "Example.svg", dummy_main_path
     )
 
