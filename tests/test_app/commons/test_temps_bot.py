@@ -6,7 +6,7 @@ Pytest test suite for:
 - match_main_title
 - find_main_title
 - get_titles
-- get_files
+- get_files_list
 
 Assumes the functions are available from the target module.
 Replace `from your_module import ...` with your actual module name.
@@ -14,7 +14,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.app.commons.temps_bot import match_main_title, find_main_title, get_titles, get_files
+from src.app.commons.temps_bot import match_main_title, find_main_title, get_titles, get_files_list
 
 
 # ---------- Fixtures with realistic wikitext samples ----------
@@ -189,26 +189,26 @@ def test_get_titles_empty_when_no_entries(sample_without_titles):
     assert get_titles(sample_without_titles) == []
 
 
-# ---------- Tests for get_files (integration) ----------
+# ---------- Tests for get_files_list (integration) ----------
 
-def test_get_files_prefers_svglanguages(sample_with_both_titles, sample_multiple_owidslidersrcs):
-    """get_files should return (main_title, titles) preferring SVGLanguages."""
-    main, titles = get_files(sample_with_both_titles + "\n" + sample_multiple_owidslidersrcs)
+def test_get_files_list_prefers_svglanguages(sample_with_both_titles, sample_multiple_owidslidersrcs):
+    """get_files_list should return (main_title, titles) preferring SVGLanguages."""
+    main, titles = get_files_list(sample_with_both_titles + "\n" + sample_multiple_owidslidersrcs)
     assert main == "some_main_title,World,2010.svg".replace("_", " ")
     assert len(titles) == 4
     assert "Gamma, 2002 to 2003, CCC.svg" in titles
 
 
-def test_get_files_falls_back_to_translate(sample_from_prompt):
+def test_get_files_list_falls_back_to_translate(sample_from_prompt):
     """If no SVGLanguages then fallback to Translate regex."""
-    main, titles = get_files(sample_from_prompt)
+    main, titles = get_files_list(sample_from_prompt)
     assert main == "File:health-expenditure-government-expenditure,World,2000.svg"
     assert "health-expenditure-government-expenditure, 2000 to 2022, YEM.svg" in titles
 
 
-def test_get_files_no_titles_no_main(sample_without_titles):
+def test_get_files_list_no_titles_no_main(sample_without_titles):
     """When neither titles nor main title exist."""
-    main, titles = get_files(sample_without_titles)
+    main, titles = get_files_list(sample_without_titles)
     assert main is None
     assert titles == []
 

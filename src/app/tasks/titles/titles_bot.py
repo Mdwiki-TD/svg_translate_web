@@ -1,6 +1,6 @@
 #
 import logging
-from ...commons import get_files
+from ...commons import get_files_list
 
 logger = logging.getLogger("svg_translate")
 
@@ -21,7 +21,7 @@ def titles_task(stages, text, manual_main_title, titles_limit=None):
 
     stages["status"] = "Running"
 
-    main_title, titles = get_files(text)
+    main_title, titles = get_files_list(text)
 
     if manual_main_title:
         main_title = manual_main_title

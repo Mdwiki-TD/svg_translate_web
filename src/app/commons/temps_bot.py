@@ -56,7 +56,7 @@ def get_titles(text):
     return titles
 
 
-def get_files(text):
+def get_files_list(text):
     """
     Returns (main_title, titles).
     main_title:

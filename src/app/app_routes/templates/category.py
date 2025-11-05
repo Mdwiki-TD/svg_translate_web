@@ -2,7 +2,7 @@
 import requests
 import logging
 import urllib.parse
-from ..config import settings
+from ...config import settings
 
 logger = logging.getLogger("svg_translate")
 
