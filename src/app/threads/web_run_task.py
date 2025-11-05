@@ -5,7 +5,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ..tasks.translations_tasks import translations_task
+from ..tasks.extracts_tasks import translations_task
 from ..tasks.start_bot import (
     text_task,
     titles_task,
