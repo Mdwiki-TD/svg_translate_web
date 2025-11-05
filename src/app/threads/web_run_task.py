@@ -14,7 +14,7 @@ from ..tasks.tasks_utils import save_files_stats, make_results_summary
 from .fix_nested_tasks import fix_nested_task
 from .inject_tasks import inject_task
 from ..tasks.downloads import download_task
-from ..tasks.upload_tasks import upload_task
+from ..tasks.uploads import upload_task
 from ..config import settings
 from ..db.task_store_pymysql import TaskStorePyMysql
 

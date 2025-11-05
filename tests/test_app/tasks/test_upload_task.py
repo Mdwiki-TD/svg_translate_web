@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 from cryptography.fernet import Fernet
 import pytest
 
-from src.app.tasks.upload_tasks import start_upload, upload_task
+from src.app.tasks.uploads import start_upload, upload_task
 
 
 @pytest.mark.skip(reason="Pending write")
