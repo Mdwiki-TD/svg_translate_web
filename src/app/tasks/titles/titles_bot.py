@@ -28,7 +28,7 @@ def titles_task(stages, text, manual_main_title, titles_limit=None):
 
     if not titles or not main_title:
         stages["status"] = "Failed"
-        logger.error("no titles")
+        logger.error(f"No titles or main title found. Manual main title was: '{manual_main_title}'")
     else:
         stages["status"] = "Completed"
 

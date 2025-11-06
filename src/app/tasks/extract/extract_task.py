@@ -10,7 +10,6 @@ logger = logging.getLogger("svg_translate")
 
 
 def translations_task(stages, main_title, output_dir_main):
-    # ---
     """
     Load SVG translations from a Wikimedia Commons main file, save them as translations.json next to the provided output path, and update the given stages status mapping.
 
@@ -39,15 +38,7 @@ def translations_task(stages, main_title, output_dir_main):
     main_title_path = files1["path"]
     translations = extract(main_title_path, case_insensitive=True)
 
-    if not translations:
-        logger.debug(f"No translations found in main file: {main_title}")
-        stages["message"] = "No translations found in main file"
-        stages["status"] = "Failed"
-        # ---
-        return {}, stages
-    # ---
     new_translations = (translations.get("new") or {}) if isinstance(translations, dict) else {}
-
     new_translations_count = len(new_translations)
 
     if new_translations_count == 0:
@@ -55,11 +46,10 @@ def translations_task(stages, main_title, output_dir_main):
         stages["status"] = "Failed"
         stages["message"] = "No translations found in main file"
         return {}, stages
-    # ---
+
     stages["status"] = "Completed"
-    # ---
-    json_save(output_dir_main.parent / "translations.json", translations)
-    # ---
     stages["message"] = f"Loaded {new_translations_count:,} translations from main file"
-    # ---
+
+    json_save(output_dir_main.parent / "translations.json", translations)
+
     return translations, stages

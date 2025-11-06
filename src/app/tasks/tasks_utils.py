@@ -17,7 +17,7 @@ def json_save(path, data):
     """
     logger.debug(f"Saving json to: {path}")
 
-    if not data or data is None:
+    if not data:
         logger.error(f"Empty data to save to: {path}")
         return
     # ---
@@ -28,8 +28,10 @@ def json_save(path, data):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-    except (OSError, TypeError, ValueError, Exception) as e:
+    except (OSError, TypeError, ValueError) as e:
         logger.error(f"Error saving json: {e}, path: {str(path)}")
+    except Exception:
+        logger.exception(f"Unexpected error saving json, path: {str(path)}")
 
 
 def commons_link(title, name=None):

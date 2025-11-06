@@ -26,7 +26,7 @@ def text_task(stages, title):
 
     if not text:
         stages["status"] = "Failed"
-        logger.error("NO TEXT")
+        logger.error(f"No wikitext found for title: {title}")
     else:
         stages["status"] = "Completed"
     return text, stages
