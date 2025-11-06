@@ -11,6 +11,6 @@ from src.app.tasks.uploads.upload_bot_new import upload_file
 
 
 @pytest.mark.skip(reason="Pending write")
-def test_upload_file(self):
+def test_upload_file():
     # TODO: Implement test
     pass

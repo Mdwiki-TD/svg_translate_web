@@ -11,6 +11,6 @@ from src.app.tasks.texts.start_bot import text_task
 
 
 @pytest.mark.skip(reason="Pending write")
-def test_text_task(self):
+def test_text_task():
     # TODO: Implement test
     pass

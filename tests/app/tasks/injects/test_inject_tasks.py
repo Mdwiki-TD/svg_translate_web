@@ -11,6 +11,6 @@ from src.app.tasks.injects.inject_tasks import inject_task
 
 
 @pytest.mark.skip(reason="Pending write")
-def test_inject_task(self):
+def test_inject_task():
     # TODO: Implement test
     pass
