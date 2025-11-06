@@ -8,16 +8,17 @@ get all files names from owidslidersrcs
 
 import wikitextparser as wtp
 import re
+import urllib
 
 
-def match_main_title(text):
+def match_main_title_from_url(text):
     # Match lines starting with *'''Translate''': followed by a URL
     pattern = r"^\*'''Translate''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()]+\.svg)$"
     match = re.search(pattern, text, flags=re.MULTILINE)
     return match.group(1) if match else None
 
 
-def match_main_title_new(text):
+def match_main_title_from_url_new(text):
     """Return the SVG filename from the ``Translate`` line if present."""
 
     pattern = re.compile(
@@ -65,6 +66,23 @@ def find_main_title(text):
     return main_title
 
 
+def get_titles_from_wikilinks(text):
+    """
+    Extracts:
+      - all file links from text like:
+        [[File:death rate from obesity, World, 2021 (cropped).svg|link=|thumb|upright=1.6|Death rate from obesity]]
+    Returns: titles
+    """
+    parsed = wtp.parse(text)
+    titles = []
+
+    for link in parsed.wikilinks:
+        if link.target.lower().endswith(".svg"):
+            titles.append(link.target.strip())
+
+    return titles
+
+
 def get_titles(text):
     """
     Extracts:
@@ -76,12 +94,20 @@ def get_titles(text):
 
     # --- Extract all file names from {{owidslidersrcs|...}}
     titles = []
+
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":
-            # Find all filenames inside this template
-            matches = re.findall(r"File:([^\n|!]+\.svg)", tpl.string)
+
+            # Find all filenames inside this template (case-insensitive .svg)
+            matches = re.findall(
+                r"File:([^\n|!]+\.svg)", tpl.string, flags=re.IGNORECASE
+            )
+
             titles.extend(m.strip() for m in matches)
 
+    titles.extend(get_titles_from_wikilinks(text))
+
+    titles = list(set(titles))
     return titles
 
 
@@ -99,7 +125,7 @@ def get_files_list(text):
     main_title = find_main_title(text)
 
     if not main_title:
-        main_title = match_main_title(text)
+        main_title = match_main_title_from_url(text)
 
     if main_title:
         main_title = main_title.replace("_", " ").strip()
@@ -108,7 +134,7 @@ def get_files_list(text):
 
 
 __all__ = [
-    "match_main_title",
+    "match_main_title_from_url",
     "find_main_title",
     "get_titles",
     "get_files_list",
