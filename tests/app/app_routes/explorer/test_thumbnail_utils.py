@@ -1,12 +1,14 @@
-"""
-Tests
-"""
-import pytest
+"""Tests for thumbnail utilities."""
 
-from src.app.app_routes.explorer.thumbnail_utils import save_thumb
+from pathlib import Path
+
+from src.app.app_routes.explorer import thumbnail_utils
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_save_thumb():
-    # TODO: Implement test
-    pass
+def test_save_thumb_returns_false(tmp_path: Path) -> None:
+    source = tmp_path / "image.svg"
+    target = tmp_path / "thumb.svg"
+
+    source.write_text("<svg/>", encoding="utf-8")
+
+    assert thumbnail_utils.save_thumb(source, target) is False
