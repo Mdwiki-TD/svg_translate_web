@@ -83,7 +83,7 @@ def get_titles_from_wikilinks(text):
     return titles
 
 
-def get_titles(text):
+def get_titles(text, filter_duplicates=True):
     """
     Extracts:
       - all file names from {{owidslidersrcs}}
@@ -105,13 +105,14 @@ def get_titles(text):
 
             titles.extend(m.strip() for m in matches)
 
-    titles.extend(get_titles_from_wikilinks(text))
+    # titles.extend(get_titles_from_wikilinks(text))
+    if filter_duplicates:
+        titles = list(set(titles))
 
-    titles = list(set(titles))
     return titles
 
 
-def get_files_list(text):
+def get_files_list(text, filter_duplicates=True):
     """
     Returns (main_title, titles).
     main_title:
@@ -120,7 +121,7 @@ def get_files_list(text):
     titles:
       - Filenames from all owidslidersrcs (no 'File:'), duplicates preserved.
     """
-    titles = get_titles(text)
+    titles = get_titles(text, filter_duplicates=filter_duplicates)
 
     main_title = find_main_title(text)
 

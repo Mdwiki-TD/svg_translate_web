@@ -7,7 +7,7 @@ Tests
 from __future__ import annotations
 import pytest
 
-from src.app.tasks.titles.titles_bot import titles_task
+from src.app.tasks.titles.titles_tasks import titles_task
 
 
 @pytest.mark.skip(reason="Pending write")
