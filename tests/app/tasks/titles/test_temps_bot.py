@@ -101,6 +101,7 @@ def test_get_files_list_falls_back_to_translate(sample_from_prompt):
     main, titles = get_files_list(sample_from_prompt)
     assert main == "File:health-expenditure-government-expenditure,World,2000.svg"
     assert "health-expenditure-government-expenditure, 2000 to 2022, YEM.svg" in titles
+    assert len(titles) == 9
 
 
 def test_get_files_list_no_titles_no_main(sample_without_titles):
