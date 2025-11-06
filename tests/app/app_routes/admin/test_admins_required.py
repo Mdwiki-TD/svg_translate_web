@@ -1,14 +1,77 @@
 """
-
-Tests
-
+Tests for admin_required decorator.
 """
+from unittest.mock import MagicMock, patch
+
 import pytest
+from werkzeug.exceptions import Forbidden
 
 from src.app.app_routes.admin.admins_required import admin_required
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_admin_required():
-    # TODO: Implement test
-    pass
+class MockUser:
+    def __init__(self, username):
+        self.username = username
+
+
+def test_admin_required_not_logged_in():
+    """
+    Tests that a user who is not logged in is redirected to the login page.
+    """
+    # A dummy view function
+    @admin_required
+    def dummy_view():
+        return "This should not be returned"
+
+    with patch('src.app.app_routes.admin.admins_required.current_user', return_value=None), \
+         patch('src.app.app_routes.admin.admins_required.redirect') as mock_redirect, \
+         patch('src.app.app_routes.admin.admins_required.url_for', return_value='/login') as mock_url_for:
+
+        response = dummy_view()
+
+        # Check that url_for was called for the login page
+        mock_url_for.assert_called_once_with("auth.login")
+        # Check that redirect was called with the login page URL
+        mock_redirect.assert_called_once_with('/login')
+        # Check that the response is the one from redirect
+        assert response == mock_redirect.return_value
+
+
+def test_admin_required_not_admin():
+    """
+    Tests that a logged-in, non-admin user is denied access with a 403 error.
+    """
+    # A dummy view function
+    @admin_required
+    def dummy_view():
+        return "This should not be returned"
+
+    # Mock user who is not in the admin list
+    mock_user = MockUser(username='testuser')
+
+    with patch('src.app.app_routes.admin.admins_required.current_user', return_value=mock_user), \
+         patch('src.app.app_routes.admin.admins_required.active_coordinators', return_value=['admin1', 'admin2']):
+
+        # Expect a Forbidden (403) exception to be raised
+        with pytest.raises(Forbidden):
+            dummy_view()
+
+
+def test_admin_required_is_admin():
+    """
+    Tests that a logged-in admin user is granted access.
+    """
+    # A dummy view function
+    @admin_required
+    def dummy_view():
+        return "Success"
+
+    # Mock user who is in the admin list
+    mock_user = MockUser(username='admin1')
+
+    with patch('src.app.app_routes.admin.admins_required.current_user', return_value=mock_user), \
+         patch('src.app.app_routes.admin.admins_required.active_coordinators', return_value=['admin1', 'admin2']):
+
+        # The view should be executed and return its value
+        response = dummy_view()
+        assert response == "Success"
