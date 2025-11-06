@@ -124,7 +124,7 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 
     monkeypatch.setattr("src.app.users.current.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.admin.admin_required.current_user", _fake_current_user)
+    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.main.routes.current_user", _fake_current_user)
 
 

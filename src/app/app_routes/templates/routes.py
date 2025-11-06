@@ -9,7 +9,7 @@ from flask import (
     Blueprint,
     render_template,
 )
-from ...web.commons.category import get_category_members
+from .category import get_category_members
 from ...config import settings
 from ...template_service import get_templates_db, add_or_update_template
 

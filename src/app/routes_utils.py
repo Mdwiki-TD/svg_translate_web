@@ -93,7 +93,7 @@ def order_stages(stages: Dict[str, Any] | None) -> List[tuple[str, Dict[str, Any
 def format_task(task: dict) -> dict:
     """Formats a task dictionary for the tasks list view."""
     results = task.get("results") or {}
-    injects = results.get("injects_result") or {}
+    injects_result = results.get("injects_result") or {}
 
     created_display, created_sort = _format_timestamp(task.get("created_at"))
     updated_display, updated_sort = _format_timestamp(task.get("updated_at"))
@@ -107,7 +107,7 @@ def format_task(task: dict) -> dict:
         "files_to_upload_count": results.get("files_to_upload_count", 0),
         "new_translations_count": results.get("new_translations_count", 0),
         "total_files": results.get("total_files", 0),
-        "nested_files": injects.get("nested_files", 0),
+        "nested_files": injects_result.get("nested_files", 0),
         "created_at_display": created_display,
         "created_at_sort": created_sort,
         "updated_at_display": updated_display,

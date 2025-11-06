@@ -19,7 +19,7 @@ from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...users.current import current_user, oauth_required
-from ...app_routes.admin.admin_required import admin_required
+from ..admin.admins_required import admin_required
 
 from ...routes_utils import load_auth_payload, get_error_message, format_task, order_stages
 

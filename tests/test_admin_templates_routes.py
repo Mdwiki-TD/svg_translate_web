@@ -87,9 +87,9 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.app.app_routes.admin.admin_routes.templates.current_user", fake_current_user
     )
-    monkeypatch.setattr("src.app.app_routes.admin.admin_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr(
-        "src.app.app_routes.admin.admin_required.active_coordinators", lambda: {admin_user.username}
+        "src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr(
         "src.app.users.admin_service.active_coordinators", lambda: {admin_user.username}

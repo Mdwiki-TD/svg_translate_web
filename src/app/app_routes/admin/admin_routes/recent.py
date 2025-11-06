@@ -14,7 +14,7 @@ from ...tasks.routes import (
     format_task_message,
     TASKS_LOCK,
 )
-from ..admin_required import admin_required
+from ..admins_required import admin_required
 
 
 def _recent_routes():

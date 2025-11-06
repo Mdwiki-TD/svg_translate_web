@@ -5,17 +5,16 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ..web.start_bot import (
-    save_files_stats,
-    text_task,
-    titles_task,
-    translations_task,
-    make_results_summary
-)
-from .fix_nested_tasks import fix_nested_task
-from .inject_tasks import inject_task
-from ..download_tasks import download_task
-from ..upload_tasks import upload_task
+from ..tasks.texts import text_task
+from ..tasks.titles import titles_task
+from ..tasks.extract import translations_task
+from ..tasks.downloads import download_task
+from ..tasks.fix_nested import fix_nested_task
+from ..tasks.injects import inject_task
+from ..tasks.uploads import upload_task
+
+from ..tasks.tasks_utils import save_files_stats, make_results_summary
+
 from ..config import settings
 from ..db.task_store_pymysql import TaskStorePyMysql
 

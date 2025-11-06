@@ -1,6 +1,7 @@
-import os
 
-import pytest
+from src.app import create_app
+from src.app.users import store as user_store
+from src.app.app_routes.tasks import routes as task_routes
 
 
 class FakeCursor:
@@ -73,10 +74,6 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
         "app.db.task_store_pymysql.TaskStorePyMysql.list_tasks",
         lambda self, **kwargs: [],
     )
-
-    from app import create_app
-    from app.users import store as user_store
-    from app.app_routes.tasks import routes as task_routes
 
     user_store._db = None
     task_routes.TASK_STORE = None

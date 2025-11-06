@@ -16,7 +16,7 @@ from flask.typing import ResponseReturnValue
 
 from ....users.current import current_user
 from .... import template_service
-from ..admin_required import admin_required
+from ..admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")
 
