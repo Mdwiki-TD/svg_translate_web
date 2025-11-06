@@ -22,8 +22,10 @@ def get_titles_from_wikilinks(text):
     titles = []
 
     for link in parsed.wikilinks:
-        if link.target.lower().endswith(".svg"):
-            titles.append(link.target.strip())
+        target = link.target
+        if target.lower().endswith(".svg") and target.startswith("File:"):
+            target = target[5:]
+            titles.append(target.strip())
 
     return titles
 
@@ -50,7 +52,6 @@ def get_titles(text, filter_duplicates=True):
 
             titles.extend(m.strip() for m in matches)
 
-    # titles.extend(get_titles_from_wikilinks(text))
     if filter_duplicates:
         titles = list(set(titles))
 
@@ -67,6 +68,10 @@ def get_files_list(text, filter_duplicates=True):
       - Filenames from all owidslidersrcs (no 'File:'), duplicates preserved.
     """
     titles = get_titles(text, filter_duplicates=filter_duplicates)
+    titles.extend(get_titles_from_wikilinks(text))
+
+    if filter_duplicates:
+        titles = list(set(titles))
 
     main_title = find_main_title(text)
 
