@@ -3,7 +3,6 @@
 
 """
 Pytest test suite for:
-- match_main_title
 - find_main_title
 - get_titles
 - get_files_list
@@ -14,7 +13,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.app.tasks.titles.temps_bot import match_main_title, find_main_title, get_titles, get_files_list
+from src.app.tasks.titles.temps_bot import find_main_title, get_titles, get_files_list
 
 
 # ---------- Fixtures with realistic wikitext samples ----------
@@ -102,45 +101,8 @@ def sample_multiple_owidslidersrcs() -> str:
         "}}\n"
     )
 
-
-# ---------- Tests for match_main_title ----------
-
-@pytest.mark.parametrize(
-    "line,expected",
-    [
-        # Basic valid line
-        (
-            "*'''Translate''': https://svgtranslate.toolforge.org/File:health-expenditure-government-expenditure,World,2000.svg",
-            "File:health-expenditure-government-expenditure,World,2000.svg",
-        ),
-        # Extra spaces
-        (
-            "*'''Translate''':   https://svgtranslate.toolforge.org/File:Title-With_underscores-and,Stuff,2024(1).svg",
-            "File:Title-With_underscores-and,Stuff,2024(1).svg",
-        ),
-        # Invalid domain
-        (
-            "*'''Translate''': https://example.org/File:bad.svg",
-            None,
-        ),
-        # Wrong prefix
-        (
-            "Translate: https://svgtranslate.toolforge.org/File:miss.svg",
-            None,
-        ),
-        # Not at line start
-        (
-            "  *'''Translate''': https://svgtranslate.toolforge.org/File:indented.svg",
-            None,  # pattern anchors to start-of-line ^
-        ),
-    ],
-)
-def test_match_main_title_various(line, expected):
-    """Validate regex-based extraction from 'Translate' line."""
-    assert match_main_title(line) == expected
-
-
 # ---------- Tests for find_main_title ----------
+
 
 def test_find_main_title_svglanguages(sample_with_svglanguages_only):
     """SVGLanguages should be parsed and returned as-is except underscores replaced with spaces."""

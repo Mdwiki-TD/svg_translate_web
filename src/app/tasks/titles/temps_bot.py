@@ -17,6 +17,35 @@ def match_main_title(text):
     return match.group(1) if match else None
 
 
+def match_main_title_new(text):
+    """Return the SVG filename from the ``Translate`` line if present."""
+
+    pattern = re.compile(
+        r"^\*'''Translate''':\s+(?P<url>https?://svgtranslate\.toolforge\.org/[^\s]+)",
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+
+    # Wikitext links may wrap the URL with characters such as [] or quotes.
+    url = match.group("url").rstrip("]')\">}")
+
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except ValueError:
+        return None
+
+    if parsed.netloc.lower() != "svgtranslate.toolforge.org":
+        return None
+
+    path = urllib.parse.unquote(parsed.path.lstrip("/"))
+    if not path.lower().endswith(".svg"):
+        return None
+
+    return path
+
+
 def find_main_title(text):
 
     # Parse the text using wikitextparser
