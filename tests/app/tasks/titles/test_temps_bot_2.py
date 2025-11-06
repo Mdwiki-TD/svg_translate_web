@@ -6,8 +6,6 @@ Pytest test suite for:
 - get_titles
 - get_titles_from_wikilinks
 
-Assumes the functions are available from the target module.
-Replace `from your_module import ...` with your actual module name.
 """
 
 import pytest

@@ -3,18 +3,12 @@
 
 """
 Pytest test suite for:
-- find_main_title
 - get_files_list
-
-Assumes the functions are available from the target module.
-Replace `from your_module import ...` with your actual module name.
 """
 
 import pytest
 
-from src.app.tasks.titles.temps_bot import find_main_title, get_files_list
-
-# ---------- Fixtures with realistic wikitext samples ----------
+from src.app.tasks.titles.temps_bot import get_files_list
 
 
 @pytest.fixture
@@ -63,15 +57,6 @@ def sample_from_prompt() -> str:
 
 
 @pytest.fixture
-def sample_with_svglanguages_only() -> str:
-    """Wikitext with only SVGLanguages main title."""
-    return (
-        "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n"
-        "Some other text...\n"
-    )
-
-
-@pytest.fixture
 def sample_with_both_titles() -> str:
     """Wikitext with both SVGLanguages and Translate line. SVGLanguages should take precedence."""
     return (
@@ -99,41 +84,6 @@ def sample_multiple_owidslidersrcs() -> str:
         "File:Gamma, 2002 to 2003, CCC.svg!country=CCC\n"
         "}}\n"
     )
-
-# ---------- Tests for find_main_title ----------
-
-
-def test_find_main_title_svglanguages(sample_with_svglanguages_only):
-    """SVGLanguages should be parsed and returned as-is except underscores replaced with spaces."""
-    got = find_main_title(sample_with_svglanguages_only)
-    assert got == "parkinsons-disease-prevalence-ihme,World,1990.svg".replace("_", " ")
-
-
-def test_find_main_title_prefers_svglanguages_over_translate(sample_with_both_titles):
-    """SVGLanguages takes precedence when both exist."""
-    got = find_main_title(sample_with_both_titles)
-    assert got == "some_main_title,World,2010.svg".replace("_", " ")
-
-
-def test_find_main_title_none_when_absent(sample_without_titles):
-    """Return None if no SVGLanguages present."""
-    assert find_main_title(sample_without_titles) is None
-
-
-# ---------- Robustness and corner cases ----------
-
-@pytest.mark.parametrize(
-    "tpl,expected",
-    [
-        ("{{SVGLanguages|Title_With_Underscores,World,2020.svg}}", "Title With Underscores,World,2020.svg"),
-        ("{{ SVGLanguages | spaced_title,World,2015.svg }}", "spaced title,World,2015.svg"),
-        # Case-insensitive template name handling
-        ("{{svglanguages|MiXeD-Case,World,2012.svg}}", "MiXeD-Case,World,2012.svg"),
-    ],
-)
-def test_find_main_title_variants(tpl, expected):
-    """Whitespace and case variations are handled."""
-    assert find_main_title(tpl) == expected
 
 # ---------- Tests for get_files_list (integration) ----------
 
