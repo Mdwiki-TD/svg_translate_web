@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 from flask import Flask, render_template, flash
+from flask_wtf import CSRFProtect
 from typing import Tuple
 from datetime import datetime
 from .config import settings
@@ -60,6 +61,9 @@ def create_app() -> Flask:
         SESSION_COOKIE_SECURE=settings.cookie.secure,
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
     )
+
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     app.config["USE_MW_OAUTH"] = settings.use_mw_oauth
 

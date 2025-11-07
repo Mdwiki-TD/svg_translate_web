@@ -107,6 +107,7 @@ function result_html(r) {
     const lastUpdate = document.getElementById('last-update');
     const STOP_STATUSES = new Set(['Completed', 'Failed', 'Cancelled', 'error']);
     const RESTART_STATUSES = new Set(['Completed', 'Failed', 'Cancelled']);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     let timer = null;
 
     function statusBadge(status) {
@@ -237,6 +238,9 @@ function result_html(r) {
             try {
                 const response = await fetch(`/tasks/${taskId}/cancel`, {
                     method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
                 });
                 let result = await response.json();
                 if (result && result.error) {
@@ -281,6 +285,9 @@ function result_html(r) {
             try {
                 const response = await fetch(`/tasks/${taskId}/restart`, {
                     method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
                 });
                 let data = await response.json();
                 if (data && data.error) {
