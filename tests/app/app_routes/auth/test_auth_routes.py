@@ -1,30 +1,138 @@
-"""
-Tests
-"""
+"""Tests for authentication routes."""
+
+from __future__ import annotations
+
+import types
+from typing import Any
+
 import pytest
+from flask import Flask, g, session
 
-from src.app.app_routes.auth.routes import login_required, login, callback, logout
-
-
-@pytest.mark.skip(reason="Pending write")
-def test_login_required():
-    # TODO: Implement test
-    pass
+from src.app.app_routes.auth import routes
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_login():
-    # TODO: Implement test
-    pass
+@pytest.fixture
+def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
+    app = Flask(__name__)
+    app.secret_key = "test-secret"
+    app.config["SERVER_NAME"] = "example.com"
+    app.add_url_rule("/", "main.index", lambda: "index")
+    app.add_url_rule("/callback", "auth.callback", lambda: "callback")
+
+    cookie = types.SimpleNamespace(
+        name="uid_enc",
+        httponly=True,
+        secure=False,
+        samesite="Lax",
+        max_age=3600,
+    )
+    oauth_cfg = types.SimpleNamespace(consumer_key="key", consumer_secret="secret")
+    settings = types.SimpleNamespace(
+        use_mw_oauth=True,
+        STATE_SESSION_KEY="state",
+        REQUEST_TOKEN_SESSION_KEY="req_token",
+        cookie=cookie,
+        oauth=oauth_cfg,
+    )
+    monkeypatch.setattr(routes, "settings", settings)
+    monkeypatch.setattr(routes, "oauth_state_nonce", "state")
+    monkeypatch.setattr(routes, "request_token_key", "req_token")
+
+    return app
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_callback():
-    # TODO: Implement test
-    pass
+def test_login_required_redirects_when_anonymous(app: Flask) -> None:
+    @routes.login_required
+    def protected() -> str:
+        return "protected"
+
+    with app.test_request_context("/protected"):
+        g.is_authenticated = False
+        response = protected()
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("error=login-required")
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_logout():
-    # TODO: Implement test
-    pass
+def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyLimiter:
+        def __init__(self) -> None:
+            self.calls: list[str] = []
+
+        def allow(self, key: str) -> bool:
+            self.calls.append(key)
+            return True
+
+        def try_after(self, key: str):  # pragma: no cover - defensive guard
+            raise AssertionError("try_after should not be called")
+
+    limiter = DummyLimiter()
+    monkeypatch.setattr(routes, "login_rate_limiter", limiter)
+    monkeypatch.setattr(routes.secrets, "token_urlsafe", lambda _: "nonce")
+    monkeypatch.setattr(routes, "sign_state_token", lambda state: f"signed:{state}")
+
+    class DummyStart:
+        def __call__(self, token: str):
+            assert token == "signed:nonce"
+            return "https://auth.example", ("a", "b")
+
+    monkeypatch.setattr(routes, "start_login", DummyStart())
+
+    with app.test_request_context("/login"):
+        response = routes.login()
+        assert response.status_code == 302
+        assert response.headers["Location"] == "https://auth.example"
+        assert session["state"] == "nonce"
+        assert session["req_token"] == ["a", "b"]
+
+    assert limiter.calls
+
+
+def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return True
+
+    monkeypatch.setattr(routes, "callback_rate_limiter", DummyLimiter())
+    monkeypatch.setattr(routes, "verify_state_token", lambda token: "state-value" if token == "token" else None)
+    monkeypatch.setattr(routes, "_load_request_token", lambda raw: ("k", "s"))
+
+    def fake_complete(request_token, query_string: str):
+        assert request_token == ("k", "s")
+        assert query_string == "state=token&oauth_verifier=code"
+        access = types.SimpleNamespace(key="ak", secret="as")
+        identity = {"sub": "123", "username": "Tester"}
+        return access, identity
+
+    monkeypatch.setattr(routes, "complete_login", fake_complete)
+    monkeypatch.setattr(routes, "upsert_user_token", lambda **kwargs: kwargs)
+    monkeypatch.setattr(routes, "sign_user_id", lambda user_id: f"signed:{user_id}")
+
+    with app.test_request_context("/callback?state=token&oauth_verifier=code"):
+        session["state"] = "state-value"
+        session["req_token"] = ["k", "s"]
+
+        response = routes.callback()
+        cookie_header = response.headers.get("Set-Cookie", "")
+
+        assert response.status_code == 302
+        assert "uid_enc" in cookie_header
+        assert session["uid"] == 123
+        assert g.current_user.username == "Tester"
+        assert g.is_authenticated is True
+
+
+def test_logout_clears_session(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(routes, "delete_user_token", lambda uid: None)
+    monkeypatch.setattr(routes, "extract_user_id", lambda token: 55)
+
+    with app.test_request_context("/logout"):
+        session["uid"] = 42
+        session["username"] = "Tester"
+
+        response = routes.logout()
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/"
+        assert "uid" not in session
+        assert g.current_user is None
