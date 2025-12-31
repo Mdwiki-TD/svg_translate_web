@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Fix Nested SVG Tags{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-wrench-adjustable"></i> Fix Nested SVG Tags
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Enter a file name to download, fix nested tags, and upload back to Wikimedia Commons.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('fix_nested.fix_nested') }}">
+                        <div class="mb-3">
+                            <label for="filename" class="form-label">
+                                File Name <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="filename"
+                                name="filename"
+                                placeholder="File: Dengue_fever_deaths,_2000_to_2021,_AGO.svg"
+                                required
+                            >
+                            <div class="form-text">
+                                You can include or omit the "File:" prefix
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-tools"></i> Fix Nested Tags
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> What does this do?
+                        </h5>
+                        <ol class="mb-0">
+                            <li>Downloads the specified SVG file</li>
+                            <li>Analyzes it for nested tags</li>
+                            <li>Fixes any nested tags found (up to 10 levels)</li>
+                            <li>Uploads the fixed file back to Commons</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
