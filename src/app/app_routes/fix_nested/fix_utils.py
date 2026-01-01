@@ -140,20 +140,17 @@ def process_fix_nested(filename: str, user) -> dict:
             "details": verify,
         }
 
-    message = f"{verify['fixed']} nested tag(s) Fixed"
-
     upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
     if not upload["ok"]:
-        message += ", but upload failed"
         return {
             "success": False,
-            "message": message,
+            "message": f"Fixed {verify['fixed']} nested tag(s), but upload failed.",
             "details": {**verify, **upload},
         }
-    message += f", Successfully fixed and uploaded {filename}"
+
     return {
         "success": True,
-        "message": message,
+        "message": f"Successfully fixed {verify['fixed']} nested tag(s) and uploaded {filename}.",
         "details": {
             **verify,
             "upload_result": upload["result"],
