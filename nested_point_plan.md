@@ -151,18 +151,20 @@ def upload_fixed_svg(
     from ...users.current import get_current_user
 
     user = get_current_user()
-    if not user or not hasattr(user, "site"):
+    if not user:
         return {
             "ok": False,
             "error": "unauthenticated",
         }
+
+    site = get_user_site(user)
 
     logger.info(f"Uploading fixed file: {filename}")
 
     result = upload_file(
         file_name=filename,
         file_path=file_path,
-        site=user.site,
+        site=site,
         summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
     )
 
