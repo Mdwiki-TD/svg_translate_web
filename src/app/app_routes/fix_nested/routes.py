@@ -25,7 +25,7 @@ def fix_nested_post():
 
     # Remove "File:" prefix if present
     if filename.lower().startswith("file:"):
-        filename = filename.split(":", 1)[1].strip()
+        filename = filename = filename[5:].lstrip()
 
     if not filename:
         flash("Please provide a file name", "danger")
