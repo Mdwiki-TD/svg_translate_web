@@ -15,7 +15,7 @@ def fix_nested():
 
 
 @bp_fix_nested.route("/", methods=["POST"])
-# @oauth_required
+@oauth_required
 def fix_nested_post():
 
     # POST logic

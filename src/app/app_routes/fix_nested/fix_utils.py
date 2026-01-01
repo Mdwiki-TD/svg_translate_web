@@ -5,7 +5,7 @@ import logging
 import tempfile
 from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
 from ...tasks.downloads import download_one_file
-from ...tasks.uploads import upload_file
+from ...tasks.uploads import upload_file, get_user_site
 
 logger = logging.getLogger("svg_translate")
 
@@ -68,11 +68,18 @@ def upload_fixed_svg(
     user,
 ) -> dict:
     """Upload fixed SVG file to Commons."""
-
-    if not user or not hasattr(user, "site"):
+    if not user:
         return {
             "ok": False,
             "error": "unauthenticated",
+        }
+
+    site = get_user_site(user)
+
+    if not site:
+        return {
+            "ok": False,
+            "error": "oauth-auth-failed",
         }
 
     logger.info(f"Uploading fixed file: {filename}")
@@ -80,7 +87,7 @@ def upload_fixed_svg(
     result = upload_file(
         file_name=filename,
         file_path=file_path,
-        site=user.site,
+        site=site,
         summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
     )
 
