@@ -2,8 +2,10 @@
 import logging
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
+from ...routes_utils import load_auth_payload
 from .fix_utils import process_fix_nested
 from ...users.current import current_user, oauth_required
+
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger("svg_translate")
 
@@ -32,7 +34,8 @@ def fix_nested_post():
     # Import processing function
 
     current_user_obj = current_user()
-    result = process_fix_nested(filename, current_user_obj)
+    auth_payload = load_auth_payload(current_user_obj)
+    result = process_fix_nested(filename, auth_payload)
 
     if result["success"]:
         flash(result["message"], "success")
