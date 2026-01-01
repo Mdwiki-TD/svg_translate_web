@@ -133,7 +133,7 @@ def process_fix_nested(filename: str, user) -> dict:
             "details": verify,
         }
 
-    message = f"{verify['fixed']} nested tag(s) Fixed."
+    message = f"{verify['fixed']} nested tag(s) Fixed"
 
     upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
     if not upload["ok"]:

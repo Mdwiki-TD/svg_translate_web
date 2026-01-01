@@ -37,6 +37,9 @@ def fix_nested_post():
     if result["success"]:
         flash(result["message"], "success")
     else:
+        if result.get("details", {}).get("error"):
+            flash(result["details"]["error"], "danger")
+
         flash(result["message"], "danger")
 
     return redirect(url_for("fix_nested.fix_nested"))
