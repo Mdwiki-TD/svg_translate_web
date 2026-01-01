@@ -3,7 +3,6 @@
 from pathlib import Path
 import logging
 import tempfile
-
 from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
 from ...tasks.downloads import download_one_file
 from ...tasks.uploads import upload_file
@@ -134,17 +133,20 @@ def process_fix_nested(filename: str, user) -> dict:
             "details": verify,
         }
 
+    message = f"{verify['fixed']} nested tag(s) Fixed."
+
     upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
     if not upload["ok"]:
+        message += ", but upload failed"
         return {
             "success": False,
-            "message": f"Upload failed for {filename}",
+            "message": message,
             "details": {**verify, **upload},
         }
-
+    message += f", Successfully fixed and uploaded {filename}"
     return {
         "success": True,
-        "message": f"Successfully fixed and uploaded {filename}",
+        "message": message,
         "details": {
             **verify,
             "upload_result": upload["result"],
