@@ -14,6 +14,7 @@ from .app_routes import (
     bp_explorer,
     bp_templates,
     bp_tasks_managers,
+    bp_fix_nested,
     close_task_store,
 )
 
@@ -76,6 +77,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_tasks_managers)
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
+    app.register_blueprint(bp_fix_nested)
 
     @app.context_processor
     def _inject_user():  # pragma: no cover - trivial wrapper

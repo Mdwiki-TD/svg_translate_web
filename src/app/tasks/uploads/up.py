@@ -7,6 +7,8 @@ import logging
 import mwclient
 from tqdm import tqdm
 
+from ...users.current import F
+
 from .upload_bot import upload_file
 
 from ...users.store import mark_token_used
@@ -115,6 +117,20 @@ def start_upload(
     return upload_result, stages
 
 
+def get_user_site(user) -> mwclient.Site | None:
+    access_token = _coerce_encrypted(user.get("access_token"))
+    access_secret = _coerce_encrypted(user.get("access_secret"))
+
+    if not access_token or not access_secret:
+        return None
+    try:
+        site = build_upload_site(access_token, access_secret)
+    except Exception as exc:  # pragma: no cover - network interaction
+        logger.exception("Failed to build OAuth site", exc_info=exc)
+        return None
+    return site
+
+
 def upload_task(
     stages: Dict[str, Any],
     files_to_upload: Dict[str, Dict[str, object]],
@@ -152,6 +168,7 @@ def upload_task(
         return {"done": 0, "not_done": 0, "skipped": True, "reason": "no-input"}, stages
 
     user = user or {}
+    # site = get_user_site(user)
     access_token = _coerce_encrypted(user.get("access_token"))
     access_secret = _coerce_encrypted(user.get("access_secret"))
 
