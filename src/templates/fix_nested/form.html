@@ -17,7 +17,7 @@
                         Enter a file name to download, fix nested tags, and upload back to Wikimedia Commons.
                     </p>
 
-                    <form method="POST" action="{{ url_for('fix_nested.fix_nested') }}">
+                    <form method="POST" action="{{ url_for('fix_nested.fix_nested_post') }}">
                         <div class="mb-3">
                             <label for="filename" class="form-label">
                                 File Name <span class="text-danger">*</span>

@@ -48,29 +48,7 @@ logger = logging.getLogger("svg_translate")
 
 @bp_fix_nested.route("/", methods=["GET", "POST"])
 def fix_nested():
-    if request.method == "GET":
-        return render_template("fix_nested/form.html")
-
-    # POST logic
-    filename = request.form.get("filename", "").strip()
-
-    # Remove "File:" prefix if present
-    if filename.lower().startswith("file:"):
-        filename = filename. split(":", 1)[1].strip()
-
-    if not filename:
-        flash("Please provide a file name", "danger")
-        return redirect(url_for("fix_nested.fix_nested"))
-
-    # Call processing function
-    result = process_fix_nested(filename)
-
-    if result["success"]:
-        flash(result["message"], "success")
-    else:
-        flash(result["message"], "danger")
-
-    return redirect(url_for("fix_nested.fix_nested"))
+    ...
 ```
 
 ---
@@ -93,53 +71,22 @@ logger = logging.getLogger("svg_translate")
 
 def download_svg_file(filename: str, temp_dir: Path) -> dict:
     """Download SVG file and return file path or error info."""
-    logger.info(f"Downloading file: {filename}")
-
-    file_data = download_one_file(
-        title=filename,
-        out_dir=temp_dir,
-        i=1,
-        overwrite=True,
-    )
-
-    if file_data.get("result") != "success":
-        return {
-            "ok": False,
-            "error": "download_failed",
-            "details": file_data,
-        }
-
-    return {
-        "ok": True,
-        "path": Path(file_data["path"]),
-    }
+    ...
 
 
 def detect_nested_tags(file_path: Path) -> dict:
     """Detect nested tags in SVG file."""
-    nested = match_nested_tags(str(file_path))
-    return {
-        "count": len(nested),
-        "tags": nested,
-    }
+    ...
 
 
 def fix_nested_tags(file_path: Path) -> bool:
     """Fix nested tags in-place."""
-    logger.info(f"Fixing nested tags in: {file_path.name}")
-    return bool(fix_nested_file(file_path, file_path))
+    ...
 
 
 def verify_fix(file_path: Path, before_count: int) -> dict:
     """Verify nested tags count after fix."""
-    after = match_nested_tags(str(file_path))
-    after_count = len(after)
-
-    return {
-        "before": before_count,
-        "after": after_count,
-        "fixed": max(0, before_count - after_count),
-    }
+    ...
 
 
 def upload_fixed_svg(
@@ -148,91 +95,12 @@ def upload_fixed_svg(
     tags_fixed: int,
 ) -> dict:
     """Upload fixed SVG file to Commons."""
-    from ...users.current import get_current_user
-
-    user = get_current_user()
-    if not user:
-        return {
-            "ok": False,
-            "error": "unauthenticated",
-        }
-
-    site = get_user_site(user)
-
-    logger.info(f"Uploading fixed file: {filename}")
-
-    result = upload_file(
-        file_name=filename,
-        file_path=file_path,
-        site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
-    )
-
-    if not result:
-        return {
-            "ok": False,
-            "error": "upload_failed",
-        }
-
-    return {
-        "ok": True,
-        "result": result,
-    }
+    ...
 
 
 def process_fix_nested(filename: str) -> dict:
     """High-level orchestration for fixing nested SVG tags."""
-    temp_dir = Path(tempfile.mkdtemp())
-
-    download = download_svg_file(filename, temp_dir)
-    if not download["ok"]:
-        return {
-            "success": False,
-            "message": f"Failed to download file: {filename}",
-            "details": download,
-        }
-
-    file_path = download["path"]
-
-    detect_before = detect_nested_tags(file_path)
-    if detect_before["count"] == 0:
-        return {
-            "success": False,
-            "message": f"No nested tags found in {filename}",
-            "details": {"nested_count": 0},
-        }
-
-    if not fix_nested_tags(file_path):
-        return {
-            "success": False,
-            "message": f"Failed to fix nested tags in {filename}",
-            "details": {"nested_count": detect_before["count"]},
-        }
-
-    verify = verify_fix(file_path, detect_before["count"])
-    if verify["fixed"] == 0:
-        return {
-            "success": False,
-            "message": f"No nested tags were fixed in {filename}",
-            "details": verify,
-        }
-
-    upload = upload_fixed_svg(filename, file_path, verify["fixed"])
-    if not upload["ok"]:
-        return {
-            "success": False,
-            "message": f"Upload failed for {filename}",
-            "details": {**verify, **upload},
-        }
-
-    return {
-        "success": True,
-        "message": f"Successfully fixed and uploaded {filename}",
-        "details": {
-            **verify,
-            "upload_result": upload["result"],
-        },
-    }
+    ...
 
 ```
 
@@ -249,61 +117,7 @@ def process_fix_nested(filename: str) -> dict:
 
 {% block content %}
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="bi bi-wrench-adjustable"></i> Fix Nested SVG Tags
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">
-                        Enter a file name to download, fix nested tags, and upload back to Wikimedia Commons.
-                    </p>
-
-                    <form method="POST" action="{{ url_for('fix_nested.fix_nested') }}">
-                        <div class="mb-3">
-                            <label for="filename" class="form-label">
-                                File Name <span class="text-danger">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="filename"
-                                name="filename"
-                                placeholder="File: Dengue_fever_deaths,_2000_to_2021,_AGO.svg"
-                                required
-                            >
-                            <div class="form-text">
-                                You can include or omit the "File:" prefix
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-tools"></i> Fix Nested Tags
-                            </button>
-                        </div>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <div class="alert alert-info">
-                        <h5 class="alert-heading">
-                            <i class="bi bi-info-circle"></i> What does this do?
-                        </h5>
-                        <ol class="mb-0">
-                            <li>Downloads the specified SVG file</li>
-                            <li>Analyzes it for nested tags</li>
-                            <li>Fixes any nested tags found (up to 10 levels)</li>
-                            <li>Uploads the fixed file back to Commons</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    ...
 </div>
 {% endblock %}
 ```
