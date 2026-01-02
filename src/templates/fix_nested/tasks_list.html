@@ -3,9 +3,9 @@
 {% block title %}Fix Nested Tasks{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-2">
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">
                     <i class="bi bi-list-task"></i> Fix Nested Tasks
@@ -17,6 +17,7 @@
         </div>
         <div class="card-body">
             <!-- Filters -->
+            {% if show_form %}
             <form method="GET" class="row g-3 mb-4">
                 <div class="col-md-4">
                     <label for="status" class="form-label">Status</label>
@@ -26,14 +27,15 @@
                         <option value="running" {% if status == 'running' %}selected{% endif %}>Running</option>
                         <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
                         <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
-                        <option value="upload_failed" {% if status == 'upload_failed' %}selected{% endif %}>Upload Failed</option>
+                        <option value="upload_failed" {% if status == 'upload_failed' %}selected{% endif %}>Upload
+                            Failed</option>
                         <option value="undone" {% if status == 'undone' %}selected{% endif %}>Undone</option>
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" name="username" id="username" class="form-control" 
-                           value="{{ username or '' }}" placeholder="Filter by username">
+                    <input type="text" name="username" id="username" class="form-control" value="{{ username or '' }}"
+                        placeholder="Filter by username">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
@@ -44,7 +46,7 @@
                     </a>
                 </div>
             </form>
-
+            {% endif %}
             <!-- Tasks Table -->
             {% if tasks %}
             <div class="table-responsive">
@@ -82,19 +84,19 @@
                             </td>
                             <td>
                                 {% if task.nested_tags_fixed is not none %}
-                                    {{ task.nested_tags_fixed }}
-                                    {% if task.nested_tags_before %}
-                                        / {{ task.nested_tags_before }}
-                                    {% endif %}
+                                {{ task.nested_tags_fixed }}
+                                {% if task.nested_tags_before %}
+                                / {{ task.nested_tags_before }}
+                                {% endif %}
                                 {% else %}
-                                    -
+                                -
                                 {% endif %}
                             </td>
                             <td>{{ task.username or '-' }}</td>
                             <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') if task.created_at else '-' }}</td>
                             <td>
-                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}" 
-                                   class="btn btn-sm btn-primary">
+                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}"
+                                    class="btn btn-sm btn-primary">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                             </td>
@@ -109,7 +111,8 @@
                 <ul class="pagination justify-content-center">
                     {% if page > 1 %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page - 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
+                        <a class="page-link"
+                            href="?page={{ page - 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
                             Previous
                         </a>
                     </li>
@@ -119,7 +122,8 @@
                     </li>
                     {% if tasks|length == per_page %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page + 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
+                        <a class="page-link"
+                            href="?page={{ page + 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
                             Next
                         </a>
                     </li>

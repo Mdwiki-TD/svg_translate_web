@@ -5,7 +5,7 @@ from __future__ import annotations
 import types
 
 import pytest
-from flask import Flask, session
+from flask import Flask
 
 from src.app.app_routes.cancel_restart import routes
 

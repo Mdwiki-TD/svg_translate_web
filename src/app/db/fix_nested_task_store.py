@@ -16,7 +16,7 @@ class FixNestedTaskStore:
 
     def __init__(self, db: Database) -> None:
         """Initialize the fix_nested task store.
-        
+
         Args:
             db: Database connection instance
         """
@@ -53,12 +53,12 @@ class FixNestedTaskStore:
         username: Optional[str] = None,
     ) -> bool:
         """Create a new fix_nested task record.
-        
+
         Args:
             task_id: Unique task identifier
             filename: Name of the SVG file
             username: Username of the user who created the task
-            
+
         Returns:
             True if task was created successfully
         """
@@ -66,6 +66,7 @@ class FixNestedTaskStore:
             INSERT INTO fix_nested_tasks (id, username, filename, status)
             VALUES (%s, %s, %s, %s)
         """
+        filename = filename.replace("_", " ")
         try:
             self.db.execute_query_safe(query, (task_id, username, filename, "pending"))
             logger.info(f"Created fix_nested task {task_id} for file {filename}")
@@ -76,10 +77,10 @@ class FixNestedTaskStore:
 
     def get_task(self, task_id: str) -> Optional[Dict]:
         """Retrieve a task by ID.
-        
+
         Args:
             task_id: Task identifier
-            
+
         Returns:
             Task data as dictionary, or None if not found
         """
@@ -105,11 +106,11 @@ class FixNestedTaskStore:
 
     def update_status(self, task_id: str, status: str) -> bool:
         """Update task status.
-        
+
         Args:
             task_id: Task identifier
             status: New status (pending/running/completed/failed/cancelled)
-            
+
         Returns:
             True if update was successful
         """
@@ -132,19 +133,19 @@ class FixNestedTaskStore:
         fixed: Optional[int] = None,
     ) -> bool:
         """Update nested tag counts.
-        
+
         Args:
             task_id: Task identifier
             before: Count before fix
             after: Count after fix
             fixed: Count of tags fixed
-            
+
         Returns:
             True if update was successful
         """
         updates = []
         params = []
-        
+
         if before is not None:
             updates.append("nested_tags_before = %s")
             params.append(before)
@@ -154,13 +155,13 @@ class FixNestedTaskStore:
         if fixed is not None:
             updates.append("nested_tags_fixed = %s")
             params.append(fixed)
-        
+
         if not updates:
             return True
-        
+
         params.append(task_id)
         query = f"UPDATE fix_nested_tasks SET {', '.join(updates)} WHERE id = %s"
-        
+
         try:
             self.db.execute_query_safe(query, tuple(params))
             return True
@@ -170,11 +171,11 @@ class FixNestedTaskStore:
 
     def update_download_result(self, task_id: str, result: Dict) -> bool:
         """Update download result.
-        
+
         Args:
             task_id: Task identifier
             result: Download result data
-            
+
         Returns:
             True if update was successful
         """
@@ -190,11 +191,11 @@ class FixNestedTaskStore:
 
     def update_upload_result(self, task_id: str, result: Dict) -> bool:
         """Update upload result.
-        
+
         Args:
             task_id: Task identifier
             result: Upload result data
-            
+
         Returns:
             True if update was successful
         """
@@ -210,11 +211,11 @@ class FixNestedTaskStore:
 
     def update_error(self, task_id: str, error_message: str) -> bool:
         """Update error message.
-        
+
         Args:
             task_id: Task identifier
             error_message: Error message
-            
+
         Returns:
             True if update was successful
         """
@@ -236,28 +237,28 @@ class FixNestedTaskStore:
         offset: int = 0,
     ) -> List[Dict]:
         """List tasks with optional filters.
-        
+
         Args:
             status: Filter by status
             username: Filter by username
             limit: Maximum number of results
             offset: Offset for pagination
-            
+
         Returns:
             List of task dictionaries
         """
         conditions = []
         params = []
-        
+
         if status:
             conditions.append("status = %s")
             params.append(status)
         if username:
             conditions.append("username = %s")
             params.append(username)
-        
+
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        
+
         query = f"""
             SELECT * FROM fix_nested_tasks
             {where_clause}
@@ -265,7 +266,7 @@ class FixNestedTaskStore:
             LIMIT %s OFFSET %s
         """
         params.extend([limit, offset])
-        
+
         try:
             results = self.db.fetch_query_safe(query, tuple(params))
             tasks = []
@@ -290,10 +291,10 @@ class FixNestedTaskStore:
 
     def delete_task(self, task_id: str) -> bool:
         """Delete a task.
-        
+
         Args:
             task_id: Task identifier
-            
+
         Returns:
             True if deletion was successful
         """

@@ -2,8 +2,8 @@
 
 import logging
 from pathlib import Path
-from flask import Blueprint, render_template, send_from_directory, abort
-
+from flask import Blueprint, render_template, send_from_directory, abort, request
+from ...app_routes.admin.routes import admin_required
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...db.db_class import Database
 from ...config import settings
@@ -21,15 +21,14 @@ logger = logging.getLogger("svg_translate")
 def list_tasks():
     """List all fix_nested tasks."""
     # Get query parameters
-    from flask import request
     status = request.args.get("status")
     username = request.args.get("username")
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 20))
-    
+
     # Calculate offset
     offset = (page - 1) * per_page
-    
+    show_form = False
     # Query tasks
     db = Database(settings.db_data)
     try:
@@ -40,9 +39,10 @@ def list_tasks():
             limit=per_page,
             offset=offset
         )
-        
+
         return render_template(
             "fix_nested/tasks_list.html",
+            show_form=show_form,
             tasks=tasks,
             status=status,
             username=username,
@@ -60,17 +60,18 @@ def task_detail(task_id: str):
     try:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-        
+
         if not task:
             abort(404, description="Task not found")
-        
+        filename = task.get("filename", "")
+
         # Check if files exist
         task_dir = Path(settings.paths.fix_nested_data) / task_id
-        original_file = task_dir / "original" / task.get("filename", "")
-        fixed_file = task_dir / "fixed" / task.get("filename", "")
+        original_file = task_dir / "original" / filename
+        fixed_file = task_dir / "fixed" / filename
         metadata_file = task_dir / "metadata.json"
         log_file = task_dir / "task_log.txt"
-        
+
         # Read log if exists
         log_content = None
         if log_file.exists():
@@ -79,7 +80,7 @@ def task_detail(task_id: str):
                     log_content = f.read()
             except Exception as e:
                 logger.error(f"Failed to read log file: {e}")
-        
+
         # Read metadata if exists
         metadata = None
         if metadata_file.exists():
@@ -89,14 +90,19 @@ def task_detail(task_id: str):
                     metadata = json.load(f)
             except Exception as e:
                 logger.error(f"Failed to read metadata file: {e}")
-        
+
+        # Adjust filename for display
+        task["filename"] = task.get("filename", "").replace(" ", "_")
+        if task["filename"].lower().startswith("file:"):
+            task["filename"] = task["filename"][5:].lstrip()
+
         return render_template(
             "fix_nested/task_detail.html",
             task=task,
             has_original=original_file.exists(),
             has_fixed=fixed_file.exists(),
             log_content=log_content,
-            metadata=metadata
+            metadata=metadata,
         )
     finally:
         db.close()
@@ -107,33 +113,34 @@ def serve_file(task_id: str, file_type: str, filename: str):
     """Serve original or fixed file."""
     if file_type not in ["original", "fixed"]:
         abort(400, description="Invalid file type")
-    
+
     task_dir = Path(settings.paths.fix_nested_data) / task_id / file_type
-    
+
     if not task_dir.exists():
         abort(404, description="File not found")
-    
+
     # Security check: ensure the path is within the expected directory
     file_path = (task_dir / filename).resolve()
     if not str(file_path).startswith(str(task_dir.resolve())):
         abort(403, description="Access denied")
-    
+
     return send_from_directory(str(task_dir.absolute()), filename)
 
 
 @bp_fix_nested_explorer.route("/tasks/<task_id>/log")
+@admin_required
 def view_log(task_id: str):
     """View task log file."""
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     log_file = task_dir / "task_log.txt"
-    
+
     if not log_file.exists():
         abort(404, description="Log file not found")
-    
+
     try:
         with open(log_file, "r", encoding="utf-8") as f:
             log_content = f.read()
-        
+
         from flask import Response
         return Response(log_content, mimetype="text/plain")
     except Exception as e:
@@ -148,30 +155,30 @@ def compare(task_id: str):
     try:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-        
+
         if not task:
             abort(404, description="Task not found")
-        
+
         task_dir = Path(settings.paths.fix_nested_data) / task_id
         original_file = task_dir / "original" / task.get("filename", "")
         fixed_file = task_dir / "fixed" / task.get("filename", "")
-        
+
         if not original_file.exists() or not fixed_file.exists():
             abort(404, description="Original or fixed file not found")
-        
+
         # Analyze both files
         original_result = analyze_file(original_file)
         fixed_result = analyze_file(fixed_file)
-        
+
         # Add nested tag counts
         from CopySVGTranslation import match_nested_tags  # type: ignore
         original_result["nested_tags_count"] = len(match_nested_tags(str(original_file)))
         fixed_result["nested_tags_count"] = len(match_nested_tags(str(fixed_file)))
-        
+
         # Add file sizes
         original_result["file_size"] = original_file.stat().st_size
         fixed_result["file_size"] = fixed_file.stat().st_size
-        
+
         return render_template(
             "fix_nested/compare.html",
             task=task,
@@ -185,78 +192,79 @@ def compare(task_id: str):
 
 
 @bp_fix_nested_explorer.route("/tasks/<task_id>/undo", methods=["POST"])
+@admin_required
 def undo_task(task_id: str):
     """Undo a completed task and restore the original file."""
-    from flask import flash, redirect, url_for, request
+    from flask import flash, redirect, url_for
     from ...routes_utils import load_auth_payload
-    from ...users.current import current_user, oauth_required
+    from ...users.current import current_user
     from ...tasks.uploads import upload_file, get_user_site
-    
+
     db = Database(settings.db_data)
     try:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-        
+
         if not task:
             flash("Task not found", "danger")
             return redirect(url_for("fix_nested_explorer.list_tasks"))
-        
+
         if task["status"] != "completed":
             flash("Can only undo completed tasks", "warning")
             return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
-        
+
         # Check if original file exists
         task_dir = Path(settings.paths.fix_nested_data) / task_id
         original_file = task_dir / "original" / task.get("filename", "")
-        
+
         if not original_file.exists():
             flash("Original file not found", "danger")
             return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
-        
+
         # Get user authentication
         current_user_obj = current_user()
         if not current_user_obj:
             flash("You must be logged in to undo tasks", "danger")
             return redirect(url_for("auth.login"))
-        
+
         auth_payload = load_auth_payload(current_user_obj)
         site = get_user_site(auth_payload)
-        
+
         if not site:
             flash("Failed to authenticate with Wikimedia Commons", "danger")
             return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
-        
+
         # Upload original file back to Commons
         logger.info(f"Undoing task {task_id}: Uploading original file {task['filename']}")
-        
+
         upload_result = upload_file(
             file_name=task["filename"],
             file_path=original_file,
             site=site,
             summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
         )
-        
+
         if not upload_result:
             flash("Failed to upload original file", "danger")
             return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
-        
+
         # Update task status
         db_store.update_status(task_id, "undone")
-        
+
         # Log the undo operation
         from ..fix_nested.fix_utils import log_to_task
         log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
         log_to_task(task_dir, f"Undo upload result: {upload_result}")
-        
+
         flash(f"Successfully restored original file: {task['filename']}", "success")
         logger.info(f"Task {task_id} undone successfully")
-        
+
     except Exception as e:
         logger.error(f"Failed to undo task {task_id}: {e}")
         flash(f"Error during undo operation: {str(e)}", "danger")
     finally:
         db.close()
-    
+
     return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
 

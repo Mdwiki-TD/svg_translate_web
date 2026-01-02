@@ -13,5 +13,5 @@ config_console_logger()
 app = create_app()
 
 if __name__ == "__main__":
-    debug = "debug" in sys.argv
+    debug = "debug" in sys.argv or "DEBUG" in sys.argv
     app.run(debug=debug)

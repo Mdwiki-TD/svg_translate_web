@@ -3,7 +3,7 @@
 {% block title %}Compare: {{ filename }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-2">
     <div class="mb-3">
         <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task_id) }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Task
@@ -11,17 +11,17 @@
     </div>
 
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">
+        <div class="card-header">
+            <h4 class="mb-0">
                 <i class="bi bi-arrow-left-right"></i> Compare: {{ filename }}
-            </h3>
+            </h4>
         </div>
         <div class="card-body">
             <div class="row">
                 <!-- Original File -->
                 <div class="col-md-6">
                     <div class="card border-danger">
-                        <div class="card-header bg-danger text-white">
+                        <div class="card-header">
                             <h5 class="mb-0">Original File</h5>
                         </div>
                         <div class="card-body">
@@ -42,7 +42,7 @@
                                 <dd class="col-sm-6">{{ "%.2f"|format(original_result.file_size / 1024) }} KB</dd>
                             </dl>
 
-                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='original', filename=filename) }}" 
+                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='original', filename=filename) }}"
                                class="btn btn-outline-danger" target="_blank">
                                 <i class="bi bi-download"></i> Download
                             </a>
@@ -53,7 +53,7 @@
                 <!-- Fixed File -->
                 <div class="col-md-6">
                     <div class="card border-success">
-                        <div class="card-header bg-success text-white">
+                        <div class="card-header">
                             <h5 class="mb-0">Fixed File</h5>
                         </div>
                         <div class="card-body">
@@ -74,7 +74,7 @@
                                 <dd class="col-sm-6">{{ "%.2f"|format(fixed_result.file_size / 1024) }} KB</dd>
                             </dl>
 
-                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='fixed', filename=filename) }}" 
+                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='fixed', filename=filename) }}"
                                class="btn btn-outline-success" target="_blank">
                                 <i class="bi bi-download"></i> Download
                             </a>
@@ -85,7 +85,7 @@
 
             <!-- Summary -->
             <div class="card mt-4 border-info">
-                <div class="card-header bg-info text-white">
+                <div class="card-header">
                     <h5 class="mb-0">
                         <i class="bi bi-bar-chart"></i> Summary
                     </h5>
