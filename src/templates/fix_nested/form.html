@@ -17,6 +17,20 @@
                         Enter a file name to download, fix nested tags, and upload back to Wikimedia Commons.
                     </p>
 
+                    {% if commons_link %}
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-check-circle"></i> File Uploaded Successfully
+                        </h5>
+                        <p class="mb-0">
+                            View the result on Wikimedia Commons:
+                            <a href="{{ commons_link }}" target="_blank" rel="noopener noreferrer" class="alert-link">
+                                <i class="bi bi-box-arrow-up-right"></i> {{ commons_link }}
+                            </a>
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <form method="POST" action="{{ url_for('fix_nested.fix_nested_post') }}">
                         <div class="mb-3">
                             <label for="filename" class="form-label">
@@ -28,6 +42,7 @@
                                 id="filename"
                                 name="filename"
                                 placeholder="File:Trachoma_prevalence_age_standardized_ihme,_World,_1990.svg"
+                                value="{{ filename|default('', true) }}"
                                 required
                             >
                             <div class="form-text">
