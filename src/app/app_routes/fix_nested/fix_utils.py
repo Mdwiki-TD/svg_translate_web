@@ -3,11 +3,43 @@
 from pathlib import Path
 import logging
 import tempfile
+import json
+import shutil
+from datetime import datetime
 from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
 from ...tasks.downloads import download_one_file
 from ...tasks.uploads import upload_file, get_user_site
+from ...config import settings
 
 logger = logging.getLogger("svg_translate")
+
+
+def create_task_folder(task_id: str) -> Path:
+    """Create folder structure for a fix_nested task."""
+    task_dir = Path(settings.paths.fix_nested_data) / task_id
+    original_dir = task_dir / "original"
+    fixed_dir = task_dir / "fixed"
+    
+    task_dir.mkdir(parents=True, exist_ok=True)
+    original_dir.mkdir(exist_ok=True)
+    fixed_dir.mkdir(exist_ok=True)
+    
+    return task_dir
+
+
+def save_metadata(task_dir: Path, metadata: dict) -> None:
+    """Save task metadata to JSON file."""
+    metadata_file = task_dir / "metadata.json"
+    with open(metadata_file, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, default=str)
+
+
+def log_to_task(task_dir: Path, message: str) -> None:
+    """Append log message to task log file."""
+    log_file = task_dir / "task_log.txt"
+    timestamp = datetime.now().isoformat()
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(f"[{timestamp}] {message}\n")
 
 
 def download_svg_file(filename: str, temp_dir: Path) -> dict:
@@ -103,12 +135,39 @@ def upload_fixed_svg(
     }
 
 
-def process_fix_nested(filename: str, user) -> dict:
-    """High-level orchestration for fixing nested SVG tags."""
+def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
+    """High-level orchestration for fixing nested SVG tags.
+    
+    Args:
+        filename: Name of the SVG file to fix
+        user: User authentication data
+        task_id: Optional task ID for saving files to persistent storage
+    """
+    # Use temp directory for processing
     temp_dir = Path(tempfile.mkdtemp())
+    
+    # Create task folder if task_id is provided
+    task_dir = None
+    if task_id:
+        task_dir = create_task_folder(task_id)
+        log_to_task(task_dir, f"Starting fix_nested task for file: {filename}")
+    
+    # Prepare metadata
+    metadata = {
+        "task_id": task_id,
+        "filename": filename,
+        "started_at": datetime.now().isoformat(),
+        "status": "running",
+    }
 
     download = download_svg_file(filename, temp_dir)
     if not download["ok"]:
+        if task_dir:
+            log_to_task(task_dir, f"Download failed: {download.get('error')}")
+            metadata["status"] = "failed"
+            metadata["error"] = "download_failed"
+            metadata["download_result"] = download
+            save_metadata(task_dir, metadata)
         return {
             "success": False,
             "message": f"Failed to download file: {filename}",
@@ -116,9 +175,26 @@ def process_fix_nested(filename: str, user) -> dict:
         }
 
     file_path = download["path"]
+    
+    # Save original file if task_dir exists
+    if task_dir:
+        original_file = task_dir / "original" / Path(filename).name
+        shutil.copy2(file_path, original_file)
+        log_to_task(task_dir, f"Original file saved to: {original_file}")
+        metadata["download_result"] = {"status": "success", "path": str(original_file)}
 
     detect_before = detect_nested_tags(file_path)
+    if task_dir:
+        log_to_task(task_dir, f"Nested tags detected: {detect_before['count']}")
+        metadata["nested_tags_before"] = detect_before["count"]
+    
     if detect_before["count"] == 0:
+        if task_dir:
+            log_to_task(task_dir, "No nested tags found")
+            metadata["status"] = "completed"
+            metadata["nested_tags_after"] = 0
+            metadata["nested_tags_fixed"] = 0
+            save_metadata(task_dir, metadata)
         return {
             "success": False,
             "message": f"No nested tags found in {filename}",
@@ -126,6 +202,11 @@ def process_fix_nested(filename: str, user) -> dict:
         }
 
     if not fix_nested_tags(file_path):
+        if task_dir:
+            log_to_task(task_dir, "Failed to fix nested tags")
+            metadata["status"] = "failed"
+            metadata["error"] = "fix_failed"
+            save_metadata(task_dir, metadata)
         return {
             "success": False,
             "message": f"Failed to fix nested tags in {filename}",
@@ -133,14 +214,42 @@ def process_fix_nested(filename: str, user) -> dict:
         }
 
     verify = verify_fix(file_path, detect_before["count"])
+    if task_dir:
+        log_to_task(task_dir, f"Fixed tags: {verify['fixed']}, remaining: {verify['after']}")
+        metadata["nested_tags_after"] = verify["after"]
+        metadata["nested_tags_fixed"] = verify["fixed"]
+    
     if verify["fixed"] == 0:
+        if task_dir:
+            log_to_task(task_dir, "No tags were fixed")
+            metadata["status"] = "failed"
+            metadata["error"] = "no_tags_fixed"
+            save_metadata(task_dir, metadata)
         return {
             "success": False,
             "message": f"No nested tags were fixed in {filename}",
             "details": verify,
         }
 
+    # Save fixed file if task_dir exists
+    if task_dir:
+        fixed_file = task_dir / "fixed" / Path(filename).name
+        shutil.copy2(file_path, fixed_file)
+        log_to_task(task_dir, f"Fixed file saved to: {fixed_file}")
+
     upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
+    if task_dir:
+        if upload["ok"]:
+            log_to_task(task_dir, f"Upload successful: {upload.get('result')}")
+            metadata["upload_result"] = upload["result"]
+            metadata["status"] = "completed"
+        else:
+            log_to_task(task_dir, f"Upload failed: {upload.get('error')}")
+            metadata["upload_result"] = {"error": upload.get("error")}
+            metadata["status"] = "upload_failed"
+        metadata["completed_at"] = datetime.now().isoformat()
+        save_metadata(task_dir, metadata)
+    
     if not upload["ok"]:
         return {
             "success": False,
@@ -154,5 +263,6 @@ def process_fix_nested(filename: str, user) -> dict:
         "details": {
             **verify,
             "upload_result": upload["result"],
+            "task_id": task_id,
         },
     }

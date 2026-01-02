@@ -1,5 +1,6 @@
 
 import logging
+import uuid
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 from ...routes_utils import load_auth_payload
@@ -31,14 +32,18 @@ def fix_nested_post():
         flash("Please provide a file name", "danger")
         return redirect(url_for("fix_nested.fix_nested"))
 
-    # Import processing function
+    # Generate unique task ID
+    task_id = str(uuid.uuid4())
+    logger.info(f"Starting fix_nested task {task_id} for file: {filename}")
 
     current_user_obj = current_user()
     auth_payload = load_auth_payload(current_user_obj)
-    result = process_fix_nested(filename, auth_payload)
+    result = process_fix_nested(filename, auth_payload, task_id=task_id)
 
     if result["success"]:
         flash(result["message"], "success")
+        if result.get("details", {}).get("task_id"):
+            flash(f"Task ID: {task_id}", "info")
     else:
         if result.get("details", {}).get("error"):
             flash(result["details"]["error"], "danger")
