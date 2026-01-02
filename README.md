@@ -110,7 +110,8 @@ SESSION_COOKIE_SAMESITE=Lax
 ```bash
 DISABLE_UPLOADS=0
 UPLOAD_END_POINT=commons.wikimedia.org
-USER_AGENT="Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; your-email@example.org)"
+# Replace with your actual contact email
+USER_AGENT="Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; your-contact-email@example.org)"
 ADMINS=user1,user2,user3
 ```
 
