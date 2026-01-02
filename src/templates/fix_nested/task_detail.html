@@ -33,7 +33,8 @@
                                 'running': 'primary',
                                 'completed': 'success',
                                 'failed': 'danger',
-                                'upload_failed': 'warning'
+                                'upload_failed': 'warning',
+                                'undone': 'info'
                             }.get(task.status, 'secondary') %}
                             <span class="badge bg-{{ status_class }}">{{ task.status }}</span>
                         </dd>
@@ -183,13 +184,22 @@
             </h4>
         </div>
         <div class="card-body">
-            <button class="btn btn-warning" onclick="if(confirm('Are you sure you want to undo this task and restore the original file?')) { window.location.href='{{ url_for('fix_nested_explorer.undo_task', task_id=task.id) }}'; }">
-                <i class="bi bi-arrow-counterclockwise"></i> Undo & Restore Original
-            </button>
+            <form method="POST" action="{{ url_for('fix_nested_explorer.undo_task', task_id=task.id) }}" 
+                  onsubmit="return confirm('Are you sure you want to undo this task and restore the original file? This will upload the original file back to Commons.');">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-arrow-counterclockwise"></i> Undo & Restore Original
+                </button>
+            </form>
             <p class="text-muted mt-2 mb-0">
                 <small>This will upload the original file back to Commons and mark this task as undone.</small>
             </p>
         </div>
+    </div>
+    {% endif %}
+    
+    {% if task.status == 'undone' %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> This task has been undone. The original file was restored to Commons.
     </div>
     {% endif %}
 </div>
