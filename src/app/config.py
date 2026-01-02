@@ -23,6 +23,7 @@ class Paths:
     svg_data: str
     svg_data_thumb: str
     log_dir: str
+    fix_nested_data: str
 
 
 @dataclass(frozen=True)
@@ -90,6 +91,7 @@ def _load_db_data() -> dict[str, str]:
 def _get_paths() -> Paths:
     svg_data = os.getenv("SVG_DATA_PATH") or f"{os.path.expanduser('~')}/www/svg_data"
     svg_data_thumb = os.getenv("SVG_DATA_THUMB_PATH") or f"{os.path.expanduser('~')}/www/svg_data_thumb"
+    fix_nested_data = os.getenv("FIX_NESTED_DATA_PATH") or f"{os.path.expanduser('~')}/www/fix_nested_data"
 
     log_dir = os.getenv("LOG_PATH") or f"{os.path.expanduser('~')}/logs"
 
@@ -97,11 +99,13 @@ def _get_paths() -> Paths:
     Path(svg_data).mkdir(parents=True, exist_ok=True)
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     Path(svg_data_thumb).mkdir(parents=True, exist_ok=True)
+    Path(fix_nested_data).mkdir(parents=True, exist_ok=True)
 
     return Paths(
         svg_data=svg_data,
         svg_data_thumb=svg_data_thumb,
-        log_dir=log_dir
+        log_dir=log_dir,
+        fix_nested_data=fix_nested_data
     )
 
 
