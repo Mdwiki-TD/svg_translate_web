@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Task {{ task.id[:8] }} - Fix Nested{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{{ url_for('fix_nested_explorer.list_tasks') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Tasks
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">
+                <i class="bi bi-info-circle"></i> Task Details
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Task ID:</dt>
+                        <dd class="col-sm-8"><code>{{ task.id }}</code></dd>
+
+                        <dt class="col-sm-4">Filename:</dt>
+                        <dd class="col-sm-8">{{ task.filename }}</dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            {% set status_class = {
+                                'pending': 'secondary',
+                                'running': 'primary',
+                                'completed': 'success',
+                                'failed': 'danger',
+                                'upload_failed': 'warning'
+                            }.get(task.status, 'secondary') %}
+                            <span class="badge bg-{{ status_class }}">{{ task.status }}</span>
+                        </dd>
+
+                        <dt class="col-sm-4">Username:</dt>
+                        <dd class="col-sm-8">{{ task.username or '-' }}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-5">Tags Before:</dt>
+                        <dd class="col-sm-7">{{ task.nested_tags_before if task.nested_tags_before is not none else '-' }}</dd>
+
+                        <dt class="col-sm-5">Tags After:</dt>
+                        <dd class="col-sm-7">{{ task.nested_tags_after if task.nested_tags_after is not none else '-' }}</dd>
+
+                        <dt class="col-sm-5">Tags Fixed:</dt>
+                        <dd class="col-sm-7">
+                            {% if task.nested_tags_fixed is not none %}
+                                <span class="badge bg-success">{{ task.nested_tags_fixed }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-5">Created:</dt>
+                        <dd class="col-sm-7">{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') if task.created_at else '-' }}</dd>
+
+                        <dt class="col-sm-5">Updated:</dt>
+                        <dd class="col-sm-7">{{ task.updated_at.strftime('%Y-%m-%d %H:%M:%S') if task.updated_at else '-' }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            {% if task.error_message %}
+            <div class="alert alert-danger mt-3">
+                <strong>Error:</strong> {{ task.error_message }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Files Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-files"></i> Files
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Original File</h5>
+                    {% if has_original %}
+                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='original', filename=task.filename) }}" 
+                       class="btn btn-primary mb-2" target="_blank">
+                        <i class="bi bi-download"></i> Download Original
+                    </a>
+                    {% else %}
+                    <p class="text-muted">Not available</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5>Fixed File</h5>
+                    {% if has_fixed %}
+                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='fixed', filename=task.filename) }}" 
+                       class="btn btn-success mb-2" target="_blank">
+                        <i class="bi bi-download"></i> Download Fixed
+                    </a>
+                    {% else %}
+                    <p class="text-muted">Not available</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if has_original and has_fixed %}
+            <div class="mt-3">
+                <a href="{{ url_for('fix_nested_explorer.compare', task_id=task.id) }}" 
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left-right"></i> Compare Files
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    {% if task.download_result or task.upload_result %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-journal-code"></i> Results
+            </h4>
+        </div>
+        <div class="card-body">
+            {% if task.download_result %}
+            <h5>Download Result</h5>
+            <pre class="bg-light p-3 rounded"><code>{{ task.download_result | tojson(indent=2) }}</code></pre>
+            {% endif %}
+
+            {% if task.upload_result %}
+            <h5>Upload Result</h5>
+            <pre class="bg-light p-3 rounded"><code>{{ task.upload_result | tojson(indent=2) }}</code></pre>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadata Section -->
+    {% if metadata %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-file-earmark-code"></i> Metadata
+            </h4>
+        </div>
+        <div class="card-body">
+            <pre class="bg-light p-3 rounded"><code>{{ metadata | tojson(indent=2) }}</code></pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Log Section -->
+    {% if log_content %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">
+                <i class="bi bi-terminal"></i> Task Log
+            </h4>
+        </div>
+        <div class="card-body">
+            <pre class="bg-dark text-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>{{ log_content }}</code></pre>
+            <a href="{{ url_for('fix_nested_explorer.view_log', task_id=task.id) }}" 
+               class="btn btn-sm btn-outline-secondary mt-2" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    {% if task.status == 'completed' %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-gear"></i> Actions
+            </h4>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-warning" onclick="if(confirm('Are you sure you want to undo this task and restore the original file?')) { window.location.href='{{ url_for('fix_nested_explorer.undo_task', task_id=task.id) }}'; }">
+                <i class="bi bi-arrow-counterclockwise"></i> Undo & Restore Original
+            </button>
+            <p class="text-muted mt-2 mb-0">
+                <small>This will upload the original file back to Commons and mark this task as undone.</small>
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

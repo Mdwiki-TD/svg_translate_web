@@ -33,8 +33,23 @@
                 <li class="nav-item">
                     {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
                 </li>
-                <li class="nav-item">
-                    {{ nav_link('fix_nested', 'bi-question-circle-fill', 'Fix Nested', url_for('fix_nested.fix_nested')) }}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-wrench-adjustable"></i> Fix Nested
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="fixNestedDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('fix_nested.fix_nested') }}">
+                                <i class="bi bi-plus-circle"></i> New Fix Task
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('fix_nested_explorer.list_tasks') }}">
+                                <i class="bi bi-list-task"></i> View All Tasks
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="https://github.com/Mdwiki-TD/svg_translate_web" target="_blank"

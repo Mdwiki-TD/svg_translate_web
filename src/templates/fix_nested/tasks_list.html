@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Fix Nested Tasks{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="bi bi-list-task"></i> Fix Nested Tasks
+                </h3>
+                <a href="{{ url_for('fix_nested.fix_nested') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-circle"></i> New Task
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filters -->
+            <form method="GET" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="running" {% if status == 'running' %}selected{% endif %}>Running</option>
+                        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+                        <option value="upload_failed" {% if status == 'upload_failed' %}selected{% endif %}>Upload Failed</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" name="username" id="username" class="form-control" 
+                           value="{{ username or '' }}" placeholder="Filter by username">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                    <a href="{{ url_for('fix_nested_explorer.list_tasks') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+
+            <!-- Tasks Table -->
+            {% if tasks %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Status</th>
+                            <th>Tags Fixed</th>
+                            <th>Username</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}">
+                                    {{ task.filename }}
+                                </a>
+                            </td>
+                            <td>
+                                {% set status_class = {
+                                    'pending': 'secondary',
+                                    'running': 'primary',
+                                    'completed': 'success',
+                                    'failed': 'danger',
+                                    'upload_failed': 'warning'
+                                }.get(task.status, 'secondary') %}
+                                <span class="badge bg-{{ status_class }}">
+                                    {{ task.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if task.nested_tags_fixed is not none %}
+                                    {{ task.nested_tags_fixed }}
+                                    {% if task.nested_tags_before %}
+                                        / {{ task.nested_tags_before }}
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ task.username or '-' }}</td>
+                            <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') if task.created_at else '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Task pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page - 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
+                    {% if tasks|length == per_page %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page + 1 }}{% if status %}&status={{ status }}{% endif %}{% if username %}&username={{ username }}{% endif %}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No tasks found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
