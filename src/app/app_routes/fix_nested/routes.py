@@ -6,6 +6,9 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from ...routes_utils import load_auth_payload
 from .fix_utils import process_fix_nested
 from ...users.current import current_user, oauth_required
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...db.db_class import Database
+from ...config import settings
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger("svg_translate")
@@ -38,16 +41,31 @@ def fix_nested_post():
 
     current_user_obj = current_user()
     auth_payload = load_auth_payload(current_user_obj)
-    result = process_fix_nested(filename, auth_payload, task_id=task_id)
+    username = current_user_obj.get("username") if current_user_obj else None
+    
+    # Initialize database store
+    db = Database(settings.db_data)
+    db_store = FixNestedTaskStore(db)
+    
+    try:
+        result = process_fix_nested(
+            filename,
+            auth_payload,
+            task_id=task_id,
+            username=username,
+            db_store=db_store
+        )
 
-    if result["success"]:
-        flash(result["message"], "success")
-        if result.get("details", {}).get("task_id"):
-            flash(f"Task ID: {task_id}", "info")
-    else:
-        if result.get("details", {}).get("error"):
-            flash(result["details"]["error"], "danger")
+        if result["success"]:
+            flash(result["message"], "success")
+            if result.get("details", {}).get("task_id"):
+                flash(f"Task ID: {task_id}", "info")
+        else:
+            if result.get("details", {}).get("error"):
+                flash(result["details"]["error"], "danger")
 
-        flash(result["message"], "danger")
+            flash(result["message"], "danger")
+    finally:
+        db.close()
 
     return redirect(url_for("fix_nested.fix_nested"))

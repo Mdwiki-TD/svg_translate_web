@@ -6,10 +6,13 @@ import tempfile
 import json
 import shutil
 from datetime import datetime
+from typing import Optional
 from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
 from ...tasks.downloads import download_one_file
 from ...tasks.uploads import upload_file, get_user_site
 from ...config import settings
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...db.db_class import Database
 
 logger = logging.getLogger("svg_translate")
 
@@ -135,13 +138,21 @@ def upload_fixed_svg(
     }
 
 
-def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
+def process_fix_nested(
+    filename: str,
+    user,
+    task_id: Optional[str] = None,
+    username: Optional[str] = None,
+    db_store: Optional[FixNestedTaskStore] = None
+) -> dict:
     """High-level orchestration for fixing nested SVG tags.
     
     Args:
         filename: Name of the SVG file to fix
         user: User authentication data
         task_id: Optional task ID for saving files to persistent storage
+        username: Username of the user
+        db_store: Optional database store for task management
     """
     # Use temp directory for processing
     temp_dir = Path(tempfile.mkdtemp())
@@ -151,11 +162,17 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
     if task_id:
         task_dir = create_task_folder(task_id)
         log_to_task(task_dir, f"Starting fix_nested task for file: {filename}")
+        
+        # Create database record if store is provided
+        if db_store:
+            db_store.create_task(task_id, filename, username)
+            db_store.update_status(task_id, "running")
     
     # Prepare metadata
     metadata = {
         "task_id": task_id,
         "filename": filename,
+        "username": username,
         "started_at": datetime.now().isoformat(),
         "status": "running",
     }
@@ -168,6 +185,9 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
             metadata["error"] = "download_failed"
             metadata["download_result"] = download
             save_metadata(task_dir, metadata)
+        if db_store and task_id:
+            db_store.update_error(task_id, "download_failed")
+            db_store.update_download_result(task_id, download)
         return {
             "success": False,
             "message": f"Failed to download file: {filename}",
@@ -182,11 +202,15 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
         shutil.copy2(file_path, original_file)
         log_to_task(task_dir, f"Original file saved to: {original_file}")
         metadata["download_result"] = {"status": "success", "path": str(original_file)}
+        if db_store and task_id:
+            db_store.update_download_result(task_id, {"status": "success", "path": str(original_file)})
 
     detect_before = detect_nested_tags(file_path)
     if task_dir:
         log_to_task(task_dir, f"Nested tags detected: {detect_before['count']}")
         metadata["nested_tags_before"] = detect_before["count"]
+    if db_store and task_id:
+        db_store.update_nested_counts(task_id, before=detect_before["count"])
     
     if detect_before["count"] == 0:
         if task_dir:
@@ -195,6 +219,9 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
             metadata["nested_tags_after"] = 0
             metadata["nested_tags_fixed"] = 0
             save_metadata(task_dir, metadata)
+        if db_store and task_id:
+            db_store.update_nested_counts(task_id, after=0, fixed=0)
+            db_store.update_status(task_id, "completed")
         return {
             "success": False,
             "message": f"No nested tags found in {filename}",
@@ -207,6 +234,8 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
             metadata["status"] = "failed"
             metadata["error"] = "fix_failed"
             save_metadata(task_dir, metadata)
+        if db_store and task_id:
+            db_store.update_error(task_id, "fix_failed")
         return {
             "success": False,
             "message": f"Failed to fix nested tags in {filename}",
@@ -218,6 +247,8 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
         log_to_task(task_dir, f"Fixed tags: {verify['fixed']}, remaining: {verify['after']}")
         metadata["nested_tags_after"] = verify["after"]
         metadata["nested_tags_fixed"] = verify["fixed"]
+    if db_store and task_id:
+        db_store.update_nested_counts(task_id, after=verify["after"], fixed=verify["fixed"])
     
     if verify["fixed"] == 0:
         if task_dir:
@@ -225,6 +256,8 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
             metadata["status"] = "failed"
             metadata["error"] = "no_tags_fixed"
             save_metadata(task_dir, metadata)
+        if db_store and task_id:
+            db_store.update_error(task_id, "no_tags_fixed")
         return {
             "success": False,
             "message": f"No nested tags were fixed in {filename}",
@@ -249,6 +282,14 @@ def process_fix_nested(filename: str, user, task_id: str | None = None) -> dict:
             metadata["status"] = "upload_failed"
         metadata["completed_at"] = datetime.now().isoformat()
         save_metadata(task_dir, metadata)
+    
+    if db_store and task_id:
+        if upload["ok"]:
+            db_store.update_upload_result(task_id, upload["result"])
+            db_store.update_status(task_id, "completed")
+        else:
+            db_store.update_upload_result(task_id, {"error": upload.get("error")})
+            db_store.update_status(task_id, "upload_failed")
     
     if not upload["ok"]:
         return {
