@@ -34,8 +34,6 @@ import pytest
     ("src.app.tasks.texts.start_bot", "start_bot"),
     ("src.app.tasks.uploads.up", "up"),
     ("src.app.tasks.uploads.upload_bot", "upload_bot"),
-    ("src.app.tasks.uploads.upload_bot_new", "upload_bot_new"),
-    ("src.app.tasks.uploads.wiki_site", "wiki_site"),
     ("src.app.template_service", "template_service"),
     ("src.app.threads.task_threads", "task_threads"),
     ("src.app.threads.web_run_task", "web_run_task"),
