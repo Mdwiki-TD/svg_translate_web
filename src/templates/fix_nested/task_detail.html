@@ -52,7 +52,7 @@
                         <dt class="col-sm-4">Download result:</dt>
                         <dd class="col-sm-8">{{ task.download_result.status or task.download_result.error or '-' }}</dd>
                         <dt class="col-sm-4">Upload result:</dt>
-                        <dd class="col-sm-8">{{ task.upload_result.status or task.upload_result.error or '-' }}</dd>
+                        <dd class="col-sm-8">{{ task.upload_result.result or task.upload_result.error or '-' }}</dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -172,7 +172,7 @@
     {% endif %}
 
     <!-- Actions -->
-    {% if task.status == 'completed' and task.upload_result and task.upload_result == 'Success' %}
+    {% if task.status == 'completed' and task.upload_result and task.upload_result.result == 'Success' %}
     <div class="card shadow mb-4">
         <div class="card-header bg-success text-white">
             <h4 class="mb-0">
