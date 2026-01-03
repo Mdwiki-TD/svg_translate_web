@@ -260,7 +260,7 @@ def undo_task(task_id: str):
         flash("Can only undo completed tasks", "warning")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-    if task.get("upload_result") != "Success":
+    if task.get("upload_result", {}).get("result") != "Success":
         flash("Can only undo tasks with successful uploads", "warning")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
