@@ -67,7 +67,7 @@ class DummyFixNestedTaskStore:
 
 
 @pytest.fixture
-def app_client(monkeypatch: pytest.MonkeyPatch) -> tuple[Flask, Any]:
+def app_client(monkeypatch: pytest.MonkeyPatch):
     """Provide a Flask test client for fix_nested routes."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
     app = create_app()
