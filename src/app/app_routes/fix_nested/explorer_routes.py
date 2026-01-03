@@ -108,9 +108,9 @@ def task_detail(task_id: str):
             logger.error(f"Failed to read metadata file: {e}")
 
     # Adjust filename for display
-    task["filename"] = task.get("filename", "").replace(" ", "_")
-    if task["filename"].lower().startswith("file:"):
-        task["filename"] = task["filename"][5:].lstrip()
+    file_name_to_link = task.get("filename", "").replace(" ", "_")
+    if file_name_to_link.lower().startswith("file:"):
+        file_name_to_link = file_name_to_link[5:].lstrip()
 
     return render_template(
         "fix_nested/task_detail.html",
@@ -119,6 +119,7 @@ def task_detail(task_id: str):
         has_fixed=fixed_file.exists(),
         log_content=log_content,
         metadata=metadata,
+        file_name_to_link=file_name_to_link,
     )
 
 

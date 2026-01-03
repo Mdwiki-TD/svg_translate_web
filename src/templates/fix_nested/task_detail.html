@@ -25,11 +25,11 @@
 
                         <dt class="col-sm-4">Filename:</dt>
                         <dd class="col-sm-8">
-                            <!-- {{ task.filename }} -->
-                            {% if task.filename %}
-                            <a href='https://commons.wikimedia.org/wiki/File:{{ task.filename }}' target='_blank'
+                            <!-- {{ file_name_to_link }} -->
+                            {% if file_name_to_link %}
+                            <a href='https://commons.wikimedia.org/wiki/File:{{ file_name_to_link }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                File:{{ task.filename }}
+                                File:{{ file_name_to_link }}
                             </a>
                             {% endif %}
                         </dd>
