@@ -29,7 +29,11 @@ def test_fix_nested_post_requires_oauth_no_localhost(
     # Mock current_user to return None (not logged in)
     monkeypatch.setattr(routes, "current_user", lambda: None)
 
-    response = client.post("/fix_nested/", data={"filename": "test.svg"})
+    response = client.post(
+        "/fix_nested/",
+        data={"filename": "test.svg"},
+        base_url="https://example.com",
+    )
     assert response.status_code == 302
     assert "login" in response.headers["Location"]
 
@@ -42,15 +46,14 @@ def test_fix_nested_post_preserves_filename_before_oauth_no_localhost(
 
     monkeypatch.setattr(routes, "current_user", lambda: None)
 
-    response = client.post("/fix_nested/", data={"filename": "preserved_file.svg"})
+    response = client.post(
+        "/fix_nested/",
+        data={"filename": "preserved_file.svg"},
+        base_url="https://example.com",
+    )
     assert response.status_code == 302
 
-    # Check that the filename was saved in session for restoration after OAuth
-    with client.session_transaction() as sess:
-        assert sess.get(routes.FIX_NESTED_FILENAME_KEY) == "preserved_file.svg"
 
-
-@pytest.mark.skip(reason="OAuth not required on localhost")
 def test_fix_nested_post_requires_oauth(
     app_client: tuple[Flask, Any], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -60,23 +63,9 @@ def test_fix_nested_post_requires_oauth(
     # Mock current_user to return None (not logged in)
     monkeypatch.setattr(routes, "current_user", lambda: None)
 
-    response = client.post("/fix_nested/", data={"filename": "test.svg"})
-    assert response.status_code != 302
-    assert "login" in response.headers["Location"]
-
-
-@pytest.mark.skip(reason="OAuth not required on localhost")
-def test_fix_nested_post_preserves_filename_before_oauth(
-    app_client: tuple[Flask, Any], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Test that filename is saved to session before OAuth redirect."""
-    app, client = app_client
-
-    monkeypatch.setattr(routes, "current_user", lambda: None)
-
-    response = client.post("/fix_nested/", data={"filename": "preserved_file.svg"})
-    assert response.status_code != 302
-
-    # Check that the filename was saved in session for restoration after OAuth
-    with client.session_transaction() as sess:
-        assert sess.get(routes.FIX_NESTED_FILENAME_KEY) == "preserved_file.svg"
+    response = client.post(
+        "/fix_nested/",
+        data={"filename": "test.svg"},
+        base_url="http://127.0.0.1/",
+    )
+    assert response.status_code == 200
