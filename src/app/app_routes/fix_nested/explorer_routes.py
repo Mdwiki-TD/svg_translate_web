@@ -233,6 +233,14 @@ def undo_task(task_id: str):
         flash("Failed to authenticate with Wikimedia Commons", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
+    # Check if original file exists
+    task_dir = Path(settings.paths.fix_nested_data) / task_id
+    original_file = task_dir / "original.svg"
+
+    if not original_file.exists():
+        flash("Original file not found", "danger")
+        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+
     db = Database(settings.db_data)
     try:
         db_store = FixNestedTaskStore(db)
@@ -248,14 +256,6 @@ def undo_task(task_id: str):
 
         if task.get("upload_result") != "Success":
             flash("Can only undo tasks with successful uploads", "warning")
-            return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
-
-        # Check if original file exists
-        task_dir = Path(settings.paths.fix_nested_data) / task_id
-        original_file = task_dir / "original" / task.get("filename", "")
-
-        if not original_file.exists():
-            flash("Original file not found", "danger")
             return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
         # Upload original file back to Commons
