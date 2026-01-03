@@ -105,7 +105,7 @@
                 <div class="col-md-6">
                     <h5>Original File</h5>
                     {% if has_original %}
-                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='original', filename=task.filename) }}"
+                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='original') }}"
                         class="btn btn-primary mb-2" target="_blank">
                         <i class="bi bi-download"></i> Download Original
                     </a>
@@ -116,7 +116,7 @@
                 <div class="col-md-6">
                     <h5>Fixed File</h5>
                     {% if has_fixed %}
-                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='fixed', filename=task.filename) }}"
+                    <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task.id, file_type='fixed') }}"
                         class="btn btn-success mb-2" target="_blank">
                         <i class="bi bi-download"></i> Download Fixed
                     </a>

@@ -266,7 +266,7 @@ def process_fix_nested(
 
     # Save fixed file if task_dir exists
     if task_dir:
-        fixed_file = task_dir / "fixed" / Path(filename).name
+        fixed_file = task_dir / "fixed.svg"
         shutil.copy2(file_path, fixed_file)
         log_to_task(task_dir, f"Fixed file saved to: {fixed_file}")
 
