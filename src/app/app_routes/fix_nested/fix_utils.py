@@ -20,13 +20,7 @@ logger = logging.getLogger("svg_translate")
 def create_task_folder(task_id: str) -> Path:
     """Create folder structure for a fix_nested task."""
     task_dir = Path(settings.paths.fix_nested_data) / task_id
-    original_dir = task_dir / "original"
-    fixed_dir = task_dir / "fixed"
-
     task_dir.mkdir(parents=True, exist_ok=True)
-    original_dir.mkdir(exist_ok=True)
-    fixed_dir.mkdir(exist_ok=True)
-
     return task_dir
 
 
@@ -198,7 +192,7 @@ def process_fix_nested(
 
     # Save original file if task_dir exists
     if task_dir:
-        original_file = task_dir / "original" / Path(filename).name
+        original_file = task_dir / "original.svg"
         shutil.copy2(file_path, original_file)
         log_to_task(task_dir, f"Original file saved to: {original_file}")
         metadata["download_result"] = {"status": "success", "path": str(original_file)}
@@ -266,7 +260,7 @@ def process_fix_nested(
 
     # Save fixed file if task_dir exists
     if task_dir:
-        fixed_file = task_dir / "fixed" / Path(filename).name
+        fixed_file = task_dir / "fixed.svg"
         shutil.copy2(file_path, fixed_file)
         log_to_task(task_dir, f"Fixed file saved to: {fixed_file}")
 

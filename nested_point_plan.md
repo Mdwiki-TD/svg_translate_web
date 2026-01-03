@@ -116,7 +116,7 @@ def process_fix_nested(filename: str) -> dict:
 {% block title %}Fix Nested SVG Tags{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-2">
     ...
 </div>
 {% endblock %}

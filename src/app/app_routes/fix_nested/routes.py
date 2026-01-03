@@ -34,7 +34,7 @@ def oauth_required_with_filename_preservation(func: F) -> F:
 
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
-        if settings.use_mw_oauth and not current_user():
+        if settings.use_mw_oauth and not current_user():  # and "localhost" not in request.host:
             # Save filename to session before redirecting to OAuth
             filename = request.form.get("filename", "").strip()
             if filename:
@@ -84,28 +84,28 @@ def fix_nested_post():
 
     commons_link = None
 
-    try:
-        result = process_fix_nested(
-            filename,
-            auth_payload,
-            task_id=task_id,
-            username=username,
-            db_store=db_store
-        )
+    # try:
+    result = process_fix_nested(
+        filename,
+        auth_payload,
+        task_id=task_id,
+        username=username,
+        db_store=db_store
+    )
 
-        if result["success"]:
-            flash(result["message"], "success")
-            if result.get("details", {}).get("task_id"):
-                flash(f"Task ID: {task_id}", "info")
-            # Generate Commons link for successful upload
-            commons_link = _get_commons_file_url(filename)
-        else:
-            if result.get("details", {}).get("error"):
-                flash(result["details"]["error"], "danger")
+    if result["success"]:
+        flash(result["message"], "success")
+        if result.get("details", {}).get("task_id"):
+            flash(f"Task ID: {task_id}", "info")
+        # Generate Commons link for successful upload
+        commons_link = _get_commons_file_url(filename)
+    else:
+        if result.get("details", {}).get("error"):
+            flash(result["details"]["error"], "danger")
 
-            flash(result["message"], "danger")
-    finally:
-        db.close()
+        flash(result["message"], "danger")
+    # finally:
+    #     db.close()
 
     # Preserve filename in input field regardless of result
     return render_template(
