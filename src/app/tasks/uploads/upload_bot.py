@@ -13,21 +13,21 @@ def upload_file(file_name, file_path, site=None, summary=None):
     """
 
     if not site:
-        return ValueError("No site provided")
+        return {"error": "No site provided"}
 
     # Check if file exists
     page = site.Pages[f"File:{file_name}"]
 
     if not page.exists:
         logger.error(f"Warning: File {file_name} not exists on Commons")
-        return False
+        return {"error": "File not found on Commons"}
 
     file_path = Path(str(file_path))
 
     if not file_path.exists():
         # raise FileNotFoundError(f"File not found: {file_path}")
         logger.error(f"File not found: {file_path}")
-        return False
+        return {"error": "File not found on server"}
 
     try:
         with open(file_path, 'rb') as f:
@@ -41,7 +41,7 @@ def upload_file(file_name, file_path, site=None, summary=None):
             )
 
         logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
-        return response
+        return {"result": response.get("result", ""), **response}
     except requests.exceptions.HTTPError:
         logger.error("HTTP error occurred while uploading file")
     except mwclient.errors.FileExists:
@@ -52,13 +52,13 @@ def upload_file(file_name, file_path, site=None, summary=None):
         # ---
         if "fileexists-no-change" in str(e):
             logger.debug("Upload result: fileexists-no-change")
-            return {"result": "fileexists-no-change"}
+            return {"error": "fileexists-no-change"}
         # ---
         if 'ratelimited' in str(e):
             logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
-            return {"result": "ratelimited"}
+            return {"error": "ratelimited"}
         # ---
         logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
         logger.error(f"{e}")
 
-    return False
+    return {"error": "Unknown error occurred"}

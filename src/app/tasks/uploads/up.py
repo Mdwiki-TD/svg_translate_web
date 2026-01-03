@@ -6,9 +6,6 @@ from typing import Any, Dict, Optional, Callable
 import logging
 import mwclient
 from tqdm import tqdm
-
-from ...users.current import F
-
 from .upload_bot import upload_file
 
 from ...users.store import mark_token_used
@@ -76,7 +73,7 @@ def start_upload(
             summary=summary,
         ) or {}
 
-        result = upload.get("result") if isinstance(upload, dict) else None
+        result = upload.get("result", "")
 
         logger.debug(f"upload result: {result}")
 
@@ -86,7 +83,7 @@ def start_upload(
             no_changes += 1
         else:
             not_done += 1
-            if isinstance(upload, dict) and "error" in upload:
+            if "error" in upload:
                 errors.append(upload.get("error"))
 
         stages["message"] = (

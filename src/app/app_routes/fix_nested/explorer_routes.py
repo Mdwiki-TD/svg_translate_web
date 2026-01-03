@@ -20,7 +20,7 @@ from ..explorer.compare import analyze_file
 from ..fix_nested.fix_utils import log_to_task
 from ...routes_utils import load_auth_payload
 from ...users.current import current_user
-from ...tasks.uploads import upload_file, get_user_site
+from ...tasks.uploads import get_user_site, upload_file
 
 bp_fix_nested_explorer = Blueprint(
     "fix_nested_explorer",
@@ -276,7 +276,7 @@ def undo_task(task_id: str):
         summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
     )
 
-    if not upload_result:
+    if not upload_result.get("result") == "Success":
         flash("Failed to upload original file", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
