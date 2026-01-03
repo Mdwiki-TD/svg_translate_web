@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Fix Nested SVG Tags{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            {% if download_link %}
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <div>
+                    File processed successfully.
+                    <a href="{{ download_link }}" class="alert-link" download="{{ filename }}">
+                        Click here to download the fixed SVG file.
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-wrench-adjustable"></i> Fix Nested SVG Tags
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('fix_nested.fix_nested_by_upload_file') }}"
+                        enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">
+                                Select SVG File
+                            </label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".svg" required>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-tools"></i> Upload & Fix Nested Tags
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
