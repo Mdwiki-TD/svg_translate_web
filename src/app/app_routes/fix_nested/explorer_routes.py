@@ -43,9 +43,8 @@ def list_tasks():
     offset = (page - 1) * per_page
     show_form = False
     # Query tasks
-    db = Database(settings.db_data)
     tasks = []
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         tasks = db_store.list_tasks(
             status=status,
@@ -54,8 +53,6 @@ def list_tasks():
             offset=offset
         )
 
-    finally:
-        db.close()
     return render_template(
         "fix_nested/tasks_list.html",
         show_form=show_form,
@@ -70,13 +67,9 @@ def list_tasks():
 @bp_fix_nested_explorer.route("/tasks/<task_id>")
 def task_detail(task_id: str):
     """View details of a specific fix_nested task."""
-    db = Database(settings.db_data)
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-
-    finally:
-        db.close()
 
     if not task:
         abort(404, description="Task not found")
@@ -168,14 +161,9 @@ def view_log(task_id: str):
 @bp_fix_nested_explorer.route("/tasks/<task_id>/compare")
 def compare(task_id: str):
     """Compare original and fixed files."""
-    db = Database(settings.db_data)
-    task = None
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-
-    finally:
-        db.close()
 
     if not task:
         # abort(404, description="Task not found")
