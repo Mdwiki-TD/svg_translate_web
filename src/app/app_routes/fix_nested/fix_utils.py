@@ -13,7 +13,7 @@ from ...tasks.uploads import upload_file, get_user_site
 from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
 # from ...db.db_class import Database
-
+from werkzeug.utils import secure_filename
 logger = logging.getLogger("svg_translate")
 
 
@@ -313,9 +313,22 @@ def process_fix_nested_file_simple(
     """
     # Use temp directory for processing
     temp_dir = Path(tempfile.mkdtemp())
-    # find file path from uploaded file
-    file_path = temp_dir / file.filename
-    file.save(file_path)
+
+    # Sanitize filename to prevent path traversal
+    safe_filename = secure_filename(file.filename or "upload.svg")
+    file_path = temp_dir / safe_filename
+
+    try:
+        file.save(file_path)
+    except Exception as e:
+        # Clean up on error
+        import shutil
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        return {
+            "success": False,
+            "message": "Failed to save uploaded file.",
+            "details": {"error": str(e)},
+        }
 
     metadata = {
         "nested_tags_before": 0,

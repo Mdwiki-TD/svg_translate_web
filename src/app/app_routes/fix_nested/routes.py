@@ -1,5 +1,6 @@
 import base64
 import logging
+import shutil
 import uuid
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
@@ -108,6 +109,7 @@ def fix_nested_post():
             flash(result["details"]["error"], "danger")
 
         flash(result["message"], "danger")
+        return render_template("fix_nested/upload_form.html")
 
     # Preserve filename in input field regardless of result
     return render_template(
@@ -150,6 +152,7 @@ def fix_nested_by_upload_file():
             flash(result["details"]["error"], "danger")
 
         flash(result["message"], "danger")
+        return render_template("fix_nested/upload_form.html")
 
     result_file_path = result.get("file_path")
     if not result_file_path:
@@ -160,10 +163,13 @@ def fix_nested_by_upload_file():
 
     # flash("File processed successfully. Download below.", "success")
     # encode filecontent to base64 for download link
-
-    with open(result_file_path, "rb") as f:
-        file_content = f.read()
+    b64_content = ""
+    try:
+        with open(result_file_path, "rb") as f:
+            file_content = f.read()
         b64_content = base64.b64encode(file_content).decode("utf-8")
+    finally:
+        shutil.rmtree(result_file_path.parent)
 
     download_link = f"data:image/svg+xml;base64,{b64_content}"
     return render_template(
