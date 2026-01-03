@@ -1,4 +1,4 @@
-
+import base64
 import logging
 import uuid
 from functools import wraps
@@ -114,4 +114,60 @@ def fix_nested_post():
         "fix_nested/form.html",
         filename=original_filename,
         commons_link=commons_link
+    )
+
+
+@bp_fix_nested.route("/upload", methods=["POST", "GET"])
+@oauth_required_with_filename_preservation
+def fix_nested_by_upload_file():
+    if request.method == "GET":
+        return render_template("fix_nested/upload_form.html")
+
+    # POST logic
+    file = request.files.get("file")
+    if not file or not file.filename.endswith(".svg"):
+        flash("Please upload a valid SVG file", "danger")
+        return render_template("fix_nested/upload_form.html")
+
+    original_filename = file.filename
+
+    if not original_filename:
+        flash("Please provide a valid file", "danger")
+        return render_template("fix_nested/upload_form.html")
+
+    current_user_obj = current_user()
+
+    if not current_user_obj and not settings.is_localhost(request.host):
+        flash("You must be logged in to perform this action.", "danger")
+        return render_template("fix_nested/upload_form.html")
+
+    result = process_fix_nested_file_simple(file)
+
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        if result.get("details", {}).get("error"):
+            flash(result["details"]["error"], "danger")
+
+        flash(result["message"], "danger")
+
+    result_file_path = result.get("file_path")
+    if not result_file_path:
+        flash("Failed to process SVG file", "danger")
+        return render_template(
+            "fix_nested/upload_form.html",
+        )
+
+    # flash("File processed successfully. Download below.", "success")
+    # encode filecontent to base64 for download link
+
+    with open(result_file_path, "rb") as f:
+        file_content = f.read()
+        b64_content = base64.b64encode(file_content).decode("utf-8")
+
+    download_link = f"data:image/svg+xml;base64,{b64_content}"
+    return render_template(
+        "fix_nested/upload_form.html",
+        filename=f"fixed_{original_filename}",
+        download_link=download_link
     )

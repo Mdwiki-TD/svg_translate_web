@@ -301,3 +301,57 @@ def process_fix_nested(
             "task_id": task_id,
         },
     }
+
+
+def process_fix_nested_file_simple(
+    file,
+) -> dict:
+    """High-level orchestration for fixing nested SVG tags.
+
+    Args:
+        file: The SVG file to fix
+    """
+    # Use temp directory for processing
+    temp_dir = Path(tempfile.mkdtemp())
+    # find file path from uploaded file
+    file_path = temp_dir / file.filename
+    file.save(file_path)
+
+    metadata = {
+        "nested_tags_before": 0,
+        "nested_tags_fixed": 0,
+        "nested_tags_after": 0,
+    }
+
+    detect_before = detect_nested_tags(file_path)
+    metadata["nested_tags_before"] = detect_before["count"]
+
+    if detect_before["count"] == 0:
+        return {
+            "success": False,
+            "message": "No nested tags found in the uploaded file.",
+            "details": {"nested_count": 0},
+        }
+
+    if not fix_nested_tags(file_path):
+        return {
+            "success": False,
+            "message": "Failed to fix nested tags in the uploaded file.",
+            "details": {"nested_count": detect_before["count"]},
+        }
+
+    verify = verify_fix(file_path, detect_before["count"])
+
+    if verify["fixed"] == 0:
+        return {
+            "success": False,
+            "message": "No nested tags were fixed in the uploaded file.",
+            "details": verify,
+        }
+
+    return {
+        "success": True,
+        "message": f"Successfully fixed {verify['fixed']} nested tag(s)",
+        "details": verify,
+        "file_path": file_path,
+    }
