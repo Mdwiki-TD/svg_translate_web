@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from functools import lru_cache
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 
 @dataclass(frozen=True)
@@ -46,7 +46,7 @@ class OAuthConfig:
 
 @dataclass(frozen=True)
 class Settings:
-    local_hosts: List[str]
+    is_localhost: callable
     db_data: Dict
     database_data: DbConfig
     STATE_SESSION_KEY: str
@@ -145,6 +145,15 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
     )
 
 
+def is_localhost(host: str) -> bool:
+    local_hosts = [
+        "localhost",
+        "127.0.0.1",
+    ]
+
+    return any(x in host for x in local_hosts)
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
 
@@ -180,13 +189,8 @@ def get_settings() -> Settings:
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
 
-    local_hosts = [
-        "localhost",
-        "127.0.0.1",
-    ]
-
     return Settings(
-        local_hosts=local_hosts,
+        is_localhost=is_localhost,
         paths=_get_paths(),
         database_data=_load_db_data_new(),
         db_data=_load_db_data(),

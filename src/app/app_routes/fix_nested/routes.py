@@ -6,7 +6,7 @@ from typing import Any, Callable, TypeVar, cast
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 
 from ...routes_utils import load_auth_payload
-from .fix_utils import process_fix_nested
+from .fix_utils import process_fix_nested, process_fix_nested_file_simple
 from ...users.current import current_user
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...db.db_class import Database
@@ -34,8 +34,7 @@ def oauth_required_with_filename_preservation(func: F) -> F:
 
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
-        is_localhost = any(host in request.host for host in settings.local_hosts)
-        if settings.use_mw_oauth and not current_user() and not is_localhost:
+        if settings.use_mw_oauth and not current_user() and not settings.is_localhost(request.host):
             # Save filename to session before redirecting to OAuth
             filename = request.form.get("filename", "").strip()
             if filename:
