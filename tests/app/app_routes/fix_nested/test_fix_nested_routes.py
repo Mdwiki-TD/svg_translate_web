@@ -18,6 +18,12 @@ class DummyDatabase:
     def close(self) -> None:
         pass
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb) -> None:
+        self.close()
+
 
 class DummyFixNestedTaskStore:
     """In-memory task store for fix_nested tests."""
