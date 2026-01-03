@@ -276,7 +276,7 @@ def undo_task(task_id: str):
         db_store.update_status(task_id, "undone")
 
     # Log the undo operation
-    log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
+    log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.username}")
     log_to_task(task_dir, f"Undo upload result: {upload_result}")
 
     flash(f"Successfully restored original file: {task['filename']}", "success")
