@@ -172,7 +172,7 @@
     {% endif %}
 
     <!-- Actions -->
-    {% if task.status == 'completed' and task.upload_result == 'Success' %}
+    {% if task.status == 'completed' and task.upload_result and task.upload_result == 'Success' %}
     <div class="card shadow mb-4">
         <div class="card-header bg-success text-white">
             <h4 class="mb-0">
