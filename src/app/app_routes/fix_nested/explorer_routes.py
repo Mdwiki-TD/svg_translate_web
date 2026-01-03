@@ -220,7 +220,9 @@ def compare(task_id: str):
 def undo_task(task_id: str):
     """Undo a completed task and restore the original file."""
 
-    # Get user authentication
+    # ------------------------------------------------------------------
+    # 1. Authentication
+    # ------------------------------------------------------------------
     current_user_obj = current_user()
     if not current_user_obj:
         flash("You must be logged in to undo tasks", "danger")
@@ -228,12 +230,13 @@ def undo_task(task_id: str):
 
     auth_payload = load_auth_payload(current_user_obj)
     site = get_user_site(auth_payload)
-
     if not site:
         flash("Failed to authenticate with Wikimedia Commons", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-    # Check if original file exists
+    # ------------------------------------------------------------------
+    # 2. Filesystem validation
+    # ------------------------------------------------------------------
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     original_file = task_dir / "original.svg"
 
@@ -241,52 +244,54 @@ def undo_task(task_id: str):
         flash("Original file not found", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-    db = Database(settings.db_data)
-    try:
+    # ------------------------------------------------------------------
+    # 3. Load & validate task (DB scope is minimal)
+    # ------------------------------------------------------------------
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
 
-        if not task:
-            flash("Task not found", "danger")
-            return redirect(url_for("fix_nested_explorer.list_tasks"))
+    if not task:
+        flash("Task not found", "danger")
+        return redirect(url_for("fix_nested_explorer.list_tasks"))
 
-        if task["status"] != "completed":
-            flash("Can only undo completed tasks", "warning")
-            return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+    if task["status"] != "completed":
+        flash("Can only undo completed tasks", "warning")
+        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-        if task.get("upload_result") != "Success":
-            flash("Can only undo tasks with successful uploads", "warning")
-            return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+    if task.get("upload_result") != "Success":
+        flash("Can only undo tasks with successful uploads", "warning")
+        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-        # Upload original file back to Commons
-        logger.info(f"Undoing task {task_id}: Uploading original file {task['filename']}")
+    # ------------------------------------------------------------------
+    # 4. External side effect (Commons upload)
+    # ------------------------------------------------------------------
+    logger.info(f"Undoing task {task_id}: Uploading original file {task['filename']}")
 
-        upload_result = upload_file(
-            file_name=task["filename"],
-            file_path=original_file,
-            site=site,
-            summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
-        )
+    upload_result = upload_file(
+        file_name=task["filename"],
+        file_path=original_file,
+        site=site,
+        summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
+    )
 
-        if not upload_result:
-            flash("Failed to upload original file", "danger")
-            return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+    if not upload_result:
+        flash("Failed to upload original file", "danger")
+        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-        # Update task status
+    # ------------------------------------------------------------------
+    # 5. Persist undo result
+    # ------------------------------------------------------------------
+    with Database(settings.db_data) as db:
+        db_store = FixNestedTaskStore(db)
         db_store.update_status(task_id, "undone")
 
-        # Log the undo operation
-        log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
-        log_to_task(task_dir, f"Undo upload result: {upload_result}")
+    # Log the undo operation
+    log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
+    log_to_task(task_dir, f"Undo upload result: {upload_result}")
 
-        flash(f"Successfully restored original file: {task['filename']}", "success")
-        logger.info(f"Task {task_id} undone successfully")
-
-    except Exception as e:
-        logger.error(f"Failed to undo task {task_id}: {e}")
-        flash(f"Error during undo operation: {str(e)}", "danger")
-    finally:
-        db.close()
+    flash(f"Successfully restored original file: {task['filename']}", "success")
+    logger.info(f"Task {task_id} undone successfully")
 
     return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
