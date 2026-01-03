@@ -6,8 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from functools import lru_cache
-from typing import Optional, Dict, List
-from unittest.mock import call
+from typing import Optional, Dict
 
 
 @dataclass(frozen=True)
