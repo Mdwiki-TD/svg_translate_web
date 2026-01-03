@@ -120,10 +120,10 @@ def upload_fixed_svg(
         summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
     )
 
-    if not result:
+    if not result.get("result") == "Success":
         return {
             "ok": False,
-            "error": "upload_failed",
+            "error": result.get("error", "upload_failed"),
         }
 
     return {

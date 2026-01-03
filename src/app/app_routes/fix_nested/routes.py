@@ -34,7 +34,8 @@ def oauth_required_with_filename_preservation(func: F) -> F:
 
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
-        if settings.use_mw_oauth and not current_user():  # and "localhost" not in request.host:
+        is_localhost = any(host in request.host for host in settings.local_hosts)
+        if settings.use_mw_oauth and not current_user() and not is_localhost:
             # Save filename to session before redirecting to OAuth
             filename = request.form.get("filename", "").strip()
             if filename:
@@ -75,23 +76,27 @@ def fix_nested_post():
     logger.info(f"Starting fix_nested task {task_id} for file: {filename}")
 
     current_user_obj = current_user()
+
+    if not current_user_obj:
+        flash("You must be logged in to perform this action.", "danger")
+        return render_template("fix_nested/form.html", filename=original_filename)
+
     auth_payload = load_auth_payload(current_user_obj)
     username = current_user_obj.username if current_user_obj else None
 
     # Initialize database store
-    db = Database(settings.db_data)
-    db_store = FixNestedTaskStore(db)
+
+    with Database(settings.db_data) as db:
+        db_store = FixNestedTaskStore(db)
+        result = process_fix_nested(
+            filename,
+            auth_payload,
+            task_id=task_id,
+            username=username,
+            db_store=db_store
+        )
 
     commons_link = None
-
-    # try:
-    result = process_fix_nested(
-        filename,
-        auth_payload,
-        task_id=task_id,
-        username=username,
-        db_store=db_store
-    )
 
     if result["success"]:
         flash(result["message"], "success")
@@ -104,8 +109,6 @@ def fix_nested_post():
             flash(result["details"]["error"], "danger")
 
         flash(result["message"], "danger")
-    # finally:
-    #     db.close()
 
     # Preserve filename in input field regardless of result
     return render_template(

@@ -11,7 +11,7 @@ from src.app.app_routes.cancel_restart import routes
 
 
 @pytest.fixture
-def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
+def app(monkeypatch: pytest.MonkeyPatch) :
     app = Flask(__name__)
     app.secret_key = "secret"
 

@@ -73,7 +73,7 @@ class DummyTaskStore:
 
 
 @pytest.fixture
-def app_client(monkeypatch: pytest.MonkeyPatch) -> tuple[Flask, Any, DummyTaskStore]:
+def app_client(monkeypatch: pytest.MonkeyPatch):
     """Provide a Flask test client wired with an in-memory task store."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")

@@ -20,7 +20,7 @@ from ..explorer.compare import analyze_file
 from ..fix_nested.fix_utils import log_to_task
 from ...routes_utils import load_auth_payload
 from ...users.current import current_user
-from ...tasks.uploads import upload_file, get_user_site
+from ...tasks.uploads import get_user_site, upload_file
 
 bp_fix_nested_explorer = Blueprint(
     "fix_nested_explorer",
@@ -43,9 +43,8 @@ def list_tasks():
     offset = (page - 1) * per_page
     show_form = False
     # Query tasks
-    db = Database(settings.db_data)
     tasks = []
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         tasks = db_store.list_tasks(
             status=status,
@@ -54,8 +53,6 @@ def list_tasks():
             offset=offset
         )
 
-    finally:
-        db.close()
     return render_template(
         "fix_nested/tasks_list.html",
         show_form=show_form,
@@ -70,13 +67,9 @@ def list_tasks():
 @bp_fix_nested_explorer.route("/tasks/<task_id>")
 def task_detail(task_id: str):
     """View details of a specific fix_nested task."""
-    db = Database(settings.db_data)
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-
-    finally:
-        db.close()
 
     if not task:
         abort(404, description="Task not found")
@@ -108,9 +101,9 @@ def task_detail(task_id: str):
             logger.error(f"Failed to read metadata file: {e}")
 
     # Adjust filename for display
-    task["filename"] = task.get("filename", "").replace(" ", "_")
-    if task["filename"].lower().startswith("file:"):
-        task["filename"] = task["filename"][5:].lstrip()
+    file_name_to_link = task.get("filename", "").replace(" ", "_")
+    if file_name_to_link.lower().startswith("file:"):
+        file_name_to_link = file_name_to_link[5:].lstrip()
 
     return render_template(
         "fix_nested/task_detail.html",
@@ -119,6 +112,7 @@ def task_detail(task_id: str):
         has_fixed=fixed_file.exists(),
         log_content=log_content,
         metadata=metadata,
+        file_name_to_link=file_name_to_link,
     )
 
 
@@ -167,14 +161,9 @@ def view_log(task_id: str):
 @bp_fix_nested_explorer.route("/tasks/<task_id>/compare")
 def compare(task_id: str):
     """Compare original and fixed files."""
-    db = Database(settings.db_data)
-    task = None
-    try:
+    with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
-
-    finally:
-        db.close()
 
     if not task:
         # abort(404, description="Task not found")
@@ -259,7 +248,7 @@ def undo_task(task_id: str):
         flash("Can only undo completed tasks", "warning")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
-    if task.get("upload_result") != "Success":
+    if task.get("upload_result", {}).get("result") != "Success":
         flash("Can only undo tasks with successful uploads", "warning")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
@@ -275,7 +264,7 @@ def undo_task(task_id: str):
         summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
     )
 
-    if not upload_result:
+    if not upload_result.get("result") == "Success":
         flash("Failed to upload original file", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 

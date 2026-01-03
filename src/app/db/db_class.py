@@ -52,17 +52,6 @@ class Database:
         self._lock = threading.RLock()
         self.connection: Any | None = None
 
-        try:
-            self._connect()
-        except pymysql.MySQLError as exc:  # pragma: no cover - defensive
-            if self._exception_code(exc) == 1203:
-                logger.error("max_user_connections")
-                raise MaxUserConnectionsError from exc
-            else:
-                logger.info(f"Error connecting to the database: {exc}")
-                logger.exception("event=db_connect_failed host=%s db=%s", self.host, self.dbname)
-            raise
-
     # ------------------------------------------------------------------
     # Connection helpers
     # ------------------------------------------------------------------
@@ -85,15 +74,23 @@ class Database:
     def _ensure_connection(self) -> None:
         """Ensure the current connection is alive, reconnecting as needed."""
         with self._lock:
-            if self.connection is None:
-                self._connect()
-                return
-
             try:
+                if self.connection is None:
+                    self._connect()
+                    return
+
                 self.connection.ping(reconnect=True)
-            except (pymysql.err.OperationalError, pymysql.err.InterfaceError):
+
+            except pymysql.MySQLError as exc:
+                code = self._exception_code(exc)
+
+                if code == 1203:
+                    logger.error("event=max_user_connections")
+                    raise MaxUserConnectionsError from exc
+
+                logger.exception(f"event=db_connection_failed host={self.host} db={self.dbname}, code={code}")
                 self._close_connection()
-                self._connect()
+                raise
 
     def _close_connection(self) -> None:
         with self._lock:

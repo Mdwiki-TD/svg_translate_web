@@ -25,11 +25,11 @@
 
                         <dt class="col-sm-4">Filename:</dt>
                         <dd class="col-sm-8">
-                            <!-- {{ task.filename }} -->
-                            {% if task.filename %}
-                            <a href='https://commons.wikimedia.org/wiki/File:{{ task.filename }}' target='_blank'
+                            <!-- {{ file_name_to_link }} -->
+                            {% if file_name_to_link %}
+                            <a href='https://commons.wikimedia.org/wiki/File:{{ file_name_to_link }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                File:{{ task.filename }}
+                                File:{{ file_name_to_link }}
                             </a>
                             {% endif %}
                         </dd>
@@ -52,7 +52,7 @@
                         <dt class="col-sm-4">Download result:</dt>
                         <dd class="col-sm-8">{{ task.download_result.status or task.download_result.error or '-' }}</dd>
                         <dt class="col-sm-4">Upload result:</dt>
-                        <dd class="col-sm-8">{{ task.upload_result.status or task.upload_result.error or '-' }}</dd>
+                        <dd class="col-sm-8">{{ task.upload_result.result or task.upload_result.error or '-' }}</dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -172,7 +172,7 @@
     {% endif %}
 
     <!-- Actions -->
-    {% if task.status == 'completed' and task.upload_result == 'Success' %}
+    {% if task.status == 'completed' and task.upload_result and task.upload_result.result == 'Success' %}
     <div class="card shadow mb-4">
         <div class="card-header bg-success text-white">
             <h4 class="mb-0">
