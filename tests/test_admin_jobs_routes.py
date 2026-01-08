@@ -229,4 +229,4 @@ def test_jobs_page_has_collect_button(admin_jobs_client):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Collect Main Files" in page
-    assert "start_collect_main_files_job" in page
+    assert "/admin/jobs/collect-main-files" in page
