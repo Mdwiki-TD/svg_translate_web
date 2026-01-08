@@ -29,26 +29,26 @@ def collect_main_files_for_templates(job_id: int) -> None:
     """
     logger.info(f"Starting job {job_id}: collect main files for templates")
     
+    # Initialize result tracking early to avoid NameError in exception handler
+    result = {
+        "job_id": job_id,
+        "started_at": datetime.now().isoformat(),
+        "templates_processed": [],
+        "templates_updated": [],
+        "templates_failed": [],
+        "templates_skipped": [],
+        "summary": {
+            "total": 0,
+            "updated": 0,
+            "failed": 0,
+            "skipped": 0,
+            "already_had_main_file": 0,
+        },
+    }
+    
     try:
         # Update job status to running
         jobs_service.update_job_status(job_id, "running")
-        
-        # Initialize result tracking
-        result = {
-            "job_id": job_id,
-            "started_at": datetime.now().isoformat(),
-            "templates_processed": [],
-            "templates_updated": [],
-            "templates_failed": [],
-            "templates_skipped": [],
-            "summary": {
-                "total": 0,
-                "updated": 0,
-                "failed": 0,
-                "skipped": 0,
-                "already_had_main_file": 0,
-            },
-        }
         
         # Get all templates
         templates = template_service.list_templates()

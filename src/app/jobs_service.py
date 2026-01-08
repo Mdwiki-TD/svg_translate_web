@@ -39,9 +39,13 @@ def get_jobs_db() -> JobsDB:
 
 def get_jobs_data_dir() -> Path:
     """Get the directory for storing job data files."""
-    # Use LOG_PATH from settings if available, otherwise use a default
-    base_path = getattr(settings, "log_path", "/tmp")
-    jobs_dir = Path(base_path) / "jobs"
+    # Use log_dir from settings paths
+    log_dir = getattr(settings.paths, "log_dir", None)
+    if not log_dir:
+        raise RuntimeError(
+            "LOG_PATH environment variable is required for job result storage"
+        )
+    jobs_dir = Path(log_dir) / "jobs"
     jobs_dir.mkdir(parents=True, exist_ok=True)
     return jobs_dir
 
