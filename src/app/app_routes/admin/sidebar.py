@@ -119,8 +119,9 @@ def create_side(ty):
                             </ul>
                         </div>
                         <div class="d-inline d-md-none">
-                            <ul class="navbar-nav flex-row flex-wrap btn-toggle-nav-mobile "
-                                "list-unstyled fw-normal pb-1 small">
+                            <ul class="navbar-nav flex-row flex-wrap "
+                                "btn-toggle-nav-mobile list-unstyled "
+                                "fw-normal pb-1 small">
                                 {''.join(lis)}
                             </ul>
                         </div>

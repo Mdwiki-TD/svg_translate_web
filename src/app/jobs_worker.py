@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from datetime import datetime
+from typing import Any
 
 from . import template_service
 from . import jobs_service
@@ -171,7 +172,7 @@ def start_collect_main_files_job() -> int:
     return job.id
 
 
-def fix_nested_main_files_for_templates(job_id: int, user) -> None:
+def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
 
@@ -235,10 +236,14 @@ def fix_nested_main_files_for_templates(job_id: int, user) -> None:
                 )
 
                 # Process without task_id and db_store since we're tracking in the job
-                username = (
-                    user.get("username") if isinstance(user, dict)
-                    else getattr(user, "username", None)
-                )
+                # Extract username from user object - handle both dict and object types
+                username = None
+                if user:
+                    if isinstance(user, dict):
+                        username = user.get("username")
+                    else:
+                        username = getattr(user, "username", None)
+
                 fix_result = process_fix_nested(
                     filename=template.main_file,
                     user=user,
@@ -310,7 +315,7 @@ def fix_nested_main_files_for_templates(job_id: int, user) -> None:
             jobs_service.update_job_status(job_id, "failed")
 
 
-def start_fix_nested_main_files_job(user) -> int:
+def start_fix_nested_main_files_job(user: Any | None) -> int:
     """
     Start a background job to fix nested tags in all template main files.
     Returns the job ID.
