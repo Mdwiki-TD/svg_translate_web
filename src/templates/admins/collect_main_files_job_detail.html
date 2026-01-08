@@ -1,13 +1,13 @@
 {% extends "admins/base.html" %}
 
-{% block title %}Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+{% block title %}Collect Main Files Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
 {% block contents %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">Job #{{ job.id }} - {{ job.job_type }}</h3>
-        <a href="{{ url_for('admin.jobs_list') }}" class="btn btn-outline-secondary">
+        <h3 class="headline mb-0">Collect Main Files Job #{{ job.id }}</h3>
+        <a href="{{ url_for('admin.collect_main_files_jobs_list') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Jobs
         </a>
     </div>

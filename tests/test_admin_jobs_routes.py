@@ -125,18 +125,17 @@ def test_jobs_list_page_displays_jobs(admin_jobs_client):
     store.create("collect_main_files")
     store.create("collect_main_files")
 
-    response = client.get("/admin/jobs")
+    response = client.get("/admin/collect-main-files-jobs")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "Background Jobs" in page
-    assert "collect_main_files" in page
+    assert "Collect Main Files Jobs" in page
 
 
 def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     """Test that the jobs list page shows a message when there are no jobs."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/jobs")
+    response = client.get("/admin/collect-main-files-jobs")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "No jobs found" in page
@@ -149,11 +148,10 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
     job = store.create("collect_main_files")
     store.update_status(job.id, "completed")
 
-    response = client.get(f"/admin/jobs/{job.id}")
+    response = client.get(f"/admin/collect-main-files-jobs/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert f"Job #{job.id}" in page
-    assert "collect_main_files" in page
+    assert f"Collect Main Files Job #{job.id}" in page
     assert "completed" in page
 
 
@@ -186,7 +184,7 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     
     store.update_status(job.id, "completed", str(result_file))
 
-    response = client.get(f"/admin/jobs/{job.id}")
+    response = client.get(f"/admin/collect-main-files-jobs/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -199,7 +197,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     """Test that the job detail page handles nonexistent job gracefully."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/jobs/999", follow_redirects=True)
+    response = client.get("/admin/collect-main-files-jobs/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -213,7 +211,7 @@ def test_start_collect_main_files_job_route(mock_start_job, admin_jobs_client):
     # Mock the job creation
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/jobs/collect-main-files", follow_redirects=True)
+    response = client.post("/admin/collect-main-files-jobs/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -225,8 +223,38 @@ def test_jobs_page_has_collect_button(admin_jobs_client):
     """Test that the jobs page has a collect main files button."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/jobs")
+    response = client.get("/admin/collect-main-files-jobs")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "Collect Main Files" in page
-    assert "/admin/jobs/collect-main-files" in page
+    assert "Start New Job" in page
+    assert "/admin/collect-main-files-jobs/start" in page
+
+
+def test_jobs_list_filters_by_job_type(admin_jobs_client):
+    """Test that the jobs list only shows collect_main_files jobs."""
+    client, store = admin_jobs_client
+
+    # Create jobs of different types
+    store.create("collect_main_files")
+    store.create("collect_main_files")
+    store.create("other_job_type")
+    
+    response = client.get("/admin/collect-main-files-jobs")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    
+    # Should show 2 rows of jobs (not 3)
+    # Count the number of "View" buttons which appear once per job row
+    assert page.count('btn btn-outline-primary btn-sm') == 2
+
+
+def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
+    """Test that accessing detail page of non-collect_main_files job is rejected."""
+    client, store = admin_jobs_client
+
+    job = store.create("other_job_type")
+    
+    response = client.get(f"/admin/collect-main-files-jobs/{job.id}", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "not a collect main files job" in page.lower()

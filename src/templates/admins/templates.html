@@ -9,7 +9,7 @@
         <h3 class="headline mb-0">Templates</h3>
         <form method="post" action="{{ url_for('admin.start_collect_main_files_job') }}" class="d-inline">
             <button type="submit" class="btn btn-success btn-sm" 
-                    data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Jobs page. Continue?"
+                    data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Collect Main Files Jobs page. Continue?"
                     onclick="return confirm(this.dataset.confirmMessage);"
                     title="Collect main files for templates without one">
                 <i class="bi bi-download"></i> Collect Main Files
