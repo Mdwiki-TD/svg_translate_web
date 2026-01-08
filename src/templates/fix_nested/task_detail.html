@@ -198,5 +198,27 @@
         <i class="bi bi-info-circle"></i> This task has been undone. The original file was restored to Commons.
     </div>
     {% endif %}
+
+    {# Admin Actions - Delete Task #}
+    {% if is_admin %}
+    <div class="card shadow mb-4 border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-shield-exclamation"></i> Admin Actions
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('fix_nested_explorer.delete_task', task_id=task.id) }}"
+                onsubmit="return confirm('Are you sure you want to DELETE this task? This action cannot be undone!');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete Task
+                </button>
+            </form>
+            <p class="text-muted mt-2 mb-0">
+                <small><i class="bi bi-exclamation-triangle"></i> This will permanently delete this task and all associated files.</small>
+            </p>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -285,4 +285,41 @@ def undo_task(task_id: str):
     return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 
 
+@bp_fix_nested_explorer.route("/tasks/<task_id>/delete", methods=["POST"])
+@admin_required
+def delete_task(task_id: str):
+    """Delete a task (admin only)."""
+    import shutil
+
+    # Get task info first
+    with Database(settings.db_data) as db:
+        db_store = FixNestedTaskStore(db)
+        task = db_store.get_task(task_id)
+
+    if not task:
+        flash("Task not found", "danger")
+        return redirect(url_for("fix_nested_explorer.list_tasks"))
+
+    # Delete task files from filesystem
+    task_dir = Path(settings.paths.fix_nested_data) / task_id
+    if task_dir.exists():
+        try:
+            shutil.rmtree(task_dir)
+            logger.info(f"Deleted task directory: {task_dir}")
+        except Exception as e:
+            logger.error(f"Failed to delete task directory {task_dir}: {e}")
+            flash(f"Failed to delete task files: {e}", "warning")
+
+    # Delete from database
+    with Database(settings.db_data) as db:
+        db_store = FixNestedTaskStore(db)
+        if db_store.delete_task(task_id):
+            flash(f"Task {task_id[:8]} deleted successfully", "success")
+            logger.info(f"Task {task_id} deleted successfully")
+        else:
+            flash("Failed to delete task from database", "danger")
+
+    return redirect(url_for("fix_nested_explorer.list_tasks"))
+
+
 __all__ = ["bp_fix_nested_explorer"]
