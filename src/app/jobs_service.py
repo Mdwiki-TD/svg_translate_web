@@ -79,7 +79,8 @@ def update_job_status(
 def save_job_result(job_id: int, result_data: Dict[str, Any]) -> str:
     """Save job result to a JSON file and return the file path."""
     jobs_dir = get_jobs_data_dir()
-    filename = f"job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
+    filename = f"job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json"
     filepath = jobs_dir / filename
     
     with open(filepath, "w", encoding="utf-8") as f:

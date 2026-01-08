@@ -43,7 +43,8 @@ class JobsDB:
                 completed_at TIMESTAMP NULL,
                 result_file VARCHAR(500) NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_status_created (status, created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """
         )
