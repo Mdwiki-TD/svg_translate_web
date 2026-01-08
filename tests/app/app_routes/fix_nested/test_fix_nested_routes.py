@@ -188,6 +188,7 @@ def test_fix_nested_post_preserves_filename_after_submission(
     monkeypatch.setattr(routes, "FixNestedTaskStore", DummyFixNestedTaskStore)
     monkeypatch.setattr(routes, "flash", lambda *args: None)
     monkeypatch.setattr(routes, "load_auth_payload", lambda user: {})
+    monkeypatch.setattr(routes, "active_coordinators", lambda: [])
 
     with app.test_request_context(
         "/fix_nested/", method="POST", data={"filename": "File:MyFile.svg"}
@@ -259,6 +260,7 @@ def test_fix_nested_post_strips_file_prefix(
     monkeypatch.setattr(routes, "FixNestedTaskStore", DummyFixNestedTaskStore)
     monkeypatch.setattr(routes, "flash", lambda *args: None)
     monkeypatch.setattr(routes, "load_auth_payload", lambda user: {})
+    monkeypatch.setattr(routes, "active_coordinators", lambda: [])
 
     with app.test_request_context(
         "/fix_nested/", method="POST", data={"filename": "File:WithPrefix.svg"}
