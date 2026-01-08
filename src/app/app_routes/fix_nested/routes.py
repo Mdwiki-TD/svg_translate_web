@@ -109,7 +109,7 @@ def fix_nested_post():
             flash(result["details"]["error"], "danger")
 
         flash(result["message"], "danger")
-        return render_template("fix_nested/upload_form.html")
+        return render_template("fix_nested/form.html")
 
     # Preserve filename in input field regardless of result
     return render_template(
