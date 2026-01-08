@@ -7,11 +7,11 @@ import logging
 logger = logging.getLogger("svg_translate")
 
 
-def upload_file(file_name, file_path, site=None, summary=None):
+def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str] | dict:
     """
     Upload an SVG file to Wikimedia Commons using mwclient.
     """
-
+    error_details = ""
     if not site:
         return {"error": "No site provided"}
 
@@ -44,10 +44,13 @@ def upload_file(file_name, file_path, site=None, summary=None):
         return {"result": response.get("result", ""), **response}
     except requests.exceptions.HTTPError:
         logger.error("HTTP error occurred while uploading file")
+        error_details = "HTTP error"
     except mwclient.errors.FileExists:
         logger.error("File already exists on Wikimedia Commons")
+        error_details = "File already exists"
     except mwclient.errors.InsufficientPermission:
         logger.error("User does not have sufficient permissions to perform an action")
+        error_details = "User does not have sufficient permissions to perform an action"
     except Exception as e:
         # ---
         if "fileexists-no-change" in str(e):
@@ -61,4 +64,4 @@ def upload_file(file_name, file_path, site=None, summary=None):
         logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
         logger.error(f"{e}")
 
-    return {"error": "Unknown error occurred"}
+    return {"error": "Unknown error occurred", "error_details": error_details}

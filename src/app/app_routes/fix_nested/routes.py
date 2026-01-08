@@ -107,6 +107,10 @@ def fix_nested_post():
     else:
         if result.get("details", {}).get("error"):
             flash(result["details"]["error"], "danger")
+        error_details = result.get("details", {}).get("error_details", "")
+        # flash error_details if user is_admin from context_user
+        if current_user().is_admin and error_details:
+            flash(error_details, "danger")
 
         flash(result["message"], "danger")
         return render_template("fix_nested/form.html", filename=original_filename)

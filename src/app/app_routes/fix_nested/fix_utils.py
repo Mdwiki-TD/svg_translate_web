@@ -124,6 +124,7 @@ def upload_fixed_svg(
         return {
             "ok": False,
             "error": result.get("error", "upload_failed"),
+            "error_details": result.get("error_details", ""),
         }
 
     return {
@@ -274,6 +275,8 @@ def process_fix_nested(
             log_to_task(task_dir, f"Upload failed: {upload.get('error')}")
             metadata["upload_result"] = {"error": upload.get("error")}
             metadata["status"] = "upload_failed"
+            metadata["error_details"] = upload.get("error_details", "")
+
         metadata["completed_at"] = datetime.now().isoformat()
         save_metadata(task_dir, metadata)
 
@@ -284,6 +287,7 @@ def process_fix_nested(
         else:
             db_store.update_upload_result(task_id, {"error": upload.get("error")})
             db_store.update_status(task_id, "upload_failed")
+            # db_store.update_error_details(task_id, upload.get("error_details", ""))
 
     if not upload["ok"]:
         return {
