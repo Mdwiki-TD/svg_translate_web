@@ -248,6 +248,159 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
     assert page.count('btn btn-outline-primary btn-sm') == 2
 
 
+def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client):
+    """Test that the fix nested jobs list page displays jobs."""
+    client, store = admin_jobs_client
+
+    # Create some test jobs
+    store.create("fix_nested_main_files")
+    store.create("fix_nested_main_files")
+
+    response = client.get("/admin/fix-nested-main-files-jobs")
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "Fix Nested Main Files Jobs" in page
+
+
+def test_fix_nested_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
+    """Test that the fix nested jobs list page shows a message when there are no jobs."""
+    client, store = admin_jobs_client
+
+    response = client.get("/admin/fix-nested-main-files-jobs")
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "No jobs found" in page
+
+
+def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
+    """Test that the fix nested job detail page displays job information."""
+    client, store = admin_jobs_client
+
+    job = store.create("fix_nested_main_files")
+    store.update_status(job.id, "completed")
+
+    response = client.get(f"/admin/fix-nested-main-files-jobs/{job.id}")
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Fix Nested Main Files Job #{job.id}" in page
+    assert "completed" in page
+
+
+def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
+    """Test that the fix nested job detail page displays result data from JSON file."""
+    client, store = admin_jobs_client
+
+    job = store.create("fix_nested_main_files")
+    
+    # Create a fake result file
+    result_data = {
+        "job_id": job.id,
+        "summary": {
+            "total": 5,
+            "success": 3,
+            "failed": 1,
+            "skipped": 1,
+            "no_main_file": 1,
+        },
+        "templates_success": [
+            {"id": 1, "title": "Template:Test1", "main_file": "test1.svg", "fix_result": {"message": "Success"}},
+        ],
+        "templates_failed": [
+            {"id": 2, "title": "Template:Test2", "main_file": "test2.svg", "reason": "Failed to fix"},
+        ],
+        "templates_skipped": [
+            {"id": 3, "title": "Template:Test3", "reason": "No main_file set"},
+        ],
+    }
+    
+    result_file = tmp_path / "result.json"
+    with open(result_file, "w") as f:
+        json.dump(result_data, f)
+    
+    store.update_status(job.id, "completed", str(result_file))
+
+    response = client.get(f"/admin/fix-nested-main-files-jobs/{job.id}")
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "Job Summary" in page
+    assert "3" in page  # success count
+    assert "Template:Test1" in page
+    assert "Template:Test2" in page
+    assert "Template:Test3" in page
+
+
+def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
+    """Test that the fix nested job detail page handles nonexistent job gracefully."""
+    client, store = admin_jobs_client
+
+    response = client.get("/admin/fix-nested-main-files-jobs/999", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "Job id 999 was not found" in page or "not found" in page.lower()
+
+
+@patch("src.app.jobs_worker.start_fix_nested_main_files_job")
+@patch("src.app.app_routes.admin.admin_routes.jobs.load_auth_payload")
+def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
+    """Test that the start fix nested main files job route works."""
+    client, store = admin_jobs_client
+    
+    # Mock the auth payload and job creation
+    mock_load_auth.return_value = {"username": "admin"}
+    mock_start_job.return_value = 1
+
+    response = client.post("/admin/fix-nested-main-files-jobs/start", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "Job 1 started" in page or "started" in page.lower()
+    
+    mock_start_job.assert_called_once()
+    mock_load_auth.assert_called_once()
+
+
+def test_fix_nested_jobs_page_has_start_button(admin_jobs_client):
+    """Test that the fix nested jobs page has a start button."""
+    client, store = admin_jobs_client
+
+    response = client.get("/admin/fix-nested-main-files-jobs")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert "Start New Job" in page
+    assert "/admin/fix-nested-main-files-jobs/start" in page
+
+
+def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
+    """Test that the fix nested jobs list only shows fix_nested_main_files jobs."""
+    client, store = admin_jobs_client
+
+    # Create jobs of different types
+    store.create("fix_nested_main_files")
+    store.create("fix_nested_main_files")
+    store.create("collect_main_files")
+    store.create("other_job_type")
+    
+    response = client.get("/admin/fix-nested-main-files-jobs")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    
+    # Should show 2 rows of jobs (not 4)
+    # Count the number of "View" buttons which appear once per job row
+    assert page.count('btn btn-outline-primary btn-sm') == 2
+
+
+def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client):
+    """Test that accessing a non-fix_nested job via fix_nested route redirects."""
+    client, store = admin_jobs_client
+
+    # Create a collect_main_files job
+    job = store.create("collect_main_files")
+    
+    response = client.get(f"/admin/fix-nested-main-files-jobs/{job.id}", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert "not a fix nested main files job" in page.lower()
+
+
 def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     """Test that accessing detail page of non-collect_main_files job is rejected."""
     client, store = admin_jobs_client
