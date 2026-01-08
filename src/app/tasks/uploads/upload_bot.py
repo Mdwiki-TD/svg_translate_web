@@ -63,5 +63,6 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
         # ---
         logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
         logger.error(f"{e}")
+        error_details = str(e)
 
     return {"error": "Unknown error occurred", "error_details": error_details}

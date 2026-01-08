@@ -18,21 +18,26 @@ def create_side(ty):
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
-        "Pages": "bi-file-text",
-        "Qids": "bi-database",
+        "Tasks": "bi-file-text",
+        "Fix Nested Tasks": "bi-database",
         "Users": "bi-people",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
     }
 
     main_menu = {
-        "Users": [
+        "Tasks": [
             {"id": "last", "admin": 0, "href": "recent", "title": "Recent", "icon": "bi-clock-history"},
             {"id": "admins", "admin": 1, "href": "coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
             {"id": "templates", "admin": 1, "href": "templates", "title": "Templates", "icon": "bi-list-columns"},
-            {"id": "full_tr", "admin": 1, "href": "full_translators", "title": "Full translators", "icon": "bi-person-check"},
-            {"id": "user_inp", "admin": 1, "href": "users_no_inprocess", "title": "Not in process", "icon": "bi-hourglass"},
-        ]
+            # {"id": "full_tr", "admin": 1, "href": "full_translators", "title": "Full translators", "icon": "bi-person-check"},
+            # {"id": "user_inp", "admin": 1, "href": "users_no_inprocess", "title": "Not in process", "icon": "bi-hourglass"},
+        ],
+        # "Fix Nested Tasks": [
+        #     {"id": "fix_nested", "admin": 1, "href": "fix_nested_recent", "title": "Fix Nested Tasks", "icon": "bi-database-fill-gear"},
+        #     {"id": "fix_nested_admins", "admin": 0, "href": "fix_nested_coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
+        #     {"id": "fix_nested_templates", "admin": 0, "href": "fix_nested_templates", "title": "Templates", "icon": "bi-list-columns"},
+        # ],
     }
 
     sidebar = ["<ul class='list-unstyled'>"]
@@ -40,7 +45,7 @@ def create_side(ty):
     for key, items in main_menu.items():
         lis = []
         group_is_active = False
-
+        key_id = key.lower().replace(" ", "_")
         for item in items:
             href = item.get("href", "")
             if href == ty:
@@ -63,12 +68,12 @@ def create_side(ty):
                 <li class="mb-1">
                     <button class="btn btn-toggle align-items-center rounded"
                             data-bs-toggle="collapse"
-                            data-bs-target="#{key}-collapse"
+                            data-bs-target="#{key_id}-collapse"
                             aria-expanded="{expanded}">
                         {icon_tag}
                         <span class='hide-on-collapse-inline'>{key}</span>
                     </button>
-                    <div class="collapse {show}" id="{key}-collapse">
+                    <div class="collapse {show}" id="{key_id}-collapse">
                         <div class="d-none d-md-inline">
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                                 {''.join(lis)}
