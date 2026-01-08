@@ -6,6 +6,7 @@ from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 
+from ...users.admin_service import active_coordinators
 from ...routes_utils import load_auth_payload
 from .fix_utils import process_fix_nested, process_fix_nested_file_simple
 from ...users.current import current_user
@@ -109,7 +110,7 @@ def fix_nested_post():
             flash(result["details"]["error"], "danger")
         error_details = result.get("details", {}).get("error_details", "")
         # flash error_details if user is_admin from context_user
-        if current_user().is_admin and error_details:
+        if username in active_coordinators() and error_details:
             flash(error_details, "danger")
 
         flash(result["message"], "danger")
