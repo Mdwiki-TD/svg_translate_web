@@ -22,7 +22,11 @@ logger = logging.getLogger("svg_translate")
 
 
 def _collect_main_files_jobs_list():
-    """Render the collect main files jobs list dashboard."""
+    """
+    Render the collect main files jobs list dashboard.
+    TODO: The current implementation fetches all jobs from the database and then filters them by job_type in Python. As the number of jobs grows, this in-memory filtering could become inefficient. It would be more performant to apply this filter at the database level.
+
+    """
     user = current_user()
     # Filter jobs to only show collect_main_files type
     all_jobs = jobs_service.list_jobs(limit=100)
@@ -64,7 +68,10 @@ def _collect_main_files_job_detail(job_id: int):
 
 
 def _fix_nested_main_files_jobs_list():
-    """Render the fix nested main files jobs list dashboard."""
+    """
+    Render the fix nested main files jobs list dashboard.
+    TODO: The current implementation fetches all jobs from the database and then filters them by job_type in Python. As the number of jobs grows, this in-memory filtering could become inefficient. It would be more performant to apply this filter at the database level.
+    """
     user = current_user()
     # Filter jobs to only show fix_nested_main_files type
     all_jobs = jobs_service.list_jobs(limit=100)
@@ -104,13 +111,13 @@ def _fix_nested_main_files_job_detail(job_id: int):
     )
 
 
-def _start_collect_main_files_job() -> ResponseReturnValue:
+def _start_collect_main_files_job(return_to: str) -> ResponseReturnValue:
     """Start a job to collect main files for templates."""
     user = current_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+        return redirect(url_for(return_to))
 
     try:
         # Get auth payload for OAuth uploads
@@ -121,16 +128,16 @@ def _start_collect_main_files_job() -> ResponseReturnValue:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return redirect(url_for("admin.collect_main_files_jobs_list"))
+    return redirect(url_for(return_to))
 
 
-def _start_fix_nested_main_files_job() -> ResponseReturnValue:
+def _start_fix_nested_main_files_job(return_to: str) -> ResponseReturnValue:
     """Start a job to fix nested tags in all template main files."""
     user = current_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+        return redirect(url_for(return_to))
 
     try:
         # Get auth payload for OAuth uploads
@@ -141,7 +148,7 @@ def _start_fix_nested_main_files_job() -> ResponseReturnValue:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+    return redirect(url_for(return_to))
 
 
 class Jobs:
@@ -162,7 +169,7 @@ class Jobs:
         @bp_admin.post("/collect-main-files-jobs/start")
         @admin_required
         def start_collect_main_files_job() -> ResponseReturnValue:
-            return _start_collect_main_files_job()
+            return _start_collect_main_files_job("admin.collect_main_files_jobs_list")
 
         @bp_admin.get("/fix-nested-main-files-jobs")
         @admin_required
@@ -177,4 +184,4 @@ class Jobs:
         @bp_admin.post("/fix-nested-main-files-jobs/start")
         @admin_required
         def start_fix_nested_main_files_job() -> ResponseReturnValue:
-            return _start_fix_nested_main_files_job()
+            return _start_fix_nested_main_files_job("admin.fix_nested_main_files_jobs_list")
