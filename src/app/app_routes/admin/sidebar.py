@@ -39,44 +39,19 @@ def create_side(ty):
                 "id": "templates", "admin": 1, "href": "templates",
                 "title": "Templates", "icon": "bi-list-columns"
             },
+        ],
+        "Jobs": [
             {
                 "id": "collect_main_files_jobs", "admin": 1,
                 "href": "collect-main-files-jobs",
-                "title": "Collect Main Files Jobs", "icon": "bi-kanban"
+                "title": "Collect Main Files", "icon": "bi-kanban"
             },
             {
                 "id": "fix_nested_main_files_jobs", "admin": 1,
                 "href": "fix-nested-main-files-jobs",
-                "title": "Fix Nested Main Files Jobs", "icon": "bi-tools"
+                "title": "Fix Nested Main Files", "icon": "bi-tools"
             },
-            # {
-            #     "id": "full_tr", "admin": 1, "href": "full_translators",
-            #     "title": "Full translators", "icon": "bi-person-check"
-            # },
-            # {
-            #     "id": "user_inp", "admin": 1,
-            #     "href": "users_no_inprocess",
-            #     "title": "Not in process", "icon": "bi-hourglass"
-            # },
         ],
-        # "Fix Nested Tasks": [
-        #     {
-        #         "id": "fix_nested", "admin": 1,
-        #         "href": "fix_nested_recent",
-        #         "title": "Fix Nested Tasks",
-        #         "icon": "bi-database-fill-gear"
-        #     },
-        #     {
-        #         "id": "fix_nested_admins", "admin": 0,
-        #         "href": "fix_nested_coordinators",
-        #         "title": "Coordinators", "icon": "bi-person-gear"
-        #     },
-        #     {
-        #         "id": "fix_nested_templates", "admin": 0,
-        #         "href": "fix_nested_templates",
-        #         "title": "Templates", "icon": "bi-list-columns"
-        #     },
-        # ],
     }
 
     sidebar = ["<ul class='list-unstyled'>"]
