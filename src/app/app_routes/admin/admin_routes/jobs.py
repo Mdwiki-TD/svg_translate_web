@@ -11,6 +11,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from werkzeug.wrappers.response import Response
 
 from ....users.current import current_user
 from .... import jobs_service
@@ -21,7 +22,7 @@ from ....routes_utils import load_auth_payload
 logger = logging.getLogger("svg_translate")
 
 
-def _collect_main_files_jobs_list():
+def _collect_main_files_jobs_list() -> str:
     """
     Render the collect main files jobs list dashboard.
     TODO: The current implementation fetches all jobs from the database and then filters them by job_type in Python. As the number of jobs grows, this in-memory filtering could become inefficient. It would be more performant to apply this filter at the database level.
@@ -39,16 +40,12 @@ def _collect_main_files_jobs_list():
     )
 
 
-def _collect_main_files_job_detail(job_id: int):
+def _collect_main_files_job_detail(job_id: int) -> Response | str:
     """Render the collect main files job detail page."""
     user = current_user()
 
     try:
-        job = jobs_service.get_job(job_id)
-        # Ensure this is a collect_main_files job
-        if job.job_type != "collect_main_files":
-            flash(f"Job {job_id} is not a collect main files job.", "warning")
-            return redirect(url_for("admin.collect_main_files_jobs_list"))
+        job = jobs_service.get_job(job_id, "collect_main_files")
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
@@ -64,6 +61,21 @@ def _collect_main_files_job_detail(job_id: int):
         current_user=user,
         job=job,
         result_data=result_data,
+    )
+
+
+def _delete_job(job_id: int, job_type: str) -> Response:
+    """Delete a job by ID and job type."""
+
+    try:
+        jobs_service.delete_job(job_id, job_type)
+        flash(f"Job {job_id} deleted successfully.", "success")
+    except Exception as exc:
+        logger.exception("Failed to delete job")
+        flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
+
+    return redirect(
+        url_for(f"admin.{job_type}_jobs_list")
     )
 
 
@@ -84,15 +96,11 @@ def _fix_nested_main_files_jobs_list():
     )
 
 
-def _fix_nested_main_files_job_detail(job_id: int):
+def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
     """Render the fix nested main files job detail page."""
     user = current_user()
     try:
-        job = jobs_service.get_job(job_id)
-        # Ensure this is a fix_nested_main_files job
-        if job.job_type != "fix_nested_main_files":
-            flash(f"Job {job_id} is not a fix nested main files job.", "warning")
-            return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+        job = jobs_service.get_job(job_id, "fix_nested_main_files")
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
@@ -156,19 +164,23 @@ def _start_fix_nested_main_files_job() -> int:
 class Jobs:
     """Collect Main Files Jobs management routes."""
 
-    def __init__(self, bp_admin: Blueprint):
+    def __init__(self, bp_admin: Blueprint) -> None:
 
-        @bp_admin.get("/collect-main-files-jobs")
+        # ================================
+        # Collect Main Files Jobs routes
+        # ================================
+
+        @bp_admin.get("/collect-main-files")
         @admin_required
-        def collect_main_files_jobs_list():
+        def collect_main_files_jobs_list() -> str:
             return _collect_main_files_jobs_list()
 
-        @bp_admin.get("/collect-main-files-jobs/<int:job_id>")
+        @bp_admin.get("/collect-main-files/<int:job_id>")
         @admin_required
-        def collect_main_files_job_detail(job_id: int):
+        def collect_main_files_job_detail(job_id: int) -> Response | str:
             return _collect_main_files_job_detail(job_id)
 
-        @bp_admin.post("/collect-main-files-jobs/start")
+        @bp_admin.post("/collect-main-files/start")
         @admin_required
         def start_collect_main_files_job() -> ResponseReturnValue:
             job_id = _start_collect_main_files_job()
@@ -176,20 +188,34 @@ class Jobs:
                 return redirect(url_for("admin.collect_main_files_jobs_list"))
             return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
 
-        @bp_admin.get("/fix-nested-main-files-jobs")
+        @bp_admin.post("/collect-main-files/<int:job_id>/delete")
+        @admin_required
+        def delete_collect_main_files_job(job_id: int) -> Response:
+            return _delete_job(job_id, "collect_main_files")
+
+        # ================================
+        # Fix Nested Main Files Jobs routes
+        # ================================
+
+        @bp_admin.get("/fix-nested-main-files")
         @admin_required
         def fix_nested_main_files_jobs_list():
             return _fix_nested_main_files_jobs_list()
 
-        @bp_admin.get("/fix-nested-main-files-jobs/<int:job_id>")
+        @bp_admin.get("/fix-nested-main-files/<int:job_id>")
         @admin_required
-        def fix_nested_main_files_job_detail(job_id: int):
+        def fix_nested_main_files_job_detail(job_id: int) -> Response | str:
             return _fix_nested_main_files_job_detail(job_id)
 
-        @bp_admin.post("/fix-nested-main-files-jobs/start")
+        @bp_admin.post("/fix-nested-main-files/start")
         @admin_required
         def start_fix_nested_main_files_job() -> ResponseReturnValue:
             job_id = _start_fix_nested_main_files_job()
             if not job_id:
                 return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
             return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
+
+        @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
+        @admin_required
+        def delete_fix_nested_main_files_job(job_id: int) -> Response:
+            return _delete_job(job_id, "fix_nested_main_files")

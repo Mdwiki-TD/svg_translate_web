@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, List
+
 from . import Database
 
 logger = logging.getLogger("svg_translate")
@@ -81,15 +82,30 @@ class JobsDB:
             raise RuntimeError("Failed to create job")
         return self._row_to_record(rows[0])
 
-    def get(self, job_id: int) -> JobRecord:
+    def delete(self, job_id: int, job_type: str = "fix_nested_main_files") -> bool:
+        query = """
+            DELETE FROM jobs
+            WHERE id = %s AND job_type = %s
+        """
+        try:
+            self.db.execute_query_safe(
+                query,
+                (job_id, job_type),
+            )
+            return True
+        except Exception as e:
+            logger.exception(f"Failed to delete job id {job_id} of type {job_type}: {e}")
+            return False
+
+    def get(self, job_id: int, job_type: str = "fix_nested_main_files") -> JobRecord:
         """Get a job by ID."""
         rows = self.db.fetch_query_safe(
             """
             SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
-            WHERE id = %s
+            WHERE id = %s AND job_type = %s
             """,
-            (job_id,),
+            (job_id, job_type),
         )
         if not rows:
             raise LookupError(f"Job id {job_id} was not found")

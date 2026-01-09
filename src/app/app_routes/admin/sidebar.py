@@ -43,12 +43,12 @@ def create_side(ty):
         "Jobs": [
             {
                 "id": "collect_main_files_jobs", "admin": 1,
-                "href": "collect-main-files-jobs",
+                "href": "collect-main-files",
                 "title": "Collect Main Files", "icon": "bi-kanban"
             },
             {
                 "id": "fix_nested_main_files_jobs", "admin": 1,
-                "href": "fix-nested-main-files-jobs",
+                "href": "fix-nested-main-files",
                 "title": "Fix Nested Main Files", "icon": "bi-tools"
             },
         ],
