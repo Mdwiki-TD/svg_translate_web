@@ -23,6 +23,7 @@ def create_side(ty):
         "Users": "bi-people",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
+        "Jobs": "bi-gear-fill",
     }
 
     main_menu = {
