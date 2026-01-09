@@ -158,7 +158,7 @@ class JobsDB:
 
             return self.get(job_id, job_type)
 
-        if status in ["completed", "failed"]:
+        if status in ["completed", "failed", "cancelled"]:
             rowcount = self.db.execute_query_safe(
                 """
                 UPDATE jobs
@@ -176,10 +176,10 @@ class JobsDB:
                 """,
                 (status, job_id, job_type),
             )
-        
+
         if rowcount == 0:
             raise LookupError(f"Job id {job_id} was not found or update failed")
-        
+
         return self.get(job_id, job_type)
 
 

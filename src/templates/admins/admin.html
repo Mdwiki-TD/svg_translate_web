@@ -72,10 +72,6 @@
                         <td>{{ task.created_at_display }}</td>
                         <td>{{ task.updated_at_display }}</td>
                     </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">No tasks available.</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

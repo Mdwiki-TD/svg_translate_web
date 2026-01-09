@@ -7,22 +7,33 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Fix Nested Main Files Job #{{ job.id }}</h3>
-        <a href="{{ url_for('admin.fix_nested_main_files_jobs_list') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Jobs
-        </a>
+        <div class="d-flex gap-2">
+            {% if job.status == 'running' or job.status == 'pending' %}
+            <form method="POST" action="{{ url_for('admin.cancel_fix_nested_main_files_job', job_id=job.id) }}"
+                onsubmit="return confirm('Are you sure you want to cancel this job?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-x-circle"></i> Cancel Job
+                </button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('admin.delete_fix_nested_main_files_job', job_id=job.id) }}"
+                onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </form>
+            <a href="{{ url_for('admin.fix_nested_main_files_jobs_list') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
     </div>
     <div class="card-body">
         <!-- Job Summary -->
         <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header">
                 <h5 class="mb-0">Job Information</h5>
-                <form method="POST" action="{{ url_for('admin.delete_fix_nested_main_files_job', job_id=job.id) }}"
-                    onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </form>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -76,43 +87,53 @@
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row text-center mb-3">
-                    <div class="col-md-2">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h4 class="mb-0">{{ result_data.summary.total }}</h4>
+                <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+                    <div class="col col-sm-12">
+                        <div class="card h-100 border">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.total }}
+                                </h4>
                                 <small class="text-muted">Total</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card bg-success text-white">
-                            <div class="card-body">
-                                <h4 class="mb-0">{{ result_data.summary.success }}</h4>
+                    <div class="col">
+                        <div class="card h-100 border-success">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.success }}
+                                </h4>
                                 <small>Success</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body">
-                                <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
+                    <div class="col">
+                        <div class="card h-100 border-danger">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.failed }}
+                                </h4>
                                 <small>Failed</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-secondary text-white">
-                            <div class="card-body">
-                                <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
+                    <div class="col">
+                        <div class="card h-100 border-secondary">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.skipped }}
+                                </h4>
                                 <small>Skipped</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white">
-                            <div class="card-body">
-                                <h4 class="mb-0">{{ result_data.summary.no_main_file }}</h4>
+                    <div class="col">
+                        <div class="card h-100 border-info">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.no_main_file }}
+                                </h4>
                                 <small>No Main File</small>
                             </div>
                         </div>

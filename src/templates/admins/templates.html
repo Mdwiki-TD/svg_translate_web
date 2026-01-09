@@ -9,7 +9,7 @@
         <h3 class="headline mb-0">Templates</h3>
         <form method="post" action="{{ url_for('admin.start_collect_main_files_job') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn btn-success btn-sm" 
+            <button type="submit" class="btn btn-success btn-sm"
                     data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Collect Main Files Jobs page. Continue?"
                     onclick="return confirm(this.dataset.confirmMessage);"
                     title="Collect main files for templates without one">
@@ -57,7 +57,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if templates %}
                     {% for template in templates %}
                     <tr>
                         <form method="post" action="{{ url_for('admin.update_template') }}" class="d-inline">
@@ -92,8 +91,6 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    {% else %}
-                    {% endif %}
                 </tbody>
             </table>
         </div>

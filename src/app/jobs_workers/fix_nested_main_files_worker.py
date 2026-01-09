@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import logging
+import threading
 import tempfile
 from datetime import datetime
 from typing import Any
@@ -21,6 +22,7 @@ logger = logging.getLogger("svg_translate")
 def fix_nested_file(
     filename: str,
     user,
+    cancel_event: threading.Event | None = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
@@ -42,6 +44,9 @@ def fix_nested_file(
 
     file_path = download["path"]
 
+    if cancel_event and cancel_event.is_set():
+        return {"success": False, "message": "Cancelled", "cancelled": True}
+
     detect_before = detect_nested_tags(file_path)
 
     if detect_before["count"] == 0:
@@ -59,6 +64,9 @@ def fix_nested_file(
             "details": {"nested_count": detect_before["count"]},
         }
 
+    if cancel_event and cancel_event.is_set():
+        return {"success": False, "message": "Cancelled", "cancelled": True}
+
     verify = verify_fix(file_path, detect_before["count"])
 
     if verify["fixed"] == 0:
@@ -67,6 +75,9 @@ def fix_nested_file(
             "message": f"No nested tags were fixed in {filename}",
             "details": verify,
         }
+
+    if cancel_event and cancel_event.is_set():
+        return {"success": False, "message": "Cancelled", "cancelled": True}
 
     upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
 
@@ -87,9 +98,13 @@ def fix_nested_file(
     }
 
 
-def process_templates(job_id, user, result: dict[str, list[dict]], result_file: str) -> dict[str, list[dict]]:
+def process_templates(job_id, user, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None) -> dict[str, list[dict]]:
     # Update job status to running
-    jobs_service.update_job_status(job_id, "running", result_file, job_type="fix_nested_main_files")
+    try:
+        jobs_service.update_job_status(job_id, "running", result_file, job_type="fix_nested_main_files")
+    except LookupError:
+        logger.warning(f"Job {job_id}: Could not update status to running, job record might have been deleted.")
+        return result
 
     # Get all templates
     templates = template_service.list_templates()
@@ -98,6 +113,12 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
     for n, template in enumerate(templates, start=1):
+        if cancel_event and cancel_event.is_set():
+            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
+            result["status"] = "cancelled"
+            result["cancelled_at"] = datetime.now().isoformat()
+            break
+
         logger.info(f"Job {job_id}: Processing template {n}/{len(templates)}: {template.title}")
         template_info = {
             "id": template.id,
@@ -125,7 +146,13 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
             fix_result = fix_nested_file(
                 filename=template.main_file,
                 user=user,
+                cancel_event=cancel_event,
             )
+            if fix_result.get("cancelled"):
+                logger.info(f"Job {job_id}: Cancellation detected, stopping.")
+                result["status"] = "cancelled"
+                result["cancelled_at"] = datetime.now().isoformat()
+                break
             no_nested_tags = fix_result.get("no_nested_tags", False)
 
             if fix_result["success"]:
@@ -175,11 +202,18 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     # Save result to JSON file
     jobs_service.save_job_result_by_name(result_file, result)
 
-    # Update job status to completed
-    jobs_service.update_job_status(job_id, "completed", result_file, job_type="fix_nested_main_files")
+    # Update job status to completed or cancelled
+    final_status = "completed"
+    if result.get("status") == "cancelled":
+        final_status = "cancelled"
+
+    try:
+        jobs_service.update_job_status(job_id, final_status, result_file, job_type="fix_nested_main_files")
+    except LookupError:
+        logger.warning(f"Job {job_id}: Could not update status to {final_status}, job record might have been deleted.")
 
     logger.info(
-        f"Job {job_id} completed: {result['summary']['success']} successful, "
+        f"Job {job_id} {final_status}: {result['summary']['success']} successful, "
         f"{result['summary']['failed']} failed, "
         f"{result['summary']['skipped']} skipped"
     )
@@ -187,7 +221,7 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     return result
 
 
-def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
+def fix_nested_main_files_for_templates(job_id: int, user: Any | None, cancel_event: threading.Event | None = None) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
 
@@ -220,7 +254,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
     }
     result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
-        result = process_templates(job_id, user, result, result_file)
+        result = process_templates(job_id, user, result, result_file, cancel_event=cancel_event)
 
     except Exception as e:
         logger.exception(f"Job {job_id}: Fatal error during execution")
@@ -237,9 +271,14 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
         try:
             jobs_service.save_job_result_by_name(result_file, error_result)
             jobs_service.update_job_status(job_id, "failed", result_file, job_type="fix_nested_main_files")
+        except LookupError:
+            logger.warning(f"Job {job_id}: Could not update status to failed, job record might have been deleted.")
         except Exception:
             logger.exception(f"Job {job_id}: Failed to save error result")
-            jobs_service.update_job_status(job_id, "failed", job_type="fix_nested_main_files")
+            try:
+                jobs_service.update_job_status(job_id, "failed", job_type="fix_nested_main_files")
+            except LookupError:
+                pass
 
 
 __all__ = [

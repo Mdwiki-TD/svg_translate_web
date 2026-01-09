@@ -130,6 +130,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["fix_nested_file"].assert_called_once_with(
         filename="test.svg",
         user=user,
+        cancel_event=None,
     )
 
     # Should save result with successful template
@@ -193,7 +194,7 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     mock_fix_nested_services["list_templates"].return_value = templates
 
     # First template: success, third template: success
-    def process_fix_nested_side_effect(filename, user):
+    def process_fix_nested_side_effect(filename, user, cancel_event=None):
         if "test1" in filename:
             return {"success": True, "message": "Fixed test1.svg"}
         elif "test3" in filename:

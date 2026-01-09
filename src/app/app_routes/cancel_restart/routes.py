@@ -9,9 +9,11 @@ from functools import wraps
 from typing import Any, Dict, Callable
 
 from flask import (
-    flash,
     Blueprint,
     jsonify,
+    flash,
+    redirect,
+    url_for,
 )
 from flask.wrappers import Response
 from werkzeug.datastructures import MultiDict
@@ -19,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 from ...config import settings
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...db import TaskAlreadyExistsError
-from ...users.current import current_user
+from ...users.current import current_user, oauth_required
 from ...users.admin_service import active_coordinators
 from ..tasks.args_utils import parse_args
 
@@ -53,24 +55,28 @@ def login_required_json(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/cancel")
-@login_required_json
+@oauth_required
 def cancel(task_id: str):
     if not task_id:
-        return jsonify({"error": "no-task-id"}), 400
+        flash("No task id provided", "warning")
+        return redirect(url_for("main.index"))
 
     store = _task_store()
     task = store.get_task(task_id)
     if not task:
         logger.debug("Cancel requested for missing task %s", task_id)
-        return jsonify({"error": "not-found"}), 404
+        flash(f"Task {task_id} not found", "danger")
+        return redirect(url_for("main.index"))
 
     if task.get("status") in ("Completed", "Failed", "Cancelled"):
-        return jsonify({"task_id": task_id, "status": task.get("status")})
+        flash(f"Task is already {task.get('status')}", "info")
+        return redirect(url_for("tasks.task", task_id=task_id))
 
     user = current_user()
     if not user:
         logger.error("Cancel requested without authenticated user for task %s", task_id)
-        return jsonify({"error": "You are not authenticated"}), 401
+        flash("You must be logged in to cancel a task", "warning")
+        return redirect(url_for("auth.login"))
 
     task_username = task.get("username", "")
 
@@ -81,7 +87,8 @@ def cancel(task_id: str):
             user.username,
             task_username,
         )
-        return jsonify({"error": "You don't own this task"}), 403
+        flash("You don't own this task", "danger")
+        return redirect(url_for("tasks.task", task_id=task_id))
 
     cancel_event = get_cancel_event(task_id)
     if cancel_event:
@@ -89,30 +96,35 @@ def cancel(task_id: str):
 
     store.update_status(task_id, "Cancelled")
 
-    return jsonify({"task_id": task_id, "status": "Cancelled"})
+    flash("Task cancelled successfully.", "success")
+    return redirect(url_for("tasks.task", task_id=task_id))
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/restart")
-@login_required_json
+@oauth_required
 def restart(task_id: str):
     if not task_id:
-        return jsonify({"error": "no-task-id"}), 400
+        flash("No task id provided", "warning")
+        return redirect(url_for("main.index"))
 
     store = _task_store()
     task = store.get_task(task_id)
     if not task:
         logger.debug("Restart requested for missing task %s", task_id)
-        return jsonify({"error": "not-found"}), 404
+        flash(f"Task {task_id} not found", "danger")
+        return redirect(url_for("main.index"))
 
     title = task.get("title")
     if not title:
         logger.error("Task %s has no title to restart", task_id)
-        return jsonify({"error": "no-title"}), 400
+        flash("Task has no title to restart", "danger")
+        return redirect(url_for("tasks.task", task_id=task_id))
 
     user = current_user()
     if not user:
         logger.error("Restart requested without authenticated user for task %s", task_id)
-        return jsonify({"error": "not-authenticated"}), 401
+        flash("You must be logged in to restart a task", "warning")
+        return redirect(url_for("auth.login"))
 
     user_payload: Dict[str, Any] = {
         "id": user.user_id,
@@ -138,17 +150,16 @@ def restart(task_id: str):
         except TaskAlreadyExistsError as exc:
             existing = exc.task
             logger.debug("Restart for %s blocked by existing task %s", task_id, existing.get("id"))
-            return (
-                jsonify({"error": "task-active", "task_id": existing.get("id")}),
-                409,
-            )
+            flash(f"Task for title '{title}' already exists: {existing.get('id')}.", "warning")
+            return redirect(url_for("tasks.task", task_id=existing.get("id")))
         except Exception:
             logger.exception("Failed to restart task %s", task_id)
-            return jsonify({"error": "task-create-failed"}), 500
+            flash("Failed to restart task.", "danger")
+            return redirect(url_for("tasks.task", task_id=task_id))
 
     launch_task_thread(new_task_id, title, args, user_payload)
 
-    return jsonify({"task_id": new_task_id, "status": "Running"})
+    return redirect(url_for("tasks.task", task_id=new_task_id))
 
 
 __all__ = [

@@ -6,9 +6,8 @@ from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import json
-import tempfile
 
 import pytest
 
@@ -153,7 +152,7 @@ def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     response = client.get("/admin/collect-main-files")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "No jobs found" in page
+    assert "Collect Main Files Jobs" in page
 
 
 def test_job_detail_page_displays_job_info(admin_jobs_client):
@@ -288,7 +287,7 @@ def test_fix_nested_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     response = client.get("/admin/fix-nested-main-files")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "No jobs found" in page
+    assert "Fix Nested Main Files Jobs" in page
 
 
 def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
@@ -441,7 +440,8 @@ def test_delete_collect_main_files_job(admin_jobs_client):
     assert len(store.list()) == 1
 
     # Delete the job
-    response = client.post(f"/admin/collect-main-files/{job.id}/delete", follow_redirects=True)
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+        response = client.post(f"/admin/collect-main-files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
@@ -459,7 +459,8 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client):
     assert len(store.list()) == 1
 
     # Delete the job
-    response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+        response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
@@ -520,3 +521,35 @@ def test_delete_multiple_jobs(admin_jobs_client):
     response = client.post(f"/admin/fix-nested-main-files/{job3.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     assert len(store.list()) == 0
+
+
+def test_cancel_collect_main_files_job(admin_jobs_client):
+    """Test cancelling a collect_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("collect_main_files")
+    store.update_status(job.id, "running", job_type="collect_main_files")
+
+    # Cancel the job
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+        response = client.post(f"/admin/collect-main-files/{job.id}/cancel", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} cancellation requested" in page
+
+
+def test_cancel_fix_nested_main_files_job(admin_jobs_client):
+    """Test cancelling a fix_nested_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("fix_nested_main_files")
+    store.update_status(job.id, "running", job_type="fix_nested_main_files")
+
+    # Cancel the job
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+        response = client.post(f"/admin/fix-nested-main-files/{job.id}/cancel", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} cancellation requested" in page

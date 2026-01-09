@@ -13,6 +13,38 @@ from .jobs_workers.fix_nested_main_files_worker import fix_nested_main_files_for
 logger = logging.getLogger("svg_translate")
 
 
+CANCEL_EVENTS: dict[int, threading.Event] = {}
+CANCEL_EVENTS_LOCK = threading.Lock()
+
+
+def _register_cancel_event(job_id: int, cancel_event: threading.Event) -> None:
+    with CANCEL_EVENTS_LOCK:
+        CANCEL_EVENTS[job_id] = cancel_event
+
+
+def _pop_cancel_event(job_id: int) -> threading.Event | None:
+    with CANCEL_EVENTS_LOCK:
+        return CANCEL_EVENTS.pop(job_id, None)
+
+
+def get_cancel_event(job_id: int) -> threading.Event | None:
+    with CANCEL_EVENTS_LOCK:
+        return CANCEL_EVENTS.get(job_id)
+
+
+def cancel_job(job_id: int) -> bool:
+    """
+    Cancel a running job.
+    Returns True if a cancel event was found and set, False otherwise.
+    """
+    cancel_event = get_cancel_event(job_id)
+    if cancel_event:
+        cancel_event.set()
+        logger.info(f"Cancellation requested for job {job_id}")
+        return True
+    return False
+
+
 def start_job(user: Any | None, job_type: str) -> int:
     """
     Start a background job to fix nested tags in all template main files.
@@ -29,10 +61,20 @@ def start_job(user: Any | None, job_type: str) -> int:
         raise ValueError(f"Unknown job type: {job_type}")
     # Create job record
     job = jobs_service.create_job(job_type)
+
+    cancel_event = threading.Event()
+    _register_cancel_event(job.id, cancel_event)
+
+    def _runner(job_id: int, user: Any | None, cancel_event: threading.Event) -> None:
+        try:
+            jobs_targets[job_type](job_id, user, cancel_event=cancel_event)
+        finally:
+            _pop_cancel_event(job_id)
+
     # Start background thread
     thread = threading.Thread(
-        target=jobs_targets[job_type],
-        args=(job.id, user),
+        target=_runner,
+        args=(job.id, user, cancel_event),
         daemon=True,
     )
     thread.start()
@@ -66,4 +108,5 @@ __all__ = [
     "start_collect_main_files_job",
     "fix_nested_main_files_for_templates",
     "start_fix_nested_main_files_job",
+    "cancel_job",
 ]
