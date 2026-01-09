@@ -264,46 +264,4 @@ function result_html(r) {
         });
     }
 
-    if (restartBtn) {
-        restartBtn.addEventListener('click', async (event) => {
-            event.preventDefault();
-            if (restartBtn.disabled) {
-                return;
-            }
-            if (timer) clearInterval(timer);
-
-            restartBtn.disabled = true;
-            showAlert('info', 'Restarting task...');
-
-            let message = 'Unable to restart the task.';
-            let showmessage = true;
-
-            try {
-                const response = await fetch(`/tasks/${taskId}/restart`, {
-                    method: 'POST',
-                });
-                let data = await response.json();
-                if (data && data.error) {
-                    throw new Error(data.error);
-                }
-                if (!response.ok) {
-                    throw new Error('Failed to restart task');
-                }
-                const nextTaskId = data?.task_id;
-                if (!nextTaskId) {
-                    throw new Error('Missing task id');
-                }
-                showmessage = false;
-                window.location.href = `/task/${nextTaskId}`;
-            } catch (error) {
-                console.error("error:", error);
-                message += ` (${error})`;
-            }
-            if (showmessage) {
-                restartBtn.disabled = false;
-                showAlert('danger', message);
-                timer = setInterval(refresh, 2000);
-            }
-        });
-    }
 })();
