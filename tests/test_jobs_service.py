@@ -46,7 +46,9 @@ class FakeJobsDB:
                 return True
         return False
 
-    def list(self, limit: int = 100) -> list[JobRecord]:
+    def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
+        if job_type:
+            return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
     def update_status(
@@ -258,3 +260,38 @@ def test_delete_nonexistent_job(jobs_db_fixture):
 
     # No jobs should exist
     assert len(jobs_service.list_jobs()) == 0
+
+
+def test_list_jobs_filtered_by_type(jobs_db_fixture):
+    """Test listing jobs filtered by job_type."""
+    jobs_service.create_job("collect_main_files")
+    jobs_service.create_job("collect_main_files")
+    jobs_service.create_job("fix_nested_main_files")
+    jobs_service.create_job("other_job_type")
+
+    # Filter by collect_main_files
+    collect_jobs = jobs_service.list_jobs(job_type="collect_main_files")
+    assert len(collect_jobs) == 2
+    assert all(job.job_type == "collect_main_files" for job in collect_jobs)
+
+    # Filter by fix_nested_main_files
+    fix_jobs = jobs_service.list_jobs(job_type="fix_nested_main_files")
+    assert len(fix_jobs) == 1
+    assert all(job.job_type == "fix_nested_main_files" for job in fix_jobs)
+
+    # No filter - should return all
+    all_jobs = jobs_service.list_jobs()
+    assert len(all_jobs) == 4
+
+
+def test_list_jobs_filtered_with_limit(jobs_db_fixture):
+    """Test listing jobs filtered by job_type with a limit."""
+    for _ in range(5):
+        jobs_service.create_job("collect_main_files")
+    for _ in range(3):
+        jobs_service.create_job("fix_nested_main_files")
+
+    # Filter by type with limit
+    collect_jobs = jobs_service.list_jobs(limit=2, job_type="collect_main_files")
+    assert len(collect_jobs) == 2
+    assert all(job.job_type == "collect_main_files" for job in collect_jobs)

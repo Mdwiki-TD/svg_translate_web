@@ -54,8 +54,10 @@ class FakeJobsDB:
         index = self._find_index(job_id, job_type)
         return self._records[index]
 
-    def list(self, limit: int = 100) -> List[JobRecord]:
-        """List recent jobs."""
+    def list(self, limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
+        """List recent jobs, optionally filtered by job_type."""
+        if job_type:
+            return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
     def update_status(
