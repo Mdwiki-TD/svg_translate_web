@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 from flask import Flask, render_template, flash
+from flask_wtf.csrf import CSRFProtect
 from typing import Tuple
 from datetime import datetime
 from .config import settings
@@ -64,6 +65,9 @@ def create_app() -> Flask:
     )
 
     app.config["USE_MW_OAUTH"] = settings.use_mw_oauth
+
+    # Initialize CSRF protection
+    csrf = CSRFProtect(app)
 
     if settings.use_mw_oauth and (
         settings.db_data.get("host")

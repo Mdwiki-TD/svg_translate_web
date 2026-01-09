@@ -22,3 +22,23 @@ os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
 
 from src import svg_config  # load_dotenv()
+
+import pytest
+from typing import Any
+
+
+@pytest.fixture
+def csrf_token():
+    """Helper fixture to generate CSRF tokens for tests."""
+    def _get_csrf_token(client: Any) -> str:
+        """Get a CSRF token by making a GET request and extracting it."""
+        import re
+        response = client.get('/')
+        match = re.search(rb'name="csrf_token" value="([^"]+)"', response.data)
+        if match:
+            return match.group(1).decode()
+        # If not found in response, try to generate one from the test request context
+        from flask_wtf.csrf import generate_csrf
+        with client.application.test_request_context():
+            return generate_csrf()
+    return _get_csrf_token
