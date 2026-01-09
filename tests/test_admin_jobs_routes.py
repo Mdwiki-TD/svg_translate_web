@@ -6,9 +6,8 @@ from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import json
-import tempfile
 
 import pytest
 
