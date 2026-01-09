@@ -38,7 +38,17 @@ class FakeJobsDB:
                 return record
         raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
-    def list(self, limit: int = 100) -> list[JobRecord]:
+    def delete(self, job_id: int, job_type: str) -> bool:
+        """Delete a job by ID and job type."""
+        for i, record in enumerate(self._records):
+            if record.id == job_id and record.job_type == job_type:
+                self._records.pop(i)
+                return True
+        return False
+
+    def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
+        if job_type:
+            return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
     def update_status(
@@ -204,3 +214,84 @@ def test_load_job_result_with_invalid_json(tmp_path):
     loaded_data = jobs_service.load_job_result(str(result_file))
 
     assert loaded_data is None
+
+
+def test_delete_job(jobs_db_fixture):
+    """Test deleting a job."""
+    job = jobs_service.create_job("collect_main_files")
+    assert len(jobs_service.list_jobs()) == 1
+
+    jobs_service.delete_job(job.id, "collect_main_files")
+
+    assert len(jobs_service.list_jobs()) == 0
+
+
+def test_delete_job_with_correct_type(jobs_db_fixture):
+    """Test deleting a job with correct job type."""
+    job1 = jobs_service.create_job("collect_main_files")
+    job2 = jobs_service.create_job("fix_nested_main_files")
+    assert len(jobs_service.list_jobs()) == 2
+
+    jobs_service.delete_job(job1.id, "collect_main_files")
+
+    remaining_jobs = jobs_service.list_jobs()
+    assert len(remaining_jobs) == 1
+    assert remaining_jobs[0].id == job2.id
+
+
+def test_delete_job_with_wrong_type(jobs_db_fixture):
+    """Test deleting a job with wrong job type doesn't delete it."""
+    job = jobs_service.create_job("collect_main_files")
+    assert len(jobs_service.list_jobs()) == 1
+
+    # Try to delete with wrong job type
+    jobs_service.delete_job(job.id, "fix_nested_main_files")
+
+    # Job should still exist
+    remaining_jobs = jobs_service.list_jobs()
+    assert len(remaining_jobs) == 1
+    assert remaining_jobs[0].id == job.id
+
+
+def test_delete_nonexistent_job(jobs_db_fixture):
+    """Test deleting a non-existent job."""
+    # Should not raise an error
+    jobs_service.delete_job(999, "collect_main_files")
+
+    # No jobs should exist
+    assert len(jobs_service.list_jobs()) == 0
+
+
+def test_list_jobs_filtered_by_type(jobs_db_fixture):
+    """Test listing jobs filtered by job_type."""
+    jobs_service.create_job("collect_main_files")
+    jobs_service.create_job("collect_main_files")
+    jobs_service.create_job("fix_nested_main_files")
+    jobs_service.create_job("other_job_type")
+
+    # Filter by collect_main_files
+    collect_jobs = jobs_service.list_jobs(job_type="collect_main_files")
+    assert len(collect_jobs) == 2
+    assert all(job.job_type == "collect_main_files" for job in collect_jobs)
+
+    # Filter by fix_nested_main_files
+    fix_jobs = jobs_service.list_jobs(job_type="fix_nested_main_files")
+    assert len(fix_jobs) == 1
+    assert all(job.job_type == "fix_nested_main_files" for job in fix_jobs)
+
+    # No filter - should return all
+    all_jobs = jobs_service.list_jobs()
+    assert len(all_jobs) == 4
+
+
+def test_list_jobs_filtered_with_limit(jobs_db_fixture):
+    """Test listing jobs filtered by job_type with a limit."""
+    for _ in range(5):
+        jobs_service.create_job("collect_main_files")
+    for _ in range(3):
+        jobs_service.create_job("fix_nested_main_files")
+
+    # Filter by type with limit
+    collect_jobs = jobs_service.list_jobs(limit=2, job_type="collect_main_files")
+    assert len(collect_jobs) == 2
+    assert all(job.job_type == "collect_main_files" for job in collect_jobs)

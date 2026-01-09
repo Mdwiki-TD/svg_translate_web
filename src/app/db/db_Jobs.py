@@ -111,17 +111,29 @@ class JobsDB:
             raise LookupError(f"Job id {job_id} was not found")
         return self._row_to_record(rows[0])
 
-    def list(self, limit: int = 100) -> List[JobRecord]:
-        """List recent jobs."""
-        rows = self.db.fetch_query_safe(
-            """
-            SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            ORDER BY created_at DESC
-            LIMIT %s
-            """,
-            (limit,),
-        )
+    def list(self, limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
+        """List recent jobs, optionally filtered by job_type."""
+        if job_type:
+            rows = self.db.fetch_query_safe(
+                """
+                SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+                FROM jobs
+                WHERE job_type = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (job_type, limit),
+            )
+        else:
+            rows = self.db.fetch_query_safe(
+                """
+                SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+                FROM jobs
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
         return [self._row_to_record(row) for row in rows]
 
     def update_status(
@@ -129,7 +141,7 @@ class JobsDB:
     ) -> JobRecord:
         """
         Update job status.
-        TODO: Using execute_query_safe means UPDATE failures are logged but don't raise exceptions. If an update fails (e.g., job_id doesn't exist), the method proceeds to call get(job_id) which will raise LookupError. However, if the job exists but the UPDATE fails for other reasons (connection issues), the returned record won't reflect the intended status change, with no indication to the caller. Consider using execute_query instead and letting exceptions propagate, or checking the rowcount to verify the update succeeded.
+        Raises LookupError if the job doesn't exist or the update fails.
         """
         if status == "running":
             query = "UPDATE jobs SET status = %s, started_at = NOW()"
@@ -140,12 +152,14 @@ class JobsDB:
             query += " WHERE id = %s AND job_type = %s"
             params.append(job_id)
             params.append(job_type)
-            self.db.execute_query_safe(query, tuple(params))
+            rowcount = self.db.execute_query_safe(query, tuple(params))
+            if rowcount == 0:
+                raise LookupError(f"Job id {job_id} was not found or update failed")
 
-            return self.get(job_id)
+            return self.get(job_id, job_type)
 
         if status in ["completed", "failed"]:
-            self.db.execute_query_safe(
+            rowcount = self.db.execute_query_safe(
                 """
                 UPDATE jobs
                 SET status = %s, completed_at = NOW(), result_file = %s
@@ -154,7 +168,7 @@ class JobsDB:
                 (status, result_file, job_id, job_type),
             )
         else:
-            self.db.execute_query_safe(
+            rowcount = self.db.execute_query_safe(
                 """
                 UPDATE jobs
                 SET status = %s
@@ -162,6 +176,10 @@ class JobsDB:
                 """,
                 (status, job_id, job_type),
             )
+        
+        if rowcount == 0:
+            raise LookupError(f"Job id {job_id} was not found or update failed")
+        
         return self.get(job_id, job_type)
 
 
