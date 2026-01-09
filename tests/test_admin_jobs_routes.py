@@ -204,10 +204,13 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 
 
 @patch("src.app.jobs_worker.start_collect_main_files_job")
-def test_start_collect_main_files_job_route(mock_start_job, admin_jobs_client):
+@patch("src.app.app_routes.admin.admin_routes.jobs.load_auth_payload")
+def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start collect main files job route works."""
     client, store = admin_jobs_client
 
+    # Mock the auth payload and job creation
+    mock_load_auth.return_value = {"username": "admin"}
     # Mock the job creation
     mock_start_job.return_value = 1
 
@@ -217,6 +220,7 @@ def test_start_collect_main_files_job_route(mock_start_job, admin_jobs_client):
     assert "Job 1 started" in page or "started" in page.lower()
 
     mock_start_job.assert_called_once()
+    mock_load_auth.assert_called_once()
 
 
 def test_jobs_page_has_collect_button(admin_jobs_client):
