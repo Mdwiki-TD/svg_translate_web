@@ -7,7 +7,9 @@ from logging.handlers import WatchedFileHandler
 # from app.config import settings
 # Create log directory if needed
 # log_dir_path = settings.paths.log_dir
-log_dir_path = os.getenv("LOG_PATH", f"{os.path.expanduser('~')}/logs")
+main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser('~'), 'data'))
+
+log_dir_path = f"{main_dir}/logs"
 
 log_dir = Path(log_dir_path)
 log_dir.mkdir(parents=True, exist_ok=True)
