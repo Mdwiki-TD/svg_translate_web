@@ -262,11 +262,11 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
     mock_fix_nested_services["list_templates"].return_value = []
 
     user = {"username": "test_user"}
-    jobs_worker.fix_nested_main_files_for_templates(1, user)
+    jobs_worker.fix_nested_main_files_for_templates(700, user)
 
     # Should update status to running, then completed
     assert mock_fix_nested_services["update_job_status"].call_count == 2
-    mock_fix_nested_services["update_job_status"].assert_any_call(1, "running")
+    mock_fix_nested_services["update_job_status"].assert_any_call(700, "running")
 
     # Should save result
     mock_fix_nested_services["save_job_result_by_name"].assert_called_once()
