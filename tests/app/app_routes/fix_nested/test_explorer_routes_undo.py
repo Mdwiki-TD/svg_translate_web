@@ -30,7 +30,10 @@ def test_user_token_record_has_username_attribute() -> None:
 
 
 def test_username_access_in_f_string() -> None:
-    """Test that username can be accessed in f-strings from UserTokenRecord."""
+    """
+    Test that username can be accessed in f-strings from UserTokenRecord.
+    TODO: This test aims to demonstrate that UserTokenRecord username can be accessed in f-strings, but it uses types.SimpleNamespace instead of the actual UserTokenRecord class. This doesn't prove that the real class works correctly.
+    """
     user = types.SimpleNamespace(
         username="test_coordinator",
         user_id=123,
@@ -43,4 +46,3 @@ def test_username_access_in_f_string() -> None:
     # This is what the buggy code tried to do - would fail for UserTokenRecord
     # message = f"Task undone: Original file restored by {user.get('username', 'unknown')}"
     # AttributeError: 'SimpleNamespace' object has no attribute 'get'
-

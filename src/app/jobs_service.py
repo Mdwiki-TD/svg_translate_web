@@ -58,10 +58,16 @@ def create_job(job_type: str) -> JobRecord:
     return store.create(job_type)
 
 
-def get_job(job_id: int) -> JobRecord:
+def get_job(job_id: int, job_type: str) -> JobRecord:
     """Get a job by ID."""
     store = get_jobs_db()
-    return store.get(job_id)
+    return store.get(job_id, job_type)
+
+
+def delete_job(job_id: int, job_type: str) -> None:
+    """Delete a job by ID and job type."""
+    store = get_jobs_db()
+    store.delete(job_id, job_type)
 
 
 def list_jobs(limit: int = 100) -> List[JobRecord]:
@@ -71,11 +77,11 @@ def list_jobs(limit: int = 100) -> List[JobRecord]:
 
 
 def update_job_status(
-    job_id: int, status: str, result_file: str | None = None
+    job_id: int, status: str, result_file: str | None = None, *, job_type: str
 ) -> JobRecord:
     """Update job status."""
     store = get_jobs_db()
-    return store.update_status(job_id, status, result_file)
+    return store.update_status(job_id, status, result_file, job_type=job_type)
 
 
 def generate_result_file_name(job_id, job_type):

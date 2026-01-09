@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-import json
+# import json
 import logging
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, List
+
 from . import Database
 
 logger = logging.getLogger("svg_translate")
@@ -18,11 +20,11 @@ class JobRecord:
     id: int
     job_type: str
     status: str  # pending, running, completed, failed
-    started_at: Any | None = None
-    completed_at: Any | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     result_file: str | None = None  # Path to JSON file with job results
-    created_at: Any | None = None
-    updated_at: Any | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class JobsDB:
@@ -80,15 +82,30 @@ class JobsDB:
             raise RuntimeError("Failed to create job")
         return self._row_to_record(rows[0])
 
-    def get(self, job_id: int) -> JobRecord:
+    def delete(self, job_id: int, job_type: str = "fix_nested_main_files") -> bool:
+        query = """
+            DELETE FROM jobs
+            WHERE id = %s AND job_type = %s
+        """
+        try:
+            self.db.execute_query_safe(
+                query,
+                (job_id, job_type),
+            )
+            return True
+        except Exception as e:
+            logger.exception(f"Failed to delete job id {job_id} of type {job_type}: {e}")
+            return False
+
+    def get(self, job_id: int, job_type: str = "fix_nested_main_files") -> JobRecord:
         """Get a job by ID."""
         rows = self.db.fetch_query_safe(
             """
             SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
-            WHERE id = %s
+            WHERE id = %s AND job_type = %s
             """,
-            (job_id,),
+            (job_id, job_type),
         )
         if not rows:
             raise LookupError(f"Job id {job_id} was not found")
@@ -108,37 +125,44 @@ class JobsDB:
         return [self._row_to_record(row) for row in rows]
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None
+        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
     ) -> JobRecord:
-        """Update job status."""
+        """
+        Update job status.
+        TODO: Using execute_query_safe means UPDATE failures are logged but don't raise exceptions. If an update fails (e.g., job_id doesn't exist), the method proceeds to call get(job_id) which will raise LookupError. However, if the job exists but the UPDATE fails for other reasons (connection issues), the returned record won't reflect the intended status change, with no indication to the caller. Consider using execute_query instead and letting exceptions propagate, or checking the rowcount to verify the update succeeded.
+        """
         if status == "running":
-            self.db.execute_query_safe(
-                """
-                UPDATE jobs
-                SET status = %s, started_at = NOW()
-                WHERE id = %s
-                """,
-                (status, job_id),
-            )
-        elif status in ["completed", "failed"]:
+            query = "UPDATE jobs SET status = %s, started_at = NOW()"
+            params = [status]
+            if result_file is not None:
+                query += ", result_file = %s"
+                params.append(result_file)
+            query += " WHERE id = %s AND job_type = %s"
+            params.append(job_id)
+            params.append(job_type)
+            self.db.execute_query_safe(query, tuple(params))
+
+            return self.get(job_id)
+
+        if status in ["completed", "failed"]:
             self.db.execute_query_safe(
                 """
                 UPDATE jobs
                 SET status = %s, completed_at = NOW(), result_file = %s
-                WHERE id = %s
+                WHERE id = %s AND job_type = %s
                 """,
-                (status, result_file, job_id),
+                (status, result_file, job_id, job_type),
             )
         else:
             self.db.execute_query_safe(
                 """
                 UPDATE jobs
                 SET status = %s
-                WHERE id = %s
+                WHERE id = %s AND job_type = %s
                 """,
-                (status, job_id),
+                (status, job_id, job_type),
             )
-        return self.get(job_id)
+        return self.get(job_id, job_type)
 
 
 __all__ = [
