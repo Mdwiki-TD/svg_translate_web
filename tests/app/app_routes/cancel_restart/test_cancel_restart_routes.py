@@ -172,7 +172,7 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
             return {"id": task_id, "title": "Sample", "username": "user", "form": {}}
 
         def create_task(self, *args, **kwargs) -> None:
-            raise TaskAlreadyExistsError("exists", task={"id": "existing_id"})
+            raise TaskAlreadyExistsError({"id": "existing_id"})
 
     monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
     monkeypatch.setattr(routes, "current_user", lambda: types.SimpleNamespace(

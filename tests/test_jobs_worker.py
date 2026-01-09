@@ -95,36 +95,9 @@ def test_runner_calls_target_and_cleans_up():
     jobs_worker._register_cancel_event(job_id, event)
     assert jobs_worker.get_cancel_event(job_id) == event
 
-    # We need to mock the jobs_targets dictionary indirectly
-    # since it's defined inside start_job.
-    # Alternatively, we can just test _runner directly if we can access it.
-    # It is not exported, but it's in the module.
-
-    with patch.dict("src.app.jobs_worker.CANCEL_EVENTS", {job_id: event}):
-        # Mock the worker function that would be called
-        def fake_worker(jid, usr, cancel_event):
-            mock_target(jid, usr, cancel_event)
-
-        # Instead of patching jobs_targets (which is local),
-        # let's just test that the finally block in _runner works.
-        # We can simulate _runner's logic.
-
-        # Test start_job which sets up the runner
-        with patch("src.app.jobs_worker.jobs_service.create_job") as mock_create:
-            mock_create.return_value = JobRecord(id=job_id, job_type="collect_main_files", status="pending")
-            with patch("src.app.jobs_worker.collect_main_files_for_templates", mock_target):
-                # We want to check if _runner pops the event.
-                # Since _runner is inside start_job, we have to start it.
-
-                # To test _runner specifically, we can extract it if we had a way,
-                # but let's just look at how it's used.
-                pass
-
-    # Let's try to test _runner by calling it if possible
     from src.app.jobs_worker import _runner
+    _runner(job_id, user, event, mock_target)
 
-    _runner(job_id, user, event)
-
-    assert mock_target.called
-    # After runner finishes, event should be popped
+    mock_target.assert_called_once_with(job_id, user, cancel_event=event)
+    # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_cancel_event(job_id) is None
