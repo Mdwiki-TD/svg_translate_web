@@ -125,7 +125,7 @@ class JobsDB:
         return [self._row_to_record(row) for row in rows]
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None
+        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
     ) -> JobRecord:
         """
         Update job status.
@@ -137,18 +137,18 @@ class JobsDB:
                     """
                     UPDATE jobs
                     SET status = %s, started_at = NOW(), result_file = %s
-                    WHERE id = %s
+                    WHERE id = %s AND job_type = %s
                     """,
-                    (status, result_file, job_id),
+                    (status, result_file, job_id, job_type),
                 )
             else:
                 self.db.execute_query_safe(
                     """
                     UPDATE jobs
                     SET status = %s, started_at = NOW()
-                    WHERE id = %s
+                    WHERE id = %s AND job_type = %s
                     """,
-                    (status, job_id),
+                    (status, job_id, job_type),
                 )
             return self.get(job_id)
 
@@ -157,20 +157,20 @@ class JobsDB:
                 """
                 UPDATE jobs
                 SET status = %s, completed_at = NOW(), result_file = %s
-                WHERE id = %s
+                WHERE id = %s AND job_type = %s
                 """,
-                (status, result_file, job_id),
+                (status, result_file, job_id, job_type),
             )
         else:
             self.db.execute_query_safe(
                 """
                 UPDATE jobs
                 SET status = %s
-                WHERE id = %s
+                WHERE id = %s AND job_type = %s
                 """,
-                (status, job_id),
+                (status, job_id, job_type),
             )
-        return self.get(job_id)
+        return self.get(job_id, job_type)
 
 
 __all__ = [

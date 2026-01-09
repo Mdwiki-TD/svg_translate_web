@@ -32,24 +32,24 @@ class FakeJobsDB:
         self._next_id += 1
         return record
 
-    def get(self, job_id: int) -> JobRecord:
+    def get(self, job_id: int, job_type: str) -> JobRecord:
         for record in self._records:
-            if record.id == job_id:
+            if record.id == job_id and record.job_type == job_type:
                 return record
-        raise LookupError(f"Job id {job_id} was not found")
+        raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
     def list(self, limit: int = 100) -> list[JobRecord]:
         return list(self._records[:limit])
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None
+        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
     ) -> JobRecord:
         for record in self._records:
-            if record.id == job_id:
+            if record.id == job_id and record.job_type == job_type:
                 record.status = status
                 record.result_file = result_file
                 return record
-        raise LookupError(f"Job id {job_id} was not found")
+        raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
 
 @pytest.fixture
@@ -124,7 +124,7 @@ def test_update_job_status(jobs_db_fixture):
     """Test updating a job's status."""
     job = jobs_service.create_job("collect_main_files")
 
-    updated_job = jobs_service.update_job_status(job.id, "running")
+    updated_job = jobs_service.update_job_status(job.id, "running", job_type="collect_main_files")
 
     assert updated_job.status == "running"
 
@@ -134,7 +134,7 @@ def test_update_job_status_with_result_file(jobs_db_fixture):
     job = jobs_service.create_job("collect_main_files")
 
     updated_job = jobs_service.update_job_status(
-        job.id, "completed", "/path/to/result.json"
+        job.id, "completed", "/path/to/result.json", job_type="collect_main_files"
     )
 
     assert updated_job.status == "completed"

@@ -18,7 +18,7 @@ logger = logging.getLogger("svg_translate")
 
 def process_templates(job_id, result: dict[str, list[dict]], result_file: str) -> dict[str, list[dict]]:
     # Update job status to running
-    jobs_service.update_job_status(job_id, "running", result_file)
+    jobs_service.update_job_status(job_id, "running", result_file, job_type="collect_main_files")
 
     # Get all templates
     templates = template_service.list_templates()
@@ -90,7 +90,7 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str) -
     jobs_service.save_job_result_by_name(result_file, result)
 
     # Update job status to completed
-    jobs_service.update_job_status(job_id, "completed", result_file)
+    jobs_service.update_job_status(job_id, "completed", result_file, job_type="collect_main_files")
 
     logger.info(
         f"Job {job_id} completed: {result['summary']['updated']} updated, "
@@ -147,10 +147,10 @@ def collect_main_files_for_templates(job_id: int, user: Any | None=None) -> None
 
         try:
             jobs_service.save_job_result_by_name(result_file, error_result)
-            jobs_service.update_job_status(job_id, "failed", result_file)
+            jobs_service.update_job_status(job_id, "failed", result_file, job_type="collect_main_files")
         except Exception:
             logger.exception(f"Job {job_id}: Failed to save error result")
-            jobs_service.update_job_status(job_id, "failed")
+            jobs_service.update_job_status(job_id, "failed", job_type="collect_main_files")
 
 
 __all__ = [

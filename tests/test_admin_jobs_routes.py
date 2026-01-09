@@ -29,11 +29,11 @@ class FakeJobsDB:
         self._records.clear()
         self._next_id = 1
 
-    def _find_index(self, job_id: int) -> int:
+    def _find_index(self, job_id: int, job_type: str) -> int:
         for index, record in enumerate(self._records):
-            if record.id == job_id:
+            if record.id == job_id and record.job_type == job_type:
                 return index
-        raise LookupError(f"Job id {job_id} was not found")
+        raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
     def create(self, job_type: str) -> JobRecord:
         """Create a new job."""
@@ -46,9 +46,9 @@ class FakeJobsDB:
         self._next_id += 1
         return record
 
-    def get(self, job_id: int) -> JobRecord:
+    def get(self, job_id: int, job_type: str) -> JobRecord:
         """Get a job by ID."""
-        index = self._find_index(job_id)
+        index = self._find_index(job_id, job_type)
         return self._records[index]
 
     def list(self, limit: int = 100) -> List[JobRecord]:
@@ -56,10 +56,10 @@ class FakeJobsDB:
         return list(self._records[:limit])
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None
+        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
     ) -> JobRecord:
         """Update job status."""
-        index = self._find_index(job_id)
+        index = self._find_index(job_id, job_type)
         updated = replace(
             self._records[index],
             status=status,
@@ -146,7 +146,7 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
     client, store = admin_jobs_client
 
     job = store.create("collect_main_files")
-    store.update_status(job.id, "completed")
+    store.update_status(job.id, "completed", job_type="collect_main_files")
 
     response = client.get(f"/admin/collect-main-files/{job.id}")
     assert response.status_code == 200
@@ -182,7 +182,7 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file))
+    store.update_status(job.id, "completed", str(result_file), "collect_main_files")
 
     response = client.get(f"/admin/collect-main-files/{job.id}")
     assert response.status_code == 200
@@ -281,7 +281,7 @@ def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
     client, store = admin_jobs_client
 
     job = store.create("fix_nested_main_files")
-    store.update_status(job.id, "completed")
+    store.update_status(job.id, "completed", job_type="fix_nested_main_files")
 
     response = client.get(f"/admin/fix-nested-main-files/{job.id}")
     assert response.status_code == 200
@@ -321,7 +321,7 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file))
+    store.update_status(job.id, "completed", str(result_file), "fix_nested_main_files")
 
     response = client.get(f"/admin/fix-nested-main-files/{job.id}")
     assert response.status_code == 200
