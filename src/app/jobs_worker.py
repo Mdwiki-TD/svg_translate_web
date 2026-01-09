@@ -49,7 +49,7 @@ def collect_main_files_for_templates(job_id: int, user: Any | None=None) -> None
     result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
         # Update job status to running
-        jobs_service.update_job_status(job_id, "running")
+        jobs_service.update_job_status(job_id, "running", result_file)
 
         # Get all templates
         templates = template_service.list_templates()
@@ -112,7 +112,6 @@ def collect_main_files_for_templates(job_id: int, user: Any | None=None) -> None
             if n == 1 or n % 10 == 0:
                 # Save result to JSON file
                 jobs_service.save_job_result_by_name(result_file, result)
-                jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
         result["summary"]["skipped"] = len(result["templates_skipped"])
@@ -185,7 +184,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
     result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
         # Update job status to running
-        jobs_service.update_job_status(job_id, "running")
+        jobs_service.update_job_status(job_id, "running", result_file)
 
         # Get all templates
         templates = template_service.list_templates()
@@ -264,7 +263,6 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
             if n == 1 or n % 10 == 0:
                 # Save result to JSON file
                 jobs_service.save_job_result_by_name(result_file, result)
-                jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
         result["summary"]["skipped"] = len(result["templates_skipped"])
