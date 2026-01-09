@@ -9,7 +9,7 @@
         <h3 class="headline mb-0">Fix Nested Main Files Jobs</h3>
         <form method="post" action="{{ url_for('admin.start_fix_nested_main_files_job') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn btn-primary" 
+            <button type="submit" class="btn btn-primary"
                     data-confirm-message="This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?"
                     onclick="return confirm(this.dataset.confirmMessage);">
                 <i class="bi bi-play-circle"></i> Start New Job
@@ -30,7 +30,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if jobs %}
                     {% for job in jobs %}
                     <tr>
                         <td>{{ job.id }}</td>
@@ -55,11 +54,6 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No jobs found</td>
-                    </tr>
-                    {% endif %}
                 </tbody>
             </table>
         </div>

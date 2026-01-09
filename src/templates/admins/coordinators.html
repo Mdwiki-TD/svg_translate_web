@@ -66,7 +66,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if coordinators %}
                     {% for coordinator in coordinators %}
                     <tr>
                         <td>{{ coordinator.id }}</td>
@@ -102,11 +101,6 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted py-4">No coordinators found.</td>
-                    </tr>
-                    {% endif %}
                 </tbody>
             </table>
         </div>
