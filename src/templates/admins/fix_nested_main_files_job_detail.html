@@ -122,11 +122,11 @@
             </div>
         </div>
 
-        <!-- Successful Templates -->
+        <!-- Successful Files -->
         {% if result_data.templates_success %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Successful Templates ({{ result_data.templates_success|length }})</h5>
+                <h5 class="mb-0">Successful Files ({{ result_data.templates_success|length }})</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -149,7 +149,14 @@
                                         {{ template.title }}
                                     </a>
                                 </td>
-                                <td><code>{{ template.main_file }}</code></td>
+                                <td>
+                                    {% if template.main_file %}
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
+                                        target='_blank' rel='noopener noreferrer'>
+                                        {{ template.main_file }}
+                                    </a>
+                                    {% endif %}
+                                </td>
                                 <td>{{ template.fix_result.message }}</td>
                             </tr>
                             {% endfor %}
@@ -160,11 +167,11 @@
         </div>
         {% endif %}
 
-        <!-- Failed Templates -->
+        <!-- Failed Files -->
         {% if result_data.templates_failed %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Failed Templates ({{ result_data.templates_failed|length }})</h5>
+                <h5 class="mb-0">Failed Files ({{ result_data.templates_failed|length }})</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -187,7 +194,14 @@
                                         {{ template.title }}
                                     </a>
                                 </td>
-                                <td><code>{{ template.main_file }}</code></td>
+                                <td>
+                                    {% if template.main_file %}
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
+                                        target='_blank' rel='noopener noreferrer'>
+                                        {{ template.main_file }}
+                                    </a>
+                                    {% endif %}
+                                </td>
                                 <td>{{ template.reason }}</td>
                             </tr>
                             {% endfor %}
@@ -198,11 +212,11 @@
         </div>
         {% endif %}
 
-        <!-- Skipped Templates -->
+        <!-- Skipped Files -->
         {% if result_data.templates_skipped %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Skipped Templates ({{ result_data.templates_skipped|length }})</h5>
+                <h5 class="mb-0">Skipped Files ({{ result_data.templates_skipped|length }})</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -211,6 +225,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Title</th>
+                                <th>Main File</th>
                                 <th>Reason</th>
                             </tr>
                         </thead>
@@ -223,6 +238,14 @@
                                         rel='noopener noreferrer'>
                                         {{ template.title }}
                                     </a>
+                                </td>
+                                <td>
+                                    {% if template.main_file %}
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
+                                        target='_blank' rel='noopener noreferrer'>
+                                        {{ template.main_file }}
+                                    </a>
+                                    {% endif %}
                                 </td>
                                 <td>{{ template.reason }}</td>
                             </tr>
