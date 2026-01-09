@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 import os
@@ -37,6 +38,7 @@ def get_jobs_db() -> JobsDB:
     return _JOBS_STORE
 
 
+@functools.lru_cache(maxsize=1)
 def get_jobs_data_dir() -> Path:
     """Get the directory for storing job data files."""
     # Use svg_jobs_path from settings paths
@@ -80,17 +82,19 @@ def save_job_result(job_id: int, result_data: Dict[str, Any]) -> str:
     """Save job result to a JSON file and return the file path."""
     jobs_dir = get_jobs_data_dir()
     # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
-    filename = f"job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json"
+    filename = f"job_{job_id}.json"
     filepath = jobs_dir / filename
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=2, default=str)
 
-    return str(filepath)
+    return str(filepath.name)
 
 
 def load_job_result(result_file: str) -> Dict[str, Any] | None:
     """Load job result from a JSON file."""
+    jobs_dir = get_jobs_data_dir()
+    result_file = jobs_dir / result_file
     if not result_file or not os.path.exists(result_file):
         return None
 

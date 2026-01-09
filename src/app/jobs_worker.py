@@ -112,7 +112,7 @@ def collect_main_files_for_templates(job_id: int) -> None:
             if n == 1 or n % 10 == 0:
                 # Save result to JSON file
                 result_file = jobs_service.save_job_result(job_id, result)
-                # jobs_service.update_job_status(job_id, "running", result_file)
+                jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
         result["summary"]["skipped"] = len(result["templates_skipped"])
@@ -211,7 +211,8 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
 
         logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
-        for template in templates:
+        for n, template in enumerate(templates, start=1):
+            logger.info(f"Job {job_id}: Processing template {n}/{len(templates)}: {template.title}")
             template_info = {
                 "id": template.id,
                 "title": template.title,
@@ -277,6 +278,11 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                 result["templates_failed"].append(template_info)
                 result["summary"]["failed"] += 1
                 logger.exception(f"Job {job_id}: Error processing template {template.title}")
+
+            if n == 1 or n % 10 == 0:
+                # Save result to JSON file
+                result_file = jobs_service.save_job_result(job_id, result)
+                jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
         result["summary"]["skipped"] = len(result["templates_skipped"])

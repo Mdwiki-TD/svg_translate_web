@@ -92,7 +92,6 @@ def _fix_nested_main_files_jobs_list():
 def _fix_nested_main_files_job_detail(job_id: int):
     """Render the fix nested main files job detail page."""
     user = current_user()
-
     try:
         job = jobs_service.get_job(job_id)
         # Ensure this is a fix_nested_main_files job
