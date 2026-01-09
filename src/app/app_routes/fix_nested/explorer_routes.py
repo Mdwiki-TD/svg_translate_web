@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+import shutil
 from flask import (
     Blueprint,
     render_template,
@@ -289,35 +290,40 @@ def undo_task(task_id: str):
 @admin_required
 def delete_task(task_id: str):
     """Delete a task (admin only)."""
-    import shutil
 
-    # Get task info first
+    # Security: Prevent path traversal attacks
+    task_dir = Path(settings.paths.fix_nested_data) / task_id
+    base_path = Path(settings.paths.fix_nested_data).resolve()
+    if not str(task_dir.resolve()).startswith(str(base_path)):
+        logger.error(f"Path traversal attempt detected for task_id: {task_id}")
+        flash("Invalid task ID", "danger")
+        return redirect(url_for("fix_nested_explorer.list_tasks"))
+
     with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
         task = db_store.get_task(task_id)
 
-    if not task:
-        flash("Task not found", "danger")
-        return redirect(url_for("fix_nested_explorer.list_tasks"))
+        if not task:
+            flash("Task not found", "danger")
+            return redirect(url_for("fix_nested_explorer.list_tasks"))
 
-    # Delete task files from filesystem
-    task_dir = Path(settings.paths.fix_nested_data) / task_id
+        # Delete from database first to ensure data consistency
+        if not db_store.delete_task(task_id):
+            flash("Failed to delete task from database", "danger")
+            return redirect(url_for("fix_nested_explorer.list_tasks"))
+
+    # If we are here, DB deletion was successful.
+    flash(f"Task {task_id[:8]} deleted successfully", "success")
+    logger.info(f"Task {task_id} deleted successfully from database")
+
+    # Now, clean up task files from the filesystem
     if task_dir.exists():
         try:
             shutil.rmtree(task_dir)
             logger.info(f"Deleted task directory: {task_dir}")
         except Exception as e:
             logger.error(f"Failed to delete task directory {task_dir}: {e}")
-            flash(f"Failed to delete task files: {e}", "warning")
-
-    # Delete from database
-    with Database(settings.db_data) as db:
-        db_store = FixNestedTaskStore(db)
-        if db_store.delete_task(task_id):
-            flash(f"Task {task_id[:8]} deleted successfully", "success")
-            logger.info(f"Task {task_id} deleted successfully")
-        else:
-            flash("Failed to delete task from database", "danger")
+            flash(f"Failed to delete task files (manual cleanup may be required): {e}", "warning")
 
     return redirect(url_for("fix_nested_explorer.list_tasks"))
 
