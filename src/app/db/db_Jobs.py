@@ -132,24 +132,16 @@ class JobsDB:
         TODO: Using execute_query_safe means UPDATE failures are logged but don't raise exceptions. If an update fails (e.g., job_id doesn't exist), the method proceeds to call get(job_id) which will raise LookupError. However, if the job exists but the UPDATE fails for other reasons (connection issues), the returned record won't reflect the intended status change, with no indication to the caller. Consider using execute_query instead and letting exceptions propagate, or checking the rowcount to verify the update succeeded.
         """
         if status == "running":
+            query = "UPDATE jobs SET status = %s, started_at = NOW()"
+            params = [status]
             if result_file is not None:
-                self.db.execute_query_safe(
-                    """
-                    UPDATE jobs
-                    SET status = %s, started_at = NOW(), result_file = %s
-                    WHERE id = %s AND job_type = %s
-                    """,
-                    (status, result_file, job_id, job_type),
-                )
-            else:
-                self.db.execute_query_safe(
-                    """
-                    UPDATE jobs
-                    SET status = %s, started_at = NOW()
-                    WHERE id = %s AND job_type = %s
-                    """,
-                    (status, job_id, job_type),
-                )
+                query += ", result_file = %s"
+                params.append(result_file)
+            query += " WHERE id = %s AND job_type = %s"
+            params.append(job_id)
+            params.append(job_type)
+            self.db.execute_query_safe(query, tuple(params))
+
             return self.get(job_id)
 
         if status in ["completed", "failed"]:
