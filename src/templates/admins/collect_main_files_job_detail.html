@@ -9,19 +9,17 @@
         <h3 class="headline mb-0">Collect Main Files Job #{{ job.id }}</h3>
         <div class="d-flex gap-2">
             {% if job.status == 'running' or job.status == 'pending' %}
-            <form method="POST"
-                action="{{ url_for('admin.cancel_collect_main_files_job', job_id=job.id) }}"
+            <form method="POST" action="{{ url_for('admin.cancel_collect_main_files_job', job_id=job.id) }}"
                 onsubmit="return confirm('Are you sure you want to cancel this job?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-warning">
                     <i class="bi bi-x-circle"></i> Cancel Job
                 </button>
             </form>
             {% endif %}
-            <form method="POST"
-                action="{{ url_for('admin.delete_collect_main_files_job', job_id=job.id) }}"
+            <form method="POST" action="{{ url_for('admin.delete_collect_main_files_job', job_id=job.id) }}"
                 onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="bi bi-trash"></i> Delete
                 </button>
@@ -91,7 +89,7 @@
                 {% if result_data.summary %}
                 <div class="row text-center mb-3">
                     <div class="col-md-2">
-                        <div class="card bg-light">
+                        <div class="card border">
                             <div class="card-body">
                                 <h4 class="mb-0">{{ result_data.summary.total }}</h4>
                                 <small class="text-muted">Total</small>
@@ -99,7 +97,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="card bg-success text-white">
+                        <div class="card border-success">
                             <div class="card-body">
                                 <h4 class="mb-0">{{ result_data.summary.updated }}</h4>
                                 <small>Updated</small>
@@ -107,7 +105,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="card bg-danger text-white">
+                        <div class="card border-danger">
                             <div class="card-body">
                                 <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
                                 <small>Failed</small>
@@ -115,7 +113,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-secondary text-white">
+                        <div class="card border-secondary">
                             <div class="card-body">
                                 <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
                                 <small>Skipped</small>
@@ -123,7 +121,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-info text-white">
+                        <div class="card border-info">
                             <div class="card-body">
                                 <h4 class="mb-0">{{ result_data.summary.already_had_main_file }}</h4>
                                 <small>Already Had File</small>
