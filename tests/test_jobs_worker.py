@@ -23,6 +23,11 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     assert job_id == 1
     mock_create_job.assert_called_once_with("collect_main_files")
     mock_thread.assert_called_once()
+    # Verify the thread was started with correct arguments
+    args = mock_thread.call_args[1]["args"]
+    assert args[0] == 1  # job_id
+    assert args[1] is None  # user
+    assert isinstance(args[2], jobs_worker.threading.Event)
     mock_thread_instance.start.assert_called_once()
 
 
@@ -46,4 +51,5 @@ def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     args = mock_thread.call_args[1]["args"]
     assert args[0] == 2  # job_id
     assert args[1] == user
+    assert isinstance(args[2], jobs_worker.threading.Event)
     mock_thread_instance.start.assert_called_once()

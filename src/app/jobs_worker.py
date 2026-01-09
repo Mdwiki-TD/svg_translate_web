@@ -65,15 +65,16 @@ def start_job(user: Any | None, job_type: str) -> int:
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
-    def _runner() -> None:
+    def _runner(job_id: int, user: Any | None, cancel_event: threading.Event) -> None:
         try:
-            jobs_targets[job_type](job.id, user, cancel_event=cancel_event)
+            jobs_targets[job_type](job_id, user, cancel_event=cancel_event)
         finally:
-            _pop_cancel_event(job.id)
+            _pop_cancel_event(job_id)
 
     # Start background thread
     thread = threading.Thread(
         target=_runner,
+        args=(job.id, user, cancel_event),
         daemon=True,
     )
     thread.start()
