@@ -185,7 +185,7 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file), "collect_main_files")
+    store.update_status(job.id, "completed", str(result_file), job_type="collect_main_files")
 
     response = client.get(f"/admin/collect-main-files/{job.id}")
     assert response.status_code == 200
@@ -324,7 +324,7 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file), "fix_nested_main_files")
+    store.update_status(job.id, "completed", str(result_file), job_type="fix_nested_main_files")
 
     response = client.get(f"/admin/fix-nested-main-files/{job.id}")
     assert response.status_code == 200

@@ -49,6 +49,7 @@ def fix_nested_file(
             "success": False,
             "message": f"No nested tags found in {filename}",
             "details": {"nested_count": 0},
+            "no_nested_tags": True,
         }
 
     if not fix_nested_tags(file_path):
@@ -125,7 +126,7 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
                 filename=template.main_file,
                 user=user,
             )
-            nested_count = fix_result.get("details", {}).get("nested_count", 0)
+            nested_count = fix_result.get("no_nested_tags", False)
 
             if fix_result["success"]:
                 template_info["status"] = "success"
@@ -135,7 +136,7 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
                 logger.info(
                     f"Job {job_id}: Successfully processed {template.main_file}"
                 )
-            elif nested_count == 0:
+            elif nested_count:
                 template_info["status"] = "skipped"
                 template_info["reason"] = "No nested tags found"
                 template_info["fix_result"] = fix_result

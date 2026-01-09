@@ -81,7 +81,7 @@ def update_job_status(
 ) -> JobRecord:
     """Update job status."""
     store = get_jobs_db()
-    return store.update_status(job_id, status, result_file, job_type)
+    return store.update_status(job_id, status, result_file, job_type=job_type)
 
 
 def generate_result_file_name(job_id, job_type):
