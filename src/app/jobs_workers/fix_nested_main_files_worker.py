@@ -1,4 +1,6 @@
-"""Worker module for collecting main files for templates."""
+"""
+Worker module for fixing nested tags in main files of templates.
+"""
 
 from __future__ import annotations
 
@@ -44,6 +46,13 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
             "no_main_file": 0,
         },
     }
+    # Extract username from user object - handle both dict and object types
+    username = None
+    if user:
+        if isinstance(user, dict):
+            username = user.get("username")
+        else:
+            username = getattr(user, "username", None)
 
     result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
@@ -81,14 +90,6 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                 )
 
                 # Process without task_id and db_store since we're tracking in the job
-                # Extract username from user object - handle both dict and object types
-                username = None
-                if user:
-                    if isinstance(user, dict):
-                        username = user.get("username")
-                    else:
-                        username = getattr(user, "username", None)
-
                 fix_result = process_fix_nested(
                     filename=template.main_file,
                     user=user,
