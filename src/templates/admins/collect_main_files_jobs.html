@@ -8,6 +8,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Collect Main Files Jobs</h3>
         <form method="post" action="{{ url_for('admin.start_collect_main_files_job') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-primary" 
                     data-confirm-message="This will start a background job to collect main files for all templates that don't have one. Continue?"
                     onclick="return confirm(this.dataset.confirmMessage);">

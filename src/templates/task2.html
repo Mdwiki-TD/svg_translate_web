@@ -118,6 +118,7 @@
                 {% endif %}
                 {% if is_admin or show_all %}
                 <form action="{{ url_for('tasks.delete_task', task_id=task_id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
                 {% endif %}

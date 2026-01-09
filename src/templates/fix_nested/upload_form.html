@@ -26,6 +26,7 @@
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('fix_nested.fix_nested_by_upload_file') }}"
                         enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label for="file" class="form-label">
                                 Select SVG File

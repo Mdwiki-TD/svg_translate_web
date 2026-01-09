@@ -18,6 +18,7 @@
             {% if is_admin %}
             <form method="POST" action="{{ url_for('fix_nested_explorer.delete_task', task_id=task.id) }}"
                 onsubmit="return confirm('Are you sure you want to DELETE this task? This action cannot be undone!');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-sm btn-outline-danger">
                     <i class="bi bi-trash"></i> Delete
                 </button>
@@ -190,6 +191,7 @@
         <div class="card-body">
             <form method="POST" action="{{ url_for('fix_nested_explorer.undo_task', task_id=task.id) }}"
                 onsubmit="return confirm('Are you sure you want to undo this task and restore the original file? This will upload the original file back to Commons.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-warning">
                     <i class="bi bi-arrow-counterclockwise"></i> Undo & Restore Original
                 </button>

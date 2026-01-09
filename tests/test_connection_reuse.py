@@ -57,21 +57,12 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
         return FakeConnection()
 
     monkeypatch.setattr("src.app.db.db_class.pymysql.connect", fake_connect)
-    monkeypatch.setattr("app.db.db_class.pymysql.connect", fake_connect)
     monkeypatch.setattr(
         "src.app.db.task_store_pymysql.TaskStorePyMysql._init_schema",
         lambda self: None,
     )
     monkeypatch.setattr(
-        "app.db.task_store_pymysql.TaskStorePyMysql._init_schema",
-        lambda self: None,
-    )
-    monkeypatch.setattr(
         "src.app.db.task_store_pymysql.TaskStorePyMysql.list_tasks",
-        lambda self, **kwargs: [],
-    )
-    monkeypatch.setattr(
-        "app.db.task_store_pymysql.TaskStorePyMysql.list_tasks",
         lambda self, **kwargs: [],
     )
 

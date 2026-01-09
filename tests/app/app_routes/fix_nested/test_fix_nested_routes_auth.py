@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+import re
 
 import pytest
 from flask import Flask
@@ -17,6 +18,8 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
     app = create_app()
     app.config["TESTING"] = True
+    # Disable CSRF for testing
+    app.config["WTF_CSRF_ENABLED"] = False
     yield app, app.test_client()
 
 
