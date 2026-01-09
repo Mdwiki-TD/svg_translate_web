@@ -108,3 +108,79 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'newtask'})"}
     assert created_tasks[0][0] == "newtask"
     assert launched == [("newtask", "user")]
+
+
+def test_cancel_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyStore:
+        def get_task(self, task_id: str) -> None:
+            return None
+
+    monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
+
+    with app.test_request_context("/tasks/missing/cancel"):
+        response = routes.cancel("missing")
+
+    assert response == {"redirect_to": "url_for(main.index, {})"}
+
+
+def test_cancel_task_already_completed(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyStore:
+        def get_task(self, task_id: str) -> dict[str, str]:
+            return {"id": task_id, "status": "Completed"}
+
+    monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
+
+    with app.test_request_context("/tasks/1/cancel"):
+        response = routes.cancel("1")
+
+    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': '1'})"}
+
+
+def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyStore:
+        def get_task(self, task_id: str) -> dict[str, str]:
+            return {"id": task_id, "status": "Running", "username": "other_user"}
+
+    monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
+    monkeypatch.setattr(routes, "current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(routes, "active_coordinators", lambda: [])
+
+    with app.test_request_context("/tasks/1/cancel"):
+        response = routes.cancel("1")
+
+    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': '1'})"}
+
+
+def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyStore:
+        def get_task(self, task_id: str) -> None:
+            return None
+
+    monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
+
+    with app.test_request_context("/tasks/missing/restart"):
+        response = routes.restart("missing")
+
+    assert response == {"redirect_to": "url_for(main.index, {})"}
+
+
+def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    from src.app.db import TaskAlreadyExistsError
+
+    class DummyStore:
+        def get_task(self, task_id: str) -> dict[str, object]:
+            return {"id": task_id, "title": "Sample", "username": "user", "form": {}}
+
+        def create_task(self, *args, **kwargs) -> None:
+            raise TaskAlreadyExistsError("exists", task={"id": "existing_id"})
+
+    monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
+    monkeypatch.setattr(routes, "current_user", lambda: types.SimpleNamespace(
+        user_id=1, username="user", access_token="tok", access_secret="sec"
+    ))
+    monkeypatch.setattr(routes, "parse_args", lambda f: types.SimpleNamespace())
+
+    with app.test_request_context("/tasks/1/restart"):
+        response = routes.restart("1")
+
+    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'existing_id'})"}
