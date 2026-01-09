@@ -25,13 +25,10 @@ logger = logging.getLogger("svg_translate")
 def _collect_main_files_jobs_list() -> str:
     """
     Render the collect main files jobs list dashboard.
-    TODO: The current implementation fetches all jobs from the database and then filters them by job_type in Python. As the number of jobs grows, this in-memory filtering could become inefficient. It would be more performant to apply this filter at the database level.
-
     """
     user = current_user()
-    # Filter jobs to only show collect_main_files type
-    all_jobs = jobs_service.list_jobs(limit=100)
-    jobs = [job for job in all_jobs if job.job_type == "collect_main_files"]
+    # Filter jobs at database level for better performance
+    jobs = jobs_service.list_jobs(limit=100, job_type="collect_main_files")
 
     return render_template(
         "admins/collect_main_files_jobs.html",
@@ -82,12 +79,10 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 def _fix_nested_main_files_jobs_list():
     """
     Render the fix nested main files jobs list dashboard.
-    TODO: The current implementation fetches all jobs from the database and then filters them by job_type in Python. As the number of jobs grows, this in-memory filtering could become inefficient. It would be more performant to apply this filter at the database level.
     """
     user = current_user()
-    # Filter jobs to only show fix_nested_main_files type
-    all_jobs = jobs_service.list_jobs(limit=100)
-    jobs = [job for job in all_jobs if job.job_type == "fix_nested_main_files"]
+    # Filter jobs at database level for better performance
+    jobs = jobs_service.list_jobs(limit=100, job_type="fix_nested_main_files")
 
     return render_template(
         "admins/fix_nested_main_files_jobs.html",

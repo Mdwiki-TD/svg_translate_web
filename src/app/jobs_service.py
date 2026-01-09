@@ -70,10 +70,10 @@ def delete_job(job_id: int, job_type: str) -> None:
     store.delete(job_id, job_type)
 
 
-def list_jobs(limit: int = 100) -> List[JobRecord]:
-    """List recent jobs."""
+def list_jobs(limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
+    """List recent jobs, optionally filtered by job_type."""
     store = get_jobs_db()
-    return store.list(limit=limit)
+    return store.list(limit=limit, job_type=job_type)
 
 
 def update_job_status(
