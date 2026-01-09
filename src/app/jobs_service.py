@@ -58,7 +58,7 @@ def create_job(job_type: str) -> JobRecord:
     return store.create(job_type)
 
 
-def get_job(job_id: int, job_type: str = "fix_nested_main_files") -> JobRecord:
+def get_job(job_id: int, job_type: str) -> JobRecord:
     """Get a job by ID."""
     store = get_jobs_db()
     return store.get(job_id, job_type)
@@ -77,7 +77,7 @@ def list_jobs(limit: int = 100) -> List[JobRecord]:
 
 
 def update_job_status(
-    job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
+    job_id: int, status: str, result_file: str | None = None, *, job_type: str
 ) -> JobRecord:
     """Update job status."""
     store = get_jobs_db()

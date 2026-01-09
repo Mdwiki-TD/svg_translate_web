@@ -31,9 +31,12 @@ class FakeJobsDB:
 
     def _find_index(self, job_id: int, job_type: str) -> int:
         for index, record in enumerate(self._records):
-            if record.id == job_id and record.job_type == job_type:
-                return index
-        raise LookupError(f"Job id {job_id} of type {job_type} was not found")
+            if record.id == job_id:
+                if record.job_type == job_type:
+                    return index
+                else:
+                    raise LookupError(f"Job id {job_id} is not a {job_type.replace('_', ' ')} job")
+        raise LookupError(f"Job id {job_id} was not found")
 
     def create(self, job_type: str) -> JobRecord:
         """Create a new job."""
@@ -56,7 +59,7 @@ class FakeJobsDB:
         return list(self._records[:limit])
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
+        self, job_id: int, status: str, result_file: str | None = None, *, job_type: str
     ) -> JobRecord:
         """Update job status."""
         index = self._find_index(job_id, job_type)

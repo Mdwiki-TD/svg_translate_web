@@ -55,7 +55,7 @@ def test_collect_main_files_with_no_templates(mock_services):
 
     # Should update status to running, then completed
     assert mock_services["update_job_status"].call_count == 2
-    mock_services["update_job_status"].assert_any_call(1, "running", "collect_main_files_job_1.json")
+    mock_services["update_job_status"].assert_any_call(1, "running", "collect_main_files_job_1.json", job_type="collect_main_files")
 
     # Should save result
     mock_services["save_job_result_by_name"].assert_called_once()

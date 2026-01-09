@@ -42,7 +42,7 @@ class FakeJobsDB:
         return list(self._records[:limit])
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
+        self, job_id: int, status: str, result_file: str | None = None, *, job_type: str
     ) -> JobRecord:
         for record in self._records:
             if record.id == job_id and record.job_type == job_type:
@@ -86,7 +86,7 @@ def test_get_job(jobs_db_fixture):
     """Test retrieving a job by ID."""
     created_job = jobs_service.create_job("collect_main_files")
 
-    retrieved_job = jobs_service.get_job(created_job.id)
+    retrieved_job = jobs_service.get_job(created_job.id, job_type="collect_main_files")
 
     assert retrieved_job.id == created_job.id
     assert retrieved_job.job_type == created_job.job_type
@@ -94,8 +94,8 @@ def test_get_job(jobs_db_fixture):
 
 def test_get_nonexistent_job(jobs_db_fixture):
     """Test retrieving a nonexistent job raises LookupError."""
-    with pytest.raises(LookupError, match="Job id 999 was not found"):
-        jobs_service.get_job(999)
+    with pytest.raises(LookupError, match="Job id 999 of type collect_main_files was not found"):
+        jobs_service.get_job(999, job_type="collect_main_files")
 
 
 def test_list_jobs(jobs_db_fixture):

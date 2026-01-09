@@ -83,7 +83,7 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
 
     # Should update status to running, then completed
     assert mock_fix_nested_services["update_job_status"].call_count == 2
-    mock_fix_nested_services["update_job_status"].assert_any_call(700, "running", "fix_nested_main_files_job_700.json")
+    mock_fix_nested_services["update_job_status"].assert_any_call(700, "running", "fix_nested_main_files_job_700.json", job_type="fix_nested_main_files")
 
     # Should save result
     mock_fix_nested_services["save_job_result_by_name"].assert_called_once()
