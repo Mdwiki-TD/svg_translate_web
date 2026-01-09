@@ -149,6 +149,7 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     mock_fix_nested_services["fix_nested_file"].return_value = {
         "success": False,
         "message": "No nested tags found",
+        "no_nested_tags": True,
     }
 
     user = {"username": "test_user"}
