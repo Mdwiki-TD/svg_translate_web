@@ -522,3 +522,35 @@ def test_delete_multiple_jobs(admin_jobs_client):
     response = client.post(f"/admin/fix-nested-main-files/{job3.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     assert len(store.list()) == 0
+
+
+def test_cancel_collect_main_files_job(admin_jobs_client):
+    """Test cancelling a collect_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("collect_main_files")
+    store.update_status(job.id, "running", job_type="collect_main_files")
+
+    # Cancel the job
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+        response = client.post(f"/admin/collect-main-files/{job.id}/cancel", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} cancellation requested" in page
+
+
+def test_cancel_fix_nested_main_files_job(admin_jobs_client):
+    """Test cancelling a fix_nested_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("fix_nested_main_files")
+    store.update_status(job.id, "running", job_type="fix_nested_main_files")
+
+    # Cancel the job
+    with patch("src.app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+        response = client.post(f"/admin/fix-nested-main-files/{job.id}/cancel", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} cancellation requested" in page

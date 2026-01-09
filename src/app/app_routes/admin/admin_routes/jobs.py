@@ -61,6 +61,18 @@ def _collect_main_files_job_detail(job_id: int) -> Response | str:
     )
 
 
+def _cancel_job(job_id: int, job_type: str) -> Response:
+    """Cancel a running job."""
+    if jobs_worker.cancel_job(job_id):
+        flash(f"Job {job_id} cancellation requested.", "success")
+    else:
+        flash(f"Job {job_id} is not running or already cancelled.", "warning")
+
+    return redirect(
+        url_for(f"admin.{job_type}_jobs_list")
+    )
+
+
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
 
@@ -192,6 +204,11 @@ class Jobs:
         def delete_collect_main_files_job(job_id: int) -> Response:
             return _delete_job(job_id, "collect_main_files")
 
+        @bp_admin.post("/collect-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_collect_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "collect_main_files")
+
         # ================================
         # Fix Nested Main Files Jobs routes
         # ================================
@@ -218,3 +235,8 @@ class Jobs:
         @admin_required
         def delete_fix_nested_main_files_job(job_id: int) -> Response:
             return _delete_job(job_id, "fix_nested_main_files")
+
+        @bp_admin.post("/fix-nested-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_fix_nested_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "fix_nested_main_files")

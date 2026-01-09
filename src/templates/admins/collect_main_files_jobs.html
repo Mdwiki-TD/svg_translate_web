@@ -48,9 +48,19 @@
                         <td>{{ job.started_at if job.started_at else '-' }}</td>
                         <td>{{ job.completed_at if job.completed_at else '-' }}</td>
                         <td class="text-center">
-                            <a href="{{ url_for('admin.collect_main_files_job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> View
-                            </a>
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.collect_main_files_job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if job.status == 'running' or job.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('admin.cancel_collect_main_files_job', job_id=job.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Are you sure you want to cancel this job?');">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
