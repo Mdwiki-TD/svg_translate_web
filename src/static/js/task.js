@@ -221,47 +221,5 @@ function result_html(r) {
     timer = setInterval(refresh, 2000);
     refresh();
 
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', async (event) => {
-            event.preventDefault();
-            if (cancelBtn.disabled) {
-                return;
-            }
-            if (timer) {
-                clearInterval(timer);
-            }
-            cancelBtn.disabled = true;
-            showAlert('info', 'Stopping task...');
-            let message = 'Unable to cancel the task.';
-            let showmessage = true;
-            try {
-                const response = await fetch(`/tasks/${taskId}/cancel`, {
-                    method: 'POST',
-                });
-                let result = await response.json();
-                if (result && result.error) {
-                    throw new Error(result.error);
-                }
-                if (!response.ok) {
-                    console.error("error:", result);
-                    throw new Error('Failed to stop task');
-                }
-                if (result.status == "Cancelled") {
-                    updateStatus('Cancelled');
-                    updateControls('Cancelled');
-                    showmessage = false;
-                }
-                showAlert('success', 'Task cancelled successfully.');
-            } catch (error) {
-                console.error("error:", error);
-                message += ` (${error})`;
-            }
-            if (showmessage) {
-                cancelBtn.disabled = false;
-                showAlert('danger', message);
-                timer = setInterval(refresh, 2000);
-            }
-        });
-    }
 
 })();

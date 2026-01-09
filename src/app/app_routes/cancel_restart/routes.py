@@ -55,24 +55,28 @@ def login_required_json(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/cancel")
-@login_required_json
+@oauth_required
 def cancel(task_id: str):
     if not task_id:
-        return jsonify({"error": "no-task-id"}), 400
+        flash("No task id provided", "warning")
+        return redirect(url_for("main.index"))
 
     store = _task_store()
     task = store.get_task(task_id)
     if not task:
         logger.debug("Cancel requested for missing task %s", task_id)
-        return jsonify({"error": "not-found"}), 404
+        flash(f"Task {task_id} not found", "danger")
+        return redirect(url_for("main.index"))
 
     if task.get("status") in ("Completed", "Failed", "Cancelled"):
-        return jsonify({"task_id": task_id, "status": task.get("status")})
+        flash(f"Task is already {task.get('status')}", "info")
+        return redirect(url_for("tasks.task", task_id=task_id))
 
     user = current_user()
     if not user:
         logger.error("Cancel requested without authenticated user for task %s", task_id)
-        return jsonify({"error": "You are not authenticated"}), 401
+        flash("You must be logged in to cancel a task", "warning")
+        return redirect(url_for("auth.login"))
 
     task_username = task.get("username", "")
 
@@ -83,7 +87,8 @@ def cancel(task_id: str):
             user.username,
             task_username,
         )
-        return jsonify({"error": "You don't own this task"}), 403
+        flash("You don't own this task", "danger")
+        return redirect(url_for("tasks.task", task_id=task_id))
 
     cancel_event = get_cancel_event(task_id)
     if cancel_event:
@@ -91,7 +96,8 @@ def cancel(task_id: str):
 
     store.update_status(task_id, "Cancelled")
 
-    return jsonify({"task_id": task_id, "status": "Cancelled"})
+    flash("Task cancelled successfully.", "success")
+    return redirect(url_for("tasks.task", task_id=task_id))
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/restart")
