@@ -88,14 +88,14 @@ def create_side(ty):
                     </button>
                     <div class="collapse {show}" id="{key_id}-collapse">
                         <div class="d-none d-md-inline">
+                            <!-- desktop -->
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                                 {''.join(lis)}
                             </ul>
                         </div>
                         <div class="d-inline d-md-none">
-                            <ul class="navbar-nav flex-row flex-wrap "
-                                "btn-toggle-nav-mobile list-unstyled "
-                                "fw-normal pb-1 small">
+                            <!-- mobile -->
+                            <ul class="navbar-nav flex-row flex-wrap btn-toggle-nav-mobile list-unstyled fw-normal pb-1 small">
                                 {''.join(lis)}
                             </ul>
                         </div>
