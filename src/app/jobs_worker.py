@@ -54,25 +54,19 @@ def collect_main_files_for_templates(job_id: int) -> None:
         # Get all templates
         templates = template_service.list_templates()
         result["summary"]["total"] = len(templates)
-
+        already_had_main_file = [t for t in templates if t.main_file]
+        result["summary"]["already_had_main_file"] = len(already_had_main_file)
+        templates_to_process = [t for t in templates if not t.main_file]
         logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
-        for template in templates:
+        for n, template in enumerate(templates_to_process, start=1):
+            logger.info(f"Job {job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
             template_info = {
                 "id": template.id,
                 "title": template.title,
                 "original_main_file": template.main_file,
                 "timestamp": datetime.now().isoformat(),
             }
-
-            # Skip if template already has a main_file
-            if template.main_file:
-                template_info["status"] = "skipped"
-                template_info["reason"] = "Already has main_file"
-                result["templates_skipped"].append(template_info)
-                result["summary"]["already_had_main_file"] += 1
-                continue
-
             try:
                 # Fetch wikitext from Commons
                 logger.info(f"Job {job_id}: Fetching wikitext for {template.title}")
@@ -114,6 +108,11 @@ def collect_main_files_for_templates(job_id: int) -> None:
                 result["templates_failed"].append(template_info)
                 result["summary"]["failed"] += 1
                 logger.exception(f"Job {job_id}: Error processing template {template.title}")
+
+            if n == 1 or n % 10 == 0:
+                # Save result to JSON file
+                result_file = jobs_service.save_job_result(job_id, result)
+                # jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
         result["summary"]["skipped"] = len(result["templates_skipped"])
