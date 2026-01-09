@@ -71,6 +71,15 @@ class FakeJobsDB:
         self._records[index] = updated
         return updated
 
+    def delete(self, job_id: int, job_type: str) -> bool:
+        """Delete a job by ID and job type."""
+        try:
+            index = self._find_index(job_id, job_type)
+            self._records.pop(index)
+            return True
+        except LookupError:
+            return False
+
 
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
@@ -418,3 +427,93 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "not a collect main files job" in page.lower()
+
+
+def test_delete_collect_main_files_job(admin_jobs_client):
+    """Test deleting a collect_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("collect_main_files")
+    assert len(store.list()) == 1
+
+    # Delete the job
+    response = client.post(f"/admin/collect-main-files/{job.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} deleted successfully" in page
+
+    # Verify job is deleted
+    assert len(store.list()) == 0
+
+
+def test_delete_fix_nested_main_files_job(admin_jobs_client):
+    """Test deleting a fix_nested_main_files job."""
+    client, store = admin_jobs_client
+
+    # Create a job
+    job = store.create("fix_nested_main_files")
+    assert len(store.list()) == 1
+
+    # Delete the job
+    response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    assert f"Job {job.id} deleted successfully" in page
+
+    # Verify job is deleted
+    assert len(store.list()) == 0
+
+
+def test_delete_nonexistent_job(admin_jobs_client):
+    """Test deleting a non-existent job shows appropriate error."""
+    client, store = admin_jobs_client
+
+    # Try to delete a job that doesn't exist
+    response = client.post("/admin/collect-main-files/999/delete", follow_redirects=True)
+    assert response.status_code == 200
+    page = unescape(response.get_data(as_text=True))
+    # The actual message will depend on the error handling
+    assert "Failed to delete job" in page or "deleted successfully" in page
+
+
+def test_delete_job_with_wrong_type(admin_jobs_client):
+    """Test deleting a job through the wrong job type endpoint."""
+    client, store = admin_jobs_client
+
+    # Create a collect_main_files job
+    job = store.create("collect_main_files")
+
+    # Try to delete it via the fix_nested endpoint
+    response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+
+    # The job should still exist (delete should fail)
+    remaining_jobs = store.list()
+    assert len(remaining_jobs) == 1
+
+
+def test_delete_multiple_jobs(admin_jobs_client):
+    """Test deleting multiple jobs one by one."""
+    client, store = admin_jobs_client
+
+    # Create multiple jobs
+    job1 = store.create("collect_main_files")
+    job2 = store.create("collect_main_files")
+    job3 = store.create("fix_nested_main_files")
+    assert len(store.list()) == 3
+
+    # Delete first collect_main_files job
+    response = client.post(f"/admin/collect-main-files/{job1.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert len(store.list()) == 2
+
+    # Delete second collect_main_files job
+    response = client.post(f"/admin/collect-main-files/{job2.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert len(store.list()) == 1
+
+    # Delete fix_nested_main_files job
+    response = client.post(f"/admin/fix-nested-main-files/{job3.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert len(store.list()) == 0

@@ -38,6 +38,14 @@ class FakeJobsDB:
                 return record
         raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
+    def delete(self, job_id: int, job_type: str) -> bool:
+        """Delete a job by ID and job type."""
+        for i, record in enumerate(self._records):
+            if record.id == job_id and record.job_type == job_type:
+                self._records.pop(i)
+                return True
+        return False
+
     def list(self, limit: int = 100) -> list[JobRecord]:
         return list(self._records[:limit])
 
@@ -204,3 +212,49 @@ def test_load_job_result_with_invalid_json(tmp_path):
     loaded_data = jobs_service.load_job_result(str(result_file))
 
     assert loaded_data is None
+
+
+def test_delete_job(jobs_db_fixture):
+    """Test deleting a job."""
+    job = jobs_service.create_job("collect_main_files")
+    assert len(jobs_service.list_jobs()) == 1
+
+    jobs_service.delete_job(job.id, "collect_main_files")
+
+    assert len(jobs_service.list_jobs()) == 0
+
+
+def test_delete_job_with_correct_type(jobs_db_fixture):
+    """Test deleting a job with correct job type."""
+    job1 = jobs_service.create_job("collect_main_files")
+    job2 = jobs_service.create_job("fix_nested_main_files")
+    assert len(jobs_service.list_jobs()) == 2
+
+    jobs_service.delete_job(job1.id, "collect_main_files")
+
+    remaining_jobs = jobs_service.list_jobs()
+    assert len(remaining_jobs) == 1
+    assert remaining_jobs[0].id == job2.id
+
+
+def test_delete_job_with_wrong_type(jobs_db_fixture):
+    """Test deleting a job with wrong job type doesn't delete it."""
+    job = jobs_service.create_job("collect_main_files")
+    assert len(jobs_service.list_jobs()) == 1
+
+    # Try to delete with wrong job type
+    jobs_service.delete_job(job.id, "fix_nested_main_files")
+
+    # Job should still exist
+    remaining_jobs = jobs_service.list_jobs()
+    assert len(remaining_jobs) == 1
+    assert remaining_jobs[0].id == job.id
+
+
+def test_delete_nonexistent_job(jobs_db_fixture):
+    """Test deleting a non-existent job."""
+    # Should not raise an error
+    jobs_service.delete_job(999, "collect_main_files")
+
+    # No jobs should exist
+    assert len(jobs_service.list_jobs()) == 0
