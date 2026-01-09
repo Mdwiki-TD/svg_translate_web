@@ -43,7 +43,7 @@ def match_main_title_from_url_new(text):
     return path
 
 
-def find_main_title(text):
+def find_main_title_from_template(text):
 
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
@@ -55,6 +55,20 @@ def find_main_title(text):
             if tpl.arguments:
                 main_title = tpl.arguments[0].value.strip()
             break
+
+    if main_title:
+        main_title = main_title.replace("_", " ").strip()
+
+    return main_title
+
+
+def find_main_title(text):
+
+    main_title = (
+        find_main_title_from_template(text)
+        or match_main_title_from_url_new(text)
+        or match_main_title_from_url(text)
+    )
 
     if main_title:
         main_title = main_title.replace("_", " ").strip()
