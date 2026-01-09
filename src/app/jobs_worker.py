@@ -221,9 +221,10 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                 # Extract username from user object - handle both dict and object types
                 username = None
                 if user:
-                    username = user.username
-                else:
-                    username = None
+                    if isinstance(user, dict):
+                        username = user.get("username")
+                    else:
+                        username = getattr(user, "username", None)
 
                 fix_result = process_fix_nested(
                     filename=template.main_file,
