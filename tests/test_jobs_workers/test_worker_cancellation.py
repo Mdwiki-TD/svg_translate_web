@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
 
 from src.app.jobs_workers import collect_main_files_worker, fix_nested_main_files_worker
@@ -45,22 +45,22 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     ]
     mock_common_services["list_templates"].return_value = templates
 
-    # Mock get_wikitext to set the cancel event after the first call
+    # Mock update_template to set the cancel event
     cancel_event = threading.Event()
+    mock_update_template = MagicMock()
 
-    def mock_get_wikitext(title, project):
+    def side_effect(*args, **kwargs):
         cancel_event.set()
-        return "some wikitext"
+    mock_update_template.side_effect = side_effect
 
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.get_wikitext", mock_get_wikitext)
+    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.get_wikitext", lambda t, **kwargs: "some wikitext")
     monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.find_main_title", lambda x: "file.svg")
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.update_template", MagicMock())
+    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template)
 
     collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
 
     # Should have processed only one template before stopping
-    # (The loop checks cancellation at the start and after get_wikitext)
-    # n=1: processes T1, sets cancel_event. Loop continues to n=2.
+    # n=1: processes T1, updates template, sets cancel_event.
     # n=2: checks cancel_event.is_set() -> True. Breaks.
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
