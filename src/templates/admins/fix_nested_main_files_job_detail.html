@@ -83,14 +83,14 @@
         {% if result_data %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Job Summary</h5>
+                <h5 class="mb-0">Job Summary 1</h5>
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row text-center mb-3">
-                    <div class="col-md-2">
-                        <div class="card border">
-                            <div class="card-body">
+                <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+                    <div class="col col-sm-12">
+                        <div class="card h-100 border">
+                            <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.total }}
                                 </h4>
@@ -98,9 +98,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card border-success">
-                            <div class="card-body">
+                    <div class="col">
+                        <div class="card h-100 border-success">
+                            <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.success }}
                                 </h4>
@@ -108,9 +108,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card border-danger">
-                            <div class="card-body">
+                    <div class="col">
+                        <div class="card h-100 border-danger">
+                            <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.failed }}
                                 </h4>
@@ -118,9 +118,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-secondary">
-                            <div class="card-body">
+                    <div class="col">
+                        <div class="card h-100 border-secondary">
+                            <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.skipped }}
                                 </h4>
@@ -128,9 +128,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-info">
-                            <div class="card-body">
+                    <div class="col">
+                        <div class="card h-100 border-info">
+                            <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.no_main_file }}
                                 </h4>
