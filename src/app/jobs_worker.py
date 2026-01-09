@@ -150,27 +150,6 @@ def collect_main_files_for_templates(job_id: int, user: Any | None=None) -> None
             jobs_service.update_job_status(job_id, "failed")
 
 
-def start_collect_main_files_job(user: Any | None=None) -> int:
-    """
-    Start a background job to collect main files for templates.
-    Returns the job ID.
-    """
-    # Create job record
-    job = jobs_service.create_job("collect_main_files")
-
-    # Start background thread
-    thread = threading.Thread(
-        target=collect_main_files_for_templates,
-        args=(job.id, user),
-        daemon=True,
-    )
-    thread.start()
-
-    logger.info(f"Started background job {job.id} for collecting main files")
-
-    return job.id
-
-
 def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
@@ -242,10 +221,9 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                 # Extract username from user object - handle both dict and object types
                 username = None
                 if user:
-                    if isinstance(user, dict):
-                        username = user.get("username")
-                    else:
-                        username = getattr(user, "username", None)
+                    username = user.username
+                else:
+                    username = None
 
                 fix_result = process_fix_nested(
                     filename=template.main_file,
@@ -323,6 +301,43 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
             jobs_service.update_job_status(job_id, "failed")
 
 
+def start_job(user: Any | None, job_type: str) -> int:
+    """
+    Start a background job to fix nested tags in all template main files.
+    Returns the job ID.
+
+    Args:
+        user: User authentication data for OAuth uploads
+    """
+    jobs_targets = {
+        "fix_nested_main_files": fix_nested_main_files_for_templates,
+        "collect_main_files": collect_main_files_for_templates,
+    }
+    if job_type not in jobs_targets:
+        raise ValueError(f"Unknown job type: {job_type}")
+    # Create job record
+    job = jobs_service.create_job(job_type)
+    # Start background thread
+    thread = threading.Thread(
+        target=jobs_targets[job_type],
+        args=(job.id, user),
+        daemon=True,
+    )
+    thread.start()
+
+    logger.info(f"Started background job {job.id} for {job_type}")
+
+    return job.id
+
+
+def start_collect_main_files_job(user: Any | None=None) -> int:
+    """
+    Start a background job to collect main files for templates.
+    Returns the job ID.
+    """
+    return start_job(user, "collect_main_files")
+
+
 def start_fix_nested_main_files_job(user: Any | None) -> int:
     """
     Start a background job to fix nested tags in all template main files.
@@ -331,20 +346,7 @@ def start_fix_nested_main_files_job(user: Any | None) -> int:
     Args:
         user: User authentication data for OAuth uploads
     """
-    # Create job record
-    job = jobs_service.create_job("fix_nested_main_files")
-
-    # Start background thread
-    thread = threading.Thread(
-        target=fix_nested_main_files_for_templates,
-        args=(job.id, user),
-        daemon=True,
-    )
-    thread.start()
-
-    logger.info(f"Started background job {job.id} for fixing nested tags in main files")
-
-    return job.id
+    return start_job(user, "fix_nested_main_files")
 
 
 __all__ = [

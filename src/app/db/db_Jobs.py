@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import json
+# import json
 import logging
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, List
 from . import Database
@@ -18,11 +19,11 @@ class JobRecord:
     id: int
     job_type: str
     status: str  # pending, running, completed, failed
-    started_at: Any | None = None
-    completed_at: Any | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     result_file: str | None = None  # Path to JSON file with job results
-    created_at: Any | None = None
-    updated_at: Any | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class JobsDB:
@@ -110,7 +111,10 @@ class JobsDB:
     def update_status(
         self, job_id: int, status: str, result_file: str | None = None
     ) -> JobRecord:
-        """Update job status."""
+        """
+        Update job status.
+        TODO: Using execute_query_safe means UPDATE failures are logged but don't raise exceptions. If an update fails (e.g., job_id doesn't exist), the method proceeds to call get(job_id) which will raise LookupError. However, if the job exists but the UPDATE fails for other reasons (connection issues), the returned record won't reflect the intended status change, with no indication to the caller. Consider using execute_query instead and letting exceptions propagate, or checking the rowcount to verify the update succeeded.
+        """
         if status == "running":
             self.db.execute_query_safe(
                 """
@@ -130,14 +134,24 @@ class JobsDB:
                 (status, result_file, job_id),
             )
         else:
-            self.db.execute_query_safe(
-                """
-                UPDATE jobs
-                SET status = %s
-                WHERE id = %s
-                """,
-                (status, job_id),
-            )
+            if result_file:
+                self.db.execute_query_safe(
+                    """
+                    UPDATE jobs
+                    SET status = %s, result_file = %s
+                    WHERE id = %s
+                    """,
+                    (status, result_file, job_id),
+                )
+            else:
+                self.db.execute_query_safe(
+                    """
+                    UPDATE jobs
+                    SET status = %s
+                    WHERE id = %s
+                    """,
+                    (status, job_id),
+                )
         return self.get(job_id)
 
 
