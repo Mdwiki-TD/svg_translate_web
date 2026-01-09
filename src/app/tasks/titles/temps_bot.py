@@ -75,12 +75,6 @@ def get_files_list(text, filter_duplicates=True):
 
     main_title = find_main_title(text)
 
-    if not main_title:
-        main_title = match_main_title_from_url(text)
-
-    if main_title:
-        main_title = main_title.replace("_", " ").strip()
-
     return main_title, titles
 
 

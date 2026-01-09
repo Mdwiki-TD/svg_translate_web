@@ -20,24 +20,38 @@ def create_side(ty):
         "Translations": "bi-translate",
         "Tasks": "bi-file-text",
         "Fix Nested Tasks": "bi-database",
-        "Users": "bi-people",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
+        "Jobs": "bi-gear-fill",
     }
 
     main_menu = {
         "Tasks": [
-            {"id": "last", "admin": 0, "href": "recent", "title": "Recent", "icon": "bi-clock-history"},
-            {"id": "admins", "admin": 1, "href": "coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
-            {"id": "templates", "admin": 1, "href": "templates", "title": "Templates", "icon": "bi-list-columns"},
-            # {"id": "full_tr", "admin": 1, "href": "full_translators", "title": "Full translators", "icon": "bi-person-check"},
-            # {"id": "user_inp", "admin": 1, "href": "users_no_inprocess", "title": "Not in process", "icon": "bi-hourglass"},
+            {
+                "id": "last", "admin": 0, "href": "recent",
+                "title": "Recent", "icon": "bi-clock-history"
+            },
+            {
+                "id": "admins", "admin": 1, "href": "coordinators",
+                "title": "Coordinators", "icon": "bi-person-gear"
+            },
+            {
+                "id": "templates", "admin": 1, "href": "templates",
+                "title": "Templates", "icon": "bi-list-columns"
+            },
         ],
-        # "Fix Nested Tasks": [
-        #     {"id": "fix_nested", "admin": 1, "href": "fix_nested_recent", "title": "Fix Nested Tasks", "icon": "bi-database-fill-gear"},
-        #     {"id": "fix_nested_admins", "admin": 0, "href": "fix_nested_coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
-        #     {"id": "fix_nested_templates", "admin": 0, "href": "fix_nested_templates", "title": "Templates", "icon": "bi-list-columns"},
-        # ],
+        "Jobs": [
+            {
+                "id": "collect_main_files_jobs", "admin": 1,
+                "href": "collect-main-files-jobs",
+                "title": "Collect Main Files", "icon": "bi-kanban"
+            },
+            {
+                "id": "fix_nested_main_files_jobs", "admin": 1,
+                "href": "fix-nested-main-files-jobs",
+                "title": "Fix Nested Main Files", "icon": "bi-tools"
+            },
+        ],
     }
 
     sidebar = ["<ul class='list-unstyled'>"]
@@ -80,7 +94,9 @@ def create_side(ty):
                             </ul>
                         </div>
                         <div class="d-inline d-md-none">
-                            <ul class="navbar-nav flex-row flex-wrap btn-toggle-nav-mobile list-unstyled fw-normal pb-1 small">
+                            <ul class="navbar-nav flex-row flex-wrap "
+                                "btn-toggle-nav-mobile list-unstyled "
+                                "fw-normal pb-1 small">
                                 {''.join(lis)}
                             </ul>
                         </div>
