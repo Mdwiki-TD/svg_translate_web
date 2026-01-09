@@ -63,18 +63,6 @@ def _collect_main_files_job_detail(job_id: int):
     )
 
 
-def _start_collect_main_files_job() -> ResponseReturnValue:
-    """Start a job to collect main files for templates."""
-    try:
-        job_id = jobs_worker.start_collect_main_files_job()
-        flash(f"Job {job_id} started to collect main files for templates.", "success")
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return redirect(url_for("admin.collect_main_files_jobs_list"))
-
-
 def _fix_nested_main_files_jobs_list():
     """Render the fix nested main files jobs list dashboard."""
     user = current_user()
@@ -114,6 +102,26 @@ def _fix_nested_main_files_job_detail(job_id: int):
         job=job,
         result_data=result_data,
     )
+
+
+def _start_collect_main_files_job() -> ResponseReturnValue:
+    """Start a job to collect main files for templates."""
+    user = current_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+
+    try:
+        # Get auth payload for OAuth uploads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_collect_main_files_job(auth_payload)
+        flash(f"Job {job_id} started to collect main files for templates.", "success")
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
+
+    return redirect(url_for("admin.collect_main_files_jobs_list"))
 
 
 def _start_fix_nested_main_files_job() -> ResponseReturnValue:

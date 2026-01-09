@@ -16,7 +16,7 @@ from .app_routes.fix_nested.fix_utils import process_fix_nested
 logger = logging.getLogger("svg_translate")
 
 
-def collect_main_files_for_templates(job_id: int) -> None:
+def collect_main_files_for_templates(job_id: int, user: Any | None=None) -> None:
     """
     Background worker to collect main files for templates that don't have one.
 
@@ -29,7 +29,7 @@ def collect_main_files_for_templates(job_id: int) -> None:
     3. Saves a detailed report to a JSON file
     """
     logger.info(f"Starting job {job_id}: collect main files for templates")
-
+    job_type = "collect_main_files"
     # Initialize result tracking early to avoid NameError in exception handler
     result = {
         "job_id": job_id,
@@ -46,7 +46,7 @@ def collect_main_files_for_templates(job_id: int) -> None:
             "already_had_main_file": 0,
         },
     }
-
+    result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
         # Update job status to running
         jobs_service.update_job_status(job_id, "running")
@@ -111,7 +111,7 @@ def collect_main_files_for_templates(job_id: int) -> None:
 
             if n == 1 or n % 10 == 0:
                 # Save result to JSON file
-                result_file = jobs_service.save_job_result(job_id, result)
+                jobs_service.save_job_result_by_name(result_file, result)
                 jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
@@ -119,7 +119,7 @@ def collect_main_files_for_templates(job_id: int) -> None:
         result["completed_at"] = datetime.now().isoformat()
 
         # Save result to JSON file
-        result_file = jobs_service.save_job_result(job_id, result)
+        jobs_service.save_job_result_by_name(result_file, result)
 
         # Update job status to completed
         jobs_service.update_job_status(job_id, "completed", result_file)
@@ -143,14 +143,14 @@ def collect_main_files_for_templates(job_id: int) -> None:
         }
 
         try:
-            result_file = jobs_service.save_job_result(job_id, error_result)
+            jobs_service.save_job_result_by_name(result_file, error_result)
             jobs_service.update_job_status(job_id, "failed", result_file)
         except Exception:
             logger.exception(f"Job {job_id}: Failed to save error result")
             jobs_service.update_job_status(job_id, "failed")
 
 
-def start_collect_main_files_job() -> int:
+def start_collect_main_files_job(user: Any | None=None) -> int:
     """
     Start a background job to collect main files for templates.
     Returns the job ID.
@@ -161,7 +161,7 @@ def start_collect_main_files_job() -> int:
     # Start background thread
     thread = threading.Thread(
         target=collect_main_files_for_templates,
-        args=(job.id,),
+        args=(job.id, user),
         daemon=True,
     )
     thread.start()
@@ -182,6 +182,8 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
        - Uses the user's OAuth credentials for file uploads
     3. Saves a detailed report to a JSON file
     """
+    job_type = "fix_nested_main_files"
+
     logger.info(f"Starting job {job_id}: fix nested tags for template main files")
 
     # Initialize result tracking early to avoid NameError in exception handler
@@ -201,6 +203,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
         },
     }
 
+    result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
         # Update job status to running
         jobs_service.update_job_status(job_id, "running")
@@ -281,7 +284,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
 
             if n == 1 or n % 10 == 0:
                 # Save result to JSON file
-                result_file = jobs_service.save_job_result(job_id, result)
+                jobs_service.save_job_result_by_name(result_file, result)
                 jobs_service.update_job_status(job_id, "running", result_file)
 
         # Update summary skipped count
@@ -289,7 +292,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
         result["completed_at"] = datetime.now().isoformat()
 
         # Save result to JSON file
-        result_file = jobs_service.save_job_result(job_id, result)
+        jobs_service.save_job_result_by_name(result_file, result)
 
         # Update job status to completed
         jobs_service.update_job_status(job_id, "completed", result_file)
@@ -313,7 +316,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
         }
 
         try:
-            result_file = jobs_service.save_job_result(job_id, error_result)
+            jobs_service.save_job_result_by_name(result_file, error_result)
             jobs_service.update_job_status(job_id, "failed", result_file)
         except Exception:
             logger.exception(f"Job {job_id}: Failed to save error result")

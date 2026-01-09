@@ -78,6 +78,23 @@ def update_job_status(
     return store.update_status(job_id, status, result_file)
 
 
+def generate_result_file_name(job_id, job_type):
+    result_file = f"{job_type}_job_{job_id}.json"
+    return result_file
+
+
+def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
+    """Save job result to a JSON file and return the file path."""
+    jobs_dir = get_jobs_data_dir()
+    # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
+    filepath = jobs_dir / filename
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(result_data, f, indent=2, default=str)
+
+    return filepath
+
+
 def save_job_result(job_id: int, result_data: Dict[str, Any]) -> str:
     """Save job result to a JSON file and return the file path."""
     jobs_dir = get_jobs_data_dir()
@@ -112,6 +129,8 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
+    "generate_result_file_name",
+    "save_job_result_by_name",
     "save_job_result",
     "load_job_result",
     "JobRecord",

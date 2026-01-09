@@ -27,7 +27,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr("src.app.jobs_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_worker.jobs_service.save_job_result", mock_save_job_result)
+    monkeypatch.setattr("src.app.jobs_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
 
     # Mock get_wikitext
     mock_get_wikitext = MagicMock()
@@ -41,7 +41,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "list_templates": mock_list_templates,
         "update_template": mock_update_template,
         "update_job_status": mock_update_job_status,
-        "save_job_result": mock_save_job_result,
+        "save_job_result_by_name": mock_save_job_result,
         "get_wikitext": mock_get_wikitext,
         "find_main_title": mock_find_main_title,
     }
@@ -58,8 +58,8 @@ def test_collect_main_files_with_no_templates(mock_services):
     mock_services["update_job_status"].assert_any_call(1, "running")
 
     # Should save result
-    mock_services["save_job_result"].assert_called_once()
-    result = mock_services["save_job_result"].call_args[0][1]
+    mock_services["save_job_result_by_name"].assert_called_once()
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
 
 
@@ -77,7 +77,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services):
     mock_services["get_wikitext"].assert_not_called()
 
     # Should save result with skipped templates
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
     assert result["summary"]["skipped"] == 0
     assert result["summary"]["already_had_main_file"] == 2
@@ -106,7 +106,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg")
 
     # Should save result with updated template
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["updated"] == 1
     assert len(result["templates_updated"]) == 1
@@ -127,7 +127,7 @@ def test_collect_main_files_handles_missing_wikitext(mock_services):
     mock_services["find_main_title"].assert_not_called()
 
     # Should save result with failed template
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
@@ -149,7 +149,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
     mock_services["update_template"].assert_not_called()
 
     # Should save result with failed template
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
@@ -167,7 +167,7 @@ def test_collect_main_files_handles_exception(mock_services):
     jobs_worker.collect_main_files_for_templates(1)
 
     # Should save result with failed template
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
@@ -208,7 +208,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
     assert mock_services["update_template"].call_count == 2
 
     # Should save result with correct counts
-    result = mock_services["save_job_result"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 3
     assert result["summary"]["updated"] == 2
     assert result["summary"]["skipped"] == 0
@@ -243,7 +243,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr("src.app.jobs_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_worker.jobs_service.save_job_result", mock_save_job_result)
+    monkeypatch.setattr("src.app.jobs_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
 
     # Mock process_fix_nested
     mock_process_fix_nested = MagicMock()
@@ -252,7 +252,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     return {
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
-        "save_job_result": mock_save_job_result,
+        "save_job_result_by_name": mock_save_job_result,
         "process_fix_nested": mock_process_fix_nested,
     }
 
@@ -269,8 +269,8 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
     mock_fix_nested_services["update_job_status"].assert_any_call(1, "running")
 
     # Should save result
-    mock_fix_nested_services["save_job_result"].assert_called_once()
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    mock_fix_nested_services["save_job_result_by_name"].assert_called_once()
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
 
 
@@ -289,7 +289,7 @@ def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested
     mock_fix_nested_services["process_fix_nested"].assert_not_called()
 
     # Should save result with skipped templates
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
     assert result["summary"]["skipped"] == 2
     assert result["summary"]["no_main_file"] == 2
@@ -319,7 +319,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     )
 
     # Should save result with successful template
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["success"] == 1
     assert len(result["templates_success"]) == 1
@@ -341,7 +341,7 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     jobs_worker.fix_nested_main_files_for_templates(1, user)
 
     # Should save result with failed template
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
@@ -360,7 +360,7 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     jobs_worker.fix_nested_main_files_for_templates(1, user)
 
     # Should save result with failed template
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
@@ -393,7 +393,7 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     assert mock_fix_nested_services["process_fix_nested"].call_count == 2
 
     # Should save result with correct counts
-    result = mock_fix_nested_services["save_job_result"].call_args[0][1]
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 3
     assert result["summary"]["success"] == 2
     assert result["summary"]["skipped"] == 1
