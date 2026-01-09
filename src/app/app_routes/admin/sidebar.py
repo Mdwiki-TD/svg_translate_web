@@ -58,12 +58,11 @@ def create_side(ty):
 
     for key, items in main_menu.items():
         lis = []
-        group_is_active = False
+        group_is_active = True
         key_id = key.lower().replace(" ", "_")
         for item in items:
             href = item.get("href", "")
-            if href == ty:
-                group_is_active = True
+            # group_is_active = href == ty
 
             icon_1 = item.get("icon")
             target = item.get("target")
