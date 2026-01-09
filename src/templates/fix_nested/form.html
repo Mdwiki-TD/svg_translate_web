@@ -32,6 +32,7 @@
                     {% endif %}
 
                     <form method="POST" action="{{ url_for('fix_nested.fix_nested_post') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label for="filename" class="form-label">
                                 File Name <span class="text-danger">*</span>
