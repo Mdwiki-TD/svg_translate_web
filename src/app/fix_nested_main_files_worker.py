@@ -96,6 +96,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                     username=username,
                     db_store=None,  # Don't use fix_nested task store
                 )
+                nested_count = fix_result.get("details", {}).get("nested_count", 0)
 
                 if fix_result["success"]:
                     template_info["status"] = "success"
@@ -104,6 +105,15 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
                     result["summary"]["success"] += 1
                     logger.info(
                         f"Job {job_id}: Successfully processed {template.main_file}"
+                    )
+                elif nested_count == 0:
+                    template_info["status"] = "skipped"
+                    template_info["reason"] = "No nested tags found"
+                    template_info["fix_result"] = fix_result
+                    result["templates_skipped"].append(template_info)
+                    result["summary"]["skipped"] += 1
+                    logger.info(
+                        f"Job {job_id}: No nested tags found in {template.main_file}"
                     )
                 else:
                     template_info["status"] = "failed"
