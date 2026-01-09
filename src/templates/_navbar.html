@@ -22,25 +22,25 @@
                 </button>
             </div>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
+                <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
+                    <li class="nav-item col-6 col-lg-auto">
                         {{ nav_link('main.', 'bi-house-door-fill', 'Home', url_for('main.index')) }}
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item col-6 col-lg-auto">
                         {{ nav_link('tasks.', 'bi-list-task', 'All Tasks', url_for('tasks.tasks')) }}
                     </li>
                     {% if is_admin %}
-                    <li class="nav-item">
+                    <li class="nav-item col-6 col-lg-auto">
                         {{ nav_link('admin.', 'bi-people-fill', 'Admins', url_for('admin.admin_dashboard')) }}
                     </li>
                     {% endif %}
-                    <li class="nav-item">
+                    <li class="nav-item col-6 col-lg-auto">
                         {{ nav_link('templates.', 'bi-file-earmark-text', 'Templates', url_for('templates.main'), 'OWIDSlider Templates') }}
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item col-6 col-lg-auto">
                         {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
                     </li>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item col-6 col-lg-auto dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-wrench-adjustable"></i> Fix Nested
@@ -58,7 +58,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item col-6 col-lg-auto">
                         <a class="nav-link" href="https://github.com/Mdwiki-TD/svg_translate_web" target="_blank"
                             rel="noopener noreferrer">
                             <i class="bi bi-github"></i> GitHub
