@@ -20,7 +20,6 @@ def create_side(ty):
         "Translations": "bi-translate",
         "Tasks": "bi-file-text",
         "Fix Nested Tasks": "bi-database",
-        "Users": "bi-people",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
         "Jobs": "bi-gear-fill",

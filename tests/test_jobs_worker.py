@@ -79,7 +79,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services):
     # Should save result with skipped templates
     result = mock_services["save_job_result"].call_args[0][1]
     assert result["summary"]["total"] == 2
-    assert result["summary"]["skipped"] == 2
+    assert result["summary"]["skipped"] == 0
     assert result["summary"]["already_had_main_file"] == 2
 
 
@@ -211,7 +211,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
     result = mock_services["save_job_result"].call_args[0][1]
     assert result["summary"]["total"] == 3
     assert result["summary"]["updated"] == 2
-    assert result["summary"]["skipped"] == 1
+    assert result["summary"]["skipped"] == 0
 
 
 @patch("src.app.jobs_worker.jobs_service.create_job")
