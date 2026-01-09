@@ -19,7 +19,11 @@ logger = logging.getLogger("svg_translate")
 
 def process_templates(job_id, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None) -> dict[str, list[dict]]:
     # Update job status to running
-    jobs_service.update_job_status(job_id, "running", result_file, job_type="collect_main_files")
+    try:
+        jobs_service.update_job_status(job_id, "running", result_file, job_type="collect_main_files")
+    except LookupError:
+        logger.warning(f"Job {job_id}: Could not update status to running, job record might have been deleted.")
+        return result
 
     # Get all templates
     templates = template_service.list_templates()
@@ -55,6 +59,12 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
                 result["summary"]["failed"] += 1
                 logger.warning(f"Job {job_id}: Could not fetch wikitext for {template.title}")
                 continue
+
+            if cancel_event and cancel_event.is_set():
+                logger.info(f"Job {job_id}: Cancellation detected, stopping.")
+                result["status"] = "cancelled"
+                result["cancelled_at"] = datetime.now().isoformat()
+                break
 
             # Extract main file using find_main_title
             main_file = find_main_title(wikitext)
@@ -101,7 +111,10 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
     if result.get("status") == "cancelled":
         final_status = "cancelled"
 
-    jobs_service.update_job_status(job_id, final_status, result_file, job_type="collect_main_files")
+    try:
+        jobs_service.update_job_status(job_id, final_status, result_file, job_type="collect_main_files")
+    except LookupError:
+        logger.warning(f"Job {job_id}: Could not update status to {final_status}, job record might have been deleted.")
 
     logger.info(
         f"Job {job_id} {final_status}: {result['summary']['updated']} updated, "
@@ -159,9 +172,14 @@ def collect_main_files_for_templates(job_id: int, user: Any | None=None, cancel_
         try:
             jobs_service.save_job_result_by_name(result_file, error_result)
             jobs_service.update_job_status(job_id, "failed", result_file, job_type="collect_main_files")
+        except LookupError:
+            logger.warning(f"Job {job_id}: Could not update status to failed, job record might have been deleted.")
         except Exception:
             logger.exception(f"Job {job_id}: Failed to save error result")
-            jobs_service.update_job_status(job_id, "failed", job_type="collect_main_files")
+            try:
+                jobs_service.update_job_status(job_id, "failed", job_type="collect_main_files")
+            except LookupError:
+                pass
 
 
 __all__ = [
