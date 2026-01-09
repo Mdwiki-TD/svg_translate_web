@@ -6,9 +6,9 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from . import template_service
-from . import jobs_service
-from .app_routes.fix_nested.fix_utils import process_fix_nested
+from .. import template_service
+from .. import jobs_service
+from ..app_routes.fix_nested.fix_utils import process_fix_nested
 
 logger = logging.getLogger("svg_translate")
 

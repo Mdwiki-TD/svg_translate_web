@@ -7,8 +7,8 @@ import threading
 from typing import Any
 
 from . import jobs_service
-from .collect_main_files_worker import collect_main_files_for_templates
-from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
+from .jobs_workers.collect_main_files_worker import collect_main_files_for_templates
+from .jobs_workers.fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
 logger = logging.getLogger("svg_translate")
 

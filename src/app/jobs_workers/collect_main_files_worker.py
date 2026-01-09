@@ -8,10 +8,10 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from . import template_service
-from . import jobs_service
-from .tasks.texts.text_bot import get_wikitext
-from .tasks.titles.utils.main_file import find_main_title
+from .. import template_service
+from .. import jobs_service
+from ..tasks.texts.text_bot import get_wikitext
+from ..tasks.titles.utils.main_file import find_main_title
 
 logger = logging.getLogger("svg_translate")
 
