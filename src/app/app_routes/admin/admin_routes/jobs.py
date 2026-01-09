@@ -111,44 +111,46 @@ def _fix_nested_main_files_job_detail(job_id: int):
     )
 
 
-def _start_collect_main_files_job(return_to: str) -> ResponseReturnValue:
+def _start_collect_main_files_job() -> int:
     """Start a job to collect main files for templates."""
     user = current_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return redirect(url_for(return_to))
+        return False
 
     try:
         # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
         job_id = jobs_worker.start_collect_main_files_job(auth_payload)
         flash(f"Job {job_id} started to collect main files for templates.", "success")
+        return job_id
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return redirect(url_for(return_to))
+    return False
 
 
-def _start_fix_nested_main_files_job(return_to: str) -> ResponseReturnValue:
+def _start_fix_nested_main_files_job() -> int:
     """Start a job to fix nested tags in all template main files."""
     user = current_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return redirect(url_for(return_to))
+        return False
 
     try:
         # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
         job_id = jobs_worker.start_fix_nested_main_files_job(auth_payload)
         flash(f"Job {job_id} started to fix nested tags in template main files.", "success")
+        return job_id
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return redirect(url_for(return_to))
+    return False
 
 
 class Jobs:
@@ -169,7 +171,10 @@ class Jobs:
         @bp_admin.post("/collect-main-files-jobs/start")
         @admin_required
         def start_collect_main_files_job() -> ResponseReturnValue:
-            return _start_collect_main_files_job("admin.collect_main_files_jobs_list")
+            job_id = _start_collect_main_files_job()
+            if not job_id:
+                return redirect(url_for("admin.collect_main_files_jobs_list"))
+            return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
 
         @bp_admin.get("/fix-nested-main-files-jobs")
         @admin_required
@@ -184,4 +189,7 @@ class Jobs:
         @bp_admin.post("/fix-nested-main-files-jobs/start")
         @admin_required
         def start_fix_nested_main_files_job() -> ResponseReturnValue:
-            return _start_fix_nested_main_files_job("admin.fix_nested_main_files_jobs_list")
+            job_id = _start_fix_nested_main_files_job()
+            if not job_id:
+                return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+            return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
