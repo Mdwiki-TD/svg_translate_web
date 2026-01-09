@@ -25,13 +25,13 @@
                                 <th style="width: 40%">Status:</th>
                                 <td>
                                     {% if job.status == 'completed' %}
-                                        <span class="badge bg-success">{{ job.status }}</span>
+                                    <span class="badge bg-success">{{ job.status }}</span>
                                     {% elif job.status == 'failed' %}
-                                        <span class="badge bg-danger">{{ job.status }}</span>
+                                    <span class="badge bg-danger">{{ job.status }}</span>
                                     {% elif job.status == 'running' %}
-                                        <span class="badge bg-primary">{{ job.status }}</span>
+                                    <span class="badge bg-primary">{{ job.status }}</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">{{ job.status }}</span>
+                                    <span class="badge bg-secondary">{{ job.status }}</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -143,7 +143,12 @@
                             {% for template in result_data.templates_success %}
                             <tr>
                                 <td>{{ template.id }}</td>
-                                <td>{{ template.title }}</td>
+                                <td>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                        rel='noopener noreferrer'>
+                                        {{ template.title }}
+                                    </a>
+                                </td>
                                 <td><code>{{ template.main_file }}</code></td>
                                 <td>{{ template.fix_result.message }}</td>
                             </tr>
@@ -176,7 +181,12 @@
                             {% for template in result_data.templates_failed %}
                             <tr>
                                 <td>{{ template.id }}</td>
-                                <td>{{ template.title }}</td>
+                                <td>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                        rel='noopener noreferrer'>
+                                        {{ template.title }}
+                                    </a>
+                                </td>
                                 <td><code>{{ template.main_file }}</code></td>
                                 <td>{{ template.reason }}</td>
                             </tr>
@@ -208,7 +218,12 @@
                             {% for template in result_data.templates_skipped %}
                             <tr>
                                 <td>{{ template.id }}</td>
-                                <td>{{ template.title }}</td>
+                                <td>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                        rel='noopener noreferrer'>
+                                        {{ template.title }}
+                                    </a>
+                                </td>
                                 <td>{{ template.reason }}</td>
                             </tr>
                             {% endfor %}
