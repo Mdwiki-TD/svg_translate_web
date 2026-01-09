@@ -15,9 +15,7 @@
         <!-- Job Summary -->
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <h5 class="mb-0">Job Information</h5>
-                </h3>
+                <h5 class="mb-0">Job Information</h5>
                 <form method="POST" action="{{ url_for('admin.delete_fix_nested_main_files_job', job_id=job.id) }}"
                     onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
                     <button type="submit" class="btn btn-sm btn-outline-danger">
