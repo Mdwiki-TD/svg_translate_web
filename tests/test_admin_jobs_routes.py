@@ -160,7 +160,7 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     client, store = admin_jobs_client
 
     job = store.create("collect_main_files")
-    
+
     # Create a fake result file
     result_data = {
         "job_id": job.id,
@@ -177,11 +177,11 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
             {"id": 2, "title": "Template:Test2", "reason": "No wikitext found"},
         ],
     }
-    
+
     result_file = tmp_path / "result.json"
     with open(result_file, "w") as f:
         json.dump(result_data, f)
-    
+
     store.update_status(job.id, "completed", str(result_file))
 
     response = client.get(f"/admin/collect-main-files-jobs/{job.id}")
@@ -207,7 +207,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 def test_start_collect_main_files_job_route(mock_start_job, admin_jobs_client):
     """Test that the start collect main files job route works."""
     client, store = admin_jobs_client
-    
+
     # Mock the job creation
     mock_start_job.return_value = 1
 
@@ -215,7 +215,7 @@ def test_start_collect_main_files_job_route(mock_start_job, admin_jobs_client):
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
-    
+
     mock_start_job.assert_called_once()
 
 
@@ -238,11 +238,11 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
     store.create("collect_main_files")
     store.create("collect_main_files")
     store.create("other_job_type")
-    
+
     response = client.get("/admin/collect-main-files-jobs")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    
+
     # Should show 2 rows of jobs (not 3)
     # Count the number of "View" buttons which appear once per job row
     assert page.count('btn btn-outline-primary btn-sm') == 2
@@ -291,7 +291,7 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
     client, store = admin_jobs_client
 
     job = store.create("fix_nested_main_files")
-    
+
     # Create a fake result file
     result_data = {
         "job_id": job.id,
@@ -312,11 +312,11 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
             {"id": 3, "title": "Template:Test3", "reason": "No main_file set"},
         ],
     }
-    
+
     result_file = tmp_path / "result.json"
     with open(result_file, "w") as f:
         json.dump(result_data, f)
-    
+
     store.update_status(job.id, "completed", str(result_file))
 
     response = client.get(f"/admin/fix-nested-main-files-jobs/{job.id}")
@@ -344,7 +344,7 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start fix nested main files job route works."""
     client, store = admin_jobs_client
-    
+
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
@@ -353,7 +353,7 @@ def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, a
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
-    
+
     mock_start_job.assert_called_once()
     mock_load_auth.assert_called_once()
 
@@ -378,11 +378,11 @@ def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
     store.create("fix_nested_main_files")
     store.create("collect_main_files")
     store.create("other_job_type")
-    
+
     response = client.get("/admin/fix-nested-main-files-jobs")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    
+
     # Should show 2 rows of jobs (not 4)
     # Count the number of "View" buttons which appear once per job row
     assert page.count('btn btn-outline-primary btn-sm') == 2
@@ -394,7 +394,7 @@ def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_clie
 
     # Create a collect_main_files job
     job = store.create("collect_main_files")
-    
+
     response = client.get(f"/admin/fix-nested-main-files-jobs/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
@@ -406,7 +406,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     client, store = admin_jobs_client
 
     job = store.create("other_job_type")
-    
+
     response = client.get(f"/admin/collect-main-files-jobs/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
