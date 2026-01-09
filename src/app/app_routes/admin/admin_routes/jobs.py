@@ -65,6 +65,10 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
 
     try:
+        # Cancel the job if it's running
+        if jobs_worker.cancel_job(job_id):
+            logger.info(f"Cancelled running job {job_id} before deletion")
+
         jobs_service.delete_job(job_id, job_type)
         flash(f"Job {job_id} deleted successfully.", "success")
     except Exception as exc:

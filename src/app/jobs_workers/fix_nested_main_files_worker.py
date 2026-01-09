@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import logging
+import threading
 import tempfile
 from datetime import datetime
 from typing import Any
@@ -87,7 +88,7 @@ def fix_nested_file(
     }
 
 
-def process_templates(job_id, user, result: dict[str, list[dict]], result_file: str) -> dict[str, list[dict]]:
+def process_templates(job_id, user, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None) -> dict[str, list[dict]]:
     # Update job status to running
     jobs_service.update_job_status(job_id, "running", result_file, job_type="fix_nested_main_files")
 
@@ -98,6 +99,12 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
     for n, template in enumerate(templates, start=1):
+        if cancel_event and cancel_event.is_set():
+            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
+            result["status"] = "cancelled"
+            result["cancelled_at"] = datetime.now().isoformat()
+            break
+
         logger.info(f"Job {job_id}: Processing template {n}/{len(templates)}: {template.title}")
         template_info = {
             "id": template.id,
@@ -175,11 +182,15 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     # Save result to JSON file
     jobs_service.save_job_result_by_name(result_file, result)
 
-    # Update job status to completed
-    jobs_service.update_job_status(job_id, "completed", result_file, job_type="fix_nested_main_files")
+    # Update job status to completed or cancelled
+    final_status = "completed"
+    if result.get("status") == "cancelled":
+        final_status = "cancelled"
+
+    jobs_service.update_job_status(job_id, final_status, result_file, job_type="fix_nested_main_files")
 
     logger.info(
-        f"Job {job_id} completed: {result['summary']['success']} successful, "
+        f"Job {job_id} {final_status}: {result['summary']['success']} successful, "
         f"{result['summary']['failed']} failed, "
         f"{result['summary']['skipped']} skipped"
     )
@@ -187,7 +198,7 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     return result
 
 
-def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
+def fix_nested_main_files_for_templates(job_id: int, user: Any | None, cancel_event: threading.Event | None = None) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
 
@@ -220,7 +231,7 @@ def fix_nested_main_files_for_templates(job_id: int, user: Any | None) -> None:
     }
     result_file = jobs_service.generate_result_file_name(job_id, job_type)
     try:
-        result = process_templates(job_id, user, result, result_file)
+        result = process_templates(job_id, user, result, result_file, cancel_event=cancel_event)
 
     except Exception as e:
         logger.exception(f"Job {job_id}: Fatal error during execution")
