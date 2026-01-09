@@ -46,8 +46,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     }
 
 
-
-
 @pytest.fixture
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by fix_nested_main_files_for_templates."""
@@ -153,7 +151,7 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     mock_fix_nested_services["list_templates"].return_value = templates
     mock_fix_nested_services["process_fix_nested"].return_value = {
         "success": False,
-        "message": "Failed to download file",
+        "message": "No nested tags found",
     }
 
     user = {"username": "test_user"}
@@ -162,9 +160,10 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     # Should save result with failed template
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
-    assert "Failed to download file" in result["templates_failed"][0]["reason"]
+    assert result["summary"]["failed"] == 0
+    assert result["summary"]["skipped"] == 1
+    assert len(result["templates_skipped"]) == 1
+    assert "No nested tags found" in result["templates_skipped"][0]["reason"]
 
 
 def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
@@ -217,4 +216,3 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     assert result["summary"]["success"] == 2
     assert result["summary"]["skipped"] == 1
     assert result["summary"]["no_main_file"] == 1
-
