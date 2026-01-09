@@ -1,0 +1,1 @@
+This application has no CSRF protection configured despite handling state-changing POST requests (delete tasks, undo tasks, file uploads). Initialize Flask-WTF's CSRFProtect in the app factory and include CSRF tokens in all POST forms to prevent cross-site request forgery attacks.
