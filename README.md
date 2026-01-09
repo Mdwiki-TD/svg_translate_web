@@ -35,19 +35,19 @@ A Flask-based web application for copying SVG translations between different lan
    ```
 
 3. **Set up environment variables**
-   
+
    Copy the example environment file and configure it:
    ```bash
    cp src/example.env src/.env
    ```
-   
+
    Edit `src/.env` with your configuration (see [Configuration](#configuration) section below).
 
 4. **Run the application**
    ```bash
    python -m flask --app src.app run
    ```
-   
+
    Or for debug mode:
    ```bash
    python src/app.py debug
@@ -70,10 +70,6 @@ FLASK_SECRET_KEY=your_secret_key_here
 #### Storage Paths
 ```bash
 MAIN_DIR=/path/to/svg/storage
-SVG_DATA_PATH=/path/to/svg/data
-SVG_DATA_THUMB_PATH=/path/to/svg/thumbnails
-FIX_NESTED_DATA_PATH=/path/to/fix/nested/data
-LOG_PATH=/path/to/logs
 ```
 
 #### Database Configuration
@@ -122,7 +118,7 @@ For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
 ### Basic Workflow
 
 1. **Login**: Navigate to the application and login using your Wikimedia account (OAuth)
-2. **Start Translation Task**: 
+2. **Start Translation Task**:
    - Enter a template title (e.g., `Template:OWID/death rate from obesity`)
    - Optionally specify a manual main file title
    - Choose options for overwriting and uploading

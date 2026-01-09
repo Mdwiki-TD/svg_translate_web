@@ -39,13 +39,13 @@ def get_jobs_db() -> JobsDB:
 
 def get_jobs_data_dir() -> Path:
     """Get the directory for storing job data files."""
-    # Use log_dir from settings paths
-    log_dir = getattr(settings.paths, "log_dir", None)
-    if not log_dir:
+    # Use svg_jobs_path from settings paths
+    jobs_dir = getattr(settings.paths, "svg_jobs_path", None)
+    if not jobs_dir:
         raise RuntimeError(
-            "LOG_PATH environment variable is required for job result storage"
+            "MAIN_DIR/svg_jobs environment variable is required for job result storage"
         )
-    jobs_dir = Path(log_dir) / "jobs"
+    jobs_dir = Path(jobs_dir)
     jobs_dir.mkdir(parents=True, exist_ok=True)
     return jobs_dir
 
@@ -82,10 +82,10 @@ def save_job_result(job_id: int, result_data: Dict[str, Any]) -> str:
     # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
     filename = f"job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json"
     filepath = jobs_dir / filename
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=2, default=str)
-    
+
     return str(filepath)
 
 
@@ -93,7 +93,7 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
     """Load job result from a JSON file."""
     if not result_file or not os.path.exists(result_file):
         return None
-    
+
     try:
         with open(result_file, "r", encoding="utf-8") as f:
             return json.load(f)
