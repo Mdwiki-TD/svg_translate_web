@@ -113,6 +113,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
 
     app = create_app()
     app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
     client = app.test_client()
 
     try:
