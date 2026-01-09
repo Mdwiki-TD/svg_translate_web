@@ -20,6 +20,12 @@ def app(monkeypatch: pytest.MonkeyPatch) :
 
     monkeypatch.setattr(routes, "flash", lambda *args, **kwargs: None)
     monkeypatch.setattr(routes, "jsonify", lambda payload: payload)
+    monkeypatch.setattr(routes, "redirect", lambda url: {"redirect_to": url})
+    monkeypatch.setattr(routes, "url_for", lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})")
+
+    # Mock current_user in the module where oauth_required is defined
+    import src.app.users.current
+    monkeypatch.setattr(src.app.users.current, "current_user", lambda: types.SimpleNamespace(username="user"))
 
     yield app
 
@@ -62,7 +68,7 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("task")
 
-    assert response == {"task_id": "task", "status": "Cancelled"}
+    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'task'})"}
     assert cancel_called == ["set"]
 
 
@@ -99,6 +105,6 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("task")
 
-    assert response == {"task_id": "newtask", "status": "Running"}
+    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'newtask'})"}
     assert created_tasks[0][0] == "newtask"
     assert launched == [("newtask", "user")]
