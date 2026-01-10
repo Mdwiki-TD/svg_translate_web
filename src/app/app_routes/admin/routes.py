@@ -3,9 +3,9 @@
 from __future__ import annotations
 from flask import (
     Blueprint,
-    url_for,
     redirect,
     request,
+    url_for,
 )
 
 from .admins_required import admin_required
