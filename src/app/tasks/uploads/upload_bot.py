@@ -17,8 +17,9 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
     if file_name is None or file_path is None:
         return {"error": "File name or file path is None"}
 
+    file_name = file_name.strip()
     if file_name.lower().startswith("file:"):
-        file_name = file_name[5:]
+        file_name = file_name[5:].lstrip()
 
     # Check if file exists
     page = site.Pages[f"File:{file_name}"]
