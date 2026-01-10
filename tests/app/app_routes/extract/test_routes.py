@@ -11,7 +11,7 @@ import pytest
 from flask import Flask
 
 from src.app import create_app
-from src.app.app_routes.fix_nested import routes
+from src.app.app_routes.extract import routes
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
         captured["context"] = context
         return f"rendered:{template}"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.render_template", fake_render)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.render_template", fake_render)
     return captured
 
 
@@ -41,7 +41,7 @@ def test_extract_get_empty_by_default(app_client: tuple[Flask, Any]) -> None:
     """Test that the extract form input is empty by default on GET."""
     app, client = app_client
 
-    response = client.get("/fix_nested/extract")
+    response = client.get("/extract/")
     assert response.status_code == 200
     # The form input should have value="" (empty) by default
     assert b'value=""' in response.data
@@ -54,7 +54,7 @@ def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any
     with client.session_transaction() as sess:
         sess[routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
 
-    response = client.get("/fix_nested/extract")
+    response = client.get("/extract/")
     assert response.status_code == 200
     # The form should have the filename pre-filled
     assert b'value="test_file.svg"' in response.data
@@ -73,12 +73,12 @@ def test_extract_post_empty_filename_shows_error(
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", fake_flash)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", fake_flash)
 
-    with app.test_request_context("/fix_nested/extract", method="POST", data={"filename": ""}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": ""}):
         result = routes.extract_translations_post()
 
-    assert result == "rendered:fix_nested/extract_form.html"
+    assert result == "rendered:extract/form.html"
     assert ("Please provide a file name", "danger") in flashed
 
 
@@ -106,13 +106,13 @@ def test_extract_post_strips_file_prefix(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.extract", mock_extract)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.shutil.rmtree", lambda *args: None)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", lambda *args: None)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.extract", mock_extract)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", lambda *args: None)
 
-    with app.test_request_context("/fix_nested/extract", method="POST", data={"filename": "File:Test.svg"}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": "File:Test.svg"}):
         routes.extract_translations_post()
 
     # Verify the filename passed to download_one_file doesn't have "File:" prefix
@@ -143,15 +143,15 @@ def test_extract_post_download_failure(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", fake_flash)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", fake_flash)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/fix_nested/extract", method="POST", data={"filename": "Test.svg"}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = routes.extract_translations_post()
 
-    assert result == "rendered:fix_nested/extract_form.html"
+    assert result == "rendered:extract/form.html"
     assert any("Failed to download file" in msg for msg, cat in flashed)
 
 
@@ -179,16 +179,16 @@ def test_extract_post_extraction_error(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.extract", mock_extract)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", fake_flash)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.extract", mock_extract)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", fake_flash)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/fix_nested/extract", method="POST", data={"filename": "Test.svg"}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = routes.extract_translations_post()
 
-    assert result == "rendered:fix_nested/extract_form.html"
+    assert result == "rendered:extract/form.html"
     assert any("Error extracting translations" in msg for msg, cat in flashed)
 
 
@@ -221,16 +221,16 @@ def test_extract_post_successful_extraction(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.extract", mock_extract)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", fake_flash)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.extract", mock_extract)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", fake_flash)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/fix_nested/extract", method="POST", data={"filename": "Test.svg"}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = routes.extract_translations_post()
 
-    assert result == "rendered:fix_nested/extract_form.html"
+    assert result == "rendered:extract/form.html"
     assert ("Translations extracted successfully", "success") in flashed
     assert patch_render["context"]["translations"] == sample_translations
     assert "translations_json" in patch_render["context"]

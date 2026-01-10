@@ -17,7 +17,7 @@
                         Enter a file name to download and extract translations from an SVG file.
                     </p>
 
-                    <form method="POST" action="{{ url_for('fix_nested.extract_translations_post') }}">
+                    <form method="POST" action="{{ url_for('extract.extract_translations_post') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label for="filename" class="form-label">

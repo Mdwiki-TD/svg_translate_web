@@ -1,14 +1,10 @@
 import base64
-import json
 import logging
 import shutil
-import tempfile
 import uuid
 from functools import wraps
-from pathlib import Path
 from typing import Any, Callable, TypeVar, cast
 
-from CopySVGTranslation import extract
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ...admins.admin_service import active_coordinators
@@ -16,7 +12,6 @@ from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...routes_utils import load_auth_payload
-from ...tasks.downloads.download import download_one_file
 from ...users.current import current_user
 from .fix_utils import process_fix_nested, process_fix_nested_file_simple
 
@@ -176,68 +171,3 @@ def fix_nested_by_upload_file():
     return render_template(
         "fix_nested/upload_form.html", filename=f"fixed_{original_filename}", download_link=download_link
     )
-
-
-# Session key for preserving filename across OAuth redirect for extract
-EXTRACT_FILENAME_KEY = "extract_filename"
-
-
-@bp_fix_nested.route("/extract", methods=["GET"])
-def extract_translations():
-    """Display form to extract translations from an SVG file."""
-    # Restore filename from session if available (e.g., after OAuth redirect)
-    filename = session.pop(EXTRACT_FILENAME_KEY, "")
-    return render_template("fix_nested/extract_form.html", filename=filename)
-
-
-@bp_fix_nested.route("/extract", methods=["POST"])
-def extract_translations_post():
-    """Process SVG file and extract translations."""
-    filename = request.form.get("filename", "").strip()
-
-    # Remove "File:" prefix if present (keep original for display)
-    original_filename = filename
-    if filename.lower().startswith("file:"):
-        filename = filename[5:].lstrip()
-
-    if not filename:
-        flash("Please provide a file name", "danger")
-        return render_template("fix_nested/extract_form.html", filename=original_filename)
-
-    logger.info(f"Starting extract translations for file: {filename}")
-
-    # Create temporary directory for download
-    temp_dir = Path(tempfile.mkdtemp())
-    try:
-        # Download the file
-        result = download_one_file(title=filename, out_dir=temp_dir, i=0, overwrite=True)
-
-        if result.get("result") != "success" or not result.get("path"):
-            flash(f"Failed to download file: {filename}", "danger")
-            return render_template("fix_nested/extract_form.html", filename=original_filename)
-
-        file_path = Path(result["path"])
-
-        # Extract translations using CopySVGTranslation
-        try:
-            translations = extract(svg_file_path=file_path, case_insensitive=True)
-        except Exception as e:
-            logger.error(f"Error extracting translations: {e}", exc_info=True)
-            flash(f"Error extracting translations: {str(e)}", "danger")
-            return render_template("fix_nested/extract_form.html", filename=original_filename)
-
-        # Convert translations to pretty JSON for display
-        translations_json = json.dumps(translations, ensure_ascii=False, indent=4)
-
-        flash("Translations extracted successfully", "success")
-        return render_template(
-            "fix_nested/extract_form.html",
-            filename=original_filename,
-            translations_json=translations_json,
-            translations=translations,
-        )
-
-    finally:
-        # Clean up temporary directory
-        if temp_dir.exists():
-            shutil.rmtree(temp_dir)
