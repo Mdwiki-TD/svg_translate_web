@@ -79,11 +79,11 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
 
     cancel_event = threading.Event()
 
-    def mock_fix_nested_file(filename, user, cancel_event=None):
+    def mock_repair_nested_svg_tags(filename, user, cancel_event=None):
         cancel_event.set()
         return {"success": True, "message": "OK"}
 
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.fix_nested_file", mock_fix_nested_file)
+    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_repair_nested_svg_tags)
 
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user=None, cancel_event=cancel_event)
 

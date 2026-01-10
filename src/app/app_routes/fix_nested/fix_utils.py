@@ -150,163 +150,164 @@ def process_fix_nested(
         db_store: Optional database store for task management
     """
     # Use temp directory for processing
-    temp_dir = Path(tempfile.mkdtemp())
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        temp_dir = Path(tmp_dir)
 
-    # Create task folder if task_id is provided
-    task_dir = None
-    if task_id:
-        task_dir = create_task_folder(task_id)
-        log_to_task(task_dir, f"Starting fix_nested task for file: {filename}")
+        # Create task folder if task_id is provided
+        task_dir = None
+        if task_id:
+            task_dir = create_task_folder(task_id)
+            log_to_task(task_dir, f"Starting fix_nested task for file: {filename}")
 
-        # Create database record if store is provided
-        if db_store:
-            db_store.create_task(task_id, filename, username)
-            db_store.update_status(task_id, "running")
+            # Create database record if store is provided
+            if db_store:
+                db_store.create_task(task_id, filename, username)
+                db_store.update_status(task_id, "running")
 
-    # Prepare metadata
-    metadata = {
-        "task_id": task_id,
-        "filename": filename,
-        "username": username,
-        "started_at": datetime.now().isoformat(),
-        "status": "running",
-    }
-
-    download = download_svg_file(filename, temp_dir)
-    if not download["ok"]:
-        if task_dir:
-            log_to_task(task_dir, f"Download failed: {download.get('error')}")
-            metadata["status"] = "failed"
-            metadata["error"] = "download_failed"
-            metadata["download_result"] = download
-            save_metadata(task_dir, metadata)
-        if db_store and task_id:
-            db_store.update_error(task_id, "download_failed")
-            db_store.update_download_result(task_id, download)
-        return {
-            "success": False,
-            "message": f"Failed to download file: {filename}",
-            "details": download,
-        }
-
-    file_path = download["path"]
-
-    # Save original file if task_dir exists
-    if task_dir:
-        original_file = task_dir / "original.svg"
-        shutil.copy2(file_path, original_file)
-        log_to_task(task_dir, f"Original file saved to: {original_file}")
-        metadata["download_result"] = {"status": "success", "path": str(original_file)}
-        if db_store and task_id:
-            db_store.update_download_result(task_id, {"status": "success", "path": str(original_file)})
-
-    detect_before = detect_nested_tags(file_path)
-    metadata["nested_tags_before"] = detect_before["count"]
-    if task_dir:
-        log_to_task(task_dir, f"Nested tags detected: {detect_before['count']}")
-    if db_store and task_id:
-        db_store.update_nested_counts(task_id, before=detect_before["count"])
-
-    if detect_before["count"] == 0:
-        metadata["status"] = "completed"
-        metadata["nested_tags_after"] = 0
-        metadata["nested_tags_fixed"] = 0
-        if task_dir:
-            log_to_task(task_dir, "No nested tags found")
-            save_metadata(task_dir, metadata)
-        if db_store and task_id:
-            db_store.update_nested_counts(task_id, after=0, fixed=0)
-            db_store.update_status(task_id, "completed")
-        return {
-            "success": False,
-            "message": f"No nested tags found in {filename}",
-            "details": {"nested_count": 0},
-        }
-
-    if not fix_nested_tags(file_path):
-        metadata["status"] = "failed"
-        metadata["error"] = "fix_failed"
-        if task_dir:
-            log_to_task(task_dir, "Failed to fix nested tags")
-            save_metadata(task_dir, metadata)
-        if db_store and task_id:
-            db_store.update_error(task_id, "fix_failed")
-        return {
-            "success": False,
-            "message": f"Failed to fix nested tags in {filename}",
-            "details": {"nested_count": detect_before["count"]},
-        }
-
-    verify = verify_fix(file_path, detect_before["count"])
-    metadata["nested_tags_after"] = verify["after"]
-    metadata["nested_tags_fixed"] = verify["fixed"]
-    if task_dir:
-        log_to_task(task_dir, f"Fixed tags: {verify['fixed']}, remaining: {verify['after']}")
-    if db_store and task_id:
-        db_store.update_nested_counts(task_id, after=verify["after"], fixed=verify["fixed"])
-
-    if verify["fixed"] == 0:
-        metadata["status"] = "failed"
-        metadata["error"] = "no_tags_fixed"
-        if task_dir:
-            log_to_task(task_dir, "No tags were fixed")
-            save_metadata(task_dir, metadata)
-        if db_store and task_id:
-            db_store.update_error(task_id, "no_tags_fixed")
-        return {
-            "success": False,
-            "message": f"No nested tags were fixed in {filename}",
-            "details": verify,
-        }
-
-    # Save fixed file if task_dir exists
-    if task_dir:
-        fixed_file = task_dir / "fixed.svg"
-        shutil.copy2(file_path, fixed_file)
-        log_to_task(task_dir, f"Fixed file saved to: {fixed_file}")
-
-    upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
-
-    if upload["ok"]:
-        metadata["upload_result"] = upload["result"]
-        metadata["status"] = "completed"
-        if task_dir:
-            log_to_task(task_dir, f"Upload successful: {upload.get('result')}")
-    else:
-        metadata["upload_result"] = {"error": upload.get("error")}
-        metadata["status"] = "upload_failed"
-        metadata["error_details"] = upload.get("error_details", "")
-
-        metadata["completed_at"] = datetime.now().isoformat()
-        if task_dir:
-            log_to_task(task_dir, f"Upload failed: {upload.get('error')}")
-            save_metadata(task_dir, metadata)
-
-    if db_store and task_id:
-        if upload["ok"]:
-            db_store.update_upload_result(task_id, upload["result"])
-            db_store.update_status(task_id, "completed")
-        else:
-            db_store.update_upload_result(task_id, {"error": upload.get("error")})
-            db_store.update_status(task_id, "upload_failed")
-            # db_store.update_error_details(task_id, upload.get("error_details", ""))
-
-    if not upload["ok"]:
-        return {
-            "success": False,
-            "message": f"Fixed {verify['fixed']} nested tag(s), but upload failed.",
-            "details": {**verify, **upload},
-        }
-
-    return {
-        "success": True,
-        "message": f"Successfully fixed {verify['fixed']} nested tag(s) and uploaded {filename}.",
-        "details": {
-            **verify,
-            "upload_result": upload["result"],
+        # Prepare metadata
+        metadata = {
             "task_id": task_id,
-        },
-    }
+            "filename": filename,
+            "username": username,
+            "started_at": datetime.now().isoformat(),
+            "status": "running",
+        }
+
+        download = download_svg_file(filename, temp_dir)
+        if not download["ok"]:
+            if task_dir:
+                log_to_task(task_dir, f"Download failed: {download.get('error')}")
+                metadata["status"] = "failed"
+                metadata["error"] = "download_failed"
+                metadata["download_result"] = download
+                save_metadata(task_dir, metadata)
+            if db_store and task_id:
+                db_store.update_error(task_id, "download_failed")
+                db_store.update_download_result(task_id, download)
+            return {
+                "success": False,
+                "message": f"Failed to download file: {filename}",
+                "details": download,
+            }
+
+        file_path = download["path"]
+
+        # Save original file if task_dir exists
+        if task_dir:
+            original_file = task_dir / "original.svg"
+            shutil.copy2(file_path, original_file)
+            log_to_task(task_dir, f"Original file saved to: {original_file}")
+            metadata["download_result"] = {"status": "success", "path": str(original_file)}
+            if db_store and task_id:
+                db_store.update_download_result(task_id, {"status": "success", "path": str(original_file)})
+
+        detect_before = detect_nested_tags(file_path)
+        metadata["nested_tags_before"] = detect_before["count"]
+        if task_dir:
+            log_to_task(task_dir, f"Nested tags detected: {detect_before['count']}")
+        if db_store and task_id:
+            db_store.update_nested_counts(task_id, before=detect_before["count"])
+
+        if detect_before["count"] == 0:
+            metadata["status"] = "completed"
+            metadata["nested_tags_after"] = 0
+            metadata["nested_tags_fixed"] = 0
+            if task_dir:
+                log_to_task(task_dir, "No nested tags found")
+                save_metadata(task_dir, metadata)
+            if db_store and task_id:
+                db_store.update_nested_counts(task_id, after=0, fixed=0)
+                db_store.update_status(task_id, "completed")
+            return {
+                "success": False,
+                "message": f"No nested tags found in {filename}",
+                "details": {"nested_count": 0},
+            }
+
+        if not fix_nested_tags(file_path):
+            metadata["status"] = "failed"
+            metadata["error"] = "fix_failed"
+            if task_dir:
+                log_to_task(task_dir, "Failed to fix nested tags")
+                save_metadata(task_dir, metadata)
+            if db_store and task_id:
+                db_store.update_error(task_id, "fix_failed")
+            return {
+                "success": False,
+                "message": f"Failed to fix nested tags in {filename}",
+                "details": {"nested_count": detect_before["count"]},
+            }
+
+        verify = verify_fix(file_path, detect_before["count"])
+        metadata["nested_tags_after"] = verify["after"]
+        metadata["nested_tags_fixed"] = verify["fixed"]
+        if task_dir:
+            log_to_task(task_dir, f"Fixed tags: {verify['fixed']}, remaining: {verify['after']}")
+        if db_store and task_id:
+            db_store.update_nested_counts(task_id, after=verify["after"], fixed=verify["fixed"])
+
+        if verify["fixed"] == 0:
+            metadata["status"] = "failed"
+            metadata["error"] = "no_tags_fixed"
+            if task_dir:
+                log_to_task(task_dir, "No tags were fixed")
+                save_metadata(task_dir, metadata)
+            if db_store and task_id:
+                db_store.update_error(task_id, "no_tags_fixed")
+            return {
+                "success": False,
+                "message": f"No nested tags were fixed in {filename}",
+                "details": verify,
+            }
+
+        # Save fixed file if task_dir exists
+        if task_dir:
+            fixed_file = task_dir / "fixed.svg"
+            shutil.copy2(file_path, fixed_file)
+            log_to_task(task_dir, f"Fixed file saved to: {fixed_file}")
+
+        upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
+
+        if upload["ok"]:
+            metadata["upload_result"] = upload["result"]
+            metadata["status"] = "completed"
+            if task_dir:
+                log_to_task(task_dir, f"Upload successful: {upload.get('result')}")
+        else:
+            metadata["upload_result"] = {"error": upload.get("error")}
+            metadata["status"] = "upload_failed"
+            metadata["error_details"] = upload.get("error_details", "")
+
+            metadata["completed_at"] = datetime.now().isoformat()
+            if task_dir:
+                log_to_task(task_dir, f"Upload failed: {upload.get('error')}")
+                save_metadata(task_dir, metadata)
+
+        if db_store and task_id:
+            if upload["ok"]:
+                db_store.update_upload_result(task_id, upload["result"])
+                db_store.update_status(task_id, "completed")
+            else:
+                db_store.update_upload_result(task_id, {"error": upload.get("error")})
+                db_store.update_status(task_id, "upload_failed")
+                # db_store.update_error_details(task_id, upload.get("error_details", ""))
+
+        if not upload["ok"]:
+            return {
+                "success": False,
+                "message": f"Fixed {verify['fixed']} nested tag(s), but upload failed.",
+                "details": {**verify, **upload},
+            }
+
+        return {
+            "success": True,
+            "message": f"Successfully fixed {verify['fixed']} nested tag(s) and uploaded {filename}.",
+            "details": {
+                **verify,
+                "upload_result": upload["result"],
+                "task_id": task_id,
+            },
+        }
 
 
 def process_fix_nested_file_simple(
@@ -318,59 +319,57 @@ def process_fix_nested_file_simple(
         file: The SVG file to fix
     """
     # Use temp directory for processing
-    temp_dir = Path(tempfile.mkdtemp())
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        temp_dir = Path(tmp_dir)
 
-    # Sanitize filename to prevent path traversal
-    safe_filename = secure_filename(file.filename or "upload.svg")
-    file_path = temp_dir / safe_filename
+        # Sanitize filename to prevent path traversal
+        safe_filename = secure_filename(file.filename or "upload.svg")
+        file_path = temp_dir / safe_filename
 
-    try:
-        file.save(file_path)
-    except Exception as e:
-        # Clean up on error
-        import shutil
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        return {
-            "success": False,
-            "message": "Failed to save uploaded file.",
-            "details": {"error": str(e)},
+        try:
+            file.save(file_path)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "Failed to save uploaded file.",
+                "details": {"error": str(e)},
+            }
+
+        metadata = {
+            "nested_tags_before": 0,
+            "nested_tags_fixed": 0,
+            "nested_tags_after": 0,
         }
 
-    metadata = {
-        "nested_tags_before": 0,
-        "nested_tags_fixed": 0,
-        "nested_tags_after": 0,
-    }
+        detect_before = detect_nested_tags(file_path)
+        metadata["nested_tags_before"] = detect_before["count"]
 
-    detect_before = detect_nested_tags(file_path)
-    metadata["nested_tags_before"] = detect_before["count"]
+        if detect_before["count"] == 0:
+            return {
+                "success": False,
+                "message": "No nested tags found in the uploaded file.",
+                "details": {"nested_count": 0},
+            }
 
-    if detect_before["count"] == 0:
+        if not fix_nested_tags(file_path):
+            return {
+                "success": False,
+                "message": "Failed to fix nested tags in the uploaded file.",
+                "details": {"nested_count": detect_before["count"]},
+            }
+
+        verify = verify_fix(file_path, detect_before["count"])
+
+        if verify["fixed"] == 0:
+            return {
+                "success": False,
+                "message": "No nested tags were fixed in the uploaded file.",
+                "details": verify,
+            }
+
         return {
-            "success": False,
-            "message": "No nested tags found in the uploaded file.",
-            "details": {"nested_count": 0},
-        }
-
-    if not fix_nested_tags(file_path):
-        return {
-            "success": False,
-            "message": "Failed to fix nested tags in the uploaded file.",
-            "details": {"nested_count": detect_before["count"]},
-        }
-
-    verify = verify_fix(file_path, detect_before["count"])
-
-    if verify["fixed"] == 0:
-        return {
-            "success": False,
-            "message": "No nested tags were fixed in the uploaded file.",
+            "success": True,
+            "message": f"Successfully fixed {verify['fixed']} nested tag(s)",
             "details": verify,
+            "file_path": file_path,  # Note: this path will be invalid outside this block if used later
         }
-
-    return {
-        "success": True,
-        "message": f"Successfully fixed {verify['fixed']} nested tag(s)",
-        "details": verify,
-        "file_path": file_path,
-    }
