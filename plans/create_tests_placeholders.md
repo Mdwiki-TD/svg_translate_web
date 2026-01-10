@@ -46,4 +46,33 @@ from <correct.import.path> import <all_symbols>
 7. Do not add real assertions; only placeholders.
 8. Keep formatting clean and PEP8-compliant.
 
+
+### Agent Notice / Constraint
+
+**Important constraint:**
+When generating placeholder tests for a source file, create tests **ONLY** for symbols declared in that file that start with:
+
+* `def `
+* `class `
+
+Meaning:
+
+* Parse the source file and extract **only top-level** `def` and `class` declarations.
+* **Ignore everything else**, including:
+
+  * imported functions/classes
+  * constants/variables
+  * nested functions/classes
+  * assignments
+  * `if __name__ == "__main__":`
+  * comments and docstrings
+
+For each extracted `def` / `class`, generate exactly **one** placeholder test function.
+
+Example extraction rule:
+
+* Count only lines that begin (after optional indentation at column 0) with `def ` or `class `.
+
+
 Output: apply changes directly to the files.
+
