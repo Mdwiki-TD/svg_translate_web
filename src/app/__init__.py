@@ -13,6 +13,7 @@ from .app_routes import (
     bp_admin,
     bp_auth,
     bp_explorer,
+    bp_extract,
     bp_fix_nested,
     bp_fix_nested_explorer,
     bp_main,
@@ -82,6 +83,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)
     app.register_blueprint(bp_fix_nested_explorer)
+    app.register_blueprint(bp_extract)
 
     @app.context_processor
     def _inject_user():  # pragma: no cover - trivial wrapper
