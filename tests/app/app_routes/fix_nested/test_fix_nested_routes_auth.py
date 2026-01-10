@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 import pytest
 from flask import Flask
 
 from src.app import create_app
-from src.app.app_routes.fix_nested import routes
 
 
 @pytest.fixture
@@ -30,7 +28,7 @@ def test_fix_nested_post_requires_oauth_no_localhost(
     app, client = app_client
 
     # Mock current_user to return None (not logged in)
-    monkeypatch.setattr(routes, "current_user", lambda: None)
+    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",
@@ -47,7 +45,7 @@ def test_fix_nested_post_preserves_filename_before_oauth_no_localhost(
     """Test that filename is saved to session before OAuth redirect."""
     app, client = app_client
 
-    monkeypatch.setattr(routes, "current_user", lambda: None)
+    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",
@@ -62,7 +60,7 @@ def test_fix_nested_post_requires_oauth(app_client: tuple[Flask, Any], monkeypat
     app, client = app_client
 
     # Mock current_user to return None (not logged in)
-    monkeypatch.setattr(routes, "current_user", lambda: None)
+    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import types
-from typing import Any
 
 import pytest
 from flask import Flask, g, session
@@ -34,9 +33,9 @@ def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
         cookie=cookie,
         oauth=oauth_cfg,
     )
-    monkeypatch.setattr(routes, "settings", settings)
-    monkeypatch.setattr(routes, "oauth_state_nonce", "state")
-    monkeypatch.setattr(routes, "request_token_key", "req_token")
+    monkeypatch.setattr("src.app.app_routes.auth.routes.settings", settings)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.oauth_state_nonce", "state")
+    monkeypatch.setattr("src.app.app_routes.auth.routes.request_token_key", "req_token")
 
     return app
 
@@ -67,16 +66,16 @@ def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None
             raise AssertionError("try_after should not be called")
 
     limiter = DummyLimiter()
-    monkeypatch.setattr(routes, "login_rate_limiter", limiter)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.login_rate_limiter", limiter)
     monkeypatch.setattr(routes.secrets, "token_urlsafe", lambda _: "nonce")
-    monkeypatch.setattr(routes, "sign_state_token", lambda state: f"signed:{state}")
+    monkeypatch.setattr("src.app.app_routes.auth.routes.sign_state_token", lambda state: f"signed:{state}")
 
     class DummyStart:
         def __call__(self, token: str):
             assert token == "signed:nonce"
             return "https://auth.example", ("a", "b")
 
-    monkeypatch.setattr(routes, "start_login", DummyStart())
+    monkeypatch.setattr("src.app.app_routes.auth.routes.start_login", DummyStart())
 
     with app.test_request_context("/login"):
         response = routes.login()
@@ -93,9 +92,9 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         def allow(self, key: str) -> bool:
             return True
 
-    monkeypatch.setattr(routes, "callback_rate_limiter", DummyLimiter())
-    monkeypatch.setattr(routes, "verify_state_token", lambda token: "state-value" if token == "token" else None)
-    monkeypatch.setattr(routes, "_load_request_token", lambda raw: ("k", "s"))
+    monkeypatch.setattr("src.app.app_routes.auth.routes.callback_rate_limiter", DummyLimiter())
+    monkeypatch.setattr("src.app.app_routes.auth.routes.verify_state_token", lambda token: "state-value" if token == "token" else None)
+    monkeypatch.setattr("src.app.app_routes.auth.routes._load_request_token", lambda raw: ("k", "s"))
 
     def fake_complete(request_token, query_string: str):
         assert request_token == ("k", "s")
@@ -104,9 +103,9 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         identity = {"sub": "123", "username": "Tester"}
         return access, identity
 
-    monkeypatch.setattr(routes, "complete_login", fake_complete)
-    monkeypatch.setattr(routes, "upsert_user_token", lambda **kwargs: kwargs)
-    monkeypatch.setattr(routes, "sign_user_id", lambda user_id: f"signed:{user_id}")
+    monkeypatch.setattr("src.app.app_routes.auth.routes.complete_login", fake_complete)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.upsert_user_token", lambda **kwargs: kwargs)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
 
     with app.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
@@ -123,8 +122,8 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_logout_clears_session(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(routes, "delete_user_token", lambda uid: None)
-    monkeypatch.setattr(routes, "extract_user_id", lambda token: 55)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.delete_user_token", lambda uid: None)
+    monkeypatch.setattr("src.app.app_routes.auth.routes.extract_user_id", lambda token: 55)
 
     with app.test_request_context("/logout"):
         session["uid"] = 42
