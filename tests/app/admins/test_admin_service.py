@@ -1,41 +1,131 @@
 import pytest
+from unittest.mock import patch, MagicMock
 from src.app.admins.admin_service import (
     get_admins_db, active_coordinators, list_coordinators, add_coordinator,
-    set_coordinator_active, delete_coordinator
+    set_coordinator_active, delete_coordinator, _ADMINS_STORE
 )
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_get_admins_db():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.CoordinatorsDB')
+@patch('src.app.admins.admin_service.has_db_config')
+def test_get_admins_db_first_call(mock_has_db_config, mock_coordinators_db):
+    """Test get_admins_db creates a new instance on first call."""
+    # Reset the global variable
+    import src.app.admins.admin_service
+    src.app.admins.admin_service._ADMINS_STORE = None
+
+    mock_has_db_config.return_value = True
+    mock_db_instance = MagicMock()
+    mock_coordinators_db.return_value = mock_db_instance
+
+    # Mock settings.db_data
+    with patch('src.app.admins.admin_service.settings') as mock_settings:
+        mock_settings.db_data = {"host": "localhost", "dbname": "test", "user": "user", "password": "pass"}
+
+        result = get_admins_db()
+
+        assert result == mock_db_instance
+        mock_coordinators_db.assert_called_once()
+        assert src.app.admins.admin_service._ADMINS_STORE == mock_db_instance
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_active_coordinators():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.CoordinatorsDB')
+@patch('src.app.admins.admin_service.has_db_config')
+def test_get_admins_db_cached(mock_has_db_config, mock_coordinators_db):
+    """Test get_admins_db returns cached instance on subsequent calls."""
+    # Reset the global variable
+    import src.app.admins.admin_service
+    mock_cached_db = MagicMock()
+    src.app.admins.admin_service._ADMINS_STORE = mock_cached_db
+
+    result = get_admins_db()
+
+    assert result == mock_cached_db
+    mock_coordinators_db.assert_not_called()
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_list_coordinators():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.get_admins_db')
+def test_active_coordinators(mock_get_admins_db):
+    """Test active_coordinators function."""
+    mock_store = MagicMock()
+    mock_get_admins_db.return_value = mock_store
+
+    # Mock coordinator records
+    mock_coord1 = MagicMock()
+    mock_coord1.username = "user1"
+    mock_coord1.is_active = True
+
+    mock_coord2 = MagicMock()
+    mock_coord2.username = "user2"
+    mock_coord2.is_active = False
+
+    mock_coord3 = MagicMock()
+    mock_coord3.username = "user3"
+    mock_coord3.is_active = True
+
+    mock_store.list.return_value = [mock_coord1, mock_coord2, mock_coord3]
+
+    result = active_coordinators()
+
+    assert result == ["user1", "user3"]  # Only active coordinators
+    mock_store.list.assert_called_once()
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_add_coordinator():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.get_admins_db')
+def test_list_coordinators(mock_get_admins_db):
+    """Test list_coordinators function."""
+    mock_store = MagicMock()
+    mock_get_admins_db.return_value = mock_store
+
+    mock_records = [MagicMock(), MagicMock()]
+    mock_store.list.return_value = mock_records
+
+    result = list_coordinators()
+
+    assert result == mock_records
+    mock_store.list.assert_called_once()
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_set_coordinator_active():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.get_admins_db')
+def test_add_coordinator(mock_get_admins_db):
+    """Test add_coordinator function."""
+    mock_store = MagicMock()
+    mock_get_admins_db.return_value = mock_store
+
+    mock_record = MagicMock()
+    mock_store.add.return_value = mock_record
+
+    result = add_coordinator("new_user")
+
+    assert result == mock_record
+    mock_store.add.assert_called_once_with("new_user")
 
 
-@pytest.mark.skip(reason="Pending write")
-def test_delete_coordinator():
-    # TODO: Implement test
-    pass
+@patch('src.app.admins.admin_service.get_admins_db')
+def test_set_coordinator_active(mock_get_admins_db):
+    """Test set_coordinator_active function."""
+    mock_store = MagicMock()
+    mock_get_admins_db.return_value = mock_store
+
+    mock_record = MagicMock()
+    mock_store.set_active.return_value = mock_record
+
+    result = set_coordinator_active(123, True)
+
+    assert result == mock_record
+    mock_store.set_active.assert_called_once_with(123, True)
+
+
+@patch('src.app.admins.admin_service.get_admins_db')
+def test_delete_coordinator(mock_get_admins_db):
+    """Test delete_coordinator function."""
+    mock_store = MagicMock()
+    mock_get_admins_db.return_value = mock_store
+
+    mock_record = MagicMock()
+    mock_store.delete.return_value = mock_record
+
+    result = delete_coordinator(123)
+
+    assert result == mock_record
+    mock_store.delete.assert_called_once_with(123)
