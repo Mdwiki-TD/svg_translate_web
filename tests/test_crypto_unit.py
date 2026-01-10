@@ -1,6 +1,7 @@
 """Unit tests for cryptographic helpers."""
 import pytest
-from src.app.crypto import encrypt_value, decrypt_value
+
+from src.app.crypto import decrypt_value, encrypt_value
 
 
 def test_encrypt_decrypt_roundtrip():

@@ -13,8 +13,8 @@ import pytest
 
 from src.app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
 
-
 # ---------- Fixtures with realistic wikitext samples ----------
+
 
 @pytest.fixture
 def sample_from_prompt() -> str:
@@ -31,7 +31,7 @@ def sample_from_prompt() -> str:
         "|file         = [[File:Health-expenditure-government-expenditure,World,2022 (cropped).svg|link=|thumb|upright=1.6|Health expenditure government expenditure]]\n"
         "|startingView = World\n"
         "}}\n"
-        "<syntaxhighlight lang=\"wikitext\" style=\"overflow:auto;\">\n"
+        '<syntaxhighlight lang="wikitext" style="overflow:auto;">\n'
         "{{owidslider\n"
         "|start        = 2022\n"
         "|list         = Template:OWID/health expenditure government expenditure#gallery\n"
@@ -64,10 +64,7 @@ def sample_from_prompt() -> str:
 @pytest.fixture
 def sample_with_svglanguages_only() -> str:
     """Wikitext with only SVGLanguages main title."""
-    return (
-        "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n"
-        "Some other text...\n"
-    )
+    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n" "Some other text...\n"
 
 
 @pytest.fixture
@@ -77,6 +74,7 @@ def sample_with_both_titles() -> str:
         "{{SVGLanguages|some_main_title,World,2010.svg}}\n"
         "*'''Translate''': https://svgtranslate.toolforge.org/File:another-title,World,2005.svg\n"
     )
+
 
 # ---------- Tests for match_main_title_from_url ----------
 

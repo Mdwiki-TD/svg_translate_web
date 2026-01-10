@@ -269,9 +269,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
     assert not launch_calls
 
 
-def test_status_returns_task_payload(
-    app_client: tuple[Flask, Any, DummyTaskStore]
-) -> None:
+def test_status_returns_task_payload(app_client: tuple[Flask, Any, DummyTaskStore]) -> None:
     app, client, store = app_client
 
     store.tasks["task1"] = {"id": "task1", "status": "Pending"}
@@ -330,9 +328,7 @@ def test_tasks_renders_formatted_tasks(
     assert formatted_inputs and len(formatted_inputs[0]) == 2
 
 
-def test_delete_task_success(
-    app_client: tuple[Flask, Any, DummyTaskStore], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_delete_task_success(app_client: tuple[Flask, Any, DummyTaskStore], monkeypatch: pytest.MonkeyPatch) -> None:
     app, client, store = app_client
 
     store.tasks["deadbeef"] = {"id": "deadbeef", "title": "Delete me"}

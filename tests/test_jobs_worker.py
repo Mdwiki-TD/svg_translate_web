@@ -96,6 +96,7 @@ def test_runner_calls_target_and_cleans_up():
     assert jobs_worker.get_cancel_event(job_id) == event
 
     from src.app.jobs_worker import _runner
+
     _runner(job_id, user, event, mock_target)
 
     mock_target.assert_called_once_with(job_id, user, cancel_event=event)

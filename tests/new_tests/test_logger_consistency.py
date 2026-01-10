@@ -4,45 +4,48 @@ from __future__ import annotations
 import pytest
 
 
-@pytest.mark.parametrize("module_path,module_name", [
-    ("src.app", "app"),
-    ("src.app.app_routes.admin.admin_routes.coordinators", "coordinators"),
-    ("src.app.app_routes.admin.admin_routes.templates", "templates"),
-    ("src.app.app_routes.auth.oauth", "oauth"),
-    ("src.app.app_routes.auth.routes", "routes"),
-    ("src.app.app_routes.cancel_restart.routes", "cancel_restart_routes"),
-    ("src.app.app_routes.explorer.compare", "compare"),
-    ("src.app.app_routes.explorer.routes", "explorer_routes"),
-    ("src.app.app_routes.explorer.thumbnail_utils", "thumbnail_utils"),
-    ("src.app.app_routes.explorer.utils", "explorer_utils"),
-    ("src.app.app_routes.main.routes", "main_routes"),
-    ("src.app.app_routes.tasks.args_utils", "args_utils"),
-    ("src.app.app_routes.tasks.routes", "task_routes"),
-    ("src.app.app_routes.templates.routes", "templates_routes"),
-    ("src.app.db.db_class", "db_class"),
-    ("src.app.db.db_CoordinatorsDB", "db_CoordinatorsDB"),
-    ("src.app.db.db_CreateUpdate", "db_CreateUpdate"),
-    ("src.app.db.db_StageStore", "db_StageStore"),
-    ("src.app.db.db_TasksListDB", "db_TasksListDB"),
-    ("src.app.db.db_Templates", "db_Templates"),
-    ("src.app.db.svg_db", "svg_db"),
-    ("src.app.db.task_store_pymysql", "task_store_pymysql"),
-    ("src.app.routes_utils", "routes_utils"),
-    ("src.app.tasks.downloads.download", "download"),
-    ("src.app.tasks.fix_nested.fix_nested_tasks", "fix_nested_tasks"),
-    ("src.app.tasks.injects.inject_tasks", "inject_tasks"),
-    ("src.app.tasks.texts.start_bot", "start_bot"),
-    ("src.app.tasks.uploads.up", "up"),
-    ("src.app.tasks.uploads.upload_bot", "upload_bot"),
-    ("src.app.template_service", "template_service"),
-    ("src.app.threads.task_threads", "task_threads"),
-    ("src.app.threads.web_run_task", "web_run_task"),
-    ("src.app.users.admin_service", "admin_service"),
-    ("src.app.users.store", "user_store"),
-    ("src.app.app_routes.templates.category", "category"),
-    ("src.app.tasks.texts.text_bot", "text_bot"),
-    ("src.log", "log"),
-])
+@pytest.mark.parametrize(
+    "module_path,module_name",
+    [
+        ("src.app", "app"),
+        ("src.app.app_routes.admin.admin_routes.coordinators", "coordinators"),
+        ("src.app.app_routes.admin.admin_routes.templates", "templates"),
+        ("src.app.app_routes.auth.oauth", "oauth"),
+        ("src.app.app_routes.auth.routes", "routes"),
+        ("src.app.app_routes.cancel_restart.routes", "cancel_restart_routes"),
+        ("src.app.app_routes.explorer.compare", "compare"),
+        ("src.app.app_routes.explorer.routes", "explorer_routes"),
+        ("src.app.app_routes.explorer.thumbnail_utils", "thumbnail_utils"),
+        ("src.app.app_routes.explorer.utils", "explorer_utils"),
+        ("src.app.app_routes.main.routes", "main_routes"),
+        ("src.app.app_routes.tasks.args_utils", "args_utils"),
+        ("src.app.app_routes.tasks.routes", "task_routes"),
+        ("src.app.app_routes.templates.routes", "templates_routes"),
+        ("src.app.db.db_class", "db_class"),
+        ("src.app.db.db_CoordinatorsDB", "db_CoordinatorsDB"),
+        ("src.app.db.db_CreateUpdate", "db_CreateUpdate"),
+        ("src.app.db.db_StageStore", "db_StageStore"),
+        ("src.app.db.db_TasksListDB", "db_TasksListDB"),
+        ("src.app.db.db_Templates", "db_Templates"),
+        ("src.app.db.svg_db", "svg_db"),
+        ("src.app.db.task_store_pymysql", "task_store_pymysql"),
+        ("src.app.routes_utils", "routes_utils"),
+        ("src.app.tasks.downloads.download", "download"),
+        ("src.app.tasks.fix_nested.fix_nested_tasks", "fix_nested_tasks"),
+        ("src.app.tasks.injects.inject_tasks", "inject_tasks"),
+        ("src.app.tasks.texts.start_bot", "start_bot"),
+        ("src.app.tasks.uploads.up", "up"),
+        ("src.app.tasks.uploads.upload_bot", "upload_bot"),
+        ("src.app.template_service", "template_service"),
+        ("src.app.threads.task_threads", "task_threads"),
+        ("src.app.threads.web_run_task", "web_run_task"),
+        ("src.app.users.admin_service", "admin_service"),
+        ("src.app.users.store", "user_store"),
+        ("src.app.app_routes.templates.category", "category"),
+        ("src.app.tasks.texts.text_bot", "text_bot"),
+        ("src.log", "log"),
+    ],
+)
 def test_module_logger_name(module_path, module_name):
     """Test that module uses 'svg_translate' as logger name."""
     import importlib
@@ -51,5 +54,6 @@ def test_module_logger_name(module_path, module_name):
 
     # Check if module has a logger
     if hasattr(module, "logger"):
-        assert module.logger.name == "svg_translate", \
-            f"{module_path} logger should use 'svg_translate', got '{module.logger.name}'"
+        assert (
+            module.logger.name == "svg_translate"
+        ), f"{module_path} logger should use 'svg_translate', got '{module.logger.name}'"

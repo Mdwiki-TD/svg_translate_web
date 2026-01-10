@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from src.app.jobs_workers import fix_nested_main_files_worker
@@ -16,16 +17,27 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     # Mock template_service
     mock_list_templates = MagicMock()
     mock_update_template = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.template_service.update_template", mock_update_template)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.template_service.update_template", mock_update_template
+    )
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name", mock_generate_result_file_name)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        mock_generate_result_file_name,
+    )
 
     # Mock get_wikitext
     mock_get_wikitext = MagicMock()
@@ -51,19 +63,30 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by fix_nested_main_files_for_templates."""
     # Mock template_service
     mock_list_templates = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
+    )
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name", mock_generate_result_file_name)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        mock_generate_result_file_name,
+    )
 
     # Mock repair_nested_svg_tags
     mock_process_fix_nested = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_process_fix_nested)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_process_fix_nested
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -83,7 +106,9 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
 
     # Should update status to running, then completed
     assert mock_fix_nested_services["update_job_status"].call_count == 2
-    mock_fix_nested_services["update_job_status"].assert_any_call(700, "running", "fix_nested_main_files_job_700.json", job_type="fix_nested_main_files")
+    mock_fix_nested_services["update_job_status"].assert_any_call(
+        700, "running", "fix_nested_main_files_job_700.json", job_type="fix_nested_main_files"
+    )
 
     # Should save result
     mock_fix_nested_services["save_job_result_by_name"].assert_called_once()

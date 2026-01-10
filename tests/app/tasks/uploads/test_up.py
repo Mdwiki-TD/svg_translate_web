@@ -5,6 +5,7 @@ Tests
 """
 
 from __future__ import annotations
+
 import pytest
 
 from src.app.tasks.uploads.up import start_upload, upload_task

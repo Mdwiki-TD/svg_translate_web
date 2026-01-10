@@ -84,19 +84,11 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.app.users.current.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admin_routes.templates.current_user", fake_current_user
-    )
+    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.templates.current_user", fake_current_user)
     monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.admin_service.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.current.active_coordinators", lambda: {admin_user.username}
-    )
+    monkeypatch.setattr("src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.users.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.users.current.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.app.users.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeTemplatesDB({})

@@ -11,7 +11,7 @@ from src.app.app_routes.cancel_restart import routes
 
 
 @pytest.fixture
-def app(monkeypatch: pytest.MonkeyPatch) :
+def app(monkeypatch: pytest.MonkeyPatch):
     app = Flask(__name__)
     app.secret_key = "secret"
 
@@ -25,6 +25,7 @@ def app(monkeypatch: pytest.MonkeyPatch) :
 
     # Mock current_user in the module where oauth_required is defined
     import src.app.users.current
+
     monkeypatch.setattr(src.app.users.current, "current_user", lambda: types.SimpleNamespace(username="user"))
 
     yield app
@@ -95,9 +96,11 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
         launched.append((task_id, user_payload["username"]))
 
     monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
-    monkeypatch.setattr(routes, "current_user", lambda: types.SimpleNamespace(
-        user_id=1, username="user", access_token="tok", access_secret="sec"
-    ))
+    monkeypatch.setattr(
+        routes,
+        "current_user",
+        lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
+    )
     monkeypatch.setattr(routes, "parse_args", fake_parse_args)
     monkeypatch.setattr(routes, "uuid", types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")))
     monkeypatch.setattr(routes, "launch_task_thread", fake_launch)
@@ -175,9 +178,11 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
             raise TaskAlreadyExistsError({"id": "existing_id"})
 
     monkeypatch.setattr(routes, "_task_store", lambda: DummyStore())
-    monkeypatch.setattr(routes, "current_user", lambda: types.SimpleNamespace(
-        user_id=1, username="user", access_token="tok", access_secret="sec"
-    ))
+    monkeypatch.setattr(
+        routes,
+        "current_user",
+        lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
+    )
     monkeypatch.setattr(routes, "parse_args", lambda f: types.SimpleNamespace())
 
     with app.test_request_context("/tasks/1/restart"):

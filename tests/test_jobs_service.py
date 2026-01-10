@@ -51,9 +51,7 @@ class FakeJobsDB:
             return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
-    def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, *, job_type: str
-    ) -> JobRecord:
+    def update_status(self, job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
         for record in self._records:
             if record.id == job_id and record.job_type == job_type:
                 record.status = status

@@ -5,3 +5,12 @@ target-version = ["py311"]
 [tool.isort]
 profile = "black"
 line_length = 120
+
+# Keep vertical formatting (multi-line import style)
+multi_line_output = 3
+use_parentheses = true
+force_grid_wrap = 0
+include_trailing_comma = true
+
+# OPTIONAL: You can add this to ensure isort does NOT collapse into one line
+ensure_newline_before_comments = true

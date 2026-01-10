@@ -5,6 +5,7 @@ Tests
 """
 
 from __future__ import annotations
+
 import pytest
 
 from src.app.tasks.texts.text_bot import get_wikitext

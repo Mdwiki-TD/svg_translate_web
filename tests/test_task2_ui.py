@@ -53,9 +53,7 @@ def test_task2_active_shows_cancel_button(app_factory):
         "id": "running-task",
         "title": "Demo",
         "status": "Running",
-        "stages": {
-            "Download": {"status": "Running", "number": 1}
-        },
+        "stages": {"Download": {"status": "Running", "number": 1}},
     }
     app = app_factory(task)
     with app.test_client() as client:
@@ -79,9 +77,7 @@ def test_task2_terminal_shows_restart_button(app_factory):
         "id": "complete-task",
         "title": "Demo",
         "status": "Completed",
-        "stages": {
-            "Download": {"status": "Completed", "number": 1}
-        },
+        "stages": {"Download": {"status": "Completed", "number": 1}},
     }
     app = app_factory(task)
     with app.test_client() as client:
@@ -105,9 +101,7 @@ def test_stage_cancelled_renders_warning_badge(app_factory):
         "id": "cancelled-task",
         "title": "Demo",
         "status": "Cancelled",
-        "stages": {
-            "Upload": {"status": "Cancelled", "number": 1}
-        },
+        "stages": {"Upload": {"status": "Cancelled", "number": 1}},
     }
     app = app_factory(task)
     with app.test_client() as client:

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any, List
 from unittest.mock import patch
-import json
 
 import pytest
 
@@ -59,9 +59,7 @@ class FakeJobsDB:
             return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
-    def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, *, job_type: str
-    ) -> JobRecord:
+    def update_status(self, job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
         """Update job status."""
         index = self._find_index(job_id, job_type)
         updated = replace(
@@ -93,19 +91,11 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.app.users.current.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admin_routes.jobs.current_user", fake_current_user
-    )
+    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.jobs.current_user", fake_current_user)
     monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.admin_service.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.current.active_coordinators", lambda: {admin_user.username}
-    )
+    monkeypatch.setattr("src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.users.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.users.current.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.app.users.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeJobsDB({})
@@ -263,7 +253,7 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
 
     # Should show 2 rows of jobs (not 3)
     # Count the number of "View" buttons which appear once per job row
-    assert page.count('btn btn-outline-primary btn-sm') == 2
+    assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
 def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client):
@@ -403,7 +393,7 @@ def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
 
     # Should show 2 rows of jobs (not 4)
     # Count the number of "View" buttons which appear once per job row
-    assert page.count('btn btn-outline-primary btn-sm') == 2
+    assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
 def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client):

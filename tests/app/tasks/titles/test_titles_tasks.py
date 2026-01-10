@@ -5,6 +5,7 @@ Tests
 """
 
 from __future__ import annotations
+
 import pytest
 
 from src.app.tasks.titles.titles_tasks import titles_task

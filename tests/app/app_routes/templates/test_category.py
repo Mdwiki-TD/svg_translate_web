@@ -36,10 +36,12 @@ def test_get_category_members_api_success(monkeypatch: pytest.MonkeyPatch) -> No
             self.calls.append((url, params, timeout))
             if "cmcontinue" in params:
                 return DummyResponse({"query": {"categorymembers": []}})
-            return DummyResponse({
-                "continue": {"cmcontinue": "next"},
-                "query": {"categorymembers": [{"title": "Page"}]},
-            })
+            return DummyResponse(
+                {
+                    "continue": {"cmcontinue": "next"},
+                    "query": {"categorymembers": [{"title": "Page"}]},
+                }
+            )
 
     monkeypatch.setattr(category.requests, "Session", DummySession)
 

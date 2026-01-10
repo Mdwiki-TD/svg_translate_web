@@ -8,9 +8,7 @@ from src.app.app_routes.explorer import compare
 
 
 def _write_svg(path: Path, system_languages: list[str]) -> None:
-    texts = "".join(
-        f"<text systemLanguage='{lang}'>Sample</text>" for lang in system_languages
-    )
+    texts = "".join(f"<text systemLanguage='{lang}'>Sample</text>" for lang in system_languages)
     path.write_text(
         f"""<svg xmlns='http://www.w3.org/2000/svg'>{texts}</svg>""",
         encoding="utf-8",

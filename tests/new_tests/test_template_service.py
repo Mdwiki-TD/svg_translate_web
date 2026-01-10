@@ -29,7 +29,9 @@ class FakeDatabase:
             "updated_at": row.get("updated_at"),
         }
 
-    def execute_query(self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None) -> int:
+    def execute_query(
+        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+    ) -> int:
         del timeout_override
         params = tuple(params or ())
         normalized = self._normalize(sql)
@@ -88,7 +90,9 @@ class FakeDatabase:
 
         raise NotImplementedError(sql)
 
-    def execute_query_safe(self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None) -> int:
+    def execute_query_safe(
+        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+    ) -> int:
         try:
             return self.execute_query(sql, params, timeout_override=timeout_override)
         except pymysql.MySQLError:

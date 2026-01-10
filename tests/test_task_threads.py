@@ -1,13 +1,14 @@
 """Unit tests for task thread orchestration."""
-import time
 import threading
+import time
+
 import pytest
 
-from src.app.threads.task_threads import (
-    launch_task_thread,
-    get_cancel_event,
-)
 from src.app.threads import web_run_task
+from src.app.threads.task_threads import (
+    get_cancel_event,
+    launch_task_thread,
+)
 
 
 @pytest.mark.skip(reason="Pending rewrite")
@@ -16,7 +17,9 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
     started = threading.Event()
     release = threading.Event()
 
-    def fake_run_task(_db_data, _task_id, _title, _args, _user_payload, *, _cancel_event=None):  # pylint: disable=too-many-arguments
+    def fake_run_task(
+        _db_data, _task_id, _title, _args, _user_payload, *, _cancel_event=None
+    ):  # pylint: disable=too-many-arguments
         # signal we started and wait briefly until released
         started.set()
         release.wait(timeout=0.2)
@@ -42,4 +45,5 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
 
 class SimpleNamespace:
     """Minimal args placeholder."""
+
     pass

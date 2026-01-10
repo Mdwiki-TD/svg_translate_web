@@ -5,6 +5,7 @@ Tests
 """
 
 from __future__ import annotations
+
 import pytest
 
 from src.app.tasks.texts.start_bot import text_task

@@ -7,9 +7,16 @@ def test_build_upload_site_uses_decrypted_tokens_and_consumer(monkeypatch):
     calls = []
 
     class DummySite:
-        def __init__(self, host, scheme="https", clients_useragent=None,  # pylint: disable=too-many-arguments
-                     consumer_token=None, consumer_secret=None,
-                     access_token=None, access_secret=None):
+        def __init__(
+            self,
+            host,
+            scheme="https",
+            clients_useragent=None,  # pylint: disable=too-many-arguments
+            consumer_token=None,
+            consumer_secret=None,
+            access_token=None,
+            access_secret=None,
+        ):
             calls.append(
                 {
                     "host": host,
