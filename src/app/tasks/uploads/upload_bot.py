@@ -14,6 +14,11 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
     error_details = ""
     if not site:
         return {"error": "No site provided"}
+    if file_name is None or file_path is None:
+        return {"error": "File name or file path is None"}
+
+    if file_name.lower().startswith("file:"):
+        file_name = file_name[5:]
 
     # Check if file exists
     page = site.Pages[f"File:{file_name}"]
