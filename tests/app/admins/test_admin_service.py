@@ -45,9 +45,12 @@ def test_get_admins_db_cached(mock_has_db_config, mock_coordinators_db):
 
 
 @patch('src.app.admins.admin_service.has_db_config')
-@pytest.mark.skip(reason="test fails")
 def test_get_admins_db_no_config(mock_has_db_config):
     """Test get_admins_db raises RuntimeError when no DB config."""
+    # Reset the global variable to ensure it's None
+    import src.app.admins.admin_service
+    src.app.admins.admin_service._ADMINS_STORE = None
+
     mock_has_db_config.return_value = False
 
     with pytest.raises(RuntimeError, match="Coordinator administration requires database configuration"):

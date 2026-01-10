@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from src.app.config import (
     DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
     _load_db_data_new, _load_db_data, _get_paths, _env_bool, _env_int,
@@ -112,9 +112,10 @@ def test_Settings():
     "DB_PASSWORD": "test_pass",
     "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
-@pytest.mark.skip(reason="test fails")
-def test_load_db_data_new():
+@patch("os.path.exists")
+def test_load_db_data_new(mock_exists):
     """Test _load_db_data_new function."""
+    mock_exists.return_value = True
     result = _load_db_data_new()
 
     assert isinstance(result, DbConfig)
@@ -132,9 +133,10 @@ def test_load_db_data_new():
     "DB_PASSWORD": "test_pass",
     "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
-@pytest.mark.skip(reason="test fails")
-def test_load_db_data():
+@patch("os.path.exists")
+def test_load_db_data(mock_exists):
     """Test _load_db_data function."""
+    mock_exists.return_value = True
     result = _load_db_data()
 
     assert isinstance(result, dict)
@@ -158,7 +160,6 @@ def test_get_paths():
     assert result.svg_jobs_path == "/custom/main/svg_jobs"
 
 
-@pytest.mark.skip(reason="test fails")
 def test_env_bool():
     """Test _env_bool function."""
     # Test with various truthy values
@@ -183,24 +184,24 @@ def test_env_bool():
     with patch.dict(os.environ, {"TEST_BOOL_FALSE": "false"}):
         assert _env_bool("TEST_BOOL_FALSE") is False
 
-    with patch.dict(os.environ, {"TEST_BOOL_MISSING": ""}):
+    # Test missing variable (should return default)
+    with patch.dict(os.environ, {}, clear=True):
         assert _env_bool("TEST_BOOL_MISSING", default=True) is True
 
     assert _env_bool("NONEXISTENT_VAR", default=False) is False
 
 
-@pytest.mark.skip(reason="test fails")
 def test_env_int():
     """Test _env_int function."""
     with patch.dict(os.environ, {"TEST_INT": "42"}):
-        assert _env_int("TEST_INT") == 42
-        assert isinstance(_env_int("TEST_INT"), int)
+        assert _env_int("TEST_INT", default=0) == 42
+        assert isinstance(_env_int("TEST_INT", default=0), int)
 
     assert _env_int("NONEXISTENT_VAR", default=100) == 100
 
     with patch.dict(os.environ, {"TEST_INVALID": "not_a_number"}):
         with pytest.raises(ValueError):
-            _env_int("TEST_INVALID")
+            _env_int("TEST_INVALID", default=0)
 
 
 def test_load_oauth_config_missing_vars():

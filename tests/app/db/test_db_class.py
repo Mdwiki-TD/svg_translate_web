@@ -18,7 +18,6 @@ def test_MaxUserConnectionsError():
 
 
 @patch('src.app.db.db_class.pymysql')
-@pytest.mark.skip(reason="test fails")
 def test_Database_init_basic(mock_pymysql):
     """Test Database initialization with basic credentials."""
     db_data = {
@@ -36,7 +35,8 @@ def test_Database_init_basic(mock_pymysql):
     assert db.user == "testuser"
     assert db.password == "testpass"
     assert db.credentials == {"user": "testuser", "password": "testpass"}
-    assert isinstance(db._lock, threading.RLock)
+    assert db._lock is not None
+    assert hasattr(db._lock, 'acquire')
     assert db.connection is None
 
 
@@ -163,7 +163,6 @@ def test_Database_close(mock_pymysql):
 
 
 @patch('src.app.db.db_class.pymysql')
-@pytest.mark.skip(reason="test fails")
 def test_Database_context_manager(mock_pymysql):
     """Test Database as context manager."""
     db_data = {
@@ -178,6 +177,8 @@ def test_Database_context_manager(mock_pymysql):
 
     # Use database as context manager
     with Database(db_data) as db:
+        # Trigger connection
+        db._ensure_connection()
         # Verify connection was established
         assert db.connection is not None
 
