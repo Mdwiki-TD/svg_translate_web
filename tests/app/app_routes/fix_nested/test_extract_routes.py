@@ -96,12 +96,7 @@ def test_extract_post_strips_file_prefix(
 
     # Mock extract to return sample data
     def mock_extract(*args, **kwargs):
-        return {
-            "new": {
-                "hello": {"ar": "مرحبا", "fr": "Bonjour"}
-            },
-            "title": {}
-        }
+        return {"new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}}, "title": {}}
 
     # Mock Path and tempfile
     mock_temp_dir = MagicMock()
@@ -216,12 +211,8 @@ def test_extract_post_successful_extraction(
 
     # Mock extract to return sample data
     sample_translations = {
-        "new": {
-            "hello": {"ar": "مرحبا", "fr": "Bonjour"}
-        },
-        "title": {
-            "music in": {"ar": "الموسيقى في عام", "fr": "La musique en"}
-        }
+        "new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}},
+        "title": {"music in": {"ar": "الموسيقى في عام", "fr": "La musique en"}},
     }
 
     def mock_extract(*args, **kwargs):
@@ -243,7 +234,7 @@ def test_extract_post_successful_extraction(
     assert ("Translations extracted successfully", "success") in flashed
     assert patch_render["context"]["translations"] == sample_translations
     assert "translations_json" in patch_render["context"]
-    
+
     # Verify JSON is properly formatted
     json_data = json.loads(patch_render["context"]["translations_json"])
     assert json_data == sample_translations
