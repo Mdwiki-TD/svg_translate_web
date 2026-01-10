@@ -14,10 +14,12 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from .... import jobs_service, jobs_worker
+from ....jobs_workers import jobs_service
+
+from ....jobs_workers import jobs_worker
+from ....admins.admins_required import admin_required
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
-from ....admins.admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")
 

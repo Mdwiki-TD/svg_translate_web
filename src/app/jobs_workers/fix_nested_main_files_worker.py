@@ -11,7 +11,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .. import jobs_service, template_service
+from . import jobs_service
+
+from .. import template_service
 from ..app_routes.fix_nested.fix_utils import (
     detect_nested_tags,
     download_svg_file,

@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.app import jobs_service
-from src.app.jobs_service import JobRecord
+from src.app.jobs_workers import jobs_service
+from src.app.jobs_workers.jobs_service import JobRecord
 
 
 class FakeJobsDB:

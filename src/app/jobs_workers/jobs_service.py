@@ -6,13 +6,12 @@ import functools
 import json
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .config import settings
-from .db import has_db_config
-from .db.db_Jobs import JobRecord, JobsDB
+from ..config import settings
+from ..db import has_db_config
+from ..db.db_Jobs import JobRecord, JobsDB
 
 logger = logging.getLogger("svg_translate")
 

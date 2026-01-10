@@ -9,13 +9,13 @@ from flask import (
     render_template,
 )
 
+from ....admins.admins_required import admin_required
 from ...tasks.routes import (
     TASKS_LOCK,
     _task_store,
     format_task,
     format_task_message,
 )
-from ....admins.admins_required import admin_required
 
 
 def _recent_routes():
