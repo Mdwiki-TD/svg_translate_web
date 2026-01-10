@@ -1,6 +1,7 @@
 """Admin-only routes for managing coordinator access."""
 
 from __future__ import annotations
+
 from flask import (
     Blueprint,
     redirect,
@@ -8,11 +9,11 @@ from flask import (
     url_for,
 )
 
-from .admins_required import admin_required
 from .admin_routes.coordinators import Coordinators
+from .admin_routes.jobs import Jobs
 from .admin_routes.recent import Recent
 from .admin_routes.templates import Templates
-from .admin_routes.jobs import Jobs
+from .admins_required import admin_required
 from .sidebar import create_side
 
 bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
