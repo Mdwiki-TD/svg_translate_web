@@ -1,4 +1,7 @@
-"""WSGI entry point for SVG Translate."""
+"""
+# isort:skip_file
+WSGI entry point for SVG Translate.
+"""
 
 from __future__ import annotations
 
