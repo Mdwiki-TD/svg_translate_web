@@ -85,7 +85,7 @@ def start_job(user: Any | None, job_type: str) -> int:
     return job.id
 
 
-def start_collect_main_files_job(user: Any | None=None) -> int:
+def start_collect_main_files_job(user: Any | None = None) -> int:
     """
     Start a background job to collect main files for templates.
     Returns the job ID.

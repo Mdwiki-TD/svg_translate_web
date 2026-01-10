@@ -69,10 +69,7 @@ def create_app() -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)
 
-    if settings.use_mw_oauth and (
-        settings.db_data.get("host")
-        or settings.db_data.get("db_connect_file")
-    ):
+    if settings.use_mw_oauth and (settings.db_data.get("host") or settings.db_data.get("db_connect_file")):
         ensure_user_token_table()
 
     app.register_blueprint(bp_main)

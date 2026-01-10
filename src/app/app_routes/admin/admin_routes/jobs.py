@@ -68,9 +68,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(
-        url_for(f"admin.{job_type}_jobs_list")
-    )
+    return redirect(url_for(f"admin.{job_type}_jobs_list"))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -87,9 +85,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
 
-    return redirect(
-        url_for(f"admin.{job_type}_jobs_list")
-    )
+    return redirect(url_for(f"admin.{job_type}_jobs_list"))
 
 
 def _fix_nested_main_files_jobs_list():
@@ -176,7 +172,6 @@ class Jobs:
     """Collect Main Files Jobs management routes."""
 
     def __init__(self, bp_admin: Blueprint) -> None:
-
         # ================================
         # Collect Main Files Jobs routes
         # ================================

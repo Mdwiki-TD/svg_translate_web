@@ -38,11 +38,7 @@ def index():
 
 @bp_main.get("/favicon.ico")
 def favicon():
-    return send_from_directory(
-        "static", "favicon.ico", mimetype="image/x-icon"
-    )
+    return send_from_directory("static", "favicon.ico", mimetype="image/x-icon")
 
 
-__all__ = [
-    "bp_main"
-]
+__all__ = ["bp_main"]

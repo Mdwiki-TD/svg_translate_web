@@ -90,7 +90,8 @@ def ensure_user_token_table() -> None:
             last_used_at DATETIME DEFAULT NULL,
             rotated_at DATETIME DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    """)
+    """
+    )
 
     # Ensure username index exists
     existing_idx = db.fetch_query_safe(

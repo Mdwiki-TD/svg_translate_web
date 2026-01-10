@@ -2,6 +2,7 @@ import json
 import html
 from urllib.parse import quote
 import logging
+
 logger = logging.getLogger("svg_translate")
 
 
@@ -63,7 +64,9 @@ def save_files_stats(data, output_dir):
     logger.debug(f"files_stats at: {files_stats_path}")
 
 
-def make_results_summary(len_files, files_to_upload_count, no_file_path, injects_result, translations, main_title, upload_result):
+def make_results_summary(
+    len_files, files_to_upload_count, no_file_path, injects_result, translations, main_title, upload_result
+):
     """Compile the final task result payload consumed by the UI and API.
 
     Parameters:
@@ -84,9 +87,9 @@ def make_results_summary(len_files, files_to_upload_count, no_file_path, injects
         "files_to_upload_count": files_to_upload_count,
         "no_file_path": no_file_path,
         "injects_result": {
-            "nested_files": injects_result.get('nested_files', 0),
-            "success": injects_result.get('success', 0),
-            "failed": injects_result.get('failed', 0),
+            "nested_files": injects_result.get("nested_files", 0),
+            "success": injects_result.get("success", 0),
+            "failed": injects_result.get("failed", 0),
         },
         "new_translations_count": len(translations.get("new", {})),
         "upload_result": upload_result,

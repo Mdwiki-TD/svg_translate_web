@@ -88,11 +88,7 @@ def by_title(title: str):
 
 @bp_explorer.get("/")
 def main():
-    titles = [
-        x.name
-        for x in svg_data_path.iterdir()
-        if x.is_dir()
-    ]
+    titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
     data = {}
     for title in titles:
         downloaded, _ = get_files(title, "files")
@@ -102,13 +98,10 @@ def main():
             "translated": len(translated),
             "not_translated": len(set(downloaded).difference(translated)),
         }
-    return render_template(
-        "explorer/index.html",
-        data=data
-    )
+    return render_template("explorer/index.html", data=data)
 
 
-@bp_explorer.route('/media/<title_dir>/<subdir>/<path:filename>')
+@bp_explorer.route("/media/<title_dir>/<subdir>/<path:filename>")
 def serve_media(title_dir: str, subdir: str, filename: str):
     """Serve SVG files"""
     dir_path = svg_data_path / title_dir / subdir
@@ -118,7 +111,7 @@ def serve_media(title_dir: str, subdir: str, filename: str):
     return send_from_directory(dir_path, filename)
 
 
-@bp_explorer.route('/media_thumb/<title_dir>/<subdir>/<path:filename>')
+@bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<path:filename>")
 def serve_thumb(title_dir: str, subdir: str, filename: str):
     # ---
     dir_path = svg_data_path / title_dir / subdir
@@ -136,7 +129,7 @@ def serve_thumb(title_dir: str, subdir: str, filename: str):
     return send_from_directory(str(dir_path.absolute()), filename)
 
 
-@bp_explorer.route('/compare/<title_dir>/<path:filename>')
+@bp_explorer.route("/compare/<title_dir>/<path:filename>")
 def compare(title_dir: str, filename: str):
     """Compare SVG files"""
     # ---
@@ -155,6 +148,4 @@ def compare(title_dir: str, filename: str):
     )
 
 
-__all__ = [
-    "bp_explorer"
-]
+__all__ = ["bp_explorer"]

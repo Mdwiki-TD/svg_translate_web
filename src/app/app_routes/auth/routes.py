@@ -33,6 +33,7 @@ from ...users.store import delete_user_token, upsert_user_token
 from ...users.current import CurrentUser
 
 from .rate_limit import callback_rate_limiter, login_rate_limiter
+
 logger = logging.getLogger("svg_translate")
 bp_auth = Blueprint("auth", __name__)
 
@@ -172,12 +173,7 @@ def callback() -> Response:
 
     # ------------------
     # user info
-    user_identifier = (
-        identity.get("sub")
-        or identity.get("id")
-        or identity.get("central_id")
-        or identity.get("user_id")
-    )
+    user_identifier = identity.get("sub") or identity.get("id") or identity.get("central_id") or identity.get("user_id")
     if not user_identifier:
         flash("Missing user id", "danger")
         return redirect(url_for("main.index", error="Missing id"))
@@ -208,9 +204,7 @@ def callback() -> Response:
 
     # ------------------
     # set cookies
-    response = make_response(
-        redirect(session.pop("post_login_redirect", url_for("main.index")))
-    )
+    response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
     response.set_cookie(
         settings.cookie.name,
         sign_user_id(user_id),

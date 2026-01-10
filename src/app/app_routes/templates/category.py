@@ -1,4 +1,3 @@
-
 import requests
 import logging
 import urllib.parse
@@ -22,17 +21,9 @@ def get_category_members_api(category, project, limit=500):
 
     api_url = f"https://{project}/w/api.php"
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": settings.oauth.user_agent
-    })
+    session.headers.update({"User-Agent": settings.oauth.user_agent})
 
-    params = {
-        "action": "query",
-        "list": "categorymembers",
-        "cmtitle": category,
-        "cmlimit": limit,
-        "format": "json"
-    }
+    params = {"action": "query", "list": "categorymembers", "cmtitle": category, "cmlimit": limit, "format": "json"}
 
     pages = []
     try:
@@ -73,7 +64,7 @@ def get_category_members_petscan(category, project, limit=500):
         "format": "plain",
         "depth": 0,
         "ns[10]": 1,
-        "doit": "Do it!"
+        "doit": "Do it!",
     }
     url = f"{base_url}?{urllib.parse.urlencode(params)}"
 

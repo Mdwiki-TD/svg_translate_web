@@ -1,5 +1,3 @@
-
-
 from .extract_task import translations_task
 
 __all__ = [

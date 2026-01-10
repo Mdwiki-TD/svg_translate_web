@@ -40,7 +40,7 @@ class TaskAlreadyExistsError(Exception):
 class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
-    def __init__(self, db : Database | None = None) -> None:
+    def __init__(self, db: Database | None = None) -> None:
         self.db = db
 
     def delete_task(self, task_id: str) -> None:
@@ -120,7 +120,7 @@ class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
                 existing_task_row = task_rows[0]
                 existing_task = self._row_to_task(
                     existing_task_row,
-                    stages=stage_map.get(existing_task_row["id"], {})  # or self.fetch_stages(existing_task_row["id"])
+                    stages=stage_map.get(existing_task_row["id"], {}),  # or self.fetch_stages(existing_task_row["id"])
                 )
                 raise TaskAlreadyExistsError(existing_task)
         try:
@@ -190,8 +190,7 @@ class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
 
         task_row = task_rows[0]
         return self._row_to_task(
-            task_row,
-            stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
+            task_row, stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
         )
 
     def get_active_task_by_title(self, title: str) -> Optional[Dict[str, Any]]:
@@ -237,8 +236,7 @@ class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
 
         task_row = task_rows[0]
         return self._row_to_task(
-            task_row,
-            stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
+            task_row, stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
         )
 
     def update_task(
@@ -250,7 +248,7 @@ class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
         form: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         results: Optional[Dict[str, Any]] = None,
-        main_file: str | None = None
+        main_file: str | None = None,
     ) -> None:
         # Prepare JSON and normalized title only when provided
         """

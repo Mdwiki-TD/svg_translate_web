@@ -7,7 +7,7 @@ from logging.handlers import WatchedFileHandler
 # from app.config import settings
 # Create log directory if needed
 # log_dir_path = settings.paths.log_dir
-main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser('~'), 'data'))
+main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
 
 log_dir_path = f"{main_dir}/logs"
 
@@ -43,14 +43,14 @@ logger.addHandler(error_handler)
 
 def config_console_logger(level=None):
     _nameToLevel = [
-        'CRITICAL',
-        'FATAL',
-        'ERROR',
-        'WARN',
-        'WARNING',
-        'INFO',
-        'DEBUG',
-        'NOTSET',
+        "CRITICAL",
+        "FATAL",
+        "ERROR",
+        "WARN",
+        "WARNING",
+        "INFO",
+        "DEBUG",
+        "NOTSET",
     ]
     level = level or logging.INFO
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict
+
 # from .utils import DbUtils
 from .db_class import Database
 
@@ -11,7 +12,7 @@ logger = logging.getLogger("svg_translate")
 class StageStore:  # (DbUtils)
     """Utility mixin providing CRUD helpers for task stage persistence."""
 
-    def __init__(self, db : Database | None = None) -> None:
+    def __init__(self, db: Database | None = None) -> None:
         self.db = db
 
     def update_stage(self, task_id: str, stage_name: str, stage_data: Dict[str, Any]) -> None:
@@ -82,11 +83,7 @@ class StageStore:  # (DbUtils)
 
         now = self._current_ts()
         try:
-            sql = (
-                "UPDATE task_stages "
-                f"SET {column_name} = %s, updated_at = %s "
-                "WHERE stage_id = %s"
-            )
+            sql = "UPDATE task_stages " f"SET {column_name} = %s, updated_at = %s " "WHERE stage_id = %s"
             self.db.execute_query(
                 sql,
                 [column_value, now, f"{task_id}:{stage_name}"],

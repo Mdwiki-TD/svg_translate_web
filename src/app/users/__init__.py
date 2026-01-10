@@ -1,5 +1,3 @@
-
-
 from .current import CurrentUser
 from .store import UserTokenRecord
 

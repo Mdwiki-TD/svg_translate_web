@@ -1,4 +1,3 @@
-
 import logging
 from typing import Any
 from CopySVGTranslation import start_injects  # type: ignore
@@ -6,13 +5,7 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger("svg_translate")
 
 
-def inject_task(
-    stages: dict,
-    files: list[str],
-    translations,
-    output_dir=None,
-    overwrite=False
-) -> tuple[dict, dict]:
+def inject_task(stages: dict, files: list[str], translations, output_dir=None, overwrite=False) -> tuple[dict, dict]:
     # ---
     """
     Perform translation injection on a list of files and write translated outputs under output_dir/translated.
@@ -30,12 +23,12 @@ def inject_task(
     # ---
     injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
     # ---
-    success = injects_result.get('success') or injects_result.get('saved_done', 0)
-    failed = injects_result.get('failed') or injects_result.get('no_save', 0)
+    success = injects_result.get("success") or injects_result.get("saved_done", 0)
+    failed = injects_result.get("failed") or injects_result.get("no_save", 0)
     # ---
     # expose normalized keys for downstream consumers
-    injects_result.setdefault('success', success)
-    injects_result.setdefault('failed', failed)
+    injects_result.setdefault("success", success)
+    injects_result.setdefault("failed", failed)
     # ---
     stages["message"] = (
         f"Files: ({len(files):,}): "

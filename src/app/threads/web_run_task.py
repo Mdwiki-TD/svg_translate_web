@@ -1,4 +1,3 @@
-
 import re
 import logging
 import threading
@@ -40,7 +39,7 @@ def _compute_output_dir(title: str) -> Path:
     logger.debug(f"compute_output_dir: {name=}")
     # ---
     # name = death rate from obesity
-    slug = re.sub(r'[^A-Za-z0-9._\- ]+', "_", str(name)).strip("._") or "untitled"
+    slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
     slug = slug.replace(" ", "_").lower()
     # ---
     out = Path(settings.paths.svg_data) / slug
@@ -70,54 +69,14 @@ def make_stages():
           - 'message' (str): human-readable status message.
     """
     return {
-        "initialize": {
-            "number": 1,
-            "sub_name": "",
-            "status": "Running",
-            "message": "Starting workflow"
-        },
-        "text": {
-            "sub_name": "",
-            "number": 2,
-            "status": "Pending",
-            "message": "Getting text"
-        },
-        "titles": {
-            "sub_name": "",
-            "number": 3,
-            "status": "Pending",
-            "message": "Getting titles"
-        },
-        "translations": {
-            "sub_name": "",
-            "number": 4,
-            "status": "Pending",
-            "message": "Getting translations"
-        },
-        "download": {
-            "sub_name": "",
-            "number": 5,
-            "status": "Pending",
-            "message": "Downloading files"
-        },
-        "nested": {
-            "sub_name": "",
-            "number": 6,
-            "status": "Pending",
-            "message": "Analyze nested files"
-        },
-        "inject": {
-            "sub_name": "",
-            "number": 7,
-            "status": "Pending",
-            "message": "Injecting translations"
-        },
-        "upload": {
-            "sub_name": "",
-            "number": 8,
-            "status": "Pending",
-            "message": "Uploading files"
-        },
+        "initialize": {"number": 1, "sub_name": "", "status": "Running", "message": "Starting workflow"},
+        "text": {"sub_name": "", "number": 2, "status": "Pending", "message": "Getting text"},
+        "titles": {"sub_name": "", "number": 3, "status": "Pending", "message": "Getting titles"},
+        "translations": {"sub_name": "", "number": 4, "status": "Pending", "message": "Getting translations"},
+        "download": {"sub_name": "", "number": 5, "status": "Pending", "message": "Downloading files"},
+        "nested": {"sub_name": "", "number": 6, "status": "Pending", "message": "Analyze nested files"},
+        "inject": {"sub_name": "", "number": 7, "status": "Pending", "message": "Injecting translations"},
+        "upload": {"sub_name": "", "number": 8, "status": "Pending", "message": "Uploading files"},
     }
 
 
@@ -243,7 +202,9 @@ def run_task(
         output_dir_main = output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
 
-        translations, stages_list["translations"] = translations_task(stages_list["translations"], main_title, output_dir_main)
+        translations, stages_list["translations"] = translations_task(
+            stages_list["translations"], main_title, output_dir_main
+        )
         push_stage("translations")
         if check_cancel("translations"):
             return
@@ -259,7 +220,7 @@ def run_task(
             output_dir_main=output_dir_main,
             titles=titles,
             store=store,
-            check_cancel=check_cancel
+            check_cancel=check_cancel,
         )
         if not_done_list:
             task_snapshot["not_done_list"] = not_done_list
@@ -285,11 +246,7 @@ def run_task(
         # ----------------------------------------------
         # Stage 6: inject translations
         injects_result, stages_list["inject"] = inject_task(
-            stages_list["inject"],
-            files,
-            translations,
-            output_dir=output_dir,
-            overwrite=args.overwrite
+            stages_list["inject"], files, translations, output_dir=output_dir, overwrite=args.overwrite
         )
         push_stage("inject")
         if check_cancel("inject"):
@@ -317,7 +274,7 @@ def run_task(
             user=user_data,
             store=store,
             task_id=task_id,
-            check_cancel=check_cancel
+            check_cancel=check_cancel,
         )
 
         push_stage("upload")
@@ -338,13 +295,7 @@ def run_task(
         save_files_stats(data, output_dir)
 
         results = make_results_summary(
-            len(files),
-            len(files_to_upload),
-            no_file_path,
-            injects_result,
-            translations,
-            main_title,
-            upload_result
+            len(files), len(files_to_upload), no_file_path, injects_result, translations, main_title, upload_result
         )
 
         store.update_results(task_id, results)

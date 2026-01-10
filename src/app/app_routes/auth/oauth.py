@@ -25,10 +25,7 @@ def get_handshaker():
     if not settings.oauth:
         raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
-    consumer_token = mwoauth.ConsumerToken(
-        settings.oauth.consumer_key,
-        settings.oauth.consumer_secret
-    )
+    consumer_token = mwoauth.ConsumerToken(settings.oauth.consumer_key, settings.oauth.consumer_secret)
     return mwoauth.Handshaker(
         settings.oauth.mw_uri,
         consumer_token=consumer_token,
@@ -53,7 +50,5 @@ def complete_login(request_token, query_string: str):
     try:
         identity = handshaker.identify(access_token)
     except Exception as exc:
-        raise OAuthIdentityError(
-            IDENTITY_ERROR_MESSAGE, original_exception=exc
-        ) from exc
+        raise OAuthIdentityError(IDENTITY_ERROR_MESSAGE, original_exception=exc) from exc
     return access_token, identity

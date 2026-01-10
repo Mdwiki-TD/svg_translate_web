@@ -9,9 +9,7 @@ from ...config import settings
 
 _serializer = URLSafeTimedSerializer(settings.secret_key, salt="svg-translate-uid")
 
-_state_serializer = URLSafeTimedSerializer(
-    settings.secret_key, salt="svg-translate-oauth-state"
-)
+_state_serializer = URLSafeTimedSerializer(settings.secret_key, salt="svg-translate-oauth-state")
 
 
 def sign_user_id(user_id: int) -> str:

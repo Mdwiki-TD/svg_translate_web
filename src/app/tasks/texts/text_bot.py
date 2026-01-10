@@ -1,4 +1,3 @@
-
 import requests
 import logging
 
@@ -18,9 +17,7 @@ def get_wikitext(title, project="commons.wikimedia.org"):
     """
     api_url = f"https://{project}/w/api.php"
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": settings.oauth.user_agent
-    })
+    session.headers.update({"User-Agent": settings.oauth.user_agent})
     # https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Yemen&rvprop=content&formatversion=2&rvslots=main&format=json
     params = {
         "action": "query",

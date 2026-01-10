@@ -11,12 +11,10 @@ logger = logging.getLogger("svg_translate")
 
 
 class TasksListDB:  # (StageStore, DbUtils)
-
-    def __init__(self, db : Database | None = None) -> None:
+    def __init__(self, db: Database | None = None) -> None:
         self.db = db
 
     def create_base_sql(self, order_column, statuses, status, username, direction, limit, offset):
-
         query_parts = ["SELECT * FROM tasks"]
         where_clauses = []
         params: List[Any] = []
@@ -112,8 +110,7 @@ class TasksListDB:  # (StageStore, DbUtils)
 
         tasks: List[Dict[str, Any]] = [
             self._row_to_task(
-                task_row,
-                stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
+                task_row, stages=stage_map.get(task_row["id"], {})  # or self.fetch_stages(task_row["id"])
             )
             for task_row in task_rows
         ]

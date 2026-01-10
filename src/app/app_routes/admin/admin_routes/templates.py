@@ -110,7 +110,6 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 
 class Templates:
     def __init__(self, bp_admin: Blueprint):
-
         @bp_admin.get("/templates")
         @admin_required
         def templates_dashboard():

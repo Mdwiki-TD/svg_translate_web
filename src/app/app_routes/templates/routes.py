@@ -36,7 +36,7 @@ def temp_data(temp: str) -> dict:
     }
     # ---
     title_dir = Path(temp).name
-    title_dir = re.sub(r'[^A-Za-z0-9._\- ]+', "_", str(title_dir)).strip("._") or "untitled"
+    title_dir = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(title_dir)).strip("._") or "untitled"
     title_dir = title_dir.replace(" ", "_").lower()
     # ---
     out = Path(settings.paths.svg_data) / title_dir
@@ -87,27 +87,17 @@ def main():
     templates = get_category_members("Category:Pages using gadget owidslider")
 
     templates = [
-        x for x in templates
-        if x.startswith("Template:")
-        and x.lower() not in ["template:owidslider", "template:owid"]
+        x for x in templates if x.startswith("Template:") and x.lower() not in ["template:owidslider", "template:owid"]
     ]
 
-    data = {
-        temp : temp_data(temp)
-        for temp in templates
-    }
+    data = {temp: temp_data(temp) for temp in templates}
 
     data = temps_main_files(data)
 
     # sort data by if they have main_file
     data = dict(sorted(data.items(), key=lambda x: x[1].get("main_file", ""), reverse=True))
 
-    return render_template(
-        "templates/index.html",
-        data=data
-    )
+    return render_template("templates/index.html", data=data)
 
 
-__all__ = [
-    "bp_templates"
-]
+__all__ = ["bp_templates"]

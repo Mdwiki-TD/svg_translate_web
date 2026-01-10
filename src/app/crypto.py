@@ -20,9 +20,7 @@ def _require_fernet() -> Fernet:
         return _fernet
 
     if not settings.oauth_encryption_key:
-        raise RuntimeError(
-            "OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers"
-        )
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
     key_bytes = (
         settings.oauth_encryption_key.encode()

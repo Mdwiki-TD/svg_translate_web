@@ -23,11 +23,7 @@ from ...routes_utils import load_auth_payload
 from ...users.current import current_user
 from ...tasks.uploads import get_user_site, upload_file
 
-bp_fix_nested_explorer = Blueprint(
-    "fix_nested_explorer",
-    __name__,
-    url_prefix="/fix_nested"
-)
+bp_fix_nested_explorer = Blueprint("fix_nested_explorer", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger("svg_translate")
 
 
@@ -47,12 +43,7 @@ def list_tasks():
     tasks = []
     with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
-        tasks = db_store.list_tasks(
-            status=status,
-            username=username,
-            limit=per_page,
-            offset=offset
-        )
+        tasks = db_store.list_tasks(status=status, username=username, limit=per_page, offset=offset)
 
     return render_template(
         "fix_nested/tasks_list.html",
@@ -61,7 +52,7 @@ def list_tasks():
         status=status,
         username=username,
         page=page,
-        per_page=per_page
+        per_page=per_page,
     )
 
 
@@ -96,6 +87,7 @@ def task_detail(task_id: str):
     if metadata_file.exists():
         try:
             import json
+
             with open(metadata_file, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
         except Exception as e:
@@ -153,6 +145,7 @@ def view_log(task_id: str):
             log_content = f.read()
 
         from flask import Response
+
         return Response(log_content, mimetype="text/plain")
     except Exception as e:
         logger.error(f"Failed to read log file: {e}")
@@ -188,6 +181,7 @@ def compare(task_id: str):
 
     # Add nested tag counts
     from CopySVGTranslation import match_nested_tags  # type: ignore
+
     original_result["nested_tags_count"] = len(match_nested_tags(str(original_file)))
     fixed_result["nested_tags_count"] = len(match_nested_tags(str(fixed_file)))
 
@@ -201,7 +195,7 @@ def compare(task_id: str):
         task_id=task_id,
         filename=task.get("filename", ""),
         original_result=original_result,
-        fixed_result=fixed_result
+        fixed_result=fixed_result,
     )
 
 

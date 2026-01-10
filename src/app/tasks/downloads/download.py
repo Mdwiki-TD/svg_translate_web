@@ -16,11 +16,7 @@ logger = logging.getLogger("svg_translate")
 
 
 def download_one_file(
-    title: str,
-    out_dir: Path,
-    i: int,
-    session: requests.Session = None,
-    overwrite: bool = False
+    title: str, out_dir: Path, i: int, session: requests.Session = None, overwrite: bool = False
 ) -> Dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 
@@ -39,7 +35,7 @@ def download_one_file(
     base = "https://ar.wikipedia.org/wiki/Special:FilePath/"
 
     data = {
-        "result" : "",
+        "result": "",
         "path": "",
     }
 
@@ -57,9 +53,11 @@ def download_one_file(
 
     if not session:
         session = requests.Session()
-        session.headers.update({
-            "User-Agent": settings.oauth.user_agent,
-        })
+        session.headers.update(
+            {
+                "User-Agent": settings.oauth.user_agent,
+            }
+        )
     try:
         response = session.get(url, timeout=30, allow_redirects=True)
     except requests.RequestException as exc:
@@ -111,9 +109,11 @@ def download_task(
 
     session = requests.Session()
 
-    session.headers.update({
-        "User-Agent": settings.oauth.user_agent,
-    })
+    session.headers.update(
+        {
+            "User-Agent": settings.oauth.user_agent,
+        }
+    )
 
     def message_updater(value: str) -> None:
         store.update_stage_column(task_id, "download", "stage_message", value)

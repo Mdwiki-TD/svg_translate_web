@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 import logging
 import tempfile
@@ -12,8 +10,10 @@ from ...tasks.downloads import download_one_file
 from ...tasks.uploads import upload_file, get_user_site
 from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
+
 # from ...db.db_class import Database
 from werkzeug.utils import secure_filename
+
 logger = logging.getLogger("svg_translate")
 
 
@@ -138,7 +138,7 @@ def process_fix_nested(
     user,
     task_id: Optional[str] = None,
     username: Optional[str] = None,
-    db_store: Optional[FixNestedTaskStore] = None
+    db_store: Optional[FixNestedTaskStore] = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 

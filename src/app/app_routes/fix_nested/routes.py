@@ -27,6 +27,7 @@ def _get_commons_file_url(filename: str) -> str:
     """Generate Wikimedia Commons URL for a file."""
     # URL encode the filename for the URL
     from urllib.parse import quote
+
     encoded_name = quote(filename.replace(" ", "_"))
     return f"https://commons.wikimedia.org/wiki/File:{encoded_name}"
 
@@ -59,7 +60,6 @@ def fix_nested():
 @bp_fix_nested.route("/", methods=["POST"])
 @oauth_required_with_filename_preservation
 def fix_nested_post():
-
     # POST logic
     filename = request.form.get("filename", "").strip()
 
@@ -89,13 +89,7 @@ def fix_nested_post():
 
     with Database(settings.db_data) as db:
         db_store = FixNestedTaskStore(db)
-        result = process_fix_nested(
-            filename,
-            auth_payload,
-            task_id=task_id,
-            username=username,
-            db_store=db_store
-        )
+        result = process_fix_nested(filename, auth_payload, task_id=task_id, username=username, db_store=db_store)
 
     commons_link = None
 
@@ -117,11 +111,7 @@ def fix_nested_post():
         return render_template("fix_nested/form.html", filename=original_filename)
 
     # Preserve filename in input field regardless of result
-    return render_template(
-        "fix_nested/form.html",
-        filename=original_filename,
-        commons_link=commons_link
-    )
+    return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
 
 
 @bp_fix_nested.route("/upload", methods=["POST", "GET"])
@@ -178,7 +168,5 @@ def fix_nested_by_upload_file():
 
     download_link = f"data:image/svg+xml;base64,{b64_content}"
     return render_template(
-        "fix_nested/upload_form.html",
-        filename=f"fixed_{original_filename}",
-        download_link=download_link
+        "fix_nested/upload_form.html", filename=f"fixed_{original_filename}", download_link=download_link
     )

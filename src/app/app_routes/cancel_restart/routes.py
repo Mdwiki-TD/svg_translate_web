@@ -162,6 +162,4 @@ def restart(task_id: str):
     return redirect(url_for("tasks.task", task_id=new_task_id))
 
 
-__all__ = [
-    "bp_tasks_managers"
-]
+__all__ = ["bp_tasks_managers"]

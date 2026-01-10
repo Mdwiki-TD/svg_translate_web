@@ -1,4 +1,3 @@
-
 from .auth.routes import bp_auth
 from .main.routes import bp_main
 from .explorer.routes import bp_explorer

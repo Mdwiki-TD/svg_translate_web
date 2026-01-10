@@ -99,7 +99,6 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 
 class Coordinators:
     def __init__(self, bp_admin: Blueprint):
-
         @bp_admin.get("/coordinators")
         @admin_required
         def coordinators_dashboard():

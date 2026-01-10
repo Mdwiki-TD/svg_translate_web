@@ -36,9 +36,9 @@ logger = logging.getLogger("svg_translate")
 
 def format_task_message(formatted):
     for v in formatted:
-        if v.get('stages'):
-            for s in v['stages']:
-                v['stages'][s]['message'] = '<br>'.join(v['stages'][s]['message'].split(','))
+        if v.get("stages"):
+            for s in v["stages"]:
+                v["stages"][s]["message"] = "<br>".join(v["stages"][s]["message"].split(","))
     return formatted
 
 
@@ -90,7 +90,6 @@ def task(task_id: str | None = None):
 
 @bp_tasks.get("/task2/<task_id>")
 def task2(task_id: str | None = None):
-
     if not task_id:
         flash("No task id provided", "warning")
         return redirect(url_for("main.index"))
@@ -142,16 +141,11 @@ def start():
             if existing_task:
                 logger.debug(f"Task for title '{title}' already exists: {existing_task['id']}.")
                 flash(f"Task for title '{title}' already exists: {existing_task['id']}.", "warning")
-                return redirect(
-                    url_for("tasks.task", task_id=existing_task["id"], title=title)
-                )
+                return redirect(url_for("tasks.task", task_id=existing_task["id"], title=title))
 
         try:
             store.create_task(
-                task_id,
-                title,
-                username=(user.username if user else ""),
-                form=request.form.to_dict(flat=True)
+                task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True)
             )
         except TaskAlreadyExistsError as exc:
             existing = exc.task
@@ -219,11 +213,7 @@ def tasks(user: str | None = None):
     formatted = [format_task(task) for task in db_tasks]
     formatted = format_task_message(formatted)
 
-    available_statuses = sorted(
-        {
-            task.get("status", "") for task in db_tasks if task.get("status")
-        }
-    )
+    available_statuses = sorted({task.get("status", "") for task in db_tasks if task.get("status")})
 
     # Determine if viewing own tasks or another user's tasks
     is_own_tasks = current_user_obj and user == current_user_obj.username

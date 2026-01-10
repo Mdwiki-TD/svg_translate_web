@@ -45,7 +45,6 @@ def _recent_routes():
 
 class Recent:
     def __init__(self, bp_admin: Blueprint):
-
         @bp_admin.get("/recent")
         @admin_required
         def recent_routes():

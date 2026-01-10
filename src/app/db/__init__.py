@@ -1,5 +1,3 @@
-
-
 from .db_class import Database
 from .svg_db import get_db, close_cached_db, has_db_config, fetch_query_safe
 from .db_CreateUpdate import TaskAlreadyExistsError, CreateUpdateTask

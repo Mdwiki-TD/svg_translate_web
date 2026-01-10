@@ -1,5 +1,3 @@
-
-
 def generate_list_item(href, title, icon=None, target=None):
     """Generate HTML for a single navigation link."""
     icon_tag = f"<i class='bi {icon} me-1'></i>" if icon else ""
@@ -27,29 +25,24 @@ def create_side(ty):
 
     main_menu = {
         "Tasks": [
-            {
-                "id": "last", "admin": 0, "href": "recent",
-                "title": "Recent", "icon": "bi-clock-history"
-            },
-            {
-                "id": "admins", "admin": 1, "href": "coordinators",
-                "title": "Coordinators", "icon": "bi-person-gear"
-            },
-            {
-                "id": "templates", "admin": 1, "href": "templates",
-                "title": "Templates", "icon": "bi-list-columns"
-            },
+            {"id": "last", "admin": 0, "href": "recent", "title": "Recent", "icon": "bi-clock-history"},
+            {"id": "admins", "admin": 1, "href": "coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
+            {"id": "templates", "admin": 1, "href": "templates", "title": "Templates", "icon": "bi-list-columns"},
         ],
         "Jobs": [
             {
-                "id": "collect_main_files_jobs", "admin": 1,
+                "id": "collect_main_files_jobs",
+                "admin": 1,
                 "href": "collect-main-files",
-                "title": "Collect Main Files", "icon": "bi-kanban"
+                "title": "Collect Main Files",
+                "icon": "bi-kanban",
             },
             {
-                "id": "fix_nested_main_files_jobs", "admin": 1,
+                "id": "fix_nested_main_files_jobs",
+                "admin": 1,
                 "href": "fix-nested-main-files",
-                "title": "Fix Nested Main Files", "icon": "bi-tools"
+                "title": "Fix Nested Main Files",
+                "icon": "bi-tools",
             },
         ],
     }

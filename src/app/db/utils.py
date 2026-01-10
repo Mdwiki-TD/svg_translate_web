@@ -1,4 +1,3 @@
-
 import json
 import datetime
 from typing import Any, Dict, List, Optional, Tuple
@@ -97,8 +96,12 @@ class DbUtils:
             "data": self._deserialize(row.get("data_json")),
             "main_file": row.get("main_file", ""),
             "results": self._deserialize(row.get("results_json")),
-            "created_at": row["created_at"].isoformat() if hasattr(row["created_at"], "isoformat") else str(row["created_at"]),
-            "updated_at": row["updated_at"].isoformat() if hasattr(row["updated_at"], "isoformat") else str(row["updated_at"]),
+            "created_at": row["created_at"].isoformat()
+            if hasattr(row["created_at"], "isoformat")
+            else str(row["created_at"]),
+            "updated_at": row["updated_at"].isoformat()
+            if hasattr(row["updated_at"], "isoformat")
+            else str(row["updated_at"]),
             "stages": stages or {},
         }
 

@@ -81,11 +81,7 @@ def _format_timestamp(value: datetime | str | None) -> tuple[str, str]:
 def order_stages(stages: Dict[str, Any] | None) -> List[tuple[str, Dict[str, Any]]]:
     if not stages:
         return []
-    ordered = [
-        (name, data)
-        for name, data in stages.items()
-        if isinstance(data, dict)
-    ]
+    ordered = [(name, data) for name, data in stages.items() if isinstance(data, dict)]
     ordered.sort(key=lambda item: item[1].get("number", 0))
     return ordered
 
