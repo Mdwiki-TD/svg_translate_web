@@ -32,8 +32,8 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
         assert Path(path) == fake_svg_path
         return extract_return
 
-    monkeypatch.setattr(extract_task, "download_one_file", fake_download_one_file)
-    monkeypatch.setattr(extract_task, "extract", fake_extract)
+    monkeypatch.setattr("src.app.tasks.extract.extract_task.download_one_file", fake_download_one_file)
+    monkeypatch.setattr("src.app.tasks.extract.extract_task.extract", fake_extract)
 
     translations, updated_stages = extract_task.translations_task(stages, "Example.svg", dummy_main_path)
 
