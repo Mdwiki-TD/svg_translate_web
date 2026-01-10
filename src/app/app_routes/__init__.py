@@ -1,6 +1,6 @@
 #
-from .auth.routes import bp_auth
 from .admin.routes import bp_admin
+from .auth.routes import bp_auth
 from .cancel_restart.routes import bp_tasks_managers
 from .explorer.routes import bp_explorer
 from .fix_nested import bp_fix_nested, bp_fix_nested_explorer

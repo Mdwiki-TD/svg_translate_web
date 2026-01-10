@@ -5,7 +5,7 @@ Tests for admin_required decorator.
 from __future__ import annotations
 
 import types
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch  # , MagicMock
 
 import pytest
 from werkzeug.exceptions import Forbidden
