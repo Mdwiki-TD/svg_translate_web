@@ -5,12 +5,11 @@ Tests for admin_required decorator.
 from __future__ import annotations
 
 import types
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch  # , MagicMock
 
 import pytest
 from werkzeug.exceptions import Forbidden
 
-from src.app.admins import admins_required
 from src.app.admins.admins_required import admin_required
 
 
@@ -20,11 +19,11 @@ class MockUser:
 
 
 def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(admins_required, "current_user", lambda: None)
-    monkeypatch.setattr(admins_required, "redirect", lambda location: f"redirect:{location}")
-    monkeypatch.setattr(admins_required, "url_for", lambda endpoint: f"/{endpoint}")
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", lambda: None)
+    monkeypatch.setattr("src.app.admins.admins_required.redirect", lambda location: f"redirect:{location}")
+    monkeypatch.setattr("src.app.admins.admins_required.url_for", lambda endpoint: f"/{endpoint}")
 
-    @admins_required.admin_required
+    @admin_required
     def view() -> str:
         return "ok"
 
@@ -32,8 +31,8 @@ def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyP
 
 
 def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(admins_required, "current_user", lambda: types.SimpleNamespace(username="user"))
-    monkeypatch.setattr(admins_required, "active_coordinators", lambda: [])
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: [])
 
     class AbortCalled(Exception):
         pass
@@ -41,9 +40,9 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
     def fake_abort(code: int) -> None:
         raise AbortCalled(code)
 
-    monkeypatch.setattr(admins_required, "abort", fake_abort)
+    monkeypatch.setattr("src.app.admins.admins_required.abort", fake_abort)
 
-    @admins_required.admin_required
+    @admin_required
     def view() -> str:
         return "ok"
 
@@ -54,10 +53,10 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 def test_admin_required_allows_admin(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(admins_required, "current_user", lambda: types.SimpleNamespace(username="boss"))
-    monkeypatch.setattr(admins_required, "active_coordinators", lambda: ["boss"])
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="boss"))
+    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: ["boss"])
 
-    @admins_required.admin_required
+    @admin_required
     def view() -> str:
         return "ok"
 
