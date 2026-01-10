@@ -13,7 +13,7 @@ from .admin_routes.coordinators import Coordinators
 from .admin_routes.jobs import Jobs
 from .admin_routes.recent import Recent
 from .admin_routes.templates import Templates
-from .admins_required import admin_required
+from ...admins.admins_required import admin_required
 from .sidebar import create_side
 
 bp_admin = Blueprint("admin", __name__, url_prefix="/admin")

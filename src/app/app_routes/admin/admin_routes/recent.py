@@ -15,7 +15,7 @@ from ...tasks.routes import (
     format_task,
     format_task_message,
 )
-from ..admins_required import admin_required
+from ....admins.admins_required import admin_required
 
 
 def _recent_routes():

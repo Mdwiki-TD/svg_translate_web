@@ -6,9 +6,9 @@ import pymysql
 import pytest
 
 from src.app import create_app
+from src.app.admins import admin_service
 from src.app.app_routes.admin.admin_routes import coordinators
 from src.app.config import settings
-from src.app.users import admin_service
 
 
 class FakeDatabase:

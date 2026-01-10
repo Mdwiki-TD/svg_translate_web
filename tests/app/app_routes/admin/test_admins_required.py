@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from werkzeug.exceptions import Forbidden
 
-from src.app.app_routes.admin import admins_required
-from src.app.app_routes.admin.admins_required import admin_required
+from src.app.admins import admins_required
+from src.app.admins.admins_required import admin_required
 
 
 class MockUser:

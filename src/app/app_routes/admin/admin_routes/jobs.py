@@ -17,7 +17,7 @@ from werkzeug.wrappers.response import Response
 from .... import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
-from ..admins_required import admin_required
+from ....admins.admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")
 

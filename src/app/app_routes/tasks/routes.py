@@ -22,7 +22,7 @@ from ...db.task_store_pymysql import TaskStorePyMysql
 from ...routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 from ...threads.task_threads import launch_task_thread
 from ...users.current import current_user, oauth_required
-from ..admin.admins_required import admin_required
+from ...admins.admins_required import admin_required
 from .args_utils import parse_args
 
 TASK_STORE: TaskStorePyMysql | None = None

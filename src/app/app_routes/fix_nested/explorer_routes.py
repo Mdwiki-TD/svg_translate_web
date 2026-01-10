@@ -15,7 +15,7 @@ from flask import (
     url_for,
 )
 
-from ...app_routes.admin.admins_required import admin_required
+from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
