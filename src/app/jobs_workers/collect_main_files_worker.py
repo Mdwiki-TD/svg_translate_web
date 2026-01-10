@@ -28,8 +28,8 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
     # Get all templates
     templates = template_service.list_templates()
     result["summary"]["total"] = len(templates)
-    already_had_main_file = [t for t in templates if t.main_file]
-    result["summary"]["already_had_main_file"] = len(already_had_main_file)
+    result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file])
+
     templates_to_process = [t for t in templates if not t.main_file]
     logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
@@ -39,6 +39,11 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
             result["status"] = "cancelled"
             result["cancelled_at"] = datetime.now().isoformat()
             break
+
+        # save progress after check for cancellation
+        if n == 1 or n % 10 == 0:
+            # Save result to JSON file
+            jobs_service.save_job_result_by_name(result_file, result)
 
         logger.info(f"Job {job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
         template_info = {
@@ -59,12 +64,6 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
                 result["summary"]["failed"] += 1
                 logger.warning(f"Job {job_id}: Could not fetch wikitext for {template.title}")
                 continue
-
-            if cancel_event and cancel_event.is_set():
-                logger.info(f"Job {job_id}: Cancellation detected, stopping.")
-                result["status"] = "cancelled"
-                result["cancelled_at"] = datetime.now().isoformat()
-                break
 
             # Extract main file using find_main_title
             main_file = find_main_title(wikitext)
@@ -94,10 +93,6 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
             result["templates_failed"].append(template_info)
             result["summary"]["failed"] += 1
             logger.exception(f"Job {job_id}: Error processing template {template.title}")
-
-        if n == 1 or n % 10 == 0:
-            # Save result to JSON file
-            jobs_service.save_job_result_by_name(result_file, result)
 
     # Update summary skipped count
     result["summary"]["skipped"] = len(result["templates_skipped"])
