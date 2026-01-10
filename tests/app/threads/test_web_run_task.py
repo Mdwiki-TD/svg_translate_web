@@ -3,7 +3,7 @@ from src.app.threads.web_run_task import _compute_output_dir, make_stages, fail_
 
 
 @pytest.mark.skip(reason="Pending write")
-def test__compute_output_dir():
+def test_compute_output_dir():
     # TODO: Implement test
     pass
 

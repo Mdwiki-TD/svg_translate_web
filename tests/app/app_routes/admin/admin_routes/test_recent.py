@@ -9,7 +9,7 @@ from src.app.app_routes.admin.admin_routes.recent import _recent_routes, Recent
 @patch('src.app.app_routes.admin.admin_routes.recent.format_task')
 @patch('src.app.app_routes.admin.admin_routes.recent.format_task_message')
 @patch('src.app.app_routes.admin.admin_routes.recent.render_template')
-def test__recent_routes(mock_render_template, mock_format_task_message, mock_format_task,
+def test_recent_routes(mock_render_template, mock_format_task_message, mock_format_task,
                        mock_task_store, mock_lock):
     """Test _recent_routes function."""
     # Mock the task store return value

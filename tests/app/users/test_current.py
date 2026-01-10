@@ -21,7 +21,7 @@ def test_CurrentUser():
 
 
 @pytest.mark.skip(reason="Pending write")
-def test__resolve_user_id():
+def test_resolve_user_id():
     # TODO: Implement test
     pass
 
