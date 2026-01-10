@@ -1,30 +1,31 @@
 """Flask application factory."""
 
 from __future__ import annotations
+
 import logging
-from flask import Flask, render_template, flash
-from flask_wtf.csrf import CSRFProtect
-from typing import Tuple
 from datetime import datetime
-from .config import settings
+from typing import Tuple
+
+from flask import Flask, flash, render_template
+from flask_wtf.csrf import CSRFProtect
+
 from .app_routes import (
     bp_admin,
     bp_auth,
-    bp_main,
-    bp_tasks,
     bp_explorer,
-    bp_templates,
-    bp_tasks_managers,
     bp_fix_nested,
     bp_fix_nested_explorer,
+    bp_main,
+    bp_tasks,
+    bp_tasks_managers,
+    bp_templates,
     close_task_store,
 )
-
+from .config import settings
+from .cookies import CookieHeaderClient
+from .db import close_cached_db
 from .users.current import context_user
 from .users.store import ensure_user_token_table
-from .db import close_cached_db
-
-from .cookies import CookieHeaderClient
 
 logger = logging.getLogger("svg_translate")
 
