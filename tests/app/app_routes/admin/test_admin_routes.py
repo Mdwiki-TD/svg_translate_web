@@ -9,6 +9,7 @@ from src.app import create_app
 from src.app.admins import admin_service
 from src.app.app_routes.admin.admin_routes import coordinators
 from src.app.config import settings
+from src.app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
 
 
 class FakeDatabase:
@@ -135,29 +136,26 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 @pytest.fixture
 def app_and_store(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-    original_admins = list(settings.admins)
-    object.__setattr__(settings, "admins", [])  # ensure runtime list is driven by the store
-
-    monkeypatch.setattr("src.app.admins.admin_service.Database", FakeDatabase)
+    
+    # Patch Database used by CoordinatorsDB
+    monkeypatch.setattr("src.app.db.db_CoordinatorsDB.Database", FakeDatabase)
     monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
 
-    store = admin_service.MySQLCoordinatorStore(settings.db_data)
+    # Create a real CoordinatorsDB instance (using FakeDatabase internally)
+    store = CoordinatorsDB(settings.db_data)
     store.add("admin")
-    admin_service.set_store_for_testing(store)
+    
+    # Inject this store into admin_service
+    # We patch get_admins_db to return our store instance
+    monkeypatch.setattr("src.app.admins.admin_service.get_admins_db", lambda: store)
 
-    coordinators.admin_service.set_store_for_testing(store)
     app = create_app()
     app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False # Disable CSRF for tests
 
-    try:
-        yield app, store
-    finally:
-        admin_service.set_store_for_testing(None)
-        coordinators.admin_service.set_store_for_testing(None)
-        object.__setattr__(settings, "admins", original_admins)
+    yield app, store
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -170,7 +168,6 @@ def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest
     assert "admin" in page
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_requires_admin_user(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="not_admin"))
@@ -179,7 +176,6 @@ def test_coordinator_dashboard_requires_admin_user(app_and_store, monkeypatch: p
     assert response.status_code == 403
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
     _set_current_user(monkeypatch, None)
@@ -189,7 +185,6 @@ def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypat
     assert response.headers["Location"].endswith("/login")
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
 
@@ -206,7 +201,6 @@ def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pyte
     assert "Admins" in html
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_add_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -216,17 +210,15 @@ def test_add_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     page = unescape(response.get_data(as_text=True))
     assert "new_admin" in page
     assert "Coordinator 'new_admin' added." in page
-    assert "new_admin" in settings.admins
     assert any(record.username == "new_admin" for record in store.list())
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_toggle_coordinator_active(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
 
     new_record = store.add("helper")
-    admin_service.set_coordinator_active(new_record.id, True)  # ensure sync
+    # admin_service.set_coordinator_active(new_record.id, True)  # ensure sync
 
     response = app.test_client().post(
         f"/admin/coordinators/{new_record.id}/active",
@@ -235,10 +227,8 @@ def test_toggle_coordinator_active(app_and_store, monkeypatch: pytest.MonkeyPatc
     )
     assert response.status_code == 200
     assert "Coordinator 'helper' deactivated." in unescape(response.get_data(as_text=True))
-    assert "helper" not in settings.admins
 
 
-@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_delete_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -252,5 +242,4 @@ def test_delete_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     )
     assert response.status_code == 200
     assert "Coordinator 'to_remove' removed." in unescape(response.get_data(as_text=True))
-    assert "to_remove" not in settings.admins
     assert all(r.username != "to_remove" for r in store.list())
