@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from src.app.app_routes.admin.admin_routes import coordinators
 
