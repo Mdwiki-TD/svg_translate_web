@@ -15,10 +15,7 @@ from src.app.tasks.titles.utils.main_file import find_main_title
 @pytest.fixture
 def sample_with_svglanguages_only() -> str:
     """Wikitext with only SVGLanguages main title."""
-    return (
-        "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n"
-        "Some other text...\n"
-    )
+    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n" "Some other text...\n"
 
 
 @pytest.fixture
@@ -50,6 +47,7 @@ def sample_multiple_owidslidersrcs() -> str:
         "}}\n"
     )
 
+
 # ---------- Tests for find_main_title ----------
 
 
@@ -71,6 +69,7 @@ def test_find_main_title_none_when_absent(sample_without_titles):
 
 
 # ---------- Robustness and corner cases ----------
+
 
 @pytest.mark.parametrize(
     "tpl,expected",

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 # import json
 import logging
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, List
 
 from . import Database

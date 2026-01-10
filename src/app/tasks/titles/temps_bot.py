@@ -6,9 +6,11 @@ get all files names from owidslidersrcs
 
 """
 
-import wikitextparser as wtp
 import re
-from .utils.main_file import match_main_title_from_url, find_main_title
+
+import wikitextparser as wtp
+
+from .utils.main_file import find_main_title, match_main_title_from_url
 
 
 def get_titles_from_wikilinks(text):
@@ -44,11 +46,8 @@ def get_titles(text, filter_duplicates=True):
 
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":
-
             # Find all filenames inside this template (case-insensitive .svg)
-            matches = re.findall(
-                r"File:([^\n|!]+\.svg)", tpl.string, flags=re.IGNORECASE
-            )
+            matches = re.findall(r"File:([^\n|!]+\.svg)", tpl.string, flags=re.IGNORECASE)
 
             titles.extend(m.strip() for m in matches)
 

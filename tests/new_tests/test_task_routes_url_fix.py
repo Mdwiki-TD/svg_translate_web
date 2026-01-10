@@ -1,7 +1,9 @@
 """Unit tests for task routes URL fix."""
 from __future__ import annotations
-import pytest
+
 from unittest.mock import Mock, patch
+
+import pytest
 
 from src.app.app_routes.tasks import routes
 
@@ -11,10 +13,7 @@ def test_start_redirects_to_correct_task_endpoint(monkeypatch):
     """Test that start() redirects to 'tasks.task' not 'tasks.task1'."""
     # Mock the necessary dependencies
     mock_task_store = Mock()
-    mock_task_store.find_task_by_normalized_title = Mock(return_value={
-        "id": "existing-task-123",
-        "status": "Pending"
-    })
+    mock_task_store.find_task_by_normalized_title = Mock(return_value={"id": "existing-task-123", "status": "Pending"})
 
     monkeypatch.setattr(routes, "_task_store", lambda: mock_task_store)
 
@@ -36,7 +35,7 @@ def test_start_redirects_to_correct_task_endpoint(monkeypatch):
                         mock_url_for.assert_called_with(
                             "tasks.task",  # Should be 'task' not 'task1'
                             task_id="existing-task-123",
-                            title="Test Title"
+                            title="Test Title",
                         )
 
 

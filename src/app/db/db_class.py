@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import logging
-import threading
 import random
+import threading
 import time
 from typing import Any, Iterable, Sequence
 
 import pymysql
-
 
 logger = logging.getLogger("svg_translate")
 
@@ -35,19 +34,16 @@ class Database:
                 prints an error message and exits the process.
         """
 
-        self.host = db_data['host']
-        self.dbname = db_data['dbname']
+        self.host = db_data["host"]
+        self.dbname = db_data["dbname"]
 
-        self.user = db_data['user']
-        self.password = db_data['password']
+        self.user = db_data["user"]
+        self.password = db_data["password"]
 
         if not db_data.get("db_connect_file"):
-            self.credentials = {
-                'user': self.user,
-                'password': self.password
-            }
+            self.credentials = {"user": self.user, "password": self.password}
         else:
-            self.credentials = {'read_default_file': db_data.get("db_connect_file")}
+            self.credentials = {"read_default_file": db_data.get("db_connect_file")}
 
         self._lock = threading.RLock()
         self.connection: Any | None = None
@@ -68,7 +64,7 @@ class Database:
                 init_command="SET time_zone = '+00:00'",
                 autocommit=True,
                 cursorclass=pymysql.cursors.DictCursor,
-                **self.credentials
+                **self.credentials,
             )
 
     def _ensure_connection(self) -> None:
@@ -133,9 +129,7 @@ class Database:
 
     def _log_retry(self, event: str, attempt: int, exc: BaseException, elapsed_ms: int) -> None:
         code = exc.args[0] if getattr(exc, "args", None) else None
-        logger.debug(
-            "event=%s attempt=%s code=%s elapsed_ms=%s", event, attempt, code, elapsed_ms
-        )
+        logger.debug("event=%s attempt=%s code=%s elapsed_ms=%s", event, attempt, code, elapsed_ms)
 
     def _rollback_if_needed(self) -> None:
         with self._lock:

@@ -1,7 +1,9 @@
 """Unit tests for templates admin routes improvements."""
 from __future__ import annotations
-import pytest
+
 from unittest.mock import Mock, patch
+
+import pytest
 
 from src.app.app_routes.admin.admin_routes import templates
 
@@ -12,11 +14,11 @@ def test_update_template_uses_request_form_type_parameter():
     with patch("src.app.app_routes.admin.admin_routes.templates.request") as mock_request:
         # Set up mock to return integer directly
         mock_form = Mock()
-        mock_form.get = Mock(side_effect=lambda key, default=None: {
-            "id": 42,
-            "title": "Test Title",
-            "main_file": "test.svg"
-        }.get(key, default))
+        mock_form.get = Mock(
+            side_effect=lambda key, default=None: {"id": 42, "title": "Test Title", "main_file": "test.svg"}.get(
+                key, default
+            )
+        )
         mock_request.form = mock_form
 
         mock_service = Mock()
@@ -41,11 +43,11 @@ def test_update_template_correct_error_message_for_missing_title():
     """Test that _update_template shows correct error message for update (not 'add')."""
     with patch("src.app.app_routes.admin.admin_routes.templates.request") as mock_request:
         mock_form = Mock()
-        mock_form.get = Mock(side_effect=lambda key, default=None: {
-            "id": 1,
-            "title": "",  # Empty title
-            "main_file": "test.svg"
-        }.get(key, default))
+        mock_form.get = Mock(
+            side_effect=lambda key, default=None: {"id": 1, "title": "", "main_file": "test.svg"}.get(  # Empty title
+                key, default
+            )
+        )
         mock_request.form = mock_form
 
         with patch("src.app.app_routes.admin.admin_routes.templates.flash") as mock_flash:
@@ -64,11 +66,11 @@ def test_update_template_missing_id_shows_error():
     """Test that _update_template shows error when template ID is missing."""
     with patch("src.app.app_routes.admin.admin_routes.templates.request") as mock_request:
         mock_form = Mock()
-        mock_form.get = Mock(side_effect=lambda key, default=None: {
-            "id": 0,  # No ID
-            "title": "Test",
-            "main_file": "test.svg"
-        }.get(key, default))
+        mock_form.get = Mock(
+            side_effect=lambda key, default=None: {"id": 0, "title": "Test", "main_file": "test.svg"}.get(  # No ID
+                key, default
+            )
+        )
         mock_request.form = mock_form
 
         with patch("src.app.app_routes.admin.admin_routes.templates.flash") as mock_flash:

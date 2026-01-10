@@ -4,17 +4,22 @@ Worker module for fixing nested tags in main files of templates.
 
 from __future__ import annotations
 
-from pathlib import Path
 import logging
-import threading
 import tempfile
+import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from ..app_routes.fix_nested.fix_utils import download_svg_file, detect_nested_tags, fix_nested_tags, verify_fix, upload_fixed_svg
-
 from .. import template_service
-from .. import jobs_service
+from ..app_routes.fix_nested.fix_utils import (
+    detect_nested_tags,
+    download_svg_file,
+    fix_nested_tags,
+    upload_fixed_svg,
+    verify_fix,
+)
+from . import jobs_service
 
 logger = logging.getLogger("svg_translate")
 
@@ -175,7 +180,13 @@ def log_failed_template(result, template_info, fix_result) -> None:
     result["summary"]["failed"] += 1
 
 
-def process_templates(job_id, user, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None,) -> dict[str, list[dict]]:
+def process_templates(
+    job_id,
+    user,
+    result: dict[str, list[dict]],
+    result_file: str,
+    cancel_event: threading.Event | None = None,
+) -> dict[str, list[dict]]:
     # Update job status to running
     try:
         jobs_service.update_job_status(job_id, "running", result_file, job_type="fix_nested_main_files")
@@ -245,10 +256,7 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
 
         else:
             log_failed_template(result, template_info, fix_result)
-            logger.warning(
-                f"Job {job_id}: Failed to process {template.main_file}: "
-                f"{fix_result.get('message')}"
-            )
+            logger.warning(f"Job {job_id}: Failed to process {template.main_file}: " f"{fix_result.get('message')}")
 
     # Update summary skipped count
     result["summary"]["skipped"] = len(result["templates_skipped"])
@@ -274,7 +282,9 @@ def process_templates(job_id, user, result: dict[str, list[dict]], result_file: 
     return result
 
 
-def fix_nested_main_files_for_templates(job_id: int, user: Any | None, cancel_event: threading.Event | None = None) -> None:
+def fix_nested_main_files_for_templates(
+    job_id: int, user: Any | None, cancel_event: threading.Event | None = None
+) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
 

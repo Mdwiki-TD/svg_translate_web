@@ -1,8 +1,8 @@
-
-import requests
-import mwclient
-from pathlib import Path
 import logging
+from pathlib import Path
+
+import mwclient
+import requests
 
 logger = logging.getLogger("svg_translate")
 
@@ -30,14 +30,14 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
         return {"error": "File not found on server"}
 
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             # Perform the upload
             response = site.upload(
                 # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
                 file=f,
                 filename=file_name,
                 comment=summary or "",
-                ignore=True  # skip warnings like "file exists"
+                ignore=True,  # skip warnings like "file exists"
             )
 
         logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
@@ -57,7 +57,7 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
             logger.debug("Upload result: fileexists-no-change")
             return {"error": "fileexists-no-change"}
         # ---
-        if 'ratelimited' in str(e):
+        if "ratelimited" in str(e):
             logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
             return {"error": "ratelimited"}
         # ---

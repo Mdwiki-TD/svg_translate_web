@@ -1,7 +1,6 @@
-
 from src.app import create_app
-from src.app.users import store as user_store
 from src.app.app_routes.tasks import routes as task_routes
+from src.app.users import store as user_store
 
 
 class FakeCursor:

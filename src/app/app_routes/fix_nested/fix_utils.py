@@ -1,19 +1,21 @@
-
-
-from pathlib import Path
-import logging
-import tempfile
 import json
+import logging
 import shutil
+import tempfile
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
-from CopySVGTranslation import match_nested_tags, fix_nested_file  # type: ignore
-from ...tasks.downloads import download_one_file
-from ...tasks.uploads import upload_file, get_user_site
-from ...config import settings
-from ...db.fix_nested_task_store import FixNestedTaskStore
+
+from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
+
 # from ...db.db_class import Database
 from werkzeug.utils import secure_filename
+
+from ...config import settings
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...tasks.downloads import download_one_file
+from ...tasks.uploads import get_user_site, upload_file
+
 logger = logging.getLogger("svg_translate")
 
 
@@ -138,7 +140,7 @@ def process_fix_nested(
     user,
     task_id: Optional[str] = None,
     username: Optional[str] = None,
-    db_store: Optional[FixNestedTaskStore] = None
+    db_store: Optional[FixNestedTaskStore] = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 

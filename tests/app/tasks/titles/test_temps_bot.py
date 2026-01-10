@@ -26,7 +26,7 @@ def sample_from_prompt() -> str:
         "|file         = [[File:Health-expenditure-government-expenditure,World,2022 (cropped).svg|link=|thumb|upright=1.6|Health expenditure government expenditure]]\n"
         "|startingView = World\n"
         "}}\n"
-        "<syntaxhighlight lang=\"wikitext\" style=\"overflow:auto;\">\n"
+        '<syntaxhighlight lang="wikitext" style="overflow:auto;">\n'
         "{{owidslider\n"
         "|start        = 2022\n"
         "|list         = Template:OWID/health expenditure government expenditure#gallery\n"
@@ -85,12 +85,15 @@ def sample_multiple_owidslidersrcs() -> str:
         "}}\n"
     )
 
+
 # ---------- Tests for get_files_list (integration) ----------
 
 
 def test_get_files_list_prefers_svglanguages(sample_with_both_titles, sample_multiple_owidslidersrcs):
     """get_files_list should return (main_title, titles) preferring SVGLanguages."""
-    main, titles = get_files_list(sample_with_both_titles + "\n" + sample_multiple_owidslidersrcs, filter_duplicates=False)
+    main, titles = get_files_list(
+        sample_with_both_titles + "\n" + sample_multiple_owidslidersrcs, filter_duplicates=False
+    )
     assert main == "some_main_title,World,2010.svg".replace("_", " ")
     assert len(titles) == 4
     assert "Gamma, 2002 to 2003, CCC.svg" in titles

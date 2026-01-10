@@ -14,8 +14,8 @@ import pytest
 
 from src.app.tasks.titles.temps_bot import get_titles
 
-
 # ---------- Fixtures with realistic wikitext samples ----------
+
 
 @pytest.fixture
 def sample_from_prompt() -> str:
@@ -32,7 +32,7 @@ def sample_from_prompt() -> str:
         "|file         = [[File:Health-expenditure-government-expenditure,World,2022 (cropped).svg|link=|thumb|upright=1.6|Health expenditure government expenditure]]\n"
         "|startingView = World\n"
         "}}\n"
-        "<syntaxhighlight lang=\"wikitext\" style=\"overflow:auto;\">\n"
+        '<syntaxhighlight lang="wikitext" style="overflow:auto;">\n'
         "{{owidslider\n"
         "|start        = 2022\n"
         "|list         = Template:OWID/health expenditure government expenditure#gallery\n"
@@ -85,6 +85,7 @@ def sample_multiple_owidslidersrcs() -> str:
 
 # ---------- Tests for get_titles ----------
 
+
 def test_get_titles_from_sample_prompt(sample_from_prompt):
     """Extract all .svg filenames from owidslidersrcs and ignore everything else."""
     titles = get_titles(sample_from_prompt)
@@ -117,15 +118,20 @@ def test_get_titles_empty_when_no_entries(sample_without_titles):
     "block,expected_count",
     [
         # Single line with trailing attributes
-        ("{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\n"
-         "File:Foo, 2000, AAA.svg!country=AAA\n}}", 1),
+        (
+            "{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\n"
+            "File:Foo, 2000, AAA.svg!country=AAA\n}}",
+            1,
+        ),
         # Lines with spaces and commas inside
-        ("{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\n"
-         "File:Foo Bar, 2001 to 2003, BBB.svg!country=BBB\n"
-         "File:Zed, 1999 to 2000, CCC.svg!country=CCC\n}}", 2),
+        (
+            "{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\n"
+            "File:Foo Bar, 2001 to 2003, BBB.svg!country=BBB\n"
+            "File:Zed, 1999 to 2000, CCC.svg!country=CCC\n}}",
+            2,
+        ),
         # No .svg files present
-        ("{{owidslidersrcs|id=x|gallery-AllCountries=\n"
-         "Not a file line\n}}", 0),
+        ("{{owidslidersrcs|id=x|gallery-AllCountries=\n" "Not a file line\n}}", 0),
     ],
 )
 def test_get_titles_regex_variants(block, expected_count):

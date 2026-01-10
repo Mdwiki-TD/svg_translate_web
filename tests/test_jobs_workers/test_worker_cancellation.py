@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 from unittest.mock import MagicMock
+
 import pytest
 
 from src.app.jobs_workers import collect_main_files_worker, fix_nested_main_files_worker
@@ -19,16 +20,34 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
     mock_generate_result_file_name = MagicMock(return_value="result.json")
 
     # Mock for collect_main_files_worker
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name", mock_generate_result_file_name)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name",
+        mock_generate_result_file_name,
+    )
 
     # Mock for fix_nested_main_files_worker
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name", mock_generate_result_file_name)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        mock_generate_result_file_name,
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -51,11 +70,16 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
 
     def side_effect(*args, **kwargs):
         cancel_event.set()
+
     mock_update_template.side_effect = side_effect
 
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.get_wikitext", lambda t, **kwargs: "some wikitext")
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.get_wikitext", lambda t, **kwargs: "some wikitext"
+    )
     monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.find_main_title", lambda x: "file.svg")
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+    )
 
     collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
 
@@ -83,7 +107,9 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
         cancel_event.set()
         return {"success": True, "message": "OK"}
 
-    monkeypatch.setattr("src.app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_repair_nested_svg_tags)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_repair_nested_svg_tags
+    )
 
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user=None, cancel_event=cancel_event)
 

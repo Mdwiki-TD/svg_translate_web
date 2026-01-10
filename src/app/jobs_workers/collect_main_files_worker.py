@@ -10,14 +10,16 @@ from datetime import datetime
 from typing import Any
 
 from .. import template_service
-from .. import jobs_service
 from ..tasks.texts.text_bot import get_wikitext
 from ..tasks.titles.utils.main_file import find_main_title
+from . import jobs_service
 
 logger = logging.getLogger("svg_translate")
 
 
-def process_templates(job_id, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None) -> dict[str, list[dict]]:
+def process_templates(
+    job_id, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None
+) -> dict[str, list[dict]]:
     # Update job status to running
     try:
         jobs_service.update_job_status(job_id, "running", result_file, job_type="collect_main_files")
@@ -119,7 +121,9 @@ def process_templates(job_id, result: dict[str, list[dict]], result_file: str, c
     return result
 
 
-def collect_main_files_for_templates(job_id: int, user: Any | None=None, cancel_event: threading.Event | None = None) -> None:
+def collect_main_files_for_templates(
+    job_id: int, user: Any | None = None, cancel_event: threading.Event | None = None
+) -> None:
     """
     Background worker to collect main files for templates that don't have one.
 

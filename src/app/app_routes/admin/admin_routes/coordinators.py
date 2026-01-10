@@ -3,7 +3,9 @@
 """
 
 from __future__ import annotations
+
 import logging
+
 from flask import (
     Blueprint,
     flash,
@@ -14,9 +16,9 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
+from ....admins import admin_service
+from ....admins.admins_required import admin_required
 from ....users.current import current_user
-from ....users import admin_service
-from ..admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")
 
@@ -99,7 +101,6 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 
 class Coordinators:
     def __init__(self, bp_admin: Blueprint):
-
         @bp_admin.get("/coordinators")
         @admin_required
         def coordinators_dashboard():

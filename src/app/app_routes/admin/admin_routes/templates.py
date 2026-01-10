@@ -3,7 +3,9 @@
 """
 
 from __future__ import annotations
+
 import logging
+
 from flask import (
     Blueprint,
     flash,
@@ -14,9 +16,9 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ....users.current import current_user
 from .... import template_service
-from ..admins_required import admin_required
+from ....admins.admins_required import admin_required
+from ....users.current import current_user
 
 logger = logging.getLogger("svg_translate")
 
@@ -110,7 +112,6 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 
 class Templates:
     def __init__(self, bp_admin: Blueprint):
-
         @bp_admin.get("/templates")
         @admin_required
         def templates_dashboard():

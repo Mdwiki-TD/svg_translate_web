@@ -2,9 +2,10 @@
 
 """
 
-import wikitextparser as wtp
 import re
 import urllib
+
+import wikitextparser as wtp
 
 
 def match_main_title_from_url(text):
@@ -44,7 +45,6 @@ def match_main_title_from_url_new(text):
 
 
 def find_main_title_from_template(text):
-
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
@@ -63,11 +63,8 @@ def find_main_title_from_template(text):
 
 
 def find_main_title(text):
-
     main_title = (
-        find_main_title_from_template(text)
-        or match_main_title_from_url_new(text)
-        or match_main_title_from_url(text)
+        find_main_title_from_template(text) or match_main_title_from_url_new(text) or match_main_title_from_url(text)
     )
 
     if main_title:

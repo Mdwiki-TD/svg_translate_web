@@ -87,6 +87,7 @@ class TestDownloadCommonsSvgs:
     def test_download_handles_network_error(self, mock_session_class, temp_output_dir):
         """Test handling of network errors."""
         import requests
+
         session = MagicMock()
         session.get.side_effect = requests.exceptions.RequestException("Network error")
         mock_session_class.return_value = session
@@ -179,6 +180,7 @@ class TestEdgeCases:
     def test_download_timeout_handling(self, mock_session_class, temp_output_dir):
         """Test handling of request timeouts."""
         import requests
+
         session = MagicMock()
         session.get.side_effect = requests.exceptions.RequestException("Timeout")
         mock_session_class.return_value = session

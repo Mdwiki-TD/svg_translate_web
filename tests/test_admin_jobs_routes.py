@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any, List
 from unittest.mock import patch
-import json
 
 import pytest
 
-from src.app import create_app, jobs_service
-from src.app.jobs_service import JobRecord
+from src.app import create_app
+from src.app.jobs_workers import jobs_service
+from src.app.jobs_workers.jobs_service import JobRecord
 
 
 class FakeJobsDB:
@@ -59,9 +60,7 @@ class FakeJobsDB:
             return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
 
-    def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, *, job_type: str
-    ) -> JobRecord:
+    def update_status(self, job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
         """Update job status."""
         index = self._find_index(job_id, job_type)
         updated = replace(
@@ -93,29 +92,21 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.app.users.current.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admin_routes.jobs.current_user", fake_current_user
-    )
-    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.admin_service.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr(
-        "src.app.users.current.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr("src.app.users.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.jobs.current_user", fake_current_user)
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.admins.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.users.current.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeJobsDB({})
 
-    monkeypatch.setattr("src.app.jobs_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.app.jobs_workers.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.app.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.app.jobs_workers.jobs_service.JobsDB", fake_jobs_factory)
 
     jobs_service._JOBS_STORE = fake_store
 
@@ -217,7 +208,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     assert "Job id 999 was not found" in page or "not found" in page.lower()
 
 
-@patch("src.app.jobs_worker.start_collect_main_files_job")
+@patch("src.app.jobs_workers.jobs_worker.start_collect_main_files_job")
 @patch("src.app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start collect main files job route works."""
@@ -263,7 +254,7 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
 
     # Should show 2 rows of jobs (not 3)
     # Count the number of "View" buttons which appear once per job row
-    assert page.count('btn btn-outline-primary btn-sm') == 2
+    assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
 def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client):
@@ -357,7 +348,7 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     assert "Job id 999 was not found" in page or "not found" in page.lower()
 
 
-@patch("src.app.jobs_worker.start_fix_nested_main_files_job")
+@patch("src.app.jobs_workers.jobs_worker.start_fix_nested_main_files_job")
 @patch("src.app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start fix nested main files job route works."""
@@ -403,7 +394,7 @@ def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
 
     # Should show 2 rows of jobs (not 4)
     # Count the number of "View" buttons which appear once per job row
-    assert page.count('btn btn-outline-primary btn-sm') == 2
+    assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
 def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client):

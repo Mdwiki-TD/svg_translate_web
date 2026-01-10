@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from functools import wraps
 from dataclasses import dataclass
+from functools import wraps
 from typing import Any, Callable, Optional, TypeVar, cast
 
 from flask import g, redirect, request, session, url_for
 
-from .store import UserTokenRecord, get_user_token
-from ..config import settings
+from ..admins.admin_service import active_coordinators
 from ..app_routes.auth.cookie import extract_user_id
-from ..users.admin_service import active_coordinators
+from ..config import settings
+from .store import UserTokenRecord, get_user_token
 
 F = TypeVar("F", bound=Callable[..., Any])
 

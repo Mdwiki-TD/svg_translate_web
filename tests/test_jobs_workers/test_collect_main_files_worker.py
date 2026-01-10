@@ -1,9 +1,9 @@
-
 """Unit tests for collect_main_files_worker module."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from src.app.jobs_workers import collect_main_files_worker
@@ -17,16 +17,27 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     # Mock template_service
     mock_list_templates = MagicMock()
     mock_update_template = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+    )
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name", mock_generate_result_file_name)
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+    )
+    monkeypatch.setattr(
+        "src.app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name",
+        mock_generate_result_file_name,
+    )
 
     # Mock get_wikitext
     mock_get_wikitext = MagicMock()
@@ -55,7 +66,9 @@ def test_collect_main_files_with_no_templates(mock_services):
 
     # Should update status to running, then completed
     assert mock_services["update_job_status"].call_count == 2
-    mock_services["update_job_status"].assert_any_call(1, "running", "collect_main_files_job_1.json", job_type="collect_main_files")
+    mock_services["update_job_status"].assert_any_call(
+        1, "running", "collect_main_files_job_1.json", job_type="collect_main_files"
+    )
 
     # Should save result
     mock_services["save_job_result_by_name"].assert_called_once()
@@ -95,9 +108,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should fetch wikitext
-    mock_services["get_wikitext"].assert_called_once_with(
-        "Template:Test", project="commons.wikimedia.org"
-    )
+    mock_services["get_wikitext"].assert_called_once_with("Template:Test", project="commons.wikimedia.org")
 
     # Should find main title
     mock_services["find_main_title"].assert_called_once()

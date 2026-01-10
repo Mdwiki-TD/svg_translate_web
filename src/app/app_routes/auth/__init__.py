@@ -1,5 +1,3 @@
-
-
 from .routes import bp_auth, login_required
 
 __all__ = [

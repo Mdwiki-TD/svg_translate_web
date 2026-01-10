@@ -1,5 +1,6 @@
 #
 import logging
+
 from .temps_bot import get_files_list
 
 logger = logging.getLogger("svg_translate")
@@ -42,9 +43,6 @@ def titles_task(stages, text, manual_main_title, titles_limit=None):
     if not main_title:
         stages["message"] += ", no main title found"
 
-    data = {
-        "main_title": main_title,
-        "titles": titles
-    }
+    data = {"main_title": main_title, "titles": titles}
 
     return data, stages

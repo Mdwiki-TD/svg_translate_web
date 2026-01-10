@@ -1,6 +1,7 @@
 """Unit tests for args parsing utilities."""
-import pytest
 import types
+
+import pytest
 from werkzeug.datastructures import MultiDict
 
 from src.app.app_routes.tasks import args_utils

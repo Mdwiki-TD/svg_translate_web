@@ -4,11 +4,10 @@ import logging
 from typing import Dict
 
 from .db_class import Database
-
-from .utils import DbUtils
-from .db_TasksListDB import TasksListDB
-from .db_StageStore import StageStore
 from .db_CreateUpdate import CreateUpdateTask
+from .db_StageStore import StageStore
+from .db_TasksListDB import TasksListDB
+from .utils import DbUtils
 
 logger = logging.getLogger("svg_translate")
 

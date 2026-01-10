@@ -5,8 +5,8 @@ import pytest
 
 from src.app import create_app
 from src.app.app_routes.tasks import routes
-from src.app.threads import task_threads, web_run_task
 from src.app.db import TaskAlreadyExistsError
+from src.app.threads import task_threads, web_run_task
 
 
 class InMemoryTaskStore:
@@ -52,7 +52,9 @@ class InMemoryTaskStore:
                 updated["status"] = status
                 self.tasks[task_id] = updated
 
-    def update_stage(self, task_id: str, stage_name: str, stage_state: Dict[str, Any]) -> None:  # pragma: no cover - unused
+    def update_stage(
+        self, task_id: str, stage_name: str, stage_state: Dict[str, Any]
+    ) -> None:  # pragma: no cover - unused
         pass
 
     def update_results(self, task_id: str, results: Dict[str, Any]) -> None:  # pragma: no cover - unused

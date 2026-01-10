@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from pathlib import Path
 from functools import lru_cache
-from typing import Optional, Dict
+from pathlib import Path
+from typing import Dict, Optional
 
 
 @dataclass(frozen=True)
@@ -62,20 +62,19 @@ class Settings:
 
 
 def _load_db_data_new() -> DbConfig:
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser('~'), 'replica.my.cnf'))
+    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
 
     return DbConfig(
         db_name=os.getenv("DB_NAME", ""),
         db_host=os.getenv("DB_HOST", ""),
         db_user=os.getenv("DB_USER", None),
         db_password=os.getenv("DB_PASSWORD", None),
-        db_connect_file=db_connect_file if os.path.exists(db_connect_file) else None
+        db_connect_file=db_connect_file if os.path.exists(db_connect_file) else None,
     )
 
 
 def _load_db_data() -> dict[str, str]:
-
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser('~'), 'replica.my.cnf'))
+    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
 
     db_data = {
         "host": os.getenv("DB_HOST", ""),
@@ -91,7 +90,7 @@ def _load_db_data() -> dict[str, str]:
 
 
 def _get_paths() -> Paths:
-    main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser('~'), 'data'))
+    main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
     svg_data = f"{main_dir}/svg_data"
     svg_data_thumb = f"{main_dir}/svg_data_thumb"
     log_dir = f"{main_dir}/logs"
@@ -143,7 +142,8 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
         user_agent=os.getenv(
-            "USER_AGENT", "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)"
+            "USER_AGENT",
+            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
         ),
         upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
     )
@@ -160,7 +160,6 @@ def is_localhost(host: str) -> bool:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-
     secret_key = os.getenv("FLASK_SECRET_KEY")
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
@@ -176,9 +175,7 @@ def get_settings() -> Settings:
 
     oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY")
     if use_mw_oauth and not oauth_encryption_key:
-        raise RuntimeError(
-            "OAUTH_ENCRYPTION_KEY environment variable is required when USE_MW_OAUTH is enabled"
-        )
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required when USE_MW_OAUTH is enabled")
 
     cookie = CookieConfig(
         name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
@@ -205,7 +202,7 @@ def get_settings() -> Settings:
         oauth_encryption_key=oauth_encryption_key,
         cookie=cookie,
         oauth=oauth_config,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", "")
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
     )
 
 

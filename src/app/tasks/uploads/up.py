@@ -1,17 +1,17 @@
 """Upload task helpers with progress callbacks."""
 
 from __future__ import annotations
-from typing import Any, Dict, Optional, Callable
 
 import logging
+from typing import Any, Callable, Dict, Optional
+
 import mwclient
 from tqdm import tqdm
-from .upload_bot import upload_file
-
-from ...users.store import mark_token_used
-from .wiki_client import build_upload_site
 
 from ...db.task_store_pymysql import TaskStorePyMysql
+from ...users.store import mark_token_used
+from .upload_bot import upload_file
+from .wiki_client import build_upload_site
 
 logger = logging.getLogger("svg_translate")
 
@@ -37,7 +37,7 @@ def start_upload(
     stages: Dict[str, Any],
     task_id: str,
     store: TaskStorePyMysql,
-    check_cancel: Callable[[str | None], bool]
+    check_cancel: Callable[[str | None], bool],
 ):
     """Upload files to Wikimedia Commons using an authenticated mwclient site."""
 
@@ -50,7 +50,7 @@ def start_upload(
         store.update_stage_column(task_id, "upload", "stage_message", value)
 
     total = len(files_to_upload)
-    to_work = {x: v for x, v in files_to_upload.items() if v.get('new_languages')}
+    to_work = {x: v for x, v in files_to_upload.items() if v.get("new_languages")}
 
     no_changes += total - len(to_work)
 
@@ -58,7 +58,6 @@ def start_upload(
         tqdm(to_work.items(), desc="uploading files", total=len(to_work)),
         start=1,
     ):
-
         file_path = file_data.get("file_path", None) if isinstance(file_data, dict) else None
         logger.debug(f"start uploading file: {file_name}.")
         summary = (
@@ -66,12 +65,15 @@ def start_upload(
             if isinstance(file_data, dict) and "new_languages" in file_data
             else f"Adding translations from {main_title_link}"
         )
-        upload = upload_file(
-            file_name,
-            file_path,
-            site=site,
-            summary=summary,
-        ) or {}
+        upload = (
+            upload_file(
+                file_name,
+                file_path,
+                site=site,
+                summary=summary,
+            )
+            or {}
+        )
 
         result = upload.get("result", "")
 
@@ -102,10 +104,7 @@ def start_upload(
                 return upload_result, stages
 
     stages["message"] = (
-        f"Total Files: {total:,}, "
-        f"uploaded {done:,}, "
-        f"no changes: {no_changes:,}, "
-        f"not uploaded: {not_done:,}"
+        f"Total Files: {total:,}, " f"uploaded {done:,}, " f"no changes: {no_changes:,}, " f"not uploaded: {not_done:,}"
     )
     stages["status"] = "Failed" if not_done >= 10 else "Completed"
 
@@ -134,7 +133,7 @@ def upload_task(
     main_title: str,
     do_upload: Optional[bool] = None,
     user: Dict[str, str] = None,
-    store: TaskStorePyMysql =None,
+    store: TaskStorePyMysql = None,
     task_id: str = "",
     check_cancel: Callable | None = None,
 ):
@@ -209,14 +208,6 @@ def upload_task(
     if check_cancel("upload"):
         return {"done": 0, "not_done": total, "no_changes": 0, "errors": 0}, stages
 
-    upload_result, stages = start_upload(
-        files_to_upload,
-        main_title_link,
-        site,
-        stages,
-        task_id,
-        store,
-        check_cancel
-    )
+    upload_result, stages = start_upload(files_to_upload, main_title_link, site, stages, task_id, store, check_cancel)
 
     return upload_result, stages

@@ -1,5 +1,6 @@
 #
 import logging
+
 from .text_bot import get_wikitext
 
 logger = logging.getLogger("svg_translate")

@@ -1,8 +1,8 @@
 """Symmetric encryption helpers for storing OAuth secrets."""
 
 from __future__ import annotations
-import os
 
+import os
 import threading
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -20,9 +20,7 @@ def _require_fernet() -> Fernet:
         return _fernet
 
     if not settings.oauth_encryption_key:
-        raise RuntimeError(
-            "OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers"
-        )
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
     key_bytes = (
         settings.oauth_encryption_key.encode()

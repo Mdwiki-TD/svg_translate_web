@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+
 from lxml import etree
 
 logger = logging.getLogger("svg_translate")
@@ -19,7 +20,7 @@ def file_langs(file_path: Path):
         root = tree.getroot()
         # Second pass on text elements for extra checks and switch creation
         # texts = root.findall(".//{%s}text" % svg_ns)
-        text_elements = root.xpath('.//svg:text', namespaces={'svg': 'http://www.w3.org/2000/svg'})
+        text_elements = root.xpath(".//svg:text", namespaces={"svg": "http://www.w3.org/2000/svg"})
         for text in text_elements:
             # normalize systemLanguage if present
             if text.get("systemLanguage"):
@@ -33,7 +34,7 @@ def file_langs(file_path: Path):
 def analyze_file(file_path: Path):
     # TODO: compare the two SVG files and return comparison results
     result = {
-        "languages" : file_langs(file_path),
+        "languages": file_langs(file_path),
     }
 
     return result

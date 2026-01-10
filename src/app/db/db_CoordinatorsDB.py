@@ -1,10 +1,11 @@
-
 from __future__ import annotations
 
 import logging
-import pymysql
 from dataclasses import dataclass
 from typing import Any, Iterable, List
+
+import pymysql
+
 from . import Database
 
 logger = logging.getLogger("svg_translate")

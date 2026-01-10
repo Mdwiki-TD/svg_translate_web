@@ -1,7 +1,7 @@
-
 import json
 import logging
 from pathlib import Path
+
 from ...config import settings
 
 logger = logging.getLogger("svg_translate")
@@ -68,15 +68,12 @@ def get_files(title, sub_dir):
         logger.error(f"Title path {title_path} does not exist")
         return [], title_path
 
-    files = [
-        x.name
-        for x in title_path.glob("*.svg")
-    ]
+    files = [x.name for x in title_path.glob("*.svg")]
 
     return files, title_path
 
 
-def get_languages(title: str, translations_data: dict|None=None) -> list:
+def get_languages(title: str, translations_data: dict | None = None) -> list:
     # ---
     languages = []
     # ---
@@ -137,11 +134,11 @@ def get_informations(title):
         "len_titles": len_titles,
         "languages": ", ".join(languages),
         "path": str(title_path.parent),
-        "len_files" : {
+        "len_files": {
             "not_downloaded": len(not_downloaded),
             "downloaded": len(downloaded),
             "translated": len(translated),
-            "not_translated": len(not_translated)
+            "not_translated": len(not_translated),
         },
         "not_downloaded": not_downloaded,
     }

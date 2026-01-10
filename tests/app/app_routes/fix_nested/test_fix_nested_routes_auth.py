@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
 import re
+from typing import Any
 
 import pytest
 from flask import Flask
@@ -57,9 +57,7 @@ def test_fix_nested_post_preserves_filename_before_oauth_no_localhost(
     assert response.status_code == 302
 
 
-def test_fix_nested_post_requires_oauth(
-    app_client: tuple[Flask, Any], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fix_nested_post_requires_oauth(app_client: tuple[Flask, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that POST redirects to OAuth login when not authenticated."""
     app, client = app_client
 

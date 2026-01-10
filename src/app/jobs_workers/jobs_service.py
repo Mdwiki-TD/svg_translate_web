@@ -6,13 +6,12 @@ import functools
 import json
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .config import settings
-from .db import has_db_config
-from .db.db_Jobs import JobRecord, JobsDB
+from ..config import settings
+from ..db import has_db_config
+from ..db.db_Jobs import JobRecord, JobsDB
 
 logger = logging.getLogger("svg_translate")
 
@@ -25,9 +24,7 @@ def get_jobs_db() -> JobsDB:
 
     if _JOBS_STORE is None:
         if not has_db_config():
-            raise RuntimeError(
-                "Jobs administration requires database configuration; no fallback store is available."
-            )
+            raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
 
         try:
             _JOBS_STORE = JobsDB(settings.db_data)
@@ -44,9 +41,7 @@ def get_jobs_data_dir() -> Path:
     # Use svg_jobs_path from settings paths
     jobs_dir = getattr(settings.paths, "svg_jobs_path", None)
     if not jobs_dir:
-        raise RuntimeError(
-            "MAIN_DIR/svg_jobs environment variable is required for job result storage"
-        )
+        raise RuntimeError("MAIN_DIR/svg_jobs environment variable is required for job result storage")
     jobs_dir = Path(jobs_dir)
     jobs_dir.mkdir(parents=True, exist_ok=True)
     return jobs_dir
@@ -76,9 +71,7 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
     return store.list(limit=limit, job_type=job_type)
 
 
-def update_job_status(
-    job_id: int, status: str, result_file: str | None = None, *, job_type: str
-) -> JobRecord:
+def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """Update job status."""
     store = get_jobs_db()
     return store.update_status(job_id, status, result_file, job_type=job_type)

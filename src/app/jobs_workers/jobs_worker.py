@@ -7,8 +7,8 @@ import threading
 from typing import Any
 
 from . import jobs_service
-from .jobs_workers.collect_main_files_worker import collect_main_files_for_templates
-from .jobs_workers.fix_nested_main_files_worker import fix_nested_main_files_for_templates
+from .collect_main_files_worker import collect_main_files_for_templates
+from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
 logger = logging.getLogger("svg_translate")
 
@@ -85,7 +85,7 @@ def start_job(user: Any | None, job_type: str) -> int:
     return job.id
 
 
-def start_collect_main_files_job(user: Any | None=None) -> int:
+def start_collect_main_files_job(user: Any | None = None) -> int:
     """
     Start a background job to collect main files for templates.
     Returns the job ID.

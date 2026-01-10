@@ -6,9 +6,9 @@ import pymysql
 import pytest
 
 from src.app import create_app
-from src.app.config import settings
+from src.app.admins import admin_service
 from src.app.app_routes.admin.admin_routes import coordinators
-from src.app.users import admin_service
+from src.app.config import settings
 
 
 class FakeDatabase:
@@ -30,7 +30,9 @@ class FakeDatabase:
             "updated_at": row.get("updated_at"),
         }
 
-    def execute_query(self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None) -> int:
+    def execute_query(
+        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+    ) -> int:
         del timeout_override
         params = tuple(params or ())
         normalized = self._normalize(sql)
@@ -70,7 +72,9 @@ class FakeDatabase:
 
         raise NotImplementedError(sql)
 
-    def execute_query_safe(self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None) -> int:
+    def execute_query_safe(
+        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+    ) -> int:
         try:
             return self.execute_query(sql, params, timeout_override=timeout_override)
         except pymysql.MySQLError:
@@ -124,7 +128,7 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 
     monkeypatch.setattr("src.app.users.current.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", _fake_current_user)
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.main.routes.current_user", _fake_current_user)
 
 
@@ -134,8 +138,8 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     original_admins = list(settings.admins)
     object.__setattr__(settings, "admins", [])  # ensure runtime list is driven by the store
 
-    monkeypatch.setattr("src.app.users.admin_service.Database", FakeDatabase)
-    monkeypatch.setattr("src.app.users.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.app.admins.admin_service.Database", FakeDatabase)
+    monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
 
     store = admin_service.MySQLCoordinatorStore(settings.db_data)
     store.add("admin")

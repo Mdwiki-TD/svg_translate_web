@@ -2,30 +2,29 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 import uuid
-import logging
 from functools import wraps
-from typing import Any, Dict, Callable
+from typing import Any, Callable, Dict
 
 from flask import (
     Blueprint,
-    jsonify,
     flash,
+    jsonify,
     redirect,
     url_for,
 )
 from flask.wrappers import Response
 from werkzeug.datastructures import MultiDict
 
+from ...admins.admin_service import active_coordinators
 from ...config import settings
-from ...db.task_store_pymysql import TaskStorePyMysql
 from ...db import TaskAlreadyExistsError
+from ...db.task_store_pymysql import TaskStorePyMysql
+from ...threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
-from ...users.admin_service import active_coordinators
 from ..tasks.args_utils import parse_args
-
-from ...threads.task_threads import launch_task_thread, get_cancel_event
 
 TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
@@ -162,6 +161,4 @@ def restart(task_id: str):
     return redirect(url_for("tasks.task", task_id=new_task_id))
 
 
-__all__ = [
-    "bp_tasks_managers"
-]
+__all__ = ["bp_tasks_managers"]

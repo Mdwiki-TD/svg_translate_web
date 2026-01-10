@@ -147,9 +147,7 @@ def test_fix_nested_post_empty_filename_shows_error(
     """Test that submitting an empty filename shows an error."""
     app, _ = app_client
 
-    user = types.SimpleNamespace(
-        username="tester", access_token="tok", access_secret="sec", user_id=123
-    )
+    user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
     monkeypatch.setattr(routes, "current_user", lambda: user)
 
     flashed: list[tuple[str, str]] = []
@@ -174,9 +172,7 @@ def test_fix_nested_post_preserves_filename_after_submission(
     """Test that filename persists in form after POST (regardless of result)."""
     app, _ = app_client
 
-    user = types.SimpleNamespace(
-        username="tester", access_token="tok", access_secret="sec", user_id=123
-    )
+    user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
     monkeypatch.setattr(routes, "current_user", lambda: user)
 
     # Mock process_fix_nested to return failure
@@ -190,9 +186,7 @@ def test_fix_nested_post_preserves_filename_after_submission(
     monkeypatch.setattr(routes, "load_auth_payload", lambda user: {})
     monkeypatch.setattr(routes, "active_coordinators", lambda: [])
 
-    with app.test_request_context(
-        "/fix_nested/", method="POST", data={"filename": "File:MyFile.svg"}
-    ):
+    with app.test_request_context("/fix_nested/", method="POST", data={"filename": "File:MyFile.svg"}):
         routes.fix_nested_post()
 
     # The filename should remain in the form input
@@ -207,9 +201,7 @@ def test_fix_nested_post_shows_commons_link_on_success(
     """Test that Commons link is displayed after successful upload."""
     app, _ = app_client
 
-    user = types.SimpleNamespace(
-        username="tester", access_token="tok", access_secret="sec", user_id=123
-    )
+    user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
     monkeypatch.setattr(routes, "current_user", lambda: user)
 
     # Mock process_fix_nested to return success
@@ -226,9 +218,7 @@ def test_fix_nested_post_shows_commons_link_on_success(
     monkeypatch.setattr(routes, "flash", lambda *args: None)
     monkeypatch.setattr(routes, "load_auth_payload", lambda user: {})
 
-    with app.test_request_context(
-        "/fix_nested/", method="POST", data={"filename": "Success_Test.svg"}
-    ):
+    with app.test_request_context("/fix_nested/", method="POST", data={"filename": "Success_Test.svg"}):
         routes.fix_nested_post()
 
     # Check for Commons link in context
@@ -244,9 +234,7 @@ def test_fix_nested_post_strips_file_prefix(
     """Test that 'File:' prefix is stripped correctly for processing."""
     app, _ = app_client
 
-    user = types.SimpleNamespace(
-        username="tester", access_token="tok", access_secret="sec", user_id=123
-    )
+    user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
     monkeypatch.setattr(routes, "current_user", lambda: user)
 
     captured_filename: list[str] = []
@@ -262,9 +250,7 @@ def test_fix_nested_post_strips_file_prefix(
     monkeypatch.setattr(routes, "load_auth_payload", lambda user: {})
     monkeypatch.setattr(routes, "active_coordinators", lambda: [])
 
-    with app.test_request_context(
-        "/fix_nested/", method="POST", data={"filename": "File:WithPrefix.svg"}
-    ):
+    with app.test_request_context("/fix_nested/", method="POST", data={"filename": "File:WithPrefix.svg"}):
         routes.fix_nested_post()
 
     assert captured_filename == ["WithPrefix.svg"]

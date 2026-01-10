@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 import datetime
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from ..crypto import decrypt_value, encrypt_value
-
 from ..db import get_db, has_db_config
 
 logger = logging.getLogger("svg_translate")
@@ -90,7 +89,8 @@ def ensure_user_token_table() -> None:
             last_used_at DATETIME DEFAULT NULL,
             rotated_at DATETIME DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    """)
+    """
+    )
 
     # Ensure username index exists
     existing_idx = db.fetch_query_safe(
