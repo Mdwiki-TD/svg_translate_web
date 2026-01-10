@@ -74,10 +74,10 @@ def test_admin_required_not_logged_in():
     def dummy_view():
         return "This should not be returned"
 
-    with patch("src.app.app_routes.admin.admins_required.current_user", return_value=None), patch(
-        "src.app.app_routes.admin.admins_required.redirect"
+    with patch("src.app.admins.admins_required.current_user", return_value=None), patch(
+        "src.app.admins.admins_required.redirect"
     ) as mock_redirect, patch(
-        "src.app.app_routes.admin.admins_required.url_for", return_value="/login"
+        "src.app.admins.admins_required.url_for", return_value="/login"
     ) as mock_url_for:
         response = dummy_view()
 
@@ -102,8 +102,8 @@ def test_admin_required_not_admin():
     # Mock user who is not in the admin list
     mock_user = MockUser(username="testuser")
 
-    with patch("src.app.app_routes.admin.admins_required.current_user", return_value=mock_user), patch(
-        "src.app.app_routes.admin.admins_required.active_coordinators", return_value=["admin1", "admin2"]
+    with patch("src.app.admins.admins_required.current_user", return_value=mock_user), patch(
+        "src.app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]
     ):
         # Expect a Forbidden (403) exception to be raised
         with pytest.raises(Forbidden):
@@ -123,8 +123,8 @@ def test_admin_required_is_admin():
     # Mock user who is in the admin list
     mock_user = MockUser(username="admin1")
 
-    with patch("src.app.app_routes.admin.admins_required.current_user", return_value=mock_user), patch(
-        "src.app.app_routes.admin.admins_required.active_coordinators", return_value=["admin1", "admin2"]
+    with patch("src.app.admins.admins_required.current_user", return_value=mock_user), patch(
+        "src.app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]
     ):
         # The view should be executed and return its value
         response = dummy_view()

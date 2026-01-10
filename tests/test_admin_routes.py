@@ -128,7 +128,7 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 
     monkeypatch.setattr("src.app.users.current.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", _fake_current_user)
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", _fake_current_user)
     monkeypatch.setattr("src.app.app_routes.main.routes.current_user", _fake_current_user)
 
 
@@ -138,8 +138,8 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     original_admins = list(settings.admins)
     object.__setattr__(settings, "admins", [])  # ensure runtime list is driven by the store
 
-    monkeypatch.setattr("src.app.users.admin_service.Database", FakeDatabase)
-    monkeypatch.setattr("src.app.users.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.app.admins.admin_service.Database", FakeDatabase)
+    monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
 
     store = admin_service.MySQLCoordinatorStore(settings.db_data)
     store.add("admin")

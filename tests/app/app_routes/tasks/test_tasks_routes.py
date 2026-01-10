@@ -334,8 +334,8 @@ def test_delete_task_success(app_client: tuple[Flask, Any, DummyTaskStore], monk
     store.tasks["deadbeef"] = {"id": "deadbeef", "title": "Delete me"}
 
     user = types.SimpleNamespace(username="admin")
-    monkeypatch.setattr("src.app.app_routes.admin.admins_required.current_user", lambda: user)
-    monkeypatch.setattr("src.app.app_routes.admin.admins_required.active_coordinators", lambda: ["admin"])
+    monkeypatch.setattr("src.app.admins.admins_required.current_user", lambda: user)
+    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: ["admin"])
 
     flashed: list[tuple[str, str]] = []
 

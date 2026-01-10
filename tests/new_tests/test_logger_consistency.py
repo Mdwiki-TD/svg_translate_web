@@ -39,7 +39,7 @@ import pytest
         ("src.app.template_service", "template_service"),
         ("src.app.threads.task_threads", "task_threads"),
         ("src.app.threads.web_run_task", "web_run_task"),
-        ("src.app.users.admin_service", "admin_service"),
+        ("src.app.admins.admin_service", "admin_service"),
         ("src.app.users.store", "user_store"),
         ("src.app.app_routes.templates.category", "category"),
         ("src.app.tasks.texts.text_bot", "text_bot"),

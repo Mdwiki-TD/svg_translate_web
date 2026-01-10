@@ -20,7 +20,7 @@ def app_factory(monkeypatch):
         import importlib
 
         app_module = importlib.import_module("src.app.__init__")
-        admin_service = importlib.import_module("src.app.users.admin_service")
+        admin_service = importlib.import_module("src.app.admins.admin_service")
 
         class _DummyCoordinatorStore:
             def list(self):  # pragma: no cover - trivial stub
