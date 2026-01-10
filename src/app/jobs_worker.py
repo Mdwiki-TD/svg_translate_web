@@ -45,6 +45,13 @@ def cancel_job(job_id: int) -> bool:
     return False
 
 
+def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
+    try:
+        target_func(job_id, user, cancel_event=cancel_event)
+    finally:
+        _pop_cancel_event(job_id)
+
+
 def start_job(user: Any | None, job_type: str) -> int:
     """
     Start a background job to fix nested tags in all template main files.
@@ -65,16 +72,10 @@ def start_job(user: Any | None, job_type: str) -> int:
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
-    def _runner(job_id: int, user: Any | None, cancel_event: threading.Event) -> None:
-        try:
-            jobs_targets[job_type](job_id, user, cancel_event=cancel_event)
-        finally:
-            _pop_cancel_event(job_id)
-
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event),
+        args=(job.id, user, cancel_event, jobs_targets[job_type]),
         daemon=True,
     )
     thread.start()

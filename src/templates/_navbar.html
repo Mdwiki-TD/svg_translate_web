@@ -7,74 +7,77 @@
 {% endmacro %}
 
 
-<nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('main.index') }}">Copy SVG Translation</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    {{ nav_link('main.', 'bi-house-door-fill', 'Home', url_for('main.index')) }}
-                </li>
-                <li class="nav-item">
-                    {{ nav_link('tasks.', 'bi-list-task', 'All Tasks', url_for('tasks.tasks')) }}
-                </li>
-                {% if is_admin %}
-                <li class="nav-item">
-                    {{ nav_link('admin.', 'bi-people-fill', 'Admins', url_for('admin.admin_dashboard')) }}
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    {{ nav_link('templates.', 'bi-file-earmark-text', 'Templates', url_for('templates.main'), 'OWIDSlider Templates') }}
-                </li>
-                <li class="nav-item">
-                    {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button" 
-                       data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-wrench-adjustable"></i> Fix Nested
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="fixNestedDropdown">
-                        <li>
-                            <a class="dropdown-item" href="{{ url_for('fix_nested.fix_nested') }}">
-                                <i class="bi bi-plus-circle"></i> New Fix Task
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ url_for('fix_nested_explorer.list_tasks') }}">
-                                <i class="bi bi-list-task"></i> View All Tasks
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://github.com/Mdwiki-TD/svg_translate_web" target="_blank"
-                        rel="noopener noreferrer">
-                        <i class="bi bi-github"></i> GitHub
-                    </a>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center">
-                <!-- Dark mode toggle button -->
-                <button class="btn btn-outline-secondary btn-sm me-2" id="darkModeToggle" type="button"
+<header>
+    <nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">Copy SVG Translation</a>
+            <div class="d-flex align-items-center order-lg-last">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2" id="darkModeToggle" type="button"
                     aria-label="Toggle dark mode">
                     <i class="bi bi-moon-stars-fill"></i>
                 </button>
-
-                {% if current_user or is_authenticated %}
-                <a href="{{ url_for('tasks.tasks', user=current_user.username) }}"
-                    class="navbar-text me-3 text-decoration-none">
-                    {{ current_user.username }}
-                </a>
-                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
-                {% else %}
-                <a class="btn btn-success btn-sm" href="{{ url_for('auth.login') }}">Login</a>
-                {% endif %}
+            </div>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
+                    {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('main.', 'bi-house-door-fill', 'Home', url_for('main.index')) }}
+                    </li>
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('tasks.', 'bi-list-task', 'All Tasks', url_for('tasks.tasks')) }}
+                    </li>
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('templates.', 'bi-file-earmark-text', 'Templates', url_for('templates.main'), 'OWIDSlider Templates') }}
+                    </li>
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
+                    </li>
+                    <li class="{{ nav_item_class }} dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-wrench-adjustable"></i> Fix Nested
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="fixNestedDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('fix_nested.fix_nested') }}">
+                                    <i class="bi bi-plus-circle"></i> New Fix Task
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('fix_nested_explorer.list_tasks') }}">
+                                    <i class="bi bi-list-task"></i> View All Tasks
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="{{ nav_item_class }}">
+                        <a class="nav-link" href="https://github.com/Mdwiki-TD/svg_translate_web" target="_blank"
+                            rel="noopener noreferrer">
+                            <i class="bi bi-github"></i> GitHub
+                        </a>
+                    </li>
+                    {% if is_admin %}
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('admin.', 'bi-people-fill', 'Admins', url_for('admin.admin_dashboard')) }}
+                    </li>
+                    {% endif %}
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if current_user or is_authenticated %}
+                    <a href="{{ url_for('tasks.tasks', user=current_user.username) }}"
+                        class="navbar-text me-3 text-decoration-none">
+                        {{ current_user.username }}
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
+                    {% else %}
+                    <a class="btn btn-success btn-sm" href="{{ url_for('auth.login') }}">Login</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
+</header>
