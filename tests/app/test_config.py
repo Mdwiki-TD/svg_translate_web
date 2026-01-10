@@ -147,17 +147,17 @@ def test_load_db_data(mock_exists):
     assert result["db_connect_file"] == "/test/file"
 
 
-@patch.dict(os.environ, {"MAIN_DIR": "/custom/main"})
+@patch.dict(os.environ, {"MAIN_DIR": "/tmp/main"})
 def test_get_paths():
     """Test _get_paths function."""
     result = _get_paths()
 
     assert isinstance(result, Paths)
-    assert result.svg_data == "/custom/main/svg_data"
-    assert result.svg_data_thumb == "/custom/main/svg_data_thumb"
-    assert result.log_dir == "/custom/main/logs"
-    assert result.fix_nested_data == "/custom/main/fix_nested_data"
-    assert result.svg_jobs_path == "/custom/main/svg_jobs"
+    assert result.svg_data == "/tmp/main/svg_data"
+    assert result.svg_data_thumb == "/tmp/main/svg_data_thumb"
+    assert result.log_dir == "/tmp/main/logs"
+    assert result.fix_nested_data == "/tmp/main/fix_nested_data"
+    assert result.svg_jobs_path == "/tmp/main/svg_jobs"
 
 
 def test_env_bool():
