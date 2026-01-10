@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Extract SVG Translations{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Extract SVG Translations
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Enter a file name to download and extract translations from an SVG file.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('extract.extract_translations_post') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="mb-3">
+                            <label for="filename" class="form-label">
+                                File Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="filename" name="filename" placeholder=""
+                                value="{{ filename|default('', true) }}" required>
+                            <div class="form-text">
+                                You can include or omit the "File:" prefix
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-arrow-down-circle"></i> Extract Translations
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if translations_json %}
+                    <hr class="my-4">
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-check-circle"></i> Translations Extracted Successfully
+                        </h5>
+                    </div>
+                    {% endif %}
+
+                    {% if languages %}
+                    <div class="mb-3">
+                        <h5>Languages Detected ({{ languages|length }}):</h5>
+                        <p>
+                            {% for lang in languages %}
+                            <span class="badge bg-secondary">{{ lang }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% if translations and translations.title %}
+                    <div class="mb-3">
+                        <h5>Title Translations Summary:</h5>
+                        <div class="table-responsive">
+                            {% for text, langs in translations.title.items() %}
+                            <table class="table table-sm table-striped table-bordered mb-3">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 100px;">en</th>
+                                        <td><strong>{{ text }}</strong></td>
+                                    </tr>
+                                    {% for lang, translation in langs.items() %}
+                                    <tr>
+                                        <td>{{ lang }}</td>
+                                        <td>{{ translation }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if translations and translations.new %}
+                    <div class="mb-3">
+                        <h5>New Translations Summary:</h5>
+                        <div class="table-responsive">
+                            {% for text, langs in translations.new.items() %}
+                            <table class="table table-sm table-striped table-bordered mb-3">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 100px;">en</th>
+                                        <td><strong>{{ text }}</strong></td>
+                                    </tr>
+                                    {% for lang, translation in langs.items() %}
+                                    <tr>
+                                        <td>{{ lang }}</td>
+                                        <td>{{ translation }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if translations_json %}
+                    <hr class="my-4">
+                    <div class="mb-3">
+                        <h5>Extracted Data:</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <pre class="mb-0"
+                                    style="max-height: 500px; overflow-y: auto;"><code>{{ translations_json }}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> What does this do?
+                        </h5>
+                        <ol class="mb-0">
+                            <li>Downloads the specified SVG file from Wikimedia Commons</li>
+                            <li>Extracts translation data from the file</li>
+                            <li>Displays the extracted translations in JSON format</li>
+                            <li>Shows a summary of translations by language</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
