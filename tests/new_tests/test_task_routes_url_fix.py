@@ -15,7 +15,7 @@ def test_start_redirects_to_correct_task_endpoint(monkeypatch):
     mock_task_store = Mock()
     mock_task_store.find_task_by_normalized_title = Mock(return_value={"id": "existing-task-123", "status": "Pending"})
 
-    monkeypatch.setattr(routes, "_task_store", lambda: mock_task_store)
+    monkeypatch.setattr("src.app.app_routes.tasks.routes._task_store", lambda: mock_task_store)
 
     with patch("src.app.app_routes.tasks.routes.request") as mock_request:
         mock_request.method = "POST"

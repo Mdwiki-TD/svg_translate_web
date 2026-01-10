@@ -7,13 +7,13 @@ from unittest.mock import Mock, patch
 from src.app.app_routes.admin.admin_routes import coordinators
 
 
-def _test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):
+def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):
     """Test that _add_coordinator catches both LookupError and ValueError in single except clause."""
     mock_service = Mock()
 
     # Test with ValueError
     mock_service.add_coordinator = Mock(side_effect=ValueError("Username invalid"))
-    monkeypatch.setattr(coordinators, "admin_service", mock_service)
+    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.admin_service", mock_service)
 
     with patch("src.app.app_routes.admin.admin_routes.coordinators.request") as mock_request:
         mock_request.form.get = Mock(return_value="test_user")
