@@ -11,8 +11,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from . import jobs_service
-
 from .. import template_service
 from ..app_routes.fix_nested.fix_utils import (
     detect_nested_tags,
@@ -21,6 +19,7 @@ from ..app_routes.fix_nested.fix_utils import (
     upload_fixed_svg,
     verify_fix,
 )
+from . import jobs_service
 
 logger = logging.getLogger("svg_translate")
 

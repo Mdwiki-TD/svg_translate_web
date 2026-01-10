@@ -14,10 +14,8 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ....jobs_workers import jobs_service
-
-from ....jobs_workers import jobs_worker
 from ....admins.admins_required import admin_required
+from ....jobs_workers import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
 
