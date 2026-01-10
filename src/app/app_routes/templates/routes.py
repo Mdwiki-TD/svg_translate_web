@@ -1,17 +1,18 @@
 """Svg viewer"""
 
-from pathlib import Path
+import json
 import logging
 import re
-import json
+from pathlib import Path
 
 from flask import (
     Blueprint,
     render_template,
 )
-from .category import get_category_members
+
 from ...config import settings
-from ...template_service import get_templates_db, add_or_update_template
+from ...template_service import add_or_update_template, get_templates_db
+from .category import get_category_members
 
 bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
 logger = logging.getLogger("svg_translate")

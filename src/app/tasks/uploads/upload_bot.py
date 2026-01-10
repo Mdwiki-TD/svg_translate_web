@@ -1,7 +1,8 @@
-import requests
-import mwclient
-from pathlib import Path
 import logging
+from pathlib import Path
+
+import mwclient
+import requests
 
 logger = logging.getLogger("svg_translate")
 

@@ -1,8 +1,8 @@
 """Symmetric encryption helpers for storing OAuth secrets."""
 
 from __future__ import annotations
-import os
 
+import os
 import threading
 
 from cryptography.fernet import Fernet, InvalidToken

@@ -4,15 +4,16 @@ import shutil
 import uuid
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 
-from ...users.admin_service import active_coordinators
-from ...routes_utils import load_auth_payload
-from .fix_utils import process_fix_nested, process_fix_nested_file_simple
-from ...users.current import current_user
-from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...db.db_class import Database
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
 from ...config import settings
+from ...db.db_class import Database
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...routes_utils import load_auth_payload
+from ...users.admin_service import active_coordinators
+from ...users.current import current_user
+from .fix_utils import process_fix_nested, process_fix_nested_file_simple
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger("svg_translate")

@@ -1,27 +1,29 @@
 """Explorer routes for fix_nested tasks."""
 
 import logging
-from pathlib import Path
 import shutil
+from pathlib import Path
+
 from flask import (
     Blueprint,
-    render_template,
-    send_from_directory,
     abort,
-    request,
     flash,
     redirect,
+    render_template,
+    request,
+    send_from_directory,
     url_for,
 )
+
 from ...app_routes.admin.routes import admin_required
-from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...db.db_class import Database
 from ...config import settings
+from ...db.db_class import Database
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...routes_utils import load_auth_payload
+from ...tasks.uploads import get_user_site, upload_file
+from ...users.current import current_user
 from ..explorer.compare import analyze_file
 from ..fix_nested.fix_utils import log_to_task
-from ...routes_utils import load_auth_payload
-from ...users.current import current_user
-from ...tasks.uploads import get_user_site, upload_file
 
 bp_fix_nested_explorer = Blueprint("fix_nested_explorer", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger("svg_translate")

@@ -1,20 +1,23 @@
 """Svg viewer"""
 
 from __future__ import annotations
+
 import logging
+
 from flask import (
     Blueprint,
     render_template,
     send_from_directory,
 )
-from .thumbnail_utils import save_thumb
+
 from .compare import analyze_file
+from .thumbnail_utils import save_thumb
 from .utils import (
-    svg_data_path,
-    svg_data_thumb_path,
     get_files,
     get_informations,
     get_temp_title,
+    svg_data_path,
+    svg_data_thumb_path,
 )
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")

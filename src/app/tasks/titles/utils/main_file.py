@@ -2,9 +2,10 @@
 
 """
 
-import wikitextparser as wtp
 import re
 import urllib
+
+import wikitextparser as wtp
 
 
 def match_main_title_from_url(text):

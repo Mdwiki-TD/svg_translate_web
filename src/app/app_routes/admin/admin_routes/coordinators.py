@@ -3,7 +3,9 @@
 """
 
 from __future__ import annotations
+
 import logging
+
 from flask import (
     Blueprint,
     flash,
@@ -14,8 +16,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ....users.current import current_user
 from ....users import admin_service
+from ....users.current import current_user
 from ..admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")

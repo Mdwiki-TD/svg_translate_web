@@ -6,7 +6,6 @@ from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 
 from ...config import settings
 
-
 _serializer = URLSafeTimedSerializer(settings.secret_key, salt="svg-translate-uid")
 
 _state_serializer = URLSafeTimedSerializer(settings.secret_key, salt="svg-translate-oauth-state")

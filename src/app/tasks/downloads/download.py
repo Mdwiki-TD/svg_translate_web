@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Iterable, Callable
+from typing import Any, Callable, Dict, Iterable
 from urllib.parse import quote
 
 import requests
 from tqdm import tqdm
-from ...db.task_store_pymysql import TaskStorePyMysql
+
 from ...config import settings
+from ...db.task_store_pymysql import TaskStorePyMysql
 
 logger = logging.getLogger("svg_translate")
 

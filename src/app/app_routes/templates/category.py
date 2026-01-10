@@ -1,6 +1,8 @@
-import requests
 import logging
 import urllib.parse
+
+import requests
+
 from ...config import settings
 
 logger = logging.getLogger("svg_translate")

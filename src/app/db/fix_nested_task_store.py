@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Dict, List, Optional
-import json
 
 from .db_class import Database
 

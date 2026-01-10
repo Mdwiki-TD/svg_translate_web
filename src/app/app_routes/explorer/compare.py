@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+
 from lxml import etree
 
 logger = logging.getLogger("svg_translate")

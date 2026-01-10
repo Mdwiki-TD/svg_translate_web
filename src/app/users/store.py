@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 import datetime
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from ..crypto import decrypt_value, encrypt_value
-
 from ..db import get_db, has_db_config
 
 logger = logging.getLogger("svg_translate")

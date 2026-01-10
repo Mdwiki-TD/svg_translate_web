@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+
 from ...config import settings
 
 logger = logging.getLogger("svg_translate")

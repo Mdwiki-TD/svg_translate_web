@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import threading
 import logging
+import threading
 from typing import Any, Dict
 
 from ..config import settings

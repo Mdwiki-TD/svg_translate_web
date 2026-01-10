@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+
 from flask import (
     Blueprint,
     flash,
@@ -13,11 +14,10 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ....users.current import current_user
-from .... import jobs_service
-from .... import jobs_worker
-from ..admins_required import admin_required
+from .... import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
+from ....users.current import current_user
+from ..admins_required import admin_required
 
 logger = logging.getLogger("svg_translate")
 

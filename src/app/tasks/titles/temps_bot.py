@@ -6,9 +6,11 @@ get all files names from owidslidersrcs
 
 """
 
-import wikitextparser as wtp
 import re
-from .utils.main_file import match_main_title_from_url, find_main_title
+
+import wikitextparser as wtp
+
+from .utils.main_file import find_main_title, match_main_title_from_url
 
 
 def get_titles_from_wikilinks(text):

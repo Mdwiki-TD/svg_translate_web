@@ -4,23 +4,21 @@ Worker module for fixing nested tags in main files of templates.
 
 from __future__ import annotations
 
-from pathlib import Path
 import logging
-import threading
 import tempfile
+import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+from .. import jobs_service, template_service
 from ..app_routes.fix_nested.fix_utils import (
-    download_svg_file,
     detect_nested_tags,
+    download_svg_file,
     fix_nested_tags,
-    verify_fix,
     upload_fixed_svg,
+    verify_fix,
 )
-
-from .. import template_service
-from .. import jobs_service
 
 logger = logging.getLogger("svg_translate")
 

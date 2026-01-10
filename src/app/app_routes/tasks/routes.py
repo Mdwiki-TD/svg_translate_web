@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 import uuid
-import logging
+
 from flask import (
     Blueprint,
-    jsonify,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -18,13 +19,10 @@ from flask import (
 from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...db.task_store_pymysql import TaskStorePyMysql
+from ...routes_utils import format_task, get_error_message, load_auth_payload, order_stages
+from ...threads.task_threads import launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..admin.admins_required import admin_required
-
-from ...routes_utils import load_auth_payload, get_error_message, format_task, order_stages
-
-from ...threads.task_threads import launch_task_thread
-
 from .args_utils import parse_args
 
 TASK_STORE: TaskStorePyMysql | None = None

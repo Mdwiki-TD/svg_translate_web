@@ -8,11 +8,12 @@ from flask import (
     Blueprint,
     render_template,
 )
+
 from ...tasks.routes import (
+    TASKS_LOCK,
     _task_store,
     format_task,
     format_task_message,
-    TASKS_LOCK,
 )
 from ..admins_required import admin_required
 

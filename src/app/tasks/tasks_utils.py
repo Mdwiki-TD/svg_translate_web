@@ -1,7 +1,7 @@
-import json
 import html
-from urllib.parse import quote
+import json
 import logging
+from urllib.parse import quote
 
 logger = logging.getLogger("svg_translate")
 

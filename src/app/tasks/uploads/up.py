@@ -1,17 +1,17 @@
 """Upload task helpers with progress callbacks."""
 
 from __future__ import annotations
-from typing import Any, Dict, Optional, Callable
 
 import logging
+from typing import Any, Callable, Dict, Optional
+
 import mwclient
 from tqdm import tqdm
-from .upload_bot import upload_file
-
-from ...users.store import mark_token_used
-from .wiki_client import build_upload_site
 
 from ...db.task_store_pymysql import TaskStorePyMysql
+from ...users.store import mark_token_used
+from .upload_bot import upload_file
+from .wiki_client import build_upload_site
 
 logger = logging.getLogger("svg_translate")
 

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import logging
-import threading
 import random
+import threading
 import time
 from typing import Any, Iterable, Sequence
 
 import pymysql
-
 
 logger = logging.getLogger("svg_translate")
 

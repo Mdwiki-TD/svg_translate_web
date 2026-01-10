@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-import mwoauth
 import logging
 from typing import Tuple
+
+import mwoauth
 from flask import url_for
+
 from ...config import settings
 
 logger = logging.getLogger("svg_translate")
