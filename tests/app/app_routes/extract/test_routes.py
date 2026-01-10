@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from pytest_mock import MockerFixture
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -86,38 +87,32 @@ def test_extract_post_strips_file_prefix(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
+    mocker: MockerFixture,  # Add mocker
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
     app, _ = app_client
 
-    # Mock download_one_file to simulate successful download
-    def mock_download(*args, **kwargs):
-        return {"result": "success", "path": "/tmp/test.svg"}
+    # 1. Use mocker.patch for stronger assertions
+    mock_download = mocker.patch("src.app.app_routes.extract.routes.download_one_file")
+    mock_download.return_value = {"result": "success", "path": "/tmp/test.svg"}
 
-    # Mock extract to return sample data
-    def mock_extract(*args, **kwargs):
-        return {"new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}}, "title": {}}
+    mock_extract = mocker.patch("src.app.app_routes.extract.routes.extract")
+    mock_extract.return_value = {"new": {}, "title": {}}
 
-    # Mock Path and tempfile
-    mock_temp_dir = MagicMock()
-    mock_temp_dir.exists.return_value = True
-    mock_temp_dir.__truediv__ = lambda self, other: Path(f"/tmp/{other}")
+    # 2. Use mocker.patch for tempfile to avoid manual mocking
+    mocker.patch("src.app.app_routes.extract.routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
+    mocker.patch("src.app.app_routes.extract.routes.shutil.rmtree")
+    mocker.patch("src.app.app_routes.extract.routes.flash")
 
-    def mock_mkdtemp():
-        return "/tmp/test_dir"
-
-    monkeypatch.setattr("src.app.app_routes.extract.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.app.app_routes.extract.routes.extract", mock_extract)
-    monkeypatch.setattr("src.app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
-    monkeypatch.setattr("src.app.app_routes.extract.routes.flash", lambda *args: None)
-
-    with app.test_request_context("/extract/", method="POST", data={"filename": "File:Test.svg"}):
+    with app.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
         routes.extract_translations_post()
 
-    # Verify the filename passed to download_one_file doesn't have "File:" prefix
-    # We can check this indirectly through the patch_render context
-    assert patch_render["context"]["filename"] == "File:Test.svg"
+    # Assert that download was called with the stripped filename
+    mock_download.assert_called_once_with(
+        title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True
+    )
+
+    assert patch_render["context"]["filename"] == "File: Test.svg"
 
 
 def test_extract_post_download_failure(

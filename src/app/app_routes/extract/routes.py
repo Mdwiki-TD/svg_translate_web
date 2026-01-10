@@ -55,6 +55,10 @@ def extract_translations_post():
         # Extract translations using CopySVGTranslation
         try:
             translations = extract(svg_file_path=file_path, case_insensitive=True)
+            if not isinstance(translations, dict):
+                flash("Invalid or empty translation data", "danger")
+                return render_template("extract/form.html", filename=original_filename)
+
         except Exception as e:
             logger.error(f"Error extracting translations: {e}", exc_info=True)
             flash(f"Error extracting translations: {str(e)}", "danger")
