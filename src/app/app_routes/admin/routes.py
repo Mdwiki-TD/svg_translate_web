@@ -8,7 +8,6 @@ from flask import (
     request,
 )
 
-# from ...users.current import current_user
 from .admins_required import admin_required
 from .admin_routes.coordinators import Coordinators
 from .admin_routes.recent import Recent
@@ -31,8 +30,6 @@ def inject_sidebar():
 @admin_required
 def admin_dashboard():
     return redirect(url_for("admin.recent_routes"))
-    # user = current_user()
-    # return render_template( "admins.html", current_user=user, )
 
 
 Coordinators(bp_admin)
