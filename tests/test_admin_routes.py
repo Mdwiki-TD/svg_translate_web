@@ -153,7 +153,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
         object.__setattr__(settings, "admins", original_admins)
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -166,7 +166,7 @@ def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest
     assert "admin" in page
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_requires_admin_user(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="not_admin"))
@@ -175,7 +175,7 @@ def test_coordinator_dashboard_requires_admin_user(app_and_store, monkeypatch: p
     assert response.status_code == 403
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
     _set_current_user(monkeypatch, None)
@@ -185,7 +185,7 @@ def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypat
     assert response.headers["Location"].endswith("/login")
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store
 
@@ -202,7 +202,7 @@ def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pyte
     assert "Admins" in html
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_add_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -216,7 +216,7 @@ def test_add_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     assert any(record.username == "new_admin" for record in store.list())
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_toggle_coordinator_active(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
@@ -234,7 +234,7 @@ def test_toggle_coordinator_active(app_and_store, monkeypatch: pytest.MonkeyPatc
     assert "helper" not in settings.admins
 
 
-@pytest.mark.skip(reason="Pending rewrite to new admin checks.")
+@pytest.mark.skip2(reason="Pending rewrite to new admin checks.")
 def test_delete_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, store = app_and_store
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
