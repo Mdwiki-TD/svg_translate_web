@@ -18,20 +18,13 @@
                     </p>
 
                     <form method="POST" action="{{ url_for('extract.extract_translations_post') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
                             <label for="filename" class="form-label">
                                 File Name <span class="text-danger">*</span>
                             </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="filename"
-                                name="filename"
-                                placeholder=""
-                                value="{{ filename|default('', true) }}"
-                                required
-                            >
+                            <input type="text" class="form-control" id="filename" name="filename" placeholder=""
+                                value="{{ filename|default('', true) }}" required>
                             <div class="form-text">
                                 You can include or omit the "File:" prefix
                             </div>
@@ -51,16 +44,18 @@
                             <i class="bi bi-check-circle"></i> Translations Extracted Successfully
                         </h5>
                     </div>
-                    
-                    <div class="mb-3">
-                        <h5>Extracted Data:</h5>
-                        <div class="card">
-                            <div class="card-body">
-                                <pre class="mb-0" style="max-height: 500px; overflow-y: auto;"><code>{{ translations_json }}</code></pre>
-                            </div>
-                        </div>
-                    </div>
+                    {% endif %}
 
+                    {% if languages %}
+                    <div class="mb-3">
+                        <h5>Languages Detected ({{ languages|length }}):</h5>
+                        <p>
+                            {% for lang in languages %}
+                            <span class="badge bg-secondary">{{ lang }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endif %}
                     {% if translations.new %}
                     <div class="mb-3">
                         <h5>New Translations Summary:</h5>
@@ -75,11 +70,12 @@
                                 <tbody>
                                     {% for text, langs in translations.new.items() %}
                                     <tr>
-                                        <td><strong>{{ text }}</strong></td>
                                         <td>
                                             <ul class="list-unstyled mb-0">
+                                                <span class="badge bg-primary">en</span> <strong>{{ text }}</strong>
                                                 {% for lang, translation in langs.items() %}
-                                                <li><span class="badge bg-primary">{{ lang }}</span> {{ translation }}</li>
+                                                <li><span class="badge bg-primary">{{ lang }}</span> {{ translation }}
+                                                </li>
                                                 {% endfor %}
                                             </ul>
                                         </td>
@@ -120,6 +116,18 @@
                         </div>
                     </div>
                     {% endif %}
+
+                    {% if translations_json %}
+                    <hr class="my-4">
+                    <div class="mb-3">
+                        <h5>Extracted Data:</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <pre class="mb-0"
+                                    style="max-height: 500px; overflow-y: auto;"><code>{{ translations_json }}</code></pre>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
 
                     <hr class="my-4">

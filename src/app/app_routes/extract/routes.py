@@ -60,6 +60,12 @@ def extract_translations_post():
             flash(f"Error extracting translations: {str(e)}", "danger")
             return render_template("extract/form.html", filename=original_filename)
 
+        translations.pop("tspans_by_id", None)
+        # {"new":"150": { "ar": "150", "ca": "150", "es": "150", "hr": "150", "pt": "150", "si": "150", "uk": "150", "id": "150" },}
+
+        languages = sorted({lang for entry in translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry})
+        logger.info(f"Extracted languages: {len(languages):,}")
+
         # Convert translations to pretty JSON for display
         translations_json = json.dumps(translations, ensure_ascii=False, indent=4)
 
@@ -67,6 +73,7 @@ def extract_translations_post():
         return render_template(
             "extract/form.html",
             filename=original_filename,
+            languages=languages,
             translations_json=translations_json,
             translations=translations,
         )
