@@ -1,7 +1,7 @@
 """Unit tests for cryptographic helpers."""
 import pytest
 
-from src.app.crypto import decrypt_value, encrypt_value
+from src.app.crypto import decrypt_value, encrypt_value, DecryptionError
 
 
 def test_encrypt_decrypt_roundtrip():
@@ -13,5 +13,6 @@ def test_encrypt_decrypt_roundtrip():
 
 
 def test_decrypt_invalid_token_raises():
-    with pytest.raises(ValueError):
+    """Test that decrypting an invalid token raises DecryptionError."""
+    with pytest.raises(DecryptionError):
         decrypt_value(b"not-a-valid-fernet-token")

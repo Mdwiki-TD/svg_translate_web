@@ -76,6 +76,9 @@ def test_Database_connect(mock_pymysql):
     # Call _connect
     db._connect()
 
+    # Import the actual DictCursor class used by the module
+    from pymysql.cursors import DictCursor
+
     # Verify pymysql.connect was called with correct parameters
     mock_pymysql.connect.assert_called_once_with(
         host="localhost",
@@ -86,7 +89,7 @@ def test_Database_connect(mock_pymysql):
         charset="utf8mb4",
         init_command="SET time_zone = '+00:00'",
         autocommit=True,
-        cursorclass=mock_pymysql.cursors.DictCursor,
+        cursorclass=DictCursor,
         user="testuser",
         password="testpass"
     )
