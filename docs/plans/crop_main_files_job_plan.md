@@ -11,26 +11,26 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 ## Implementation Checklist
 
 ### Phase 1: Core Worker
-- [ ] Create [`src/main_app/jobs_workers/crop_main_files_worker.py`](src/main_app/jobs_workers/crop_main_files_worker.py)
-  - [ ] Implement `generate_cropped_filename()` - name transformation
-  - [ ] Implement `crop_svg_file()` - SVG cropping logic
-  - [ ] Implement `upload_cropped_file()` - Commons upload
-  - [ ] Implement `process_crops()` - main processing loop
-  - [ ] Implement `crop_main_files_for_templates()` - entry point
+- [x] Create [`src/main_app/jobs_workers/crop_main_files_worker.py`](src/main_app/jobs_workers/crop_main_files_worker.py)
+  - [x] Implement `generate_cropped_filename()` - name transformation
+  - [ ] Implement `crop_svg_file()` - SVG cropping logic (TODO: full implementation)
+  - [ ] Implement `upload_cropped_file()` - Commons upload (TODO: full implementation)
+  - [x] Implement `process_crops()` - main processing loop (placeholder done)
+  - [x] Implement `crop_main_files_for_templates()` - entry point (placeholder done)
 
 ### Phase 2: Templates
-- [ ] Create [`src/templates/admins/crop_main_files_jobs.html`](src/templates/admins/crop_main_files_jobs.html) - list view
-- [ ] Create [`src/templates/admins/crop_main_files_job_detail.html`](src/templates/admins/crop_main_files_job_detail.html) - detail view
+- [x] Create [`src/templates/admins/crop_main_files_jobs.html`](src/templates/admins/crop_main_files_jobs.html) - list view
+- [x] Create [`src/templates/admins/crop_main_files_job_detail.html`](src/templates/admins/crop_main_files_job_detail.html) - detail view
 
 ### Phase 3: Integration
-- [ ] Modify [`src/main_app/jobs_workers/jobs_worker.py`](src/main_app/jobs_workers/jobs_worker.py)
-  - [ ] Import `crop_main_files_for_templates`
-  - [ ] Add to `jobs_targets` dictionary
-- [ ] Modify [`src/main_app/app_routes/admin/admin_routes/jobs.py`](src/main_app/app_routes/admin/admin_routes/jobs.py)
-  - [ ] Add to `JOB_TYPE_TEMPLATES`
-  - [ ] Add to `JOB_TYPE_LIST_TEMPLATES`
-- [ ] Modify [`src/main_app/app_routes/admin/sidebar.py`](src/main_app/app_routes/admin/sidebar.py)
-  - [ ] Add "Crop Main Files" sidebar menu item
+- [x] Modify [`src/main_app/jobs_workers/jobs_worker.py`](src/main_app/jobs_workers/jobs_worker.py)
+  - [x] Import `crop_main_files_for_templates`
+  - [x] Add to `jobs_targets` dictionary
+- [x] Modify [`src/main_app/app_routes/admin/admin_routes/jobs.py`](src/main_app/app_routes/admin/admin_routes/jobs.py)
+  - [x] Add to `JOB_TYPE_TEMPLATES`
+  - [x] Add to `JOB_TYPE_LIST_TEMPLATES`
+- [x] Modify [`src/main_app/app_routes/admin/sidebar.py`](src/main_app/app_routes/admin/sidebar.py)
+  - [x] Add "Crop Main Files" sidebar menu item
 
 ### Phase 4: Testing
 - [ ] Create [`tests/app/jobs_workers/test_crop_main_files_worker.py`](tests/app/jobs_workers/test_crop_main_files_worker.py)
@@ -41,11 +41,11 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
   - [ ] Test full workflow
 
 ### Phase 5: Verification
-- [ ] Verify endpoints accessible at `/admin/jobs/crop_main_files/*`
-- [ ] Test job start from admin UI
-- [ ] Test job cancellation
-- [ ] Test job deletion
-- [ ] Verify results display correctly
+- [x] Verify endpoints accessible at `/admin/jobs/crop_main_files/*`
+- [ ] Test job start from admin UI (needs full worker implementation)
+- [ ] Test job cancellation (needs full worker implementation)
+- [ ] Test job deletion (needs full worker implementation)
+- [ ] Verify results display correctly (needs full worker implementation)
 
 ---
 
