@@ -68,9 +68,7 @@ def download_file_from_commons(
     if session is None:
         session = requests.Session()
         session.headers.update(
-            {
-                "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
-            }
+            {"User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0"}
         )
 
     try:

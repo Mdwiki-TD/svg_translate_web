@@ -58,11 +58,7 @@ def download_one_file(
 
     if not session:
         session = requests.Session()
-        session.headers.update(
-            {
-                "User-Agent": settings.oauth.user_agent,
-            }
-        )
+        session.headers.update({"User-Agent": settings.oauth.user_agent, })
     try:
         response = session.get(url, timeout=30, allow_redirects=True)
     except requests.RequestException as exc:
