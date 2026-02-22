@@ -11,7 +11,7 @@
             <a href="{{ url_for('admin.download_all_main_files') }}" class="btn btn-success">
                 <i class="bi bi-download"></i> Download All as ZIP
             </a>
-            <form method="post" action="{{ url_for('admin.start_download_main_files_job') }}" class="d-inline">
+            <form method="post" action="{{ url_for('admin.start_job', job_type='download_main_files') }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-primary"
                         data-confirm-message="This will start a background job to download all main files from the remote source to the local filesystem. Continue?"
