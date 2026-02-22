@@ -3,18 +3,13 @@
 set -euo pipefail
 
 BRANCH="${1:-main}"
-
 REPO_URL="https://github.com/Mdwiki-TD/svg_translate_web.git"
-
 TARGET_DIR="$HOME/www/python/src"
-
 CLONE_DIR="$HOME/temp_clone_path"
-
 backup_dir="$HOME/www/python/src_backup_$(date +%Y%m%d_%H%M%S)"
 
 # Navigate to the project directory
 cd "$HOME" || exit
-
 
 echo ">>> clone --branch ${BRANCH} ."
 
@@ -50,8 +45,12 @@ fi
 # Remove unused template file
 rm -f "$TARGET_DIR/service.template"
 
-# Activate the virtual environment and install dependencies
+# copy requirements.txt to target directory if it exists in the clone
+if [ -f "$CLONE_DIR/requirements.txt" ]; then
+    cp "$CLONE_DIR/requirements.txt" "$TARGET_DIR/requirements.txt"
+fi
 
+# Activate the virtual environment and install dependencies
 rm -rf "$CLONE_DIR"
 
 if source "$HOME/www/python/venv/bin/activate"; then

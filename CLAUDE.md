@@ -11,8 +11,8 @@ SVG Translate Web is a Flask-based web application for copying SVG translations 
 ### Installation
 
 ```bash
-pip install -r src/requirements.txt
-pip install -r requirements-test.txt  # For testing
+pip install -r requirements.txt
+pip install -r requirements-dev.txt  # For testing
 ```
 
 ### Running the Application
