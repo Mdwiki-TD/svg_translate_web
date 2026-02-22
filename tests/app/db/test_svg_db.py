@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.app.config import DbConfig
-from src.app.db.svg_db import (
+from src.main_app.config import DbConfig
+from src.main_app.db.svg_db import (
     get_db, close_cached_db, execute_query, fetch_query,
     execute_query_safe, fetch_query_safe, _db
 )
-from src.app.db.db_class import Database
+from src.main_app.db.db_class import Database
 
 
 @pytest.fixture(autouse=True)

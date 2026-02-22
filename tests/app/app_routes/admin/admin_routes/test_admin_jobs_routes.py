@@ -11,9 +11,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.app import create_app
-from src.app.jobs_workers import jobs_service
-from src.app.jobs_workers.jobs_service import JobRecord
+from src.main_app import create_app
+from src.main_app.jobs_workers import jobs_service
+from src.main_app.jobs_workers.jobs_service import JobRecord
 
 
 class FakeJobsDB:

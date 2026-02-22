@@ -4,7 +4,7 @@ import types
 import pytest
 from werkzeug.datastructures import MultiDict
 
-from src.app.app_routes.tasks import args_utils
+from src.main_app.app_routes.tasks import args_utils
 
 
 def _make_settings(disable_uploads: str) -> types.SimpleNamespace:

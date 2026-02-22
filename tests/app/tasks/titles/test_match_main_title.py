@@ -11,7 +11,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
+from src.main_app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
 
 # ---------- Fixtures with realistic wikitext samples ----------
 

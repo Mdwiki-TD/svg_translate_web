@@ -8,7 +8,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
+from src.main_app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
 
 # ---------- Tests for match_main_title_from_url ----------
 

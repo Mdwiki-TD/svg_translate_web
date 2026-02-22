@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.app.jobs_workers import collect_main_files_worker
-from src.app.template_service import TemplateRecord
+from src.main_app.jobs_workers import collect_main_files_worker
+from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture

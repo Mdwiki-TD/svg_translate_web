@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from flask import Flask
 
-from src.app import create_app
+from src.main_app import create_app
 
 
 @pytest.fixture

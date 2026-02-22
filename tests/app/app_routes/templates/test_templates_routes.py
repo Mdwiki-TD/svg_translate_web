@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.app.app_routes.templates import routes
+from src.main_app.app_routes.templates import routes
 
 
 @pytest.fixture(autouse=True)

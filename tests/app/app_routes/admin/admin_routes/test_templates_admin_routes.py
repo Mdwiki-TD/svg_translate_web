@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from flask import Flask
 
-from src.app.app_routes.admin.admin_routes import templates
+from src.main_app.app_routes.admin.admin_routes import templates
 
 
 def test_update_template_uses_request_form_type_parameter():
     """Test that _update_template uses request.form.get with type=int parameter."""
     app = Flask(__name__)
     app.secret_key = "test"
-    
+
     with app.test_request_context(method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}):
         mock_service = Mock()
         mock_service.update_template = Mock(return_value=Mock(title="Test Title"))
@@ -34,7 +34,7 @@ def test_update_template_correct_error_message_for_missing_title():
     """Test that _update_template shows correct error message for update (not 'add')."""
     app = Flask(__name__)
     app.secret_key = "test"
-    
+
     with app.test_request_context(method="POST", data={"id": "1", "title": "", "main_file": "test.svg"}):
         with patch("src.app.app_routes.admin.admin_routes.templates.flash") as mock_flash:
             with patch("src.app.app_routes.admin.admin_routes.templates.redirect"):
@@ -52,7 +52,7 @@ def test_update_template_missing_id_shows_error():
     """Test that _update_template shows error when template ID is missing."""
     app = Flask(__name__)
     app.secret_key = "test"
-    
+
     with app.test_request_context(method="POST", data={"id": "0", "title": "Test", "main_file": "test.svg"}):
         with patch("src.app.app_routes.admin.admin_routes.templates.flash") as mock_flash:
             with patch("src.app.app_routes.admin.admin_routes.templates.redirect"):

@@ -10,7 +10,7 @@ from unittest.mock import patch  # , MagicMock
 import pytest
 from werkzeug.exceptions import Forbidden
 
-from src.app.admins.admins_required import admin_required
+from src.main_app.admins.admins_required import admin_required
 
 
 class MockUser:

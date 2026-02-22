@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from src.main_app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
 
 
 def test_delete_task_success(caplog):
@@ -64,6 +64,6 @@ def test_task_already_exists_error_stores_task():
 
 def test_logger_uses_svg_translate_name():
     """Test that the logger uses 'svg_translate' instead of __name__."""
-    from src.app.db import db_CreateUpdate
+    from src.main_app.db import db_CreateUpdate
 
     assert db_CreateUpdate.logger.name == "svg_translate"

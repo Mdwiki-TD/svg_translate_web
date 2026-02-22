@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.app.tasks.downloads.download import download_commons_svgs
+from src.main_app.tasks.downloads.download import download_commons_svgs
 
 
 @pytest.fixture

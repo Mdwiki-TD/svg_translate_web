@@ -4,8 +4,8 @@ import time
 
 import pytest
 
-from src.app.threads import web_run_task
-from src.app.threads.task_threads import (
+from src.main_app.threads import web_run_task
+from src.main_app.threads.task_threads import (
     get_cancel_event,
     launch_task_thread,
 )

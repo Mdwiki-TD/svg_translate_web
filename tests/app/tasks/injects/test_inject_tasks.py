@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from pathlib import Path
-from src.app.tasks.injects.inject_tasks import inject_task
+from src.main_app.tasks.injects.inject_tasks import inject_task
 
 @patch("src.app.tasks.injects.inject_tasks.start_injects")
 def test_inject_task_success(mock_start, tmp_path):
@@ -14,9 +14,9 @@ def test_inject_task_success(mock_start, tmp_path):
     stages = {}
     files = ["f1.svg", "f2.svg"]
     translations = {}
-    
+
     res, final_stages = inject_task(stages, files, translations, output_dir=tmp_path)
-    
+
     assert res["success"] == 2
     assert final_stages["status"] == "Completed"
     assert (tmp_path / "translated").exists()

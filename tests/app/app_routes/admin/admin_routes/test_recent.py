@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from flask import Blueprint
-from src.app.app_routes.admin.admin_routes.recent import _recent_routes, Recent
+from src.main_app.app_routes.admin.admin_routes.recent import _recent_routes, Recent
 
 
 @patch('src.app.app_routes.admin.admin_routes.recent.TASKS_LOCK')

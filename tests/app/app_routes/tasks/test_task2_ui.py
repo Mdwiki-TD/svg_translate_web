@@ -2,8 +2,8 @@ import re
 
 import pytest
 
-from src.app import create_app
-from src.app.app_routes.tasks import routes as task_routes
+from src.main_app import create_app
+from src.main_app.app_routes.tasks import routes as task_routes
 
 
 class DummyStore:
@@ -24,18 +24,18 @@ def app_factory(monkeypatch):
 
         # Mock current_user
         monkeypatch.setattr("src.app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'is_admin': False}))
-        
+
         # We don't need to patch initialize_coordinators as it's likely removed
         # monkeypatch.setattr(app_module, "initialize_coordinators", lambda: None)
-        
+
         # _ensure_store might also be gone or renamed. Let's check admin_service logic if it needs patching.
         # admin_service.get_admins_db() is called.
         # We can just patch get_admins_db to return a dummy
-        
+
         class _DummyCoordinatorStore:
             def list(self):  # pragma: no cover - trivial stub
                 return []
-        
+
         monkeypatch.setattr("src.app.admins.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
 
         app = create_app()
@@ -79,7 +79,7 @@ def test_task2_active_shows_cancel_button(app_factory):
     # Restart button should NOT exist
     restart_classes = _get_button_classes(html, "restart-task-btn")
     assert restart_classes is None, "Restart button should NOT be present"
-    
+
     assert "badge text-bg-primary" in html  # running badge
 
 
@@ -103,7 +103,7 @@ def test_task2_terminal_shows_restart_button(app_factory):
     # Restart button should exist
     restart_classes = _get_button_classes(html, "restart-task-btn")
     assert restart_classes is not None, "Restart button should be present"
-    
+
     # Check data-task-id presence (in general html)
     assert f'data-task-id="{task["id"]}"' in html
     assert "badge text-bg-success" in html
@@ -132,10 +132,10 @@ def test_stage_cancelled_renders_warning_badge(app_factory):
     # <span id="task_status" data-status="...">
     #   <span class="badge text-bg-warning">Cancelled</span>
     # </span>
-    
+
     # Just check for the badge class and text close to each other or just existence
     assert "badge text-bg-warning" in html
     assert "Cancelled" in html
-    
+
     # Or stricter check
     assert 'class="badge text-bg-warning">Cancelled</span>' in html

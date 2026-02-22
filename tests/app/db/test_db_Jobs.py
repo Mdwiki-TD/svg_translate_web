@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from datetime import datetime
-from src.app.db.db_Jobs import JobsDB, JobRecord
+from src.main_app.db.db_Jobs import JobsDB, JobRecord
 
 
 @pytest.fixture

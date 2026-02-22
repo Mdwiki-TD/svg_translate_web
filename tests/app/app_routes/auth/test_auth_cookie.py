@@ -1,5 +1,5 @@
 """Unit tests for auth cookie helpers."""
-from src.app.app_routes.auth import cookie as auth_cookie
+from src.main_app.app_routes.auth import cookie as auth_cookie
 
 
 def test_sign_and_extract_roundtrip():

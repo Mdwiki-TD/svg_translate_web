@@ -1,6 +1,6 @@
 """Unit tests for db_StageStore module."""
 from __future__ import annotations
-from src.app.db import db_StageStore
+from src.main_app.db import db_StageStore
 
 def test_logger_uses_svg_translate_name():
     """Test that the logger uses 'svg_translate' instead of __name__."""

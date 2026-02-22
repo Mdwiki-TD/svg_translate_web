@@ -5,11 +5,11 @@ from typing import Any, Iterable
 import pymysql
 import pytest
 
-from src.app import create_app
-from src.app.admins import admin_service
-from src.app.app_routes.admin.admin_routes import coordinators
-from src.app.config import settings
-from src.app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
+from src.main_app import create_app
+from src.main_app.admins import admin_service
+from src.main_app.app_routes.admin.admin_routes import coordinators
+from src.main_app.config import settings
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
 
 
 class FakeDatabase:

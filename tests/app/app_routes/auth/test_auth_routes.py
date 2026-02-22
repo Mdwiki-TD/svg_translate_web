@@ -7,7 +7,7 @@ import types
 import pytest
 from flask import Flask, g, session
 
-from src.app.app_routes.auth import routes
+from src.main_app.app_routes.auth import routes
 
 
 @pytest.fixture

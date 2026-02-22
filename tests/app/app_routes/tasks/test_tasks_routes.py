@@ -10,8 +10,8 @@ from typing import Any
 import pytest
 from flask import Flask
 
-from src.app import create_app
-from src.app.app_routes.tasks import routes
+from src.main_app import create_app
+from src.main_app.app_routes.tasks import routes
 
 
 class DummyTaskStore:

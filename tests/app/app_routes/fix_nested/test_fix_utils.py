@@ -2,7 +2,7 @@ import pytest
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.app.app_routes.fix_nested.fix_utils import (
+from src.main_app.app_routes.fix_nested.fix_utils import (
     create_task_folder, save_metadata, log_to_task, download_svg_file,
     detect_nested_tags, fix_nested_tags, verify_fix, upload_fixed_svg,
     process_fix_nested
@@ -62,7 +62,7 @@ def test_verify_fix(mock_match):
 def test_upload_fixed_svg_success(mock_upload, mock_get_site):
     mock_get_site.return_value = MagicMock()
     mock_upload.return_value = {"result": "Success"}
-    
+
     res = upload_fixed_svg("file.svg", Path("file.svg"), 5, {"user": "data"})
     assert res["ok"] is True
 
@@ -79,7 +79,7 @@ def test_process_fix_nested_success(
     mock_fix.return_value = True
     mock_verify.return_value = {"fixed": 5, "after": 0, "before": 5}
     mock_upload.return_value = {"ok": True, "result": {"result": "Success"}}
-    
+
     res = process_fix_nested("file.svg", {"user": "data"})
     assert res["success"] is True
     assert "Successfully fixed" in res["message"]

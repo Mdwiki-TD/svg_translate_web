@@ -10,8 +10,8 @@ from typing import Any
 
 import pytest
 
-from src.app.jobs_workers import jobs_service
-from src.app.jobs_workers.jobs_service import JobRecord
+from src.main_app.jobs_workers import jobs_service
+from src.main_app.jobs_workers.jobs_service import JobRecord
 
 
 class FakeJobsDB:

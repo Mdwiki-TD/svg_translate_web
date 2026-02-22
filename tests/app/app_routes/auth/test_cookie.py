@@ -7,7 +7,7 @@ import types
 import pytest
 from itsdangerous import URLSafeTimedSerializer
 
-from src.app.app_routes.auth import cookie
+from src.main_app.app_routes.auth import cookie
 
 
 @pytest.fixture(autouse=True)

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.app.app_routes.explorer import utils
+from src.main_app.app_routes.explorer import utils
 
 
 @pytest.fixture(autouse=True)

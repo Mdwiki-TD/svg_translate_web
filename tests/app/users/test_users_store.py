@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.app.db import svg_db
-from src.app.users import store
+from src.main_app.db import svg_db
+from src.main_app.users import store
 
 
 @pytest.fixture(autouse=True)

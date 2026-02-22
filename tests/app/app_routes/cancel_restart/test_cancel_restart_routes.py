@@ -7,8 +7,8 @@ import types
 import pytest
 from flask import Flask
 
-from src.app.app_routes.cancel_restart import routes
-from src.app.config import DbConfig
+from src.main_app.app_routes.cancel_restart import routes
+from src.main_app.config import DbConfig
 
 
 @pytest.fixture
@@ -38,9 +38,9 @@ def app(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.url_for", lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})")
 
     # Mock current_user in the module where oauth_required is defined
-    import src.app.users.current
+    import src.main_app.users.current
 
-    monkeypatch.setattr(src.app.users.current, "current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(src.main_app.users.current, "current_user", lambda: types.SimpleNamespace(username="user"))
 
     yield app
 
@@ -182,7 +182,7 @@ def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    from src.app.db import TaskAlreadyExistsError
+    from src.main_app.db import TaskAlreadyExistsError
 
     class DummyStore:
         def get_task(self, task_id: str) -> dict[str, object]:

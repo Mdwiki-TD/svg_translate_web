@@ -12,7 +12,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.app.tasks.titles.temps_bot import get_titles
+from src.main_app.tasks.titles.temps_bot import get_titles
 
 # ---------- Fixtures with realistic wikitext samples ----------
 

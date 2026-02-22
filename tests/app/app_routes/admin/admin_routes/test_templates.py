@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from flask import Flask
-from src.app.app_routes.admin.admin_routes.templates import (
+from src.main_app.app_routes.admin.admin_routes.templates import (
     _templates_dashboard,
     _add_template,
     _update_template,
@@ -22,11 +22,11 @@ def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
     mock_service.list_templates.return_value = ["t1", "t2"]
     mock_current_user.return_value = "user"
     mock_render.return_value = "rendered"
-    
+
     with app.test_request_context():
         resp = _templates_dashboard()
         assert resp == "rendered"
-        
+
         mock_render.assert_called_once()
         kwargs = mock_render.call_args[1]
         assert kwargs["templates"] == ["t1", "t2"]
@@ -41,11 +41,11 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
     mock_service.add_template.return_value = MagicMock(title="NewT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
-    
+
     with app.test_request_context(method="POST", data={"title": "NewT", "main_file": "f.svg"}):
         resp = _add_template()
         assert resp == "redirected"
-        
+
         mock_service.add_template.assert_called_with("NewT", "f.svg")
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
@@ -55,7 +55,7 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
 def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, app):
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
-    
+
     with app.test_request_context(method="POST", data={"title": ""}):
         resp = _add_template()
         assert resp == "redirected"
@@ -69,11 +69,11 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
     mock_service.update_template.return_value = MagicMock(title="UpdT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
-    
+
     with app.test_request_context(method="POST", data={"id": 1, "title": "UpdT", "main_file": "f2.svg"}):
         resp = _update_template()
         assert resp == "redirected"
-        
+
         mock_service.update_template.assert_called_with(1, "UpdT", "f2.svg")
         mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
@@ -83,7 +83,7 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
 def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, app):
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
-    
+
     with app.test_request_context(method="POST", data={"title": "UpdT"}):
         resp = _update_template()
         assert resp == "redirected"
@@ -97,11 +97,11 @@ def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_servi
     mock_service.delete_template.return_value = MagicMock(title="DelT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
-    
+
     with app.test_request_context():
         resp = _delete_template(1)
         assert resp == "redirected"
-        
+
         mock_service.delete_template.assert_called_with(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 
@@ -109,11 +109,11 @@ def test_Templates():
     # Verify routes registration
     bp = MagicMock()
     Templates(bp)
-    
+
     # Should register 4 routes
     assert bp.get.call_count == 1
     assert bp.post.call_count == 3
-    
+
     # Check endpoints
     bp.get.assert_called_with("/templates")
     bp.post.assert_any_call("/templates/add")

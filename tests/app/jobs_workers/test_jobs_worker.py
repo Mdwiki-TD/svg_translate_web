@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.app.jobs_workers import jobs_worker
-from src.app.jobs_workers.jobs_service import JobRecord
+from src.main_app.jobs_workers import jobs_worker
+from src.main_app.jobs_workers.jobs_service import JobRecord
 
 
 @pytest.fixture(autouse=True)
@@ -95,7 +95,7 @@ def test_runner_calls_target_and_cleans_up():
     jobs_worker._register_cancel_event(job_id, event)
     assert jobs_worker.get_cancel_event(job_id) == event
 
-    from src.app.jobs_workers.jobs_worker import _runner
+    from src.main_app.jobs_workers.jobs_worker import _runner
 
     _runner(job_id, user, event, mock_target)
 

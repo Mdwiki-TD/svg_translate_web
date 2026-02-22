@@ -1,7 +1,7 @@
 """Tests for sidebar helpers."""
 import pytest
 
-from src.app.app_routes.admin import sidebar
+from src.main_app.app_routes.admin import sidebar
 
 
 def test_generate_list_item() -> None:

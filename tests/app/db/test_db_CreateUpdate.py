@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from src.app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
-from src.app.db.utils import DbUtils
+from src.main_app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from src.main_app.db.utils import DbUtils
 
 class MockCreateUpdateTask(CreateUpdateTask, DbUtils):
     def fetch_stages(self, task_id):
@@ -35,9 +35,9 @@ def test_delete_task_exception(store, mock_db):
 
 def test_create_task_success(store, mock_db):
     mock_db.fetch_query.return_value = [] # No existing task
-    
+
     store.create_task("t1", "Title 1")
-    
+
     mock_db.execute_query.assert_called()
     args = mock_db.execute_query.call_args[0]
     assert "INSERT INTO tasks" in args[0]
@@ -49,33 +49,33 @@ def test_create_task_already_exists(store, mock_db):
     # Mock return for check query
     mock_db.fetch_query.return_value = [{"id": "existing", "title": "Title 1", "normalized_title": "title 1",
         "status": "Pending", "created_at": "2023-01-01", "updated_at": "2023-01-01",
-        "form_json": None, "data_json": None, 
+        "form_json": None, "data_json": None,
         "results_json": None, "main_file": None
     }]
-    
+
     with pytest.raises(TaskAlreadyExistsError) as exc:
         store.create_task("t2", "Title 1") # Same title
-    
+
     assert exc.value.task["id"] == "existing"
 
 def test_create_task_ignore_existing(store, mock_db):
     mock_db.fetch_query.return_value = [{
         "id": "existing", "title": "Title 1"
     }]
-    
+
     # Should not raise
     store.create_task("t2", "Title 1", form={"ignore_existing_task": True})
-    
+
     mock_db.execute_query.assert_called()
 
 def test_get_task_success(store, mock_db):
     mock_db.fetch_query_safe.return_value = [{
         "id": "t1", "title": "T", "status": "Pending",
         "created_at": "2023-01-01", "updated_at": "2023-01-01",
-        "normalized_title": "t", "form_json": None, "data_json": None, 
+        "normalized_title": "t", "form_json": None, "data_json": None,
         "results_json": None, "main_file": None
     }]
-    
+
     task = store.get_task("t1")
     assert task["id"] == "t1"
     assert task["title"] == "T"
@@ -88,25 +88,25 @@ def test_get_active_task_by_title_success(store, mock_db):
     mock_db.fetch_query_safe.return_value = [{
         "id": "t1", "title": " My Title ", "status": "Pending",
         "created_at": "2023-01-01", "updated_at": "2023-01-01",
-        "normalized_title": "my title", "form_json": None, "data_json": None, 
+        "normalized_title": "my title", "form_json": None, "data_json": None,
         "results_json": None, "main_file": None
     }]
-    
+
     task = store.get_active_task_by_title("My Title")
     assert task["id"] == "t1"
-    
+
     # Check normalized title use
     args = mock_db.fetch_query_safe.call_args[0]
     assert args[1][0] == "my title"
 
 def test_update_task_fields(store, mock_db):
     store.update_task("t1", title="New Title", status="Done", form={"a": 1})
-    
+
     mock_db.execute_query.assert_called()
     args = mock_db.execute_query.call_args[0]
     sql = args[0]
     params = args[1]
-    
+
     assert "UPDATE tasks" in sql
     assert params[0] == "New Title" # title
     assert params[1] == "new title" # normalized
@@ -120,18 +120,18 @@ def test_update_task_no_change(store, mock_db):
 
 def test_update_helpers(store, mock_db):
     # Just verify they call update_task -> execute_query
-    
+
     store.update_status("t1", "Done")
     mock_db.execute_query.assert_called()
-    
+
     mock_db.reset_mock()
     store.update_data("t1", {"d": 1})
     mock_db.execute_query.assert_called()
-    
+
     mock_db.reset_mock()
     store.update_results("t1", {"r": 1})
     mock_db.execute_query.assert_called()
-    
+
     mock_db.reset_mock()
     store.update_main_title("t1", "file.svg")
     mock_db.execute_query.assert_called()

@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from src.app.app_routes.templates import category
+from src.main_app.app_routes.templates import category
 
 
 @pytest.fixture(autouse=True)

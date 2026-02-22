@@ -1,7 +1,7 @@
 import os
 import pytest
 from unittest.mock import patch
-from src.app.config import (
+from src.main_app.config import (
     DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
     _load_db_data_new, _get_paths, _env_bool, _env_int,
     _load_oauth_config, is_localhost, get_settings

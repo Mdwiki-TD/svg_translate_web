@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from pymysql.cursors import DictCursor
-from src.app.db.db_class import MaxUserConnectionsError, Database
-from src.app.config import DbConfig
+from src.main_app.db.db_class import MaxUserConnectionsError, Database
+from src.main_app.config import DbConfig
 
 
 def test_MaxUserConnectionsError():

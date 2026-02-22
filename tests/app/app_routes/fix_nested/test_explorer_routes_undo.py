@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from src.app.users.store import UserTokenRecord
+from src.main_app.users.store import UserTokenRecord
 
 
 def test_user_token_record_has_username_attribute() -> None:
