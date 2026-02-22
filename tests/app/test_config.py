@@ -1,9 +1,9 @@
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.app.config import (
     DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
-    _load_db_data_new, _load_db_data, _get_paths, _env_bool, _env_int,
+    _load_db_data_new, _get_paths, _env_bool, _env_int,
     _load_oauth_config, is_localhost, get_settings
 )
 
@@ -15,14 +15,12 @@ def test_DbConfig():
         db_host="localhost",
         db_user="user",
         db_password="password",
-        db_connect_file="/path/to/file"
     )
 
     assert db_config.db_name == "test_db"
     assert db_config.db_host == "localhost"
     assert db_config.db_user == "user"
     assert db_config.db_password == "password"
-    assert db_config.db_connect_file == "/path/to/file"
 
 
 def test_Paths():
@@ -79,14 +77,12 @@ def test_OAuthConfig():
 def test_Settings():
     """Test the Settings dataclass."""
     # Create a minimal settings object for testing
-    db_data = {"host": "localhost", "dbname": "test", "user": "user", "password": "pass"}
-    db_config = DbConfig("test", "localhost", "user", "pass", None)
+    db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs")
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
-        db_data=db_data,
         database_data=db_config,
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="request",
@@ -99,7 +95,7 @@ def test_Settings():
         disable_uploads=""
     )
 
-    assert settings.db_data["host"] == "localhost"
+    assert settings.database_data.db_host == "localhost"
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
@@ -110,7 +106,6 @@ def test_Settings():
     "DB_HOST": "test_host",
     "TOOL_REPLICA_USER": "test_user",
     "TOOL_REPLICA_PASSWORD": "test_pass",
-    "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
 @patch("os.path.exists")
 def test_load_db_data_new(mock_exists):
@@ -123,28 +118,6 @@ def test_load_db_data_new(mock_exists):
     assert result.db_host == "test_host"
     assert result.db_user == "test_user"
     assert result.db_password == "test_pass"
-    assert result.db_connect_file == "/test/file"
-
-
-@patch.dict(os.environ, {
-    "DB_HOST": "test_host",
-    "DB_NAME": "test_db",
-    "TOOL_REPLICA_USER": "test_user",
-    "TOOL_REPLICA_PASSWORD": "test_pass",
-    "DB_CONNECT_FILE": "/test/file"
-}, clear=True)
-@patch("os.path.exists")
-def test_load_db_data(mock_exists):
-    """Test _load_db_data function."""
-    mock_exists.return_value = True
-    result = _load_db_data()
-
-    assert isinstance(result, dict)
-    assert result["host"] == "test_host"
-    assert result["dbname"] == "test_db"
-    assert result["user"] == "test_user"
-    assert result["password"] == "test_pass"
-    assert result["db_connect_file"] == "/test/file"
 
 
 @patch.dict(os.environ, {"MAIN_DIR": "/tmp/main"})
@@ -279,3 +252,94 @@ def test_get_settings_missing_secret_key():
 
     # Clean up cache
     get_settings.cache_clear()
+
+
+@patch.dict(os.environ, {
+    "FLASK_SECRET_KEY": "test-secret-key",
+    "USE_MW_OAUTH": "true",
+    "MAIN_DIR": "/tmp/test-data"
+})
+def test_get_settings_missing_oauth_encryption_key():
+    """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
+    get_settings.cache_clear()
+    with pytest.raises(RuntimeError, match="OAUTH_ENCRYPTION_KEY environment variable is required"):
+        get_settings()
+    get_settings.cache_clear()
+
+
+@patch.dict(os.environ, {
+    "FLASK_SECRET_KEY": "test-secret-key",
+    "USE_MW_OAUTH": "true",
+    "OAUTH_ENCRYPTION_KEY": "test-key",
+    "MAIN_DIR": "/tmp/test-data"
+})
+def test_get_settings_missing_oauth_config():
+    """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
+    get_settings.cache_clear()
+    with pytest.raises(RuntimeError, match="MediaWiki OAuth configuration is incomplete"):
+        get_settings()
+    get_settings.cache_clear()
+
+
+@patch.dict(os.environ, {"DB_NAME": "", "DB_HOST": ""}, clear=True)
+def test_load_db_data_new_empty_values():
+    """Test _load_db_data_new with empty environment variables."""
+    result = _load_db_data_new()
+    assert result.db_name == ""
+    assert result.db_host == ""
+    assert result.db_user is None
+    assert result.db_password is None
+
+
+def test_env_bool_with_whitespace():
+    """Test _env_bool with whitespace in values."""
+    with patch.dict(os.environ, {"TEST_BOOL": "  1  "}):
+        assert _env_bool("TEST_BOOL") is True
+
+    with patch.dict(os.environ, {"TEST_BOOL": "  true  "}):
+        assert _env_bool("TEST_BOOL") is True
+
+
+def test_env_int_edge_cases():
+    """Test _env_int with edge case values."""
+    # Test zero
+    with patch.dict(os.environ, {"TEST_INT": "0"}):
+        assert _env_int("TEST_INT", default=10) == 0
+
+    # Test negative
+    with patch.dict(os.environ, {"TEST_INT": "-5"}):
+        assert _env_int("TEST_INT", default=10) == -5
+
+    # Test large number
+    with patch.dict(os.environ, {"TEST_INT": "999999"}):
+        assert _env_int("TEST_INT", default=0) == 999999
+
+
+def test_is_localhost_partial_match():
+    """Test is_localhost with partial string matches."""
+    # Should match as 127.0.0.1 is in the string
+    assert is_localhost("http://127.0.0.1:5000") is True
+
+    # Should match as localhost is in the string
+    assert is_localhost("http://localhost:8080") is True
+
+    # Should not match
+    assert is_localhost("production.example.com") is False
+
+
+@patch.dict(os.environ, {
+    "OAUTH_MWURI": "https://example.com",
+    "OAUTH_CONSUMER_KEY": "key",
+    "OAUTH_CONSUMER_SECRET": "secret"
+})
+def test_load_oauth_config_with_defaults():
+    """Test _load_oauth_config uses default values when optional vars missing."""
+    result = _load_oauth_config()
+
+    assert result is not None
+    assert result.mw_uri == "https://example.com"
+    assert result.consumer_key == "key"
+    assert result.consumer_secret == "secret"
+    # Check defaults
+    assert "Copy SVG Translations" in result.user_agent
+    assert result.upload_host == "commons.wikimedia.org"
