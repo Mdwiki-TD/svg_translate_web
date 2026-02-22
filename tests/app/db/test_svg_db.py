@@ -26,14 +26,15 @@ def cleanup_cached_db():
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_get_db(mock_settings, mock_database_cls):
-    mock_settings.database_data = DbConfig(db_host="localhost", db_name="", db_user=None, db_password=None)
+    db_config = DbConfig(db_name="test", db_host="localhost", db_user=None, db_password=None)
+    mock_settings.database_data = db_config
     mock_db_instance = MagicMock(spec=Database)
     mock_database_cls.return_value = mock_db_instance
 
     # First call: should instantiate
     db1 = get_db()
     assert db1 is mock_db_instance
-    mock_database_cls.assert_called_once_with(mock_settings.database_data)
+    mock_database_cls.assert_called_once_with(db_config)
 
     # Second call: should return cached
     db2 = get_db()
@@ -44,7 +45,8 @@ def test_get_db(mock_settings, mock_database_cls):
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_close_cached_db(mock_settings, mock_database_cls):
-    mock_settings.database_data = DbConfig(db_host="localhost", db_name="", db_user=None, db_password=None)
+    db_config = DbConfig(db_name="test", db_host="localhost", db_user=None, db_password=None)
+    mock_settings.database_data = db_config
     db = get_db()
 
     close_cached_db()
