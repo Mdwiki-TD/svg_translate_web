@@ -17,7 +17,11 @@ logger = logging.getLogger("svg_translate")
 
 
 def download_one_file(
-    title: str, out_dir: Path, i: int, session: requests.Session = None, overwrite: bool = False
+    title: str,
+    out_dir: Path,
+    i: int,
+    session: requests.Session = None,
+    overwrite: bool = False
 ) -> Dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 
@@ -102,22 +106,19 @@ def download_task(
 
     stages["message"] = f"Downloading 0/{total:,}"
     stages["status"] = "Running"
-
-    store.update_stage(task_id, "download", stages)
+    if store:
+        store.update_stage(task_id, "download", stages)
 
     out_dir = Path(str(output_dir_main))
     out_dir.mkdir(parents=True, exist_ok=True)
 
     session = requests.Session()
 
-    session.headers.update(
-        {
-            "User-Agent": settings.oauth.user_agent,
-        }
-    )
+    session.headers.update({"User-Agent": settings.oauth.user_agent})
 
     def message_updater(value: str) -> None:
-        store.update_stage_column(task_id, "download", "stage_message", value)
+        if store:
+            store.update_stage_column(task_id, "download", "stage_message", value)
 
     files: list[str] = []
 
@@ -170,7 +171,6 @@ def download_task(
 def download_commons_svgs(titles, files_dir):
     files = []
     for n, title in enumerate(titles, 1):
-        # download_one_file(title: str, out_dir: Path, i: int, session: requests.Session = None)
         file = download_one_file(title, files_dir, n)
         if file.get("path"):
             files.append(file["path"])
