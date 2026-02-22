@@ -254,6 +254,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import requests
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
@@ -273,8 +274,8 @@ def _download_commons_file_core(
     """Download a file from Wikimedia Commons and return raw content.
 
     This is the lowest-level download function that handles the actual HTTP
-    request to Commons. It performs no file I/O, validation, or logging
-    beyond error reporting.
+    request to Commons. It performs no file I/O, validation, or error handling.
+    Callers are responsible for catching exceptions and handling failures.
 
     Args:
         filename: Clean filename without "File:" prefix. Spaces will be
@@ -285,27 +286,28 @@ def _download_commons_file_core(
             with larger SVG files.
 
     Returns:
-        Raw bytes content of the downloaded file, or None if the download
-        failed for any reason (network error, HTTP error, timeout, etc.).
+        Raw bytes content of the downloaded file.
+
+    Raises:
+        requests.RequestException: On network errors, HTTP errors (4xx, 5xx),
+            or timeouts.
 
     Example:
-        >>> session = requests.Session()
-        >>> session.headers.update({"User-Agent": "MyBot/1.0"})
-        >>> content = _download_commons_file_core("Example.svg", session)
-        >>> if content:
+        >>> session = create_commons_session({"User-Agent": "MyBot/1.0"})
+        >>> try:
+        ...     content = _download_commons_file_core("Example.svg", session)
         ...     Path("Example.svg").write_bytes(content)
+        ... except requests.RequestException as e:
+        ...     logger.error(f"Download failed: {e}")
     """
     # Normalize filename: convert spaces to underscores for URL
     normalized_name = filename.replace(" ", "_")
     url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
 
-    try:
-        response = session.get(url, timeout=timeout, allow_redirects=True)
-        response.raise_for_status()
-        return response.content
-    except Exception:
-        logger.exception(f"Failed to download {filename} from {url}")
-        return None
+    response = session.get(url, timeout=timeout, allow_redirects=True)
+    response.raise_for_status()
+    return response.content
+
 
 @functools.lru_cache(maxsize=1)
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
@@ -318,7 +320,6 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
     Returns:
         Configured requests Session ready for use.
     """
-    import requests
 
     session = requests.Session()
     session.headers.update({
@@ -333,7 +334,7 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
 
 ```python
 from ..utils.commons_client import _download_commons_file_core
-
+from ..utils.commons_client import create_commons_session
 
 def download_file_from_commons(
     filename: str,
@@ -370,16 +371,16 @@ def download_file_from_commons(
 
     # Create session if not provided
     if session is None:
-        from ..utils.commons_client import create_commons_session
         session = create_commons_session(
             settings.oauth.user_agent if settings.oauth else None
         )
 
     # Use the core download function
-    content = _download_commons_file_core(clean_filename, session, timeout=60)
-
-    if content is None:
-        result["error"] = "Download failed"
+    try:
+        content = _download_commons_file_core(clean_filename, session, timeout=60)
+    except Exception as e:
+        result["error"] = f"Download failed: {str(e)}"
+        logger.exception(f"Failed to download {clean_filename}")
         return result
 
     try:
@@ -405,7 +406,7 @@ def download_file_from_commons(
 
 ```python
 from ...utils.commons_client import _download_commons_file_core
-
+from ...utils.commons_client import create_commons_session
 
 def download_one_file(
     title: str,
@@ -444,15 +445,14 @@ def download_one_file(
         return data
 
     if not session:
-        from ...utils.commons_client import create_commons_session
         session = create_commons_session(settings.oauth.user_agent)
 
     # Use the core download function with shorter timeout
-    content = _download_commons_file_core(title, session, timeout=30)
-
-    if content is None:
+    try:
+        content = _download_commons_file_core(title, session, timeout=30)
+    except Exception as e:
         data["result"] = "failed"
-        logger.error(f"[{i}] Failed: {title}")
+        logger.error(f"[{i}] Failed: {title} -> {e}")
         return data
 
     try:
@@ -469,49 +469,52 @@ def download_one_file(
 
 #### Benefits of This Approach
 
-| Benefit | Description |
-|---------|-------------|
+| Benefit                   | Description                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
 | **Single Responsibility** | The core function does one thing: HTTP download. File I/O and business logic are handled by callers. |
-| **Testability** | The core function can be unit tested with mocked sessions without touching the filesystem. |
-| **Flexibility** | Callers control timeout, error handling, logging level, and file operations independently. |
-| **No Code Duplication** | URL construction, error handling, and session management are centralized. |
-| **Type Safety** | The core function has a simple signature returning `bytes \| None`, making it easy to reason about. |
+| **Testability**           | The core function can be unit tested with mocked sessions without touching the filesystem.           |
+| **Flexibility**           | Callers control timeout, error handling, logging level, and file operations independently.           |
+| **No Code Duplication**   | URL construction, error handling, and session management are centralized.                            |
+| **Type Safety**           | The core function has a simple signature returning `bytes`, with exceptions for error handling.      |
 
 #### Migration Steps
 
 1. **Create the new file:**
-   ```bash
-   mkdir -p src/main_app/utils
-   touch src/main_app/utils/__init__.py
-   touch src/main_app/utils/commons_client.py
-   ```
+
+    ```bash
+    mkdir -p src/main_app/utils
+    touch src/main_app/utils/__init__.py
+    touch src/main_app/utils/commons_client.py
+    ```
 
 2. **Add the core function** to `commons_client.py` with full docstrings.
 
 3. **Refactor `download_file_from_commons`:**
-   - Import `_download_commons_file_core`
-   - Replace the inline `session.get()` call with the core function
-   - Keep all existing return value handling and logging
+
+    - Import `_download_commons_file_core`
+    - Replace the inline `session.get()` call with the core function
+    - Keep all existing return value handling and logging
 
 4. **Refactor `download_one_file`:**
-   - Import `_download_commons_file_core`
-   - Replace the inline `session.get()` call with the core function
-   - Keep existing file existence check and result handling
+
+    - Import `_download_commons_file_core`
+    - Replace the inline `session.get()` call with the core function
+    - Keep existing file existence check and result handling
 
 5. **Add tests** for the core function in `tests/app/utils/test_commons_client.py`.
 
 6. **Verify** both existing test suites still pass:
-   ```bash
-   pytest tests/app/jobs_workers/test_download_main_files_worker.py -v
-   pytest tests/app/tasks/downloads/ -v
-   ```
+    ```bash
+    pytest tests/app/jobs_workers/test_download_main_files_worker.py -v
+    pytest tests/app/tasks/downloads/ -v
+    ```
 
 #### Migration Effort
 
-- **Time:** 1-2 days
-- **Complexity:** Low
-- **Risk:** Very Low (thin wrapper refactoring)
-- **Testing:** Existing tests provide regression coverage; new unit tests for core function
+-   **Time:** 1-2 days
+-   **Complexity:** Low
+-   **Risk:** Very Low (thin wrapper refactoring)
+-   **Testing:** Existing tests provide regression coverage; new unit tests for core function
 
 ---
 
