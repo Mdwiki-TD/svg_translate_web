@@ -12,7 +12,6 @@ from flask import (
     render_template,
     send_from_directory,
     url_for,
-    Response,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response

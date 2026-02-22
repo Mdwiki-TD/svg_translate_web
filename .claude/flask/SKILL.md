@@ -7,6 +7,8 @@ description: |
 user-invocable: true
 ---
 
+`source: https://github.com/NeverSight/skills_feed/tree/main/data/skills-md/jezweb/claude-skills/flask`
+
 # Flask Skill
 
 Production-tested patterns for Flask with the application factory pattern, Blueprints, and Flask-SQLAlchemy.

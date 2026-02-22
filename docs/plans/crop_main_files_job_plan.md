@@ -150,7 +150,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 - Add `"crop_main_files"` entry to `jobs_targets` dictionary (line 64-68)
 
 ```python
-from .crop_main_files/__init__ import crop_main_files_for_templates
+from .crop_main_files import crop_main_files_for_templates
 
 jobs_targets = {
     "fix_nested_main_files": fix_nested_main_files_for_templates,

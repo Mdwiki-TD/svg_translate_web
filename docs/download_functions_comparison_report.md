@@ -234,6 +234,286 @@ def download_one_file(...) -> dict: ...           # Task-optimized
 
 ---
 
+### Option 4: **Create `commons_client.py` with Core Download Function** (Recommended Alternative)
+
+This approach creates a dedicated low-level module for Wikimedia Commons HTTP operations, providing a clean separation between network logic and business logic.
+
+#### Proposed File Structure
+
+**New File:** `src/main_app/utils/commons_client.py`
+
+```python
+"""Low-level Wikimedia Commons download utilities.
+
+This module provides the core HTTP download functionality for fetching
+files from Wikimedia Commons. It serves as the foundation for higher-level
+download functions used across the application.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING
+from urllib.parse import quote
+
+if TYPE_CHECKING:
+    import requests
+
+logger = logging.getLogger("svg_translate")
+
+BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
+
+
+def _download_commons_file_core(
+    filename: str,
+    session: requests.Session,
+    timeout: int = 60,
+) -> bytes | None:
+    """Download a file from Wikimedia Commons and return raw content.
+
+    This is the lowest-level download function that handles the actual HTTP
+    request to Commons. It performs no file I/O, validation, or logging
+    beyond error reporting.
+
+    Args:
+        filename: Clean filename without "File:" prefix. Spaces will be
+            converted to underscores for the URL.
+        session: Pre-configured requests Session with appropriate headers
+            (User-Agent, etc.).
+        timeout: Request timeout in seconds. Defaults to 60s for compatibility
+            with larger SVG files.
+
+    Returns:
+        Raw bytes content of the downloaded file, or None if the download
+        failed for any reason (network error, HTTP error, timeout, etc.).
+
+    Example:
+        >>> session = requests.Session()
+        >>> session.headers.update({"User-Agent": "MyBot/1.0"})
+        >>> content = _download_commons_file_core("Example.svg", session)
+        >>> if content:
+        ...     Path("Example.svg").write_bytes(content)
+    """
+    # Normalize filename: convert spaces to underscores for URL
+    normalized_name = filename.replace(" ", "_")
+    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
+
+    try:
+        response = session.get(url, timeout=timeout, allow_redirects=True)
+        response.raise_for_status()
+        return response.content
+    except Exception:
+        logger.exception(f"Failed to download {filename} from {url}")
+        return None
+
+
+def create_commons_session(user_agent: str | None = None) -> requests.Session:
+    """Create a pre-configured requests Session for Commons API calls.
+
+    Args:
+        user_agent: Optional custom User-Agent string. If not provided,
+            defaults to a generic bot identifier.
+
+    Returns:
+        Configured requests Session ready for use.
+    """
+    import requests
+
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": user_agent or "SVGTranslateBot/1.0",
+    })
+    return session
+```
+
+#### Refactored `download_file_from_commons`
+
+**File:** `src/main_app/jobs_workers/download_main_files_worker.py`
+
+```python
+from ..utils.commons_client import _download_commons_file_core
+
+
+def download_file_from_commons(
+    filename: str,
+    output_dir: Path,
+    session: requests.Session | None = None,
+) -> dict[str, Any]:
+    """Download a single file from Wikimedia Commons.
+
+    Args:
+        filename: The file name (e.g., "File:Example.svg")
+        output_dir: Directory where the file should be saved
+        session: Optional requests session to use
+
+    Returns:
+        dict with keys: success (bool), path (str|None), size_bytes (int|None),
+        error (str|None)
+    """
+    result = {
+        "success": False,
+        "path": None,
+        "size_bytes": None,
+        "error": None,
+    }
+
+    if not filename:
+        result["error"] = "Empty filename"
+        return result
+
+    # Extract just the filename part (remove "File:" prefix if present)
+    clean_filename = filename[5:] if filename.startswith("File:") else filename
+
+    # Determine output path
+    out_path = output_dir / clean_filename
+
+    # Create session if not provided
+    if session is None:
+        from ..utils.commons_client import create_commons_session
+        session = create_commons_session(
+            settings.oauth.user_agent if settings.oauth else None
+        )
+
+    # Use the core download function
+    content = _download_commons_file_core(clean_filename, session, timeout=60)
+
+    if content is None:
+        result["error"] = "Download failed"
+        return result
+
+    try:
+        # Save the file
+        out_path.write_bytes(content)
+        file_size = len(content)
+
+        result["success"] = True
+        result["path"] = str(out_path.name)
+        result["size_bytes"] = file_size
+        logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
+
+    except Exception as e:
+        result["error"] = f"Unexpected error: {str(e)}"
+        logger.exception(f"Error saving {clean_filename}")
+
+    return result
+```
+
+#### Refactored `download_one_file`
+
+**File:** `src/main_app/tasks/downloads/download.py`
+
+```python
+from ...utils.commons_client import _download_commons_file_core
+
+
+def download_one_file(
+    title: str,
+    out_dir: Path,
+    i: int,
+    session: requests.Session = None,
+    overwrite: bool = False
+) -> Dict[str, str]:
+    """Download a single Commons file, skipping already-downloaded copies.
+
+    Parameters:
+        title: Title of the file page on Wikimedia Commons.
+        out_dir: Directory where the file should be stored.
+        i: 1-based index used only for logging context.
+        session: Optional shared session.
+        overwrite: Whether to overwrite existing files.
+
+    Returns:
+        dict: Outcome with keys ``result`` ("success", "existing", or
+        "failed") and ``path`` (path string when available).
+    """
+    data = {
+        "result": "",
+        "path": "",
+    }
+
+    if not title:
+        return data
+
+    out_path = out_dir / title
+
+    if out_path.exists() and not overwrite:
+        logger.debug(f"[{i}] Skipped existing: {title}")
+        data["result"] = "existing"
+        data["path"] = str(out_path)
+        return data
+
+    if not session:
+        from ...utils.commons_client import create_commons_session
+        session = create_commons_session(settings.oauth.user_agent)
+
+    # Use the core download function with shorter timeout
+    content = _download_commons_file_core(title, session, timeout=30)
+
+    if content is None:
+        data["result"] = "failed"
+        logger.error(f"[{i}] Failed: {title}")
+        return data
+
+    try:
+        out_path.write_bytes(content)
+        logger.debug(f"[{i}] Downloaded: {title}")
+        data["result"] = "success"
+        data["path"] = str(out_path)
+    except Exception as e:
+        data["result"] = "failed"
+        logger.error(f"[{i}] Failed to save: {title} -> {e}")
+
+    return data
+```
+
+#### Benefits of This Approach
+
+| Benefit | Description |
+|---------|-------------|
+| **Single Responsibility** | The core function does one thing: HTTP download. File I/O and business logic are handled by callers. |
+| **Testability** | The core function can be unit tested with mocked sessions without touching the filesystem. |
+| **Flexibility** | Callers control timeout, error handling, logging level, and file operations independently. |
+| **No Code Duplication** | URL construction, error handling, and session management are centralized. |
+| **Type Safety** | The core function has a simple signature returning `bytes \| None`, making it easy to reason about. |
+
+#### Migration Steps
+
+1. **Create the new file:**
+   ```bash
+   mkdir -p src/main_app/utils
+   touch src/main_app/utils/__init__.py
+   touch src/main_app/utils/commons_client.py
+   ```
+
+2. **Add the core function** to `commons_client.py` with full docstrings.
+
+3. **Refactor `download_file_from_commons`:**
+   - Import `_download_commons_file_core`
+   - Replace the inline `session.get()` call with the core function
+   - Keep all existing return value handling and logging
+
+4. **Refactor `download_one_file`:**
+   - Import `_download_commons_file_core`
+   - Replace the inline `session.get()` call with the core function
+   - Keep existing file existence check and result handling
+
+5. **Add tests** for the core function in `tests/app/utils/test_commons_client.py`.
+
+6. **Verify** both existing test suites still pass:
+   ```bash
+   pytest tests/app/jobs_workers/test_download_main_files_worker.py -v
+   pytest tests/app/tasks/downloads/ -v
+   ```
+
+#### Migration Effort
+
+- **Time:** 1-2 days
+- **Complexity:** Low
+- **Risk:** Very Low (thin wrapper refactoring)
+- **Testing:** Existing tests provide regression coverage; new unit tests for core function
+
+---
+
 ## Conclusion
 
 | Aspect                             | Assessment                                    |

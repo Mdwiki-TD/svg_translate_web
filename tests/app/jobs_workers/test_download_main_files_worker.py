@@ -593,7 +593,7 @@ def test_create_main_files_zip_empty_directory(tmp_path, monkeypatch):
 
     # Create empty zip file
     zip_path = main_files_path / "main_files.zip"
-    with zipfile.ZipFile(zip_path, "w") as zf:
+    with zipfile.ZipFile(zip_path, "w"):
         pass  # Empty zip
 
     # Mock settings
