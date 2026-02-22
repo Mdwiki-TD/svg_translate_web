@@ -3,7 +3,7 @@ import time
 import pytest
 from datetime import timedelta
 
-from src.app.app_routes.auth.rate_limit import RateLimiter
+from src.main_app.app_routes.auth.rate_limit import RateLimiter
 
 
 def test_ratelimiter_enforces_limit() -> None:

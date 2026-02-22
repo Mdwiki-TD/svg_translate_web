@@ -9,8 +9,8 @@ from typing import Any, Iterable
 
 import pytest
 
-from src.app import create_app, template_service
-from src.app.template_service import TemplateRecord
+from src.main_app import create_app, template_service
+from src.main_app.template_service import TemplateRecord
 
 
 class FakeTemplatesDB:
@@ -83,23 +83,23 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.app.users.current.current_user", fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.templates.current_user", fake_current_user)
-    monkeypatch.setattr("src.app.admins.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.app.admins.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.app.users.current.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.users.current.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.templates.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.admins.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.users.current.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.admins.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeTemplatesDB({})
     fake_store.add("Existing Template", "existing.svg")
 
-    monkeypatch.setattr("src.app.template_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.template_service.has_db_config", lambda: True)
 
     def fake_templates_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.app.template_service.TemplatesDB", fake_templates_factory)
+    monkeypatch.setattr("src.main_app.template_service.TemplatesDB", fake_templates_factory)
 
     template_service._TEMPLATE_STORE = fake_store
 

@@ -3,18 +3,13 @@
 set -euo pipefail
 
 BRANCH="${1:-main}"
-
 REPO_URL="https://github.com/Mdwiki-TD/svg_translate_web.git"
-
 TARGET_DIR="$HOME/www/python/src"
-
 CLONE_DIR="$HOME/temp_clone_path"
-
 backup_dir="$HOME/www/python/src_backup_$(date +%Y%m%d_%H%M%S)"
 
 # Navigate to the project directory
 cd "$HOME" || exit
-
 
 echo ">>> clone --branch ${BRANCH} ."
 
@@ -50,19 +45,19 @@ fi
 # Remove unused template file
 rm -f "$TARGET_DIR/service.template"
 
-# Activate the virtual environment and install dependencies
+# Activate the virtual environment and install dependencies from the clone
+if [ -f "$CLONE_DIR/requirements.txt" ]; then
+    cp "$CLONE_DIR/requirements.txt" "$TARGET_DIR/requirements.txt"
+    if source "$HOME/www/python/venv/bin/activate"; then
+        pip install -r "$CLONE_DIR/requirements.txt"
+    else
+        echo "Failed to activate virtual environment" >&2
+    fi
+fi
 
 rm -rf "$CLONE_DIR"
 
-if source "$HOME/www/python/venv/bin/activate"; then
-    pip install -r "$TARGET_DIR/requirements.txt"
-else
-    echo "Failed to activate virtual environment" >&2
-fi
-
 # toolforge-webservice python3.13 restart
-
-
 # become copy-svg-langs
 # toolforge-webservice python3.13 shell
 # source "$HOME/www/python/venv/bin/activate"

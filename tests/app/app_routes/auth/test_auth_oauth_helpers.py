@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.app import create_app
-from src.app.app_routes.auth import oauth as oauth_helpers
+from src.main_app import create_app
+from src.main_app.app_routes.auth import oauth as oauth_helpers
 
 
 class StubConsumerToken:

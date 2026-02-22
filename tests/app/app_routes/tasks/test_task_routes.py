@@ -3,10 +3,10 @@ from typing import Any, Dict, Optional
 
 import pytest
 
-from src.app import create_app
-from src.app.app_routes.tasks import routes
-from src.app.db import TaskAlreadyExistsError
-from src.app.threads import task_threads, web_run_task
+from src.main_app import create_app
+from src.main_app.app_routes.tasks import routes
+from src.main_app.db import TaskAlreadyExistsError
+from src.main_app.threads import task_threads, web_run_task
 
 
 class InMemoryTaskStore:
@@ -89,7 +89,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
-    monkeypatch.setattr("src.app.app_routes.cancel_restart.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
     routes.TASKS_LOCK = threading.Lock()
@@ -97,8 +97,8 @@ def app(monkeypatch: pytest.MonkeyPatch):
         task_threads.CANCEL_EVENTS.clear()
 
     # Mock current user for auth checks
-    monkeypatch.setattr("src.app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
-    monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
+    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
+    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
 
     return app
 
@@ -157,7 +157,7 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         captured["cancel_event"] = cancel_event
         task_finished.set()
 
-    monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.launch_task_thread",
+    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.launch_task_thread",
                         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()))
 
     # Mock uuid to return a predictable ID for the new task is hard if uuid is used inside routes.
@@ -193,7 +193,7 @@ def test_no_mysql_connection_attempted_with_default_settings(monkeypatch: pytest
         database_init.set()
         raise Exception("MySQL connection should not be attempted")
 
-    monkeypatch.setattr("src.app.db.db_class.Database", fake_database)
+    monkeypatch.setattr("src.main_app.db.db_class.Database", fake_database)
 
     app = create_app()
 

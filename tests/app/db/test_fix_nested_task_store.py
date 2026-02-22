@@ -1,11 +1,11 @@
 import pytest
 import json
 from unittest.mock import MagicMock
-from src.app.db.fix_nested_task_store import FixNestedTaskStore
+from src.main_app.db.fix_nested_task_store import FixNestedTaskStore
 
 @pytest.fixture
 def mock_db_class(mocker):
-    return mocker.patch("src.app.db.fix_nested_task_store.Database")
+    return mocker.patch("src.main_app.db.fix_nested_task_store.Database")
 
 @pytest.fixture
 def mock_db_instance(mock_db_class):
@@ -23,7 +23,7 @@ def test_init_schema(store, mock_db_instance):
 def test_create_task_success(store, mock_db_instance):
     res = store.create_task("t1", "file_name.svg", "user1")
     assert res is True
-    
+
     args = mock_db_instance.execute_query_safe.call_args[0]
     assert "INSERT INTO fix_nested_tasks" in args[0]
     # Check filename normalized (replace _ with space)
@@ -39,7 +39,7 @@ def test_get_task_success(store, mock_db_instance):
         "download_result": '{"a": 1}',
         "upload_result": None
     }]
-    
+
     task = store.get_task("t1")
     assert task["id"] == "t1"
     assert task["download_result"] == {"a": 1}
@@ -50,7 +50,7 @@ def test_get_task_json_error(store, mock_db_instance):
         "download_result": '{invalid}',
         "upload_result": None
     }]
-    
+
     task = store.get_task("t1")
     # Should leave raw string on error or handle gracefully?
     # Implementation swallows exception so it stays as string
@@ -68,11 +68,11 @@ def test_update_status(store, mock_db_instance):
 def test_update_nested_counts(store, mock_db_instance):
     # Reset mock after init calls
     mock_db_instance.reset_mock()
-    
+
     # Case 1: All None
     assert store.update_nested_counts("t1") is True
     mock_db_instance.execute_query_safe.assert_not_called()
-    
+
     # Case 2: Update some
     store.update_nested_counts("t1", before=10, fixed=5)
 
@@ -97,9 +97,9 @@ def test_list_tasks(store, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {"id": "t1", "download_result": None}
     ]
-    
+
     tasks = store.list_tasks(status="pending", username="u1", limit=10, offset=5)
-    
+
     assert len(tasks) == 1
     args = mock_db_instance.fetch_query_safe.call_args[0]
     assert "status = %s" in args[0]

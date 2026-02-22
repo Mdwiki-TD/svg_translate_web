@@ -5,10 +5,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.app.db import TaskAlreadyExistsError
-from src.app.db.db_class import Database
-from src.app.db.task_store_pymysql import TaskStorePyMysql
-from src.app.db.utils import DbUtils
+from src.main_app.db import TaskAlreadyExistsError
+from src.main_app.db.db_class import Database
+from src.main_app.db.task_store_pymysql import TaskStorePyMysql
+from src.main_app.db.utils import DbUtils
 
 utils = DbUtils()
 

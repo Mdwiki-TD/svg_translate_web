@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from src.app.db.db_TasksListDB import TasksListDB
-from src.app.db.utils import DbUtils
+from src.main_app.db.db_TasksListDB import TasksListDB
+from src.main_app.db.utils import DbUtils
 
 class MockTasksListDB(TasksListDB, DbUtils):
     def fetch_stages(self, task_id):
@@ -48,7 +48,7 @@ def test_create_base_sql_filtered(tasks_db):
     assert "ORDER BY title ASC" in sql
     assert "LIMIT %s" in sql
     assert "OFFSET %s" in sql
-    
+
     # Check params order
     # statuses + status first, then username, then limit, then offset
     assert params[0] == "pending"
@@ -70,13 +70,13 @@ def test_list_tasks_success(tasks_db, mock_db):
             "main_file": "f.svg" # Added to match _row_to_task expectations if strictly typed or accessed
         }
     ]
-    
+
     tasks = tasks_db.list_tasks(limit=10)
-    
+
     assert len(tasks) == 1
     assert tasks[0]["id"] == "t1"
     assert tasks[0]["stages"]["s1"]["status"] == "done"
-    
+
     # Verify SQL query structure
     args = mock_db.fetch_query_safe.call_args[0]
     sql = args[0]
@@ -90,7 +90,7 @@ def test_list_tasks_no_results(tasks_db, mock_db):
     assert tasks == []
 
 def test_list_tasks_db_failure(tasks_db, mock_db):
-    mock_db.fetch_query_safe.return_value = [] 
+    mock_db.fetch_query_safe.return_value = []
     # Technically fetch_query_safe returns [] on error too, but handled same way
     tasks = tasks_db.list_tasks()
     assert tasks == []

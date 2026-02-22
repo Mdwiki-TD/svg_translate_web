@@ -17,3 +17,4 @@ plans/*.py
 /plans
 .claude/settings.local.json
 .coverage
+/docs/plans

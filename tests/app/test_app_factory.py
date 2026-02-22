@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from importlib import reload
 
-from src.app.db import svg_db
+from src.main_app.db import svg_db
 
 
 def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
@@ -12,7 +12,7 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     # Reset any cached connection and explicitly mark the configuration as empty.
     monkeypatch.setattr(svg_db, "_db", None)
-    from src.app.config import DbConfig
+    from src.main_app.config import DbConfig
     monkeypatch.setattr(svg_db, "settings", type(svg_db.settings)(
         **{
             **svg_db.settings.__dict__,
@@ -27,7 +27,7 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     monkeypatch.setattr(svg_db, "Database", _SentinelDatabase)
 
     # Reload to ensure the latest configuration is used if the module was cached.
-    import src.app as app_module
+    import src.main_app as app_module
 
     reload(app_module)
 
@@ -38,7 +38,7 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
 def test_format_stage_timestamp_valid():
     """Test format_stage_timestamp with valid timestamp."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T04:41:07")
 
@@ -48,7 +48,7 @@ def test_format_stage_timestamp_valid():
 
 def test_format_stage_timestamp_empty():
     """Test format_stage_timestamp with empty string."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("")
 
@@ -57,7 +57,7 @@ def test_format_stage_timestamp_empty():
 
 def test_format_stage_timestamp_invalid():
     """Test format_stage_timestamp with invalid timestamp."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("invalid-timestamp")
 
@@ -66,7 +66,7 @@ def test_format_stage_timestamp_invalid():
 
 def test_format_stage_timestamp_afternoon():
     """Test format_stage_timestamp with PM time."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T16:41:07")
 
@@ -76,7 +76,7 @@ def test_format_stage_timestamp_afternoon():
 
 def test_format_stage_timestamp_noon():
     """Test format_stage_timestamp with noon."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T12:00:00")
 
@@ -86,7 +86,7 @@ def test_format_stage_timestamp_noon():
 
 def test_format_stage_timestamp_midnight():
     """Test format_stage_timestamp with midnight."""
-    from src.app import format_stage_timestamp
+    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T00:00:00")
 
@@ -98,7 +98,7 @@ def test_create_app_registers_blueprints(monkeypatch):
     """Test create_app registers all required blueprints."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -119,7 +119,7 @@ def test_create_app_sets_secret_key(monkeypatch):
     """Test create_app sets the secret key from settings."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -132,7 +132,7 @@ def test_create_app_configures_cookie_settings(monkeypatch):
     """Test create_app configures cookie settings."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -146,7 +146,7 @@ def test_create_app_sets_use_mw_oauth(monkeypatch):
     """Test create_app sets USE_MW_OAUTH config."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -158,7 +158,7 @@ def test_create_app_registers_context_processor(monkeypatch):
     """Test create_app registers context processor."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -170,7 +170,7 @@ def test_create_app_registers_error_handlers(monkeypatch):
     """Test create_app registers error handlers."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -183,7 +183,7 @@ def test_create_app_strict_slashes_disabled(monkeypatch):
     """Test create_app disables strict slashes."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
-    from src.app import create_app
+    from src.main_app import create_app
 
     app = create_app()
 
@@ -195,8 +195,8 @@ def test_create_app_jinja_env_configured(monkeypatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
     monkeypatch.setenv("USE_MW_OAUTH", "true")
 
-    from src.app import create_app
-    from src.app.config import get_settings
+    from src.main_app import create_app
+    from src.main_app.config import get_settings
 
     get_settings.cache_clear()
     app = create_app()

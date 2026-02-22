@@ -33,7 +33,7 @@ A Flask-based web application for copying SVG translations between different lan
 2. **Install dependencies**
 
     ```bash
-    pip install -r src/requirements.txt
+    pip install -r requirements.txt
     ```
 
 3. **Set up environment variables**
@@ -192,8 +192,9 @@ svg_translate_web/
 │   │   └── threads/            # Background task threads
 │   ├── templates/              # Jinja2 templates
 │   ├── static/                 # Static assets (CSS, JS)
-│   ├── app.py                  # WSGI entry point
-│   └── requirements.txt        # Python dependencies
+│   └── app.py                  # WSGI entry point
+├── requirements.txt            # Python dependencies
+├── requirements-dev.txt        # Development dependencies
 ├── tests/                      # Test suite
 ├── docs/                       # Documentation
 └── web_sh/                     # Deployment scripts
@@ -219,7 +220,7 @@ Deployment is automated via GitHub Actions when pushing to the `main` branch.
 
 1. Ensure all environment variables are configured on Toolforge
 2. Upload the code to Toolforge
-3. Install dependencies: `pip install -r src/requirements.txt`
+3. Install dependencies: `pip install -r requirements.txt`
 4. Start the webservice: `toolforge-webservice python3.13 start`
 
 ## Dependencies
@@ -235,7 +236,7 @@ Key dependencies include:
 -   **CopySVGTranslation** - Core SVG translation library
 -   **cryptography** - Encryption support
 
-See `src/requirements.txt` for complete list.
+See `requirements.txt` for complete list.
 
 ## Contributing
 

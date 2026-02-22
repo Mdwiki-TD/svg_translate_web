@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from src.app.db.db_StageStore import StageStore
+from src.main_app.db.db_StageStore import StageStore
 
 class MockStageStore(StageStore):
     def _current_ts(self):
@@ -22,12 +22,12 @@ def test_update_stage_success(stage_store, mock_db):
         "sub_name": "sub",
         "message": "msg"
     }
-    
+
     stage_store.update_stage("t1", "stage1", stage_data)
-    
+
     mock_db.execute_query.assert_called()
     query, params = mock_db.execute_query.call_args[0]
-    
+
     assert "INSERT INTO task_stages" in query
     assert params[0] == "t1:stage1"
     assert params[1] == "t1"
@@ -45,10 +45,10 @@ def test_update_stage_exception(stage_store, mock_db):
 
 def test_update_stage_column_allowed(stage_store, mock_db):
     stage_store.update_stage_column("t1", "stage1", "stage_status", "Done")
-    
+
     mock_db.execute_query.assert_called()
     query, params = mock_db.execute_query.call_args[0]
-    
+
     assert "UPDATE task_stages SET stage_status = %s" in query
     assert params[0] == "Done"
     assert params[2] == "t1:stage1"
@@ -74,9 +74,9 @@ def test_fetch_stages_success(stage_store, mock_db):
             "updated_at": "2023-01-01 10:00:00"
         }
     ]
-    
+
     stages = stage_store.fetch_stages("t1")
-    
+
     assert "s1" in stages
     assert stages["s1"]["number"] == 1
     assert stages["s1"]["status"] == "done"
@@ -84,7 +84,7 @@ def test_fetch_stages_success(stage_store, mock_db):
 
 def test_fetch_stages_empty(stage_store, mock_db):
     mock_db.fetch_query_safe.return_value = []
-    
+
     stages = stage_store.fetch_stages("t1")
     assert stages == {}
 
@@ -92,7 +92,7 @@ def test_fetch_stages_datetime_formatting(stage_store, mock_db):
     # Mock datetime object
     dt = MagicMock()
     dt.isoformat.return_value = "ISO-DATE"
-    
+
     mock_db.fetch_query_safe.return_value = [
         {
             "stage_name": "s1",
@@ -103,6 +103,6 @@ def test_fetch_stages_datetime_formatting(stage_store, mock_db):
             "updated_at": dt
         }
     ]
-    
+
     stages = stage_store.fetch_stages("t1")
     assert stages["s1"]["updated_at"] == "ISO-DATE"

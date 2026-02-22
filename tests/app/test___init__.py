@@ -1,11 +1,11 @@
-"""Tests for src/app/__init__.py - Flask application factory."""
+"""Tests for src/main_app/__init__.py - Flask application factory."""
 
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 from flask import Flask
 
-from src.app import format_stage_timestamp, create_app
+from src.main_app import format_stage_timestamp, create_app
 
 
 def test_format_stage_timestamp_valid():

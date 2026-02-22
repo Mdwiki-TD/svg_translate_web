@@ -5,11 +5,11 @@ from typing import Any, Iterable
 import pymysql
 import pytest
 
-from src.app import create_app
-from src.app.admins import admin_service
-from src.app.app_routes.admin.admin_routes import coordinators
-from src.app.config import settings
-from src.app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
+from src.main_app import create_app
+from src.main_app.admins import admin_service
+from src.main_app.app_routes.admin.admin_routes import coordinators
+from src.main_app.config import settings
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
 
 
 class FakeDatabase:
@@ -127,10 +127,10 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
     def _fake_current_user() -> Any:
         return user
 
-    monkeypatch.setattr("src.app.users.current.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.admins.admins_required.current_user", _fake_current_user)
-    monkeypatch.setattr("src.app.app_routes.main.routes.current_user", _fake_current_user)
+    monkeypatch.setattr("src.main_app.users.current.current_user", _fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.current_user", _fake_current_user)
+    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", _fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.main.routes.current_user", _fake_current_user)
 
 
 @pytest.fixture
@@ -151,8 +151,8 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     # Patch Database used by CoordinatorsDB
-    monkeypatch.setattr("src.app.db.db_CoordinatorsDB.Database", FakeDatabase)
-    monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", FakeDatabase)
+    monkeypatch.setattr("src.main_app.admins.admin_service.has_db_config", lambda: True)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
     store = CoordinatorsDB(settings.database_data)
@@ -160,7 +160,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
-    monkeypatch.setattr("src.app.admins.admin_service.get_admins_db", lambda: store)
+    monkeypatch.setattr("src.main_app.admins.admin_service.get_admins_db", lambda: store)
 
     app = create_app()
     app.config["TESTING"] = True

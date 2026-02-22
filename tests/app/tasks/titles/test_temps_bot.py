@@ -8,7 +8,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.app.tasks.titles.temps_bot import get_files_list
+from src.main_app.tasks.titles.temps_bot import get_files_list
 
 
 @pytest.fixture

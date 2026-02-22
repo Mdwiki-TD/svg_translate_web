@@ -1,6 +1,6 @@
 """Unit tests for db_StageStore module."""
 from __future__ import annotations
-from src.app.db import db_StageStore
+from src.main_app.db import db_StageStore
 
 def test_logger_uses_svg_translate_name():
     """Test that the logger uses 'svg_translate' instead of __name__."""
@@ -15,7 +15,7 @@ def test_no_unused_imports():
     from pathlib import Path
 
     # Read the source file
-    source_file = Path("src/app/db/db_StageStore.py")
+    source_file = Path("src/main_app/db/db_StageStore.py")
     source_code = source_file.read_text()
 
     # Parse the AST

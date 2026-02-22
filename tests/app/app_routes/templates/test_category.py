@@ -6,12 +6,12 @@ import types
 
 import pytest
 
-from src.app.app_routes.templates import category
+from src.main_app.app_routes.templates import category
 
 
 @pytest.fixture(autouse=True)
 def patch_settings(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.app.app_routes.templates.category.settings", types.SimpleNamespace(oauth=types.SimpleNamespace(user_agent="agent")))
+    monkeypatch.setattr("src.main_app.app_routes.templates.category.settings", types.SimpleNamespace(oauth=types.SimpleNamespace(user_agent="agent")))
 
 
 def test_get_category_members_api_success(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -42,7 +42,7 @@ def test_get_category_members_api_success(monkeypatch: pytest.MonkeyPatch) -> No
                 }
             )
 
-    monkeypatch.setattr("src.app.app_routes.templates.category.requests.Session", DummySession)
+    monkeypatch.setattr("src.main_app.app_routes.templates.category.requests.Session", DummySession)
 
     pages = category.get_category_members_api("Category:Example", "commons.wikimedia.org")
 
@@ -56,7 +56,7 @@ def test_get_category_members_petscan(monkeypatch: pytest.MonkeyPatch) -> None:
         def raise_for_status(self) -> None:
             return None
 
-    monkeypatch.setattr("src.app.app_routes.templates.category.requests.get", lambda url, headers=None, timeout=None: DummyResponse())
+    monkeypatch.setattr("src.main_app.app_routes.templates.category.requests.get", lambda url, headers=None, timeout=None: DummyResponse())
 
     pages = category.get_category_members_petscan("Category:Example", "commons.wikimedia.org")
 
@@ -64,8 +64,8 @@ def test_get_category_members_petscan(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_get_category_members_prefers_api(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.app.app_routes.templates.category.get_category_members_api", lambda *args, **kwargs: ["Page1"])
-    monkeypatch.setattr("src.app.app_routes.templates.category.get_category_members_petscan", lambda *args, **kwargs: ["Page2"])
+    monkeypatch.setattr("src.main_app.app_routes.templates.category.get_category_members_api", lambda *args, **kwargs: ["Page1"])
+    monkeypatch.setattr("src.main_app.app_routes.templates.category.get_category_members_petscan", lambda *args, **kwargs: ["Page2"])
 
     pages = category.get_category_members()
 

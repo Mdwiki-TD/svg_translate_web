@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from src.app.app_routes.auth import oauth
+from src.main_app.app_routes.auth import oauth
 
 
 @pytest.fixture(autouse=True)
@@ -18,7 +18,7 @@ def fake_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         user_agent="agent",
     )
     settings = types.SimpleNamespace(oauth=oauth_config)
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.settings", settings)
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", settings)
 
 
 def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -45,7 +45,7 @@ def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_get_handshaker_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.settings", types.SimpleNamespace(oauth=None))
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", types.SimpleNamespace(oauth=None))
 
     with pytest.raises(RuntimeError):
         oauth.get_handshaker()
@@ -64,8 +64,8 @@ def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert callback == "https://host/callback"
             return "https://auth", ("token", "secret")
 
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.url_for", fake_url_for)
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.url_for", fake_url_for)
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
 
     redirect_url, request_token = oauth.start_login("signed-state")
 
@@ -85,7 +85,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert token.key == "k"
             return {"sub": "123", "username": "Tester"}
 
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
 
     access_token, identity = oauth.complete_login("request-token", "oauth=1")
 
@@ -101,7 +101,7 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
         def identify(self, token) -> dict:
             raise ValueError("bad")
 
-    monkeypatch.setattr("src.app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.get_handshaker", lambda: DummyHandshaker())
 
     with pytest.raises(oauth.OAuthIdentityError) as excinfo:
         oauth.complete_login("request-token", "query")

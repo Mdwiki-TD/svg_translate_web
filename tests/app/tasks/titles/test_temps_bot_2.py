@@ -10,7 +10,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.app.tasks.titles.temps_bot import get_titles, get_titles_from_wikilinks
+from src.main_app.tasks.titles.temps_bot import get_titles, get_titles_from_wikilinks
 
 # ---------- Fixtures with realistic wikitext samples ----------
 
