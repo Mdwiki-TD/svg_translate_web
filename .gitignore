@@ -13,8 +13,7 @@ plan-ar.md
 plan.md
 start_bot copy.py
 web_sh/new_update.sh
-plans/*.py
-/plans
 .claude/settings.local.json
 .coverage
-/docs/plans
+docs/plans/*.md
+!docs/plans/crop_main_files_job_plan.md
