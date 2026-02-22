@@ -11,7 +11,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 ## Implementation Checklist
 
 ### Phase 1: Core Worker
-- [x] Create [`src/main_app/jobs_workers/crop_main_files_worker.py`](src/main_app/jobs_workers/crop_main_files_worker.py)
+- [x] Create [`src/main_app/jobs_workers/crop_main_files/__init__.py`](src/main_app/jobs_workers/crop_main_files/__init__.py)
   - [x] Implement `generate_cropped_filename()` - name transformation
   - [ ] Implement `crop_svg_file()` - SVG cropping logic (TODO: full implementation)
   - [ ] Implement `upload_cropped_file()` - Commons upload (TODO: full implementation)
@@ -33,7 +33,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
   - [x] Add "Crop Main Files" sidebar menu item
 
 ### Phase 4: Testing
-- [ ] Create [`tests/app/jobs_workers/test_crop_main_files_worker.py`](tests/app/jobs_workers/test_crop_main_files_worker.py)
+- [ ] Create [`tests/app/jobs_workers/test_crop_main_files/__init__.py`](tests/app/jobs_workers/test_crop_main_files/__init__.py)
   - [ ] Test `generate_cropped_filename()`
   - [ ] Test `crop_svg_file()` success/failure cases
   - [ ] Test `upload_cropped_file()` success/failure cases
@@ -53,7 +53,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 
 ### 1. Worker Module
 
-**File:** [`src/main_app/jobs_workers/crop_main_files_worker.py`](src/main_app/jobs_workers/crop_main_files_worker.py)
+**File:** [`src/main_app/jobs_workers/crop_main_files/__init__.py`](src/main_app/jobs_workers/crop_main_files/__init__.py)
 
 **Purpose:** Core worker logic for cropping main files and uploading them to Commons.
 
@@ -126,7 +126,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 
 ### 3. Tests
 
-**File:** [`tests/app/jobs_workers/test_crop_main_files_worker.py`](tests/app/jobs_workers/test_crop_main_files_worker.py)
+**File:** [`tests/app/jobs_workers/test_crop_main_files/__init__.py`](tests/app/jobs_workers/test_crop_main_files/__init__.py)
 
 **Test Cases:**
 - `test_generate_cropped_filename()` - Name transformation logic
@@ -150,7 +150,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
 - Add `"crop_main_files"` entry to `jobs_targets` dictionary (line 64-68)
 
 ```python
-from .crop_main_files_worker import crop_main_files_for_templates
+from .crop_main_files/__init__ import crop_main_files_for_templates
 
 jobs_targets = {
     "fix_nested_main_files": fix_nested_main_files_for_templates,

@@ -8,7 +8,7 @@ from typing import Any
 
 from . import jobs_service
 from .collect_main_files_worker import collect_main_files_for_templates
-from .crop_main_files_worker import crop_main_files_for_templates
+from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
