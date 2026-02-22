@@ -16,7 +16,12 @@ def app(monkeypatch: pytest.MonkeyPatch):
     app = Flask(__name__)
     app.secret_key = "secret"
 
-    settings = types.SimpleNamespace(database_data=DbConfig())
+    settings = types.SimpleNamespace(database_data=DbConfig(
+        db_name="",
+        db_host="",
+        db_user=None,
+        db_password=None,
+    ))
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.settings", settings)
 
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.flash", lambda *args, **kwargs: None)
