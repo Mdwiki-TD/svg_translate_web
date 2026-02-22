@@ -23,14 +23,14 @@ def generate_cropped_filename(filename: str) -> str:
         → "File:death rate from obesity, World, 2021 (cropped).svg"
     """
     if filename.startswith("File:"):
-        base = filename[5:]
+        base_name = filename[5:]
     else:
-        base = filename
+        base_name = filename
 
-    if "." in base:
-        name, ext = base.rsplit(".", 1)
-        return f"File:{name} (cropped).{ext}"
-    return f"File:{base} (cropped)"
+    path = Path(base_name)
+    new_stem = f"{path.stem} (cropped)"
+    new_filename = new_stem + path.suffix
+    return f"File:{new_filename}"
 
 
 def process_crops(
