@@ -33,6 +33,13 @@ def get_cancel_event(job_id: int) -> threading.Event | None:
         return CANCEL_EVENTS.get(job_id)
 
 
+def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
+    try:
+        target_func(job_id, user, cancel_event=cancel_event)
+    finally:
+        _pop_cancel_event(job_id)
+
+
 def cancel_job(job_id: int) -> bool:
     """
     Cancel a running job.
@@ -44,13 +51,6 @@ def cancel_job(job_id: int) -> bool:
         logger.info(f"Cancellation requested for job {job_id}")
         return True
     return False
-
-
-def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
-    try:
-        target_func(job_id, user, cancel_event=cancel_event)
-    finally:
-        _pop_cancel_event(job_id)
 
 
 def start_job(user: Any | None, job_type: str) -> int:
@@ -88,7 +88,6 @@ def start_job(user: Any | None, job_type: str) -> int:
 
 
 __all__ = [
-    "collect_main_files_for_templates",
-    "fix_nested_main_files_for_templates",
+    "start_job",
     "cancel_job",
 ]
