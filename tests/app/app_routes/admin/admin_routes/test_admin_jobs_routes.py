@@ -791,14 +791,29 @@ def test_download_all_main_files(mock_create_zip, admin_jobs_client):
 
 
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.create_main_files_zip")
-def test_download_all_main_files_no_directory(mock_create_zip, admin_jobs_client):
-    """Test downloading all main files when directory doesn't exist."""
+def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client):
+    """Test downloading all main files when zip doesn't exist - should redirect with flash."""
     client, store = admin_jobs_client
 
-    mock_create_zip.return_value = ("Main files directory does not exist", 404)
+    mock_create_zip.return_value = ("Please run a 'Download Main Files' job first", 404)
 
-    response = client.get("/admin/download-main-files/download-all")
-    assert response.status_code == 404
+    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    # Should redirect to jobs list page with flash message
+    assert response.status_code == 200
+
+    mock_create_zip.assert_called_once()
+
+
+@patch("src.main_app.app_routes.admin.admin_routes.jobs.create_main_files_zip")
+def test_download_all_main_files_error(mock_create_zip, admin_jobs_client):
+    """Test downloading all main files when zip is corrupted - should redirect with flash."""
+    client, store = admin_jobs_client
+
+    mock_create_zip.return_value = ("Zip file is empty or corrupted", 500)
+
+    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    # Should redirect to jobs list page with flash message
+    assert response.status_code == 200
 
     mock_create_zip.assert_called_once()
 
