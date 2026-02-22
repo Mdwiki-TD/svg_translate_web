@@ -79,50 +79,29 @@ def _start_job(job_type: str) -> int:
     return False
 
 # ================================
-# Collect Main Files Jobs handlers
+# Jobs handlers
 # ================================
 
 
-def _collect_main_files_jobs_list() -> str:
-    """
-    Render the collect main files jobs list dashboard.
-    """
+JOB_TYPE_LIST_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files_jobs.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
+    "download_main_files": "admins/download_main_files_jobs.html",
+}
+
+
+def _jobs_list(job_type: str) -> str:
+    """Render the jobs list dashboard for any job type."""
     user = current_user()
     # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="collect_main_files")
+    jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+
+    template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
+    if not template:
+        abort(404)
 
     return render_template(
-        "admins/collect_main_files_jobs.html",
-        current_user=user,
-        jobs=jobs,
-    )
-
-
-def _fix_nested_main_files_jobs_list():
-    """
-    Render the fix nested main files jobs list dashboard.
-    """
-    user = current_user()
-    # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="fix_nested_main_files")
-
-    return render_template(
-        "admins/fix_nested_main_files_jobs.html",
-        current_user=user,
-        jobs=jobs,
-    )
-
-
-def _download_main_files_jobs_list() -> str:
-    """
-    Render the download main files jobs list dashboard.
-    """
-    user = current_user()
-    # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="download_main_files")
-
-    return render_template(
-        "admins/download_main_files_jobs.html",
+        template,
         current_user=user,
         jobs=jobs,
     )
@@ -176,14 +155,7 @@ class Jobs:
         @bp_admin.get("/<string:job_type>/list")
         @admin_required
         def jobs_list(job_type: str) -> str:
-            if job_type == "collect_main_files":
-                return _collect_main_files_jobs_list()
-            elif job_type == "fix_nested_main_files":
-                return _fix_nested_main_files_jobs_list()
-            elif job_type == "download_main_files":
-                return _download_main_files_jobs_list()
-            else:
-                abort(404)
+            return _jobs_list(job_type)
 
         # ================================
         # Job Detail routes
