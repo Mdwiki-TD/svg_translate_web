@@ -10,7 +10,7 @@ import wikitextparser as wtp
 
 def match_main_title_from_url(text):
     # Match lines starting with *'''Translate''': followed by a URL
-    pattern = r"^\*'''Translat(?:e|ion)''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()]+\.svg)$"
+    pattern = r"^\*'''Translat(?:e|ion)''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()\s_]+\.svg)$"
     match = re.search(pattern, text, flags=re.MULTILINE)
     return match.group(1) if match else None
 
@@ -55,16 +55,50 @@ def find_main_title_from_template(text):
             if tpl.arguments:
                 main_title = tpl.arguments[0].value.strip()
             break
-
     if main_title:
         main_title = main_title.replace("_", " ").strip()
 
     return main_title
 
 
+def find_main_title_from_owidslidersrcs(text):
+    """
+    Example:
+        ==Data==
+        {{owidslidersrcs|id=gallery|widths=240|heights=240
+        |gallery-World=
+        File:youth mortality rate, World, 1950.svg!year=1950
+        File:youth mortality rate, World, 1951.svg!year=1951
+        File:youth mortality rate, World, 1952.svg!year=1952
+        File:youth mortality rate, World, 1953.svg!year=1953
+        }}
+    Return:
+        "youth mortality rate, World, 1950.svg"
+    """
+    # Parse the text using wikitextparser
+    parsed = wtp.parse(text)
+
+    # --- 1. Extract main title from {{owidslidersrcs|gallery-World=...}}
+    main_title = None
+    for tpl in parsed.templates:
+        if tpl.name.strip().lower() == "owidslidersrcs":
+            if tpl.arguments:
+                gallery = tpl.get_arg("gallery-World")
+                if gallery:
+                    gallery = gallery.value.strip().splitlines()[0].split("!")[0].strip()
+                    m = re.match(r"^File:[\w\-,.()\s_]+\.svg$", gallery)
+                    if m:
+                        main_title = gallery.replace("_", " ").strip()
+            break
+    return main_title
+
+
 def find_main_title(text):
     main_title = (
-        find_main_title_from_template(text) or match_main_title_from_url_new(text) or match_main_title_from_url(text)
+        find_main_title_from_template(text)
+        or match_main_title_from_url_new(text)
+        or match_main_title_from_url(text)
+        or find_main_title_from_owidslidersrcs(text)
     )
 
     if main_title:
