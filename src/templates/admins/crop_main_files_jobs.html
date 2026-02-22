@@ -1,0 +1,78 @@
+{% extends "admins/base.html" %}
+
+{% block title %}Crop Main Files Jobs · Copy SVG Translation{% endblock %}
+
+{% block contents %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="headline mb-0">Crop Main Files Jobs</h3>
+        <form method="post" action="{{ url_for('admin.start_job', job_type='crop_main_files') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-primary"
+                    data-confirm-message="This will start a background job to crop main files and upload them with '(cropped)' suffix. Continue?"
+                    onclick="return confirm(this.dataset.confirmMessage);">
+                <i class="bi bi-crop"></i> Start New Job
+            </button>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info mb-3">
+            <i class="bi bi-info-circle"></i>
+            This job crops main SVG files and uploads them with new names like:
+            <code>File:Example.svg</code> → <code>File:Example (cropped).svg</code>
+        </div>
+        <div class="table-responsive shadow-sm">
+            <table class="table table-hover align-middle mb-0 DataTable">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="width: 5%">ID</th>
+                        <th scope="col" style="width: 10%">Status</th>
+                        <th scope="col" style="width: 20%">Created</th>
+                        <th scope="col" style="width: 20%">Started</th>
+                        <th scope="col" style="width: 20%">Completed</th>
+                        <th scope="col" class="text-center" style="width: 10%">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td>{{ job.id }}</td>
+                        <td>
+                            {% if job.status == 'completed' %}
+                                <span class="badge bg-success">{{ job.status }}</span>
+                            {% elif job.status == 'failed' %}
+                                <span class="badge bg-danger">{{ job.status }}</span>
+                            {% elif job.status == 'running' %}
+                                <span class="badge bg-primary">{{ job.status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ job.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ job.created_at }}</td>
+                        <td>{{ job.started_at if job.started_at else '-' }}</td>
+                        <td>{{ job.completed_at if job.completed_at else '-' }}</td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.job_detail', job_type='crop_main_files', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if job.status == 'running' or job.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('admin.cancel_job', job_type='crop_main_files', job_id=job.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Are you sure you want to cancel this job?');">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

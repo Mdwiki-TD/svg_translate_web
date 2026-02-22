@@ -38,6 +38,13 @@ def create_side(ty):
                 "icon": "bi-kanban",
             },
             {
+                "id": "crop_main_files_jobs",
+                "admin": 1,
+                "href": "crop_main_files/list",
+                "title": "Crop Main Files",
+                "icon": "bi-crop",
+            },
+            {
                 "id": "fix_nested_main_files_jobs",
                 "admin": 1,
                 "href": "fix_nested_main_files/list",

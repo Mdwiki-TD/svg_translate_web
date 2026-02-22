@@ -8,6 +8,7 @@ from typing import Any
 
 from . import jobs_service
 from .collect_main_files_worker import collect_main_files_for_templates
+from .crop_main_files_worker import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
@@ -64,6 +65,7 @@ def start_job(user: Any | None, job_type: str) -> int:
     jobs_targets = {
         "fix_nested_main_files": fix_nested_main_files_for_templates,
         "collect_main_files": collect_main_files_for_templates,
+        "crop_main_files": crop_main_files_for_templates,
         "download_main_files": download_main_files_for_templates,
     }
     if job_type not in jobs_targets:
