@@ -13,7 +13,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
-
+from ....config import settings
 from ....admins.admins_required import admin_required
 from ....jobs_workers import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
@@ -327,3 +327,11 @@ class Jobs:
         @admin_required
         def cancel_download_main_files_job(job_id: int) -> Response:
             return _cancel_job(job_id, "download_main_files")
+
+        @bp_admin.get("/download-main-files/file/<path:filename>")
+        @admin_required
+        def serve_download_main_file(filename: str) -> Response:
+            """Serve a downloaded main file from the main_files_path directory."""
+            from flask import send_from_directory
+
+            return send_from_directory(settings.paths.main_files_path, filename)

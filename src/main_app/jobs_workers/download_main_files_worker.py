@@ -74,7 +74,7 @@ def download_file_from_commons(
         file_size = len(response.content)
 
         result["success"] = True
-        result["path"] = str(out_path)
+        result["path"] = str(out_path.name)
         result["size_bytes"] = file_size
         logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
 
