@@ -108,8 +108,8 @@ def test_Settings():
 @patch.dict(os.environ, {
     "DB_NAME": "test_db",
     "DB_HOST": "test_host",
-    "DB_USER": "test_user",
-    "DB_PASSWORD": "test_pass",
+    "TOOL_REPLICA_USER": "test_user",
+    "TOOL_REPLICA_PASSWORD": "test_pass",
     "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
 @patch("os.path.exists")
@@ -129,8 +129,8 @@ def test_load_db_data_new(mock_exists):
 @patch.dict(os.environ, {
     "DB_HOST": "test_host",
     "DB_NAME": "test_db",
-    "DB_USER": "test_user",
-    "DB_PASSWORD": "test_pass",
+    "TOOL_REPLICA_USER": "test_user",
+    "TOOL_REPLICA_PASSWORD": "test_pass",
     "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
 @patch("os.path.exists")

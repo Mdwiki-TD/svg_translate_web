@@ -20,8 +20,8 @@
                         <div class="mb-3">
                             <h3 class="mb-1">
                                 <i class="bi bi-file-earmark-image"></i>
-                                <a href="https://commons.wikimedia.org/wiki/File:{{ filename }}" target="_blank"
-                                    rel="noopener noreferrer" class="text-decoration-none">
+                                <a href="https://commons.wikimedia.org/wiki/File:{{ filename | replace(' ', '_') }}"
+                                    target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                                     File:{{ filename }}
                                 </a>
                             </h3>
@@ -191,9 +191,8 @@
 
                         <div id="extracted-json" class="collapse show">
                             <div class="card-body p-0">
-                                <pre class="mb-0 p-3 bg-light" style="max-height: 400px; overflow:auto;">
-<code id="json-content">{{ translations_json }}</code>
-            </pre>
+                                <pre class="mb-0 p-3 bg-light"
+                                    style="max-height: 400px; overflow:auto;"><code id="json-content">{{ translations_json }}</code></pre>
                             </div>
                         </div>
                     </div>
