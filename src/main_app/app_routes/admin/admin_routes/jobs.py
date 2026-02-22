@@ -6,59 +6,31 @@ import logging
 
 from flask import (
     Blueprint,
+    abort,
     flash,
     redirect,
     render_template,
     url_for,
+    send_from_directory,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+from ....config import settings
 from ....admins.admins_required import admin_required
 from ....jobs_workers import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
+from ....jobs_workers.download_main_files_worker import create_main_files_zip
 
 logger = logging.getLogger("svg_translate")
 
 
-def _collect_main_files_jobs_list() -> str:
-    """
-    Render the collect main files jobs list dashboard.
-    """
-    user = current_user()
-    # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="collect_main_files")
-
-    return render_template(
-        "admins/collect_main_files_jobs.html",
-        current_user=user,
-        jobs=jobs,
-    )
-
-
-def _collect_main_files_job_detail(job_id: int) -> Response | str:
-    """Render the collect main files job detail page."""
-    user = current_user()
-
-    try:
-        job = jobs_service.get_job(job_id, "collect_main_files")
-    except LookupError as exc:
-        logger.exception("Job not found")
-        flash(str(exc), "warning")
-        return redirect(url_for("admin.collect_main_files_jobs_list"))
-
-    # Load job result if available
-    result_data = None
-    if job.result_file:
-        result_data = jobs_service.load_job_result(job.result_file)
-
-    return render_template(
-        "admins/collect_main_files_job_detail.html",
-        current_user=user,
-        job=job,
-        result_data=result_data,
-    )
+JOB_TYPE_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files_job_detail.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
+    "download_main_files": "admins/download_main_files_job_detail.html",
+}
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
@@ -68,7 +40,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+    return redirect(url_for("admin.jobs_list", job_type=job_type))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -85,87 +57,84 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+    return redirect(url_for("admin.jobs_list", job_type=job_type))
 
 
-def _fix_nested_main_files_jobs_list():
-    """
-    Render the fix nested main files jobs list dashboard.
-    """
+def _start_job(job_type: str) -> int | None:
+    """Start a job."""
+    user = current_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return False
+
+    try:
+        # Get auth payload for OAuth uploads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_job(auth_payload, job_type)
+        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
+        return job_id
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
+
+    return False
+
+# ================================
+# Jobs handlers
+# ================================
+
+
+JOB_TYPE_LIST_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files_jobs.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
+    "download_main_files": "admins/download_main_files_jobs.html",
+}
+
+
+def _jobs_list(job_type: str) -> str:
+    """Render the jobs list dashboard for any job type."""
     user = current_user()
     # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="fix_nested_main_files")
+    jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+
+    template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
+    if not template:
+        abort(404)
 
     return render_template(
-        "admins/fix_nested_main_files_jobs.html",
+        template,
         current_user=user,
         jobs=jobs,
     )
 
 
-def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
-    """Render the fix nested main files job detail page."""
+def _job_detail(job_id: int, job_type: str) -> Response | str:
+    """Render the job detail page for any job type."""
     user = current_user()
+
     try:
-        job = jobs_service.get_job(job_id, "fix_nested_main_files")
+        job = jobs_service.get_job(job_id, job_type)
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+        return redirect(url_for("admin.jobs_list", job_type=job_type))
 
     # Load job result if available
     result_data = None
     if job.result_file:
         result_data = jobs_service.load_job_result(job.result_file)
 
+    template = JOB_TYPE_TEMPLATES.get(job_type)
+    if not template:
+        abort(404)
+
     return render_template(
-        "admins/fix_nested_main_files_job_detail.html",
+        template,
         current_user=user,
         job=job,
         result_data=result_data,
     )
-
-
-def _start_collect_main_files_job() -> int:
-    """Start a job to collect main files for templates."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_collect_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to collect main files for templates.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
-
-
-def _start_fix_nested_main_files_job() -> int:
-    """Start a job to fix nested tags in all template main files."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_fix_nested_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to fix nested tags in template main files.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
 
 
 class Jobs:
@@ -173,65 +142,74 @@ class Jobs:
 
     def __init__(self, bp_admin: Blueprint) -> None:
         # ================================
-        # Collect Main Files Jobs routes
+        # Cancel Jobs routes
         # ================================
 
-        @bp_admin.get("/collect-main-files")
+        @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
         @admin_required
-        def collect_main_files_jobs_list() -> str:
-            return _collect_main_files_jobs_list()
+        def cancel_job(job_type: str, job_id: int) -> Response:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
+            return _cancel_job(job_id, job_type)
 
-        @bp_admin.get("/collect-main-files/<int:job_id>")
-        @admin_required
-        def collect_main_files_job_detail(job_id: int) -> Response | str:
-            return _collect_main_files_job_detail(job_id)
+        # ================================
+        # Jobs List routes
+        # ================================
 
-        @bp_admin.post("/collect-main-files/start")
+        @bp_admin.get("/<string:job_type>/list")
         @admin_required
-        def start_collect_main_files_job() -> ResponseReturnValue:
-            job_id = _start_collect_main_files_job()
+        def jobs_list(job_type: str) -> str:
+            return _jobs_list(job_type)
+
+        # ================================
+        # Job Detail routes
+        # ================================
+
+        @bp_admin.get("/<string:job_type>/<int:job_id>")
+        @admin_required
+        def job_detail(job_type: str, job_id: int) -> Response | str:
+            return _job_detail(job_id, job_type)
+
+        # ================================
+        # Start Job routes
+        # ================================
+
+        @bp_admin.post("/<string:job_type>/start")
+        @admin_required
+        def start_job(job_type: str) -> ResponseReturnValue:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
+            job_id = _start_job(job_type)
             if not job_id:
-                return redirect(url_for("admin.collect_main_files_jobs_list"))
-            return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
-
-        @bp_admin.post("/collect-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_collect_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "collect_main_files")
-
-        @bp_admin.post("/collect-main-files/<int:job_id>/cancel")
-        @admin_required
-        def cancel_collect_main_files_job(job_id: int) -> Response:
-            return _cancel_job(job_id, "collect_main_files")
+                return redirect(url_for("admin.jobs_list", job_type=job_type))
+            return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
-        # Fix Nested Main Files Jobs routes
+        # Delete Job routes
         # ================================
 
-        @bp_admin.get("/fix-nested-main-files")
+        @bp_admin.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
-        def fix_nested_main_files_jobs_list():
-            return _fix_nested_main_files_jobs_list()
+        def delete_job(job_type: str, job_id: int) -> Response:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
+            return _delete_job(job_id, job_type)
 
-        @bp_admin.get("/fix-nested-main-files/<int:job_id>")
-        @admin_required
-        def fix_nested_main_files_job_detail(job_id: int) -> Response | str:
-            return _fix_nested_main_files_job_detail(job_id)
+        # ================================
+        # download-main-files routes
+        # ================================
 
-        @bp_admin.post("/fix-nested-main-files/start")
+        @bp_admin.get("/download-main-files/file/<path:filename>")
         @admin_required
-        def start_fix_nested_main_files_job() -> ResponseReturnValue:
-            job_id = _start_fix_nested_main_files_job()
-            if not job_id:
-                return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
-            return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
+        def serve_download_main_file(filename: str) -> Response:
+            """Serve a downloaded main file from the main_files_path directory."""
 
-        @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_fix_nested_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "fix_nested_main_files")
+            return send_from_directory(settings.paths.main_files_path, filename)
 
-        @bp_admin.post("/fix-nested-main-files/<int:job_id>/cancel")
+        @bp_admin.get("/download-main-files/download-all")
         @admin_required
-        def cancel_fix_nested_main_files_job(job_id: int) -> Response:
-            return _cancel_job(job_id, "fix_nested_main_files")
+        def download_all_main_files() -> ResponseReturnValue:
+            """Download all main files as a zip archive."""
+
+            response, status_code = create_main_files_zip()
+            return response, status_code

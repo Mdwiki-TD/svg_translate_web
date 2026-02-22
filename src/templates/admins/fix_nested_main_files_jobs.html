@@ -7,7 +7,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Fix Nested Main Files Jobs</h3>
-        <form method="post" action="{{ url_for('admin.start_fix_nested_main_files_job') }}" class="d-inline">
+        <form method="post" action="{{ url_for('admin.start_job', job_type='fix_nested_main_files') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-primary"
                     data-confirm-message="This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?"
@@ -49,11 +49,11 @@
                         <td>{{ job.completed_at if job.completed_at else '-' }}</td>
                         <td class="text-center">
                             <div class="btn-group">
-                                <a href="{{ url_for('admin.fix_nested_main_files_job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
+                                <a href="{{ url_for('admin.job_detail', job_type='fix_nested_main_files', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
-                                <form method="POST" action="{{ url_for('admin.cancel_fix_nested_main_files_job', job_id=job.id) }}" class="d-inline">
+                                <form method="POST" action="{{ url_for('admin.cancel_job', job_type='fix_nested_main_files', job_id=job.id) }}" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Are you sure you want to cancel this job?');">
                                         <i class="bi bi-x-circle"></i> Cancel

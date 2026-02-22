@@ -9,6 +9,7 @@ from typing import Any
 from . import jobs_service
 from .collect_main_files_worker import collect_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
+from .download_main_files_worker import download_main_files_for_templates
 
 logger = logging.getLogger("svg_translate")
 
@@ -32,6 +33,13 @@ def get_cancel_event(job_id: int) -> threading.Event | None:
         return CANCEL_EVENTS.get(job_id)
 
 
+def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
+    try:
+        target_func(job_id, user, cancel_event=cancel_event)
+    finally:
+        _pop_cancel_event(job_id)
+
+
 def cancel_job(job_id: int) -> bool:
     """
     Cancel a running job.
@@ -45,13 +53,6 @@ def cancel_job(job_id: int) -> bool:
     return False
 
 
-def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
-    try:
-        target_func(job_id, user, cancel_event=cancel_event)
-    finally:
-        _pop_cancel_event(job_id)
-
-
 def start_job(user: Any | None, job_type: str) -> int:
     """
     Start a background job to fix nested tags in all template main files.
@@ -63,6 +64,7 @@ def start_job(user: Any | None, job_type: str) -> int:
     jobs_targets = {
         "fix_nested_main_files": fix_nested_main_files_for_templates,
         "collect_main_files": collect_main_files_for_templates,
+        "download_main_files": download_main_files_for_templates,
     }
     if job_type not in jobs_targets:
         raise ValueError(f"Unknown job type: {job_type}")
@@ -85,29 +87,7 @@ def start_job(user: Any | None, job_type: str) -> int:
     return job.id
 
 
-def start_collect_main_files_job(user: Any | None = None) -> int:
-    """
-    Start a background job to collect main files for templates.
-    Returns the job ID.
-    """
-    return start_job(user, "collect_main_files")
-
-
-def start_fix_nested_main_files_job(user: Any | None) -> int:
-    """
-    Start a background job to fix nested tags in all template main files.
-    Returns the job ID.
-
-    Args:
-        user: User authentication data for OAuth uploads
-    """
-    return start_job(user, "fix_nested_main_files")
-
-
 __all__ = [
-    "collect_main_files_for_templates",
-    "start_collect_main_files_job",
-    "fix_nested_main_files_for_templates",
-    "start_fix_nested_main_files_job",
+    "start_job",
     "cancel_job",
 ]

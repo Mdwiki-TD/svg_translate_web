@@ -7,7 +7,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Templates</h3>
-        <form method="post" action="{{ url_for('admin.start_collect_main_files_job') }}" class="d-inline">
+        <form method="post" action="{{ url_for('admin.start_job', job_type='collect_main_files') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-success btn-sm"
                     data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Collect Main Files Jobs page. Continue?"

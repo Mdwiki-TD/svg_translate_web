@@ -33,16 +33,23 @@ def create_side(ty):
             {
                 "id": "collect_main_files_jobs",
                 "admin": 1,
-                "href": "collect-main-files",
+                "href": "collect_main_files/list",
                 "title": "Collect Main Files",
                 "icon": "bi-kanban",
             },
             {
                 "id": "fix_nested_main_files_jobs",
                 "admin": 1,
-                "href": "fix-nested-main-files",
+                "href": "fix_nested_main_files/list",
                 "title": "Fix Nested Main Files",
                 "icon": "bi-tools",
+            },
+            {
+                "id": "download_main_files_jobs",
+                "admin": 1,
+                "href": "download_main_files/list",
+                "title": "Download Main Files",
+                "icon": "bi-download",
             },
         ],
     }

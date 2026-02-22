@@ -1,15 +1,15 @@
 {% extends "admins/base.html" %}
 
-{% block title %}Fix Nested Main Files Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+{% block title %}Download Main Files Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
 {% block contents %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">Fix Nested Main Files Job #{{ job.id }}</h3>
+        <h3 class="headline mb-0">Download Main Files Job #{{ job.id }}</h3>
         <div class="d-flex gap-2">
             {% if job.status == 'running' or job.status == 'pending' %}
-            <form method="POST" action="{{ url_for('admin.cancel_job', job_type='fix_nested_main_files', job_id=job.id) }}"
+            <form method="POST" action="{{ url_for('admin.cancel_job', job_type='download_main_files', job_id=job.id) }}"
                 onsubmit="return confirm('Are you sure you want to cancel this job?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-warning">
@@ -17,14 +17,14 @@
                 </button>
             </form>
             {% endif %}
-            <form method="POST" action="{{ url_for('admin.delete_job', job_type='fix_nested_main_files', job_id=job.id) }}"
+            <form method="POST" action="{{ url_for('admin.delete_job', job_type='download_main_files', job_id=job.id) }}"
                 onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="bi bi-trash"></i> Delete
                 </button>
             </form>
-            <a href="{{ url_for('admin.jobs_list', job_type='fix_nested_main_files') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('admin.jobs_list', job_type='download_main_files') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>
@@ -73,6 +73,10 @@
                                 <th>Result File:</th>
                                 <td>{{ job.result_file if job.result_file else '-' }}</td>
                             </tr>
+                            <tr>
+                                <th>Output Path:</th>
+                                <td><code>{{ result_data.output_path if result_data and result_data.output_path else '-' }}</code></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -87,7 +91,7 @@
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+                <div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
                     <div class="col col-sm-12">
                         <div class="card h-100 border">
                             <div class="card-body p-2">
@@ -102,9 +106,19 @@
                         <div class="card h-100 border-success">
                             <div class="card-body p-2">
                                 <h4 class="mb-0">
-                                    {{ result_data.summary.success }}
+                                    {{ result_data.summary.downloaded }}
                                 </h4>
-                                <small>Success</small>
+                                <small>Downloaded</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 border-warning">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.exists }}
+                                </h4>
+                                <small>Exists</small>
                             </div>
                         </div>
                     </div>
@@ -115,26 +129,6 @@
                                     {{ result_data.summary.failed }}
                                 </h4>
                                 <small>Failed</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-secondary">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">
-                                    {{ result_data.summary.skipped }}
-                                </h4>
-                                <small>Skipped</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-info">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">
-                                    {{ result_data.summary.no_main_file }}
-                                </h4>
-                                <small>No Main File</small>
                             </div>
                         </div>
                     </div>
@@ -150,11 +144,11 @@
             </div>
         </div>
 
-        <!-- Successful Files -->
-        {% if result_data.templates_success %}
+        <!-- Downloaded Files -->
+        {% if result_data.files_downloaded %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Successful Files ({{ result_data.templates_success|length }})</h5>
+                <h5 class="mb-0">Downloaded Files ({{ result_data.files_downloaded|length }})</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -162,75 +156,29 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Title</th>
-                                <th>Main File</th>
-                                <th>Result</th>
+                                <th>Filename</th>
+                                <th>View</th>
+                                <th>Size</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for template in result_data.templates_success %}
+                            {% for file in result_data.files_downloaded %}
                             <tr>
-                                <td>{{ template.id }}</td>
+                                <td>{{ file.template_id }}</td>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}' target='_blank'
                                         rel='noopener noreferrer'>
-                                        {{ template.title }}
+                                        {{ file.filename }}
                                     </a>
                                 </td>
                                 <td>
-                                    {% if template.main_file %}
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
-                                        target='_blank' rel='noopener noreferrer'>
-                                        {{ template.main_file }}
-                                    </a>
-                                    {% endif %}
-                                </td>
-                                <td>{{ template.fix_result.message }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Failed Files -->
-        {% if result_data.templates_failed %}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">Failed Files ({{ result_data.templates_failed|length }})</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Main File</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for template in result_data.templates_failed %}
-                            <tr>
-                                <td>{{ template.id }}</td>
-                                <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                        rel='noopener noreferrer'>
-                                        {{ template.title }}
+                                    <a href="{{ url_for('admin.serve_download_main_file', filename=file.path) }}"
+                                        class="btn btn-sm btn-outline-primary" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <i class="bi bi-eye"></i> View
                                     </a>
                                 </td>
-                                <td>
-                                    {% if template.main_file %}
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
-                                        target='_blank' rel='noopener noreferrer'>
-                                        {{ template.main_file }}
-                                    </a>
-                                    {% endif %}
-                                </td>
-                                <td>{{ template.reason }}</td>
+                                <td>{{ file.size_bytes|default('-') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -241,10 +189,10 @@
         {% endif %}
 
         <!-- Skipped Files -->
-        {% if result_data.templates_skipped %}
+        {% if result_data.files_skipped %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Skipped Files ({{ result_data.templates_skipped|length }})</h5>
+                <h5 class="mb-0">Skipped Files (Already Exist) ({{ result_data.files_skipped|length }})</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -252,30 +200,23 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Title</th>
-                                <th>Main File</th>
+                                <th>Template Title</th>
+                                <th>Filename</th>
                                 <th>Reason</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for template in result_data.templates_skipped %}
+                            {% for file in result_data.files_skipped %}
                             <tr>
-                                <td>{{ template.id }}</td>
+                                <td>{{ file.template_id }}</td>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                        rel='noopener noreferrer'>
-                                        {{ template.title }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if template.main_file %}
-                                    <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}'
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.template_title }}'
                                         target='_blank' rel='noopener noreferrer'>
-                                        {{ template.main_file }}
+                                        {{ file.template_title }}
                                     </a>
-                                    {% endif %}
                                 </td>
-                                <td>{{ template.reason }}</td>
+                                <td><code>{{ file.filename }}</code></td>
+                                <td>{{ file.reason }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -285,10 +226,44 @@
         </div>
         {% endif %}
 
-        {% else %}
-        <div class="alert alert-info" role="alert">
-            No job result data available yet. The job may still be running or the result file may not exist.
+        <!-- Failed Files -->
+        {% if result_data.files_failed %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Failed Files ({{ result_data.files_failed|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Template Title</th>
+                                <th>Filename</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in result_data.files_failed %}
+                            <tr>
+                                <td>{{ file.template_id }}</td>
+                                <td>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.template_title }}'
+                                        target='_blank' rel='noopener noreferrer'>
+                                        {{ file.template_title }}
+                                    </a>
+                                </td>
+                                <td><code>{{ file.filename }}</code></td>
+                                <td>{{ file.reason }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+        {% endif %}
+
         {% endif %}
     </div>
 </div>

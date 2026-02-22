@@ -31,7 +31,7 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_collect_main_files_job()
+    job_id = jobs_worker.start_job(None, "collect_main_files")
 
     assert job_id == 1
     mock_create_job.assert_called_once_with("collect_main_files")
@@ -58,7 +58,7 @@ def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     mock_thread.return_value = mock_thread_instance
 
     user = {"username": "test_user"}
-    job_id = jobs_worker.start_fix_nested_main_files_job(user)
+    job_id = jobs_worker.start_job(user, "fix_nested_main_files")
 
     assert job_id == 2
     mock_create_job.assert_called_once_with("fix_nested_main_files")
