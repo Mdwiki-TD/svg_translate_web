@@ -16,8 +16,8 @@ logger = logging.getLogger("svg_translate")
 def has_db_config() -> bool:
     """Return ``True`` when database connection details are configured."""
 
-    db_settings = settings.db_data or {}
-    return bool(db_settings.get("host") or db_settings.get("db_connect_file"))
+    db_settings = settings.database_data or {}
+    return bool(db_settings.db_host or db_settings.db_user)
 
 
 def get_db() -> Database:

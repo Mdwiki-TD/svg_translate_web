@@ -15,7 +15,6 @@ class DbConfig:
     db_host: str
     db_user: str | None
     db_password: str | None
-    db_connect_file: str | None
 
 
 @dataclass(frozen=True)
@@ -62,29 +61,23 @@ class Settings:
 
 
 def _load_db_data_new() -> DbConfig:
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
 
     return DbConfig(
         db_name=os.getenv("DB_NAME", ""),
         db_host=os.getenv("DB_HOST", ""),
-        db_user=os.getenv("DB_USER", None),
-        db_password=os.getenv("DB_PASSWORD", None),
-        db_connect_file=db_connect_file if os.path.exists(db_connect_file) else None,
+        db_user=os.getenv("TOOL_REPLICA_USER", None),
+        db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
     )
 
 
 def _load_db_data() -> dict[str, str]:
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
 
     db_data = {
         "host": os.getenv("DB_HOST", ""),
         "dbname": os.getenv("DB_NAME", ""),
-        "user": os.getenv("DB_USER", ""),
-        "password": os.getenv("DB_PASSWORD", ""),
+        "user": os.getenv("TOOL_REPLICA_USER", ""),
+        "password": os.getenv("TOOL_REPLICA_PASSWORD", ""),
     }
-
-    if os.path.exists(db_connect_file):
-        db_data["db_connect_file"] = db_connect_file
 
     return db_data
 
