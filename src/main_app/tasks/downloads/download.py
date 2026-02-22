@@ -37,7 +37,7 @@ def download_one_file(
         dict: Outcome dictionary with keys ``result`` ("success", "existing", or
         "failed") and ``path`` (path string when available).
     """
-    base = "https://ar.wikipedia.org/wiki/Special:FilePath/"
+    base = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
     data = {
         "result": "",
