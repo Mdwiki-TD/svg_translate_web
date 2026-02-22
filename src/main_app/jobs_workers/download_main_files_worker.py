@@ -155,22 +155,7 @@ def process_downloads(
         }
 
         try:
-            # Check if file already exists locally
-            clean_filename = template.main_file
-            if clean_filename.startswith("File:"):
-                clean_filename = clean_filename[5:]
-            local_path = output_dir / clean_filename
-
-            if local_path.exists():
-                file_info["status"] = "already_local"
-                file_info["path"] = clean_filename
-                file_info["size_bytes"] = local_path.stat().st_size
-                result["files_already_local"].append(file_info)
-                result["summary"]["already_local"] += 1
-                logger.info(f"Job {job_id}: File already exists locally: {clean_filename}")
-                continue
-
-            # Download the file
+            # Download the file (will overwrite if exists)
             download_result = download_file_from_commons(
                 template.main_file,
                 output_dir,
@@ -215,8 +200,7 @@ def process_downloads(
     logger.info(
         f"Job {job_id} {final_status}: "
         f"{result['summary']['downloaded']} downloaded, "
-        f"{result['summary']['failed']} failed, "
-        f"{result['summary']['already_local']} already local"
+        f"{result['summary']['failed']} failed"
     )
 
     return result
@@ -256,13 +240,11 @@ def download_main_files_for_templates(
         "files_downloaded": [],
         "files_failed": [],
         "files_skipped": [],
-        "files_already_local": [],
         "summary": {
             "total": 0,
             "downloaded": 0,
             "failed": 0,
             "skipped": 0,
-            "already_local": 0,
         },
     }
 
