@@ -6,7 +6,7 @@ from src.main_app.db.db_Jobs import JobsDB, JobRecord
 
 @pytest.fixture
 def mock_db_class(mocker):
-    return mocker.patch("src.app.db.db_Jobs.Database")
+    return mocker.patch("src.main_app.db.db_Jobs.Database")
 
 
 @pytest.fixture

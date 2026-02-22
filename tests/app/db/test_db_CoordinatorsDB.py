@@ -5,7 +5,7 @@ from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB, CoordinatorRecord
 
 @pytest.fixture
 def mock_db_class(mocker):
-    return mocker.patch("src.app.db.db_CoordinatorsDB.Database")
+    return mocker.patch("src.main_app.db.db_CoordinatorsDB.Database")
 
 @pytest.fixture
 def mock_db_instance(mock_db_class):

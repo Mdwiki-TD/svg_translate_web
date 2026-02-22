@@ -18,10 +18,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_list_templates = MagicMock()
     mock_update_template = MagicMock()
     monkeypatch.setattr(
-        "src.app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
     )
     monkeypatch.setattr(
-        "src.app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
     )
 
     # Mock jobs_service
@@ -29,23 +29,23 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.collect_main_files_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
     )
     monkeypatch.setattr(
-        "src.app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
     # Mock get_wikitext
     mock_get_wikitext = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.get_wikitext", mock_get_wikitext)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_wikitext", mock_get_wikitext)
 
     # Mock find_main_title
     mock_find_main_title = MagicMock()
-    monkeypatch.setattr("src.app.jobs_workers.collect_main_files_worker.find_main_title", mock_find_main_title)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.find_main_title", mock_find_main_title)
 
     return {
         "list_templates": mock_list_templates,

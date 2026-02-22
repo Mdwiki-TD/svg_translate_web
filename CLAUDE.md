@@ -41,11 +41,11 @@ isort .                          # Sort imports
 
 ### Flask Application Factory
 
-The app uses the factory pattern via `create_app()` in `src/app/__init__.py`. Routes are organized as Flask blueprints under `src/app/app_routes/`.
+The app uses the factory pattern via `create_app()` in `src/main_app/__init__.py`. Routes are organized as Flask blueprints under `src/main_app/app_routes/`.
 
 ### Task Pipeline (8 stages)
 
-Translation tasks run through a sequential pipeline defined in `src/app/threads/web_run_task.py`:
+Translation tasks run through a sequential pipeline defined in `src/main_app/threads/web_run_task.py`:
 
 1. **initialize** - Starting workflow
 2. **text** - Fetch wiki text from template
@@ -62,7 +62,7 @@ Tasks run in background threads with cancellation support via `threading.Event`.
 
 -   `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
 -   `UserTokenRecord` manages encrypted OAuth token storage
--   Connection wrapper in `src/app/db/db_class.py` provides retry logic
+-   Connection wrapper in `src/main_app/db/db_class.py` provides retry logic
 
 ### Key Route Blueprints
 
@@ -81,7 +81,7 @@ Tasks run in background threads with cancellation support via `threading.Event`.
 
 -   Environment variables loaded via `src/svg_config.py` using python-dotenv
 -   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `PathsConfig`
--   Settings cached via `@lru_cache` in `src/app/config.py`
+-   Settings cached via `@lru_cache` in `src/main_app/config.py`
 -   Required env vars: `FLASK_SECRET_KEY`, `OAUTH_ENCRYPTION_KEY`, `OAUTH_CONSUMER_KEY`, `OAUTH_CONSUMER_SECRET`, `DB_*`, `MAIN_DIR`
 
 ### External Dependencies

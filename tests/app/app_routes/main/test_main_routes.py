@@ -10,8 +10,8 @@ def app():
     app.secret_key = "test"
     return app
 
-@patch("src.app.app_routes.main.routes.render_template")
-@patch("src.app.app_routes.main.routes.current_user")
+@patch("src.main_app.app_routes.main.routes.render_template")
+@patch("src.main_app.app_routes.main.routes.current_user")
 def test_index(mock_current_user, mock_render, app):
     mock_current_user.return_value = MagicMock(username="user")
     mock_render.return_value = "rendered"
@@ -25,7 +25,7 @@ def test_index(mock_current_user, mock_render, app):
         assert args[0] == "index.html"
         assert kwargs["current_user"] == mock_current_user.return_value
 
-@patch("src.app.app_routes.main.routes.send_from_directory")
+@patch("src.main_app.app_routes.main.routes.send_from_directory")
 def test_favicon(mock_send, app):
     mock_send.return_value = "icon"
 

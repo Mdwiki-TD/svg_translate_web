@@ -5,7 +5,7 @@ from src.main_app.db.fix_nested_task_store import FixNestedTaskStore
 
 @pytest.fixture
 def mock_db_class(mocker):
-    return mocker.patch("src.app.db.fix_nested_task_store.Database")
+    return mocker.patch("src.main_app.db.fix_nested_task_store.Database")
 
 @pytest.fixture
 def mock_db_instance(mock_db_class):

@@ -17,7 +17,7 @@ def test_start_upload_success(mock_site, mock_store):
     }
     stages = {}
 
-    with patch("src.app.tasks.uploads.up.upload_file") as mock_upload:
+    with patch("src.main_app.tasks.uploads.up.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
         res, final_stages = start_upload(
@@ -29,23 +29,23 @@ def test_start_upload_success(mock_site, mock_store):
         assert final_stages["status"] == "Completed"
         mock_upload.assert_called_once()
 
-@patch("src.app.tasks.uploads.up.build_upload_site")
+@patch("src.main_app.tasks.uploads.up.build_upload_site")
 def test_upload_task_disabled(mock_build, mock_store):
     stages = {}
     res, final_stages = upload_task(stages, {}, "Main", do_upload=False, store=mock_store)
     assert res["skipped"] is True
     assert final_stages["status"] == "Skipped"
 
-@patch("src.app.tasks.uploads.up.build_upload_site")
+@patch("src.main_app.tasks.uploads.up.build_upload_site")
 def test_upload_task_no_files(mock_build, mock_store):
     stages = {}
     res, final_stages = upload_task(stages, {}, "Main", do_upload=True, store=mock_store)
     assert res["skipped"] is True
     assert res["reason"] == "no-input"
 
-@patch("src.app.tasks.uploads.up.build_upload_site")
-@patch("src.app.tasks.uploads.up.start_upload")
-@patch("src.app.tasks.uploads.up.mark_token_used")
+@patch("src.main_app.tasks.uploads.up.build_upload_site")
+@patch("src.main_app.tasks.uploads.up.start_upload")
+@patch("src.main_app.tasks.uploads.up.mark_token_used")
 def test_upload_task_success(mock_mark, mock_start, mock_build, mock_store):
     mock_build.return_value = MagicMock()
     mock_start.return_value = ({"done": 1}, {"status": "Completed"})

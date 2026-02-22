@@ -15,7 +15,7 @@ def test_no_unused_imports():
     from pathlib import Path
 
     # Read the source file
-    source_file = Path("src/app/db/db_StageStore.py")
+    source_file = Path("src/main_app/db/db_StageStore.py")
     source_code = source_file.read_text()
 
     # Parse the AST

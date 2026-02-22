@@ -28,7 +28,7 @@ def test_fix_nested_post_requires_oauth_no_localhost(
     app, client = app_client
 
     # Mock current_user to return None (not logged in)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",
@@ -45,7 +45,7 @@ def test_fix_nested_post_preserves_filename_before_oauth_no_localhost(
     """Test that filename is saved to session before OAuth redirect."""
     app, client = app_client
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",
@@ -60,7 +60,7 @@ def test_fix_nested_post_requires_oauth(app_client: tuple[Flask, Any], monkeypat
     app, client = app_client
 
     # Mock current_user to return None (not logged in)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: None)
 
     response = client.post(
         "/fix_nested/",

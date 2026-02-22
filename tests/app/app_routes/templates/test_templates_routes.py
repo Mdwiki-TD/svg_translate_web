@@ -15,7 +15,7 @@ from src.main_app.app_routes.templates import routes
 def patch_settings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     svg_dir = tmp_path / "svg"
     svg_dir.mkdir()
-    monkeypatch.setattr("src.app.app_routes.templates.routes.settings", types.SimpleNamespace(paths=types.SimpleNamespace(svg_data=str(svg_dir))))
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.settings", types.SimpleNamespace(paths=types.SimpleNamespace(svg_data=str(svg_dir))))
     return svg_dir
 
 
@@ -39,9 +39,9 @@ def test_temp_data_sanitizes_name(tmp_path: Path) -> None:
 
 def test_temps_main_files_falls_back_to_main_data(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     template_entry = {"Sample": {"title_dir": "sample"}}
-    monkeypatch.setattr("src.app.app_routes.templates.routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: []))
-    monkeypatch.setattr("src.app.app_routes.templates.routes.add_or_update_template", lambda title, main_file: None)
-    monkeypatch.setattr("src.app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "Example.svg"})
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: []))
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.add_or_update_template", lambda title, main_file: None)
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "Example.svg"})
 
     data = routes.temps_main_files(template_entry)
 

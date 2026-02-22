@@ -21,8 +21,8 @@ def clean_cancel_events():
         jobs_worker.CANCEL_EVENTS.clear()
 
 
-@patch("src.app.jobs_workers.jobs_worker.jobs_service.create_job")
-@patch("src.app.jobs_workers.jobs_worker.threading.Thread")
+@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_collect_main_files_job(mock_thread, mock_create_job):
     """Test starting a collect main files job."""
     mock_job = JobRecord(id=1, job_type="collect_main_files", status="pending")
@@ -47,8 +47,8 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     assert jobs_worker.get_cancel_event(1) is not None
 
 
-@patch("src.app.jobs_workers.jobs_worker.jobs_service.create_job")
-@patch("src.app.jobs_workers.jobs_worker.threading.Thread")
+@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     """Test starting a fix nested main files job."""
     mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from pathlib import Path
 from src.main_app.tasks.injects.inject_tasks import inject_task
 
-@patch("src.app.tasks.injects.inject_tasks.start_injects")
+@patch("src.main_app.tasks.injects.inject_tasks.start_injects")
 def test_inject_task_success(mock_start, tmp_path):
     mock_start.return_value = {
         "success": 2,

@@ -1,4 +1,4 @@
-"""Tests for src/app/__init__.py - Flask application factory."""
+"""Tests for src/main_app/__init__.py - Flask application factory."""
 
 import pytest
 from unittest.mock import patch, MagicMock

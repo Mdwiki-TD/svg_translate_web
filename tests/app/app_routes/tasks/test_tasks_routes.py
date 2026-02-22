@@ -86,7 +86,7 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     def store_factory() -> DummyTaskStore:
         return store
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes._task_store", store_factory)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", store_factory)
     routes.TASK_STORE = store
     routes.TASKS_LOCK = threading.Lock()
 
@@ -140,7 +140,7 @@ def test_task_renders_context_with_missing_task(
     captured: dict[str, Any] = {}
     flashed: list[tuple[str, str]] = []
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: None)
 
     def fake_render(template: str, **context: Any) -> str:
         captured["template"] = template
@@ -150,8 +150,8 @@ def test_task_renders_context_with_missing_task(
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.render_template", fake_render)
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.flash", fake_flash)
 
     with app.test_request_context("/task/missing?title=Sample&error=task-active"):
         result = routes.task("missing")
@@ -177,7 +177,7 @@ def test_task2_includes_ordered_stages(
         "form": {"field": "value"},
     }
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="demo"))
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="demo"))
 
     captured: dict[str, Any] = {}
 
@@ -186,7 +186,7 @@ def test_task2_includes_ordered_stages(
         captured["context"] = context
         return "rendered"
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.render_template", fake_render)
 
     with app.test_request_context("/task2/task42"):
         result = routes.task2("task42")
@@ -209,8 +209,8 @@ def test_start_creates_task_and_launches_thread(
         user_id=1,
     )
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
 
     generated_id = "abc123"
     monkeypatch.setattr(uuid, "uuid4", lambda: types.SimpleNamespace(hex=generated_id))
@@ -220,7 +220,7 @@ def test_start_creates_task_and_launches_thread(
     def fake_launch(task_id: str, title: str, args: Any, auth_payload: dict[str, Any]) -> None:
         launch_calls.append((task_id, title, args, auth_payload))
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.launch_task_thread", fake_launch)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", fake_launch)
 
     response = client.post("/", data={"title": "Sample Title", "upload": "on"})
 
@@ -245,8 +245,8 @@ def test_start_redirects_to_existing_task_when_duplicate(
         user_id=1,
     )
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
 
     existing_id = "existing"
     store.create_task(existing_id, "Duplicate Title", username="tester", form={"title": "Duplicate Title"})
@@ -256,10 +256,10 @@ def test_start_redirects_to_existing_task_when_duplicate(
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.flash", fake_flash)
 
     launch_calls: list[tuple[Any, ...]] = []
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.launch_task_thread", lambda *args, **kwargs: launch_calls.append(args))
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", lambda *args, **kwargs: launch_calls.append(args))
 
     response = client.post("/", data={"title": "Duplicate Title"})
 
@@ -292,7 +292,7 @@ def test_tasks_renders_formatted_tasks(
     store.tasks["t2"] = {"id": "t2", "status": "Completed", "username": "alice"}
 
     user = types.SimpleNamespace(username="alice")
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
 
     formatted_inputs: list[list[dict[str, Any]]] = []
 
@@ -310,9 +310,9 @@ def test_tasks_renders_formatted_tasks(
         captured["context"] = context
         return "rendered"
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.format_task", fake_format_task)
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.format_task_message", fake_format_message)
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.format_task", fake_format_task)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.format_task_message", fake_format_message)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.render_template", fake_render)
 
     response = client.get("/tasks/alice")
 
@@ -334,15 +334,15 @@ def test_delete_task_success(app_client: tuple[Flask, Any, DummyTaskStore], monk
     store.tasks["deadbeef"] = {"id": "deadbeef", "title": "Delete me"}
 
     user = types.SimpleNamespace(username="admin")
-    monkeypatch.setattr("src.app.admins.admins_required.current_user", lambda: user)
-    monkeypatch.setattr("src.app.admins.admins_required.active_coordinators", lambda: ["admin"])
+    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: ["admin"])
 
     flashed: list[tuple[str, str]] = []
 
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.app.app_routes.tasks.routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.flash", fake_flash)
 
     response = client.post("/task/deadbeef/delete")
 

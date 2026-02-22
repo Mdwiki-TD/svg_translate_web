@@ -31,7 +31,7 @@ def test_build_upload_site_uses_decrypted_tokens_and_consumer(monkeypatch):
             self.host = host
             self.scheme = scheme
 
-    monkeypatch.setattr("src.app.tasks.uploads.wiki_client.mwclient.Site", DummySite)
+    monkeypatch.setattr("src.main_app.tasks.uploads.wiki_client.mwclient.Site", DummySite)
 
     enc_token = encrypt_value("access-key")
     enc_secret = encrypt_value("access-secret")

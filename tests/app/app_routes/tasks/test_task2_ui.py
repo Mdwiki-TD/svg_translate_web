@@ -19,11 +19,11 @@ def app_factory(monkeypatch):
     def _factory(task):
         import importlib
 
-        app_module = importlib.import_module("src.app.__init__")
-        admin_service = importlib.import_module("src.app.admins.admin_service")
+        app_module = importlib.import_module("src.main_app.__init__")
+        admin_service = importlib.import_module("src.main_app.admins.admin_service")
 
         # Mock current_user
-        monkeypatch.setattr("src.app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'is_admin': False}))
+        monkeypatch.setattr("src.main_app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'is_admin': False}))
 
         # We don't need to patch initialize_coordinators as it's likely removed
         # monkeypatch.setattr(app_module, "initialize_coordinators", lambda: None)
@@ -36,7 +36,7 @@ def app_factory(monkeypatch):
             def list(self):  # pragma: no cover - trivial stub
                 return []
 
-        monkeypatch.setattr("src.app.admins.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
+        monkeypatch.setattr("src.main_app.admins.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
 
         app = create_app()
         app.config["TESTING"] = True

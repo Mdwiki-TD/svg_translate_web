@@ -23,8 +23,8 @@ def cleanup_cached_db():
     close_cached_db()
 
 
-@patch("src.app.db.svg_db.Database")
-@patch("src.app.db.svg_db.settings")
+@patch("src.main_app.db.svg_db.Database")
+@patch("src.main_app.db.svg_db.settings")
 def test_get_db(mock_settings, mock_database_cls):
     db_config = DbConfig(db_name="test", db_host="localhost", db_user=None, db_password=None)
     mock_settings.database_data = db_config
@@ -42,8 +42,8 @@ def test_get_db(mock_settings, mock_database_cls):
     mock_database_cls.assert_called_once()
 
 
-@patch("src.app.db.svg_db.Database")
-@patch("src.app.db.svg_db.settings")
+@patch("src.main_app.db.svg_db.Database")
+@patch("src.main_app.db.svg_db.settings")
 def test_close_cached_db(mock_settings, mock_database_cls):
     db_config = DbConfig(db_name="test", db_host="localhost", db_user=None, db_password=None)
     mock_settings.database_data = db_config
@@ -56,7 +56,7 @@ def test_close_cached_db(mock_settings, mock_database_cls):
     close_cached_db()
 
 
-@patch("src.app.db.svg_db.get_db")
+@patch("src.main_app.db.svg_db.get_db")
 def test_execute_query(mock_get_db):
     mock_db = MagicMock()
     mock_get_db.return_value.__enter__.return_value = mock_db
@@ -65,7 +65,7 @@ def test_execute_query(mock_get_db):
     mock_db.execute_query.assert_called_once_with("SELECT 1", ("param",))
 
 
-@patch("src.app.db.svg_db.get_db")
+@patch("src.main_app.db.svg_db.get_db")
 def test_fetch_query(mock_get_db):
     mock_db = MagicMock()
     mock_get_db.return_value.__enter__.return_value = mock_db
@@ -76,7 +76,7 @@ def test_fetch_query(mock_get_db):
     mock_db.fetch_query.assert_called_once_with("SELECT *", None)
 
 
-@patch("src.app.db.svg_db.get_db")
+@patch("src.main_app.db.svg_db.get_db")
 def test_execute_query_safe(mock_get_db):
     mock_db = MagicMock()
     mock_get_db.return_value.__enter__.return_value = mock_db
@@ -85,7 +85,7 @@ def test_execute_query_safe(mock_get_db):
     mock_db.execute_query_safe.assert_called_once_with("UPDATE table", (1,))
 
 
-@patch("src.app.db.svg_db.get_db")
+@patch("src.main_app.db.svg_db.get_db")
 def test_fetch_query_safe(mock_get_db):
     mock_db = MagicMock()
     mock_get_db.return_value.__enter__.return_value = mock_db

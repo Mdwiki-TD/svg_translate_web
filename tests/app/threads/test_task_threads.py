@@ -23,7 +23,7 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
         release.wait(timeout=0.2)
 
     # Patch the run_task imported in task_threads
-    monkeypatch.setattr("src.app.threads.task_threads.run_task", fake_run_task)
+    monkeypatch.setattr("src.main_app.threads.task_threads.run_task", fake_run_task)
 
     task_id = "t-abc123"
     launch_task_thread(task_id, "Title", args=SimpleNamespace(), user_payload={})

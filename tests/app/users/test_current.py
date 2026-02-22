@@ -34,9 +34,9 @@ def test_resolve_user_id(app):
         session["uid"] = "invalid"
         assert _resolve_user_id() is None
 
-@patch("src.app.users.current.get_user_token")
-@patch("src.app.users.current.extract_user_id")
-@patch("src.app.users.current.settings")
+@patch("src.main_app.users.current.get_user_token")
+@patch("src.main_app.users.current.extract_user_id")
+@patch("src.main_app.users.current.settings")
 def test_current_user(mock_settings, mock_extract, mock_get_token, app):
     mock_settings.cookie.name = "test_cookie"
 
@@ -86,8 +86,8 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
         current_user()
         assert session["username"] == "testuser"
 
-@patch("src.app.users.current.current_user")
-@patch("src.app.users.current.settings")
+@patch("src.main_app.users.current.current_user")
+@patch("src.main_app.users.current.settings")
 def test_oauth_required(mock_settings, mock_current_user, app):
     mock_settings.use_mw_oauth = True
 
@@ -117,8 +117,8 @@ def test_oauth_required(mock_settings, mock_current_user, app):
         assert decorated() == "ok"
         view.assert_called()
 
-@patch("src.app.users.current.active_coordinators")
-@patch("src.app.users.current.current_user")
+@patch("src.main_app.users.current.active_coordinators")
+@patch("src.main_app.users.current.current_user")
 def test_context_user(mock_current_user, mock_active_coordinators):
     # Case 1: User is admin
     user = MagicMock(username="admin")

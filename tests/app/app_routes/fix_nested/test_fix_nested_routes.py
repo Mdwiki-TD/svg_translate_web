@@ -91,7 +91,7 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
         captured["context"] = context
         return f"rendered:{template}"
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.render_template", fake_render)
     return captured
 
 
@@ -148,14 +148,14 @@ def test_fix_nested_post_empty_filename_shows_error(
     app, _ = app_client
 
     user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: user)
 
     flashed: list[tuple[str, str]] = []
 
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.flash", fake_flash)
 
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": ""}):
         result = routes.fix_nested_post()
@@ -173,18 +173,18 @@ def test_fix_nested_post_preserves_filename_after_submission(
     app, _ = app_client
 
     user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: user)
 
     # Mock process_fix_nested to return failure
     def mock_process(*args, **kwargs):
         return {"success": False, "message": "Download failed", "details": {}}
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", lambda *args: None)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.active_coordinators", lambda: [])
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.flash", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.active_coordinators", lambda: [])
 
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": "File:MyFile.svg"}):
         routes.fix_nested_post()
@@ -202,7 +202,7 @@ def test_fix_nested_post_shows_commons_link_on_success(
     app, _ = app_client
 
     user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: user)
 
     # Mock process_fix_nested to return success
     def mock_process(*args, **kwargs):
@@ -212,11 +212,11 @@ def test_fix_nested_post_shows_commons_link_on_success(
             "details": {"task_id": "test-id"},
         }
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", lambda *args: None)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.flash", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
 
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": "Success_Test.svg"}):
         routes.fix_nested_post()
@@ -235,7 +235,7 @@ def test_fix_nested_post_strips_file_prefix(
     app, _ = app_client
 
     user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.current_user", lambda: user)
 
     captured_filename: list[str] = []
 
@@ -243,12 +243,12 @@ def test_fix_nested_post_strips_file_prefix(
         captured_filename.append(filename)
         return {"success": False, "message": "Test", "details": {}}
 
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.flash", lambda *args: None)
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
-    monkeypatch.setattr("src.app.app_routes.fix_nested.routes.active_coordinators", lambda: [])
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.process_fix_nested", mock_process)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.Database", lambda data: DummyDatabase())
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.FixNestedTaskStore", DummyFixNestedTaskStore)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.flash", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.active_coordinators", lambda: [])
 
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": "File:WithPrefix.svg"}):
         routes.fix_nested_post()

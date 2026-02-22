@@ -10,20 +10,20 @@ from src.main_app.app_routes.admin.admin_routes import coordinators
 def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):
     """Test that _add_coordinator catches both LookupError and ValueError in single except clause."""
     mock_service = Mock()
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.admin_service", mock_service)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.admin_service", mock_service)
 
     # Mock Flask globals to avoid "Working outside of request context" errors
     mock_request = Mock()
     mock_request.form.get.return_value = "test_user"
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.request", mock_request)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.request", mock_request)
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.flash", mock_flash)
 
     mock_redirect = Mock()
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.redirect", mock_redirect)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.redirect", mock_redirect)
 
-    monkeypatch.setattr("src.app.app_routes.admin.admin_routes.coordinators.url_for", lambda x: f"/{x}")
+    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.coordinators.url_for", lambda x: f"/{x}")
 
     # Test with ValueError
     mock_service.add_coordinator = Mock(side_effect=ValueError("Username invalid"))
