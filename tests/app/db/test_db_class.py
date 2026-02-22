@@ -21,10 +21,10 @@ def test_MaxUserConnectionsError():
 def test_Database_init_basic(mock_pymysql):
     """Test Database initialization with basic credentials."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -45,10 +45,10 @@ def test_Database_init_basic(mock_pymysql):
 def test_Database_connect(mock_pymysql):
     """Test Database _connect method."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -83,10 +83,10 @@ def test_Database_connect(mock_pymysql):
 def test_Database_ensure_connection_new(mock_pymysql):
     """Test Database _ensure_connection when no connection exists."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -103,10 +103,10 @@ def test_Database_ensure_connection_new(mock_pymysql):
 def test_Database_ensure_connection_ping(mock_pymysql):
     """Test Database _ensure_connection when connection exists."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -126,10 +126,10 @@ def test_Database_ensure_connection_ping(mock_pymysql):
 def test_Database_close(mock_pymysql):
     """Test Database close method."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -150,10 +150,10 @@ def test_Database_close(mock_pymysql):
 def test_Database_context_manager(mock_pymysql):
     """Test Database as context manager."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     mock_connection = MagicMock()
@@ -174,10 +174,10 @@ def test_Database_context_manager(mock_pymysql):
 def test_Database_execute_query_success(mock_pymysql):
     """Test Database execute_query method with success."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))
@@ -204,10 +204,10 @@ def test_Database_execute_query_success(mock_pymysql):
 def test_Database_fetch_query_success(mock_pymysql):
     """Test Database fetch_query method with success."""
     database_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
+        "db_host": "localhost",
+        "db_name": "testdb",
+        "db_user": "testuser",
+        "db_password": "testpass"
     }
 
     db = Database(DbConfig(**database_data))

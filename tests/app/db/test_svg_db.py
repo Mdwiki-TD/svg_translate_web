@@ -10,6 +10,14 @@ from src.app.db.db_class import Database
 
 @pytest.fixture(autouse=True)
 def cleanup_cached_db():
+    """
+    Ensure the module-level cached database is closed before and after a test.
+
+    This pytest-style fixture calls close_cached_db() once before yielding control to the test and again after the test completes to guarantee the cached database state is reset.
+
+    Yields:
+        None
+    """
     close_cached_db()
     yield
     close_cached_db()
@@ -18,14 +26,14 @@ def cleanup_cached_db():
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_get_db(mock_settings, mock_database_cls):
-    mock_settings.database_data = DbConfig(**{"host": "localhost"})
+    mock_settings.database_data = DbConfig(db_host="localhost", db_name="", db_user=None, db_password=None)
     mock_db_instance = MagicMock(spec=Database)
     mock_database_cls.return_value = mock_db_instance
 
     # First call: should instantiate
     db1 = get_db()
     assert db1 is mock_db_instance
-    mock_database_cls.assert_called_once_with({"host": "localhost"})
+    mock_database_cls.assert_called_once_with(mock_settings.database_data)
 
     # Second call: should return cached
     db2 = get_db()
@@ -36,7 +44,7 @@ def test_get_db(mock_settings, mock_database_cls):
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_close_cached_db(mock_settings, mock_database_cls):
-    mock_settings.database_data = DbConfig(**{"host": "localhost"})
+    mock_settings.database_data = DbConfig(db_host="localhost", db_name="", db_user=None, db_password=None)
     db = get_db()
 
     close_cached_db()
