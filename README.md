@@ -149,7 +149,7 @@ Administrators (configured via `ADMINS` environment variable) have access to:
 
 The project uses:
 
--   **Black** for code formatting (line length: 100)
+-   **Black** for code formatting (line length: 120)
 -   **isort** for import sorting
 -   **flake8** for linting
 -   **mypy** for type checking
