@@ -24,6 +24,13 @@ from ....users.current import current_user
 logger = logging.getLogger("svg_translate")
 
 
+JOB_TYPE_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files_job_detail.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
+    "download_main_files": "admins/download_main_files_job_detail.html",
+}
+
+
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     if jobs_worker.cancel_job(job_id):
@@ -121,13 +128,6 @@ def _download_main_files_jobs_list() -> str:
     )
 
 
-JOB_TYPE_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files_job_detail.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
-    "download_main_files": "admins/download_main_files_job_detail.html",
-}
-
-
 def _job_detail(job_id: int, job_type: str) -> Response | str:
     """Render the job detail page for any job type."""
     user = current_user()
@@ -206,10 +206,18 @@ class Jobs:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))
             return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
 
+        # ================================
+        # Delete Job routes
+        # ================================
+
         @bp_admin.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             return _delete_job(job_id, job_type)
+
+        # ================================
+        # download-main-files routes
+        # ================================
 
         @bp_admin.get("/download-main-files/file/<path:filename>")
         @admin_required
