@@ -152,6 +152,83 @@ def test_update_status_generic(jobs_db, mock_db_instance):
 
 def test_update_status_not_found(jobs_db, mock_db_instance):
     mock_db_instance.execute_query_safe.return_value = 0 # No rows updated
-    
+
     with pytest.raises(LookupError):
         jobs_db.update_status(1, "running")
+
+
+def test_update_status_with_result_file_on_running(jobs_db, mock_db_instance):
+    """Test update_status with result_file parameter when status is running."""
+    mock_db_instance.fetch_query_safe.return_value = [{
+        "id": 1, "job_type": "t", "status": "running"
+    }]
+    mock_db_instance.execute_query_safe.return_value = 1
+
+    jobs_db.update_status(1, "running", result_file="partial.json", job_type="t")
+
+    call_args = mock_db_instance.execute_query_safe.call_args
+    assert "result_file = %s" in call_args[0][0]
+    assert "partial.json" in call_args[0][1]
+
+
+def test_update_status_failed(jobs_db, mock_db_instance):
+    """Test update_status with 'failed' status."""
+    mock_db_instance.fetch_query_safe.return_value = [{
+        "id": 1, "job_type": "t", "status": "failed"
+    }]
+    mock_db_instance.execute_query_safe.return_value = 1
+
+    jobs_db.update_status(1, "failed", result_file="error.json", job_type="t")
+
+    call_args = mock_db_instance.execute_query_safe.call_args
+    assert "completed_at = NOW()" in call_args[0][0]
+    assert "result_file = %s" in call_args[0][0]
+
+
+def test_update_status_cancelled(jobs_db, mock_db_instance):
+    """Test update_status with 'cancelled' status."""
+    mock_db_instance.fetch_query_safe.return_value = [{
+        "id": 1, "job_type": "t", "status": "cancelled"
+    }]
+    mock_db_instance.execute_query_safe.return_value = 1
+
+    jobs_db.update_status(1, "cancelled", job_type="t")
+
+    call_args = mock_db_instance.execute_query_safe.call_args
+    assert "completed_at = NOW()" in call_args[0][0]
+
+
+def test_list_with_limit(jobs_db, mock_db_instance):
+    """Test list method with custom limit."""
+    mock_db_instance.fetch_query_safe.return_value = []
+
+    jobs_db.list(limit=50)
+
+    call_args = mock_db_instance.fetch_query_safe.call_args
+    assert 50 in call_args[0][1]
+
+
+def test_row_to_record_with_all_fields(jobs_db):
+    """Test _row_to_record with all fields populated."""
+    now = datetime.now()
+    row = {
+        "id": 42,
+        "job_type": "test_type",
+        "status": "completed",
+        "started_at": now,
+        "completed_at": now,
+        "result_file": "result.json",
+        "created_at": now,
+        "updated_at": now
+    }
+
+    record = jobs_db._row_to_record(row)
+
+    assert record.id == 42
+    assert record.job_type == "test_type"
+    assert record.status == "completed"
+    assert record.started_at == now
+    assert record.completed_at == now
+    assert record.result_file == "result.json"
+    assert record.created_at == now
+    assert record.updated_at == now
