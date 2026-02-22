@@ -50,9 +50,30 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     return redirect(url_for(f"admin.{job_type}_jobs_list"))
 
 
+def _start_job(job_type: str) -> int:
+    """Start a job."""
+    user = current_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return False
+
+    try:
+        # Get auth payload for OAuth uploads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_job(auth_payload, job_type)
+        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
+        return job_id
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
+
+    return False
+
 # ================================
 # Collect Main Files Jobs handlers
 # ================================
+
 
 def _collect_main_files_jobs_list() -> str:
     """
