@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch
 from src.app.config import (
     DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
-    _load_db_data_new, _load_db_data, _get_paths, _env_bool, _env_int,
+    _load_db_data_new, _get_paths, _env_bool, _env_int,
     _load_oauth_config, is_localhost, get_settings
 )
 
@@ -77,19 +77,12 @@ def test_OAuthConfig():
 def test_Settings():
     """Test the Settings dataclass."""
     # Create a minimal settings object for testing
-    db_data = {
-        "host": "localhost",
-        "dbname": "test",
-        "user": "user",
-        "password": "pass",
-    }
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs")
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
-        db_data=db_data,
         database_data=db_config,
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="request",
@@ -102,7 +95,7 @@ def test_Settings():
         disable_uploads=""
     )
 
-    assert settings.db_data["host"] == "localhost"
+    assert settings.database_data.db_host == "localhost"
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
@@ -125,25 +118,6 @@ def test_load_db_data_new(mock_exists):
     assert result.db_host == "test_host"
     assert result.db_user == "test_user"
     assert result.db_password == "test_pass"
-
-
-@patch.dict(os.environ, {
-    "DB_HOST": "test_host",
-    "DB_NAME": "test_db",
-    "TOOL_REPLICA_USER": "test_user",
-    "TOOL_REPLICA_PASSWORD": "test_pass",
-}, clear=True)
-@patch("os.path.exists")
-def test_load_db_data(mock_exists):
-    """Test _load_db_data function."""
-    mock_exists.return_value = True
-    result = _load_db_data()
-
-    assert isinstance(result, dict)
-    assert result["host"] == "test_host"
-    assert result["dbname"] == "test_db"
-    assert result["user"] == "test_user"
-    assert result["password"] == "test_pass"
 
 
 @patch.dict(os.environ, {"MAIN_DIR": "/tmp/main"})

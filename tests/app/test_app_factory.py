@@ -12,8 +12,8 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     # Reset any cached connection and explicitly mark the configuration as empty.
     monkeypatch.setattr(svg_db, "_db", None)
-    monkeypatch.setitem(svg_db.settings.db_data, "host", "")
-    monkeypatch.setitem(svg_db.settings.db_data, "user", "")
+    monkeypatch.setitem(svg_db.settings.database_data, "host", "")
+    monkeypatch.setitem(svg_db.settings.database_data, "user", "")
 
     class _SentinelDatabase:
         def __init__(self, *_args, **_kwargs):  # pragma: no cover - defensive guard

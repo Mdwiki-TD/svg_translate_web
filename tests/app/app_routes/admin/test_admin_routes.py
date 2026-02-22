@@ -136,15 +136,15 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 @pytest.fixture
 def app_and_store(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-    
+
     # Patch Database used by CoordinatorsDB
     monkeypatch.setattr("src.app.db.db_CoordinatorsDB.Database", FakeDatabase)
     monkeypatch.setattr("src.app.admins.admin_service.has_db_config", lambda: True)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
-    store = CoordinatorsDB(settings.db_data)
+    store = CoordinatorsDB(settings.database_data)
     store.add("admin")
-    
+
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
     monkeypatch.setattr("src.app.admins.admin_service.get_admins_db", lambda: store)

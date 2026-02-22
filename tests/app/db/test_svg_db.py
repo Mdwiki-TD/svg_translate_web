@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
+from src.app.config import DbConfig
 from src.app.db.svg_db import (
     get_db, close_cached_db, execute_query, fetch_query,
     execute_query_safe, fetch_query_safe, _db
@@ -17,7 +18,7 @@ def cleanup_cached_db():
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_get_db(mock_settings, mock_database_cls):
-    mock_settings.db_data = {"host": "localhost"}
+    mock_settings.database_data = DbConfig(**{"host": "localhost"})
     mock_db_instance = MagicMock(spec=Database)
     mock_database_cls.return_value = mock_db_instance
 
@@ -35,7 +36,7 @@ def test_get_db(mock_settings, mock_database_cls):
 @patch("src.app.db.svg_db.Database")
 @patch("src.app.db.svg_db.settings")
 def test_close_cached_db(mock_settings, mock_database_cls):
-    mock_settings.db_data = {"host": "localhost"}
+    mock_settings.database_data = DbConfig(**{"host": "localhost"})
     db = get_db()
 
     close_cached_db()

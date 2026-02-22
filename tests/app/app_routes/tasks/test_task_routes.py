@@ -74,21 +74,21 @@ def app(monkeypatch: pytest.MonkeyPatch):
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
     store = InMemoryTaskStore()
-    
+
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes._task_store", lambda: store)
-    
+
     routes.TASK_STORE = store
     routes.TASKS_LOCK = threading.Lock()
     with task_threads.CANCEL_EVENTS_LOCK:
         task_threads.CANCEL_EVENTS.clear()
-        
+
     # Mock current user for auth checks
     monkeypatch.setattr("src.app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
-    
+
     return app
 
 
@@ -99,17 +99,17 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
     # Create a task first
     task_id = "test-task-1"
     store.create_task(task_id, "Sample", username="testuser")
-    
+
     # Register cancel event
     cancel_event = threading.Event()
     with task_threads.CANCEL_EVENTS_LOCK:
         task_threads.CANCEL_EVENTS[task_id] = cancel_event
 
     client = app.test_client()
-    
+
     cancel_response = client.post(f"/tasks/{task_id}/cancel")
     assert cancel_response.status_code == 302 # Redirects back to task page
-    
+
     assert store.tasks[task_id]["status"] == "Cancelled"
     assert cancel_event.is_set()
 
@@ -122,6 +122,7 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     store.update_status(existing_id, "Cancelled")
 
     captured: Dict[str, Any] = {}
+
     task_finished = threading.Event()
 
     def fake_run_task(db_data, task_id, title, args, user_payload, *, cancel_event=None):
@@ -132,16 +133,16 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         captured["cancel_event"] = cancel_event
         task_finished.set()
 
-    monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.launch_task_thread", 
+    monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.launch_task_thread",
                         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()))
 
     # Mock uuid to return a predictable ID for the new task is hard if uuid is used inside routes.
     # But we can capture the ID from the run_task call or the response location.
-    
+
     client = app.test_client()
     restart_response = client.post(f"/tasks/{existing_id}/restart")
     assert restart_response.status_code == 302
-    
+
     # Wait for the thread/fake runner
     assert task_finished.wait(timeout=1), "The fake_run_task did not run in time."
 

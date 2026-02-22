@@ -8,6 +8,7 @@ import pytest
 from flask import Flask
 
 from src.app.app_routes.cancel_restart import routes
+from src.app.config import DbConfig
 
 
 @pytest.fixture
@@ -15,7 +16,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     app = Flask(__name__)
     app.secret_key = "secret"
 
-    settings = types.SimpleNamespace(db_data={})
+    settings = types.SimpleNamespace(database_data=DbConfig())
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.settings", settings)
 
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.flash", lambda *args, **kwargs: None)
