@@ -1,4 +1,5 @@
 """Unit tests for args parsing utilities."""
+
 import types
 
 import pytest

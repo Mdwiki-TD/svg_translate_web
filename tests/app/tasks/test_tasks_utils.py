@@ -1,13 +1,11 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, mock_open
-from src.main_app.tasks.tasks_utils import (
-    json_save,
-    commons_link,
-    save_files_stats,
-    make_results_summary
-)
+from unittest.mock import mock_open, patch
+
+import pytest
+
+from src.main_app.tasks.tasks_utils import commons_link, json_save, make_results_summary, save_files_stats
+
 
 def test_json_save(tmp_path):
     # Test valid save
@@ -30,9 +28,10 @@ def test_json_save(tmp_path):
     # json_save doesn't create parent dirs itself based on current implementation details
     # (commented out in source), but let's try a permission error or invalid path
     with patch("builtins.open", side_effect=OSError("Permission denied")):
-         with log_mock as mock_logger:
+        with log_mock as mock_logger:
             json_save("dummy", data)
             mock_logger.error.assert_called()
+
 
 def test_commons_link():
     # Basic
@@ -49,6 +48,7 @@ def test_commons_link():
     assert "A%20%26%20B.svg" in link3
     assert "A &amp; B.svg" in link3
 
+
 def test_save_files_stats(tmp_path):
     out_dir = tmp_path / "out"
     out_dir.mkdir()
@@ -61,6 +61,7 @@ def test_save_files_stats(tmp_path):
     with open(expected_file, "r", encoding="utf-8") as f:
         assert json.load(f) == data
 
+
 def test_make_results_summary():
     res = make_results_summary(
         len_files=10,
@@ -69,7 +70,7 @@ def test_make_results_summary():
         injects_result={"nested_files": 1, "success": 8, "failed": 1},
         translations={"new": {"a": 1, "b": 2}},
         main_title="File:Main.svg",
-        upload_result={"uploaded": 5}
+        upload_result={"uploaded": 5},
     )
 
     assert res["total_files"] == 10

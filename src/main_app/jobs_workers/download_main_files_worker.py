@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import io
 import logging
-import requests
 import threading
 import zipfile
 from datetime import datetime
@@ -14,6 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+import requests
 from flask import send_file
 
 from .. import template_service
@@ -23,8 +23,7 @@ from . import jobs_service
 logger = logging.getLogger("svg_translate")
 
 
-def download_all_main_files():
-    ...
+def download_all_main_files(): ...
 
 
 def download_file_from_commons(
@@ -66,9 +65,11 @@ def download_file_from_commons(
     # Create session if not provided
     if session is None:
         session = requests.Session()
-        session.headers.update({
-            "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
-        })
+        session.headers.update(
+            {
+                "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
+            }
+        )
 
     try:
         response = session.get(url, timeout=60, allow_redirects=True)
@@ -134,9 +135,11 @@ def process_downloads(
 
     # Create a shared session for all downloads
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
-    })
+    session.headers.update(
+        {
+            "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
+        }
+    )
 
     for n, template in enumerate(templates_with_files, start=1):
         # Check for cancellation
@@ -311,19 +314,14 @@ def create_main_files_zip() -> tuple[Any, int]:
 
     # Create a zip file in memory
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         for file_path in main_files_path.iterdir():
             if file_path.is_file():
                 zip_file.write(file_path, file_path.name)
 
     zip_buffer.seek(0)
 
-    return send_file(
-        zip_buffer,
-        mimetype='application/zip',
-        as_attachment=True,
-        download_name='main_files.zip'
-    ), 200
+    return send_file(zip_buffer, mimetype="application/zip", as_attachment=True, download_name="main_files.zip"), 200
 
 
 __all__ = [

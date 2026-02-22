@@ -23,7 +23,10 @@ def app_factory(monkeypatch):
         admin_service = importlib.import_module("src.main_app.admins.admin_service")
 
         # Mock current_user
-        monkeypatch.setattr("src.main_app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'is_admin': False}))
+        monkeypatch.setattr(
+            "src.main_app.users.current.current_user",
+            lambda: type("User", (), {"username": "testuser", "user_id": 1, "is_admin": False}),
+        )
 
         # We don't need to patch initialize_coordinators as it's likely removed
         # monkeypatch.setattr(app_module, "initialize_coordinators", lambda: None)
@@ -74,7 +77,7 @@ def test_task2_active_shows_cancel_button(app_factory):
     # Cancel button should exist
     cancel_classes = _get_button_classes(html, "cancel-task-btn")
     assert cancel_classes is not None, "Cancel button should be present"
-    assert f'data-task-id="{task["id"]}"' in html # Maybe not on button but in section
+    assert f'data-task-id="{task["id"]}"' in html  # Maybe not on button but in section
 
     # Restart button should NOT exist
     restart_classes = _get_button_classes(html, "restart-task-btn")

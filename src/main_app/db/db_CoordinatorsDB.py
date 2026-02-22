@@ -7,7 +7,6 @@ from typing import Any, Iterable, List
 import pymysql
 
 from ..config import DbConfig
-
 from . import Database
 
 logger = logging.getLogger("svg_translate")

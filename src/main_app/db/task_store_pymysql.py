@@ -4,7 +4,6 @@ import logging
 from typing import Dict
 
 from ..config import DbConfig
-
 from .db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
 from .db_StageStore import StageStore

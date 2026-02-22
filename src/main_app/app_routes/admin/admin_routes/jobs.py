@@ -10,18 +10,18 @@ from flask import (
     flash,
     redirect,
     render_template,
-    url_for,
     send_from_directory,
+    url_for,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ....config import settings
 from ....admins.admins_required import admin_required
+from ....config import settings
 from ....jobs_workers import jobs_service, jobs_worker
+from ....jobs_workers.download_main_files_worker import create_main_files_zip
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
-from ....jobs_workers.download_main_files_worker import create_main_files_zip
 
 logger = logging.getLogger("svg_translate")
 
@@ -79,6 +79,7 @@ def _start_job(job_type: str) -> int | None:
         flash("Failed to start job. Please try again.", "danger")
 
     return False
+
 
 # ================================
 # Jobs handlers

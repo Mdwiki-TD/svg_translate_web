@@ -1,20 +1,18 @@
-import pytest
-from flask import Flask, session, g, url_for
 from unittest.mock import MagicMock, patch
-from src.main_app.users.current import (
-    CurrentUser,
-    _resolve_user_id,
-    current_user,
-    oauth_required,
-    context_user
-)
+
+import pytest
+from flask import Flask, g, session, url_for
+
+from src.main_app.users.current import CurrentUser, _resolve_user_id, context_user, current_user, oauth_required
 from src.main_app.users.store import UserTokenRecord
+
 
 @pytest.fixture
 def app():
     app = Flask(__name__)
     app.secret_key = "test_secret"
     return app
+
 
 def test_resolve_user_id(app):
     with app.test_request_context():
@@ -34,6 +32,7 @@ def test_resolve_user_id(app):
         session["uid"] = "invalid"
         assert _resolve_user_id() is None
 
+
 @patch("src.main_app.users.current.get_user_token")
 @patch("src.main_app.users.current.extract_user_id")
 @patch("src.main_app.users.current.settings")
@@ -41,16 +40,14 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
     mock_settings.cookie.name = "test_cookie"
 
     # Mock user record
-    mock_user = UserTokenRecord(
-        user_id=1, username="testuser", access_token=b"", access_secret=b""
-    )
+    mock_user = UserTokenRecord(user_id=1, username="testuser", access_token=b"", access_secret=b"")
     mock_get_token.return_value = mock_user
 
     with app.test_request_context():
         # 1. Cached in g
         g._current_user = mock_user
         assert current_user() == mock_user
-        del g._current_user # Reset
+        del g._current_user  # Reset
 
         # 2. In Session
         session["uid"] = 1
@@ -62,15 +59,16 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
         # 3. In Cookie
         mock_extract.return_value = 1
         # Create a request with the cookie
-        with app.test_request_context(environ_base={'HTTP_COOKIE': 'test_cookie=signed_value'}):
-             assert current_user() == mock_user
-             assert session["uid"] == 1
-             assert g._current_user == mock_user
+        with app.test_request_context(environ_base={"HTTP_COOKIE": "test_cookie=signed_value"}):
+            assert current_user() == mock_user
+            assert session["uid"] == 1
+            assert g._current_user == mock_user
 
         # 4. No session, no cookie
         mock_extract.return_value = None
         session.clear()
-        if hasattr(g, "_current_user"): del g._current_user
+        if hasattr(g, "_current_user"):
+            del g._current_user
         assert current_user() is None
 
         # 5. User in session but get_user_token returns None
@@ -79,12 +77,14 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
         assert current_user() is None
 
         # 6. Username update
-        mock_get_token.return_value = mock_user # Reset to valid user
+        mock_get_token.return_value = mock_user  # Reset to valid user
         session["uid"] = 1
         session["username"] = "oldname"
-        if hasattr(g, "_current_user"): del g._current_user
+        if hasattr(g, "_current_user"):
+            del g._current_user
         current_user()
         assert session["username"] == "testuser"
+
 
 @patch("src.main_app.users.current.current_user")
 @patch("src.main_app.users.current.settings")
@@ -97,7 +97,7 @@ def test_oauth_required(mock_settings, mock_current_user, app):
 
     with app.test_request_context("/protected"):
         # Register a dummy login route to avoid BuildError
-        app.add_url_rule('/login', endpoint='auth.login')
+        app.add_url_rule("/login", endpoint="auth.login")
 
         # Case 1: Authenticated
         mock_current_user.return_value = MagicMock()
@@ -107,7 +107,7 @@ def test_oauth_required(mock_settings, mock_current_user, app):
         # Case 2: Unauthenticated
         mock_current_user.return_value = None
         resp = decorated()
-        assert resp.status_code == 302 # Redirect
+        assert resp.status_code == 302  # Redirect
         assert session.get("post_login_redirect") == "http://localhost/protected"
 
         # Case 3: OAuth disabled
@@ -116,6 +116,7 @@ def test_oauth_required(mock_settings, mock_current_user, app):
         view.reset_mock()
         assert decorated() == "ok"
         view.assert_called()
+
 
 @patch("src.main_app.users.current.active_coordinators")
 @patch("src.main_app.users.current.current_user")
@@ -143,6 +144,7 @@ def test_context_user(mock_current_user, mock_active_coordinators):
     assert ctx["is_authenticated"] is False
     assert ctx["is_admin"] is False
     assert ctx["username"] is None
+
 
 def test_CurrentUser():
     # Just simple data class test

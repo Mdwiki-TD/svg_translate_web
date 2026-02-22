@@ -177,7 +177,9 @@ def test_task2_includes_ordered_stages(
         "form": {"field": "value"},
     }
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="demo"))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="demo")
+    )
 
     captured: dict[str, Any] = {}
 
@@ -259,7 +261,9 @@ def test_start_redirects_to_existing_task_when_duplicate(
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.flash", fake_flash)
 
     launch_calls: list[tuple[Any, ...]] = []
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", lambda *args, **kwargs: launch_calls.append(args))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.tasks.routes.launch_task_thread", lambda *args, **kwargs: launch_calls.append(args)
+    )
 
     response = client.post("/", data={"title": "Duplicate Title"})
 

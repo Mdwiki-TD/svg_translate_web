@@ -1,4 +1,5 @@
 """Tests for CookieHeaderClient behavior."""
+
 from flask import Flask, request
 
 from src.main_app.cookies import CookieHeaderClient

@@ -1,16 +1,21 @@
-import pytest
-from unittest.mock import MagicMock, patch
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.main_app.tasks.uploads.upload_bot import upload_file
+
 
 @pytest.fixture
 def mock_site():
     site = MagicMock()
     return site
 
+
 def test_upload_file_no_site():
     res = upload_file("file.svg", "/path/to/file", site=None)
     assert res == {"error": "No site provided"}
+
 
 @patch("src.main_app.tasks.uploads.upload_bot.Path")
 def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
@@ -18,6 +23,7 @@ def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
 
     res = upload_file("file.svg", "/path/to/file", site=mock_site)
     assert res == {"error": "File not found on Commons"}
+
 
 @patch("src.main_app.tasks.uploads.upload_bot.Path")
 def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
@@ -28,6 +34,7 @@ def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
 
     res = upload_file("file.svg", "/path/to/file", site=mock_site)
     assert res == {"error": "File not found on server"}
+
 
 @patch("src.main_app.tasks.uploads.upload_bot.open", create=True)
 @patch("src.main_app.tasks.uploads.upload_bot.Path")
@@ -42,6 +49,7 @@ def test_upload_file_success(mock_path_cls, mock_open, mock_site):
     res = upload_file("file.svg", "/path/to/file", site=mock_site)
     assert res["result"] == "Success"
     mock_site.upload.assert_called_once()
+
 
 @patch("src.main_app.tasks.uploads.upload_bot.open", create=True)
 @patch("src.main_app.tasks.uploads.upload_bot.Path")

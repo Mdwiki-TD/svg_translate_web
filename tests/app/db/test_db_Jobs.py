@@ -1,7 +1,9 @@
-import pytest
-from unittest.mock import MagicMock
 from datetime import datetime
-from src.main_app.db.db_Jobs import JobsDB, JobRecord
+from unittest.mock import MagicMock
+
+import pytest
+
+from src.main_app.db.db_Jobs import JobRecord, JobsDB
 
 
 @pytest.fixture
@@ -23,12 +25,7 @@ def jobs_db(mock_db_instance):
 
 def test_JobRecord():
     now = datetime.now()
-    record = JobRecord(
-        id=1,
-        job_type="test",
-        status="pending",
-        created_at=now
-    )
+    record = JobRecord(id=1, job_type="test", status="pending", created_at=now)
     assert record.id == 1
     assert record.job_type == "test"
     assert record.status == "pending"
@@ -43,22 +40,23 @@ def test_ensure_table(mock_db_instance):
 
 
 def test_create_success(jobs_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1,
-        "job_type": "type_a",
-        "status": "pending",
-        "started_at": None,
-        "completed_at": None,
-        "result_file": None,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [
+        {
+            "id": 1,
+            "job_type": "type_a",
+            "status": "pending",
+            "started_at": None,
+            "completed_at": None,
+            "result_file": None,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+        }
+    ]
 
     record = jobs_db.create("type_a")
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        "\n            INSERT INTO jobs (job_type, status) VALUES (%s, %s)\n            ",
-        ("type_a", "pending")
+        "\n            INSERT INTO jobs (job_type, status) VALUES (%s, %s)\n            ", ("type_a", "pending")
     )
     assert record.id == 1
     assert record.job_type == "type_a"
@@ -71,16 +69,18 @@ def test_create_failure(jobs_db, mock_db_instance):
 
 
 def test_get_success(jobs_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1,
-        "job_type": "type_a",
-        "status": "pending",
-        "started_at": None,
-        "completed_at": None,
-        "result_file": None,
-        "created_at": None,
-        "updated_at": None
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [
+        {
+            "id": 1,
+            "job_type": "type_a",
+            "status": "pending",
+            "started_at": None,
+            "completed_at": None,
+            "result_file": None,
+            "created_at": None,
+            "updated_at": None,
+        }
+    ]
 
     record = jobs_db.get(1, "type_a")
     assert record.id == 1
@@ -96,7 +96,7 @@ def test_get_not_found(jobs_db, mock_db_instance):
 def test_list_all(jobs_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {"id": 1, "job_type": "t1", "status": "pending"},
-        {"id": 2, "job_type": "t2", "status": "completed"}
+        {"id": 2, "job_type": "t2", "status": "completed"},
     ]
 
     records = jobs_db.list()
@@ -126,9 +126,7 @@ def test_delete_exception(jobs_db, mock_db_instance):
 
 def test_update_status_running(jobs_db, mock_db_instance):
     # Setup for get() call inside update_status
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "running"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "running"}]
     mock_db_instance.execute_query_safe.return_value = 1  # One row updated
 
     record = jobs_db.update_status(1, "running", job_type="t")
@@ -141,9 +139,7 @@ def test_update_status_running(jobs_db, mock_db_instance):
 
 
 def test_update_status_completed(jobs_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "completed"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "completed"}]
     mock_db_instance.execute_query_safe.return_value = 1
 
     jobs_db.update_status(1, "completed", result_file="res.json", job_type="t")
@@ -155,9 +151,7 @@ def test_update_status_completed(jobs_db, mock_db_instance):
 
 
 def test_update_status_generic(jobs_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "other"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "other"}]
     mock_db_instance.execute_query_safe.return_value = 1
 
     jobs_db.update_status(1, "other", job_type="t")
@@ -176,9 +170,7 @@ def test_update_status_not_found(jobs_db, mock_db_instance):
 
 def test_update_status_with_result_file_on_running(jobs_db, mock_db_instance):
     """Test update_status with result_file parameter when status is running."""
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "running"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "running"}]
     mock_db_instance.execute_query_safe.return_value = 1
 
     jobs_db.update_status(1, "running", result_file="partial.json", job_type="t")
@@ -190,9 +182,7 @@ def test_update_status_with_result_file_on_running(jobs_db, mock_db_instance):
 
 def test_update_status_failed(jobs_db, mock_db_instance):
     """Test update_status with 'failed' status."""
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "failed"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "failed"}]
     mock_db_instance.execute_query_safe.return_value = 1
 
     jobs_db.update_status(1, "failed", result_file="error.json", job_type="t")
@@ -204,9 +194,7 @@ def test_update_status_failed(jobs_db, mock_db_instance):
 
 def test_update_status_cancelled(jobs_db, mock_db_instance):
     """Test update_status with 'cancelled' status."""
-    mock_db_instance.fetch_query_safe.return_value = [{
-        "id": 1, "job_type": "t", "status": "cancelled"
-    }]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "job_type": "t", "status": "cancelled"}]
     mock_db_instance.execute_query_safe.return_value = 1
 
     jobs_db.update_status(1, "cancelled", job_type="t")
@@ -236,7 +224,7 @@ def test_row_to_record_with_all_fields(jobs_db):
         "completed_at": now,
         "result_file": "result.json",
         "created_at": now,
-        "updated_at": now
+        "updated_at": now,
     }
 
     record = jobs_db._row_to_record(row)

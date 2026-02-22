@@ -1,4 +1,5 @@
 """Unit tests for OAuth mwclient site builder (no network)."""
+
 from src.main_app.crypto import encrypt_value
 from src.main_app.tasks.uploads.wiki_client import build_upload_site
 

@@ -24,7 +24,9 @@ def patch_templates(monkeypatch: pytest.MonkeyPatch) -> dict:
 
 
 def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}")))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}"))
+    )
     monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_temp_title", lambda title: "Title")
 
     result = routes.by_title_downloaded("topic")
@@ -37,7 +39,9 @@ def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch
 
 
 def test_by_title_translated_sets_compare_link(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["b.svg"], Path("/data")))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["b.svg"], Path("/data"))
+    )
     monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_temp_title", lambda title: "Sample")
 
     routes.by_title_translated("topic")

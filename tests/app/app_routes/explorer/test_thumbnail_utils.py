@@ -1,6 +1,7 @@
 """
 Tests for thumbnail generation.
 """
+
 import tempfile
 from pathlib import Path
 

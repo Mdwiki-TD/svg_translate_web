@@ -1,4 +1,5 @@
 """Unit tests for template_service module."""
+
 from __future__ import annotations
 
 import logging

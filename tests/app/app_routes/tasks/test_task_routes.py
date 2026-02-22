@@ -97,8 +97,14 @@ def app(monkeypatch: pytest.MonkeyPatch):
         task_threads.CANCEL_EVENTS.clear()
 
     # Mock current user for auth checks
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.current_user", lambda: type('User', (), {'username': 'testuser', 'user_id': 1, 'access_token': 'tok', 'access_secret': 'sec'}))
+    monkeypatch.setattr(
+        "src.main_app.users.current.current_user",
+        lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
+    )
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.current_user",
+        lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
+    )
 
     return app
 
@@ -129,7 +135,9 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     store: InMemoryTaskStore = routes._task_store()  # type: ignore[assignment]
 
     existing_id = "existing"
-    store.create_task(existing_id, "Title", form={"title": "Title", "titles_limit": "5", "upload": "on"}, username="testuser")
+    store.create_task(
+        existing_id, "Title", form={"title": "Title", "titles_limit": "5", "upload": "on"}, username="testuser"
+    )
     store.update_status(existing_id, "Cancelled")
 
     captured: Dict[str, Any] = {}
@@ -157,8 +165,10 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         captured["cancel_event"] = cancel_event
         task_finished.set()
 
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.launch_task_thread",
-                        lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.launch_task_thread",
+        lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
+    )
 
     # Mock uuid to return a predictable ID for the new task is hard if uuid is used inside routes.
     # But we can capture the ID from the run_task call or the response location.

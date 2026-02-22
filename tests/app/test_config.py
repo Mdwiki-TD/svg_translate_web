@@ -1,10 +1,21 @@
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.main_app.config import (
-    DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
-    _load_db_data_new, _get_paths, _env_bool, _env_int,
-    _load_oauth_config, is_localhost, get_settings
+    CookieConfig,
+    DbConfig,
+    OAuthConfig,
+    Paths,
+    Settings,
+    _env_bool,
+    _env_int,
+    _get_paths,
+    _load_db_data_new,
+    _load_oauth_config,
+    get_settings,
+    is_localhost,
 )
 
 
@@ -31,7 +42,7 @@ def test_Paths():
         log_dir="/logs",
         fix_nested_data="/fix/nested",
         svg_jobs_path="/jobs",
-        main_files_path="/main_files"
+        main_files_path="/main_files",
     )
 
     assert paths.svg_data == "/svg/data"
@@ -44,13 +55,7 @@ def test_Paths():
 
 def test_CookieConfig():
     """Test the CookieConfig dataclass."""
-    cookie_config = CookieConfig(
-        name="test_cookie",
-        max_age=3600,
-        secure=True,
-        httponly=True,
-        samesite="Lax"
-    )
+    cookie_config = CookieConfig(name="test_cookie", max_age=3600, secure=True, httponly=True, samesite="Lax")
 
     assert cookie_config.name == "test_cookie"
     assert cookie_config.max_age == 3600
@@ -66,7 +71,7 @@ def test_OAuthConfig():
         consumer_key="key",
         consumer_secret="secret",
         user_agent="test-agent",
-        upload_host="upload.example.com"
+        upload_host="upload.example.com",
     )
 
     assert oauth_config.mw_uri == "https://example.com"
@@ -94,7 +99,7 @@ def test_Settings():
         cookie=cookie_config,
         oauth=None,
         paths=paths,
-        disable_uploads=""
+        disable_uploads="",
     )
 
     assert settings.database_data.db_host == "localhost"
@@ -103,12 +108,16 @@ def test_Settings():
     assert settings.paths.svg_data == "/svg"
 
 
-@patch.dict(os.environ, {
-    "DB_NAME": "test_db",
-    "DB_HOST": "test_host",
-    "TOOL_REPLICA_USER": "test_user",
-    "TOOL_REPLICA_PASSWORD": "test_pass",
-}, clear=True)
+@patch.dict(
+    os.environ,
+    {
+        "DB_NAME": "test_db",
+        "DB_HOST": "test_host",
+        "TOOL_REPLICA_USER": "test_user",
+        "TOOL_REPLICA_PASSWORD": "test_pass",
+    },
+    clear=True,
+)
 @patch("os.path.exists")
 def test_load_db_data_new(mock_exists):
     """Test _load_db_data_new function."""
@@ -186,13 +195,16 @@ def test_load_oauth_config_missing_vars():
         assert result is None
 
 
-@patch.dict(os.environ, {
-    "OAUTH_MWURI": "https://example.com",
-    "OAUTH_CONSUMER_KEY": "key",
-    "OAUTH_CONSUMER_SECRET": "secret",
-    "USER_AGENT": "test-agent",
-    "UPLOAD_END_POINT": "upload.example.com"
-})
+@patch.dict(
+    os.environ,
+    {
+        "OAUTH_MWURI": "https://example.com",
+        "OAUTH_CONSUMER_KEY": "key",
+        "OAUTH_CONSUMER_SECRET": "secret",
+        "USER_AGENT": "test-agent",
+        "UPLOAD_END_POINT": "upload.example.com",
+    },
+)
 def test_load_oauth_config():
     """Test _load_oauth_config function."""
     result = _load_oauth_config()
@@ -214,18 +226,21 @@ def test_is_localhost():
     assert is_localhost("0.0.0.0") is False
 
 
-@patch.dict(os.environ, {
-    "FLASK_SECRET_KEY": "test-secret-key",
-    "SESSION_COOKIE_SECURE": "true",
-    "SESSION_COOKIE_HTTPONLY": "true",
-    "SESSION_COOKIE_SAMESITE": "Strict",
-    "STATE_SESSION_KEY": "test-state",
-    "REQUEST_TOKEN_SESSION_KEY": "test-request",
-    "USE_MW_OAUTH": "false",
-    "AUTH_COOKIE_NAME": "test-cookie",
-    "AUTH_COOKIE_MAX_AGE": "7200",
-    "MAIN_DIR": "/tmp/test-data"
-})
+@patch.dict(
+    os.environ,
+    {
+        "FLASK_SECRET_KEY": "test-secret-key",
+        "SESSION_COOKIE_SECURE": "true",
+        "SESSION_COOKIE_HTTPONLY": "true",
+        "SESSION_COOKIE_SAMESITE": "Strict",
+        "STATE_SESSION_KEY": "test-state",
+        "REQUEST_TOKEN_SESSION_KEY": "test-request",
+        "USE_MW_OAUTH": "false",
+        "AUTH_COOKIE_NAME": "test-cookie",
+        "AUTH_COOKIE_MAX_AGE": "7200",
+        "MAIN_DIR": "/tmp/test-data",
+    },
+)
 def test_get_settings():
     """Test get_settings function."""
     # Clear the LRU cache to ensure fresh call
@@ -256,11 +271,7 @@ def test_get_settings_missing_secret_key():
     get_settings.cache_clear()
 
 
-@patch.dict(os.environ, {
-    "FLASK_SECRET_KEY": "test-secret-key",
-    "USE_MW_OAUTH": "true",
-    "MAIN_DIR": "/tmp/test-data"
-})
+@patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "USE_MW_OAUTH": "true", "MAIN_DIR": "/tmp/test-data"})
 @pytest.mark.skip(reason="Failed: DID NOT RAISE <class 'RuntimeError'>")
 def test_get_settings_missing_oauth_encryption_key():
     """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
@@ -270,12 +281,15 @@ def test_get_settings_missing_oauth_encryption_key():
     get_settings.cache_clear()
 
 
-@patch.dict(os.environ, {
-    "FLASK_SECRET_KEY": "test-secret-key",
-    "USE_MW_OAUTH": "true",
-    "OAUTH_ENCRYPTION_KEY": "test-key",
-    "MAIN_DIR": "/tmp/test-data"
-})
+@patch.dict(
+    os.environ,
+    {
+        "FLASK_SECRET_KEY": "test-secret-key",
+        "USE_MW_OAUTH": "true",
+        "OAUTH_ENCRYPTION_KEY": "test-key",
+        "MAIN_DIR": "/tmp/test-data",
+    },
+)
 @pytest.mark.skip(reason="Failed: DID NOT RAISE <class 'RuntimeError'>")
 def test_get_settings_missing_oauth_config():
     """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
@@ -331,11 +345,9 @@ def test_is_localhost_partial_match():
     assert is_localhost("production.example.com") is False
 
 
-@patch.dict(os.environ, {
-    "OAUTH_MWURI": "https://example.com",
-    "OAUTH_CONSUMER_KEY": "key",
-    "OAUTH_CONSUMER_SECRET": "secret"
-})
+@patch.dict(
+    os.environ, {"OAUTH_MWURI": "https://example.com", "OAUTH_CONSUMER_KEY": "key", "OAUTH_CONSUMER_SECRET": "secret"}
+)
 def test_load_oauth_config_with_defaults():
     """Test _load_oauth_config uses default values when optional vars missing."""
     result = _load_oauth_config()

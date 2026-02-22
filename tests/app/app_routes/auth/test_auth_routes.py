@@ -93,7 +93,10 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
             return True
 
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.callback_rate_limiter", DummyLimiter())
-    monkeypatch.setattr("src.main_app.app_routes.auth.routes.verify_state_token", lambda token: "state-value" if token == "token" else None)
+    monkeypatch.setattr(
+        "src.main_app.app_routes.auth.routes.verify_state_token",
+        lambda token: "state-value" if token == "token" else None,
+    )
     monkeypatch.setattr("src.main_app.app_routes.auth.routes._load_request_token", lambda raw: ("k", "s"))
 
     def fake_complete(request_token, query_string: str):

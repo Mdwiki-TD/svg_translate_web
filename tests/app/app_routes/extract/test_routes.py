@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from pytest_mock import MockerFixture
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
+from pytest_mock import MockerFixture
 
 from src.main_app import create_app
 from src.main_app.app_routes.extract import routes
@@ -108,9 +108,7 @@ def test_extract_post_strips_file_prefix(
         routes.extract_translations_post()
 
     # Assert that download was called with the stripped filename
-    mock_download.assert_called_once_with(
-        title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True
-    )
+    mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
 
     assert patch_render["context"]["filename"] == "File: Test.svg"
 

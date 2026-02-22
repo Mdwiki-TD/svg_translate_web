@@ -2,6 +2,7 @@
 Comprehensive unit tests for download_task module.
 Tests cover download functionality, and error handling.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest

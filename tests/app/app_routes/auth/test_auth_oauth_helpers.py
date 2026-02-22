@@ -1,4 +1,5 @@
 """Unit tests for OAuth helper functions using a stubbed mwoauth."""
+
 from types import SimpleNamespace
 
 import pytest

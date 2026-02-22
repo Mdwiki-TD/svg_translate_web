@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+
 # import tempfile
 # from unittest.mock import MagicMock, patch
 from pathlib import Path
@@ -355,11 +356,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
 
     job = jobs_service.create_job("test_job")
 
-    result_data = {
-        "job_id": job.id,
-        "timestamp": datetime.now(),
-        "data": "test"
-    }
+    result_data = {"job_id": job.id, "timestamp": datetime.now(), "data": "test"}
 
     result_file_name = jobs_service.generate_result_file_name(job.id, job.job_type)
     result_file = jobs_service.save_job_result_by_name(result_file_name, result_data)

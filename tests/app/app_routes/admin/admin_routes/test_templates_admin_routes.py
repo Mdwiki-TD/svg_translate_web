@@ -1,4 +1,5 @@
 """Unit tests for templates admin routes improvements."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, Mock, patch
@@ -23,7 +24,7 @@ def test_update_template_uses_request_form_type_parameter():
                 with patch("src.main_app.app_routes.admin.admin_routes.templates.redirect"):
                     with patch("src.main_app.app_routes.admin.admin_routes.templates.url_for"):
                         # We want to spy on request.form.get
-                        with patch.object(templates.request.form, 'get', wraps=templates.request.form.get) as mock_get:
+                        with patch.object(templates.request.form, "get", wraps=templates.request.form.get) as mock_get:
                             templates._update_template()
 
                             # Verify get was called with type parameter for id

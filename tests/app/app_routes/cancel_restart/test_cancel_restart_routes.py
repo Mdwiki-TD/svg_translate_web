@@ -24,18 +24,23 @@ def app(monkeypatch: pytest.MonkeyPatch):
     app = Flask(__name__)
     app.secret_key = "secret"
 
-    settings = types.SimpleNamespace(database_data=DbConfig(
-        db_name="",
-        db_host="",
-        db_user=None,
-        db_password=None,
-    ))
+    settings = types.SimpleNamespace(
+        database_data=DbConfig(
+            db_name="",
+            db_host="",
+            db_user=None,
+            db_password=None,
+        )
+    )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.settings", settings)
 
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.flash", lambda *args, **kwargs: None)
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.jsonify", lambda payload: payload)
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.redirect", lambda url: {"redirect_to": url})
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.url_for", lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})")
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.url_for",
+        lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})",
+    )
 
     # Mock current_user in the module where oauth_required is defined
     import src.main_app.users.current
@@ -76,7 +81,9 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
             self.updated.append((task_id, status))
 
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes._task_store", lambda: DummyStore())
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.current_user", lambda: types.SimpleNamespace(username="user")
+    )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.active_coordinators", lambda: ["user"])
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.get_cancel_event", lambda task_id: DummyEvent())
 
@@ -116,7 +123,10 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
         lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
     )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.parse_args", fake_parse_args)
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.uuid", types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.uuid",
+        types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")),
+    )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.launch_task_thread", fake_launch)
 
     with app.test_request_context("/tasks/1/restart"):
@@ -159,7 +169,9 @@ def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) ->
             return {"id": task_id, "status": "Running", "username": "other_user"}
 
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes._task_store", lambda: DummyStore())
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.current_user", lambda: types.SimpleNamespace(username="user")
+    )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.active_coordinators", lambda: [])
 
     with app.test_request_context("/tasks/1/cancel"):

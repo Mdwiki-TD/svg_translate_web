@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.main_app.tasks.texts.start_bot import text_task
+
 
 @patch("src.main_app.tasks.texts.start_bot.get_wikitext")
 def test_text_task_success(mock_get):
@@ -11,6 +14,7 @@ def test_text_task_success(mock_get):
 
     assert text == "content"
     assert final_stages["status"] == "Completed"
+
 
 @patch("src.main_app.tasks.texts.start_bot.get_wikitext")
 def test_text_task_fail(mock_get):

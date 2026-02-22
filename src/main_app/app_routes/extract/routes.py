@@ -74,7 +74,9 @@ def extract_translations_post():
                 key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
             )
         )
-        languages = sorted({lang for entry in translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry})
+        languages = sorted(
+            {lang for entry in translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
+        )
         logger.info(f"Extracted languages: {len(languages):,}")
 
         # Convert translations to pretty JSON for display

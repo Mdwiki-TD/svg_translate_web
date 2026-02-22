@@ -31,7 +31,9 @@ def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyP
 
 
 def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(
+        "src.main_app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="user")
+    )
     monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: [])
 
     class AbortCalled(Exception):
@@ -53,7 +55,9 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 def test_admin_required_allows_admin(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="boss"))
+    monkeypatch.setattr(
+        "src.main_app.admins.admins_required.current_user", lambda: types.SimpleNamespace(username="boss")
+    )
     monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: ["boss"])
 
     @admin_required
@@ -73,11 +77,11 @@ def test_admin_required_not_logged_in():
     def dummy_view():
         return "This should not be returned"
 
-    with patch("src.main_app.admins.admins_required.current_user", return_value=None), patch(
-        "src.main_app.admins.admins_required.redirect"
-    ) as mock_redirect, patch(
-        "src.main_app.admins.admins_required.url_for", return_value="/login"
-    ) as mock_url_for:
+    with (
+        patch("src.main_app.admins.admins_required.current_user", return_value=None),
+        patch("src.main_app.admins.admins_required.redirect") as mock_redirect,
+        patch("src.main_app.admins.admins_required.url_for", return_value="/login") as mock_url_for,
+    ):
         response = dummy_view()
 
         # Check that url_for was called for the login page
@@ -101,8 +105,9 @@ def test_admin_required_not_admin():
     # Mock user who is not in the admin list
     mock_user = MockUser(username="testuser")
 
-    with patch("src.main_app.admins.admins_required.current_user", return_value=mock_user), patch(
-        "src.main_app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]
+    with (
+        patch("src.main_app.admins.admins_required.current_user", return_value=mock_user),
+        patch("src.main_app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]),
     ):
         # Expect a Forbidden (403) exception to be raised
         with pytest.raises(Forbidden):
@@ -122,8 +127,9 @@ def test_admin_required_is_admin():
     # Mock user who is in the admin list
     mock_user = MockUser(username="admin1")
 
-    with patch("src.main_app.admins.admins_required.current_user", return_value=mock_user), patch(
-        "src.main_app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]
+    with (
+        patch("src.main_app.admins.admins_required.current_user", return_value=mock_user),
+        patch("src.main_app.admins.admins_required.active_coordinators", return_value=["admin1", "admin2"]),
     ):
         # The view should be executed and return its value
         response = dummy_view()

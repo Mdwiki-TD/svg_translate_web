@@ -1,4 +1,5 @@
 """Tests for sidebar helpers."""
+
 import pytest
 
 from src.main_app.app_routes.admin import sidebar

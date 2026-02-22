@@ -1,4 +1,5 @@
 """Unit tests for db_CreateUpdate module."""
+
 from __future__ import annotations
 
 import logging

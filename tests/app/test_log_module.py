@@ -1,4 +1,5 @@
 """Unit tests for log module logger name change."""
+
 from __future__ import annotations
 
 import logging

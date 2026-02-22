@@ -1,4 +1,5 @@
 """Unit tests for auth cookie helpers."""
+
 from src.main_app.app_routes.auth import cookie as auth_cookie
 
 

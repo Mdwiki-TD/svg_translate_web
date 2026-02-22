@@ -1,12 +1,16 @@
-import pytest
-import json
 import datetime
+import json
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.main_app.db.utils import DbUtils
+
 
 class MockDbUtils(DbUtils):
     def fetch_stages(self, task_id):
         return {"mock_stage": {}}
+
 
 def test_serialize_deserialize():
     utils = DbUtils()
@@ -18,10 +22,12 @@ def test_serialize_deserialize():
     assert utils._serialize(None) is None
     assert utils._deserialize(None) is None
 
+
 def test_normalize_title():
     utils = DbUtils()
     assert utils._normalize_title("  Test_Title  ") == "test title"
     assert utils._normalize_title("My Title") == "my title"
+
 
 def test_current_ts():
     utils = DbUtils()
@@ -30,6 +36,7 @@ def test_current_ts():
     assert len(ts) == 19
     assert ts[4] == "-" and ts[7] == "-" and ts[10] == " "
     assert ts[13] == ":" and ts[16] == ":"
+
 
 def test_rows_to_tasks_with_stages():
     utils = DbUtils()
@@ -40,22 +47,28 @@ def test_rows_to_tasks_with_stages():
     rows = [
         # Task 1, Stage 1
         {
-            "id": "t1", "title": "Task 1", "stage_name": "s1",
-            "stage_number": 1, "stage_status": "done",
-            "stage_sub_name": None, "stage_message": "ok",
-            "stage_updated_at": now
+            "id": "t1",
+            "title": "Task 1",
+            "stage_name": "s1",
+            "stage_number": 1,
+            "stage_status": "done",
+            "stage_sub_name": None,
+            "stage_message": "ok",
+            "stage_updated_at": now,
         },
         # Task 1, Stage 2
         {
-            "id": "t1", "title": "Task 1", "stage_name": "s2",
-            "stage_number": 2, "stage_status": "pending",
-            "stage_sub_name": None, "stage_message": None,
-            "stage_updated_at": "2023-01-01 13:00:00"
+            "id": "t1",
+            "title": "Task 1",
+            "stage_name": "s2",
+            "stage_number": 2,
+            "stage_status": "pending",
+            "stage_sub_name": None,
+            "stage_message": None,
+            "stage_updated_at": "2023-01-01 13:00:00",
         },
         # Task 2, No stages
-        {
-            "id": "t2", "title": "Task 2", "stage_name": None
-        }
+        {"id": "t2", "title": "Task 2", "stage_name": None},
     ]
 
     tasks, stage_map = utils._rows_to_tasks_with_stages(rows)
@@ -74,6 +87,7 @@ def test_rows_to_tasks_with_stages():
 
     assert "t2" not in stage_map
 
+
 def test_row_to_task():
     utils = MockDbUtils()
 
@@ -90,7 +104,7 @@ def test_row_to_task():
         "created_at": now,
         "updated_at": now,
         "main_file": "file.svg",
-        "username": "user"
+        "username": "user",
     }
 
     # 1. With stages provided

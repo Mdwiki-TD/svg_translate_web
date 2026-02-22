@@ -1,4 +1,5 @@
 """Test that all modified modules use 'svg_translate' logger name."""
+
 from __future__ import annotations
 
 import pytest

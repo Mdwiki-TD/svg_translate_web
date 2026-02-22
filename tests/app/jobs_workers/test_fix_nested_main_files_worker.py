@@ -32,7 +32,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name",
+        mock_save_job_result,
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
@@ -75,7 +76,8 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name",
+        mock_save_job_result,
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",

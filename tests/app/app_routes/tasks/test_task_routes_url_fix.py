@@ -1,4 +1,5 @@
 """Unit tests for task routes URL fix."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, Mock, patch

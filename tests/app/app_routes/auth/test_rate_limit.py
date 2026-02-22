@@ -1,7 +1,9 @@
 """Tests for the rate limiter."""
+
 import time
-import pytest
 from datetime import timedelta
+
+import pytest
 
 from src.main_app.app_routes.auth.rate_limit import RateLimiter
 

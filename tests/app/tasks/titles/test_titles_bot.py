@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.main_app.tasks.titles.titles_tasks import titles_task
+
 
 @patch("src.main_app.tasks.titles.titles_tasks.get_files_list")
 def test_titles_task_success(mock_get_files):
@@ -12,6 +15,7 @@ def test_titles_task_success(mock_get_files):
     assert data["main_title"] == "Main.svg"
     assert len(data["titles"]) == 2
     assert final_stages["status"] == "Completed"
+
 
 @patch("src.main_app.tasks.titles.titles_tasks.get_files_list")
 def test_titles_task_fail(mock_get_files):

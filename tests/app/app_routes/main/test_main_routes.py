@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from flask import Flask
+
 from src.main_app.app_routes.main.routes import bp_main
+
 
 @pytest.fixture
 def app():
@@ -9,6 +12,7 @@ def app():
     app.register_blueprint(bp_main)
     app.secret_key = "test"
     return app
+
 
 @patch("src.main_app.app_routes.main.routes.render_template")
 @patch("src.main_app.app_routes.main.routes.current_user")
@@ -24,6 +28,7 @@ def test_index(mock_current_user, mock_render, app):
         args, kwargs = mock_render.call_args
         assert args[0] == "index.html"
         assert kwargs["current_user"] == mock_current_user.return_value
+
 
 @patch("src.main_app.app_routes.main.routes.send_from_directory")
 def test_favicon(mock_send, app):

@@ -9,7 +9,6 @@ from datetime import datetime
 from typing import Any, List
 
 from ..config import DbConfig
-
 from . import Database
 
 logger = logging.getLogger("svg_translate")

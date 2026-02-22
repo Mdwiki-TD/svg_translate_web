@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
+
 import pymysql
-from src.main_app.db.db_Templates import TemplatesDB, TemplateRecord
+import pytest
+
+from src.main_app.db.db_Templates import TemplateRecord, TemplatesDB
 
 
 @pytest.fixture
@@ -59,7 +61,7 @@ def test_fetch_by_title_success(templates_db, mock_db_instance):
 def test_list(templates_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {"id": 1, "title": "t1", "main_file": "f1"},
-        {"id": 2, "title": "t2", "main_file": "f2"}
+        {"id": 2, "title": "t2", "main_file": "f2"},
     ]
     res = templates_db.list()
     assert len(res) == 2
@@ -73,8 +75,7 @@ def test_add_success(templates_db, mock_db_instance):
     rec = templates_db.add("new", "f.svg")
 
     mock_db_instance.execute_query.assert_called_with(
-        "\n                INSERT INTO templates (title, main_file) VALUES (%s, %s)\n                ",
-        ("new", "f.svg")
+        "\n                INSERT INTO templates (title, main_file) VALUES (%s, %s)\n                ", ("new", "f.svg")
     )
     assert rec.title == "new"
 
@@ -93,36 +94,28 @@ def test_add_empty_title(templates_db):
 def test_update_success(templates_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.side_effect = [
         [{"id": 1, "title": "old", "main_file": "old.svg"}],  # _fetch_by_id check
-        [{"id": 1, "title": "new", "main_file": "new.svg"}]  # Return updated
+        [{"id": 1, "title": "new", "main_file": "new.svg"}],  # Return updated
     ]
 
     rec = templates_db.update(1, "new", "new.svg")
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        "UPDATE templates SET title = %s, main_file = %s WHERE id = %s",
-        ("new", "new.svg", 1)
+        "UPDATE templates SET title = %s, main_file = %s WHERE id = %s", ("new", "new.svg", 1)
     )
     assert rec.title == "new"
 
 
 def test_delete_success(templates_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [
-        {"id": 1, "title": "del", "main_file": "del.svg"}
-    ]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "title": "del", "main_file": "del.svg"}]
 
     rec = templates_db.delete(1)
 
-    mock_db_instance.execute_query_safe.assert_called_with(
-        "DELETE FROM templates WHERE id = %s",
-        (1,)
-    )
+    mock_db_instance.execute_query_safe.assert_called_with("DELETE FROM templates WHERE id = %s", (1,))
     assert rec.id == 1
 
 
 def test_add_or_update(templates_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [
-        {"id": 1, "title": "upsert", "main_file": "f.svg"}
-    ]
+    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "title": "upsert", "main_file": "f.svg"}]
 
     rec = templates_db.add_or_update("upsert", "f.svg")
 
@@ -135,14 +128,9 @@ def test_add_or_update(templates_db, mock_db_instance):
 def test_row_to_record_with_all_fields(templates_db):
     """Test _row_to_record with all fields populated."""
     from datetime import datetime
+
     now = datetime.now()
-    row = {
-        "id": 42,
-        "title": "Test Template",
-        "main_file": "test.svg",
-        "created_at": now,
-        "updated_at": now
-    }
+    row = {"id": 42, "title": "Test Template", "main_file": "test.svg", "created_at": now, "updated_at": now}
 
     record = templates_db._row_to_record(row)
 
@@ -155,13 +143,7 @@ def test_row_to_record_with_all_fields(templates_db):
 
 def test_row_to_record_with_none_main_file(templates_db):
     """Test _row_to_record with None main_file."""
-    row = {
-        "id": 1,
-        "title": "Template Without File",
-        "main_file": None,
-        "created_at": None,
-        "updated_at": None
-    }
+    row = {"id": 1, "title": "Template Without File", "main_file": None, "created_at": None, "updated_at": None}
 
     record = templates_db._row_to_record(row)
 

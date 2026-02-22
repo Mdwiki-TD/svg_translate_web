@@ -1,12 +1,10 @@
-import pytest
-from unittest.mock import MagicMock, patch, ANY
 from pathlib import Path
-from src.main_app.threads.web_run_task import (
-    _compute_output_dir,
-    make_stages,
-    fail_task,
-    run_task
-)
+from unittest.mock import ANY, MagicMock, patch
+
+import pytest
+
+from src.main_app.threads.web_run_task import _compute_output_dir, fail_task, make_stages, run_task
+
 
 @patch("src.main_app.threads.web_run_task.settings")
 def test_compute_output_dir(mock_settings, tmp_path):
@@ -39,6 +37,7 @@ def test_compute_output_dir(mock_settings, tmp_path):
     out3 = _compute_output_dir(title3)
     assert out3.name == "death_rate"
 
+
 def test_make_stages():
     stages = make_stages()
     assert "initialize" in stages
@@ -46,6 +45,7 @@ def test_make_stages():
     assert "titles" in stages
     assert stages["initialize"]["status"] == "Running"
     assert stages["text"]["status"] == "Pending"
+
 
 def test_fail_task():
     store = MagicMock()
@@ -56,6 +56,7 @@ def test_fail_task():
     assert stages["initialize"]["status"] == "Completed"
     store.update_stage.assert_called_with("t1", "initialize", stages["initialize"])
     store.update_status.assert_called_with("t1", "Failed")
+
 
 @patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.threads.web_run_task._compute_output_dir")
@@ -69,8 +70,17 @@ def test_fail_task():
 @patch("src.main_app.threads.web_run_task.save_files_stats")
 @patch("src.main_app.threads.web_run_task.make_results_summary")
 def test_run_task_success(
-    mock_summary, mock_stats, mock_upload, mock_inject, mock_nested,
-    mock_download, mock_trans, mock_titles, mock_text, mock_compute_dir, mock_store_cls
+    mock_summary,
+    mock_stats,
+    mock_upload,
+    mock_inject,
+    mock_nested,
+    mock_download,
+    mock_trans,
+    mock_titles,
+    mock_text,
+    mock_compute_dir,
+    mock_store_cls,
 ):
     # Setup Mocks
     mock_store = mock_store_cls.return_value.__enter__.return_value
@@ -80,10 +90,7 @@ def test_run_task_success(
     mock_text.return_value = ("some text", {"status": "Completed"})
 
     # Stage 2: Titles
-    mock_titles.return_value = (
-        {"main_title": "File:Main.svg", "titles": ["File:Main.svg"]},
-        {"status": "Completed"}
-    )
+    mock_titles.return_value = ({"main_title": "File:Main.svg", "titles": ["File:Main.svg"]}, {"status": "Completed"})
 
     # Stage 3: Translations
     mock_trans.return_value = ({"tr": 1}, {"status": "Completed"})
@@ -97,7 +104,7 @@ def test_run_task_success(
     # Stage 6: Inject
     mock_inject.return_value = (
         {"success": 1, "saved_done": 1, "files": {"f1": {"file_path": "p"}}},
-        {"status": "Completed"}
+        {"status": "Completed"},
     )
 
     # Stage 7: Upload
@@ -117,7 +124,8 @@ def test_run_task_success(
     mock_store.update_results.assert_called()
 
     # Verify stage updates
-    assert mock_store.update_stage.call_count >= 8 # 7 stages + initialize updates
+    assert mock_store.update_stage.call_count >= 8  # 7 stages + initialize updates
+
 
 @patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.threads.web_run_task._compute_output_dir")
@@ -133,6 +141,7 @@ def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
     run_task({}, "t1", "Title", args, None)
 
     mock_store.update_status.assert_any_call("t1", "Failed")
+
 
 @patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.threads.web_run_task._compute_output_dir")

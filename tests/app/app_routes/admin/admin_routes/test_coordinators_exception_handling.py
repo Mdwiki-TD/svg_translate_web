@@ -1,4 +1,5 @@
 """Unit tests for coordinators exception handling improvements."""
+
 from __future__ import annotations
 
 import logging

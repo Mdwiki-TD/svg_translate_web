@@ -1,11 +1,12 @@
 """Tests for src/main_app/__init__.py - Flask application factory."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, patch
+
+import pytest
 from flask import Flask
 
-from src.main_app import format_stage_timestamp, create_app
+from src.main_app import create_app, format_stage_timestamp
 
 
 def test_format_stage_timestamp_valid():
@@ -63,7 +64,7 @@ def test_format_stage_timestamp_different_months():
     assert "Dec" in format_stage_timestamp("2025-12-15T10:30:00")
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_basic():
     """Test create_app creates a Flask application."""
     app = create_app()
@@ -72,7 +73,7 @@ def test_create_app_basic():
     assert len(app.secret_key) > 0
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_registers_blueprints():
     """Test create_app registers all blueprints."""
     app = create_app()
@@ -81,47 +82,47 @@ def test_create_app_registers_blueprints():
     blueprint_names = [bp.name for bp in app.blueprints.values()]
 
     expected_blueprints = [
-        'main',
-        'tasks',
-        'explorer',
-        'templates',
-        'tasks_managers',
-        'admin',
-        'auth',
-        'fix_nested',
-        'fix_nested_explorer',
-        'extract'
+        "main",
+        "tasks",
+        "explorer",
+        "templates",
+        "tasks_managers",
+        "admin",
+        "auth",
+        "fix_nested",
+        "fix_nested_explorer",
+        "extract",
     ]
 
     for bp_name in expected_blueprints:
         assert bp_name in blueprint_names, f"Blueprint {bp_name} not registered"
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_sets_session_cookie_config():
     """Test create_app sets session cookie configuration."""
     app = create_app()
 
-    assert 'SESSION_COOKIE_HTTPONLY' in app.config
-    assert 'SESSION_COOKIE_SECURE' in app.config
-    assert 'SESSION_COOKIE_SAMESITE' in app.config
+    assert "SESSION_COOKIE_HTTPONLY" in app.config
+    assert "SESSION_COOKIE_SECURE" in app.config
+    assert "SESSION_COOKIE_SAMESITE" in app.config
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_sets_use_mw_oauth():
     """Test create_app sets USE_MW_OAUTH config."""
     app = create_app()
-    assert 'USE_MW_OAUTH' in app.config
+    assert "USE_MW_OAUTH" in app.config
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_jinja_filter_registered():
     """Test create_app registers the format_stage_timestamp Jinja filter."""
     app = create_app()
-    assert 'format_stage_timestamp' in app.jinja_env.filters
+    assert "format_stage_timestamp" in app.jinja_env.filters
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_error_handlers():
     """Test create_app registers error handlers."""
     app = create_app()
@@ -137,43 +138,43 @@ def test_create_app_error_handlers():
         assert error_handler_500 is not None
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_404_handler():
     """Test the 404 error handler."""
     app = create_app()
-    app.config['TESTING'] = True
+    app.config["TESTING"] = True
 
     with app.test_client() as client:
-        response = client.get('/nonexistent-route-that-should-404')
+        response = client.get("/nonexistent-route-that-should-404")
         assert response.status_code == 404
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_url_map_strict_slashes():
     """Test create_app disables strict slashes."""
     app = create_app()
     assert app.url_map.strict_slashes is False
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_template_folder():
     """Test create_app sets custom template folder."""
     app = create_app()
-    assert app.template_folder.endswith('templates')
+    assert app.template_folder.endswith("templates")
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_static_folder():
     """Test create_app sets custom static folder."""
     app = create_app()
-    assert app.static_folder.endswith('static')
+    assert app.static_folder.endswith("static")
 
 
-@patch.dict('os.environ', {'FLASK_SECRET_KEY': 'test-secret', 'MAIN_DIR': '/tmp/test'})
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_jinja_globals():
     """Test create_app sets Jinja globals."""
     app = create_app()
-    assert 'USE_MW_OAUTH' in app.jinja_env.globals
+    assert "USE_MW_OAUTH" in app.jinja_env.globals
 
 
 def test_format_stage_timestamp_edge_time_values():
