@@ -229,21 +229,6 @@ class Jobs:
             else:
                 abort(404)
 
-        @bp_admin.get("/collect-main-files")
-        @admin_required
-        def collect_main_files_jobs_list() -> str:
-            return _collect_main_files_jobs_list()
-
-        @bp_admin.get("/fix-nested-main-files")
-        @admin_required
-        def fix_nested_main_files_jobs_list():
-            return _fix_nested_main_files_jobs_list()
-
-        @bp_admin.get("/download-main-files")
-        @admin_required
-        def download_main_files_jobs_list() -> str:
-            return _download_main_files_jobs_list()
-
         # ================================
         # Collect Main Files Jobs routes
         # ================================
