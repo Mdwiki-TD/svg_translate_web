@@ -24,9 +24,6 @@ from . import jobs_service
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
 
-# Development mode download limit
-DEV_DOWNLOAD_LIMIT = 10
-
 logger = logging.getLogger("svg_translate")
 
 
@@ -132,14 +129,14 @@ def process_downloads(
     templates = template_service.list_templates()
     templates_with_files = [t for t in templates if t.main_file]
 
-    # Apply development mode limit
-    app_env = os.getenv("APP_ENV", "production")
-    if app_env == "development" and len(templates_with_files) > DEV_DOWNLOAD_LIMIT:
+    # Apply development mode limit from settings
+    dev_limit = settings.download.dev_limit
+    if dev_limit > 0 and len(templates_with_files) > dev_limit:
         logger.info(
             f"Job {job_id}: Development mode - limiting download from "
-            f"{len(templates_with_files)} to {DEV_DOWNLOAD_LIMIT} files"
+            f"{len(templates_with_files)} to {dev_limit} files"
         )
-        templates_with_files = templates_with_files[:DEV_DOWNLOAD_LIMIT]
+        templates_with_files = templates_with_files[:dev_limit]
 
     result["summary"]["total"] = len(templates_with_files)
     result["output_path"] = str(output_dir)

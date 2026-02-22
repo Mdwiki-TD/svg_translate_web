@@ -46,6 +46,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_settings.paths.main_files_path = "/tmp/main_files"
     mock_settings.oauth = MagicMock()
     mock_settings.oauth.user_agent = "TestBot/1.0"
+    mock_settings.download = MagicMock()
+    mock_settings.download.dev_limit = 0  # No limit in tests
     monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
 
     return {
