@@ -75,7 +75,7 @@
                             </tr>
                             <tr>
                                 <th>Output Path:</th>
-                                <td><code>{{ result_data.output_path if result_data.output_path else '-' }}</code></td>
+                                <td><code>{{ result_data.output_path if result_data and result_data.output_path else '-' }}</code></td>
                             </tr>
                         </table>
                     </div>

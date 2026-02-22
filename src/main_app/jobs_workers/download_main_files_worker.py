@@ -55,7 +55,7 @@ def download_file_from_commons(
         return result
 
     # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename
+    clean_filename = filename[5:] if filename.startswith("File:") else filename
 
     # Build the download URL using Special:FilePath
     url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{quote(clean_filename.replace(' ', '_'))}"

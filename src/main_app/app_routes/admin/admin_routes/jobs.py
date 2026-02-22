@@ -148,6 +148,8 @@ class Jobs:
         @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
         @admin_required
         def cancel_job(job_type: str, job_id: int) -> Response:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
             return _cancel_job(job_id, job_type)
 
         # ================================
@@ -175,6 +177,8 @@ class Jobs:
         @bp_admin.post("/<string:job_type>/start")
         @admin_required
         def start_job(job_type: str) -> ResponseReturnValue:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
             job_id = _start_job(job_type)
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))
@@ -187,6 +191,8 @@ class Jobs:
         @bp_admin.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
             return _delete_job(job_id, job_type)
 
         # ================================
@@ -202,7 +208,7 @@ class Jobs:
 
         @bp_admin.get("/download-main-files/download-all")
         @admin_required
-        def download_all_main_files() -> Response:
+        def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
 
             response, status_code = create_main_files_zip()
