@@ -28,7 +28,6 @@ python src/app.py debug  # Debug mode
 pytest                           # Run all tests
 pytest tests/test_file.py        # Run specific test file
 pytest --cov=src                 # Run with coverage
-pytest -m skip2                  # Run tests marked with skip2
 ```
 
 ### Code Formatting

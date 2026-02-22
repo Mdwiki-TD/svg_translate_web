@@ -16,3 +16,4 @@ web_sh/new_update.sh
 plans/*.py
 /plans
 .claude/settings.local.json
+.coverage

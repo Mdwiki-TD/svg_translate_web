@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Dict
 
+from ..config import DbConfig
+
 from .db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
 from .db_StageStore import StageStore
@@ -15,15 +17,16 @@ logger = logging.getLogger("svg_translate")
 class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
-    def __init__(self, db_data: Dict[str, str]) -> None:
+    def __init__(self, database_data: DbConfig) -> None:
         # Note: db connection is managed inside execute_query/fetch_query
         # self._lock = threading.Lock()
         """
-        Initialize the task store and ensure the required database schema exists.
+        Initialize the task store with the given database configuration and ensure required schema and indexes exist.
 
-        Calls internal schema initialization to create the tasks table and any necessary indexes.
+        Parameters:
+            database_data (DbConfig): Database connection configuration used to create the internal Database instance.
         """
-        self.db = Database(db_data)
+        self.db = Database(database_data)
         self._init_schema()
         super().__init__(self.db)
 

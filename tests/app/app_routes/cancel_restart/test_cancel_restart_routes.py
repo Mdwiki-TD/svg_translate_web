@@ -8,14 +8,28 @@ import pytest
 from flask import Flask
 
 from src.app.app_routes.cancel_restart import routes
+from src.app.config import DbConfig
 
 
 @pytest.fixture
 def app(monkeypatch: pytest.MonkeyPatch):
+    """
+    Create a Flask test application configured with patched settings and helpers for cancel/restart route tests.
+
+    The fixture constructs a Flask app with a secret key, injects a DbConfig-based settings object into the cancel/restart routes module, and monkeypatches route helpers (`flash`, `jsonify`, `redirect`, `url_for`) and `current_user` to provide predictable behavior for tests. Yields the configured Flask application for use in request contexts.
+
+    Returns:
+        Flask: A Flask application instance with the above test-specific patches applied.
+    """
     app = Flask(__name__)
     app.secret_key = "secret"
 
-    settings = types.SimpleNamespace(db_data={})
+    settings = types.SimpleNamespace(database_data=DbConfig(
+        db_name="",
+        db_host="",
+        db_user=None,
+        db_password=None,
+    ))
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.settings", settings)
 
     monkeypatch.setattr("src.app.app_routes.cancel_restart.routes.flash", lambda *args, **kwargs: None)

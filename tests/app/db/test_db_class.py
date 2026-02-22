@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from pymysql.cursors import DictCursor
 from src.app.db.db_class import MaxUserConnectionsError, Database
+from src.app.config import DbConfig
 
 
 def test_MaxUserConnectionsError():
@@ -19,14 +20,14 @@ def test_MaxUserConnectionsError():
 @patch('src.app.db.db_class.pymysql')
 def test_Database_init_basic(mock_pymysql):
     """Test Database initialization with basic credentials."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Check that instance attributes are set correctly
     assert db.host == "localhost"
@@ -39,35 +40,18 @@ def test_Database_init_basic(mock_pymysql):
     assert db.connection is None
 
 
-@patch('src.app.db.db_class.pymysql')
-def test_Database_init_with_connect_file(mock_pymysql):
-    """Test Database initialization with connect file."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass",
-        "db_connect_file": "/path/to/config"
-    }
-
-    db = Database(db_data)
-
-    # Check that instance attributes are set correctly
-    assert db.credentials == {"read_default_file": "/path/to/config"}
-
-
 @pytest.mark.skip(reason="AssertionError: expected call not found.")
 @patch('src.app.db.db_class.pymysql')
 def test_Database_connect(mock_pymysql):
     """Test Database _connect method."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock the pymysql.connect to return a mock connection
     mock_connection = MagicMock()
@@ -98,14 +82,14 @@ def test_Database_connect(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_ensure_connection_new(mock_pymysql):
     """Test Database _ensure_connection when no connection exists."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock the _connect method
     with patch.object(db, '_connect') as mock_connect:
@@ -118,14 +102,14 @@ def test_Database_ensure_connection_new(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_ensure_connection_ping(mock_pymysql):
     """Test Database _ensure_connection when connection exists."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock an existing connection
     mock_connection = MagicMock()
@@ -141,14 +125,14 @@ def test_Database_ensure_connection_ping(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_close(mock_pymysql):
     """Test Database close method."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock a connection
     mock_connection = MagicMock()
@@ -165,18 +149,18 @@ def test_Database_close(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_context_manager(mock_pymysql):
     """Test Database as context manager."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
     mock_connection = MagicMock()
     mock_pymysql.connect.return_value = mock_connection
 
     # Use database as context manager
-    with Database(db_data) as db:
+    with Database(database_config) as db:
         # Trigger connection
         db._ensure_connection()
         # Verify connection was established
@@ -189,14 +173,14 @@ def test_Database_context_manager(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_execute_query_success(mock_pymysql):
     """Test Database execute_query method with success."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock the connection and cursor
     mock_connection = MagicMock()
@@ -219,14 +203,14 @@ def test_Database_execute_query_success(mock_pymysql):
 @patch('src.app.db.db_class.pymysql')
 def test_Database_fetch_query_success(mock_pymysql):
     """Test Database fetch_query method with success."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass"
-    }
+    database_config = DbConfig(
+        db_name="testdb",
+        db_host="localhost",
+        db_user="testuser",
+        db_password="testpass"
+    )
 
-    db = Database(db_data)
+    db = Database(database_config)
 
     # Mock the connection and cursor
     mock_connection = MagicMock()

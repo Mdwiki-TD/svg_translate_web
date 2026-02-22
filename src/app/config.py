@@ -15,7 +15,6 @@ class DbConfig:
     db_host: str
     db_user: str | None
     db_password: str | None
-    db_connect_file: str | None
 
 
 @dataclass(frozen=True)
@@ -48,7 +47,6 @@ class OAuthConfig:
 @dataclass(frozen=True)
 class Settings:
     is_localhost: callable
-    db_data: Dict
     database_data: DbConfig
     STATE_SESSION_KEY: str
     REQUEST_TOKEN_SESSION_KEY: str
@@ -62,34 +60,40 @@ class Settings:
 
 
 def _load_db_data_new() -> DbConfig:
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
+    """
+    Construct a DbConfig populated from environment variables.
 
+    Reads DB_NAME and DB_HOST (defaulting to empty string) and TOOL_REPLICA_USER and TOOL_REPLICA_PASSWORD (defaulting to None) and returns a DbConfig with those values.
+
+    Returns:
+        DbConfig: Configuration with fields:
+            - db_name: from DB_NAME (default "").
+            - db_host: from DB_HOST (default "").
+            - db_user: from TOOL_REPLICA_USER (or None).
+            - db_password: from TOOL_REPLICA_PASSWORD (or None).
+    """
     return DbConfig(
         db_name=os.getenv("DB_NAME", ""),
         db_host=os.getenv("DB_HOST", ""),
-        db_user=os.getenv("DB_USER", None),
-        db_password=os.getenv("DB_PASSWORD", None),
-        db_connect_file=db_connect_file if os.path.exists(db_connect_file) else None,
+        db_user=os.getenv("TOOL_REPLICA_USER", None),
+        db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
     )
 
 
-def _load_db_data() -> dict[str, str]:
-    db_connect_file = os.getenv("DB_CONNECT_FILE", os.path.join(os.path.expanduser("~"), "replica.my.cnf"))
-
-    db_data = {
-        "host": os.getenv("DB_HOST", ""),
-        "dbname": os.getenv("DB_NAME", ""),
-        "user": os.getenv("DB_USER", ""),
-        "password": os.getenv("DB_PASSWORD", ""),
-    }
-
-    if os.path.exists(db_connect_file):
-        db_data["db_connect_file"] = db_connect_file
-
-    return db_data
-
-
 def _get_paths() -> Paths:
+    """
+    Compute the filesystem paths the application uses for SVG data, thumbnails, logs, fix data, and SVG job files and ensure those directories exist.
+
+    The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
+
+    Returns:
+        Paths: A dataclass with the following populated fields:
+            - svg_data: path for original SVG files
+            - svg_data_thumb: path for SVG thumbnails
+            - log_dir: path for log files
+            - fix_nested_data: path for nested-fix data
+            - svg_jobs_path: path for SVG job files
+    """
     main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
     svg_data = f"{main_dir}/svg_data"
     svg_data_thumb = f"{main_dir}/svg_data_thumb"
@@ -160,6 +164,19 @@ def is_localhost(host: str) -> bool:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    """
+    Assemble and return the application's Settings populated from environment variables.
+
+    Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations, and returns a consolidated Settings instance.
+
+    Returns:
+        Settings: The populated application settings.
+
+    Raises:
+        RuntimeError: If FLASK_SECRET_KEY is not set.
+        RuntimeError: If USE_MW_OAUTH is enabled but OAUTH_ENCRYPTION_KEY is missing.
+        RuntimeError: If USE_MW_OAUTH is enabled but the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
+    """
     secret_key = os.getenv("FLASK_SECRET_KEY")
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
@@ -194,7 +211,6 @@ def get_settings() -> Settings:
         is_localhost=is_localhost,
         paths=_get_paths(),
         database_data=_load_db_data_new(),
-        db_data=_load_db_data(),
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,

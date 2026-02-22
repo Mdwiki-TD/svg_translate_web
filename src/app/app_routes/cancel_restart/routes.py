@@ -34,9 +34,17 @@ logger = logging.getLogger("svg_translate")
 
 
 def _task_store() -> TaskStorePyMysql:
+    """
+    Return the module-level TaskStorePyMysql singleton, creating it on first call.
+
+    Initializes TASK_STORE with a TaskStorePyMysql configured from settings.database_data if it has not been created yet.
+
+    Returns:
+        TaskStorePyMysql: The singleton task store instance used by the module.
+    """
     global TASK_STORE
     if TASK_STORE is None:
-        TASK_STORE = TaskStorePyMysql(settings.db_data)
+        TASK_STORE = TaskStorePyMysql(settings.database_data)
     return TASK_STORE
 
 

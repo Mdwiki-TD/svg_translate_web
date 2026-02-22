@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from CopySVGTranslation import extract
+from CopySVGTranslation import extract  # type: ignore
 from flask import Blueprint, flash, render_template, request, session
 
 from ...tasks.downloads.download import download_one_file

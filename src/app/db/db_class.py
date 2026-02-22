@@ -8,6 +8,8 @@ from typing import Any, Iterable, Sequence
 
 import pymysql
 
+from ..config import DbConfig
+
 logger = logging.getLogger("svg_translate")
 
 
@@ -22,28 +24,21 @@ class Database:
     MAX_RETRIES = 3
     BASE_BACKOFF = 0.2
 
-    def __init__(self, db_data):
+    def __init__(self, database_data: DbConfig):
         """
-        Initialize the Database instance and establish a MySQL connection using credentials from db_data.
+        Create a Database wrapper and store connection credentials from the provided DbConfig.
 
         Parameters:
-            db_data (dict): Dictionary containing connection credentials with keys
-                'host', 'user', 'dbname', and 'password'. On successful connection,
-                stores these values as instance attributes and sets `self.connection`
-                to a pymysql connection using a DictCursor. On connection failure,
-                prints an error message and exits the process.
+            database_data (DbConfig): Configuration object with attributes `db_host`, `db_name`, `db_user`, and `db_password`. The values are stored on the instance and used to build the credentials dict; a reentrant lock is initialized and the connection is set to None.
         """
 
-        self.host = db_data["host"]
-        self.dbname = db_data["dbname"]
+        self.host = database_data.db_host
+        self.dbname = database_data.db_name
 
-        self.user = db_data["user"]
-        self.password = db_data["password"]
+        self.user = database_data.db_user
+        self.password = database_data.db_password
 
-        if not db_data.get("db_connect_file"):
-            self.credentials = {"user": self.user, "password": self.password}
-        else:
-            self.credentials = {"read_default_file": db_data.get("db_connect_file")}
+        self.credentials = {"user": self.user, "password": self.password}
 
         self._lock = threading.RLock()
         self.connection: Any | None = None
