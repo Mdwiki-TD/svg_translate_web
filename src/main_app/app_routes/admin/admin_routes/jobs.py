@@ -230,11 +230,6 @@ class Jobs:
         def delete_collect_main_files_job(job_id: int) -> Response:
             return _delete_job(job_id, "collect_main_files")
 
-        @bp_admin.post("/collect-main-files/<int:job_id>/cancel")
-        @admin_required
-        def cancel_collect_main_files_job(job_id: int) -> Response:
-            return _cancel_job(job_id, "collect_main_files")
-
         # ================================
         # Fix Nested Main Files Jobs routes
         # ================================
@@ -262,11 +257,6 @@ class Jobs:
         def delete_fix_nested_main_files_job(job_id: int) -> Response:
             return _delete_job(job_id, "fix_nested_main_files")
 
-        @bp_admin.post("/fix-nested-main-files/<int:job_id>/cancel")
-        @admin_required
-        def cancel_fix_nested_main_files_job(job_id: int) -> Response:
-            return _cancel_job(job_id, "fix_nested_main_files")
-
         # ================================
         # Download Main Files Jobs routes
         # ================================
@@ -293,11 +283,6 @@ class Jobs:
         @admin_required
         def delete_download_main_files_job(job_id: int) -> Response:
             return _delete_job(job_id, "download_main_files")
-
-        @bp_admin.post("/download-main-files/<int:job_id>/cancel")
-        @admin_required
-        def cancel_download_main_files_job(job_id: int) -> Response:
-            return _cancel_job(job_id, "download_main_files")
 
         @bp_admin.get("/download-main-files/file/<path:filename>")
         @admin_required
@@ -337,3 +322,27 @@ class Jobs:
                 as_attachment=True,
                 download_name='main_files.zip'
             )
+
+        # ================================
+        # Cancel Jobs routes
+        # ================================
+
+        @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
+        @admin_required
+        def cancel_job(job_type: str, job_id: int) -> Response:
+            return _cancel_job(job_id, job_type)
+
+        @bp_admin.post("/download-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_download_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "download_main_files")
+
+        @bp_admin.post("/fix-nested-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_fix_nested_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "fix_nested_main_files")
+
+        @bp_admin.post("/collect-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_collect_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "collect_main_files")
