@@ -21,6 +21,7 @@ from ....admins.admins_required import admin_required
 from ....jobs_workers import jobs_service, jobs_worker
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
+from ....jobs_workers.download_main_files_worker import create_main_files_zip
 
 logger = logging.getLogger("svg_translate")
 
@@ -203,29 +204,6 @@ class Jobs:
         @admin_required
         def download_all_main_files() -> Response:
             """Download all main files as a zip archive."""
-            import io
-            import zipfile
-            from pathlib import Path
 
-            from flask import send_file
-
-            main_files_path = Path(settings.paths.main_files_path)
-
-            if not main_files_path.exists():
-                return "Main files directory does not exist", 404
-
-            # Create a zip file in memory
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                for file_path in main_files_path.iterdir():
-                    if file_path.is_file():
-                        zip_file.write(file_path, file_path.name)
-
-            zip_buffer.seek(0)
-
-            return send_file(
-                zip_buffer,
-                mimetype='application/zip',
-                as_attachment=True,
-                download_name='main_files.zip'
-            )
+            response, status_code = create_main_files_zip()
+            return response, status_code

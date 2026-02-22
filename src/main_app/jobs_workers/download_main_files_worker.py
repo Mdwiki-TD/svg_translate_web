@@ -4,14 +4,17 @@ Worker module for downloading main files from remote source to local filesystem.
 
 from __future__ import annotations
 
-import requests
+import io
 import logging
+import requests
 import threading
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from flask import send_file
 
 from .. import template_service
 from ..config import settings
@@ -294,6 +297,36 @@ def download_main_files_for_templates(
                 pass
 
 
+def create_main_files_zip() -> tuple[Any, int]:
+    """
+    Create a zip archive of all files in the main_files_path directory.
+
+    Returns:
+        tuple: (send_file response, status_code)
+    """
+    main_files_path = Path(settings.paths.main_files_path)
+
+    if not main_files_path.exists():
+        return "Main files directory does not exist", 404
+
+    # Create a zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in main_files_path.iterdir():
+            if file_path.is_file():
+                zip_file.write(file_path, file_path.name)
+
+    zip_buffer.seek(0)
+
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name='main_files.zip'
+    ), 200
+
+
 __all__ = [
     "download_main_files_for_templates",
+    "create_main_files_zip",
 ]
