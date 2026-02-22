@@ -12,17 +12,16 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     # Reset any cached connection and explicitly mark the configuration as empty.
     monkeypatch.setattr(svg_db, "_db", None)
-    monkeypatch.setitem(svg_db.settings.database_data, "host", "")
-    monkeypatch.setitem(svg_db.settings.database_data, "user", "")
+    from src.app.config import DbConfig
+    monkeypatch.setattr(svg_db, "settings", type(svg_db.settings)(
+        **{
+            **svg_db.settings.__dict__,
+            "database_data": DbConfig(db_name="", db_host="", db_user=None, db_password=None)
+        }
+    ))
 
     class _SentinelDatabase:
         def __init__(self, *_args, **_kwargs):  # pragma: no cover - defensive guard
-            """
-            Prevent instantiation during application creation by always raising an AssertionError.
-            
-            Raises:
-                AssertionError: Always raised to indicate the database must not be instantiated while the app is being created.
-            """
             raise AssertionError("Database should not be instantiated during app creation")
 
     monkeypatch.setattr(svg_db, "Database", _SentinelDatabase)

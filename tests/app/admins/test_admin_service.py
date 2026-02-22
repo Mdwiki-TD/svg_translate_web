@@ -21,7 +21,7 @@ def test_get_admins_db_first_call(mock_has_db_config, mock_coordinators_db):
 
     # Mock settings.database_data
     with patch('src.app.admins.admin_service.settings') as mock_settings:
-        mock_settings.database_data = DbConfig(**{"host": "localhost", "dbname": "test", "user": "user", "password": "pass"})
+        mock_settings.database_data = DbConfig(**{"db_host": "localhost", "db_name": "test", "db_user": "user", "db_password": "pass"})
 
         result = get_admins_db()
 
