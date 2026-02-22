@@ -252,6 +252,7 @@ download functions used across the application.
 
 from __future__ import annotations
 
+import functools
 import logging
 from typing import TYPE_CHECKING
 from urllib.parse import quote
@@ -306,7 +307,7 @@ def _download_commons_file_core(
         logger.exception(f"Failed to download {filename} from {url}")
         return None
 
-
+@functools.lru_cache(maxsize=1)
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
     """Create a pre-configured requests Session for Commons API calls.
 
