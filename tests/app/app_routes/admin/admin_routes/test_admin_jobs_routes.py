@@ -130,7 +130,7 @@ def test_jobs_list_page_displays_jobs(admin_jobs_client):
     store.create("collect_main_files")
     store.create("collect_main_files")
 
-    response = client.get("/admin/collect-main-files")
+    response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Collect Main Files Jobs" in page
@@ -140,7 +140,7 @@ def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     """Test that the jobs list page shows a message when there are no jobs."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/collect-main-files")
+    response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Collect Main Files Jobs" in page
@@ -153,7 +153,7 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
     job = store.create("collect_main_files")
     store.update_status(job.id, "completed", job_type="collect_main_files")
 
-    response = client.get(f"/admin/collect-main-files/{job.id}")
+    response = client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Collect Main Files Job #{job.id}" in page
@@ -189,7 +189,7 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
 
     store.update_status(job.id, "completed", str(result_file), job_type="collect_main_files")
 
-    response = client.get(f"/admin/collect-main-files/{job.id}")
+    response = client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -202,7 +202,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     """Test that the job detail page handles nonexistent job gracefully."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/collect-main-files/999", follow_redirects=True)
+    response = client.get("/admin/collect_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -219,7 +219,7 @@ def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admi
     # Mock the job creation
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/collect-main-files/start", follow_redirects=True)
+    response = client.post("/admin/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -232,11 +232,11 @@ def test_jobs_page_has_collect_button(admin_jobs_client):
     """Test that the jobs page has a collect main files button."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/collect-main-files")
+    response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Start New Job" in page
-    assert "/admin/collect-main-files/start" in page
+    assert "/admin/collect_main_files/start" in page
 
 
 def test_jobs_list_filters_by_job_type(admin_jobs_client):
@@ -248,7 +248,7 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
     store.create("collect_main_files")
     store.create("other_job_type")
 
-    response = client.get("/admin/collect-main-files")
+    response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
 
@@ -265,7 +265,7 @@ def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client):
     store.create("fix_nested_main_files")
     store.create("fix_nested_main_files")
 
-    response = client.get("/admin/fix-nested-main-files")
+    response = client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Fix Nested Main Files Jobs" in page
@@ -275,7 +275,7 @@ def test_fix_nested_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     """Test that the fix nested jobs list page shows a message when there are no jobs."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/fix-nested-main-files")
+    response = client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Fix Nested Main Files Jobs" in page
@@ -288,7 +288,7 @@ def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
     job = store.create("fix_nested_main_files")
     store.update_status(job.id, "completed", job_type="fix_nested_main_files")
 
-    response = client.get(f"/admin/fix-nested-main-files/{job.id}")
+    response = client.get(f"/admin/fix_nested_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Fix Nested Main Files Job #{job.id}" in page
@@ -328,7 +328,7 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
 
     store.update_status(job.id, "completed", str(result_file), job_type="fix_nested_main_files")
 
-    response = client.get(f"/admin/fix-nested-main-files/{job.id}")
+    response = client.get(f"/admin/fix_nested_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -342,7 +342,7 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     """Test that the fix nested job detail page handles nonexistent job gracefully."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/fix-nested-main-files/999", follow_redirects=True)
+    response = client.get("/admin/fix_nested_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -358,7 +358,7 @@ def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, a
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/fix-nested-main-files/start", follow_redirects=True)
+    response = client.post("/admin/fix_nested_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -371,11 +371,11 @@ def test_fix_nested_jobs_page_has_start_button(admin_jobs_client):
     """Test that the fix nested jobs page has a start button."""
     client, store = admin_jobs_client
 
-    response = client.get("/admin/fix-nested-main-files")
+    response = client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Start New Job" in page
-    assert "/admin/fix-nested-main-files/start" in page
+    assert "/admin/fix_nested_main_files/start" in page
 
 
 def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
@@ -388,7 +388,7 @@ def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
     store.create("collect_main_files")
     store.create("other_job_type")
 
-    response = client.get("/admin/fix-nested-main-files")
+    response = client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
 
@@ -404,7 +404,7 @@ def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_clie
     # Create a collect_main_files job
     job = store.create("collect_main_files")
 
-    response = client.get(f"/admin/fix-nested-main-files/{job.id}", follow_redirects=True)
+    response = client.get(f"/admin/fix_nested_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "not a fix nested main files job" in page.lower()
@@ -416,7 +416,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
 
     job = store.create("other_job_type")
 
-    response = client.get(f"/admin/collect-main-files/{job.id}", follow_redirects=True)
+    response = client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "not a collect main files job" in page.lower()
@@ -432,7 +432,7 @@ def test_delete_collect_main_files_job(admin_jobs_client):
 
     # Delete the job
     with patch("src.main_app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/collect-main-files/{job.id}/delete", follow_redirects=True)
+        response = client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
@@ -451,7 +451,7 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client):
 
     # Delete the job
     with patch("src.main_app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
+        response = client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
@@ -465,7 +465,7 @@ def test_delete_nonexistent_job(admin_jobs_client):
     client, store = admin_jobs_client
 
     # Try to delete a job that doesn't exist
-    response = client.post("/admin/collect-main-files/999/delete", follow_redirects=True)
+    response = client.post("/admin/collect_main_files/999/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     # The actual message will depend on the error handling
@@ -480,7 +480,7 @@ def test_delete_job_with_wrong_type(admin_jobs_client):
     job = store.create("collect_main_files")
 
     # Try to delete it via the fix_nested endpoint
-    response = client.post(f"/admin/fix-nested-main-files/{job.id}/delete", follow_redirects=True)
+    response = client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
 
     # The job should still exist (delete should fail)
@@ -499,17 +499,17 @@ def test_delete_multiple_jobs(admin_jobs_client):
     assert len(store.list()) == 3
 
     # Delete first collect_main_files job
-    response = client.post(f"/admin/collect-main-files/{job1.id}/delete", follow_redirects=True)
+    response = client.post(f"/admin/collect_main_files/{job1.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     assert len(store.list()) == 2
 
     # Delete second collect_main_files job
-    response = client.post(f"/admin/collect-main-files/{job2.id}/delete", follow_redirects=True)
+    response = client.post(f"/admin/collect_main_files/{job2.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     assert len(store.list()) == 1
 
     # Delete fix_nested_main_files job
-    response = client.post(f"/admin/fix-nested-main-files/{job3.id}/delete", follow_redirects=True)
+    response = client.post(f"/admin/fix_nested_main_files/{job3.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     assert len(store.list()) == 0
 
@@ -524,7 +524,7 @@ def test_cancel_collect_main_files_job(admin_jobs_client):
 
     # Cancel the job
     with patch("src.main_app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
-        response = client.post(f"/admin/collect-main-files/{job.id}/cancel", follow_redirects=True)
+        response = client.post(f"/admin/collect_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} cancellation requested" in page
@@ -540,7 +540,7 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client):
 
     # Cancel the job
     with patch("src.main_app.app_routes.admin.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
-        response = client.post(f"/admin/fix-nested-main-files/{job.id}/cancel", follow_redirects=True)
+        response = client.post(f"/admin/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} cancellation requested" in page
