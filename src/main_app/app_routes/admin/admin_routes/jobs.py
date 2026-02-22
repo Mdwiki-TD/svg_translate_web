@@ -335,3 +335,34 @@ class Jobs:
             from flask import send_from_directory
 
             return send_from_directory(settings.paths.main_files_path, filename)
+
+        @bp_admin.get("/download-main-files/download-all")
+        @admin_required
+        def download_all_main_files() -> Response:
+            """Download all main files as a zip archive."""
+            import io
+            import zipfile
+            from pathlib import Path
+
+            from flask import send_file
+
+            main_files_path = Path(settings.paths.main_files_path)
+
+            if not main_files_path.exists():
+                return "Main files directory does not exist", 404
+
+            # Create a zip file in memory
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for file_path in main_files_path.iterdir():
+                    if file_path.is_file():
+                        zip_file.write(file_path, file_path.name)
+
+            zip_buffer.seek(0)
+
+            return send_file(
+                zip_buffer,
+                mimetype='application/zip',
+                as_attachment=True,
+                download_name='main_files.zip'
+            )
