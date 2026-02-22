@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.app.config import (
     DbConfig, Paths, CookieConfig, OAuthConfig, Settings,
     _load_db_data_new, _load_db_data, _get_paths, _env_bool, _env_int,
@@ -15,14 +15,12 @@ def test_DbConfig():
         db_host="localhost",
         db_user="user",
         db_password="password",
-        db_connect_file="/path/to/file"
     )
 
     assert db_config.db_name == "test_db"
     assert db_config.db_host == "localhost"
     assert db_config.db_user == "user"
     assert db_config.db_password == "password"
-    assert db_config.db_connect_file == "/path/to/file"
 
 
 def test_Paths():
@@ -79,8 +77,13 @@ def test_OAuthConfig():
 def test_Settings():
     """Test the Settings dataclass."""
     # Create a minimal settings object for testing
-    db_data = {"host": "localhost", "dbname": "test", "user": "user", "password": "pass"}
-    db_config = DbConfig("test", "localhost", "user", "pass", None)
+    db_data = {
+        "host": "localhost",
+        "dbname": "test",
+        "user": "user",
+        "password": "pass",
+    }
+    db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs")
 
@@ -110,7 +113,6 @@ def test_Settings():
     "DB_HOST": "test_host",
     "TOOL_REPLICA_USER": "test_user",
     "TOOL_REPLICA_PASSWORD": "test_pass",
-    "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
 @patch("os.path.exists")
 def test_load_db_data_new(mock_exists):
@@ -123,7 +125,6 @@ def test_load_db_data_new(mock_exists):
     assert result.db_host == "test_host"
     assert result.db_user == "test_user"
     assert result.db_password == "test_pass"
-    assert result.db_connect_file == "/test/file"
 
 
 @patch.dict(os.environ, {
@@ -131,7 +132,6 @@ def test_load_db_data_new(mock_exists):
     "DB_NAME": "test_db",
     "TOOL_REPLICA_USER": "test_user",
     "TOOL_REPLICA_PASSWORD": "test_pass",
-    "DB_CONNECT_FILE": "/test/file"
 }, clear=True)
 @patch("os.path.exists")
 def test_load_db_data(mock_exists):
@@ -144,7 +144,6 @@ def test_load_db_data(mock_exists):
     assert result["dbname"] == "test_db"
     assert result["user"] == "test_user"
     assert result["password"] == "test_pass"
-    assert result["db_connect_file"] == "/test/file"
 
 
 @patch.dict(os.environ, {"MAIN_DIR": "/tmp/main"})

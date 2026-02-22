@@ -39,23 +39,6 @@ def test_Database_init_basic(mock_pymysql):
     assert db.connection is None
 
 
-@patch('src.app.db.db_class.pymysql')
-def test_Database_init_with_connect_file(mock_pymysql):
-    """Test Database initialization with connect file."""
-    db_data = {
-        "host": "localhost",
-        "dbname": "testdb",
-        "user": "testuser",
-        "password": "testpass",
-        "db_connect_file": "/path/to/config"
-    }
-
-    db = Database(db_data)
-
-    # Check that instance attributes are set correctly
-    assert db.credentials == {"read_default_file": "/path/to/config"}
-
-
 @pytest.mark.skip(reason="AssertionError: expected call not found.")
 @patch('src.app.db.db_class.pymysql')
 def test_Database_connect(mock_pymysql):
