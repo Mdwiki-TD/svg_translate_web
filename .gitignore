@@ -17,3 +17,4 @@ web_sh/new_update.sh
 .coverage
 docs/plans/*.md
 !docs/plans/crop_main_files_job_plan.md
+.claude/settings.json
