@@ -89,6 +89,7 @@ def _start_job(job_type: str) -> int | None:
 
 JOB_TYPE_LIST_TEMPLATES = {
     "collect_main_files": "admins/collect_main_files_jobs.html",
+    "crop_main_files": "admins/crop_main_files_jobs.html",
     "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
     "download_main_files": "admins/download_main_files_jobs.html",
 }
