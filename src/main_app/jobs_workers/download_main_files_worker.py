@@ -163,7 +163,7 @@ def process_downloads(
 
             if local_path.exists():
                 file_info["status"] = "already_local"
-                file_info["path"] = str(local_path)
+                file_info["path"] = clean_filename
                 file_info["size_bytes"] = local_path.stat().st_size
                 result["files_already_local"].append(file_info)
                 result["summary"]["already_local"] += 1
