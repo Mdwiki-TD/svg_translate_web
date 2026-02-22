@@ -208,7 +208,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     assert "Job id 999 was not found" in page or "not found" in page.lower()
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_collect_main_files_job")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start collect main files job route works."""
@@ -348,7 +348,7 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
     assert "Job id 999 was not found" in page or "not found" in page.lower()
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_fix_nested_main_files_job")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start fix nested main files job route works."""

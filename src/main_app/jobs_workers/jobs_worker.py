@@ -87,28 +87,8 @@ def start_job(user: Any | None, job_type: str) -> int:
     return job.id
 
 
-def start_collect_main_files_job(user: Any | None = None) -> int:
-    """
-    Start a background job to collect main files for templates.
-    Returns the job ID.
-    """
-    return start_job(user, "collect_main_files")
-
-
-def start_fix_nested_main_files_job(user: Any | None) -> int:
-    """
-    Start a background job to fix nested tags in all template main files.
-    Returns the job ID.
-
-    Args:
-        user: User authentication data for OAuth uploads
-    """
-    return start_job(user, "fix_nested_main_files")
-
 __all__ = [
     "collect_main_files_for_templates",
-    "start_collect_main_files_job",
     "fix_nested_main_files_for_templates",
-    "start_fix_nested_main_files_job",
     "cancel_job",
 ]
