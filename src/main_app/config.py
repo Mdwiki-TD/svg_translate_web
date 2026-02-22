@@ -46,6 +46,13 @@ class OAuthConfig:
 
 
 @dataclass(frozen=True)
+class DownloadConfig:
+    """Configuration for download jobs."""
+
+    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
+
+
+@dataclass(frozen=True)
 class Settings:
     is_localhost: callable
     database_data: DbConfig
@@ -58,6 +65,7 @@ class Settings:
     oauth: Optional[OAuthConfig]
     paths: Paths
     disable_uploads: str
+    download: DownloadConfig
 
 
 def _load_db_data_new() -> DbConfig:
@@ -212,6 +220,10 @@ def get_settings() -> Settings:
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
 
+    # Load download configuration
+    # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
+    dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
+
     return Settings(
         is_localhost=is_localhost,
         paths=_get_paths(),
@@ -224,6 +236,7 @@ def get_settings() -> Settings:
         cookie=cookie,
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+        download=DownloadConfig(dev_limit=dev_download_limit),
     )
 
 

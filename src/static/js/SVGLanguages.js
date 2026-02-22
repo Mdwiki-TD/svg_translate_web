@@ -4,7 +4,7 @@ const API_AGENT = "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.o
 class Api {
     async get(params) {
         // const end_point = 'https://commons.wikimedia.org/w/api.php';
-        const end_point = 'https://ar.wikipedia.org/w/api.php';
+        const end_point = 'https://commons.wikimedia.org/w/api.php';
         const url = new URL(end_point);
         for (const [key, value] of Object.entries(params)) {
             url.searchParams.append(key, value);

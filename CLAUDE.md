@@ -80,9 +80,24 @@ Tasks run in background threads with cancellation support via `threading.Event`.
 ### Configuration
 
 -   Environment variables loaded via `src/svg_config.py` using python-dotenv
--   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `PathsConfig`
+-   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `PathsConfig`, `DownloadConfig`
 -   Settings cached via `@lru_cache` in `src/main_app/config.py`
 -   Required env vars: `FLASK_SECRET_KEY`, `OAUTH_ENCRYPTION_KEY`, `OAUTH_CONSUMER_KEY`, `OAUTH_CONSUMER_SECRET`, `DB_*`, `MAIN_DIR`
+
+#### Environment-Specific Variables
+
+Variables that change based on the environment (development vs production):
+
+| Variable             | Description                                       | Development | Production |
+| -------------------- | ------------------------------------------------- | ----------- | ---------- |
+| `DEV_DOWNLOAD_LIMIT` | Limit downloads in main files job (0 = unlimited) | `10`        | `0`        |
+
+Example `.env` for development:
+
+```bash
+# Development settings
+DEV_DOWNLOAD_LIMIT=10
+```
 
 ### External Dependencies
 

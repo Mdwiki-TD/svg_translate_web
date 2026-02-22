@@ -6,6 +6,7 @@ import pytest
 from src.main_app.config import (
     CookieConfig,
     DbConfig,
+    DownloadConfig,
     OAuthConfig,
     Paths,
     Settings,
@@ -87,6 +88,7 @@ def test_Settings():
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files")
+    download_config = DownloadConfig(dev_limit=0)
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
@@ -100,12 +102,14 @@ def test_Settings():
         oauth=None,
         paths=paths,
         disable_uploads="",
+        download=download_config,
     )
 
     assert settings.database_data.db_host == "localhost"
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
+    assert settings.download.dev_limit == 0
 
 
 @patch.dict(

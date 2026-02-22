@@ -791,21 +791,36 @@ def test_download_all_main_files(mock_create_zip, admin_jobs_client):
 
 
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.create_main_files_zip")
-def test_download_all_main_files_no_directory(mock_create_zip, admin_jobs_client):
-    """Test downloading all main files when directory doesn't exist."""
-    client, store = admin_jobs_client
+def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client):
+    """Test downloading all main files when zip doesn't exist - should redirect with flash."""
+    client, _ = admin_jobs_client
 
-    mock_create_zip.return_value = ("Main files directory does not exist", 404)
+    mock_create_zip.return_value = ("Please run a 'Download Main Files' job first", 404)
 
-    response = client.get("/admin/download-main-files/download-all")
-    assert response.status_code == 404
+    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    # Should redirect to jobs list page with flash message
+    assert response.status_code == 200
+
+    mock_create_zip.assert_called_once()
+
+
+@patch("src.main_app.app_routes.admin.admin_routes.jobs.create_main_files_zip")
+def test_download_all_main_files_error(mock_create_zip, admin_jobs_client):
+    """Test downloading all main files when zip is corrupted - should redirect with flash."""
+    client, _ = admin_jobs_client
+
+    mock_create_zip.return_value = ("Zip file is empty or corrupted", 500)
+
+    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    # Should redirect to jobs list page with flash message
+    assert response.status_code == 200
 
     mock_create_zip.assert_called_once()
 
 
 def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client):
     """Test that requesting an invalid job type returns 404."""
-    client, store = admin_jobs_client
+    client, _ = admin_jobs_client
 
     response = client.get("/admin/invalid_job_type/list")
     assert response.status_code == 404
@@ -813,7 +828,7 @@ def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client):
 
 def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     """Test starting a job without being logged in."""
-    client, store = admin_jobs_client
+    client, _ = admin_jobs_client
 
     # Mock current_user to return None
     monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.jobs.current_user", lambda: None)
@@ -828,7 +843,7 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that job start handles exceptions gracefully."""
-    client, store = admin_jobs_client
+    client, _ = admin_jobs_client
 
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.side_effect = Exception("Database error")
@@ -920,6 +935,6 @@ def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client)
     # send_from_directory should handle path traversal attempts
     with patch("src.main_app.app_routes.admin.admin_routes.jobs.send_from_directory") as mock_send:
         mock_send.return_value = "safe response"
-        response = client.get("/admin/download-main-files/file/../../../etc/passwd")
+        _response = client.get("/admin/download-main-files/file/../../../etc/passwd")
         # send_from_directory will be called with the attempted path
         mock_send.assert_called_once()

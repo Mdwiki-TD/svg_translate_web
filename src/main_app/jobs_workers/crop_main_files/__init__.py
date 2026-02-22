@@ -8,8 +8,9 @@ import logging
 import threading
 from datetime import datetime
 from typing import Any
+from pathlib import Path
 
-from . import jobs_service
+from .. import jobs_service
 
 logger = logging.getLogger("svg_translate")
 
@@ -124,7 +125,7 @@ def crop_main_files_for_templates(
     # Save final results
     try:
         jobs_service.save_job_result_by_name(result_file, result)
-    except Exception as exc:
+    except Exception:
         logger.exception(f"Job {job_id}: Failed to save job result")
 
     # Update final status

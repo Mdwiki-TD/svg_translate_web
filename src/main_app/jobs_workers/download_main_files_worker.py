@@ -4,7 +4,6 @@ Worker module for downloading main files from remote source to local filesystem.
 
 from __future__ import annotations
 
-import io
 import logging
 import threading
 import zipfile
@@ -19,6 +18,9 @@ from flask import send_file
 from .. import template_service
 from ..config import settings
 from . import jobs_service
+
+# Zip file name constant
+MAIN_FILES_ZIP_NAME = "main_files.zip"
 
 logger = logging.getLogger("svg_translate")
 
@@ -125,6 +127,15 @@ def process_downloads(
     templates = template_service.list_templates()
     templates_with_files = [t for t in templates if t.main_file]
 
+    # Apply development mode limit from settings
+    dev_limit = settings.download.dev_limit
+    if dev_limit > 0 and len(templates_with_files) > dev_limit:
+        logger.info(
+            f"Job {job_id}: Development mode - limiting download from "
+            f"{len(templates_with_files)} to {dev_limit} files"
+        )
+        templates_with_files = templates_with_files[:dev_limit]
+
     result["summary"]["total"] = len(templates_with_files)
     result["output_path"] = str(output_dir)
 
@@ -220,6 +231,14 @@ def process_downloads(
         f"{result['summary']['failed']} failed"
     )
 
+    # Generate zip file after successful completion
+    if final_status == "completed":
+        try:
+            generate_main_files_zip()
+            logger.info(f"Job {job_id}: Generated main_files.zip successfully")
+        except Exception as e:
+            logger.exception(f"Job {job_id}: Failed to generate main_files.zip: {e}")
+
     return result
 
 
@@ -300,31 +319,82 @@ def download_main_files_for_templates(
                 pass
 
 
-def create_main_files_zip() -> tuple[Any, int]:
+def generate_main_files_zip() -> Path:
     """
-    Create a zip archive of all files in the main_files_path directory.
+    Generate a zip archive of all files in the main_files_path directory.
+
+    Creates the zip file on disk in the main_files_path directory.
+    Only includes actual files (not directories), excluding the zip file itself.
 
     Returns:
-        tuple: (send_file response, status_code)
+        Path: Path to the created zip file
+
+    Raises:
+        FileNotFoundError: If main_files_path directory does not exist
+        RuntimeError: If no files are found to zip
     """
     main_files_path = Path(settings.paths.main_files_path)
 
     if not main_files_path.exists():
+        raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")
+
+    zip_file_path = main_files_path / MAIN_FILES_ZIP_NAME
+
+    # Create the zip file
+    file_count = 0
+    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in main_files_path.iterdir():
+            if file_path.is_file() and file_path.name != MAIN_FILES_ZIP_NAME:
+                zip_file.write(file_path, file_path.name)
+                file_count += 1
+
+    if file_count == 0:
+        # Remove empty zip file and raise error
+        zip_file_path.unlink(missing_ok=True)
+        raise RuntimeError("No files found to zip in main_files_path")
+
+    logger.info(f"Generated {zip_file_path} with {file_count} files")
+    return zip_file_path
+
+
+def create_main_files_zip() -> tuple[Any, int]:
+    """
+    Serve the main files zip archive.
+
+    Checks for an existing zip file first. If it doesn't exist, returns an error.
+    The zip file should be generated automatically when a download job completes successfully.
+
+    Returns:
+        tuple: (send_file response or error message, status_code)
+    """
+    main_files_path = Path(settings.paths.main_files_path)
+    zip_file_path = main_files_path / MAIN_FILES_ZIP_NAME
+
+    if not main_files_path.exists():
         return "Main files directory does not exist", 404
 
-    # Create a zip file in memory
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in main_files_path.iterdir():
-            if file_path.is_file():
-                zip_file.write(file_path, file_path.name)
+    # Check if zip file exists
+    if not zip_file_path.exists():
+        return (
+            "Zip file not found. Please run a 'Download Main Files' job first to generate the archive.",
+            404
+        )
 
-    zip_buffer.seek(0)
+    # Check if zip file is valid (not empty)
+    if zip_file_path.stat().st_size == 0:
+        return "Zip file is empty or corrupted. Please re-run the 'Download Main Files' job.", 500
 
-    return send_file(zip_buffer, mimetype="application/zip", as_attachment=True, download_name="main_files.zip"), 200
+    return send_file(
+        zip_file_path,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=MAIN_FILES_ZIP_NAME
+    ), 200
 
 
 __all__ = [
     "download_main_files_for_templates",
     "create_main_files_zip",
+    "generate_main_files_zip",
+    "MAIN_FILES_ZIP_NAME",
 ]

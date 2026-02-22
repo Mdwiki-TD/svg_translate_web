@@ -215,4 +215,10 @@ class Jobs:
             """Download all main files as a zip archive."""
 
             response, status_code = create_main_files_zip()
-            return response, status_code
+
+            # If the response is an error message (not a file), flash it and redirect
+            if status_code != 200:
+                flash(response, "warning" if status_code == 404 else "danger")
+                return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
+
+            return response
