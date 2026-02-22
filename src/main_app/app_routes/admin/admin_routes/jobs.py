@@ -13,6 +13,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
+
 from ....config import settings
 from ....admins.admins_required import admin_required
 from ....jobs_workers import jobs_service, jobs_worker
@@ -21,6 +22,37 @@ from ....users.current import current_user
 
 logger = logging.getLogger("svg_translate")
 
+
+def _cancel_job(job_id: int, job_type: str) -> Response:
+    """Cancel a running job."""
+    if jobs_worker.cancel_job(job_id):
+        flash(f"Job {job_id} cancellation requested.", "success")
+    else:
+        flash(f"Job {job_id} is not running or already cancelled.", "warning")
+
+    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+
+
+def _delete_job(job_id: int, job_type: str) -> Response:
+    """Delete a job by ID and job type."""
+
+    try:
+        # Cancel the job if it's running
+        if jobs_worker.cancel_job(job_id):
+            logger.info(f"Cancelled running job {job_id} before deletion")
+
+        jobs_service.delete_job(job_id, job_type)
+        flash(f"Job {job_id} deleted successfully.", "success")
+    except Exception as exc:
+        logger.exception("Failed to delete job")
+        flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
+
+    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+
+
+# ================================
+# Collect Main Files Jobs handlers
+# ================================
 
 def _collect_main_files_jobs_list() -> str:
     """
@@ -61,31 +93,29 @@ def _collect_main_files_job_detail(job_id: int) -> Response | str:
     )
 
 
-def _cancel_job(job_id: int, job_type: str) -> Response:
-    """Cancel a running job."""
-    if jobs_worker.cancel_job(job_id):
-        flash(f"Job {job_id} cancellation requested.", "success")
-    else:
-        flash(f"Job {job_id} is not running or already cancelled.", "warning")
+def _start_collect_main_files_job() -> int:
+    """Start a job to collect main files for templates."""
+    user = current_user()
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
-
-
-def _delete_job(job_id: int, job_type: str) -> Response:
-    """Delete a job by ID and job type."""
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return False
 
     try:
-        # Cancel the job if it's running
-        if jobs_worker.cancel_job(job_id):
-            logger.info(f"Cancelled running job {job_id} before deletion")
+        # Get auth payload for OAuth uploads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_collect_main_files_job(auth_payload)
+        flash(f"Job {job_id} started to collect main files for templates.", "success")
+        return job_id
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
 
-        jobs_service.delete_job(job_id, job_type)
-        flash(f"Job {job_id} deleted successfully.", "success")
-    except Exception as exc:
-        logger.exception("Failed to delete job")
-        flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
+    return False
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+# ================================
+# Fix Nested Main Files Jobs handlers
+# ================================
 
 
 def _fix_nested_main_files_jobs_list():
@@ -126,27 +156,6 @@ def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
     )
 
 
-def _start_collect_main_files_job() -> int:
-    """Start a job to collect main files for templates."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_collect_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to collect main files for templates.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
-
-
 def _start_fix_nested_main_files_job() -> int:
     """Start a job to fix nested tags in all template main files."""
     user = current_user()
@@ -168,6 +177,9 @@ def _start_fix_nested_main_files_job() -> int:
     return False
 
 
+# ================================
+# Download Main Files Jobs handlers
+# ================================
 def _download_main_files_jobs_list() -> str:
     """
     Render the download main files jobs list dashboard.
