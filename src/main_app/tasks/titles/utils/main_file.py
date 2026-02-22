@@ -10,7 +10,7 @@ import wikitextparser as wtp
 
 def match_main_title_from_url(text):
     # Match lines starting with *'''Translate''': followed by a URL
-    pattern = r"^\*'''Translate''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()]+\.svg)$"
+    pattern = r"^\*'''Translat(?:e|ion)''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()]+\.svg)$"
     match = re.search(pattern, text, flags=re.MULTILINE)
     return match.group(1) if match else None
 
@@ -19,7 +19,7 @@ def match_main_title_from_url_new(text):
     """Return the SVG filename from the ``Translate`` line if present."""
 
     pattern = re.compile(
-        r"^\*'''Translate''':\s+(?P<url>https?://svgtranslate\.toolforge\.org/[^\s]+)",
+        r"^\*'''Translat(?:e|ion)''':\s+(?P<url>https?://svgtranslate\.toolforge\.org/[^\s]+)",
         flags=re.MULTILINE | re.IGNORECASE,
     )
     match = pattern.search(text)
