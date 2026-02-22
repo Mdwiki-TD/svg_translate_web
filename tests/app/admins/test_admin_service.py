@@ -4,6 +4,7 @@ from src.app.admins.admin_service import (
     get_admins_db, active_coordinators, list_coordinators, add_coordinator,
     set_coordinator_active, delete_coordinator, _ADMINS_STORE
 )
+from src.app.config import DbConfig
 
 
 @patch('src.app.admins.admin_service.CoordinatorsDB')
@@ -18,9 +19,9 @@ def test_get_admins_db_first_call(mock_has_db_config, mock_coordinators_db):
     mock_db_instance = MagicMock()
     mock_coordinators_db.return_value = mock_db_instance
 
-    # Mock settings.db_data
+    # Mock settings.database_data
     with patch('src.app.admins.admin_service.settings') as mock_settings:
-        mock_settings.db_data = {"host": "localhost", "dbname": "test", "user": "user", "password": "pass"}
+        mock_settings.database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
 
         result = get_admins_db()
 
