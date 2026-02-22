@@ -26,10 +26,10 @@ class Database:
 
     def __init__(self, database_data: DbConfig):
         """
-        Initialize the Database instance and establish a MySQL connection using credentials from database_data.
-
+        Create a Database wrapper and store connection credentials from the provided DbConfig.
+        
         Parameters:
-            database_data (DbConfig): Database configuration object containing connection credentials.
+            database_data (DbConfig): Configuration object with attributes `db_host`, `db_name`, `db_user`, and `db_password`. The values are stored on the instance and used to build the credentials dict; a reentrant lock is initialized and the connection is set to None.
         """
 
         self.host = database_data.db_host

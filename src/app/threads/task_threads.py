@@ -37,10 +37,27 @@ def launch_task_thread(
     args: Any,
     user_payload: Dict[str, Any],
 ) -> None:
+    """
+    Start and manage a background thread that runs a task and exposes a cancellation event for that task.
+    
+    Registers a cancellation Event for the given task_id in the module-level cancel registry, launches a daemon thread named "task-runner-<first8_of_task_id>" to execute the task, and ensures the cancellation Event is removed from the registry once the task completes.
+    
+    Parameters:
+        task_id (str): Unique identifier for the task; used to register and later remove the task's cancellation event.
+        title (str): Human-readable title for the task.
+        args (Any): Task-specific arguments passed through to the task runner.
+        user_payload (Dict[str, Any]): Additional user-provided metadata passed to the task.
+    
+    """
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
 
     def _runner() -> None:
+        """
+        Execute the task runner and ensure its cancellation event is removed when finished.
+        
+        Calls run_task with the captured settings.database_data, task_id, title, args, user_payload, and cancel_event; after run_task returns or raises, removes the task's cancel event from the global registry to avoid leaking state.
+        """
         try:
             run_task(
                 settings.database_data,

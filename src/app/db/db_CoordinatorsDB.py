@@ -28,10 +28,28 @@ class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
     def __init__(self, database_data: DbConfig):
+        """
+        Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
+        
+        Parameters:
+            database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
+        """
         self.db = Database(database_data)
         self._ensure_table()
 
     def _ensure_table(self) -> None:
+        """
+        Ensure the required `admin_users` table exists in the database with the expected schema.
+        
+        Creates the `admin_users` table if it does not already exist with columns:
+        - `id` (INT, auto-increment primary key)
+        - `username` (VARCHAR(255), unique, not null)
+        - `is_active` (TINYINT(1), not null, default 1)
+        - `created_at` (TIMESTAMP, defaults to current timestamp)
+        - `updated_at` (TIMESTAMP, defaults to current timestamp and updates on row change)
+        
+        The table uses the InnoDB engine and `utf8mb4` character set.
+        """
         self.db.execute_query_safe(
             """
             CREATE TABLE IF NOT EXISTS admin_users (

@@ -17,6 +17,12 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     class _SentinelDatabase:
         def __init__(self, *_args, **_kwargs):  # pragma: no cover - defensive guard
+            """
+            Prevent instantiation during application creation by always raising an AssertionError.
+            
+            Raises:
+                AssertionError: Always raised to indicate the database must not be instantiated while the app is being created.
+            """
             raise AssertionError("Database should not be instantiated during app creation")
 
     monkeypatch.setattr(svg_db, "Database", _SentinelDatabase)

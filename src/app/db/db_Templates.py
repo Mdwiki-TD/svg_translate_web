@@ -27,10 +27,26 @@ class TemplatesDB:
     """MySQL-backed"""
 
     def __init__(self, database_data: DbConfig):
+        """
+        Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
+        
+        Parameters:
+            database_data (DbConfig): Configuration used to construct the underlying Database connection.
+        """
         self.db = Database(database_data)
         self._ensure_table()
 
     def _ensure_table(self) -> None:
+        """
+        Ensure the `templates` table exists with the required schema.
+        
+        Creates the table if it does not already exist with these columns:
+        - `id`: auto-incrementing primary key
+        - `title`: unique non-null string (up to 255 chars)
+        - `main_file`: nullable string (up to 255 chars)
+        - `created_at`: timestamp defaulting to the current time
+        - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
+        """
         self.db.execute_query_safe(
             """
             CREATE TABLE IF NOT EXISTS templates (
