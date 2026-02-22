@@ -286,7 +286,6 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Template Title</th>
                                 <th>Filename</th>
                                 <th>View</th>
                             </tr>
@@ -296,12 +295,11 @@
                             <tr>
                                 <td>{{ file.template_id }}</td>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.template_title }}'
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}'
                                         target='_blank' rel='noopener noreferrer'>
-                                        {{ file.template_title }}
+                                        {{ file.filename }}
                                     </a>
                                 </td>
-                                <td><code>{{ file.filename }}</code></td>
                                 <td>
                                     <a href="{{ url_for('admin.serve_download_main_file', filename=file.path) }}"
                                         class="btn btn-sm btn-outline-primary" target="_blank"
