@@ -414,13 +414,98 @@ def test_download_main_files_fatal_error_handling(mock_services):
     assert final_call[0][1] == "failed"
 
 
-def test_create_main_files_zip_success(tmp_path, monkeypatch):
-    """Test creating a zip archive of main files."""
-    # Create some test files
+def test_generate_main_files_zip_success(tmp_path, monkeypatch):
+    """Test successful generation of zip file on disk."""
+    # Create test files
     main_files_path = tmp_path / "main_files"
     main_files_path.mkdir()
     (main_files_path / "test1.svg").write_text("content1")
     (main_files_path / "test2.svg").write_text("content2")
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    # Generate the zip file
+    zip_path = download_main_files_worker.generate_main_files_zip()
+
+    assert zip_path.exists()
+    assert zip_path.name == "main_files.zip"
+
+    # Verify the zip contents
+    with zipfile.ZipFile(zip_path) as zf:
+        assert "test1.svg" in zf.namelist()
+        assert "test2.svg" in zf.namelist()
+        assert len(zf.namelist()) == 2
+
+
+def test_generate_main_files_zip_no_files(tmp_path, monkeypatch):
+    """Test generating zip when directory has no files."""
+    # Create empty directory
+    main_files_path = tmp_path / "main_files"
+    main_files_path.mkdir()
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    # Should raise RuntimeError when no files found
+    with pytest.raises(RuntimeError, match="No files found to zip"):
+        download_main_files_worker.generate_main_files_zip()
+
+
+def test_generate_main_files_zip_directory_not_exists(tmp_path, monkeypatch):
+    """Test generating zip when directory doesn't exist."""
+    # Use a non-existent directory
+    main_files_path = tmp_path / "nonexistent"
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    # Should raise FileNotFoundError
+    with pytest.raises(FileNotFoundError):
+        download_main_files_worker.generate_main_files_zip()
+
+
+def test_generate_main_files_zip_excludes_self(tmp_path, monkeypatch):
+    """Test that the zip file excludes itself."""
+    # Create test files
+    main_files_path = tmp_path / "main_files"
+    main_files_path.mkdir()
+    (main_files_path / "test1.svg").write_text("content1")
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    # Generate the zip file
+    zip_path = download_main_files_worker.generate_main_files_zip()
+
+    # Verify the zip does not include itself
+    with zipfile.ZipFile(zip_path) as zf:
+        assert "test1.svg" in zf.namelist()
+        assert "main_files.zip" not in zf.namelist()
+        assert len(zf.namelist()) == 1
+
+
+def test_create_main_files_zip_success(tmp_path, monkeypatch):
+    """Test successful serving of existing zip file."""
+    # Create test files and pre-generate zip
+    main_files_path = tmp_path / "main_files"
+    main_files_path.mkdir()
+    (main_files_path / "test1.svg").write_text("content1")
+    (main_files_path / "test2.svg").write_text("content2")
+
+    # Pre-generate the zip file
+    zip_path = main_files_path / "main_files.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.write(main_files_path / "test1.svg", "test1.svg")
+        zf.write(main_files_path / "test2.svg", "test2.svg")
 
     # Mock settings
     mock_settings = MagicMock()
@@ -436,14 +521,31 @@ def test_create_main_files_zip_success(tmp_path, monkeypatch):
 
         assert status_code == 200
         assert response == mock_response
-        mock_send.assert_called_once()
 
-        # Verify send_file was called with a BytesIO object
+        # Verify send_file was called with the correct arguments
         call_args = mock_send.call_args
-        assert isinstance(call_args[0][0], io.BytesIO)
+        assert call_args[0][0] == zip_path
         assert call_args[1]["mimetype"] == "application/zip"
         assert call_args[1]["as_attachment"] is True
         assert call_args[1]["download_name"] == "main_files.zip"
+
+
+def test_create_main_files_zip_not_found(tmp_path, monkeypatch):
+    """Test serving zip when file doesn't exist."""
+    # Create directory but no zip file
+    main_files_path = tmp_path / "main_files"
+    main_files_path.mkdir()
+    (main_files_path / "test1.svg").write_text("content1")
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    response, status_code = download_main_files_worker.create_main_files_zip()
+
+    assert status_code == 404
+    assert "Please run a 'Download Main Files' job first" in response
 
 
 def test_create_main_files_zip_directory_not_exists(tmp_path, monkeypatch):
@@ -462,11 +564,35 @@ def test_create_main_files_zip_directory_not_exists(tmp_path, monkeypatch):
     assert response == "Main files directory does not exist"
 
 
-def test_create_main_files_zip_empty_directory(tmp_path, monkeypatch):
-    """Test creating zip of an empty directory."""
-    # Create an empty directory
+def test_create_main_files_zip_empty_file(tmp_path, monkeypatch):
+    """Test serving zip when file is empty/corrupted."""
+    # Create directory with empty zip file
     main_files_path = tmp_path / "main_files"
     main_files_path.mkdir()
+    zip_path = main_files_path / "main_files.zip"
+    zip_path.write_text("")  # Empty file
+
+    # Mock settings
+    mock_settings = MagicMock()
+    mock_settings.paths.main_files_path = str(main_files_path)
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
+
+    response, status_code = download_main_files_worker.create_main_files_zip()
+
+    assert status_code == 500
+    assert "Zip file is empty or corrupted" in response
+
+
+def test_create_main_files_zip_empty_directory(tmp_path, monkeypatch):
+    """Test serving zip when directory has no files (but zip exists)."""
+    # Create an empty directory with pre-existing zip
+    main_files_path = tmp_path / "main_files"
+    main_files_path.mkdir()
+
+    # Create empty zip file
+    zip_path = main_files_path / "main_files.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        pass  # Empty zip
 
     # Mock settings
     mock_settings = MagicMock()
@@ -495,12 +621,17 @@ def test_create_main_files_zip_ignores_subdirectories(tmp_path, monkeypatch):
     subdir.mkdir()
     (subdir / "test2.svg").write_text("content2")
 
+    # Pre-generate zip file with only top-level files
+    zip_path = main_files_path / "main_files.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.write(main_files_path / "test1.svg", "test1.svg")
+
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
     monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
 
-    # Mock send_file to capture the BytesIO object
+    # Mock send_file to return a mock response
     with patch("src.main_app.jobs_workers.download_main_files_worker.send_file") as mock_send:
         mock_response = Mock()
         mock_send.return_value = mock_response
@@ -509,16 +640,7 @@ def test_create_main_files_zip_ignores_subdirectories(tmp_path, monkeypatch):
 
         assert status_code == 200
         assert response == mock_response
-
-        # Get the BytesIO object that was passed to send_file
-        zip_buffer = mock_send.call_args[0][0]
-        zip_buffer.seek(0)
-
-        # Verify only top-level files are in the zip
-        with zipfile.ZipFile(zip_buffer) as zf:
-            assert "test1.svg" in zf.namelist()
-            assert "test2.svg" not in zf.namelist()
-            assert len(zf.namelist()) == 1
+        mock_send.assert_called_once()
 
 
 def test_download_main_files_saves_progress_periodically(mock_services, tmp_path):
@@ -695,3 +817,45 @@ def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
     # Verify final status update was called with "cancelled"
     final_call = mock_services["update_job_status"].call_args
     assert final_call[0][1] == "cancelled"
+
+
+def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path):
+    """Test that zip file is generated automatically when job completes successfully."""
+    templates = [
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+    ]
+    mock_services["list_templates"].return_value = templates
+    mock_services["settings"].paths.main_files_path = str(tmp_path)
+
+    # Mock requests
+    mock_response = Mock()
+    mock_response.content = b"SVG content"
+    mock_response.raise_for_status = Mock()
+
+    with patch("src.main_app.jobs_workers.download_main_files_worker.requests.Session") as mock_session_class:
+        mock_session = Mock()
+        mock_session.get.return_value = mock_response
+        mock_session_class.return_value = mock_session
+
+        download_main_files_worker.download_main_files_for_templates(1)
+
+    # Verify zip file was generated
+    zip_path = tmp_path / "main_files.zip"
+    assert zip_path.exists()
+
+    # Verify zip contains the downloaded file
+    with zipfile.ZipFile(zip_path) as zf:
+        assert "test.svg" in zf.namelist()
+
+
+def test_download_main_files_no_zip_on_failure(mock_services, tmp_path):
+    """Test that zip file is not generated when job fails."""
+    # Make list_templates raise an exception to cause job failure
+    mock_services["list_templates"].side_effect = Exception("Database error")
+    mock_services["settings"].paths.main_files_path = str(tmp_path)
+
+    download_main_files_worker.download_main_files_for_templates(1)
+
+    # Verify zip file was NOT generated (job failed)
+    zip_path = tmp_path / "main_files.zip"
+    assert not zip_path.exists()
