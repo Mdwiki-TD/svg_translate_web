@@ -239,12 +239,10 @@ def download_main_files_for_templates(
         "output_path": str(output_dir),
         "files_downloaded": [],
         "files_failed": [],
-        "files_skipped": [],
         "summary": {
             "total": 0,
             "downloaded": 0,
             "failed": 0,
-            "skipped": 0,
         },
     }
 
