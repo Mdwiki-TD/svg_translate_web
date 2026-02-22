@@ -11,7 +11,12 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.main_app.tasks.titles.utils.main_file import match_main_title_from_url, match_main_title_from_url_new
+from src.main_app.tasks.titles.utils.main_file import (
+    find_main_title,
+    match_main_title_from_url,
+    match_main_title_from_url_new,
+    find_main_title_from_owidslidersrcs,
+)
 
 # ---------- Fixtures with realistic wikitext samples ----------
 
@@ -124,3 +129,21 @@ def test_match_main_title_from_url_various(line, expected):
 def test_match_main_title_from_url_new_various(line, expected):
     """Validate regex-based extraction from 'Translate' line."""
     assert match_main_title_from_url_new(line) == expected
+
+
+def test_find_main_title_from_owidslidersrcs():
+    """Validate extraction of main title from {{owidslidersrcs}} template."""
+    text = """
+*'''Source''': https://ourworldindata.org/grapher/youth-mortality-rate
+{{-}}
+
+==Data==
+{{owidslidersrcs|id=gallery|widths=240|heights=240
+|gallery-World=
+File:youth mortality rate, World, 1950.svg!year=1950
+File:youth mortality rate, World, 1951.svg!year=1951
+File:youth mortality rate, World, 1952.svg!year=1952
+File:youth mortality rate, World, 1953.svg!year=1953
+}}"""
+    expected = "File:youth mortality rate, World, 1950.svg"
+    assert find_main_title_from_owidslidersrcs(text) == expected

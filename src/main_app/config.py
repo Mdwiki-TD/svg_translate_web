@@ -24,6 +24,7 @@ class Paths:
     log_dir: str
     fix_nested_data: str
     svg_jobs_path: str
+    main_files_path: str
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,7 @@ def _get_paths() -> Paths:
             - log_dir: path for log files
             - fix_nested_data: path for nested-fix data
             - svg_jobs_path: path for SVG job files
+            - main_files_path: path for main files
     """
     main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
     svg_data = f"{main_dir}/svg_data"
@@ -100,6 +102,7 @@ def _get_paths() -> Paths:
     log_dir = f"{main_dir}/logs"
     fix_nested_data = f"{main_dir}/fix_nested_data"
     svg_jobs_path = f"{main_dir}/svg_jobs"
+    main_files_path = f"{main_dir}/main_files"
 
     # Ensure directories exist
     Path(svg_data).mkdir(parents=True, exist_ok=True)
@@ -107,6 +110,7 @@ def _get_paths() -> Paths:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     Path(fix_nested_data).mkdir(parents=True, exist_ok=True)
     Path(svg_jobs_path).mkdir(parents=True, exist_ok=True)
+    Path(main_files_path).mkdir(parents=True, exist_ok=True)
 
     return Paths(
         svg_data=svg_data,
@@ -114,6 +118,7 @@ def _get_paths() -> Paths:
         log_dir=log_dir,
         fix_nested_data=fix_nested_data,
         svg_jobs_path=svg_jobs_path,
+        main_files_path=main_files_path,
     )
 
 
