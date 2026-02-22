@@ -198,48 +198,18 @@ class Jobs:
         # Start Job routes
         # ================================
 
-        @bp_admin.post("/collect-main-files/start")
+        @bp_admin.post("/<string:job_type>/start")
         @admin_required
-        def start_collect_main_files_job() -> ResponseReturnValue:
-            job_id = _start_job("collect_main_files")
+        def start_job(job_type: str) -> ResponseReturnValue:
+            job_id = _start_job(job_type)
             if not job_id:
-                return redirect(url_for("admin.jobs_list", job_type="collect_main_files"))
-            return redirect(url_for("admin.job_detail", job_type="collect_main_files", job_id=job_id))
+                return redirect(url_for("admin.jobs_list", job_type=job_type))
+            return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
 
-        @bp_admin.post("/fix-nested-main-files/start")
+        @bp_admin.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
-        def start_fix_nested_main_files_job() -> ResponseReturnValue:
-            job_id = _start_job("fix_nested_main_files")
-            if not job_id:
-                return redirect(url_for("admin.jobs_list", job_type="fix_nested_main_files"))
-            return redirect(url_for("admin.job_detail", job_type="fix_nested_main_files", job_id=job_id))
-
-        @bp_admin.post("/download-main-files/start")
-        @admin_required
-        def start_download_main_files_job() -> ResponseReturnValue:
-            job_id = _start_job("download_main_files")
-            if not job_id:
-                return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
-            return redirect(url_for("admin.job_detail", job_type="download_main_files", job_id=job_id))
-
-        # ================================
-        # Delete Job routes
-        # ================================
-
-        @bp_admin.post("/collect-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_collect_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "collect_main_files")
-
-        @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_fix_nested_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "fix_nested_main_files")
-
-        @bp_admin.post("/download-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_download_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "download_main_files")
+        def delete_job(job_type: str, job_id: int) -> Response:
+            return _delete_job(job_id, job_type)
 
         @bp_admin.get("/download-main-files/file/<path:filename>")
         @admin_required
