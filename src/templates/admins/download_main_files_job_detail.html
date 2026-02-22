@@ -9,7 +9,7 @@
         <h3 class="headline mb-0">Download Main Files Job #{{ job.id }}</h3>
         <div class="d-flex gap-2">
             {% if job.status == 'running' or job.status == 'pending' %}
-            <form method="POST" action="{{ url_for('admin.cancel_download_main_files_job', job_id=job.id) }}"
+            <form method="POST" action="{{ url_for('admin.cancel_job', job_type='download_main_files', job_id=job.id) }}"
                 onsubmit="return confirm('Are you sure you want to cancel this job?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-warning">
