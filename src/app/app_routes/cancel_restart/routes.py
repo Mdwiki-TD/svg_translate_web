@@ -36,7 +36,7 @@ logger = logging.getLogger("svg_translate")
 def _task_store() -> TaskStorePyMysql:
     global TASK_STORE
     if TASK_STORE is None:
-        TASK_STORE = TaskStorePyMysql(settings.db_data)
+        TASK_STORE = TaskStorePyMysql(settings.database_data)
     return TASK_STORE
 
 

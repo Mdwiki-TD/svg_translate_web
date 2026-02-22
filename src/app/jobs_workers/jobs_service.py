@@ -27,7 +27,7 @@ def get_jobs_db() -> JobsDB:
             raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
 
         try:
-            _JOBS_STORE = JobsDB(settings.db_data)
+            _JOBS_STORE = JobsDB(settings.database_data)
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
             logger.exception("Failed to initialize MySQL jobs store")
             raise RuntimeError("Unable to initialize jobs store") from exc

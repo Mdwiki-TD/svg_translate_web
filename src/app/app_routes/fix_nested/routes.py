@@ -88,7 +88,7 @@ def fix_nested_post():
 
     # Initialize database store
 
-    with Database(settings.db_data) as db:
+    with Database(settings.database_data) as db:
         db_store = FixNestedTaskStore(db)
         result = process_fix_nested(filename, auth_payload, task_id=task_id, username=username, db_store=db_store)
 

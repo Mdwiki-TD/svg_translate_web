@@ -6,6 +6,7 @@ from typing import Any, List
 
 import pymysql
 
+from ..config import DbConfig
 from . import Database
 
 logger = logging.getLogger("svg_translate")
@@ -25,8 +26,8 @@ class TemplateRecord:
 class TemplatesDB:
     """MySQL-backed"""
 
-    def __init__(self, db_data: dict[str, Any]):
-        self.db = Database(db_data)
+    def __init__(self, database_data: DbConfig):
+        self.db = Database(database_data)
         self._ensure_table()
 
     def _ensure_table(self) -> None:

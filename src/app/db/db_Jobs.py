@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, List
 
+from ..config import DbConfig
+
 from . import Database
 
 logger = logging.getLogger("svg_translate")
@@ -30,8 +32,8 @@ class JobRecord:
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, db_data: dict[str, Any]):
-        self.db = Database(db_data)
+    def __init__(self, database_data: DbConfig):
+        self.db = Database(database_data)
         self._ensure_table()
 
     def _ensure_table(self) -> None:

@@ -47,7 +47,6 @@ class OAuthConfig:
 @dataclass(frozen=True)
 class Settings:
     is_localhost: callable
-    db_data: Dict
     database_data: DbConfig
     STATE_SESSION_KEY: str
     REQUEST_TOKEN_SESSION_KEY: str
@@ -68,18 +67,6 @@ def _load_db_data_new() -> DbConfig:
         db_user=os.getenv("TOOL_REPLICA_USER", None),
         db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
     )
-
-
-def _load_db_data() -> dict[str, str]:
-
-    db_data = {
-        "host": os.getenv("DB_HOST", ""),
-        "dbname": os.getenv("DB_NAME", ""),
-        "user": os.getenv("TOOL_REPLICA_USER", ""),
-        "password": os.getenv("TOOL_REPLICA_PASSWORD", ""),
-    }
-
-    return db_data
 
 
 def _get_paths() -> Paths:
@@ -187,7 +174,6 @@ def get_settings() -> Settings:
         is_localhost=is_localhost,
         paths=_get_paths(),
         database_data=_load_db_data_new(),
-        db_data=_load_db_data(),
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,

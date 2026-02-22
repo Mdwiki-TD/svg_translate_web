@@ -24,7 +24,7 @@ def get_admins_db() -> CoordinatorsDB:
             )
 
         try:
-            _ADMINS_STORE = CoordinatorsDB(settings.db_data)
+            _ADMINS_STORE = CoordinatorsDB(settings.database_data)
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
             logger.exception("Failed to initialize MySQL coordinator store")
             raise RuntimeError("Unable to initialize coordinator store") from exc

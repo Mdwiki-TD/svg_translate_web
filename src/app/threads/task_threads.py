@@ -43,7 +43,7 @@ def launch_task_thread(
     def _runner() -> None:
         try:
             run_task(
-                settings.db_data,
+                settings.database_data,
                 task_id,
                 title,
                 args,

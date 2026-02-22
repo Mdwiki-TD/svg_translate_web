@@ -24,7 +24,7 @@ def get_templates_db() -> TemplatesDB:
             )
 
         try:
-            _TEMPLATE_STORE = TemplatesDB(settings.db_data)
+            _TEMPLATE_STORE = TemplatesDB(settings.database_data)
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
             logger.exception("Failed to initialize MySQL template store")
             raise RuntimeError("Unable to initialize template store") from exc
