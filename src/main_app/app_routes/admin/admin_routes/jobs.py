@@ -6,6 +6,7 @@ import logging
 
 from flask import (
     Blueprint,
+    abort,
     flash,
     redirect,
     render_template,
@@ -90,6 +91,36 @@ def _collect_main_files_jobs_list() -> str:
     )
 
 
+def _fix_nested_main_files_jobs_list():
+    """
+    Render the fix nested main files jobs list dashboard.
+    """
+    user = current_user()
+    # Filter jobs at database level for better performance
+    jobs = jobs_service.list_jobs(limit=100, job_type="fix_nested_main_files")
+
+    return render_template(
+        "admins/fix_nested_main_files_jobs.html",
+        current_user=user,
+        jobs=jobs,
+    )
+
+
+def _download_main_files_jobs_list() -> str:
+    """
+    Render the download main files jobs list dashboard.
+    """
+    user = current_user()
+    # Filter jobs at database level for better performance
+    jobs = jobs_service.list_jobs(limit=100, job_type="download_main_files")
+
+    return render_template(
+        "admins/download_main_files_jobs.html",
+        current_user=user,
+        jobs=jobs,
+    )
+
+
 def _collect_main_files_job_detail(job_id: int) -> Response | str:
     """Render the collect main files job detail page."""
     user = current_user()
@@ -118,21 +149,6 @@ def _collect_main_files_job_detail(job_id: int) -> Response | str:
 # ================================
 
 
-def _fix_nested_main_files_jobs_list():
-    """
-    Render the fix nested main files jobs list dashboard.
-    """
-    user = current_user()
-    # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="fix_nested_main_files")
-
-    return render_template(
-        "admins/fix_nested_main_files_jobs.html",
-        current_user=user,
-        jobs=jobs,
-    )
-
-
 def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
     """Render the fix nested main files job detail page."""
     user = current_user()
@@ -158,21 +174,6 @@ def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
 # ================================
 # Download Main Files Jobs handlers
 # ================================
-
-
-def _download_main_files_jobs_list() -> str:
-    """
-    Render the download main files jobs list dashboard.
-    """
-    user = current_user()
-    # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type="download_main_files")
-
-    return render_template(
-        "admins/download_main_files_jobs.html",
-        current_user=user,
-        jobs=jobs,
-    )
 
 
 def _download_main_files_job_detail(job_id: int) -> Response | str:
@@ -204,13 +205,48 @@ class Jobs:
 
     def __init__(self, bp_admin: Blueprint) -> None:
         # ================================
-        # Collect Main Files Jobs routes
+        # Cancel Jobs routes
         # ================================
+
+        @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
+        @admin_required
+        def cancel_job(job_type: str, job_id: int) -> Response:
+            return _cancel_job(job_id, job_type)
+
+        # ================================
+        # Jobs List routes
+        # ================================
+
+        @bp_admin.get("/<string:job_type>/list")
+        @admin_required
+        def jobs_list(job_type: str) -> str:
+            if job_type == "collect_main_files":
+                return _collect_main_files_jobs_list()
+            elif job_type == "fix_nested_main_files":
+                return _fix_nested_main_files_jobs_list()
+            elif job_type == "download_main_files":
+                return _download_main_files_jobs_list()
+            else:
+                abort(404)
 
         @bp_admin.get("/collect-main-files")
         @admin_required
         def collect_main_files_jobs_list() -> str:
             return _collect_main_files_jobs_list()
+
+        @bp_admin.get("/fix-nested-main-files")
+        @admin_required
+        def fix_nested_main_files_jobs_list():
+            return _fix_nested_main_files_jobs_list()
+
+        @bp_admin.get("/download-main-files")
+        @admin_required
+        def download_main_files_jobs_list() -> str:
+            return _download_main_files_jobs_list()
+
+        # ================================
+        # Collect Main Files Jobs routes
+        # ================================
 
         @bp_admin.get("/collect-main-files/<int:job_id>")
         @admin_required
@@ -234,11 +270,6 @@ class Jobs:
         # Fix Nested Main Files Jobs routes
         # ================================
 
-        @bp_admin.get("/fix-nested-main-files")
-        @admin_required
-        def fix_nested_main_files_jobs_list():
-            return _fix_nested_main_files_jobs_list()
-
         @bp_admin.get("/fix-nested-main-files/<int:job_id>")
         @admin_required
         def fix_nested_main_files_job_detail(job_id: int) -> Response | str:
@@ -260,11 +291,6 @@ class Jobs:
         # ================================
         # Download Main Files Jobs routes
         # ================================
-
-        @bp_admin.get("/download-main-files")
-        @admin_required
-        def download_main_files_jobs_list() -> str:
-            return _download_main_files_jobs_list()
 
         @bp_admin.get("/download-main-files/<int:job_id>")
         @admin_required
@@ -322,13 +348,3 @@ class Jobs:
                 as_attachment=True,
                 download_name='main_files.zip'
             )
-
-        # ================================
-        # Cancel Jobs routes
-        # ================================
-
-        @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
-        @admin_required
-        def cancel_job(job_type: str, job_id: int) -> Response:
-            return _cancel_job(job_id, job_type)
-
