@@ -91,7 +91,7 @@
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+                <div class="row row-cols-2 row-cols-md-3 g-2 text-center mb-3">
                     <div class="col col-sm-12">
                         <div class="card h-100 border">
                             <div class="card-body p-2">
@@ -113,32 +113,12 @@
                         </div>
                     </div>
                     <div class="col">
-                        <div class="card h-100 border-warning">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">
-                                    {{ result_data.summary.skipped }}
-                                </h4>
-                                <small>Skipped (Exists)</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
                         <div class="card h-100 border-danger">
                             <div class="card-body p-2">
                                 <h4 class="mb-0">
                                     {{ result_data.summary.failed }}
                                 </h4>
                                 <small>Failed</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-info">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">
-                                    {{ result_data.summary.already_local }}
-                                </h4>
-                                <small>Already Local</small>
                             </div>
                         </div>
                     </div>
@@ -274,47 +254,6 @@
         </div>
         {% endif %}
 
-        <!-- Already Local Files -->
-        {% if result_data.files_already_local %}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">Already Local Files ({{ result_data.files_already_local|length }})</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Filename</th>
-                                <th>View</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for file in result_data.files_already_local %}
-                            <tr>
-                                <td>{{ file.template_id }}</td>
-                                <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}'
-                                        target='_blank' rel='noopener noreferrer'>
-                                        {{ file.filename }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('admin.serve_download_main_file', filename=file.path) }}"
-                                        class="btn btn-sm btn-outline-primary" target="_blank"
-                                        rel="noopener noreferrer">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        {% endif %}
         {% endif %}
     </div>
 </div>
