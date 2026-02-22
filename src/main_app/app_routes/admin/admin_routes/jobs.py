@@ -31,7 +31,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+    return redirect(url_for("admin.jobs_list", job_type=job_type))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -48,7 +48,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
 
-    return redirect(url_for(f"admin.{job_type}_jobs_list"))
+    return redirect(url_for("admin.jobs_list", job_type=job_type))
 
 
 def _start_job(job_type: str) -> int:
@@ -130,7 +130,7 @@ def _collect_main_files_job_detail(job_id: int) -> Response | str:
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.collect_main_files_jobs_list"))
+        return redirect(url_for("admin.jobs_list", job_type="collect_main_files"))
 
     # Load job result if available
     result_data = None
@@ -157,7 +157,7 @@ def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+        return redirect(url_for("admin.jobs_list", job_type="fix_nested_main_files"))
 
     # Load job result if available
     result_data = None
@@ -185,7 +185,7 @@ def _download_main_files_job_detail(job_id: int) -> Response | str:
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.download_main_files_jobs_list"))
+        return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
 
     # Load job result if available
     result_data = None
@@ -243,7 +243,7 @@ class Jobs:
         def start_collect_main_files_job() -> ResponseReturnValue:
             job_id = _start_job("collect_main_files")
             if not job_id:
-                return redirect(url_for("admin.collect_main_files_jobs_list"))
+                return redirect(url_for("admin.jobs_list", job_type="collect_main_files"))
             return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
 
         @bp_admin.post("/collect-main-files/<int:job_id>/delete")
@@ -265,7 +265,7 @@ class Jobs:
         def start_fix_nested_main_files_job() -> ResponseReturnValue:
             job_id = _start_job("fix_nested_main_files")
             if not job_id:
-                return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
+                return redirect(url_for("admin.jobs_list", job_type="fix_nested_main_files"))
             return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
 
         @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
@@ -287,7 +287,7 @@ class Jobs:
         def start_download_main_files_job() -> ResponseReturnValue:
             job_id = _start_job("download_main_files")
             if not job_id:
-                return redirect(url_for("admin.download_main_files_jobs_list"))
+                return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
             return redirect(url_for("admin.download_main_files_job_detail", job_id=job_id))
 
         @bp_admin.post("/download-main-files/<int:job_id>/delete")
