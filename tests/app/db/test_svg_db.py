@@ -12,9 +12,9 @@ from src.app.db.db_class import Database
 def cleanup_cached_db():
     """
     Ensure the module-level cached database is closed before and after a test.
-    
+
     This pytest-style fixture calls close_cached_db() once before yielding control to the test and again after the test completes to guarantee the cached database state is reset.
-    
+
     Yields:
         None
     """

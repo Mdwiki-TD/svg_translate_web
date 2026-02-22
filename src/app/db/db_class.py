@@ -27,7 +27,7 @@ class Database:
     def __init__(self, database_data: DbConfig):
         """
         Create a Database wrapper and store connection credentials from the provided DbConfig.
-        
+
         Parameters:
             database_data (DbConfig): Configuration object with attributes `db_host`, `db_name`, `db_user`, and `db_password`. The values are stored on the instance and used to build the credentials dict; a reentrant lock is initialized and the connection is set to None.
         """

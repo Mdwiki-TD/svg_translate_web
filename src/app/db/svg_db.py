@@ -16,9 +16,9 @@ logger = logging.getLogger("svg_translate")
 def has_db_config() -> bool:
     """
     Return whether the application has database connection settings configured.
-    
+
     Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
-    
+
     Returns:
         `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
     """
@@ -31,7 +31,7 @@ def get_db() -> Database:
     """
     Get the cached Database instance, creating and caching a new Database from settings.database_data if none exists.
     Logs an error if the database configuration is not available.
-    
+
     Returns:
         Database: The cached Database instance.
     """

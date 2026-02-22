@@ -21,12 +21,12 @@ _JOBS_STORE: JobsDB | None = None
 def get_jobs_db() -> JobsDB:
     """
     Return the singleton JobsDB instance used by the module, creating it if necessary.
-    
+
     Creates and caches a JobsDB initialized from settings.database_data on first call.
-    
+
     Returns:
         JobsDB: The singleton jobs database instance.
-    
+
     Raises:
         RuntimeError: If no database configuration is available or if JobsDB initialization fails.
     """

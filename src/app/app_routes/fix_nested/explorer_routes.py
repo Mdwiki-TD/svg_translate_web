@@ -62,12 +62,12 @@ def list_tasks():
 def task_detail(task_id: str):
     """
     Render the detail view for a specific fix_nested task.
-    
+
     Looks up the task by ID, checks for presence of associated files (original.svg, fixed.svg, metadata.json, task_log.txt), attempts to read optional metadata and log files, and prepares a sanitized filename for use in links. If the task does not exist, aborts with a 404.
-    
+
     Parameters:
         task_id (str): Identifier of the fix_nested task.
-    
+
     Returns:
         str: Rendered HTML page for the task detail view.
     """
@@ -168,9 +168,9 @@ def view_log(task_id: str):
 def compare(task_id: str):
     """
     Render a comparison view of the original and fixed SVG files for a fix_nested task.
-    
+
     If the task or either SVG file is missing, flashes an error and redirects to the task list or referrer. Otherwise analyzes both SVGs, augmenting each analysis with a nested tag count and file size, and returns a rendered comparison template.
-    
+
     Returns:
         A Flask response rendering the comparison page populated with `task`, `task_id`, `filename`, `original_result`, and `fixed_result`.
     """
@@ -223,9 +223,9 @@ def compare(task_id: str):
 def undo_task(task_id: str):
     """
     Restore a task's original file on Commons and mark the task as undone.
-    
+
     Performs authentication and validation, uploads the task's original SVG back to Wikimedia Commons, updates the task's status to "undone" in the database, and appends entries to the task log. On errors (authentication failure, missing files, invalid task state, or upload failure) it flashes an appropriate message and redirects to the task detail or task list.
-    
+
     Returns:
         Flask response: a redirect to the task detail or the task list depending on the outcome.
     """
@@ -311,12 +311,12 @@ def undo_task(task_id: str):
 def delete_task(task_id: str):
     """
     Remove a fix_nested task record from the database, attempt to delete its on-disk files, and redirect to the task list.
-    
+
     Performs a path traversal safety check on the resolved task directory. If the database deletion succeeds the function flashes a success message and then attempts to remove the task directory; filesystem removal failures are logged and flashed as warnings. On any error (invalid ID, missing task, or DB deletion failure) the function flashes an appropriate message and redirects to the task list.
-    
+
     Parameters:
         task_id (str): Unique identifier of the task to delete.
-    
+
     Returns:
         A Flask redirect response to the fix_nested task list.
     """

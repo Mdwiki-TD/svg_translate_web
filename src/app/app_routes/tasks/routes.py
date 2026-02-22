@@ -43,9 +43,9 @@ def format_task_message(formatted):
 def _task_store() -> TaskStorePyMysql:
     """
     Get the singleton TaskStorePyMysql instance, creating and caching it on first use.
-    
+
     The store is initialized with settings.database_data and reused for subsequent calls.
-    
+
     Returns:
         TaskStorePyMysql: The cached TaskStorePyMysql instance.
     """

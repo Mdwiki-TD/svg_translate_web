@@ -35,7 +35,7 @@ class JobsDB:
     def __init__(self, database_data: DbConfig):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
-        
+
         Parameters:
             database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
         """
@@ -45,7 +45,7 @@ class JobsDB:
     def _ensure_table(self) -> None:
         """
         Ensure the jobs table exists in the database with the expected schema.
-        
+
         Creates a `jobs` table (if it does not already exist) containing columns:
         `id`, `job_type`, `status`, `started_at`, `completed_at`, `result_file`,
         `created_at`, and `updated_at`, and an index `idx_status_created` on

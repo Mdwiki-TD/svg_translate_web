@@ -60,12 +60,11 @@ class Settings:
 
 
 def _load_db_data_new() -> DbConfig:
-
     """
     Construct a DbConfig populated from environment variables.
-    
+
     Reads DB_NAME and DB_HOST (defaulting to empty string) and TOOL_REPLICA_USER and TOOL_REPLICA_PASSWORD (defaulting to None) and returns a DbConfig with those values.
-    
+
     Returns:
         DbConfig: Configuration with fields:
             - db_name: from DB_NAME (default "").
@@ -84,9 +83,9 @@ def _load_db_data_new() -> DbConfig:
 def _get_paths() -> Paths:
     """
     Compute the filesystem paths the application uses for SVG data, thumbnails, logs, fix data, and SVG job files and ensure those directories exist.
-    
+
     The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
-    
+
     Returns:
         Paths: A dataclass with the following populated fields:
             - svg_data: path for original SVG files
@@ -167,12 +166,12 @@ def is_localhost(host: str) -> bool:
 def get_settings() -> Settings:
     """
     Assemble and return the application's Settings populated from environment variables.
-    
+
     Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations, and returns a consolidated Settings instance.
-    
+
     Returns:
         Settings: The populated application settings.
-    
+
     Raises:
         RuntimeError: If FLASK_SECRET_KEY is not set.
         RuntimeError: If USE_MW_OAUTH is enabled but OAUTH_ENCRYPTION_KEY is missing.
