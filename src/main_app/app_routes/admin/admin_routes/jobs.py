@@ -28,6 +28,7 @@ logger = logging.getLogger("svg_translate")
 
 JOB_TYPE_TEMPLATES = {
     "collect_main_files": "admins/collect_main_files_job_detail.html",
+    "crop_main_files": "admins/crop_main_files_job_detail.html",
     "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
     "download_main_files": "admins/download_main_files_job_detail.html",
 }
