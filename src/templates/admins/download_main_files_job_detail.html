@@ -165,9 +165,9 @@
                     <table class="table table-sm table-striped">
                         <thead>
                             <tr>
-                                <th>Template ID</th>
-                                <th>Template Title</th>
+                                <th>ID</th>
                                 <th>Filename</th>
+                                <th>View</th>
                                 <th>Size</th>
                             </tr>
                         </thead>
@@ -176,12 +176,12 @@
                             <tr>
                                 <td>{{ file.template_id }}</td>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.template_title }}' target='_blank'
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}' target='_blank'
                                         rel='noopener noreferrer'>
-                                        {{ file.template_title }}
+                                        {{ file.filename }}
                                     </a>
                                 </td>
-                                <td><code>{{ file.filename }}</code></td>
+                                <td></td>
                                 <td>{{ file.size_bytes|default('-') }}</td>
                             </tr>
                             {% endfor %}
