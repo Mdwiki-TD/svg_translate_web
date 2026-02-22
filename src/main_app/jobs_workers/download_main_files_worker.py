@@ -4,6 +4,7 @@ Worker module for downloading main files from remote source to local filesystem.
 
 from __future__ import annotations
 
+import requests
 import logging
 import threading
 from datetime import datetime
@@ -11,13 +12,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-import requests
 
 from .. import template_service
 from ..config import settings
 from . import jobs_service
 
 logger = logging.getLogger("svg_translate")
+
+
+def download_all_main_files():
+    ...
 
 
 def download_file_from_commons(

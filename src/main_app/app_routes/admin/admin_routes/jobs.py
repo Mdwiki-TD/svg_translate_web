@@ -11,6 +11,7 @@ from flask import (
     redirect,
     render_template,
     url_for,
+    send_from_directory,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
@@ -195,7 +196,6 @@ class Jobs:
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """Serve a downloaded main file from the main_files_path directory."""
-            from flask import send_from_directory
 
             return send_from_directory(settings.paths.main_files_path, filename)
 
