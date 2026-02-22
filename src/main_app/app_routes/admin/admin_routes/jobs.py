@@ -168,6 +168,66 @@ def _start_fix_nested_main_files_job() -> int:
     return False
 
 
+def _download_main_files_jobs_list() -> str:
+    """
+    Render the download main files jobs list dashboard.
+    """
+    user = current_user()
+    # Filter jobs at database level for better performance
+    jobs = jobs_service.list_jobs(limit=100, job_type="download_main_files")
+
+    return render_template(
+        "admins/download_main_files_jobs.html",
+        current_user=user,
+        jobs=jobs,
+    )
+
+
+def _download_main_files_job_detail(job_id: int) -> Response | str:
+    """Render the download main files job detail page."""
+    user = current_user()
+
+    try:
+        job = jobs_service.get_job(job_id, "download_main_files")
+    except LookupError as exc:
+        logger.exception("Job not found")
+        flash(str(exc), "warning")
+        return redirect(url_for("admin.download_main_files_jobs_list"))
+
+    # Load job result if available
+    result_data = None
+    if job.result_file:
+        result_data = jobs_service.load_job_result(job.result_file)
+
+    return render_template(
+        "admins/download_main_files_job_detail.html",
+        current_user=user,
+        job=job,
+        result_data=result_data,
+    )
+
+
+def _start_download_main_files_job() -> int:
+    """Start a job to download main files for templates."""
+    user = current_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return False
+
+    try:
+        # Get auth payload for OAuth downloads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_download_main_files_job(auth_payload)
+        flash(f"Job {job_id} started to download main files for templates.", "success")
+        return job_id
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
+
+    return False
+
+
 class Jobs:
     """Collect Main Files Jobs management routes."""
 
@@ -235,3 +295,35 @@ class Jobs:
         @admin_required
         def cancel_fix_nested_main_files_job(job_id: int) -> Response:
             return _cancel_job(job_id, "fix_nested_main_files")
+
+        # ================================
+        # Download Main Files Jobs routes
+        # ================================
+
+        @bp_admin.get("/download-main-files")
+        @admin_required
+        def download_main_files_jobs_list() -> str:
+            return _download_main_files_jobs_list()
+
+        @bp_admin.get("/download-main-files/<int:job_id>")
+        @admin_required
+        def download_main_files_job_detail(job_id: int) -> Response | str:
+            return _download_main_files_job_detail(job_id)
+
+        @bp_admin.post("/download-main-files/start")
+        @admin_required
+        def start_download_main_files_job() -> ResponseReturnValue:
+            job_id = _start_download_main_files_job()
+            if not job_id:
+                return redirect(url_for("admin.download_main_files_jobs_list"))
+            return redirect(url_for("admin.download_main_files_job_detail", job_id=job_id))
+
+        @bp_admin.post("/download-main-files/<int:job_id>/delete")
+        @admin_required
+        def delete_download_main_files_job(job_id: int) -> Response:
+            return _delete_job(job_id, "download_main_files")
+
+        @bp_admin.post("/download-main-files/<int:job_id>/cancel")
+        @admin_required
+        def cancel_download_main_files_job(job_id: int) -> Response:
+            return _cancel_job(job_id, "download_main_files")

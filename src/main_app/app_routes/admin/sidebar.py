@@ -44,6 +44,13 @@ def create_side(ty):
                 "title": "Fix Nested Main Files",
                 "icon": "bi-tools",
             },
+            {
+                "id": "download_main_files_jobs",
+                "admin": 1,
+                "href": "download-main-files",
+                "title": "Download Main Files",
+                "icon": "bi-download",
+            },
         ],
     }
 
