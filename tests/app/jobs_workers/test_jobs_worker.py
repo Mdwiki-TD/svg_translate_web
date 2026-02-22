@@ -102,3 +102,56 @@ def test_runner_calls_target_and_cleans_up():
     mock_target.assert_called_once_with(job_id, user, cancel_event=event)
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_cancel_event(job_id) is None
+
+
+@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
+def test_start_download_main_files_job(mock_thread, mock_create_job):
+    """Test starting a download main files job."""
+    mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
+    mock_create_job.return_value = mock_job
+
+    mock_thread_instance = MagicMock()
+    mock_thread.return_value = mock_thread_instance
+
+    user = {"username": "test_user"}
+    job_id = jobs_worker.start_job(user, "download_main_files")
+
+    assert job_id == 3
+    mock_create_job.assert_called_once_with("download_main_files")
+    mock_thread.assert_called_once()
+
+    # Verify event was registered
+    assert jobs_worker.get_cancel_event(3) is not None
+
+
+def test_start_job_with_invalid_job_type():
+    """Test that starting a job with an invalid job type raises an error."""
+    with pytest.raises(ValueError, match="Unknown job type"):
+        jobs_worker.start_job(None, "invalid_job_type")
+
+
+def test_multiple_jobs_can_be_cancelled_independently():
+    """Test that multiple jobs can be registered and cancelled independently."""
+    event1 = threading.Event()
+    event2 = threading.Event()
+    event3 = threading.Event()
+
+    jobs_worker._register_cancel_event(1, event1)
+    jobs_worker._register_cancel_event(2, event2)
+    jobs_worker._register_cancel_event(3, event3)
+
+    # Cancel job 2
+    assert jobs_worker.cancel_job(2) is True
+    assert event2.is_set()
+    assert not event1.is_set()
+    assert not event3.is_set()
+
+    # Cancel job 1
+    assert jobs_worker.cancel_job(1) is True
+    assert event1.is_set()
+    assert not event3.is_set()
+
+    # Cancel job 3
+    assert jobs_worker.cancel_job(3) is True
+    assert event3.is_set()
