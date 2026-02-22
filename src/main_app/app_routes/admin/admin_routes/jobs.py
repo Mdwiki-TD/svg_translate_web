@@ -113,27 +113,6 @@ def _collect_main_files_job_detail(job_id: int) -> Response | str:
         result_data=result_data,
     )
 
-
-def _start_collect_main_files_job() -> int:
-    """Start a job to collect main files for templates."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_collect_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to collect main files for templates.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
-
 # ================================
 # Fix Nested Main Files Jobs handlers
 # ================================
@@ -176,31 +155,11 @@ def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
         result_data=result_data,
     )
 
-
-def _start_fix_nested_main_files_job() -> int:
-    """Start a job to fix nested tags in all template main files."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_fix_nested_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to fix nested tags in template main files.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
-
-
 # ================================
 # Download Main Files Jobs handlers
 # ================================
+
+
 def _download_main_files_jobs_list() -> str:
     """
     Render the download main files jobs list dashboard.
@@ -240,27 +199,6 @@ def _download_main_files_job_detail(job_id: int) -> Response | str:
     )
 
 
-def _start_download_main_files_job() -> int:
-    """Start a job to download main files for templates."""
-    user = current_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return False
-
-    try:
-        # Get auth payload for OAuth downloads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_download_main_files_job(auth_payload)
-        flash(f"Job {job_id} started to download main files for templates.", "success")
-        return job_id
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return False
-
-
 class Jobs:
     """Collect Main Files Jobs management routes."""
 
@@ -282,7 +220,7 @@ class Jobs:
         @bp_admin.post("/collect-main-files/start")
         @admin_required
         def start_collect_main_files_job() -> ResponseReturnValue:
-            job_id = _start_collect_main_files_job()
+            job_id = _start_job("collect_main_files")
             if not job_id:
                 return redirect(url_for("admin.collect_main_files_jobs_list"))
             return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
@@ -314,7 +252,7 @@ class Jobs:
         @bp_admin.post("/fix-nested-main-files/start")
         @admin_required
         def start_fix_nested_main_files_job() -> ResponseReturnValue:
-            job_id = _start_fix_nested_main_files_job()
+            job_id = _start_job("fix_nested_main_files")
             if not job_id:
                 return redirect(url_for("admin.fix_nested_main_files_jobs_list"))
             return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
@@ -346,7 +284,7 @@ class Jobs:
         @bp_admin.post("/download-main-files/start")
         @admin_required
         def start_download_main_files_job() -> ResponseReturnValue:
-            job_id = _start_download_main_files_job()
+            job_id = _start_job("download_main_files")
             if not job_id:
                 return redirect(url_for("admin.download_main_files_jobs_list"))
             return redirect(url_for("admin.download_main_files_job_detail", job_id=job_id))

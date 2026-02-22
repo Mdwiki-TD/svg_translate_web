@@ -105,23 +105,10 @@ def start_fix_nested_main_files_job(user: Any | None) -> int:
     """
     return start_job(user, "fix_nested_main_files")
 
-
-def start_download_main_files_job(user: Any | None) -> int:
-    """
-    Start a background job to download main files for templates.
-    Returns the job ID.
-
-    Args:
-        user: User authentication data for OAuth uploads
-    """
-    return start_job(user, "download_main_files")
-
-
 __all__ = [
     "collect_main_files_for_templates",
     "start_collect_main_files_job",
     "fix_nested_main_files_for_templates",
     "start_fix_nested_main_files_job",
-    "start_download_main_files_job",
     "cancel_job",
 ]
