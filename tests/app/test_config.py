@@ -30,7 +30,8 @@ def test_Paths():
         svg_data_thumb="/svg/thumb",
         log_dir="/logs",
         fix_nested_data="/fix/nested",
-        svg_jobs_path="/jobs"
+        svg_jobs_path="/jobs",
+        main_files_path="/main_files"
     )
 
     assert paths.svg_data == "/svg/data"
@@ -38,6 +39,7 @@ def test_Paths():
     assert paths.log_dir == "/logs"
     assert paths.fix_nested_data == "/fix/nested"
     assert paths.svg_jobs_path == "/jobs"
+    assert paths.main_files_path == "/main_files"
 
 
 def test_CookieConfig():
@@ -79,7 +81,7 @@ def test_Settings():
     # Create a minimal settings object for testing
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
-    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs")
+    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files")
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
