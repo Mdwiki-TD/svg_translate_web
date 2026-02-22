@@ -8,7 +8,7 @@ from __future__ import annotations
 import sys
 from svg_config import _env_file_path  # noqa: F401 # Triggers environment configuration
 
-from app import create_app  # noqa: E402
+from main_app import create_app  # noqa: E402
 from log import config_console_logger  # noqa: E402
 
 config_console_logger()
