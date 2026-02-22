@@ -50,7 +50,18 @@ def format_stage_timestamp(value: str) -> str:
 
 
 def create_app() -> Flask:
-    """Instantiate and configure the Flask application."""
+    """
+    Create and configure and return the Flask application used by the project.
+
+    The returned app is configured with custom template and static folders, session cookie
+    settings from project settings, CSRF protection, the USE_MW_OAUTH flag, registered
+    application blueprints, a user context processor, a Jinja filter for stage timestamps,
+    teardown handlers that close cached connections and task store, and handlers for 404
+    and 500 errors.
+
+    Returns:
+        Flask: The fully configured Flask application instance.
+    """
 
     app = Flask(
         __name__,

@@ -13,6 +13,14 @@ from src.app.config import DbConfig
 
 @pytest.fixture
 def app(monkeypatch: pytest.MonkeyPatch):
+    """
+    Create a Flask test application configured with patched settings and helpers for cancel/restart route tests.
+
+    The fixture constructs a Flask app with a secret key, injects a DbConfig-based settings object into the cancel/restart routes module, and monkeypatches route helpers (`flash`, `jsonify`, `redirect`, `url_for`) and `current_user` to provide predictable behavior for tests. Yields the configured Flask application for use in request contexts.
+
+    Returns:
+        Flask: A Flask application instance with the above test-specific patches applied.
+    """
     app = Flask(__name__)
     app.secret_key = "secret"
 

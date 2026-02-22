@@ -21,9 +21,10 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
         # Note: db connection is managed inside execute_query/fetch_query
         # self._lock = threading.Lock()
         """
-        Initialize the task store and ensure the required database schema exists.
+        Initialize the task store with the given database configuration and ensure required schema and indexes exist.
 
-        Calls internal schema initialization to create the tasks table and any necessary indexes.
+        Parameters:
+            database_data (DbConfig): Database connection configuration used to create the internal Database instance.
         """
         self.db = Database(database_data)
         self._init_schema()

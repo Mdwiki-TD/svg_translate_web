@@ -15,6 +15,18 @@ _ADMINS_STORE: CoordinatorsDB | None = None
 
 
 def get_admins_db() -> CoordinatorsDB:
+    """
+    Return the singleton coordinators database store, initializing it on first access.
+
+    Initializes and caches a CoordinatorsDB using settings.database_data if no store exists.
+    Raises a RuntimeError if database configuration is missing or if initialization fails.
+
+    Returns:
+        CoordinatorsDB: The cached coordinators database instance.
+
+    Raises:
+        RuntimeError: If database configuration is not available or the store cannot be initialized.
+    """
     global _ADMINS_STORE
 
     if _ADMINS_STORE is None:

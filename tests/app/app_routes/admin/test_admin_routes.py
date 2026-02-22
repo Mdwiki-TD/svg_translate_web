@@ -135,6 +135,19 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
 
 @pytest.fixture
 def app_and_store(monkeypatch: pytest.MonkeyPatch):
+    """
+    Create a Flask test application and a CoordinatorsDB backed by FakeDatabase for tests.
+
+    This fixture sets FLASK_SECRET_KEY, patches the application to use FakeDatabase for coordinators,
+    forces has_db_config to True, and injects a preloaded CoordinatorsDB (containing an "admin" user)
+    into the admin_service. The returned Flask app is configured for testing with CSRF disabled.
+
+    Parameters:
+        monkeypatch (pytest.MonkeyPatch): Pytest monkeypatch fixture used to apply environment and attribute patches.
+
+    Returns:
+        (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the CoordinatorsDB instance used by tests.
+    """
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     # Patch Database used by CoordinatorsDB
@@ -151,7 +164,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     app = create_app()
     app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False # Disable CSRF for tests
+    app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
 
     yield app, store
 

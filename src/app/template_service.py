@@ -15,6 +15,16 @@ _TEMPLATE_STORE: TemplatesDB | None = None
 
 
 def get_templates_db() -> TemplatesDB:
+    """
+    Return the module's cached TemplatesDB instance, initializing it on first use.
+
+    Returns:
+        TemplatesDB: The initialized and cached templates database instance.
+
+    Raises:
+        RuntimeError: If no database configuration is available.
+        RuntimeError: If initializing the TemplatesDB fails.
+    """
     global _TEMPLATE_STORE
 
     if _TEMPLATE_STORE is None:

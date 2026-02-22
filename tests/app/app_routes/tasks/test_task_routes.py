@@ -69,6 +69,17 @@ class InMemoryTaskStore:
 
 @pytest.fixture
 def app(monkeypatch: pytest.MonkeyPatch):
+    """
+    Create and configure a Flask application for tests with an in-memory task store and mocked authentication.
+
+    This fixture sets FLASK_SECRET_KEY, enables testing mode, disables WTForms CSRF, installs an InMemoryTaskStore and a threading lock into route modules, clears global task cancellation events, and patches `current_user` to a test user for authentication checks.
+
+    Parameters:
+        monkeypatch (pytest.MonkeyPatch): Fixture used to set environment variables and patch module attributes for the test.
+
+    Returns:
+        app: A Flask application instance configured for testing.
+    """
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
     app = create_app()
     app.config["TESTING"] = True
@@ -108,7 +119,7 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
     client = app.test_client()
 
     cancel_response = client.post(f"/tasks/{task_id}/cancel")
-    assert cancel_response.status_code == 302 # Redirects back to task page
+    assert cancel_response.status_code == 302  # Redirects back to task page
 
     assert store.tasks[task_id]["status"] == "Cancelled"
     assert cancel_event.is_set()
@@ -126,6 +137,19 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     task_finished = threading.Event()
 
     def fake_run_task(db_data, task_id, title, args, user_payload, *, cancel_event=None):
+        """
+        Record the provided task invocation inputs into the test capture and signal completion.
+
+        This test helper stores the received values into the surrounding `captured` mapping and sets the `task_finished` event to indicate the fake task has run.
+
+        Parameters:
+            db_data: Database context or placeholder passed by the caller (not used by the helper).
+            task_id: Identifier of the task being "run".
+            title: Task title.
+            args: Arguments object passed to the task runner.
+            user_payload: Payload supplied by the user when launching the task.
+            cancel_event (threading.Event | None): Optional event that would be used to signal cancellation; recorded for inspection.
+        """
         captured["task_id"] = task_id
         captured["title"] = title
         captured["args"] = args

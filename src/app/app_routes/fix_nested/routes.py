@@ -62,6 +62,14 @@ def fix_nested():
 @oauth_required_with_filename_preservation
 def fix_nested_post():
     # POST logic
+    """
+    Handle POST requests from the fix-nested form: validate the submitted filename and current user, start a fix-nested task for the specified file, flash success or error messages, and render the form with the original filename and an optional Commons download link.
+
+    If the filename is missing or the user is not logged in, flashes an error and re-renders the form. On success, flashes the success message (and task id when available) and includes a Wikimedia Commons file URL in the rendered template. On failure, flashes detailed errors to coordinators when available and re-renders the form.
+
+    Returns:
+        A rendered template for "fix_nested/form.html" with the original filename preserved in the input and an optional `commons_link` when the operation succeeded.
+    """
     filename = request.form.get("filename", "").strip()
 
     # Remove "File:" prefix if present (keep original for display)

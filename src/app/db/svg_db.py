@@ -14,14 +14,27 @@ logger = logging.getLogger("svg_translate")
 
 
 def has_db_config() -> bool:
-    """Return ``True`` when database connection details are configured."""
+    """
+    Return whether the application has database connection settings configured.
+
+    Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
+
+    Returns:
+        `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
+    """
 
     db_settings = settings.database_data or {}
     return bool(db_settings.db_host or db_settings.db_user)
 
 
 def get_db() -> Database:
-    """Return a lazily-instantiated :class:`Database` using ``database_data``."""
+    """
+    Get the cached Database instance, creating and caching a new Database from settings.database_data if none exists.
+    Logs an error if the database configuration is not available.
+
+    Returns:
+        Database: The cached Database instance.
+    """
     global _db
 
     if not has_db_config():

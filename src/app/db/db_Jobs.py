@@ -33,10 +33,24 @@ class JobsDB:
     """MySQL-backed job store."""
 
     def __init__(self, database_data: DbConfig):
+        """
+        Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
+
+        Parameters:
+            database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
+        """
         self.db = Database(database_data)
         self._ensure_table()
 
     def _ensure_table(self) -> None:
+        """
+        Ensure the jobs table exists in the database with the expected schema.
+
+        Creates a `jobs` table (if it does not already exist) containing columns:
+        `id`, `job_type`, `status`, `started_at`, `completed_at`, `result_file`,
+        `created_at`, and `updated_at`, and an index `idx_status_created` on
+        `(status, created_at)`.
+        """
         self.db.execute_query_safe(
             """
             CREATE TABLE IF NOT EXISTS jobs (

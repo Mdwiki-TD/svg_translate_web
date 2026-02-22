@@ -134,7 +134,14 @@ def run_task(
         stages_list = make_stages()
 
         def push_stage(stage_name: str, stage_state: Dict[str, Any] | None = None) -> None:
-            """Persist the latest state for a workflow stage to the database."""
+            """
+            Persist the current state of a workflow stage to the task store.
+
+            If `stage_state` is omitted, the function uses the stage state from the surrounding `stages_list`.
+            Parameters:
+                stage_name (str): Name of the stage to persist.
+                stage_state (dict | None): Explicit stage state to persist; when `None`, use the current state from `stages_list`.
+            """
             state = stage_state if stage_state is not None else stages_list[stage_name]
             store.update_stage(task_id, stage_name, state)
 
