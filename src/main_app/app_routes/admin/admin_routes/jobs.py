@@ -121,79 +121,35 @@ def _download_main_files_jobs_list() -> str:
     )
 
 
-def _collect_main_files_job_detail(job_id: int) -> Response | str:
-    """Render the collect main files job detail page."""
+JOB_TYPE_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files_job_detail.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
+    "download_main_files": "admins/download_main_files_job_detail.html",
+}
+
+
+def _job_detail(job_id: int, job_type: str) -> Response | str:
+    """Render the job detail page for any job type."""
     user = current_user()
 
     try:
-        job = jobs_service.get_job(job_id, "collect_main_files")
+        job = jobs_service.get_job(job_id, job_type)
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.jobs_list", job_type="collect_main_files"))
+        return redirect(url_for("admin.jobs_list", job_type=job_type))
 
     # Load job result if available
     result_data = None
     if job.result_file:
         result_data = jobs_service.load_job_result(job.result_file)
 
-    return render_template(
-        "admins/collect_main_files_job_detail.html",
-        current_user=user,
-        job=job,
-        result_data=result_data,
-    )
-
-# ================================
-# Fix Nested Main Files Jobs handlers
-# ================================
-
-
-def _fix_nested_main_files_job_detail(job_id: int) -> Response | str:
-    """Render the fix nested main files job detail page."""
-    user = current_user()
-    try:
-        job = jobs_service.get_job(job_id, "fix_nested_main_files")
-    except LookupError as exc:
-        logger.exception("Job not found")
-        flash(str(exc), "warning")
-        return redirect(url_for("admin.jobs_list", job_type="fix_nested_main_files"))
-
-    # Load job result if available
-    result_data = None
-    if job.result_file:
-        result_data = jobs_service.load_job_result(job.result_file)
+    template = JOB_TYPE_TEMPLATES.get(job_type)
+    if not template:
+        abort(404)
 
     return render_template(
-        "admins/fix_nested_main_files_job_detail.html",
-        current_user=user,
-        job=job,
-        result_data=result_data,
-    )
-
-# ================================
-# Download Main Files Jobs handlers
-# ================================
-
-
-def _download_main_files_job_detail(job_id: int) -> Response | str:
-    """Render the download main files job detail page."""
-    user = current_user()
-
-    try:
-        job = jobs_service.get_job(job_id, "download_main_files")
-    except LookupError as exc:
-        logger.exception("Job not found")
-        flash(str(exc), "warning")
-        return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
-
-    # Load job result if available
-    result_data = None
-    if job.result_file:
-        result_data = jobs_service.load_job_result(job.result_file)
-
-    return render_template(
-        "admins/download_main_files_job_detail.html",
+        template,
         current_user=user,
         job=job,
         result_data=result_data,
@@ -230,13 +186,17 @@ class Jobs:
                 abort(404)
 
         # ================================
-        # Collect Main Files Jobs routes
+        # Job Detail routes
         # ================================
 
-        @bp_admin.get("/collect-main-files/<int:job_id>")
+        @bp_admin.get("/<string:job_type>/<int:job_id>")
         @admin_required
-        def collect_main_files_job_detail(job_id: int) -> Response | str:
-            return _collect_main_files_job_detail(job_id)
+        def job_detail(job_type: str, job_id: int) -> Response | str:
+            return _job_detail(job_id, job_type)
+
+        # ================================
+        # Start Job routes
+        # ================================
 
         @bp_admin.post("/collect-main-files/start")
         @admin_required
@@ -244,21 +204,7 @@ class Jobs:
             job_id = _start_job("collect_main_files")
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type="collect_main_files"))
-            return redirect(url_for("admin.collect_main_files_job_detail", job_id=job_id))
-
-        @bp_admin.post("/collect-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_collect_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "collect_main_files")
-
-        # ================================
-        # Fix Nested Main Files Jobs routes
-        # ================================
-
-        @bp_admin.get("/fix-nested-main-files/<int:job_id>")
-        @admin_required
-        def fix_nested_main_files_job_detail(job_id: int) -> Response | str:
-            return _fix_nested_main_files_job_detail(job_id)
+            return redirect(url_for("admin.job_detail", job_type="collect_main_files", job_id=job_id))
 
         @bp_admin.post("/fix-nested-main-files/start")
         @admin_required
@@ -266,21 +212,7 @@ class Jobs:
             job_id = _start_job("fix_nested_main_files")
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type="fix_nested_main_files"))
-            return redirect(url_for("admin.fix_nested_main_files_job_detail", job_id=job_id))
-
-        @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
-        @admin_required
-        def delete_fix_nested_main_files_job(job_id: int) -> Response:
-            return _delete_job(job_id, "fix_nested_main_files")
-
-        # ================================
-        # Download Main Files Jobs routes
-        # ================================
-
-        @bp_admin.get("/download-main-files/<int:job_id>")
-        @admin_required
-        def download_main_files_job_detail(job_id: int) -> Response | str:
-            return _download_main_files_job_detail(job_id)
+            return redirect(url_for("admin.job_detail", job_type="fix_nested_main_files", job_id=job_id))
 
         @bp_admin.post("/download-main-files/start")
         @admin_required
@@ -288,7 +220,21 @@ class Jobs:
             job_id = _start_job("download_main_files")
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
-            return redirect(url_for("admin.download_main_files_job_detail", job_id=job_id))
+            return redirect(url_for("admin.job_detail", job_type="download_main_files", job_id=job_id))
+
+        # ================================
+        # Delete Job routes
+        # ================================
+
+        @bp_admin.post("/collect-main-files/<int:job_id>/delete")
+        @admin_required
+        def delete_collect_main_files_job(job_id: int) -> Response:
+            return _delete_job(job_id, "collect_main_files")
+
+        @bp_admin.post("/fix-nested-main-files/<int:job_id>/delete")
+        @admin_required
+        def delete_fix_nested_main_files_job(job_id: int) -> Response:
+            return _delete_job(job_id, "fix_nested_main_files")
 
         @bp_admin.post("/download-main-files/<int:job_id>/delete")
         @admin_required

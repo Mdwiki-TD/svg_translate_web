@@ -49,7 +49,7 @@
                         <td>{{ job.completed_at if job.completed_at else '-' }}</td>
                         <td class="text-center">
                             <div class="btn-group">
-                                <a href="{{ url_for('admin.fix_nested_main_files_job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
+                                <a href="{{ url_for('admin.job_detail', job_type='fix_nested_main_files', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
