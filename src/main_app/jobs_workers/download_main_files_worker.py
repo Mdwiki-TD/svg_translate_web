@@ -49,8 +49,6 @@ def download_file_from_commons(
 
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = filename
-    if clean_filename.startswith("File:"):
-        clean_filename = clean_filename[5:]
 
     # Build the download URL using Special:FilePath
     url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{quote(clean_filename.replace(' ', '_'))}"
@@ -154,10 +152,19 @@ def process_downloads(
             "timestamp": datetime.now().isoformat(),
         }
 
+        # Extract just the filename part (remove "File:" prefix if present)
+        clean_filename = template.main_file
+        if clean_filename.startswith("File:"):
+            clean_filename = clean_filename[5:]
+
         try:
+            # Check if the file already exists
+            if (output_dir / clean_filename).exists():
+                result["summary"]["exists"] += 1
+
             # Download the file (will overwrite if exists)
             download_result = download_file_from_commons(
-                template.main_file,
+                clean_filename,
                 output_dir,
                 session=session,
             )
@@ -173,7 +180,7 @@ def process_downloads(
                 file_info["reason"] = download_result["error"]
                 result["files_failed"].append(file_info)
                 result["summary"]["failed"] += 1
-                logger.warning(f"Job {job_id}: Failed to download {template.main_file}: {download_result['error']}")
+                logger.warning(f"Job {job_id}: Failed to download {clean_filename}: {download_result['error']}")
 
         except Exception as e:
             file_info["status"] = "failed"
@@ -243,6 +250,7 @@ def download_main_files_for_templates(
             "total": 0,
             "downloaded": 0,
             "failed": 0,
+            "exists": 0,
         },
     }
 

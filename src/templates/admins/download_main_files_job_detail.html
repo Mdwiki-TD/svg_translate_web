@@ -91,7 +91,7 @@
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row row-cols-2 row-cols-md-3 g-2 text-center mb-3">
+                <div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
                     <div class="col col-sm-12">
                         <div class="card h-100 border">
                             <div class="card-body p-2">
@@ -109,6 +109,16 @@
                                     {{ result_data.summary.downloaded }}
                                 </h4>
                                 <small>Downloaded</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 border-warning">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.exists }}
+                                </h4>
+                                <small>Exists</small>
                             </div>
                         </div>
                     </div>
