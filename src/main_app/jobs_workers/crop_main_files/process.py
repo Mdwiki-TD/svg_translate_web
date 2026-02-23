@@ -87,7 +87,7 @@ def process_one(
         file_info["status"] = "failed"
         file_info["reason"] = "exception"
         file_info["error"] = f"{type(e).__name__}: {str(e)}"
-        result["files_processed"].append(file_info)
+
         result["summary"]["failed"] += 1
         logger.exception(f"Job {job_id}: Exception processing {template.main_file}")
         return file_info
@@ -96,7 +96,7 @@ def process_one(
         file_info["status"] = "failed"
         file_info["reason"] = "download_failed"
         file_info["error"] = download_result.get("error", "Unknown download error")
-        result["files_processed"].append(file_info)
+
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to download {template.main_file}")
         return file_info
@@ -111,7 +111,7 @@ def process_one(
         file_info["status"] = "failed"
         file_info["reason"] = "crop_failed"
         file_info["error"] = crop_result.get("error", "Unknown crop error")
-        result["files_processed"].append(file_info)
+
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to crop {template.main_file}")
         return file_info
@@ -215,6 +215,7 @@ def process_crops(
                 file_info["reason"] = "no_user_auth"
                 result["summary"]["skipped"] += 1
                 logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no user auth)")
+                result["files_processed"].append(file_info)
                 continue
 
             if cropped_filename:
