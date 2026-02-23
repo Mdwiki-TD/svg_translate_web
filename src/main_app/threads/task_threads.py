@@ -42,7 +42,7 @@ def _pop_cancel_event(task_id: str) -> threading.Event | None:
         return CANCEL_EVENTS.pop(task_id, None)
 
 
-def get_cancel_event(task_id: str, store=None) -> threading.Event | None:
+def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event | None:
     """
     Retrieve the cancellation Event for a given task.
 

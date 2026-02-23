@@ -116,11 +116,11 @@ def create_app() -> Flask:
         try:
             close_cached_db()
         except Exception:
-            pass  # Ensure cleanup continues even if one fails
+            logger.debug("Failed to close cached DB during teardown", exc_info=True)
         try:
             close_task_store()
         except Exception:
-            pass
+            logger.debug("Failed to close task store during teardown", exc_info=True)
 
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:

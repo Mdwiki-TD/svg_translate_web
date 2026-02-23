@@ -62,11 +62,11 @@ def _cleanup_connections(exception: Exception | None) -> None:
     try:
         close_cached_db()
     except Exception:
-        pass  # Ensure cleanup continues even if one fails
+        logger.debug("Failed to close cached DB during teardown", exc_info=True)
     try:
         close_task_store()
     except Exception:
-        pass
+        logger.debug("Failed to close task store during teardown", exc_info=True)
 ```
 
 **Reference**: Flask Skill Issue #1, [GitHub Issue #5804](https://github.com/pallets/flask/issues/5804)
