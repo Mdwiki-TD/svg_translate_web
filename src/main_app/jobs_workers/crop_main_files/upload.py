@@ -61,6 +61,7 @@ def upload_cropped_file(
             file_path=cropped_path,
             site=site,
             summary=summary,
+            new_file=True,
         )
 
         if upload_result.get("result") == "Success":
