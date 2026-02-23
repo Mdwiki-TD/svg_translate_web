@@ -169,19 +169,19 @@
                             {% for file in result_data.files_processed %}
                             <tr>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.original_file }}' target='_blank'
-                                        rel='noopener noreferrer'>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.original_file }}'
+                                        target='_blank' rel='noopener noreferrer'>
                                         {{ file.original_file }}
                                     </a>
                                 </td>
                                 <td>
                                     {% if file.status == 'uploaded' %}
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.cropped_file }}' target='_blank'
-                                        rel='noopener noreferrer'>
-                                        {{ file.cropped_file }}
+                                    <a href='https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}'
+                                        target='_blank' rel='noopener noreferrer'>
+                                        {{ file.cropped_filename }}
                                     </a>
                                     {% else %}
-                                    <code>{{ file.cropped_file }}</code>
+                                    <code>{{ file.cropped_filename }}</code>
                                     {% endif %}
                                 </td>
                                 <td>
