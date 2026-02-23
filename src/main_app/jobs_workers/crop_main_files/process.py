@@ -201,8 +201,13 @@ def process_crops(
                 session,
                 crop_box,
             )
+            status = file_info["status"]
+            if status == "failed":
+                logger.warning(f"Job {job_id}: Failed to process {template.main_file} (reason: {file_info['reason']})")
+                result["files_processed"].append(file_info)
+                continue
 
-            cropped_filename = file_info["cropped_file"]
+            cropped_filename = file_info.get("cropped_file")
 
             if not user:
                 # No user provided, skip upload
