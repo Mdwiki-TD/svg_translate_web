@@ -16,7 +16,6 @@ def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
     user: Any,
-    crop_box: tuple[float, float, float, float] | None = None,
 ) -> dict[str, Any]:
     """
     Upload cropped file to Commons with new name.
@@ -25,7 +24,6 @@ def upload_cropped_file(
         cropped_filename: The new filename for the cropped version (with File: prefix)
         cropped_path: Path to the cropped file
         user: User authentication data for OAuth uploads
-        crop_box: Optional crop box info for upload summary
 
     Returns:
         dict with keys: success (bool), cropped_filename (str|None), error (str|None)
@@ -51,8 +49,6 @@ def upload_cropped_file(
 
     # Prepare upload summary
     summary_parts = ["Cropped version of file"]
-    if crop_box:
-        summary_parts.append(f"crop box: {crop_box}")
     summary = " | ".join(summary_parts)
 
     try:

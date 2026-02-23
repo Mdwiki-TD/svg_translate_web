@@ -13,7 +13,6 @@ logger = logging.getLogger("svg_translate")
 
 def crop_svg_file(
     file_path: Path,
-    crop_box: tuple[float, float, float, float] | None = None,
 ) -> dict[str, Any]:
     """
     Crop SVG using viewBox manipulation.
@@ -25,7 +24,6 @@ def crop_svg_file(
 
     Args:
         file_path: Path to the SVG file to crop
-        crop_box: Optional tuple of (x, y, width, height) for cropping
 
     Returns:
         dict with keys: success (bool), output_path (Path|None), error (str|None)
@@ -41,7 +39,6 @@ def crop_svg_file(
         "success": False,  # Indicate failure for now since it's a placeholder
         "output_path": file_path,  # Return original path for now
         "error": None,
-        "placeholder": True,
     }
 
 

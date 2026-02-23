@@ -27,7 +27,6 @@ def upload_one(
     job_id,
     file_info,
     user,
-    crop_box,
     result,
 ):
 
@@ -40,7 +39,6 @@ def upload_one(
             cropped_filename,
             cropped_path,
             user,
-            crop_box,
         )
 
         if upload_result["success"]:
@@ -61,7 +59,6 @@ def process_one(
     result,
     temp_dir,
     session,
-    crop_box,
 ):
 
     file_info = {
@@ -105,7 +102,7 @@ def process_one(
     result["summary"]["processed"] += 1
 
     # Step 2: Crop the SVG (placeholder)
-    crop_result = crop_svg_file(downloaded_path, crop_box)
+    crop_result = crop_svg_file(downloaded_path)
 
     if not crop_result["success"]:
         file_info["status"] = "failed"
@@ -132,7 +129,6 @@ def process_crops(
     result: dict[str, Any],
     result_file: str,
     user: Any | None,
-    crop_box: tuple[float, float, float, float] | None = None,
     cancel_event: threading.Event | None = None,
 ) -> dict[str, Any]:
     """
@@ -143,7 +139,6 @@ def process_crops(
         result: The result dictionary to populate
         result_file: The result file name
         user: User authentication data for OAuth uploads
-        crop_box: Optional tuple of (x, y, width, height) for cropping
         cancel_event: Optional event to check for cancellation
 
     Returns:
@@ -199,7 +194,6 @@ def process_crops(
                 result,
                 temp_dir,
                 session,
-                crop_box,
             )
             status = file_info["status"]
             if status == "failed":
@@ -223,7 +217,6 @@ def process_crops(
                     job_id,
                     file_info,
                     user,
-                    crop_box,
                     result,
                 )
             result["files_processed"].append(file_info)
