@@ -370,9 +370,7 @@ def download_file_from_commons(
 
     # Create session if not provided
     if session is None:
-        session = create_commons_session(
-            settings.oauth.user_agent if settings.oauth else None
-        )
+        session = create_commons_session(settings.oauth.user_agent)
 
     # Use the core download function
     try:
