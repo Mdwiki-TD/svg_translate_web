@@ -30,7 +30,7 @@ def upload_one(
     result,
 ):
 
-    cropped_filename = file_info["cropped_file"]
+    cropped_filename = file_info["cropped_filename"]
     cropped_path = file_info["output_path"]
 
     if cropped_path:
@@ -67,7 +67,7 @@ def process_one(
         "original_file": template.main_file,
         "timestamp": datetime.now().isoformat(),
         "status": "pending",
-        "cropped_file": None,
+        "cropped_filename": None,
         "reason": None,
         "error": None,
     }
@@ -102,7 +102,10 @@ def process_one(
     result["summary"]["processed"] += 1
 
     # Step 2: Crop the SVG (placeholder)
-    crop_result = crop_svg_file(downloaded_path)
+    cropped_filename = generate_cropped_filename(template.main_file)
+    cropped_output_path = downloaded_path.parent / cropped_filename.removeprefix("File:")
+
+    crop_result = crop_svg_file(downloaded_path, cropped_output_path)
 
     if not crop_result["success"]:
         file_info["status"] = "failed"
@@ -113,13 +116,12 @@ def process_one(
         logger.warning(f"Job {job_id}: Failed to crop {template.main_file}")
         return file_info
 
-    file_info["cropped_path"] = crop_result["output_path"]
+    file_info["cropped_path"] = cropped_output_path
 
     result["summary"]["cropped"] += 1
 
     # Step 3: Generate cropped filename
-    cropped_filename = generate_cropped_filename(template.main_file)
-    file_info["cropped_file"] = cropped_filename
+    file_info["cropped_filename"] = cropped_filename
 
     return file_info
 
@@ -130,6 +132,7 @@ def process_crops(
     result_file: str,
     user: Any | None,
     cancel_event: threading.Event | None = None,
+    upload_files: bool = False,
 ) -> dict[str, Any]:
     """
     Process cropping for all templates.
@@ -201,7 +204,7 @@ def process_crops(
                 result["files_processed"].append(file_info)
                 continue
 
-            cropped_filename = file_info.get("cropped_file")
+            cropped_filename = file_info.get("cropped_filename")
 
             if not user:
                 # No user provided, skip upload
@@ -212,7 +215,7 @@ def process_crops(
                 result["files_processed"].append(file_info)
                 continue
 
-            if cropped_filename:
+            if upload_files:
                 upload_one(
                     job_id,
                     file_info,
