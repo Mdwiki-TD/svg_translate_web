@@ -23,27 +23,37 @@ def get_max_y_of_element(element) -> float:
     y_attrs = [element.get('y'), element.get('y1'), element.get('y2'), element.get('cy')]
     for y_val in y_attrs:
         if y_val:
-            try:
-                # Extract only numbers in case there are strings like "px" attached
-                y_val = float(re.search(r'[\d.-]+', y_val).group())
-
-                # If the element has a height (like rect), add it to Y
-                height_val = element.get('height')
-                h_num = float(re.search(r'[\d.]+', height_val).group()) if height_val else 0.0
-
-                # Update the maximum Y-axis value
-                max_y = max(max_y, y_val + h_num)
-            except (ValueError, TypeError, AttributeError):
+            # Extract only numbers in case there are strings like "px" attached
+            y_match = re.search(r'[\d.-]+', y_val)
+            if y_match is None:
                 continue
+            try:
+                y_val = float(y_match.group())
+            except (ValueError, TypeError):
+                continue
+
+            # If the element has a height (like rect), add it to Y
+            height_val = element.get('height')
+            h_num = 0.0
+            if height_val:
+                h_match = re.search(r'[\d.]+', height_val)
+                if h_match is not None:
+                    try:
+                        h_num = float(h_match.group())
+                    except (ValueError, TypeError):
+                        h_num = 0.0
+
+            # Update the maximum Y-axis value
+            max_y = max(max_y, y_val + h_num)
     return max_y
 
 
 def remove_footer_and_adjust_height(
-    input_path: str,
-    output_path: str,
+    input_path: Path,
+    output_path: Path,
     footer_id: str = 'footer',
     padding: float = 10.0
-):
+) -> bool:
     # 1. Register the SVG namespace to avoid modifying/corrupting the tags
     namespace = "http://www.w3.org/2000/svg"
     ET.register_namespace('', namespace)
@@ -55,18 +65,18 @@ def remove_footer_and_adjust_height(
 
     # 2. Find and remove the footer element
     footer_removed = False
-    for parent in root.iter():
+    for svg_element in root.iter():
         if footer_removed:
             break
 
-        children = list(parent)
+        children = list(svg_element)
         for index, child in enumerate(children):
             if child.get('id', '') == footer_id:
                 # Found the footer!
                 # Now remove the footer and ALL sibling elements that come after it
                 elements_to_remove = children[index:]
-                for element in elements_to_remove:
-                    parent.remove(element)
+                for svg_child_element in elements_to_remove:
+                    svg_element.remove(svg_child_element)
 
                 footer_removed = True
                 break
@@ -147,7 +157,7 @@ def crop_svg_file(
 
     return {
         "success": cropped,
-        "error": None
+        "error": None if cropped else "No footer element found in SVG"
     }
 
 
