@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import io
 import threading
 import zipfile
 from pathlib import Path
