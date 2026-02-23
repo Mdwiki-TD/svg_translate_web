@@ -24,7 +24,7 @@ def templates_db(mock_db_instance):
 
 
 def test_TemplateRecord():
-    rec = TemplateRecord(id=1, title="t", main_file="f.svg")
+    rec = TemplateRecord(id=1, title="t", main_file="f.svg", last_world_file=None)
     assert rec.id == 1
     assert rec.title == "t"
     assert rec.main_file == "f.svg"

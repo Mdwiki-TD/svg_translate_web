@@ -121,8 +121,8 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
 def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested_services):
     """Test that templates without main_file are skipped."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None),
+        TemplateRecord(id=1, title="Template:Test1", main_file=None, last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
 
@@ -142,7 +142,7 @@ def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested
 def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested_services):
     """Test that templates with main_file are processed."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
     mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
@@ -171,7 +171,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
 def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     """Test that failed fixes are handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
     mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
@@ -195,7 +195,7 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
 def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     """Test that exceptions are handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
     mock_fix_nested_services["repair_nested_svg_tags"].side_effect = Exception("Network error")
@@ -214,9 +214,9 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
 def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_services):
     """Test processing multiple templates with mixed results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg"),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None),
-        TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg"),
+        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
+        TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg", last_world_file=None),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
 

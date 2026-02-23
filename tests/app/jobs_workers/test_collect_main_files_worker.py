@@ -79,8 +79,8 @@ def test_collect_main_files_with_no_templates(mock_services):
 def test_collect_main_files_skips_templates_with_main_file(mock_services):
     """Test that templates with main_file are skipped."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg"),
-        TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg"),
+        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -99,7 +99,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services):
 def test_collect_main_files_updates_template_without_main_file(mock_services):
     """Test that templates without main_file are updated."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file=None),
+        TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|test.svg}}"
@@ -127,7 +127,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
 def test_collect_main_files_handles_missing_wikitext(mock_services):
     """Test that missing wikitext is handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file=None),
+        TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = None
@@ -148,7 +148,7 @@ def test_collect_main_files_handles_missing_wikitext(mock_services):
 def test_collect_main_files_handles_missing_main_title(mock_services):
     """Test that missing main title is handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file=None),
+        TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = "some wikitext without SVGLanguages"
@@ -170,7 +170,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
 def test_collect_main_files_handles_exception(mock_services):
     """Test that exceptions are handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file=None),
+        TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].side_effect = Exception("Network error")
@@ -188,9 +188,9 @@ def test_collect_main_files_handles_exception(mock_services):
 def test_collect_main_files_processes_multiple_templates(mock_services):
     """Test processing multiple templates with mixed results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file="already.svg"),
-        TemplateRecord(id=3, title="Template:Test3", main_file=None),
+        TemplateRecord(id=1, title="Template:Test1", main_file=None, last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file="already.svg", last_world_file=None),
+        TemplateRecord(id=3, title="Template:Test3", main_file=None, last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
