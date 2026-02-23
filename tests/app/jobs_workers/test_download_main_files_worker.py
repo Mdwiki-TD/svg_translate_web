@@ -183,8 +183,8 @@ def test_download_main_files_with_no_templates(mock_services):
 def test_download_main_files_skips_templates_without_main_file(mock_services):
     """Test that templates without main_file are skipped."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file=""),
+        TemplateRecord(id=1, title="Template:Test1", main_file=None, last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file="", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -198,7 +198,7 @@ def test_download_main_files_skips_templates_without_main_file(mock_services):
 def test_download_main_files_downloads_template_with_main_file(mock_services, tmp_path):
     """Test that templates with main_file are downloaded."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -226,7 +226,7 @@ def test_download_main_files_downloads_template_with_main_file(mock_services, tm
 def test_download_main_files_handles_download_failure(mock_services, tmp_path):
     """Test that download failures are handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -250,7 +250,7 @@ def test_download_main_files_handles_download_failure(mock_services, tmp_path):
 def test_download_main_files_handles_exception(mock_services, tmp_path):
     """Test that exceptions are handled gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -274,9 +274,9 @@ def test_download_main_files_handles_exception(mock_services, tmp_path):
 def test_download_main_files_processes_multiple_templates(mock_services, tmp_path):
     """Test processing multiple templates with mixed results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg"),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None),
-        TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg"),
+        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
+        TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -309,7 +309,7 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
 
 def test_download_main_files_respects_cancellation(mock_services, tmp_path):
     """Test that download respects cancellation event."""
-    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg") for i in range(1, 21)]
+    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None) for i in range(1, 21)]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
@@ -328,7 +328,7 @@ def test_download_main_files_respects_cancellation(mock_services, tmp_path):
 def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_path):
     """Test that files with 'File:' prefix are handled correctly."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -355,7 +355,7 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
 def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
     """Test that existing files are counted."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -647,7 +647,7 @@ def test_create_main_files_zip_ignores_subdirectories(tmp_path, monkeypatch):
 def test_download_main_files_saves_progress_periodically(mock_services, tmp_path):
     """Test that progress is saved periodically during downloads."""
     # Create 15 templates to ensure periodic saves
-    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg") for i in range(1, 16)]
+    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None) for i in range(1, 16)]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
@@ -711,7 +711,7 @@ def test_download_file_from_commons_http_error_404(tmp_path):
 def test_download_main_files_creates_output_directory(mock_services, tmp_path):
     """Test that output directory is created if it doesn't exist."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -738,7 +738,7 @@ def test_download_main_files_creates_output_directory(mock_services, tmp_path):
 def test_download_main_files_handles_job_deletion_during_final_status_update(mock_services, tmp_path):
     """Test that final status update handles job deletion gracefully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
@@ -789,7 +789,7 @@ def test_download_file_from_commons_with_special_characters(tmp_path):
 def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
     """Test that cancelled status is preserved in final update."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -823,7 +823,7 @@ def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
 def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path):
     """Test that zip file is generated automatically when job completes successfully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)

@@ -19,6 +19,7 @@ class TemplateRecord:
     id: int
     title: str
     main_file: str | None
+    last_world_file: str | None
     created_at: Any | None = None
     updated_at: Any | None = None
 
@@ -44,6 +45,7 @@ class TemplatesDB:
         - `id`: auto-incrementing primary key
         - `title`: unique non-null string (up to 255 chars)
         - `main_file`: nullable string (up to 255 chars)
+        - `last_world_file`: nullable string (up to 255 chars)
         - `created_at`: timestamp defaulting to the current time
         - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
         """
@@ -53,6 +55,7 @@ class TemplatesDB:
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 title VARCHAR(255) NOT NULL UNIQUE,
                 main_file VARCHAR(255) NULL,
+                last_world_file VARCHAR(255) NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -63,7 +66,8 @@ class TemplatesDB:
         return TemplateRecord(
             id=int(row["id"]),
             title=row["title"],
-            main_file=row.get("main_file"),
+            main_file=row.get("main_file") if row.get("main_file") is not None else "",
+            last_world_file=row.get("last_world_file") if row.get("last_world_file") is not None else "",
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at"),
         )
@@ -71,7 +75,7 @@ class TemplatesDB:
     def _fetch_by_id(self, template_id: int) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, created_at, updated_at
+            SELECT id, title, main_file, last_world_file, created_at, updated_at
             FROM templates
             WHERE id = %s
             """,
@@ -84,7 +88,7 @@ class TemplatesDB:
     def _fetch_by_title(self, title: str) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, created_at, updated_at
+            SELECT id, title, main_file, last_world_file, created_at, updated_at
             FROM templates
             WHERE title = %s
             """,
@@ -97,14 +101,14 @@ class TemplatesDB:
     def list(self) -> List[TemplateRecord]:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, created_at, updated_at
+            SELECT id, title, main_file, last_world_file, created_at, updated_at
             FROM templates
             ORDER BY id ASC
             """
         )
         return [self._row_to_record(row) for row in rows]
 
-    def add(self, title: str, main_file: str) -> TemplateRecord:
+    def add(self, title: str, main_file: str, last_world_file: str=None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
         if not title:
@@ -114,9 +118,9 @@ class TemplatesDB:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 """
-                INSERT INTO templates (title, main_file) VALUES (%s, %s)
+                INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)
                 """,
-                (title, main_file),
+                (title, main_file, last_world_file),
             )
         except pymysql.err.IntegrityError:
             # This assumes a UNIQUE constraint on the title column
@@ -124,11 +128,11 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
-    def update(self, template_id: int, title: str, main_file: str) -> TemplateRecord:
+    def update(self, template_id: int, title: str, main_file: str, last_world_file: str = None) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
         self.db.execute_query_safe(
-            "UPDATE templates SET title = %s, main_file = %s WHERE id = %s",
-            (title, main_file, template_id),
+            "UPDATE templates SET title = %s, main_file = %s , last_world_file = %s WHERE id = %s",
+            (title, main_file, last_world_file, template_id),
         )
         return self._fetch_by_id(template_id)
 
@@ -140,7 +144,7 @@ class TemplatesDB:
         )
         return record
 
-    def add_or_update(self, title: str, main_file: str) -> TemplateRecord:
+    def add_or_update(self, title: str, main_file: str, last_world_file: str = None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
 
@@ -149,12 +153,13 @@ class TemplatesDB:
 
         self.db.execute_query_safe(
             """
-            INSERT INTO templates (title, main_file) VALUES (%s, %s)
+            INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 title = COALESCE(VALUES(title), title),
-                main_file = COALESCE(VALUES(main_file), main_file)
+                main_file = COALESCE(VALUES(main_file), main_file),
+                last_world_file = COALESCE(VALUES(last_world_file), last_world_file)
             """,
-            (title, main_file),
+            (title, main_file, last_world_file),
         )
         return self._fetch_by_title(title)
 

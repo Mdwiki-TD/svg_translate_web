@@ -24,7 +24,7 @@ def templates_db(mock_db_instance):
 
 
 def test_TemplateRecord():
-    rec = TemplateRecord(id=1, title="t", main_file="f.svg")
+    rec = TemplateRecord(id=1, title="t", main_file="f.svg", last_world_file=None)
     assert rec.id == 1
     assert rec.title == "t"
     assert rec.main_file == "f.svg"
@@ -75,7 +75,8 @@ def test_add_success(templates_db, mock_db_instance):
     rec = templates_db.add("new", "f.svg")
 
     mock_db_instance.execute_query.assert_called_with(
-        "\n                INSERT INTO templates (title, main_file) VALUES (%s, %s)\n                ", ("new", "f.svg")
+        "\n                INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)\n                ",
+        ("new", "f.svg", None),
     )
     assert rec.title == "new"
 
@@ -100,7 +101,8 @@ def test_update_success(templates_db, mock_db_instance):
     rec = templates_db.update(1, "new", "new.svg")
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        "UPDATE templates SET title = %s, main_file = %s WHERE id = %s", ("new", "new.svg", 1)
+        "UPDATE templates SET title = %s, main_file = %s , last_world_file = %s WHERE id = %s",
+        ("new", "new.svg", None, 1),
     )
     assert rec.title == "new"
 
@@ -143,13 +145,13 @@ def test_row_to_record_with_all_fields(templates_db):
 
 def test_row_to_record_with_none_main_file(templates_db):
     """Test _row_to_record with None main_file."""
-    row = {"id": 1, "title": "Template Without File", "main_file": None, "created_at": None, "updated_at": None}
+    row = {"id": 1, "title": "Template Without File", "main_file": None, "last_world_file": None, "created_at": None, "updated_at": None}
 
     record = templates_db._row_to_record(row)
 
     assert record.id == 1
     assert record.title == "Template Without File"
-    assert record.main_file is None
+    assert record.main_file == ""
 
 
 def test_fetch_by_title_not_found(templates_db, mock_db_instance):

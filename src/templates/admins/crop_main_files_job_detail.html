@@ -159,6 +159,7 @@
                     <table class="table table-sm table-striped">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>Original File</th>
                                 <th>Cropped File</th>
                                 <th>Status</th>
@@ -168,6 +169,7 @@
                         <tbody>
                             {% for file in result_data.files_processed %}
                             <tr>
+                                <td>{{ loop.index }}</td>
                                 <td>
                                     <a href='https://commons.wikimedia.org/wiki/{{ file.original_file }}'
                                         target='_blank' rel='noopener noreferrer'>

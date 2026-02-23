@@ -60,8 +60,8 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
 def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
     """Test that collect_main_files_worker stops when cancelled."""
     templates = [
-        TemplateRecord(id=1, title="T1", main_file=None),
-        TemplateRecord(id=2, title="T2", main_file=None),
+        TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
+        TemplateRecord(id=2, title="T2", main_file=None, last_world_file=None),
     ]
     mock_common_services["list_templates"].return_value = templates
 
@@ -97,8 +97,8 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
 def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
     """Test that fix_nested_main_files_worker stops when cancelled."""
     templates = [
-        TemplateRecord(id=1, title="T1", main_file="f1.svg"),
-        TemplateRecord(id=2, title="T2", main_file="f2.svg"),
+        TemplateRecord(id=1, title="T1", main_file="f1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="T2", main_file="f2.svg", last_world_file=None),
     ]
     mock_common_services["list_templates"].return_value = templates
 

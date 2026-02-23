@@ -26,6 +26,7 @@ class FakeDatabase:
             "id": row["id"],
             "title": row["title"],
             "main_file": row.get("main_file"),
+            "last_world_file": row.get("last_world_file"),
             "created_at": row.get("created_at"),
             "updated_at": row.get("updated_at"),
         }
@@ -41,7 +42,7 @@ class FakeDatabase:
             return 0
 
         if normalized.startswith("insert into templates") and "on duplicate key" not in normalized:
-            title, main_file = params
+            title, main_file, last_world_file = params
             if any(row["title"] == title for row in self._rows):
                 raise pymysql.err.IntegrityError(1062, "Duplicate entry")
 
@@ -49,6 +50,7 @@ class FakeDatabase:
                 "id": self._next_id,
                 "title": title,
                 "main_file": main_file,
+                "last_world_file": last_world_file,
                 "created_at": None,
                 "updated_at": None,
             }
@@ -57,16 +59,18 @@ class FakeDatabase:
             return 1
 
         if "on duplicate key update" in normalized:
-            title, main_file = params
+            title, main_file, last_world_file = params
             for row in self._rows:
                 if row["title"] == title:
                     row["main_file"] = main_file
+                    row["last_world_file"] = last_world_file
                     return 1
             # Not found, insert new
             row = {
                 "id": self._next_id,
                 "title": title,
                 "main_file": main_file,
+                "last_world_file": last_world_file,
                 "created_at": None,
                 "updated_at": None,
             }
@@ -75,11 +79,12 @@ class FakeDatabase:
             return 1
 
         if normalized.startswith("update templates"):
-            title, main_file, template_id = params
+            title, main_file, last_world_file, template_id = params
             for row in self._rows:
                 if row["id"] == template_id:
                     row["title"] = title
                     row["main_file"] = main_file
+                    row["last_world_file"] = last_world_file
                     return 1
             return 0
 
