@@ -5,6 +5,7 @@ import time
 
 import pytest
 
+from src.main_app import create_app
 from src.main_app.threads import web_run_task
 from src.main_app.threads.task_threads import (
     get_cancel_event,
@@ -26,8 +27,12 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
     # Patch the run_task imported in task_threads
     monkeypatch.setattr("src.main_app.threads.task_threads.run_task", fake_run_task)
 
+    # Create app and push context for thread launch
+    app = create_app()
     task_id = "t-abc123"
-    launch_task_thread(task_id, "Title", args=SimpleNamespace(), user_payload={})
+
+    with app.app_context():
+        launch_task_thread(task_id, "Title", args=SimpleNamespace(), user_payload={})
 
     # ensure registered
     assert started.wait(timeout=0.2), "Thread did not start in time"

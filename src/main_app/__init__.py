@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Tuple
 
 from flask import Flask, flash, render_template
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import (
     bp_admin,
@@ -75,7 +75,16 @@ def create_app() -> Flask:
         SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
         SESSION_COOKIE_SECURE=settings.cookie.secure,
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
+        # Flask 3.1+ security configurations
+        MAX_CONTENT_LENGTH=settings.security.max_content_length,
+        MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
+        MAX_FORM_PARTS=settings.security.max_form_parts,
+        SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
     )
+
+    # Configure CSRF token lifetime
+    if settings.csrf_time_limit is not None:
+        app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
 
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
@@ -102,8 +111,30 @@ def create_app() -> Flask:
 
     @app.teardown_appcontext
     def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
-        close_cached_db()
-        close_task_store()
+        # Idempotent teardown - safe for Flask 3.1.2+ stream_with_context regression
+        # See: https://github.com/pallets/flask/issues/5804
+        try:
+            close_cached_db()
+        except Exception:
+            pass  # Ensure cleanup continues even if one fails
+        try:
+            close_task_store()
+        except Exception:
+            pass
+
+    @app.errorhandler(400)
+    def bad_request(e: Exception) -> Tuple[str, int]:
+        """Handle 400 errors"""
+        logger.error("Bad request: %s", e)
+        flash("Invalid request", "warning")
+        return render_template("index.html", title="Bad Request"), 400
+
+    @app.errorhandler(403)
+    def forbidden(e: Exception) -> Tuple[str, int]:
+        """Handle 403 errors"""
+        logger.error("Forbidden access: %s", e)
+        flash("Access denied", "danger")
+        return render_template("index.html", title="Access Denied"), 403
 
     @app.errorhandler(404)
     def page_not_found(e: Exception) -> Tuple[str, int]:
@@ -112,11 +143,25 @@ def create_app() -> Flask:
         flash("Page not found", "warning")
         return render_template("index.html", title="Page Not Found"), 404
 
+    @app.errorhandler(405)
+    def method_not_allowed(e: Exception) -> Tuple[str, int]:
+        """Handle 405 errors"""
+        logger.error("Method not allowed: %s", e)
+        flash("Method not allowed", "warning")
+        return render_template("index.html", title="Method Not Allowed"), 405
+
     @app.errorhandler(500)
     def internal_server_error(e: Exception) -> Tuple[str, int]:
         """Handle 500 errors"""
         logger.error("Internal Server Error: %s", e)
         flash("Internal Server Error", "danger")
         return render_template("index.html", title="Internal Server Error"), 500
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e: CSRFError) -> Tuple[str, int]:
+        """Handle CSRF token errors"""
+        logger.error("CSRF error: %s", e)
+        flash("Session expired or invalid. Please try again.", "warning")
+        return render_template("index.html", title="Session Expired"), 400
 
     return app

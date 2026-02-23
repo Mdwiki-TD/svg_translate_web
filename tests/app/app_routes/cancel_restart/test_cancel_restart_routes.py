@@ -85,7 +85,10 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         "src.main_app.app_routes.cancel_restart.routes.current_user", lambda: types.SimpleNamespace(username="user")
     )
     monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.active_coordinators", lambda: ["user"])
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.get_cancel_event", lambda task_id: DummyEvent())
+    monkeypatch.setattr(
+        "src.main_app.app_routes.cancel_restart.routes.get_cancel_event",
+        lambda task_id, store=None: DummyEvent()
+    )
 
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("task")

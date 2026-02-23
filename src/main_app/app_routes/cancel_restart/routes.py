@@ -97,7 +97,7 @@ def cancel(task_id: str):
         flash("You don't own this task", "danger")
         return redirect(url_for("tasks.task", task_id=task_id))
 
-    cancel_event = get_cancel_event(task_id)
+    cancel_event = get_cancel_event(task_id, store=store)
     if cancel_event:
         cancel_event.set()
 

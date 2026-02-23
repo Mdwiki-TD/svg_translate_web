@@ -53,6 +53,16 @@ class DownloadConfig:
 
 
 @dataclass(frozen=True)
+class SecurityConfig:
+    """Security configuration for Flask 3.1+ features."""
+
+    max_content_length: int  # Maximum request size in bytes
+    max_form_memory_size: int  # Maximum form data in memory in bytes
+    max_form_parts: int  # Maximum number of form fields
+    secret_key_fallbacks: tuple[str, ...]  # Fallback secret keys for rotation
+
+
+@dataclass(frozen=True)
 class Settings:
     is_localhost: callable
     database_data: DbConfig
@@ -65,6 +75,8 @@ class Settings:
     paths: Paths
     disable_uploads: str
     download: DownloadConfig
+    security: SecurityConfig
+    csrf_time_limit: Optional[int]  # None means never expire
 
 
 def _load_db_data_new() -> DbConfig:
@@ -213,6 +225,12 @@ def get_settings() -> Settings:
         samesite=session_cookie_samesite,
     )
 
+    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
+    # Set to 0 or None to disable expiration (not recommended for production).
+    csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
+    if csrf_time_limit <= 0:
+        csrf_time_limit = None  # Never expire
+
     if oauth_config is None:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
@@ -221,6 +239,26 @@ def get_settings() -> Settings:
     # Load download configuration
     # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
     dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
+
+    # Load security configuration (Flask 3.1+ features)
+    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
+    max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
+    # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
+    max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
+    # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
+    max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
+    # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
+    secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
+    secret_key_fallbacks = tuple(
+        key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip()
+    )
+
+    security = SecurityConfig(
+        max_content_length=max_content_length,
+        max_form_memory_size=max_form_memory_size,
+        max_form_parts=max_form_parts,
+        secret_key_fallbacks=secret_key_fallbacks,
+    )
 
     return Settings(
         is_localhost=is_localhost,
@@ -234,6 +272,8 @@ def get_settings() -> Settings:
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
         download=DownloadConfig(dev_limit=dev_download_limit),
+        security=security,
+        csrf_time_limit=csrf_time_limit,
     )
 
 
