@@ -199,7 +199,6 @@ def process_crops(
                 result,
                 temp_dir,
                 session,
-                user,
                 crop_box,
             )
 
