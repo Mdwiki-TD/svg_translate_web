@@ -9,6 +9,7 @@ from src.main_app.config import (
     DownloadConfig,
     OAuthConfig,
     Paths,
+    SecurityConfig,
     Settings,
     _env_bool,
     _env_int,
@@ -89,6 +90,12 @@ def test_Settings():
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files")
     download_config = DownloadConfig(dev_limit=0)
+    security_config = SecurityConfig(
+        max_content_length=100 * 1024 * 1024,
+        max_form_memory_size=16 * 1024 * 1024,
+        max_form_parts=1000,
+        secret_key_fallbacks=(),
+    )
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
@@ -102,6 +109,8 @@ def test_Settings():
         paths=paths,
         disable_uploads="",
         download=download_config,
+        security=security_config,
+        csrf_time_limit=3600,
     )
 
     assert settings.database_data.db_host == "localhost"
@@ -109,6 +118,8 @@ def test_Settings():
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
     assert settings.download.dev_limit == 0
+    assert settings.security.max_content_length == 100 * 1024 * 1024
+    assert settings.csrf_time_limit == 3600
 
 
 @patch.dict(

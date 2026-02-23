@@ -211,7 +211,7 @@ WTF_CSRF_TIME_LIMIT = None  # Never expire (less secure)
 # Option 2: Exclude forms from cache
 @app.after_request
 def add_cache_headers(response):
-    if request.method == 'GET' and 'form' in request.endpoint:
+    if request.method == 'GET' and request.endpoint and 'form' in request.endpoint:
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
@@ -490,7 +490,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    from datetime import datetime, timezone
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -504,7 +505,7 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 ```
 
 ---

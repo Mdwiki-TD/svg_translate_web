@@ -7,6 +7,7 @@ download functions used across the application.
 
 from __future__ import annotations
 
+import functools
 import logging
 from urllib.parse import quote
 import requests
@@ -16,6 +17,7 @@ logger = logging.getLogger("svg_translate")
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
 
+@functools.lru_cache(maxsize=1)
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
     """Create a pre-configured requests Session for Commons API calls.
 
@@ -41,8 +43,8 @@ def download_commons_file_core(
     """Download a file from Wikimedia Commons and return raw content.
 
     This is the lowest-level download function that handles the actual HTTP
-    request to Commons. It performs no file I/O, validation, or error handling.
-    Callers are responsible for catching exceptions and handling failures.
+    request to Commons. It performs no file I/O or application-level validation;
+    network and HTTP errors are raised as exceptions for callers to handle.
 
     Args:
         filename: Clean filename without "File:" prefix. Spaces will be
