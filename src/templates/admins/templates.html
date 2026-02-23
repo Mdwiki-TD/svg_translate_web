@@ -23,16 +23,22 @@
                 <form method="post" action="{{ url_for('admin.add_template') }}" class="row g-2 align-items-end">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="row">
-                        <div class="col-md-5 col-sm-12">
+                        <div class="col-md-4 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text" id="title">Template name</span>
                                 <input type="text" class="form-control" id="title" name="title" required>
                             </div>
                         </div>
-                        <div class="col-md-5 col-sm-12">
+                        <div class="col-md-3 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text" id="main_file">Main File</span>
                                 <input type="text" class="form-control" id="main_file" name="main_file">
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-12">
+                            <div class="input-group">
+                                <span class="input-group-text" id="last_world_file">Last World File</span>
+                                <input type="text" class="form-control" id="last_world_file" name="last_world_file">
                             </div>
                         </div>
                         <div class="col-md-2 col-sm-12">
@@ -52,6 +58,7 @@
                         <th scope="col" style="width: 5%">ID</th>
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
+                        <th scope="col" class="text-center">Last World File</th>
                         <th scope="col" class="text-center" style="width: 10%">Save</th>
                         <th scope="col" class="text-center" style="width: 10%">Delete</th>
                     </tr>
@@ -72,6 +79,10 @@
                             <td>
                                 <input type="text" name="main_file" id="main_file" class="form-control"
                                     value="{{ template.main_file }}">
+                            </td>
+                            <td>
+                                <input type="text" name="last_world_file" id="last_world_file" class="form-control"
+                                    value="{{ template.last_world_file }}">
                             </td>
                             <td>
                                 <button type="submit" class="btn btn-outline-primary btn-sm">

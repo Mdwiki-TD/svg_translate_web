@@ -52,9 +52,6 @@ def temps_main_files(data: dict) -> dict:
     # ---
     temp_list = {x.title: x.main_file for x in get_templates_db().list() if x.main_file}
     # ---
-    # temp_file = Path("I:/mdwiki/pybot/md_core/commons_svg/svg_languages.json")
-    # temp_data = json.loads(temp_file.read_text(encoding="utf-8")) if temp_file.exists() else {}
-    # ---
     for title in list(data):
         # ---
         data[title].setdefault("main_file", "")
@@ -62,23 +59,24 @@ def temps_main_files(data: dict) -> dict:
         main_file = data[title]["main_file"]
         # ---
         if not main_file:
+            # ---
+            # TODO: this should be removed because we now have collect_main_files job to do this work and we should not be doing this on the fly in the route.
+            # ---
             main_file = temp_list.get(title, "")
-        # ---
-        title_dir = data[title].get("title_dir", "")
-        # ---
-        if not main_file and title_dir:
-            main_data = get_main_data(title_dir) or {}
-            main_file = main_data.get("main_title")
-        # ---
-        # if not main_file: main_file = temp_data.get(title, "")
-        # ---
-        value = ""
-        # ---
-        if main_file:
-            value = f"File:{main_file}" if not main_file.lower().startswith("file:") else main_file
-            data[title]["main_file"] = value
-        # ---
-        add_or_update_template(title, value)
+            # ---
+            title_dir = data[title].get("title_dir", "")
+            # ---
+            if not main_file and title_dir:
+                main_data = get_main_data(title_dir) or {}
+                main_file = main_data.get("main_title")
+            # ---
+            value = ""
+            # ---
+            if main_file:
+                value = f"File:{main_file}" if not main_file.lower().startswith("file:") else main_file
+                data[title]["main_file"] = value
+            # ---
+            add_or_update_template(title, value)
     # ---
     return data
 
@@ -88,7 +86,9 @@ def main():
     templates = get_category_members("Category:Pages using gadget owidslider")
 
     templates = [
-        x for x in templates if x.startswith("Template:") and x.lower() not in ["template:owidslider", "template:owid"]
+        x for x in templates
+        if x.startswith("Template:")
+        and x.lower() not in ["template:owidslider", "template:owid"]
     ]
 
     data = {temp: temp_data(temp) for temp in templates}
