@@ -63,6 +63,8 @@ def remove_footer_and_adjust_height(
     tree = ET.parse(input_path)
     root = tree.getroot()
 
+    old_height = root.get('height', '?')
+
     # 2. Find and remove the footer element
     footer_removed = False
     for svg_element in root.iter():
@@ -101,10 +103,15 @@ def remove_footer_and_adjust_height(
     # Add a bottom margin (padding) to keep it visually appealing
     # new_height = math.ceil(content_max_y + padding)
     new_height = content_max_y + padding
+
+    if content_max_y == 0.0:
+        logger.warning("No vertical extent found in remaining content; falling back to original height.")
+        # Optionally fall back to the original height or skip modification
+        return False
+
     logger.info(f"📏 New height: {new_height:.2f} (padding={padding})")
 
     # 4. Update the viewBox and height attributes in the root <svg> tag
-    old_height = root.get('height', '?')
     root.set('height', f"{new_height:.2f}")
     old_viewbox = root.get('viewBox', '')
     if old_viewbox:
