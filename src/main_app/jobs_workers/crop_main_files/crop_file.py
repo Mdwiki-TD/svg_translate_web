@@ -38,7 +38,7 @@ def crop_svg_file(
     logger.info(f"PLACEHOLDER: Would crop SVG file: {file_path.name}")
 
     return {
-        "success": True,
+        "success": False,  # Indicate failure for now since it's a placeholder
         "output_path": file_path,  # Return original path for now
         "error": None,
         "placeholder": True,

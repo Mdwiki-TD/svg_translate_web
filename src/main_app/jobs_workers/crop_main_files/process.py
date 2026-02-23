@@ -23,6 +23,110 @@ from .utils import generate_cropped_filename
 logger = logging.getLogger("svg_translate")
 
 
+def upload_one(
+    job_id,
+    file_info,
+    user,
+    crop_box,
+    result,
+):
+
+    cropped_filename = file_info["cropped_file"]
+    cropped_path = file_info["output_path"]
+
+    if cropped_path:
+        # Step 4: Upload cropped file to Commons
+        upload_result = upload_cropped_file(
+            cropped_filename,
+            cropped_path,
+            user,
+            crop_box,
+        )
+
+        if upload_result["success"]:
+            file_info["status"] = "uploaded"
+            result["summary"]["uploaded"] += 1
+            logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
+        else:
+            file_info["status"] = "failed"
+            file_info["reason"] = "upload_failed"
+            file_info["error"] = upload_result.get("error", "Unknown upload error")
+            result["summary"]["failed"] += 1
+            logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
+
+
+def process_one(
+    job_id,
+    template,
+    result,
+    temp_dir,
+    session,
+    crop_box,
+):
+
+    file_info = {
+        "template_id": template.id,
+        "template_title": template.title,
+        "original_file": template.main_file,
+        "timestamp": datetime.now().isoformat(),
+        "status": "pending",
+        "cropped_file": None,
+        "reason": None,
+        "error": None,
+    }
+
+    # Step 1: Download the original file
+    try:
+        download_result = download_file_for_cropping(
+            template.main_file,
+            temp_dir,
+            session=session,
+        )
+
+    except Exception as e:
+        file_info["status"] = "failed"
+        file_info["reason"] = "exception"
+        file_info["error"] = f"{type(e).__name__}: {str(e)}"
+        result["files_processed"].append(file_info)
+        result["summary"]["failed"] += 1
+        logger.exception(f"Job {job_id}: Exception processing {template.main_file}")
+        return file_info
+
+    if not download_result["success"]:
+        file_info["status"] = "failed"
+        file_info["reason"] = "download_failed"
+        file_info["error"] = download_result.get("error", "Unknown download error")
+        result["files_processed"].append(file_info)
+        result["summary"]["failed"] += 1
+        logger.warning(f"Job {job_id}: Failed to download {template.main_file}")
+        return file_info
+
+    downloaded_path = download_result["path"]
+    result["summary"]["processed"] += 1
+
+    # Step 2: Crop the SVG (placeholder)
+    crop_result = crop_svg_file(downloaded_path, crop_box)
+
+    if not crop_result["success"]:
+        file_info["status"] = "failed"
+        file_info["reason"] = "crop_failed"
+        file_info["error"] = crop_result.get("error", "Unknown crop error")
+        result["files_processed"].append(file_info)
+        result["summary"]["failed"] += 1
+        logger.warning(f"Job {job_id}: Failed to crop {template.main_file}")
+        return file_info
+
+    file_info["cropped_path"] = crop_result["output_path"]
+
+    result["summary"]["cropped"] += 1
+
+    # Step 3: Generate cropped filename
+    cropped_filename = generate_cropped_filename(template.main_file)
+    file_info["cropped_file"] = cropped_filename
+
+    return file_info
+
+
 def process_crops(
     job_id: int,
     result: dict[str, Any],
@@ -89,104 +193,34 @@ def process_crops(
 
             logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
-            file_info = {
-                "template_id": template.id,
-                "template_title": template.title,
-                "original_file": template.main_file,
-                "timestamp": datetime.now().isoformat(),
-                "status": "pending",
-                "cropped_file": None,
-                "reason": None,
-                "error": None,
-            }
+            file_info = process_one(
+                job_id,
+                template,
+                result,
+                temp_dir,
+                session,
+                user,
+                crop_box,
+            )
 
-            try:
-                # Step 1: Download the original file
-                download_result = download_file_for_cropping(
-                    template.main_file,
-                    temp_dir,
-                    session=session,
-                )
+            cropped_filename = file_info["cropped_file"]
 
-            except Exception as e:
-                file_info["status"] = "failed"
-                file_info["reason"] = "exception"
-                file_info["error"] = f"{type(e).__name__}: {str(e)}"
-                result["files_processed"].append(file_info)
-                result["summary"]["failed"] += 1
-                logger.exception(f"Job {job_id}: Exception processing {template.main_file}")
-
-            if not download_result["success"]:
-                file_info["status"] = "failed"
-                file_info["reason"] = "download_failed"
-                file_info["error"] = download_result.get("error", "Unknown download error")
-                result["files_processed"].append(file_info)
-                result["summary"]["failed"] += 1
-                logger.warning(f"Job {job_id}: Failed to download {template.main_file}")
-                continue
-
-            downloaded_path = download_result["path"]
-            result["summary"]["processed"] += 1
-
-            # Check for cancellation
-            if cancel_event and cancel_event.is_set():
-                logger.info(f"Job {job_id}: Cancellation detected after download.")
-                result["status"] = "cancelled"
-                result["cancelled_at"] = datetime.now().isoformat()
-                break
-
-            # Step 2: Crop the SVG (placeholder)
-            crop_result = crop_svg_file(downloaded_path, crop_box)
-
-            if not crop_result["success"]:
-                file_info["status"] = "failed"
-                file_info["reason"] = "crop_failed"
-                file_info["error"] = crop_result.get("error", "Unknown crop error")
-                result["files_processed"].append(file_info)
-                result["summary"]["failed"] += 1
-                logger.warning(f"Job {job_id}: Failed to crop {template.main_file}")
-                continue
-
-            cropped_path = crop_result["output_path"]
-            result["summary"]["cropped"] += 1
-
-            # Check for cancellation
-            if cancel_event and cancel_event.is_set():
-                logger.info(f"Job {job_id}: Cancellation detected after crop.")
-                result["status"] = "cancelled"
-                result["cancelled_at"] = datetime.now().isoformat()
-                break
-
-            # Step 3: Generate cropped filename
-            cropped_filename = generate_cropped_filename(template.main_file)
-            file_info["cropped_file"] = cropped_filename
-
-            # Step 4: Upload cropped file to Commons
-            if user:
-                upload_result = upload_cropped_file(
-                    cropped_filename,
-                    cropped_path,
-                    user,
-                    crop_box,
-                )
-
-                if upload_result["success"]:
-                    file_info["status"] = "uploaded"
-                    result["summary"]["uploaded"] += 1
-                    logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
-                else:
-                    file_info["status"] = "failed"
-                    file_info["reason"] = "upload_failed"
-                    file_info["error"] = upload_result.get("error", "Unknown upload error")
-                    result["summary"]["failed"] += 1
-                    logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
-            else:
+            if not user:
                 # No user provided, skip upload
                 file_info["status"] = "skipped"
                 file_info["reason"] = "no_user_auth"
                 result["summary"]["skipped"] += 1
                 logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no user auth)")
+                continue
 
+            if cropped_filename:
+                upload_one(
+                    job_id,
+                    file_info,
+                    user,
+                    crop_box,
+                    result,
+                )
             result["files_processed"].append(file_info)
 
     # Mark as completed if not cancelled or failed
