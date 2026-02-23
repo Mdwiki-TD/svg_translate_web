@@ -20,6 +20,7 @@ from ..app_routes.fix_nested.fix_utils import (
     verify_fix,
 )
 from . import jobs_service
+from .utils import generate_result_file_name
 
 logger = logging.getLogger("svg_translate")
 
@@ -315,7 +316,7 @@ def fix_nested_main_files_for_templates(
             "no_main_file": 0,
         },
     }
-    result_file = jobs_service.generate_result_file_name(job_id, job_type)
+    result_file = generate_result_file_name(job_id, job_type)
     try:
         result = process_templates(job_id, user, result, result_file, cancel_event=cancel_event)
 

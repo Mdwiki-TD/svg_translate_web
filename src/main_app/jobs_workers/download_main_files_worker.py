@@ -18,6 +18,7 @@ from .. import template_service
 from ..config import settings
 from ..utils.commons_client import download_commons_file_core, create_commons_session
 from . import jobs_service
+from .utils import generate_result_file_name
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -272,7 +273,7 @@ def download_main_files_for_templates(
         },
     }
 
-    result_file = jobs_service.generate_result_file_name(job_id, job_type)
+    result_file = generate_result_file_name(job_id, job_type)
 
     try:
         result = process_downloads(

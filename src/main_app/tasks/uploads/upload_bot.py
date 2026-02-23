@@ -7,7 +7,13 @@ import requests
 logger = logging.getLogger("svg_translate")
 
 
-def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str] | dict:
+def upload_file(
+    file_name,
+    file_path,
+    site=None,
+    summary=None,
+    new_file=False,
+) -> dict[str, str] | dict:
     """
     Upload an SVG file to Wikimedia Commons using mwclient.
     """
@@ -21,12 +27,13 @@ def upload_file(file_name, file_path, site=None, summary=None) -> dict[str, str]
     if file_name.lower().startswith("file:"):
         file_name = file_name[5:].lstrip()
 
-    # Check if file exists
-    page = site.Pages[f"File:{file_name}"]
+    if not new_file:
+        # Check if file exists
+        page = site.Pages[f"File:{file_name}"]
 
-    if not page.exists:
-        logger.error(f"Warning: File {file_name} not exists on Commons")
-        return {"error": "File not found on Commons"}
+        if not page.exists:
+            logger.error(f"Warning: File {file_name} not exists on Commons")
+            return {"error": "File not found on Commons"}
 
     file_path = Path(str(file_path))
 

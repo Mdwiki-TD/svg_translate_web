@@ -29,7 +29,7 @@ def _pop_cancel_event(job_id: int) -> threading.Event | None:
         return CANCEL_EVENTS.pop(job_id, None)
 
 
-def get_cancel_event(job_id: int) -> threading.Event | None:
+def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
     with CANCEL_EVENTS_LOCK:
         return CANCEL_EVENTS.get(job_id)
 
@@ -46,7 +46,7 @@ def cancel_job(job_id: int) -> bool:
     Cancel a running job.
     Returns True if a cancel event was found and set, False otherwise.
     """
-    cancel_event = get_cancel_event(job_id)
+    cancel_event = get_jobs_cancel_event(job_id)
     if cancel_event:
         cancel_event.set()
         logger.info(f"Cancellation requested for job {job_id}")

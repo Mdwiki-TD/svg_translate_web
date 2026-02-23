@@ -13,6 +13,7 @@ from .. import template_service
 from ..tasks.texts.text_bot import get_wikitext
 from ..tasks.titles.utils.main_file import find_main_title
 from . import jobs_service
+from .utils import generate_result_file_name
 
 logger = logging.getLogger("svg_translate")
 
@@ -153,7 +154,7 @@ def collect_main_files_for_templates(
             "already_had_main_file": 0,
         },
     }
-    result_file = jobs_service.generate_result_file_name(job_id, job_type)
+    result_file = generate_result_file_name(job_id, job_type)
     try:
         result = process_templates(job_id, result, result_file, cancel_event=cancel_event)
     except Exception as e:

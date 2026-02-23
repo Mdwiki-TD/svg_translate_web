@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 
+from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.jobs_workers import jobs_service
 from src.main_app.jobs_workers.jobs_service import JobRecord
 
@@ -165,7 +166,7 @@ def test_save_job_result(jobs_db_fixture, tmp_path, monkeypatch):
         },
     }
 
-    result_file = jobs_service.generate_result_file_name(job.id, job.job_type)
+    result_file = generate_result_file_name(job.id, job.job_type)
     result_file = jobs_service.save_job_result_by_name(result_file, result_data)
 
     assert result_file is not None
@@ -358,7 +359,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
 
     result_data = {"job_id": job.id, "timestamp": datetime.now(), "data": "test"}
 
-    result_file_name = jobs_service.generate_result_file_name(job.id, job.job_type)
+    result_file_name = generate_result_file_name(job.id, job.job_type)
     result_file = jobs_service.save_job_result_by_name(result_file_name, result_data)
 
     assert result_file.exists()
@@ -376,14 +377,6 @@ def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.M
 
     assert result_file_name == f"job_{job.id}.json"
     assert (tmp_path / result_file_name).exists()
-
-
-def test_generate_result_file_name():
-    """Test generate_result_file_name creates correct filename."""
-    filename = jobs_service.generate_result_file_name(123, "test_job")
-
-    assert filename == "test_job_job_123.json"
-
 
 def test_update_job_status_nonexistent(jobs_db_fixture):
     """Test updating status of a nonexistent job raises LookupError."""

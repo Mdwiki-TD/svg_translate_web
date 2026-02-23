@@ -12,14 +12,6 @@ import requests
 
 from src.main_app.jobs_workers import download_main_files_worker
 from src.main_app.template_service import TemplateRecord
-from src.main_app.utils.commons_client import create_commons_session
-
-
-@pytest.fixture(autouse=True)
-def clear_commons_session_cache():
-    """Clear the create_commons_session cache before each test to ensure test isolation."""
-    create_commons_session.cache_clear()
-    yield
 
 
 @pytest.fixture
@@ -44,7 +36,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.download_main_files_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
 

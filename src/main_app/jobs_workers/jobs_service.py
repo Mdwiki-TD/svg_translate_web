@@ -87,11 +87,6 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
     return store.update_status(job_id, status, result_file, job_type=job_type)
 
 
-def generate_result_file_name(job_id, job_type):
-    result_file = f"{job_type}_job_{job_id}.json"
-    return result_file
-
-
 def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
     """Save job result to a JSON file and return the file path."""
     jobs_dir = get_jobs_data_dir()
@@ -138,7 +133,6 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
-    "generate_result_file_name",
     "save_job_result_by_name",
     "save_job_result",
     "load_job_result",

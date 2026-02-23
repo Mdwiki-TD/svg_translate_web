@@ -83,8 +83,7 @@ def create_app() -> Flask:
     )
 
     # Configure CSRF token lifetime
-    if settings.csrf_time_limit is not None:
-        app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
+    app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
 
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
