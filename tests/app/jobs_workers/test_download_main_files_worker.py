@@ -36,7 +36,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.utils.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
