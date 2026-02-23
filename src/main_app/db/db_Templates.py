@@ -118,9 +118,9 @@ class TemplatesDB:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 """
-                INSERT INTO templates (title, main_file) VALUES (%s, %s)
+                INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)
                 """,
-                (title, main_file),
+                (title, main_file, last_world_file),
             )
         except pymysql.err.IntegrityError:
             # This assumes a UNIQUE constraint on the title column
@@ -131,8 +131,8 @@ class TemplatesDB:
     def update(self, template_id: int, title: str, main_file: str, last_world_file: str = None) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
         self.db.execute_query_safe(
-            "UPDATE templates SET title = %s, main_file = %s WHERE id = %s",
-            (title, main_file, template_id),
+            "UPDATE templates SET title = %s, main_file = %s , last_world_file = %s WHERE id = %s",
+            (title, main_file, last_world_file, template_id),
         )
         return self._fetch_by_id(template_id)
 
@@ -153,12 +153,13 @@ class TemplatesDB:
 
         self.db.execute_query_safe(
             """
-            INSERT INTO templates (title, main_file) VALUES (%s, %s)
+            INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 title = COALESCE(VALUES(title), title),
-                main_file = COALESCE(VALUES(main_file), main_file)
+                main_file = COALESCE(VALUES(main_file), main_file),
+                last_world_file = COALESCE(VALUES(last_world_file), last_world_file)
             """,
-            (title, main_file),
+            (title, main_file, last_world_file),
         )
         return self._fetch_by_title(title)
 
