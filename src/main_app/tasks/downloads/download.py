@@ -5,13 +5,13 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable
-from urllib.parse import quote
 
 import requests
 from tqdm import tqdm
 
 from ...config import settings
 from ...db.task_store_pymysql import TaskStorePyMysql
+from ...utils.commons_client import download_commons_file_core, create_commons_session
 
 logger = logging.getLogger("svg_translate")
 
@@ -37,8 +37,6 @@ def download_one_file(
         dict: Outcome dictionary with keys ``result`` ("success", "existing", or
         "failed") and ``path`` (path string when available).
     """
-    base = "https://commons.wikimedia.org/wiki/Special:FilePath/"
-
     data = {
         "result": "",
         "path": "",
@@ -47,7 +45,6 @@ def download_one_file(
     if not title:
         return data
 
-    url = f"{base}{quote(title)}"
     out_path = out_dir / title
 
     if out_path.exists() and not overwrite:
@@ -57,24 +54,24 @@ def download_one_file(
         return data
 
     if not session:
-        session = requests.Session()
-        session.headers.update({"User-Agent": settings.oauth.user_agent, })
+        session = create_commons_session(settings.oauth.user_agent)
+
+    # Use the core download function with shorter timeout
     try:
-        response = session.get(url, timeout=30, allow_redirects=True)
-    except requests.RequestException as exc:
+        content = download_commons_file_core(title, session, timeout=30)
+    except Exception as e:
         data["result"] = "failed"
-        logger.error(f"[{i}] Failed (network error): {title} -> {exc}")
+        logger.error(f"[{i}] Failed: {title} -> {e}")
         return data
 
-    if response.status_code == 200:
+    try:
+        out_path.write_bytes(content)
         logger.debug(f"[{i}] Downloaded: {title}")
-        out_path.write_bytes(response.content)
-        logger.debug(f"[{i}] out_path: {str(out_path)}")
         data["result"] = "success"
         data["path"] = str(out_path)
-    else:
+    except Exception as e:
         data["result"] = "failed"
-        logger.error(f"[{i}] Failed (non-SVG or not found): {title}")
+        logger.error(f"[{i}] Failed to save: {title} -> {e}")
 
     return data
 
@@ -108,9 +105,7 @@ def download_task(
     out_dir = Path(str(output_dir_main))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    session = requests.Session()
-
-    session.headers.update({"User-Agent": settings.oauth.user_agent})
+    session = create_commons_session(settings.oauth.user_agent)
 
     def message_updater(value: str) -> None:
         if store:

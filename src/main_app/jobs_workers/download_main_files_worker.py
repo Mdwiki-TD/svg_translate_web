@@ -10,13 +10,13 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
 import requests
 from flask import send_file
 
 from .. import template_service
 from ..config import settings
+from ..utils.commons_client import download_commons_file_core, create_commons_session
 from . import jobs_service
 
 # Zip file name constant
@@ -58,35 +58,31 @@ def download_file_from_commons(
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = filename[5:] if filename.startswith("File:") else filename
 
-    # Build the download URL using Special:FilePath
-    url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{quote(clean_filename.replace(' ', '_'))}"
-
     # Determine output path - maintain original filename
     out_path = output_dir / clean_filename
 
     # Create session if not provided
     if session is None:
-        session = requests.Session()
-        session.headers.update(
-            {"User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0"}
-        )
+        session = create_commons_session(settings.oauth.user_agent)
+
+    # Use the core download function
+    try:
+        content = download_commons_file_core(clean_filename, session, timeout=60)
+    except Exception as e:
+        result["error"] = f"Download failed: {str(e)}"
+        logger.exception(f"Failed to download {clean_filename}")
+        return result
 
     try:
-        response = session.get(url, timeout=60, allow_redirects=True)
-        response.raise_for_status()
-
         # Save the file
-        out_path.write_bytes(response.content)
-        file_size = len(response.content)
+        out_path.write_bytes(content)
+        file_size = len(content)
 
         result["success"] = True
         result["path"] = str(out_path.name)
         result["size_bytes"] = file_size
         logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
 
-    except requests.RequestException as e:
-        result["error"] = f"Download failed: {str(e)}"
-        logger.error(f"Failed to download {clean_filename}: {e}")
     except Exception as e:
         result["error"] = f"Unexpected error: {str(e)}"
         logger.exception(f"Error saving {clean_filename}")
@@ -143,12 +139,7 @@ def process_downloads(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create a shared session for all downloads
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": settings.oauth.user_agent if settings.oauth else "SVGTranslateBot/1.0",
-        }
-    )
+    session = create_commons_session(settings.oauth.user_agent)
 
     for n, template in enumerate(templates_with_files, start=1):
         # Check for cancellation

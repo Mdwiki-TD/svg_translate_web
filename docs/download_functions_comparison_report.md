@@ -223,7 +223,7 @@ Create a shared internal function used by both:
 
 ```python
 # Internal implementation
-def _download_commons_file_core(...) -> dict: ...
+def download_commons_file_core(...) -> dict: ...
 
 # Public interfaces (thin wrappers)
 def download_file_from_commons(...) -> dict: ...  # Rich metadata
@@ -266,7 +266,7 @@ logger = logging.getLogger("svg_translate")
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
 
-def _download_commons_file_core(
+def download_commons_file_core(
     filename: str,
     session: requests.Session,
     timeout: int = 60,
@@ -295,7 +295,7 @@ def _download_commons_file_core(
     Example:
         >>> session = create_commons_session({"User-Agent": "MyBot/1.0"})
         >>> try:
-        ...     content = _download_commons_file_core("Example.svg", session)
+        ...     content = download_commons_file_core("Example.svg", session)
         ...     Path("Example.svg").write_bytes(content)
         ... except requests.RequestException as e:
         ...     logger.error(f"Download failed: {e}")
@@ -333,8 +333,7 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
 **File:** `src/main_app/jobs_workers/download_main_files_worker.py`
 
 ```python
-from ..utils.commons_client import _download_commons_file_core
-from ..utils.commons_client import create_commons_session
+from ..utils.commons_client import download_commons_file_core, create_commons_session
 
 def download_file_from_commons(
     filename: str,
@@ -377,7 +376,7 @@ def download_file_from_commons(
 
     # Use the core download function
     try:
-        content = _download_commons_file_core(clean_filename, session, timeout=60)
+        content = download_commons_file_core(clean_filename, session, timeout=60)
     except Exception as e:
         result["error"] = f"Download failed: {str(e)}"
         logger.exception(f"Failed to download {clean_filename}")
@@ -405,8 +404,7 @@ def download_file_from_commons(
 **File:** `src/main_app/tasks/downloads/download.py`
 
 ```python
-from ...utils.commons_client import _download_commons_file_core
-from ...utils.commons_client import create_commons_session
+from ...utils.commons_client import download_commons_file_core, create_commons_session
 
 def download_one_file(
     title: str,
@@ -449,7 +447,7 @@ def download_one_file(
 
     # Use the core download function with shorter timeout
     try:
-        content = _download_commons_file_core(title, session, timeout=30)
+        content = download_commons_file_core(title, session, timeout=30)
     except Exception as e:
         data["result"] = "failed"
         logger.error(f"[{i}] Failed: {title} -> {e}")
@@ -491,13 +489,13 @@ def download_one_file(
 
 3. **Refactor `download_file_from_commons`:**
 
-    - Import `_download_commons_file_core`
+    - Import `download_commons_file_core`
     - Replace the inline `session.get()` call with the core function
     - Keep all existing return value handling and logging
 
 4. **Refactor `download_one_file`:**
 
-    - Import `_download_commons_file_core`
+    - Import `download_commons_file_core`
     - Replace the inline `session.get()` call with the core function
     - Keep existing file existence check and result handling
 
