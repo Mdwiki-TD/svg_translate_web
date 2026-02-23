@@ -44,7 +44,7 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     mock_thread_instance.start.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(1) is not None
+    assert jobs_worker.get_jobs_cancel_event(1) is not None
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
@@ -65,7 +65,7 @@ def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     mock_thread.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(2) is not None
+    assert jobs_worker.get_jobs_cancel_event(2) is not None
 
 
 def test_cancel_job():
@@ -93,7 +93,7 @@ def test_runner_calls_target_and_cleans_up():
     event = threading.Event()
 
     jobs_worker._register_cancel_event(job_id, event)
-    assert jobs_worker.get_cancel_event(job_id) == event
+    assert jobs_worker.get_jobs_cancel_event(job_id) == event
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
@@ -101,7 +101,7 @@ def test_runner_calls_target_and_cleans_up():
 
     mock_target.assert_called_once_with(job_id, user, cancel_event=event)
     # After runner finishes, event should be popped from CANCEL_EVENTS
-    assert jobs_worker.get_cancel_event(job_id) is None
+    assert jobs_worker.get_jobs_cancel_event(job_id) is None
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
@@ -122,7 +122,7 @@ def test_start_download_main_files_job(mock_thread, mock_create_job):
     mock_thread.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(3) is not None
+    assert jobs_worker.get_jobs_cancel_event(3) is not None
 
 
 def test_start_job_with_invalid_job_type():
