@@ -9,6 +9,7 @@ import threading
 from datetime import datetime
 from typing import Any
 from .. import jobs_service
+from ..utils import generate_result_file_name
 from .process import process_crops
 
 logger = logging.getLogger("svg_translate")
@@ -28,7 +29,7 @@ def crop_main_files_for_templates(
         cancel_event: Threading event for cancellation
     """
     job_type = "crop_main_files"
-    result_file = jobs_service.generate_result_file_name(job_id, job_type)
+    result_file = generate_result_file_name(job_id, job_type)
 
     # Initialize result structure
     result: dict[str, Any] = {

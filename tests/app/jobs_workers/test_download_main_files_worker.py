@@ -12,14 +12,6 @@ import requests
 
 from src.main_app.jobs_workers import download_main_files_worker
 from src.main_app.template_service import TemplateRecord
-from src.main_app.utils.commons_client import create_commons_session
-
-
-@pytest.fixture(autouse=True)
-def clear_commons_session_cache():
-    """Clear the create_commons_session cache before each test to ensure test isolation."""
-    create_commons_session.cache_clear()
-    yield
 
 
 @pytest.fixture

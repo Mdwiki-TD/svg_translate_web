@@ -30,7 +30,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.collect_main_files_worker.jobs_service.save_job_result_by_name", mock_save_job_result
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.utils.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
@@ -46,7 +46,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.utils.generate_result_file_name",
         mock_generate_result_file_name,
     )
 

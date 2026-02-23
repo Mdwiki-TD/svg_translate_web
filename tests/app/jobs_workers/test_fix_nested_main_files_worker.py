@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.jobs_workers import utils
 from src.main_app.jobs_workers import fix_nested_main_files_worker
 from src.main_app.template_service import TemplateRecord
 
@@ -36,7 +37,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.utils.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
@@ -80,7 +81,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.generate_result_file_name",
+        "src.main_app.jobs_workers.utils.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
