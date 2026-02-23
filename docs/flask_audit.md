@@ -241,7 +241,7 @@ app.config['WTF_CSRF_TIME_LIMIT'] = 7200  # 2 hours
 # Option 3: Add cache-busting headers for form pages
 @app.after_request
 def add_cache_headers(response):
-    if request.method == 'GET' and 'form' in request.endpoint:
+    if request.method == 'GET' and request.endpoint and 'form' in request.endpoint:
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 ```
@@ -347,9 +347,10 @@ def get_task_store() -> TaskStorePyMysql:
 
 def close_task_store() -> None:
     global _task_store_instance
-    if _task_store_instance is not None:
-        _task_store_instance.close()
-        _task_store_instance = None
+    with _task_store_lock:
+        if _task_store_instance is not None:
+            _task_store_instance.close()
+            _task_store_instance = None
 ```
 
 ---

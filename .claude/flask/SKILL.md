@@ -211,7 +211,7 @@ WTF_CSRF_TIME_LIMIT = None  # Never expire (less secure)
 # Option 2: Exclude forms from cache
 @app.after_request
 def add_cache_headers(response):
-    if request.method == 'GET' and 'form' in request.endpoint:
+    if request.method == 'GET' and request.endpoint and 'form' in request.endpoint:
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 

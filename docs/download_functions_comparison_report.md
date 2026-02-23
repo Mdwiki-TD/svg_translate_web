@@ -293,7 +293,7 @@ def download_commons_file_core(
             or timeouts.
 
     Example:
-        >>> session = create_commons_session({"User-Agent": "MyBot/1.0"})
+        >>> session = create_commons_session("MyBot/1.0")
         >>> try:
         ...     content = download_commons_file_core("Example.svg", session)
         ...     Path("Example.svg").write_bytes(content)
