@@ -54,7 +54,7 @@ def create_app() -> Flask:
     Create and configure and return the Flask application used by the project.
 
     The returned app is configured with custom template and static folders, session cookie
-    settings from project settings, CSRF protection, the USE_MW_OAUTH flag, registered
+    settings from project settings, CSRF protection, registered
     application blueprints, a user context processor, a Jinja filter for stage timestamps,
     teardown handlers that close cached connections and task store, and handlers for 404
     and 500 errors.
@@ -77,12 +77,10 @@ def create_app() -> Flask:
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
     )
 
-    app.config["USE_MW_OAUTH"] = settings.use_mw_oauth
-
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    if settings.use_mw_oauth and (settings.database_data.db_host or settings.database_data.db_user):
+    if settings.database_data.db_host or settings.database_data.db_user:
         ensure_user_token_table()
 
     app.register_blueprint(bp_main)
@@ -100,7 +98,6 @@ def create_app() -> Flask:
     def _inject_user():  # pragma: no cover - trivial wrapper
         return context_user()
 
-    app.jinja_env.globals.setdefault("USE_MW_OAUTH", settings.use_mw_oauth)
     app.jinja_env.filters["format_stage_timestamp"] = format_stage_timestamp
 
     @app.teardown_appcontext

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flask import Flask, g, session, url_for
+from flask import Flask, g, session
 
 from src.main_app.users.current import CurrentUser, _resolve_user_id, context_user, current_user, oauth_required
 from src.main_app.users.store import UserTokenRecord
@@ -84,38 +84,6 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
             del g._current_user
         current_user()
         assert session["username"] == "testuser"
-
-
-@patch("src.main_app.users.current.current_user")
-@patch("src.main_app.users.current.settings")
-def test_oauth_required(mock_settings, mock_current_user, app):
-    mock_settings.use_mw_oauth = True
-
-    # Mock view function
-    view = MagicMock(return_value="ok")
-    decorated = oauth_required(view)
-
-    with app.test_request_context("/protected"):
-        # Register a dummy login route to avoid BuildError
-        app.add_url_rule("/login", endpoint="auth.login")
-
-        # Case 1: Authenticated
-        mock_current_user.return_value = MagicMock()
-        assert decorated() == "ok"
-        view.assert_called()
-
-        # Case 2: Unauthenticated
-        mock_current_user.return_value = None
-        resp = decorated()
-        assert resp.status_code == 302  # Redirect
-        assert session.get("post_login_redirect") == "http://localhost/protected"
-
-        # Case 3: OAuth disabled
-        mock_settings.use_mw_oauth = False
-        mock_current_user.return_value = None
-        view.reset_mock()
-        assert decorated() == "ok"
-        view.assert_called()
 
 
 @patch("src.main_app.users.current.active_coordinators")

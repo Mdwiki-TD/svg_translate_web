@@ -146,19 +146,6 @@ def test_create_app_configures_cookie_settings(monkeypatch):
     assert "SESSION_COOKIE_SECURE" in app.config
     assert "SESSION_COOKIE_SAMESITE" in app.config
 
-
-def test_create_app_sets_use_mw_oauth(monkeypatch):
-    """Test create_app sets USE_MW_OAUTH config."""
-    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-
-    from src.main_app import create_app
-
-    app = create_app()
-
-    # Just verify USE_MW_OAUTH config is set
-    assert "USE_MW_OAUTH" in app.config
-
-
 def test_create_app_registers_context_processor(monkeypatch):
     """Test create_app registers context processor."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
@@ -198,7 +185,6 @@ def test_create_app_strict_slashes_disabled(monkeypatch):
 def test_create_app_jinja_env_configured(monkeypatch):
     """Test create_app configures Jinja environment."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-    monkeypatch.setenv("USE_MW_OAUTH", "true")
 
     from src.main_app import create_app
     from src.main_app.config import get_settings
@@ -207,7 +193,6 @@ def test_create_app_jinja_env_configured(monkeypatch):
     app = create_app()
 
     # Check Jinja environment is configured
-    assert "USE_MW_OAUTH" in app.jinja_env.globals
     assert "format_stage_timestamp" in app.jinja_env.filters
 
     get_settings.cache_clear()

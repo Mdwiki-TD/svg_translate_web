@@ -27,7 +27,6 @@ def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
     )
     oauth_cfg = types.SimpleNamespace(consumer_key="key", consumer_secret="secret")
     settings = types.SimpleNamespace(
-        use_mw_oauth=True,
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="req_token",
         cookie=cookie,

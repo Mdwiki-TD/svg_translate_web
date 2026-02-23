@@ -109,13 +109,6 @@ def test_create_app_sets_session_cookie_config():
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
-def test_create_app_sets_use_mw_oauth():
-    """Test create_app sets USE_MW_OAUTH config."""
-    app = create_app()
-    assert "USE_MW_OAUTH" in app.config
-
-
-@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_jinja_filter_registered():
     """Test create_app registers the format_stage_timestamp Jinja filter."""
     app = create_app()
@@ -168,13 +161,6 @@ def test_create_app_static_folder():
     """Test create_app sets custom static folder."""
     app = create_app()
     assert app.static_folder.endswith("static")
-
-
-@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
-def test_create_app_jinja_globals():
-    """Test create_app sets Jinja globals."""
-    app = create_app()
-    assert "USE_MW_OAUTH" in app.jinja_env.globals
 
 
 def test_format_stage_timestamp_edge_time_values():

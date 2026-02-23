@@ -96,7 +96,6 @@ def test_Settings():
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="request",
         secret_key="secret",
-        use_mw_oauth=True,
         oauth_encryption_key="enc_key",
         cookie=cookie_config,
         oauth=None,
@@ -239,7 +238,6 @@ def test_is_localhost():
         "SESSION_COOKIE_SAMESITE": "Strict",
         "STATE_SESSION_KEY": "test-state",
         "REQUEST_TOKEN_SESSION_KEY": "test-request",
-        "USE_MW_OAUTH": "false",
         "AUTH_COOKIE_NAME": "test-cookie",
         "AUTH_COOKIE_MAX_AGE": "7200",
         "MAIN_DIR": "/tmp/test-data",
@@ -254,7 +252,6 @@ def test_get_settings():
 
     assert isinstance(settings, Settings)
     assert settings.secret_key == "test-secret-key"
-    assert settings.use_mw_oauth is False
     assert settings.cookie.name == "test-cookie"
     assert settings.cookie.max_age == 7200
     assert settings.STATE_SESSION_KEY == "test-state"
@@ -275,7 +272,7 @@ def test_get_settings_missing_secret_key():
     get_settings.cache_clear()
 
 
-@patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "USE_MW_OAUTH": "true", "MAIN_DIR": "/tmp/test-data"})
+@patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "MAIN_DIR": "/tmp/test-data"})
 @pytest.mark.skip(reason="Failed: DID NOT RAISE <class 'RuntimeError'>")
 def test_get_settings_missing_oauth_encryption_key():
     """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
@@ -289,7 +286,6 @@ def test_get_settings_missing_oauth_encryption_key():
     os.environ,
     {
         "FLASK_SECRET_KEY": "test-secret-key",
-        "USE_MW_OAUTH": "true",
         "OAUTH_ENCRYPTION_KEY": "test-key",
         "MAIN_DIR": "/tmp/test-data",
     },

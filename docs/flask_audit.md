@@ -462,7 +462,7 @@ return render_template("main/index.html")
 def oauth_required(func: F) -> F:
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
-        if settings.use_mw_oauth and not current_user():
+        if not current_user():
             session["post_login_redirect"] = request.url
             return redirect(url_for("auth.login"))
         return func(*args, **kwargs)

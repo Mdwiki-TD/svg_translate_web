@@ -75,10 +75,6 @@ def login_required(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 @bp_auth.get("/login")
 def login() -> Response:
-    if not settings.use_mw_oauth:
-        flash("OAuth login is disabled", "warning")
-        return redirect(url_for("main.index", error="oauth-disabled"))
-
     if not login_rate_limiter.allow(_client_key()):
         time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
         time_left = str(time_left).split(".")[0]
@@ -105,12 +101,6 @@ def login() -> Response:
 
 @bp_auth.get("/callback")
 def callback() -> Response:
-    # ------------------
-    # use oauth
-    if not settings.use_mw_oauth:
-        flash("OAuth login is disabled", "warning")
-        return redirect(url_for("main.index", error="oauth-disabled"))
-
     # ------------------
     # callback rate limiter
     if not callback_rate_limiter.allow(_client_key()):

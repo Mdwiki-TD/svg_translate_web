@@ -38,7 +38,7 @@ def oauth_required_with_filename_preservation(func: F) -> F:
 
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
-        if settings.use_mw_oauth and not current_user() and not settings.is_localhost(request.host):
+        if not current_user() and not settings.is_localhost(request.host):
             # Save filename to session before redirecting to OAuth
             filename = request.form.get("filename", "").strip()
             if filename:

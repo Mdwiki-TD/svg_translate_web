@@ -59,10 +59,9 @@ class Settings:
     STATE_SESSION_KEY: str
     REQUEST_TOKEN_SESSION_KEY: str
     secret_key: str
-    use_mw_oauth: bool
-    oauth_encryption_key: Optional[str]
+    oauth_encryption_key: str
     cookie: CookieConfig
-    oauth: Optional[OAuthConfig]
+    oauth: OAuthConfig
     paths: Paths
     disable_uploads: str
     download: DownloadConfig
@@ -187,8 +186,8 @@ def get_settings() -> Settings:
 
     Raises:
         RuntimeError: If FLASK_SECRET_KEY is not set.
-        RuntimeError: If USE_MW_OAUTH is enabled but OAUTH_ENCRYPTION_KEY is missing.
-        RuntimeError: If USE_MW_OAUTH is enabled but the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
+        RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
+        RuntimeError: If the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
     """
     secret_key = os.getenv("FLASK_SECRET_KEY")
     if not secret_key:
@@ -200,12 +199,11 @@ def get_settings() -> Settings:
     STATE_SESSION_KEY = os.getenv("STATE_SESSION_KEY", "oauth_state_nonce")
     REQUEST_TOKEN_SESSION_KEY = os.getenv("REQUEST_TOKEN_SESSION_KEY", "state")
 
-    use_mw_oauth = _env_bool("USE_MW_OAUTH", default=True)
     oauth_config = _load_oauth_config()
 
     oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY")
-    if use_mw_oauth and not oauth_encryption_key:
-        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required when USE_MW_OAUTH is enabled")
+    if not oauth_encryption_key:
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
 
     cookie = CookieConfig(
         name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
@@ -215,7 +213,7 @@ def get_settings() -> Settings:
         samesite=session_cookie_samesite,
     )
 
-    if use_mw_oauth and oauth_config is None:
+    if oauth_config is None:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
@@ -231,7 +229,6 @@ def get_settings() -> Settings:
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
-        use_mw_oauth=use_mw_oauth,
         oauth_encryption_key=oauth_encryption_key,
         cookie=cookie,
         oauth=oauth_config,
