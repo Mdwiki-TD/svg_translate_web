@@ -228,8 +228,8 @@ def get_settings() -> Settings:
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     # Set to 0 or None to disable expiration (not recommended for production).
     csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
-    if csrf_time_limit <= 0:
-        csrf_time_limit = None  # Never expire
+    if not csrf_time_limit or csrf_time_limit <= 0:
+        csrf_time_limit = 3600
 
     if oauth_config is None:
         raise RuntimeError(

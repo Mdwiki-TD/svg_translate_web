@@ -7,7 +7,6 @@ download functions used across the application.
 
 from __future__ import annotations
 
-import functools
 import logging
 from urllib.parse import quote
 import requests
@@ -17,7 +16,6 @@ logger = logging.getLogger("svg_translate")
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
 
-@functools.lru_cache(maxsize=1)
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
     """Create a pre-configured requests Session for Commons API calls.
 
