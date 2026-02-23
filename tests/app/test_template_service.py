@@ -26,6 +26,7 @@ class FakeDatabase:
             "id": row["id"],
             "title": row["title"],
             "main_file": row.get("main_file"),
+            "last_world_file": row.get("last_world_file"),
             "created_at": row.get("created_at"),
             "updated_at": row.get("updated_at"),
         }

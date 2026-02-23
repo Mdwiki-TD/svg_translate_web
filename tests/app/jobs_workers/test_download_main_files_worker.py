@@ -789,7 +789,7 @@ def test_download_file_from_commons_with_special_characters(tmp_path):
 def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
     """Test that cancelled status is preserved in final update."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -823,7 +823,7 @@ def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
 def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path):
     """Test that zip file is generated automatically when job completes successfully."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)

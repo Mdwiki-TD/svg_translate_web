@@ -35,7 +35,7 @@ class FakeTemplatesDB:
     def list(self) -> list[TemplateRecord]:
         return list(self._records)
 
-    def add(self, title: str, main_file: str) -> TemplateRecord:
+    def add(self, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
         if not title:
@@ -48,7 +48,7 @@ class FakeTemplatesDB:
         self._next_id += 1
         return record
 
-    def update(self, template_id: int, title: str, main_file: str) -> TemplateRecord:
+    def update(self, template_id: int, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
         index = self._find_index(template_id)
