@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from flask import (
     Blueprint,
     redirect,
@@ -16,14 +18,17 @@ from .admin_routes.recent import Recent
 from .admin_routes.templates import Templates
 from .sidebar import create_side
 
+logger = logging.getLogger(__name__)
+
 bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 @bp_admin.app_context_processor
 def inject_sidebar():
     path_parts = request.path.strip("/").split("/")
-    ty = path_parts[1] if len(path_parts) > 1 else ""
-    sidebar_html = create_side(ty=ty)
+    active_route = path_parts[1] if len(path_parts) > 1 else ""
+    logger.debug(f"Injecting sidebar for path='{request.path}'")
+    sidebar_html = create_side(active_route=active_route)
     return dict(sidebar=sidebar_html)
 
 

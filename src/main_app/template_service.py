@@ -69,6 +69,20 @@ def update_template(template_id: int, title: str, main_file: str, last_world_fil
     return record
 
 
+def update_template_if_not_none(
+    template_id: int,
+    title: str | None = None,
+    main_file: str | None = None,
+    last_world_file: str | None = None,
+) -> TemplateRecord:
+    """Update template only if not None."""
+
+    store = get_templates_db()
+    record = store.update_if_not_none(template_id, title, main_file, last_world_file)
+
+    return record
+
+
 def delete_template(template_id: int) -> TemplateRecord:
     """Delete a template."""
 

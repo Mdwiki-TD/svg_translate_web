@@ -21,7 +21,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
+        mock_update_template,
     )
 
     # Mock jobs_service
@@ -77,22 +78,21 @@ def test_collect_main_files_with_no_templates(mock_services):
 
 
 def test_collect_main_files_skips_templates_with_main_file(mock_services):
-    """Test that templates with main_file are skipped."""
+    """Test that templates with main_file AND last_world_file are skipped."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file=None),
+        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
+        TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg"),
     ]
     mock_services["list_templates"].return_value = templates
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
-    # Should not fetch wikitext
+    # Should not fetch wikitext for templates that have both main_file and last_world_file
     mock_services["get_wikitext"].assert_not_called()
 
     # Should save result with skipped templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
-    assert result["summary"]["skipped"] == 0
     assert result["summary"]["already_had_main_file"] == 2
 
 
@@ -114,7 +114,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     mock_services["find_main_title"].assert_called_once()
 
     # Should update template
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg")
+    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg", None)
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]

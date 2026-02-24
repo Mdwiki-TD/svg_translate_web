@@ -128,8 +128,43 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
+    def update_if_not_none(
+        self,
+        template_id: int,
+        title: str | None = None,
+        main_file: str | None = None,
+        last_world_file: str | None = None,
+    ) -> TemplateRecord:
+        """
+        Update the template record if the new values are not None.
+        """
+        _ = self._fetch_by_id(template_id)
+        update_fields = []
+        update_values = []
+
+        if title is not None:
+            update_fields.append("title = %s")
+            update_values.append(title)
+        if main_file is not None:
+            update_fields.append("main_file = %s")
+            update_values.append(main_file)
+        if last_world_file is not None:
+            update_fields.append("last_world_file = %s")
+            update_values.append(last_world_file)
+
+        if update_fields:
+            query = f"UPDATE templates SET {', '.join(update_fields)} WHERE id = %s"
+            update_values.append(template_id)
+            self.db.execute_query_safe(query, tuple(update_values))
+
+        return self._fetch_by_id(template_id)
+
     def update(
-        self, template_id: int, title: str, main_file: str, last_world_file: str | None = None
+        self,
+        template_id: int,
+        title: str,
+        main_file: str,
+        last_world_file: str | None = None,
     ) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
         self.db.execute_query_safe(

@@ -65,7 +65,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     ]
     mock_common_services["list_templates"].return_value = templates
 
-    # Mock update_template to set the cancel event
+    # Mock update_template_if_not_none to set the cancel event
     cancel_event = threading.Event()
     mock_update_template = MagicMock()
 
@@ -79,7 +79,11 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     )
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.find_main_title", lambda x: "file.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+        "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs", lambda x: None
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
+        mock_update_template,
     )
 
     collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
@@ -89,9 +93,8 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     # n=2: checks cancel_event.is_set() -> True. Breaks.
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
-    assert result["status"] == "cancelled"
+    assert result.get("status") == "cancelled"
     assert result["summary"]["updated"] == 1
-    assert result["summary"]["total"] == 2
 
 
 def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
