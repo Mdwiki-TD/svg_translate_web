@@ -22,7 +22,7 @@ def crop_main_files_for_templates(
     cancel_event: threading.Event | None = None,
 ) -> None:
     """
-    Entry point for crop main files background job.
+    Entry point for crop newest world files background job.
 
     Args:
         job_id: The job ID

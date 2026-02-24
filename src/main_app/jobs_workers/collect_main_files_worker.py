@@ -34,9 +34,9 @@ def process_templates(
     # Get all templates
     templates = template_service.list_templates()
     result["summary"]["total"] = len(templates)
-    result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file])
+    result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
 
-    templates_to_process = [t for t in templates if not t.main_file]
+    templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
     logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
     for n, template in enumerate(templates_to_process, start=1):

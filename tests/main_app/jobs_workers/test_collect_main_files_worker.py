@@ -21,7 +21,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template", mock_update_template
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none", mock_update_template
     )
 
     # Mock jobs_service
@@ -114,7 +114,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     mock_services["find_main_title"].assert_called_once()
 
     # Should update template
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg")
+    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg", None)
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]

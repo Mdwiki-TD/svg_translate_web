@@ -46,7 +46,7 @@ def create_side(active_route):
                 "id": "crop_main_files",
                 "admin": 1,
                 "href": "crop_main_files/list",
-                "title": "Crop Main Files",
+                "title": "Crop Newest World Files",
                 "icon": "bi-crop",
             },
             {

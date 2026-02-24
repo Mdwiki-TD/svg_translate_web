@@ -1,4 +1,4 @@
-# Plan: Crop Main Files Job Implementation
+# Plan: Crop Newest World Files Job Implementation
 
 ## Overview
 
@@ -30,7 +30,7 @@ This follows the same design pattern as existing jobs: `collect_main_files`, `do
   - [x] Add to `JOB_TYPE_TEMPLATES`
   - [x] Add to `JOB_TYPE_LIST_TEMPLATES`
 - [x] Modify [`src/main_app/app_routes/admin/sidebar.py`](src/main_app/app_routes/admin/sidebar.py)
-  - [x] Add "Crop Main Files" sidebar menu item
+  - [x] Add "Crop Newest World Files" sidebar menu item
 
 ### Phase 4: Testing
 - [ ] Create [`tests/app/jobs_workers/test_crop_main_files/__init__.py`](tests/app/jobs_workers/test_crop_main_files/__init__.py)
@@ -202,7 +202,7 @@ Add new menu item to sidebar items list (around line 33-51):
     "id": "crop_main_files_jobs",
     "admin": 1,
     "href": "crop_main_files/list",
-    "title": "Crop Main Files",
+    "title": "Crop Newest World Files",
     "icon": "bi-crop",  # Bootstrap Icons class
 },
 ```

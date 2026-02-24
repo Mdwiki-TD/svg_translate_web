@@ -20,7 +20,7 @@ def match_last_world_file(text):
         "File:youth mortality rate, World, 1953.svg"
     """
 
-    lines = text.value.strip().splitlines()
+    lines = text.splitlines()
     max_year = -1
     last_world_file = ""
 
