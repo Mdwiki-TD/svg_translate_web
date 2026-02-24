@@ -214,13 +214,22 @@ def process_crops(
                 result["files_processed"].append(file_info)
                 continue
 
-            if upload_files:
-                upload_one(
-                    job_id,
-                    file_info,
-                    user,
-                    result,
-                )
+            if not upload_files:
+                file_info["status"] = "skipped"
+                file_info["reason"] = "upload disabled"
+                result["summary"]["skipped"] += 1
+                logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (upload disabled)")
+                result["files_processed"].append(file_info)
+                continue
+
+            # Upload the file
+            upload_one(
+                job_id,
+                file_info,
+                user,
+                result,
+            )
+
             result["files_processed"].append(file_info)
 
     # Mark as completed if not cancelled or failed
