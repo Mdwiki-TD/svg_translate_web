@@ -127,21 +127,21 @@ def test_sidebar_marks_collect_main_files_as_active():
     """Test that Collect Main Files is marked as active when selected."""
     result = sidebar.create_side("collect_main_files/list")
     # The link should have an active class
-    assert "id='collect_main_files_jobs' class='active'" in result
+    assert "id='collect_main_files' class='active'" in result
 
 
 def test_sidebar_marks_fix_nested_main_files_as_active():
     """Test that Fix Nested Main Files is marked as active when selected."""
     result = sidebar.create_side("fix_nested_main_files/list")
     # The link should have an active class
-    assert "id='fix_nested_main_files_jobs' class='active'" in result
+    assert "id='fix_nested_main_files' class='active'" in result
 
 
 def test_sidebar_marks_download_main_files_as_active():
     """Test that Download Main Files is marked as active when selected."""
     result = sidebar.create_side("download_main_files/list")
     # The link should have an active class
-    assert "id='download_main_files_jobs' class='active'" in result
+    assert "id='download_main_files' class='active'" in result
 
 
 def test_sidebar_has_all_three_job_types():
