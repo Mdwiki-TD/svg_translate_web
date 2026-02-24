@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 from .db_class import Database
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 class FixNestedTaskStore:

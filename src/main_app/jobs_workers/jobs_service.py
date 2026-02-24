@@ -13,7 +13,7 @@ from ..config import settings
 from ..db import has_db_config
 from ..db.db_Jobs import JobRecord, JobsDB
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 _JOBS_STORE: JobsDB | None = None
 

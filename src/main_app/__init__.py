@@ -28,7 +28,7 @@ from .db import close_cached_db
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def format_stage_timestamp(value: str) -> str:

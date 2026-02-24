@@ -10,7 +10,7 @@ from .db_class import Database
 
 _db: Database | None = None
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def has_db_config() -> bool:

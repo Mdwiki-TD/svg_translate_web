@@ -3,7 +3,7 @@ import logging
 
 from .text_bot import get_wikitext
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def text_task(stages, title):

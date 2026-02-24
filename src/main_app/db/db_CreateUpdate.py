@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 # from .db_StageStore import StageStore
 from .db_class import Database
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 TERMINAL_STATUSES = ("Completed", "Failed", "Cancelled")
 TERMINAL_PLACEHOLDERS = ", ".join(["%s"] * len(TERMINAL_STATUSES))
 

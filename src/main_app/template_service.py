@@ -9,7 +9,7 @@ from .config import settings
 from .db import has_db_config
 from .db.db_Templates import TemplateRecord, TemplatesDB
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 _TEMPLATE_STORE: TemplatesDB | None = None
 

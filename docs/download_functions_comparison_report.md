@@ -261,7 +261,7 @@ from urllib.parse import quote
 if TYPE_CHECKING:
     import requests
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 

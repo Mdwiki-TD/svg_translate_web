@@ -23,7 +23,7 @@ from ....jobs_workers.download_main_files_worker import create_main_files_zip
 from ....routes_utils import load_auth_payload
 from ....users.current import current_user
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 JOB_TYPE_TEMPLATES = {

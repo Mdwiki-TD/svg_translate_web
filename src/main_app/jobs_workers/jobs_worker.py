@@ -12,7 +12,7 @@ from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 CANCEL_EVENTS: dict[int, threading.Event] = {}

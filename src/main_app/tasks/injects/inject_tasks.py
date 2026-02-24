@@ -3,7 +3,7 @@ from typing import Any
 
 from CopySVGTranslation import start_injects  # type: ignore
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def inject_task(stages: dict, files: list[str], translations, output_dir=None, overwrite=False) -> tuple[dict, dict]:

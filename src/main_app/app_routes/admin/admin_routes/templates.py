@@ -18,7 +18,7 @@ from .... import template_service
 from ....admins.admins_required import admin_required
 from ....users.current import current_user
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def _templates_dashboard():

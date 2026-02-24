@@ -29,7 +29,7 @@ TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
 
 bp_tasks = Blueprint("tasks", __name__)
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def format_task_message(formatted):

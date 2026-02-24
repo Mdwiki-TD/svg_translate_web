@@ -12,7 +12,7 @@ from urllib.parse import quote
 
 import requests
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 

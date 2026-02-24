@@ -15,7 +15,7 @@ from ..tasks.texts import text_task
 from ..tasks.titles import titles_task
 from ..tasks.uploads import upload_task
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def _compute_output_dir(title: str) -> Path:

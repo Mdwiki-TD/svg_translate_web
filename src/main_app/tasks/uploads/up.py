@@ -13,7 +13,7 @@ from ...users.store import mark_token_used
 from .upload_bot import upload_file
 from .wiki_client import build_upload_site
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def _coerce_encrypted(value: object) -> bytes | None:

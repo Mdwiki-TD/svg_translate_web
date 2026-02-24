@@ -11,7 +11,7 @@ from typing import Any, List
 from ..config import DbConfig
 from . import Database
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 @dataclass

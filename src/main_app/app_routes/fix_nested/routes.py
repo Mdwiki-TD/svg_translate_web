@@ -16,7 +16,7 @@ from ...users.current import current_user
 from .fix_utils import process_fix_nested, process_fix_nested_file_simple
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 # Session key for preserving filename across OAuth redirect
 FIX_NESTED_FILENAME_KEY = "fix_nested_filename"

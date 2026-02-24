@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 from src.main_app.app_routes.admin.admin_routes import templates
@@ -61,8 +60,3 @@ def test_update_template_missing_id_shows_error():
                     templates._update_template()
 
         mock_flash.assert_called_once_with("Template ID is required to update a template.", "danger")
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-    assert templates.logger.name == "svg_translate"

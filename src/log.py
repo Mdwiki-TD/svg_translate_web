@@ -19,7 +19,7 @@ all_log_path = log_dir / "app.log"
 error_log_path = log_dir / "errors.log"
 
 # Create main logger
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")

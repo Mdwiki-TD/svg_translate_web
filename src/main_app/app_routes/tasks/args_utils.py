@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from ...config import settings
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

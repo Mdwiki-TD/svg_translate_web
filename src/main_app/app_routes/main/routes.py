@@ -18,7 +18,7 @@ from ...routes_utils import get_error_message
 from ...users.current import current_user
 
 bp_main = Blueprint("main", __name__)
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 @bp_main.get("/")
