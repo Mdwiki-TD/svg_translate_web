@@ -57,8 +57,8 @@ def process_one(
     job_id,
     template,
     result,
-    original_dir,
-    cropped_dir,
+    original_dir: Path,
+    cropped_dir: Path,
     session,
 ):
 
