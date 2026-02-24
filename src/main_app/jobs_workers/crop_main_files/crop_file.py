@@ -1,14 +1,12 @@
-"""
-
-"""
+""" """
 
 from __future__ import annotations
 
 import logging
-from pathlib import Path
-from typing import Any
 import re
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("svg_translate")
 
@@ -20,11 +18,11 @@ def get_max_y_of_element(element) -> float:
     """
     max_y = 0.0
 
-    y_attrs = [element.get('y'), element.get('y1'), element.get('y2'), element.get('cy')]
+    y_attrs = [element.get("y"), element.get("y1"), element.get("y2"), element.get("cy")]
     for y_val in y_attrs:
         if y_val:
             # Extract only numbers in case there are strings like "px" attached
-            y_match = re.search(r'[\d.-]+', y_val)
+            y_match = re.search(r"[\d.-]+", y_val)
             if y_match is None:
                 continue
             try:
@@ -33,10 +31,10 @@ def get_max_y_of_element(element) -> float:
                 continue
 
             # If the element has a height (like rect), add it to Y
-            height_val = element.get('height')
+            height_val = element.get("height")
             h_num = 0.0
             if height_val:
-                h_match = re.search(r'[\d.]+', height_val)
+                h_match = re.search(r"[\d.]+", height_val)
                 if h_match is not None:
                     try:
                         h_num = float(h_match.group())
@@ -49,21 +47,18 @@ def get_max_y_of_element(element) -> float:
 
 
 def remove_footer_and_adjust_height(
-    input_path: Path,
-    output_path: Path,
-    footer_id: str = 'footer',
-    padding: float = 10.0
+    input_path: Path, output_path: Path, footer_id: str = "footer", padding: float = 10.0
 ) -> bool:
     # 1. Register the SVG namespace to avoid modifying/corrupting the tags
     namespace = "http://www.w3.org/2000/svg"
-    ET.register_namespace('', namespace)
-    ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
+    ET.register_namespace("", namespace)
+    ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
     # Parse the SVG file
     tree = ET.parse(input_path)
     root = tree.getroot()
 
-    old_height = root.get('height', '?')
+    old_height = root.get("height", "?")
 
     # 2. Find and remove the footer element
     footer_removed = False
@@ -73,7 +68,7 @@ def remove_footer_and_adjust_height(
 
         children = list(svg_element)
         for index, child in enumerate(children):
-            if child.get('id', '') == footer_id:
+            if child.get("id", "") == footer_id:
                 # Found the footer!
                 # Now remove the footer and ALL sibling elements that come after it
                 elements_to_remove = children[index:]
@@ -112,19 +107,19 @@ def remove_footer_and_adjust_height(
     logger.info(f"📏 New height: {new_height:.2f} (padding={padding})")
 
     # 4. Update the viewBox and height attributes in the root <svg> tag
-    root.set('height', f"{new_height:.2f}")
-    old_viewbox = root.get('viewBox', '')
+    root.set("height", f"{new_height:.2f}")
+    old_viewbox = root.get("viewBox", "")
     if old_viewbox:
         parts = old_viewbox.split()
         if len(parts) == 4:
             # Update the height value in the viewBox
             parts[3] = f"{new_height:.2f}"
-            root.set('viewBox', " ".join(parts))
+            root.set("viewBox", " ".join(parts))
 
     logger.info(f"🔄 height: {old_height} → {new_height:.2f}")
 
     # Save the new file
-    tree.write(output_path, encoding='unicode', xml_declaration=False)
+    tree.write(output_path, encoding="unicode", xml_declaration=False)
 
     logger.info(f"💾 Saved to: {output_path}")
     return True
@@ -150,22 +145,13 @@ def crop_svg_file(
         dict with keys: success (bool), error (str|None)
     """
     try:
-        cropped = remove_footer_and_adjust_height(
-            file_path,
-            cropped_output_path
-        )
+        cropped = remove_footer_and_adjust_height(file_path, cropped_output_path)
 
     except Exception as e:
         logger.exception(f"Error cropping SVG: {e}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        return {"success": False, "error": str(e)}
 
-    return {
-        "success": cropped,
-        "error": None if cropped else "No footer element found in SVG"
-    }
+    return {"success": cropped, "error": None if cropped else "No footer element found in SVG"}
 
 
 __all__ = [

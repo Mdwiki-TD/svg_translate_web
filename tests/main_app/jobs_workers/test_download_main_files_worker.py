@@ -309,7 +309,10 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
 
 def test_download_main_files_respects_cancellation(mock_services, tmp_path):
     """Test that download respects cancellation event."""
-    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None) for i in range(1, 21)]
+    templates = [
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None)
+        for i in range(1, 21)
+    ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
@@ -647,7 +650,10 @@ def test_create_main_files_zip_ignores_subdirectories(tmp_path, monkeypatch):
 def test_download_main_files_saves_progress_periodically(mock_services, tmp_path):
     """Test that progress is saved periodically during downloads."""
     # Create 15 templates to ensure periodic saves
-    templates = [TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None) for i in range(1, 16)]
+    templates = [
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"test{i}.svg", last_world_file=None)
+        for i in range(1, 16)
+    ]
     mock_services["list_templates"].return_value = templates
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 

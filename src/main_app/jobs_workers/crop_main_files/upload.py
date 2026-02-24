@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any
+
 from ...tasks.uploads import get_user_site, upload_file
 
 logger = logging.getLogger("svg_translate")

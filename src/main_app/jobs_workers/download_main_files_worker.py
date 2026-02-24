@@ -16,7 +16,7 @@ from flask import send_file
 
 from .. import template_service
 from ..config import settings
-from ..utils.commons_client import download_commons_file_core, create_commons_session
+from ..utils.commons_client import create_commons_session, download_commons_file_core
 from . import jobs_service
 from .utils import generate_result_file_name
 
@@ -365,21 +365,16 @@ def create_main_files_zip() -> tuple[Any, int]:
 
     # Check if zip file exists
     if not zip_file_path.exists():
-        return (
-            "Zip file not found. Please run a 'Download Main Files' job first to generate the archive.",
-            404
-        )
+        return ("Zip file not found. Please run a 'Download Main Files' job first to generate the archive.", 404)
 
     # Check if zip file is valid (not empty)
     if zip_file_path.stat().st_size == 0:
         return "Zip file is empty or corrupted. Please re-run the 'Download Main Files' job.", 500
 
-    return send_file(
-        zip_file_path,
-        mimetype="application/zip",
-        as_attachment=True,
-        download_name=MAIN_FILES_ZIP_NAME
-    ), 200
+    return (
+        send_file(zip_file_path, mimetype="application/zip", as_attachment=True, download_name=MAIN_FILES_ZIP_NAME),
+        200,
+    )
 
 
 __all__ = [

@@ -21,7 +21,7 @@ def download_one_file(
     out_dir: Path,
     i: int,
     session: requests.Session = None,
-    overwrite: bool = False
+    overwrite: bool = False,
 ) -> Dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 

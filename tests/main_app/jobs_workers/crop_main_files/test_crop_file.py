@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import xml.etree.ElementTree as ET
 
 import pytest
 
@@ -23,9 +23,9 @@ def create_test_svg(include_footer: bool = True) -> str:
         svg_content.append('  <g id="footer">')
         svg_content.append('    <rect x="0" y="500" width="800" height="100" fill="gray" />')
         svg_content.append('    <text x="400" y="550">Footer Text</text>')
-        svg_content.append('  </g>')
-    svg_content.append('</svg>')
-    return '\n'.join(svg_content)
+        svg_content.append("  </g>")
+    svg_content.append("</svg>")
+    return "\n".join(svg_content)
 
 
 def test_get_max_y_of_element_with_rect():
@@ -94,10 +94,7 @@ def test_remove_footer_and_adjust_height_success(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    result = crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path)
-    )
+    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is True
     assert output_path.exists()
@@ -107,7 +104,7 @@ def test_remove_footer_and_adjust_height_success(tmp_path):
     root = tree.getroot()
 
     # Check that footer is removed
-    footer_elements = [elem for elem in root.iter() if elem.get('id') == 'footer']
+    footer_elements = [elem for elem in root.iter() if elem.get("id") == "footer"]
     assert len(footer_elements) == 0
 
 
@@ -117,17 +114,13 @@ def test_remove_footer_and_adjust_height_updates_viewbox(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path),
-        padding=20.0
-    )
+    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), padding=20.0)
 
     tree = ET.parse(output_path)
     root = tree.getroot()
 
     # Check that viewBox height was updated
-    viewbox = root.get('viewBox', '')
+    viewbox = root.get("viewBox", "")
     parts = viewbox.split()
     assert len(parts) == 4
 
@@ -143,10 +136,7 @@ def test_remove_footer_and_adjust_height_no_footer(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=False))
 
-    result = crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path)
-    )
+    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is False
     # Output file should still not exist when footer not found
@@ -164,16 +154,12 @@ def test_remove_footer_and_adjust_height_custom_footer_id(tmp_path):
         '  <rect x="10" y="10" width="100" height="100" fill="red" />',
         '  <g id="custom_footer">',
         '    <rect x="0" y="500" width="800" height="100" fill="gray" />',
-        '  </g>',
-        '</svg>',
+        "  </g>",
+        "</svg>",
     ]
-    input_path.write_text('\n'.join(svg_content))
+    input_path.write_text("\n".join(svg_content))
 
-    result = crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path),
-        footer_id='custom_footer'
-    )
+    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), footer_id="custom_footer")
 
     assert result is True
     assert output_path.exists()
@@ -185,16 +171,12 @@ def test_remove_footer_and_adjust_height_custom_padding(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path),
-        padding=50.0
-    )
+    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), padding=50.0)
 
     tree = ET.parse(output_path)
     root = tree.getroot()
 
-    height_str = root.get('height', '')
+    height_str = root.get("height", "")
     height = float(height_str)
 
     # Height should account for padding
@@ -212,24 +194,21 @@ def test_remove_footer_removes_siblings_after_footer(tmp_path):
         '  <rect x="10" y="10" width="100" height="100" fill="red" />',
         '  <g id="footer">',
         '    <rect x="0" y="500" width="800" height="100" fill="gray" />',
-        '  </g>',
+        "  </g>",
         '  <g id="after_footer">',
         '    <rect x="0" y="600" width="800" height="100" fill="black" />',
-        '  </g>',
-        '</svg>',
+        "  </g>",
+        "</svg>",
     ]
-    input_path.write_text('\n'.join(svg_content))
+    input_path.write_text("\n".join(svg_content))
 
-    crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path)
-    )
+    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     tree = ET.parse(output_path)
     root = tree.getroot()
 
     # Check that after_footer is also removed
-    after_footer_elements = [elem for elem in root.iter() if elem.get('id') == 'after_footer']
+    after_footer_elements = [elem for elem in root.iter() if elem.get("id") == "after_footer"]
     assert len(after_footer_elements) == 0
 
 
@@ -288,7 +267,7 @@ def test_crop_svg_file_exception_handling(tmp_path):
     file_path.write_text(create_test_svg(include_footer=True))
 
     # Mock remove_footer_and_adjust_height to raise an exception
-    with patch('src.main_app.jobs_workers.crop_main_files.crop_file.remove_footer_and_adjust_height') as mock_remove:
+    with patch("src.main_app.jobs_workers.crop_main_files.crop_file.remove_footer_and_adjust_height") as mock_remove:
         mock_remove.side_effect = Exception("Test exception")
 
         result = crop_file.crop_svg_file(file_path, cropped_output_path)
@@ -322,15 +301,12 @@ def test_remove_footer_preserves_namespaces(tmp_path):
         '  <rect x="10" y="10" width="100" height="100" fill="red" />',
         '  <g id="footer">',
         '    <rect x="0" y="500" width="800" height="100" fill="gray" />',
-        '  </g>',
-        '</svg>',
+        "  </g>",
+        "</svg>",
     ]
-    input_path.write_text('\n'.join(svg_content))
+    input_path.write_text("\n".join(svg_content))
 
-    crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path)
-    )
+    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     # Read output and verify namespaces are present
     output_content = output_path.read_text()
@@ -347,24 +323,21 @@ def test_crop_svg_with_complex_nested_elements(tmp_path):
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">',
         '  <g id="content">',
-        '    <g>',
+        "    <g>",
         '      <rect x="10" y="10" width="100" height="100" fill="red" />',
-        '      <g>',
+        "      <g>",
         '        <circle cx="200" cy="150" r="50" fill="blue" />',
-        '      </g>',
-        '    </g>',
-        '  </g>',
+        "      </g>",
+        "    </g>",
+        "  </g>",
         '  <g id="footer">',
         '    <rect x="0" y="500" width="800" height="100" fill="gray" />',
-        '  </g>',
-        '</svg>',
+        "  </g>",
+        "</svg>",
     ]
-    input_path.write_text('\n'.join(svg_content))
+    input_path.write_text("\n".join(svg_content))
 
-    result = crop_file.remove_footer_and_adjust_height(
-        str(input_path),
-        str(output_path)
-    )
+    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is True
 
@@ -372,7 +345,7 @@ def test_crop_svg_with_complex_nested_elements(tmp_path):
     root = tree.getroot()
 
     # Verify content group still exists
-    content_elements = [elem for elem in root.iter() if elem.get('id') == 'content']
+    content_elements = [elem for elem in root.iter() if elem.get("id") == "content"]
     assert len(content_elements) == 1
 
 

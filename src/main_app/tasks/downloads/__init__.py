@@ -1,4 +1,3 @@
-
 from .download import download_commons_svgs, download_one_file, download_task
 
 __all__ = [

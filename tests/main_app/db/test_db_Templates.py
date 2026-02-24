@@ -145,7 +145,14 @@ def test_row_to_record_with_all_fields(templates_db):
 
 def test_row_to_record_with_none_main_file(templates_db):
     """Test _row_to_record with None main_file."""
-    row = {"id": 1, "title": "Template Without File", "main_file": None, "last_world_file": None, "created_at": None, "updated_at": None}
+    row = {
+        "id": 1,
+        "title": "Template Without File",
+        "main_file": None,
+        "last_world_file": None,
+        "created_at": None,
+        "updated_at": None,
+    }
 
     record = templates_db._row_to_record(row)
 

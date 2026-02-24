@@ -84,9 +84,7 @@ def main():
     templates = get_category_members("Category:Pages using gadget owidslider")
 
     templates = [
-        x for x in templates
-        if x.startswith("Template:")
-        and x.lower() not in ["template:owidslider", "template:owid"]
+        x for x in templates if x.startswith("Template:") and x.lower() not in ["template:owidslider", "template:owid"]
     ]
 
     data = {temp: temp_data(temp) for temp in templates}

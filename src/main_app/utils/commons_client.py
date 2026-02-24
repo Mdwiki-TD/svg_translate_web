@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from urllib.parse import quote
+
 import requests
 
 logger = logging.getLogger("svg_translate")
@@ -27,9 +28,11 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
         Configured requests Session ready for use.
     """
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": user_agent or "SVGTranslateBot/1.0",
-    })
+    session.headers.update(
+        {
+            "User-Agent": user_agent or "SVGTranslateBot/1.0",
+        }
+    )
     return session
 
 

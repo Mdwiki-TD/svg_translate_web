@@ -11,9 +11,9 @@ from typing import Any
 
 import pytest
 
-from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.jobs_workers import jobs_service
 from src.main_app.jobs_workers.jobs_service import JobRecord
+from src.main_app.jobs_workers.utils import generate_result_file_name
 
 
 class FakeJobsDB:
@@ -377,6 +377,7 @@ def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.M
 
     assert result_file_name == f"job_{job.id}.json"
     assert (tmp_path / result_file_name).exists()
+
 
 def test_update_job_status_nonexistent(jobs_db_fixture):
     """Test updating status of a nonexistent job raises LookupError."""

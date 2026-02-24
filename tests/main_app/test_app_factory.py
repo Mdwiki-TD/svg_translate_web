@@ -146,6 +146,7 @@ def test_create_app_configures_cookie_settings(monkeypatch):
     assert "SESSION_COOKIE_SECURE" in app.config
     assert "SESSION_COOKIE_SAMESITE" in app.config
 
+
 def test_create_app_registers_context_processor(monkeypatch):
     """Test create_app registers context processor."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")

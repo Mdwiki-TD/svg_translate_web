@@ -249,9 +249,7 @@ def get_settings() -> Settings:
     max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
     # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
     secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
-    secret_key_fallbacks = tuple(
-        key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip()
-    )
+    secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
 
     security = SecurityConfig(
         max_content_length=max_content_length,

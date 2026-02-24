@@ -17,8 +17,10 @@ def test_upload_cropped_file_success(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -60,7 +62,7 @@ def test_upload_cropped_file_get_site_fails(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site:
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site:
         mock_get_site.return_value = None
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
@@ -77,15 +79,14 @@ def test_upload_cropped_file_upload_fails(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
-        mock_upload.return_value = {
-            "result": "Failure",
-            "error": "File already exists"
-        }
+        mock_upload.return_value = {"result": "Failure", "error": "File already exists"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
 
@@ -102,8 +103,10 @@ def test_upload_cropped_file_exception_during_upload(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -124,8 +127,10 @@ def test_upload_cropped_file_strips_file_prefix(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -146,8 +151,10 @@ def test_upload_cropped_file_without_file_prefix(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -168,8 +175,10 @@ def test_upload_cropped_file_with_special_characters(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -189,8 +198,10 @@ def test_upload_cropped_file_uses_new_file_flag(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -210,8 +221,10 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -244,8 +257,10 @@ def test_upload_cropped_file_with_very_long_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -263,8 +278,10 @@ def test_upload_cropped_file_upload_result_missing_keys(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -285,8 +302,10 @@ def test_upload_cropped_file_with_unicode_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -306,8 +325,10 @@ def test_upload_cropped_file_passes_correct_site(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_site.name = "commons"
@@ -329,8 +350,10 @@ def test_upload_cropped_file_with_path_object(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site
@@ -351,8 +374,10 @@ def test_upload_cropped_file_empty_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     user = {"username": "testuser"}
 
-    with patch('src.main_app.jobs_workers.crop_main_files.upload.get_user_site') as mock_get_site, \
-         patch('src.main_app.jobs_workers.crop_main_files.upload.upload_file') as mock_upload:
+    with (
+        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
+        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
+    ):
 
         mock_site = Mock()
         mock_get_site.return_value = mock_site

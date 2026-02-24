@@ -16,8 +16,8 @@ from ...config import settings
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
 from .crop_file import crop_svg_file
-from .upload import upload_cropped_file
 from .download import download_file_for_cropping
+from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
 
 logger = logging.getLogger("svg_translate")
@@ -162,8 +162,7 @@ def process_crops(
     dev_limit = settings.download.dev_limit
     if dev_limit > 0 and len(templates_with_files) > dev_limit:
         logger.info(
-            f"Job {job_id}: Development mode - limiting crop from "
-            f"{len(templates_with_files)} to {dev_limit} files"
+            f"Job {job_id}: Development mode - limiting crop from " f"{len(templates_with_files)} to {dev_limit} files"
         )
         templates_with_files = templates_with_files[:dev_limit]
 
