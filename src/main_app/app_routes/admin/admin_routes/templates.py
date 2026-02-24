@@ -45,8 +45,9 @@ def _add_template() -> ResponseReturnValue:
         return redirect(url_for("admin.templates_dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
+    last_world_file = request.form.get("last_world_file", "").strip()
     try:
-        record = template_service.add_template(title, main_file)
+        record = template_service.add_template(title, main_file, last_world_file)
     except ValueError as exc:
         logger.exception("Unable to add template.")
         flash(str(exc), "warning")
@@ -76,9 +77,12 @@ def _update_template() -> ResponseReturnValue:
         return redirect(url_for("admin.templates_dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
+    last_world_file = request.form.get("last_world_file", "").strip()
 
     try:
-        record = template_service.update_template(template_id, title, main_file)
+        record = template_service.update_template(
+            template_id, title, main_file, last_world_file
+        )
     except LookupError as exc:
         logger.exception("Unable to Update template.")
         flash(str(exc), "warning")
@@ -108,6 +112,24 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
     return redirect(url_for("admin.templates_dashboard"))
 
 
+def _edit_template(template_id: int) -> ResponseReturnValue:
+    """Render the edit template popup page."""
+    try:
+        template = template_service.get_template(template_id)
+    except LookupError:
+        return render_template(
+            "admins/template_edit.html",
+            error="Template not found",
+            template=None,
+        )
+
+    return render_template(
+        "admins/template_edit.html",
+        template=template,
+        error=None,
+    )
+
+
 class Templates:
     def __init__(self, bp_admin: Blueprint):
         @bp_admin.get("/templates")
@@ -129,3 +151,8 @@ class Templates:
         @admin_required
         def delete_template(template_id: int) -> ResponseReturnValue:
             return _delete_template(template_id)
+
+        @bp_admin.get("/templates/<int:template_id>/edit")
+        @admin_required
+        def edit_template(template_id: int) -> ResponseReturnValue:
+            return _edit_template(template_id)

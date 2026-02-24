@@ -92,6 +92,12 @@ def delete_template(template_id: int) -> TemplateRecord:
     return record
 
 
+def get_template(template_id: int) -> TemplateRecord:
+    """Fetch a single template by ID."""
+    store = get_templates_db()
+    return store.fetch_by_id(template_id)
+
+
 __all__ = [
     "get_templates_db",
     "TemplateRecord",
@@ -100,4 +106,5 @@ __all__ = [
     "add_template",
     "update_template",
     "delete_template",
+    "get_template",
 ]

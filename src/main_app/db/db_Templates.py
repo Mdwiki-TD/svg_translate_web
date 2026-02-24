@@ -72,6 +72,10 @@ class TemplatesDB:
             updated_at=row.get("updated_at"),
         )
 
+    def fetch_by_id(self, template_id: int) -> TemplateRecord:
+        """Fetch a single template by its ID."""
+        return self._fetch_by_id(template_id)
+
     def _fetch_by_id(self, template_id: int) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
