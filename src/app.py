@@ -29,11 +29,6 @@ def configure_logging():
 
     setup_logging(
         level=logging.DEBUG if DEBUG else logging.INFO,
-        name="src",
-    )
-
-    setup_logging(
-        level=logging.DEBUG if DEBUG else logging.INFO,
         name="main_app",
         log_file=all_log_path,
         error_log_file=error_log_path,

@@ -75,7 +75,7 @@ def setup_logging(
 
     if log_file:
         log_file = prepare_log_file(log_file, project_logger)
-        setup_file_handler(project_logger, log_file, logging.WARNING)
+        setup_file_handler(project_logger, log_file, numeric_level)
 
     if error_log_file:
         error_log_file = prepare_log_file(error_log_file, project_logger)
