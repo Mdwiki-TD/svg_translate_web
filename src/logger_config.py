@@ -10,14 +10,30 @@ from pathlib import Path
 import colorlog
 
 
-def prepare_log_file(log_file, project_logger):
-    log_file = Path(log_file).expanduser()
+def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Path | None:
+    """Prepare the log file path and create parent directories if needed.
+
+    Parameters
+    ----------
+    log_file : str | None
+        Path to the log file.
+    project_logger : logging.Logger
+        Logger instance for error reporting.
+
+    Returns
+    -------
+    Path | None
+        The expanded log file path, or None if creation failed.
+    """
+    if log_file is None:
+        return None
+    log_file_path = Path(log_file).expanduser()
     try:
-        log_file.parent.mkdir(parents=True, exist_ok=True)
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         project_logger.error(f"Failed to create log directory: {e}")
-        log_file = None
-    return log_file
+        return None
+    return log_file_path
 
 
 def setup_logging(
@@ -33,16 +49,24 @@ def setup_logging(
 
     if project_logger.handlers:
         return
+
     numeric_level = getattr(logging, level.upper(), logging.INFO) if isinstance(level, str) else level
     project_logger.setLevel(numeric_level)
     project_logger.propagate = False
 
-    formatter = colorlog.ColoredFormatter(
-        fmt="%(filename)s:%(lineno)s %(funcName)s() - %(log_color)s%(levelname)-s %(reset)s%(message)s"
+    console_formatter = colorlog.ColoredFormatter(
+        fmt="%(filename)s:%(lineno)s %(funcName)s() - %(log_color)s%(levelname)-s %(reset)s%(message)s",
+        log_colors={
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red,bg_white",
+        },
     )
 
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(console_formatter)
     console_handler.setLevel(numeric_level)
     project_logger.addHandler(console_handler)
 
