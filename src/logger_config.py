@@ -74,25 +74,19 @@ def setup_logging(
 
     if log_file:
         log_file = prepare_log_file(log_file, project_logger)
-
-        file_formatter = logging.Formatter(
-            fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        file_handler = WatchedFileHandler(log_file, mode="a", encoding="utf-8")
-        file_handler.setFormatter(file_formatter)
-        file_handler.setLevel(numeric_level)
-        project_logger.addHandler(file_handler)
+        setup_file_handler(project_logger, log_file, logging.WARNING)
 
     if error_log_file:
         error_log_file = prepare_log_file(error_log_file, project_logger)
+        setup_file_handler(project_logger, error_log_file, logging.WARNING)
 
-        # Separate error log file
-        file_formatter = logging.Formatter(
-            fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        file_handler = WatchedFileHandler(error_log_file, mode="a", encoding="utf-8")
-        file_handler.setFormatter(file_formatter)
-        file_handler.setLevel(logging.WARNING)
-        project_logger.addHandler(file_handler)
+
+def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: int) -> None:
+    file_formatter = logging.Formatter(
+        fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(level)
+    project_logger.addHandler(file_handler)
