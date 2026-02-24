@@ -13,4 +13,5 @@ requests
 tqdm
 uvicorn
 wikitextparser
+colorlog
 CopySVGTranslation>=0.1.6

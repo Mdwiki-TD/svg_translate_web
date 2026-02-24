@@ -11,7 +11,7 @@ from typing import Any
 
 from .. import template_service
 from ..tasks.texts.text_bot import get_wikitext
-from ..tasks.titles.utils.main_file import find_main_title
+from ..tasks.titles.utils import find_main_title, find_last_world_file_from_owidslidersrcs
 from . import jobs_service
 from .utils import generate_result_file_name
 
@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 def process_templates(
-    job_id, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None
+    job_id,
+    result: dict[str, list[dict]],
+    result_file: str,
+    cancel_event: threading.Event | None = None,
 ) -> dict[str, list[dict]]:
     # Update job status to running
     try:
@@ -31,9 +34,9 @@ def process_templates(
     # Get all templates
     templates = template_service.list_templates()
     result["summary"]["total"] = len(templates)
-    result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file])
+    result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
 
-    templates_to_process = [t for t in templates if not t.main_file]
+    templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
     logger.info(f"Job {job_id}: Found {len(templates)} templates")
 
     for n, template in enumerate(templates_to_process, start=1):
@@ -54,6 +57,8 @@ def process_templates(
             "title": template.title,
             "original_main_file": template.main_file,
             "timestamp": datetime.now().isoformat(),
+            "new_main_file": "",
+            "last_world_file": "",
         }
         try:
             # Fetch wikitext from Commons
@@ -70,22 +75,33 @@ def process_templates(
 
             # Extract main file using find_main_title
             main_file = find_main_title(wikitext)
+            if main_file:
+                template_info["new_main_file"] = main_file
 
-            if not main_file:
+            last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
+            if last_world_file:
+                template_info["last_world_file"] = last_world_file
+
+            if not main_file and not last_world_file:
                 template_info["status"] = "failed"
-                template_info["reason"] = "Could not find main file in wikitext"
+                template_info["reason"] = "Could not find main file or last world file in wikitext"
                 template_info["wikitext_length"] = len(wikitext)
                 result["templates_failed"].append(template_info)
                 result["summary"]["failed"] += 1
-                logger.warning(f"Job {job_id}: Could not find main file for {template.title}")
+                logger.warning(f"Job {job_id}: Could not find main file or last world file for {template.title}")
                 continue
 
             # Update template with main file
             logger.info(f"Job {job_id}: Updating {template.title} with main_file: {main_file}")
-            template_service.update_template(template.id, template.title, main_file)
+
+            template_service.update_template_if_not_none(
+                template.id,
+                template.title,
+                main_file,
+                last_world_file,
+            )
 
             template_info["status"] = "updated"
-            template_info["new_main_file"] = main_file
             result["templates_updated"].append(template_info)
             result["summary"]["updated"] += 1
 
@@ -123,7 +139,9 @@ def process_templates(
 
 
 def collect_main_files_for_templates(
-    job_id: int, user: Any | None = None, cancel_event: threading.Event | None = None
+    job_id: int,
+    user: Any | None = None,
+    cancel_event: threading.Event | None = None,
 ) -> None:
     """
     Background worker to collect main files for templates that don't have one.

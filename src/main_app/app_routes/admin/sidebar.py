@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def generate_list_item(href, title, icon=None, target=None):
     """Generate HTML for a single navigation link."""
     icon_tag = f"<i class='bi {icon} me-1'></i>" if icon else ""
@@ -12,7 +17,7 @@ def generate_list_item(href, title, icon=None, target=None):
     return link.strip()
 
 
-def create_side(ty):
+def create_side(active_route):
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
@@ -31,28 +36,28 @@ def create_side(ty):
         ],
         "Jobs": [
             {
-                "id": "collect_main_files_jobs",
+                "id": "collect_main_files",
                 "admin": 1,
                 "href": "collect_main_files/list",
                 "title": "Collect Main Files",
                 "icon": "bi-kanban",
             },
             {
-                "id": "crop_main_files_jobs",
+                "id": "crop_main_files",
                 "admin": 1,
                 "href": "crop_main_files/list",
-                "title": "Crop Main Files",
+                "title": "Crop Newest World Files",
                 "icon": "bi-crop",
             },
             {
-                "id": "fix_nested_main_files_jobs",
+                "id": "fix_nested_main_files",
                 "admin": 1,
                 "href": "fix_nested_main_files/list",
                 "title": "Fix Nested Main Files",
                 "icon": "bi-tools",
             },
             {
-                "id": "download_main_files_jobs",
+                "id": "download_main_files",
                 "admin": 1,
                 "href": "download_main_files/list",
                 "title": "Download Main Files",
@@ -63,17 +68,19 @@ def create_side(ty):
 
     sidebar = ["<ul class='list-unstyled'>"]
 
+    logger.debug(f"Generating sidebar for active_route='{active_route}'")
+
     for key, items in main_menu.items():
         lis = []
         group_is_active = True
         key_id = key.lower().replace(" ", "_")
         for item in items:
             href = item.get("href", "")
-            # group_is_active = href == ty
+            # group_is_active = href == active_route
 
             icon_1 = item.get("icon")
             target = item.get("target")
-            css_class = "active" if ty == href else ""
+            css_class = "active" if (active_route == href or href.startswith(f"{active_route}/")) else ""
             href_full = href if target else f"/admin/{href}"
             link = generate_list_item(href_full, item["title"], icon_1, target)
             lis.append(f"<li id='{item['id']}' class='{css_class}'>{link}</li>")
