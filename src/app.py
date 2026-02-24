@@ -28,7 +28,7 @@ error_log_path = log_dir / "errors.log"
 
 setup_logging(
     level=logging.DEBUG if DEBUG else logging.INFO,
-    name=Path(__file__).parent.name,
+    name="src",
     log_file=all_log_path,
     error_log_file=error_log_path,
 )

@@ -21,7 +21,7 @@ def prepare_log_file(log_file, project_logger):
 
 
 def setup_logging(
-    level: str = "WARNING",
+    level: str = "DEBUG",
     name: str = "svg_translate_web",
     log_file: str | None = None,
     error_log_file: str | None = None,
