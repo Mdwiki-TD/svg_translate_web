@@ -20,13 +20,34 @@ def match_last_world_file(text):
         "File:youth mortality rate, World, 1953.svg"
     """
 
-    text = text.value.strip().splitlines()[0].split("!")[0].strip()
-    m = re.match(r"^File:[\w\-,.()\s_]+\.svg$", text)
+    lines = text.value.strip().splitlines()
+    max_year = -1
+    last_world_file = ""
 
-    if not m:
-        return ""
+    for line in lines:
+        # Extract filename and year part
+        parts = line.split("!")
+        if len(parts) < 2:
+            continue
 
-    last_world_file = text.replace("_", " ").strip()
+        filename = parts[0].strip()
+        year_part = parts[1].strip()
+
+        # Validate filename format
+        m = re.match(r"^File:[\w\-,.()\s_]+\.svg$", filename)
+        if not m:
+            continue
+
+        # Extract year from "year=1953" format
+        year_match = re.match(r"year=(\d{4})", year_part)
+        if not year_match:
+            continue
+
+        year = int(year_match.group(1))
+        if year > max_year:
+            max_year = year
+            last_world_file = filename.replace("_", " ").strip()
+
     return last_world_file
 
 
