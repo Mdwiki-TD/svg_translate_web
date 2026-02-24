@@ -1,8 +1,5 @@
-{% extends "admins/base.html" %}
-
-{% block title %}Templates · Copy SVG Translation{% endblock %}
-
-{% block contents %}
+{% extends "admins/base.html" %} {% block title %}Templates · Copy SVG
+Translation{% endblock %} {% block contents %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -26,19 +23,19 @@
                         <div class="col-md-4 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text">Template name</span>
-                                <input type="text" class="form-control" id="title" name="title" required>
+                                <input type="text" class="form-control" id="title" name="title" required />
                             </div>
                         </div>
                         <div class="col-md-3 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text">Main File</span>
-                                <input type="text" class="form-control" id="main_file" name="main_file">
+                                <input type="text" class="form-control" id="main_file" name="main_file" />
                             </div>
                         </div>
                         <div class="col-md-3 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text">Last World File</span>
-                                <input type="text" class="form-control" id="last_world_file" name="last_world_file">
+                                <input type="text" class="form-control" id="last_world_file" name="last_world_file" />
                             </div>
                         </div>
                         <div class="col-md-2 col-sm-12">
@@ -59,53 +56,39 @@
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
                         <th scope="col" class="text-center">Last World File</th>
-                        <th scope="col" class="text-center" style="width: 10%">Save</th>
-                        <th scope="col" class="text-center" style="width: 10%">Delete</th>
+                        <th scope="col" class="text-center" style="width: 10%">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for template in templates %}
                     <tr>
-                        <form method="post" action="{{ url_for('admin.update_template') }}" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <td>
-                                {{ template.id }}
-                                <input type="hidden" name="id" id="id" value="{{ template.id }}">
-                            </td>
-                            <td>
-                                <input type="text" name="title" id="title" class="form-control"
-                                    value="{{ template.title }}">
-                            </td>
-                            <td>
-                                <input type="text" name="main_file" id="main_file" class="form-control"
-                                    value="{{ template.main_file }}">
-                            </td>
-                            <td>
-                                <input type="text" name="last_world_file" id="last_world_file" class="form-control"
-                                    value="{{ template.last_world_file }}">
-                            </td>
-                            <td>
-                                <button type="submit" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-save"></i> Save
-                                </button>
-                            </td>
-                        </form>
+                        <td>{{ template.id }}</td>
+                        <td>{{ template.title }}</td>
+                        <td class="text-center">{{ template.main_file or '-' }}</td>
+                        <td class="text-center">{{ template.last_world_file or '-' }}</td>
                         <td class="text-center">
-                            <form method="post" action="{{ url_for('admin.delete_template', template_id=template.id) }}"
-                                class="d-inline"
-                                onsubmit="return confirm('Remove {{ template.title }} from templates?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                pup-target="{{ url_for('admin.edit_template', template_id=template.id) }}"
+                                onclick="pup_window_new(this)">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
     </div>
 </div>
+
+<script>
+    function pup_window_new(element) {
+        var target = $(element).attr("pup-target");
+        window.open(
+            target,
+            "",
+            "width=600,height=400,left=100,top=100,location=no"
+        );
+    }
+</script>
 {% endblock %}
