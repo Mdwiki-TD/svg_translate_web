@@ -66,14 +66,19 @@ def _add_template() -> ResponseReturnValue:
 def _update_template() -> ResponseReturnValue:
     """Update main_file for a template."""
     template_id = request.form.get("id", default=0, type=int)
+    from_popup = request.form.get("from_popup") == "1"
 
     if not template_id:
         flash("Template ID is required to update a template.", "danger")
+        if from_popup:
+            return render_template("admins/popup_action.html")
         return redirect(url_for("admin.templates_dashboard"))
 
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title is required to update a template.", "danger")
+        if from_popup:
+            return render_template("admins/popup_action.html")
         return redirect(url_for("admin.templates_dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
@@ -92,11 +97,14 @@ def _update_template() -> ResponseReturnValue:
     else:
         flash(f"Template '{record.title}' main file: {main_file} updated.", "success")
 
+    if from_popup:
+        return render_template("admins/popup_action.html")
     return redirect(url_for("admin.templates_dashboard"))
 
 
 def _delete_template(template_id: int) -> ResponseReturnValue:
     """Remove a template entirely."""
+    from_popup = request.form.get("from_popup") == "1"
 
     try:
         record = template_service.delete_template(template_id)
@@ -109,6 +117,8 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
     else:
         flash(f"Template '{record.title}' removed.", "success")
 
+    if from_popup:
+        return render_template("admins/popup_action.html")
     return redirect(url_for("admin.templates_dashboard"))
 
 
