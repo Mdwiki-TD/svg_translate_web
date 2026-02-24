@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any, Iterable
 
 import pymysql
@@ -250,36 +249,6 @@ def test_delete_template_not_found_raises_lookup_error(_mock_templates_store):
         template_service.delete_template(999)
 
 
-def test_add_or_update_template_adds_new(_mock_templates_store):
-    """Test add_or_update creates a new template if it doesn't exist."""
-    record = template_service.add_or_update_template("New Template", "new.svg")
-
-    assert record.title == "New Template"
-    assert record.main_file == "new.svg"
-    assert record.id > 0
-
-
-def test_add_or_update_template_updates_existing(_mock_templates_store):
-    """Test add_or_update updates an existing template."""
-    original = template_service.add_template("Existing", "old.svg")
-
-    updated = template_service.add_or_update_template("Existing", "new.svg")
-
-    assert updated.id == original.id
-    assert updated.title == "Existing"
-    assert updated.main_file == "new.svg"
-
-
-def test_add_or_update_template_with_empty_title(_mock_templates_store, caplog):
-    """Test add_or_update with empty title logs error but doesn't raise."""
-    with caplog.at_level(logging.ERROR):
-        # This should succeed despite empty title due to safe query
-        template_service.add_or_update_template("", "file.svg")
-
-        # Check that error was logged
-        assert "Title is required for add_or_update" in caplog.text
-
-
 def test_template_record_dataclass_with_none_main_file(_mock_templates_store):
     """Test TemplateRecord with None main_file (type annotation change)."""
     record = template_service.add_template("No Main File", "")
@@ -294,7 +263,6 @@ def test_module_exports_all_functions():
     assert "TemplateRecord" in template_service.__all__
     assert "TemplatesDB" in template_service.__all__
     assert "list_templates" in template_service.__all__
-    assert "add_or_update_template" in template_service.__all__
     assert "add_template" in template_service.__all__
     assert "update_template" in template_service.__all__
     assert "delete_template" in template_service.__all__

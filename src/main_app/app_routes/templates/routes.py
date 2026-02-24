@@ -11,7 +11,7 @@ from flask import (
 )
 
 from ...config import settings
-from ...template_service import add_or_update_template, get_templates_db
+from ...template_service import get_templates_db
 from .category import get_category_members
 
 bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
@@ -57,7 +57,7 @@ def temps_main_files(data: dict) -> dict:
         data[title].setdefault("main_file", "")
         # ---
         main_file = data[title]["main_file"]
-        # ---
+
         if not main_file:
             # ---
             # TODO: this should be removed because we now have collect_main_files job to do this work and we should not be doing this on the fly in the route.
@@ -75,8 +75,6 @@ def temps_main_files(data: dict) -> dict:
             if main_file:
                 value = f"File:{main_file}" if not main_file.lower().startswith("file:") else main_file
                 data[title]["main_file"] = value
-                # ---
-                add_or_update_template(title, value)
     # ---
     return data
 

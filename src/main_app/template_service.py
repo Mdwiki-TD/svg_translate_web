@@ -60,15 +60,6 @@ def add_template(title: str, main_file: str, last_world_file: str | None = None)
     return record
 
 
-def add_or_update_template(title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
-    """Add a template."""
-
-    store = get_templates_db()
-    record = store.add_or_update(title, main_file, last_world_file)
-
-    return record
-
-
 def update_template(template_id: int, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
     """Update template."""
 
@@ -92,7 +83,6 @@ __all__ = [
     "TemplateRecord",
     "TemplatesDB",
     "list_templates",
-    "add_or_update_template",
     "add_template",
     "update_template",
     "delete_template",

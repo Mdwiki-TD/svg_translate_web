@@ -46,9 +46,6 @@ def test_temps_main_files_falls_back_to_main_data(monkeypatch: pytest.MonkeyPatc
         "src.main_app.app_routes.templates.routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: [])
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.add_or_update_template", lambda title, main_file: None
-    )
-    monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "Example.svg"}
     )
 
