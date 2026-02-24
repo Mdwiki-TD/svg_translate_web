@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 def process_templates(
-    job_id, result: dict[str, list[dict]], result_file: str, cancel_event: threading.Event | None = None
+    job_id,
+    result: dict[str, list[dict]],
+    result_file: str,
+    cancel_event: threading.Event | None = None,
 ) -> dict[str, list[dict]]:
     # Update job status to running
     try:
@@ -123,7 +126,9 @@ def process_templates(
 
 
 def collect_main_files_for_templates(
-    job_id: int, user: Any | None = None, cancel_event: threading.Event | None = None
+    job_id: int,
+    user: Any | None = None,
+    cancel_event: threading.Event | None = None,
 ) -> None:
     """
     Background worker to collect main files for templates that don't have one.
