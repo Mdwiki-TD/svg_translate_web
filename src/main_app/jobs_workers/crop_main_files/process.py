@@ -31,7 +31,7 @@ def upload_one(
 ):
 
     cropped_filename = file_info["cropped_filename"]
-    cropped_path = file_info["output_path"]
+    cropped_path = file_info.get("cropped_path")
 
     if cropped_path:
         # Step 4: Upload cropped file to Commons
@@ -199,7 +199,9 @@ def process_crops(
             )
             status = file_info["status"]
             if status == "failed":
-                logger.warning(f"Job {job_id}: Failed to process {template.last_world_file} (reason: {file_info['reason']})")
+                logger.warning(
+                    f"Job {job_id}: Failed to process {template.last_world_file} (reason: {file_info['reason']})"
+                )
                 result["files_processed"].append(file_info)
                 continue
 

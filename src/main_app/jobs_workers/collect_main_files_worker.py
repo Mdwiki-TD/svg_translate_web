@@ -92,7 +92,9 @@ def process_templates(
                 continue
 
             # Update template with main file
-            logger.info(f"Job {job_id}: Updating {template.title} with main_file: {main_file} and last_world_file: {last_world_file}")
+            logger.info(
+                f"Job {job_id}: Updating {template.title} with main_file: {main_file} and last_world_file: {last_world_file}"
+            )
 
             template_service.update_template_if_not_none(
                 template.id,

@@ -47,7 +47,7 @@ def get_max_y_of_element(element) -> float:
 
 
 def remove_footer_and_adjust_height(
-    input_path: Path, output_path: Path, footer_id: str = "footer", padding: float = 10.0
+    input_path: Path, cropped_path: Path, footer_id: str = "footer", padding: float = 10.0
 ) -> bool:
     # 1. Register the SVG namespace to avoid modifying/corrupting the tags
     namespace = "http://www.w3.org/2000/svg"
@@ -119,9 +119,9 @@ def remove_footer_and_adjust_height(
     logger.info(f"🔄 height: {old_height} → {new_height:.2f}")
 
     # Save the new file
-    tree.write(output_path, encoding="unicode", xml_declaration=False)
+    tree.write(cropped_path, encoding="unicode", xml_declaration=False)
 
-    logger.info(f"💾 Saved to: {output_path}")
+    logger.info(f"💾 Saved to: {cropped_path}")
     return True
 
 

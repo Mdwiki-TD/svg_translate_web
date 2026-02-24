@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from src.main_app.jobs_workers.crop_main_files import crop_file
 

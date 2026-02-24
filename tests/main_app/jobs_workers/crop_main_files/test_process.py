@@ -57,7 +57,7 @@ def test_upload_one_success(mock_services):
     job_id = 1
     file_info = {
         "cropped_filename": "File:test (cropped).svg",
-        "output_path": Path("/tmp/test_cropped.svg"),
+        "cropped_path": Path("/tmp/test_cropped.svg"),
         "status": "pending",
     }
     user = {"username": "testuser"}
@@ -83,7 +83,7 @@ def test_upload_one_failure(mock_services):
     job_id = 1
     file_info = {
         "cropped_filename": "File:test (cropped).svg",
-        "output_path": Path("/tmp/test_cropped.svg"),
+        "cropped_path": Path("/tmp/test_cropped.svg"),
         "status": "pending",
     }
     user = {"username": "testuser"}
@@ -107,11 +107,11 @@ def test_upload_one_failure(mock_services):
 
 
 def test_upload_one_skips_if_no_path():
-    """Test upload is not attempted if output_path is None."""
+    """Test upload is not attempted if cropped_path is None."""
     job_id = 1
     file_info = {
         "cropped_filename": "File:test (cropped).svg",
-        "output_path": None,
+        "cropped_path": None,
         "status": "pending",
     }
     user = {"username": "testuser"}
