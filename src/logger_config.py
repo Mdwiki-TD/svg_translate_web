@@ -3,6 +3,7 @@ Logging configuration with colored output.
 """
 
 import logging
+from logging.handlers import WatchedFileHandler
 import sys
 from pathlib import Path
 
@@ -32,7 +33,6 @@ def setup_logging(
 
     if project_logger.handlers:
         return
-
     numeric_level = getattr(logging, level.upper(), logging.INFO) if isinstance(level, str) else level
     project_logger.setLevel(numeric_level)
     project_logger.propagate = False
@@ -46,6 +46,8 @@ def setup_logging(
     console_handler.setLevel(numeric_level)
     project_logger.addHandler(console_handler)
 
+    project_logger.debug(f"Setting up logging for '{name}' with level '{level}'")
+
     if log_file:
         log_file = prepare_log_file(log_file, project_logger)
 
@@ -53,7 +55,7 @@ def setup_logging(
             fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        file_handler = WatchedFileHandler(log_file, mode="a", encoding="utf-8")
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(numeric_level)
         project_logger.addHandler(file_handler)
@@ -66,7 +68,7 @@ def setup_logging(
             fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-        file_handler = logging.FileHandler(error_log_file, mode="a", encoding="utf-8")
+        file_handler = WatchedFileHandler(error_log_file, mode="a", encoding="utf-8")
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.WARNING)
         project_logger.addHandler(file_handler)

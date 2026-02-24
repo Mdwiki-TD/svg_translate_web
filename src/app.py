@@ -12,6 +12,7 @@ from svg_config import _env_file_path  # noqa: F401 # Triggers environment confi
 
 from main_app import create_app  # noqa: E402
 from logger_config import Path, setup_logging
+# from log import config_console_logger
 
 DEBUG = "debug" in sys.argv or "DEBUG" in sys.argv
 
@@ -31,6 +32,7 @@ setup_logging(
     log_file=all_log_path,
     error_log_file=error_log_path,
 )
+# config_console_logger()
 
 app = create_app()
 
