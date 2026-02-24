@@ -21,7 +21,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none", mock_update_template
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
+        mock_update_template,
     )
 
     # Mock jobs_service

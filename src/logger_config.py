@@ -3,8 +3,8 @@ Logging configuration with colored output.
 """
 
 import logging
-from logging.handlers import WatchedFileHandler
 import sys
+from logging.handlers import WatchedFileHandler
 from pathlib import Path
 
 import colorlog

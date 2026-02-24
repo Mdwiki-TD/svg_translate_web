@@ -52,8 +52,7 @@ def match_last_world_file(text):
 
 
 def find_last_world_file_from_owidslidersrcs(text):
-    """
-    """
+    """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 

@@ -1,6 +1,7 @@
 """Admin-only routes for managing coordinator access."""
 
 from __future__ import annotations
+
 import logging
 
 from flask import (

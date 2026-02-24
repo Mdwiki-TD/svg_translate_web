@@ -38,6 +38,7 @@ def configure_logging():
 configure_logging()
 
 from main_app import create_app  # noqa: E402
+
 app = create_app()
 
 if __name__ == "__main__":

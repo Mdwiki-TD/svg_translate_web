@@ -32,8 +32,8 @@ class TestMatchLastWorldFile:
         text = """
 File:youth mortality rate, World, 1950.svg!year=1950
 File:youth mortality rate, World, 1951.svg!year=1951
-File:youth mortality rate, World, 1953.svg!year=1953
-File:youth mortality rate, World, 1952.svg!year=1952
+File:youth mortality rate, World, 1953.svg ! year = 1953
+File:youth mortality rate, World, 1952.svg ! year=1952
         """
         result = match_last_world_file(text)
         assert result == "File:youth mortality rate, World, 1953.svg"
