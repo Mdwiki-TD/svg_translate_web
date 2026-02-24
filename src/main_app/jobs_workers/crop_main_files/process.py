@@ -64,7 +64,7 @@ def process_one(
     file_info = {
         "template_id": template.id,
         "template_title": template.title,
-        "original_file": template.main_file,
+        "original_file": template.last_world_file,
         "timestamp": datetime.now().isoformat(),
         "status": "pending",
         "cropped_filename": None,
@@ -75,7 +75,7 @@ def process_one(
     # Step 1: Download the original file
     try:
         download_result = download_file_for_cropping(
-            template.main_file,
+            template.last_world_file,
             temp_dir,
             session=session,
         )
@@ -86,7 +86,7 @@ def process_one(
         file_info["error"] = f"{type(e).__name__}: {str(e)}"
 
         result["summary"]["failed"] += 1
-        logger.exception(f"Job {job_id}: Exception processing {template.main_file}")
+        logger.exception(f"Job {job_id}: Exception processing {template.last_world_file}")
         return file_info
 
     if not download_result["success"]:
@@ -95,14 +95,14 @@ def process_one(
         file_info["error"] = download_result.get("error", "Unknown download error")
 
         result["summary"]["failed"] += 1
-        logger.warning(f"Job {job_id}: Failed to download {template.main_file}")
+        logger.warning(f"Job {job_id}: Failed to download {template.last_world_file}")
         return file_info
 
     downloaded_path = download_result["path"]
     result["summary"]["processed"] += 1
 
     # Step 2: Crop the SVG (placeholder)
-    cropped_filename = generate_cropped_filename(template.main_file)
+    cropped_filename = generate_cropped_filename(template.last_world_file)
     cropped_output_path = downloaded_path.parent / cropped_filename.removeprefix("File:")
 
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
@@ -113,7 +113,7 @@ def process_one(
         file_info["error"] = crop_result.get("error", "Unknown crop error")
 
         result["summary"]["failed"] += 1
-        logger.warning(f"Job {job_id}: Failed to crop {template.main_file}")
+        logger.warning(f"Job {job_id}: Failed to crop {template.last_world_file}")
         return file_info
 
     file_info["cropped_path"] = cropped_output_path
@@ -156,7 +156,7 @@ def process_crops(
 
     # Get all templates with main files
     templates = template_service.list_templates()
-    templates_with_files = [t for t in templates if t.main_file]
+    templates_with_files = [t for t in templates if t.last_world_file]
 
     # Apply development mode limit from settings
     dev_limit = settings.download.dev_limit
@@ -199,7 +199,7 @@ def process_crops(
             )
             status = file_info["status"]
             if status == "failed":
-                logger.warning(f"Job {job_id}: Failed to process {template.main_file} (reason: {file_info['reason']})")
+                logger.warning(f"Job {job_id}: Failed to process {template.last_world_file} (reason: {file_info['reason']})")
                 result["files_processed"].append(file_info)
                 continue
 
