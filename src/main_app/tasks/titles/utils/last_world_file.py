@@ -51,19 +51,21 @@ def match_last_world_file(text) -> str:
     return last_world_file
 
 
-def find_last_world_file_from_owidslidersrcs(text) -> str:
+def find_last_world_file_from_owidslidersrcs(text) -> str | None:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
     # --- 1. Extract last_world_file from {{owidslidersrcs|gallery-World=...}}
-    last_world_file = ""
+    last_world_file = None
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":
             if tpl.arguments:
                 gallery = tpl.get_arg("gallery-World")
                 if gallery:
-                    last_world_file = match_last_world_file(gallery.value.strip())
+                    matched = match_last_world_file(gallery.value.strip())
+                    if matched:
+                        last_world_file = matched
             break
     return last_world_file
 
