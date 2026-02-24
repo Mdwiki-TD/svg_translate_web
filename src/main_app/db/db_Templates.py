@@ -108,7 +108,7 @@ class TemplatesDB:
         )
         return [self._row_to_record(row) for row in rows]
 
-    def add(self, title: str, main_file: str, last_world_file: str=None) -> TemplateRecord:
+    def add(self, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
         if not title:
@@ -128,7 +128,7 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
-    def update(self, template_id: int, title: str, main_file: str, last_world_file: str = None) -> TemplateRecord:
+    def update(self, template_id: int, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
         self.db.execute_query_safe(
             "UPDATE templates SET title = %s, main_file = %s , last_world_file = %s WHERE id = %s",
@@ -144,7 +144,7 @@ class TemplatesDB:
         )
         return record
 
-    def add_or_update(self, title: str, main_file: str, last_world_file: str = None) -> TemplateRecord:
+    def add_or_update(self, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
 
