@@ -37,7 +37,7 @@ def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Pa
 
 
 def setup_logging(
-    level: str = "DEBUG",
+    level: str = "WARNING",
     name: str = "svg_translate_web",
     log_file: str | None = None,
     error_log_file: str | None = None,
@@ -55,7 +55,8 @@ def setup_logging(
     project_logger.propagate = False
 
     console_formatter = colorlog.ColoredFormatter(
-        fmt="%(filename)s:%(lineno)s %(funcName)s() - %(log_color)s%(levelname)-s %(reset)s%(message)s",
+        # fmt="%(filename)s:%(lineno)s %(funcName)s() - %(log_color)s%(levelname)-s %(reset)s%(message)s",
+        fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s%(message)s",
         log_colors={
             "DEBUG": "cyan",
             "INFO": "green",
@@ -86,7 +87,8 @@ def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: in
         fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    # file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    file_handler = WatchedFileHandler(log_file, mode="a", encoding="utf-8")
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(level)
     project_logger.addHandler(file_handler)
