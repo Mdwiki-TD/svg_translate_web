@@ -5,6 +5,7 @@ WSGI entry point for SVG Translate.
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from svg_config import _env_file_path  # noqa: F401 # Triggers environment configuration
@@ -25,7 +26,7 @@ all_log_path = log_dir / "app.log"
 error_log_path = log_dir / "errors.log"
 
 setup_logging(
-    level="DEBUG" if DEBUG else "INFO",
+    level=logging.DEBUG if DEBUG else logging.INFO,
     name=Path(__file__).parent.name,
     log_file=all_log_path,
     error_log_file=error_log_path,
