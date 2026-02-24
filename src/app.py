@@ -21,7 +21,14 @@ def configure_logging():
     main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
 
     log_dir = Path(main_dir) / "logs"
-    log_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        setup_logging(level=logging.DEBUG if DEBUG else logging.INFO, name="main_app")
+        logging.getLogger("main_app").warning(
+            "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
+        )
+        return
 
     # Define paths
     all_log_path = log_dir / "app.log"
