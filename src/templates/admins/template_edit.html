@@ -1,8 +1,16 @@
-{% extends "admins/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Edit Template · Copy SVG Translation{% endblock %}
 
-{% block contents %}
+{% block extra_css %}
+<style>
+    header { display: none !important; }
+    /* Option to remove top padding since navbar is gone */
+    body { padding-top: 0 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="container mt-4">
     {% if error %}
     <div class="alert alert-danger" role="alert">
