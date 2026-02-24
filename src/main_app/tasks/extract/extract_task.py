@@ -6,7 +6,7 @@ from CopySVGTranslation import extract  # type: ignore
 from ..downloads import download_one_file
 from ..tasks_utils import json_save
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def translations_task(stages, main_title, output_dir_main):

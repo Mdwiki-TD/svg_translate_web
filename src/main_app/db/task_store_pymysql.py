@@ -10,7 +10,7 @@ from .db_StageStore import StageStore
 from .db_TasksListDB import TasksListDB
 from .utils import DbUtils
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):

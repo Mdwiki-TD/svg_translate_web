@@ -266,8 +266,3 @@ def test_module_exports_all_functions():
     assert "add_template" in template_service.__all__
     assert "update_template" in template_service.__all__
     assert "delete_template" in template_service.__all__
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-    assert template_service.logger.name == "svg_translate"

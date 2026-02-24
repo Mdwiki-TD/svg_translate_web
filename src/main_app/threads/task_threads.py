@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 CANCEL_EVENTS: Dict[str, threading.Event] = {}
 CANCEL_EVENTS_LOCK = threading.Lock()
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 # Multi-process deployment note:
 # CANCEL_EVENTS is stored in process-local memory. In multi-process deployments (e.g., Gunicorn

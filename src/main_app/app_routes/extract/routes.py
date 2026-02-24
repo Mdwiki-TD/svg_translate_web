@@ -10,7 +10,7 @@ from flask import Blueprint, flash, render_template, request, session
 from ...tasks.downloads.download import download_one_file
 
 bp_extract = Blueprint("extract", __name__, url_prefix="/extract")
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 # Session key for preserving filename across OAuth redirect for extract
 EXTRACT_FILENAME_KEY = "extract_filename"

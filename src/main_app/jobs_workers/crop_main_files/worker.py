@@ -13,7 +13,7 @@ from .. import jobs_service
 from ..utils import generate_result_file_name
 from .process import process_crops
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def crop_main_files_for_templates(

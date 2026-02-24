@@ -16,7 +16,7 @@ from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...tasks.downloads import download_one_file
 from ...tasks.uploads import get_user_site, upload_file
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def create_task_folder(task_id: str) -> Path:

@@ -2,14 +2,6 @@
 
 from __future__ import annotations
 
-from src.main_app.db import db_StageStore
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-
-    assert db_StageStore.logger.name == "svg_translate"
-
 
 def test_no_unused_imports():
     """Test that unused import 're' has been removed."""

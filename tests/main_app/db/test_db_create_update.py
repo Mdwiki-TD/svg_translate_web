@@ -61,10 +61,3 @@ def test_task_already_exists_error_stores_task():
 
     assert error.task == conflicting_task
     assert "Task with this title is already in progress" in str(error)
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-    from src.main_app.db import db_CreateUpdate
-
-    assert db_CreateUpdate.logger.name == "svg_translate"

@@ -23,7 +23,7 @@ from .utils import generate_result_file_name
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def download_all_main_files(): ...

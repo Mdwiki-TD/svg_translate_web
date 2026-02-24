@@ -12,7 +12,7 @@ import requests
 
 from ...tasks.downloads import download_one_file
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def download_file_for_cropping(

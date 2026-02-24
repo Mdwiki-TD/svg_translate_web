@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional
 # from .db_StageStore import StageStore
 from .db_class import Database
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 class TasksListDB:  # (StageStore, DbUtils)

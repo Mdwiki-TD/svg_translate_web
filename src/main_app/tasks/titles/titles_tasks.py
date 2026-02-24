@@ -3,7 +3,7 @@ import logging
 
 from .temps_bot import get_files_list
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def titles_task(stages, text, manual_main_title, titles_limit=None):

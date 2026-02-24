@@ -10,7 +10,7 @@ import pymysql
 
 from ..config import DbConfig
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 class MaxUserConnectionsError(Exception):

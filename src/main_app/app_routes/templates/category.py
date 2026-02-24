@@ -5,7 +5,7 @@ import requests
 
 from ...config import settings
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def get_category_members_api(category, project, limit=500):

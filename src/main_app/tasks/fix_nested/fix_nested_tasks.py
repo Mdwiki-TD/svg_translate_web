@@ -3,7 +3,7 @@ from pathlib import Path
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def fix_nested_task(stages: dict, files: list[str]) -> tuple[dict, dict]:

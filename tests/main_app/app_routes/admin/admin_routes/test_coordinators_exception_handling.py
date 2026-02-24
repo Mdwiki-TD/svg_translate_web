@@ -49,8 +49,3 @@ def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplo
         coordinators._add_coordinator()
 
     mock_flash.assert_called_once_with("User not found", "warning")
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-    assert coordinators.logger.name == "svg_translate"

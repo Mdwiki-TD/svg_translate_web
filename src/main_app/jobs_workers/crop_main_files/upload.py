@@ -10,7 +10,7 @@ from typing import Any
 
 from ...tasks.uploads import get_user_site, upload_file
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def upload_cropped_file(

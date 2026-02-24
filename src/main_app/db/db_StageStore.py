@@ -6,7 +6,7 @@ from typing import Any, Dict
 # from .utils import DbUtils
 from .db_class import Database
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 class StageStore:  # (DbUtils)

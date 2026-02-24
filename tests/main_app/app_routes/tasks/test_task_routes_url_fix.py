@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
 from flask import Flask
 
 from src.main_app.app_routes.tasks import routes
@@ -42,8 +41,3 @@ def test_start_redirects_to_correct_task_endpoint(monkeypatch):
                                 task_id="existing-task-123",
                                 title="Test Title",
                             )
-
-
-def test_logger_uses_svg_translate_name():
-    """Test that the logger uses 'svg_translate' instead of __name__."""
-    assert routes.logger.name == "svg_translate"

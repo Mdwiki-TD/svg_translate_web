@@ -3,7 +3,7 @@ import json
 import logging
 from urllib.parse import quote
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def json_save(path, data):

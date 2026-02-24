@@ -13,7 +13,7 @@ from ...config import settings
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...utils.commons_client import create_commons_session, download_commons_file_core
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def download_one_file(

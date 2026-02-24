@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 from ..crypto import decrypt_value, encrypt_value
 from ..db import get_db, has_db_config
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def _current_ts() -> str:

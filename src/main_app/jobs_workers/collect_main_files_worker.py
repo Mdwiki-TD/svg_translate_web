@@ -15,7 +15,7 @@ from ..tasks.titles.utils.main_file import find_main_title
 from . import jobs_service
 from .utils import generate_result_file_name
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def process_templates(

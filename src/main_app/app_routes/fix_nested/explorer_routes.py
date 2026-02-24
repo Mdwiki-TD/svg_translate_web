@@ -26,7 +26,7 @@ from ..explorer.compare import analyze_file
 from ..fix_nested.fix_utils import log_to_task
 
 bp_fix_nested_explorer = Blueprint("fix_nested_explorer", __name__, url_prefix="/fix_nested")
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 @bp_fix_nested_explorer.route("/tasks")

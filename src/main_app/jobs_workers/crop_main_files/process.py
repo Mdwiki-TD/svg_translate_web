@@ -20,7 +20,7 @@ from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
 
-logger = logging.getLogger("svg_translate")
+logger = logging.getLogger(__name__)
 
 
 def upload_one(
