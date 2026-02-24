@@ -66,8 +66,8 @@ class TemplatesDB:
         return TemplateRecord(
             id=int(row["id"]),
             title=row["title"],
-            main_file=row.get("main_file") if row.get("main_file") is not None else "",
-            last_world_file=row.get("last_world_file") if row.get("last_world_file") is not None else "",
+            main_file=row.get("main_file") or "",
+            last_world_file=row.get("last_world_file") or "",
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at"),
         )

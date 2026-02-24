@@ -43,7 +43,12 @@ class FakeTemplatesDB:
         if any(record.title == title for record in self._records):
             raise ValueError(f"Template '{title}' already exists")
 
-        record = TemplateRecord(id=self._next_id, title=title, main_file=main_file or None, last_world_file=None)
+        record = TemplateRecord(
+            id=self._next_id,
+            title=title,
+            main_file=main_file or None,
+            last_world_file=last_world_file or None,
+        )
         self._records.append(record)
         self._next_id += 1
         return record
@@ -52,7 +57,12 @@ class FakeTemplatesDB:
         title = title.strip()
         main_file = main_file.strip()
         index = self._find_index(template_id)
-        updated = replace(self._records[index], title=title, main_file=main_file or None, last_world_file=None)
+        updated = replace(
+            self._records[index],
+            title=title,
+            main_file=main_file or None,
+            last_world_file=last_world_file or None,
+        )
         self._records[index] = updated
         return updated
 
