@@ -1,12 +1,9 @@
 """Tests for logger_config module."""
 
 import logging
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
-
-from logger_config import prepare_log_file, setup_file_handler, setup_logging
+from src.logger_config import prepare_log_file, setup_file_handler, setup_logging
 
 
 class TestPrepareLogFile:

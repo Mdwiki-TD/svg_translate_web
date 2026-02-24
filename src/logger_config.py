@@ -83,6 +83,8 @@ def setup_logging(
 
 
 def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: int) -> None:
+    if not log_file:
+        return
     file_formatter = logging.Formatter(
         fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",

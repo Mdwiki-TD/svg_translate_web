@@ -1,14 +1,11 @@
 """Tests for app.py WSGI entry point."""
 
 import logging
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 # Import the app module components for testing
 # Note: We import functions directly to avoid module-level side effects
-from app import configure_logging
+from src.app import configure_logging
 
 
 class TestConfigureLogging:

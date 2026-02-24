@@ -1,7 +1,5 @@
 """Tests for tasks/titles/utils/last_world_file module."""
 
-import pytest
-
 from src.main_app.tasks.titles.utils.last_world_file import (
     find_last_world_file_from_owidslidersrcs,
     match_last_world_file,

@@ -131,8 +131,8 @@ class TemplatesDB:
     def update_if_not_none(
         self,
         template_id: int,
-        title: str,
-        main_file: str,
+        title: str | None = None,
+        main_file: str | None = None,
         last_world_file: str | None = None,
     ) -> TemplateRecord:
         """

@@ -70,7 +70,10 @@ def update_template(template_id: int, title: str, main_file: str, last_world_fil
 
 
 def update_template_if_not_none(
-    template_id: int, title: str, main_file: str, last_world_file: str | None = None
+    template_id: int,
+    title: str | None = None,
+    main_file: str | None = None,
+    last_world_file: str | None = None,
 ) -> TemplateRecord:
     """Update template only if not None."""
 

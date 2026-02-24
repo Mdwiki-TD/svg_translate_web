@@ -5,7 +5,7 @@ import re
 import wikitextparser as wtp
 
 
-def match_last_world_file(text):
+def match_last_world_file(text) -> str:
     """
     Example:
         ==Data==
@@ -51,13 +51,13 @@ def match_last_world_file(text):
     return last_world_file
 
 
-def find_last_world_file_from_owidslidersrcs(text):
+def find_last_world_file_from_owidslidersrcs(text) -> str:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
     # --- 1. Extract last_world_file from {{owidslidersrcs|gallery-World=...}}
-    last_world_file = None
+    last_world_file = ""
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":
             if tpl.arguments:
