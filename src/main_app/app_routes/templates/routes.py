@@ -75,8 +75,8 @@ def temps_main_files(data: dict) -> dict:
             if main_file:
                 value = f"File:{main_file}" if not main_file.lower().startswith("file:") else main_file
                 data[title]["main_file"] = value
-            # ---
-            add_or_update_template(title, value)
+                # ---
+                add_or_update_template(title, value)
     # ---
     return data
 
