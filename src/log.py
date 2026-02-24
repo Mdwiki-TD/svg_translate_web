@@ -1,3 +1,7 @@
+"""
+Logging configuration with colored output.
+"""
+
 import logging
 import os
 import sys
@@ -6,12 +10,9 @@ from pathlib import Path
 
 # from app.config import settings
 # Create log directory if needed
-# log_dir_path = settings.paths.log_dir
 main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
 
-log_dir_path = f"{main_dir}/logs"
-
-log_dir = Path(log_dir_path)
+log_dir = Path(main_dir) / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Define paths
@@ -23,6 +24,7 @@ logger = logging.getLogger("svg_translate")
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+formatter = logging.Formatter("%(filename)s:%(lineno)d %(funcName)s() - %(levelname)s - %(message)s")
 
 # Handler for all logs
 all_handler = WatchedFileHandler(all_log_path, encoding="utf-8")
