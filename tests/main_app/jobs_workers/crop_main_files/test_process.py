@@ -148,7 +148,8 @@ def test_process_one_success(mock_services, tmp_path):
     template = TemplateRecord(
         id=1,
         title="Template:Test",
-        main_file="File:test.svg"
+        main_file="File:test.svg",
+        last_world_file=None,
     )
     result = {
         "summary": {
@@ -188,7 +189,8 @@ def test_process_one_download_failure(mock_services, tmp_path):
     template = TemplateRecord(
         id=1,
         title="Template:Test",
-        main_file="File:test.svg"
+        main_file="File:test.svg",
+        last_world_file=None,
     )
     result = {
         "summary": {
@@ -220,7 +222,8 @@ def test_process_one_crop_failure(mock_services, tmp_path):
     template = TemplateRecord(
         id=1,
         title="Template:Test",
-        main_file="File:test.svg"
+        main_file="File:test.svg",
+        last_world_file=None,
     )
     result = {
         "summary": {
@@ -261,7 +264,8 @@ def test_process_one_exception_handling(mock_services, tmp_path):
     template = TemplateRecord(
         id=1,
         title="Template:Test",
-        main_file="File:test.svg"
+        main_file="File:test.svg",
+        last_world_file=None,
     )
     result = {
         "summary": {
@@ -315,7 +319,7 @@ def test_process_crops_with_no_templates(mock_services):
 def test_process_crops_with_templates_no_user(mock_services, tmp_path):
     """Test processing templates without user authentication."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -359,7 +363,7 @@ def test_process_crops_with_templates_no_user(mock_services, tmp_path):
 def test_process_crops_with_user_and_upload(mock_services, tmp_path):
     """Test processing templates with user authentication and upload enabled."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg"),
+        TemplateRecord(id=1, title="Template:Test", main_file="File:test.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
     user = {"username": "testuser"}
@@ -411,7 +415,7 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
 def test_process_crops_respects_dev_limit(mock_services, tmp_path):
     """Test that development limit is respected."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg")
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg", last_world_file=None)
         for i in range(1, 21)
     ]
     mock_services["list_templates"].return_value = templates
@@ -454,7 +458,7 @@ def test_process_crops_respects_dev_limit(mock_services, tmp_path):
 def test_process_crops_respects_cancellation(mock_services):
     """Test that processing respects cancellation event."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg")
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg", last_world_file=None)
         for i in range(1, 21)
     ]
     mock_services["list_templates"].return_value = templates
@@ -489,7 +493,7 @@ def test_process_crops_respects_cancellation(mock_services):
 def test_process_crops_saves_progress_periodically(mock_services, tmp_path):
     """Test that progress is saved periodically during processing."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg")
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=f"File:test{i}.svg", last_world_file=None)
         for i in range(1, 15)
     ]
     mock_services["list_templates"].return_value = templates
@@ -558,9 +562,9 @@ def test_process_crops_handles_job_not_found(mock_services):
 def test_process_crops_filters_templates_without_main_file(mock_services):
     """Test that templates without main_file are filtered out."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="File:test1.svg"),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None),
-        TemplateRecord(id=3, title="Template:Test3", main_file=""),
+        TemplateRecord(id=1, title="Template:Test1", main_file="File:test1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
+        TemplateRecord(id=3, title="Template:Test3", main_file="", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -601,9 +605,9 @@ def test_process_crops_filters_templates_without_main_file(mock_services):
 def test_process_crops_mixed_success_and_failure(mock_services, tmp_path):
     """Test processing with mixed success and failure results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="File:test1.svg"),
-        TemplateRecord(id=2, title="Template:Test2", main_file="File:test2.svg"),
-        TemplateRecord(id=3, title="Template:Test3", main_file="File:test3.svg"),
+        TemplateRecord(id=1, title="Template:Test1", main_file="File:test1.svg", last_world_file=None),
+        TemplateRecord(id=2, title="Template:Test2", main_file="File:test2.svg", last_world_file=None),
+        TemplateRecord(id=3, title="Template:Test3", main_file="File:test3.svg", last_world_file=None),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -651,7 +655,8 @@ def test_process_one_creates_output_path_with_cropped_suffix(mock_services, tmp_
     template = TemplateRecord(
         id=1,
         title="Template:Test",
-        main_file="File:example.svg"
+        main_file="File:example.svg",
+        last_world_file=None,
     )
     result = {
         "summary": {
