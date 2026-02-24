@@ -39,7 +39,7 @@ def match_last_world_file(text):
             continue
 
         # Extract year from "year=1953" format
-        year_match = re.match(r"year=(\d{4})", year_part)
+        year_match = re.match(r"year\s*=\s*(\d{4})", year_part)
         if not year_match:
             continue
 
