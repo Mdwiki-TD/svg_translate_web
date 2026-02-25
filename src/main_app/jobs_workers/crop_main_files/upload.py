@@ -13,16 +13,6 @@ from ...tasks.uploads import get_user_site, upload_file
 logger = logging.getLogger(__name__)
 
 
-def create_cropped_file_text(file_name: str) -> str:
-
-    ...
-
-
-def get_file_text(file_name: str) -> str:
-
-    ...
-
-
 def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
