@@ -26,6 +26,7 @@ def create_side(active_route):
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
         "Jobs": "bi-gear-fill",
+        "Settings": "bi-sliders",
     }
 
     main_menu = {
@@ -63,6 +64,15 @@ def create_side(active_route):
                 "title": "Download Main Files",
                 "icon": "bi-download",
             },
+        ],
+        "Settings": [
+            {
+                "id": "settings",
+                "admin": 1,
+                "href": "settings",
+                "title": "Settings",
+                "icon": "bi-gear",
+            }
         ],
     }
 

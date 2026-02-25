@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 @dataclass(frozen=True)
@@ -63,6 +63,33 @@ class SecurityConfig:
     secret_key_fallbacks: tuple[str, ...]  # Fallback secret keys for rotation
 
 
+class DynamicSettingsStore:
+    """Lazy loader and cacher for settings stored in the database."""
+
+    def __init__(self, db_config: DbConfig):
+        self._db_config = db_config
+        self._cache: Dict[str, Any] | None = None
+
+    def get_all(self) -> Dict[str, Any]:
+        """Get all dynamic settings, loading from db if not cached."""
+        if self._cache is not None:
+            return self._cache
+
+        # Lazy import to avoid circular dependencies
+        from .db.db_Settings import SettingsDB
+        db = SettingsDB(self._db_config)
+        self._cache = db.get_all()
+        return self._cache
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get a specific dynamic setting by key."""
+        return self.get_all().get(key, default)
+
+    def invalidate(self) -> None:
+        """Clear the cache to force reload on next access."""
+        self._cache = None
+
+
 @dataclass(frozen=True)
 class Settings:
     is_localhost: callable
@@ -78,6 +105,7 @@ class Settings:
     download: DownloadConfig
     security: SecurityConfig
     csrf_time_limit: Optional[int]  # None means never expire
+    dynamic: DynamicSettingsStore
 
 
 def _load_db_data_new() -> DbConfig:
@@ -279,6 +307,7 @@ def get_settings() -> Settings:
         download=DownloadConfig(dev_limit=dev_download_limit),
         security=security,
         csrf_time_limit=csrf_time_limit,
+        dynamic=DynamicSettingsStore(_load_db_data_new()),
     )
 
 

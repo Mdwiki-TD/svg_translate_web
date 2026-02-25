@@ -8,7 +8,7 @@ import logging
 import threading
 from datetime import datetime
 from typing import Any
-
+from ...config import settings
 from .. import jobs_service
 from ..utils import generate_result_file_name
 from .process import process_crops
@@ -56,7 +56,7 @@ def crop_main_files_for_templates(
             result_file,
             user,
             cancel_event=cancel_event,
-            upload_files=False,
+            upload_files=settings.dynamic.get("crop_newest_jobs_uploads"),
         )
     except Exception as e:
         logger.exception(f"Job {job_id}: Error during crop processing")
