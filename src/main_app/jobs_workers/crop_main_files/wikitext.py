@@ -20,8 +20,24 @@ def add_other_versions(
     text: str,
 ) -> str:
     """
+    Add |other versions = <param_text> parameter to the {{Information}} template in wikitext.
+
+    Args:
+        param_text: The text to add to the other versions parameter
+        text: The wikitext content to modify
+
+    Returns:
+        The modified wikitext with the other versions parameter added
     """
-    return ""
+    parsed = wtp.parse(text)
+
+    for template in parsed.templates:
+        if template.name.strip() == "Information":
+            template.set_arg("other versions", param_text)
+            return parsed.string
+
+    # If no Information template found, return original text
+    return text
 
 
 def create_cropped_file_text(
