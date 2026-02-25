@@ -13,10 +13,21 @@ from ...tasks.uploads import get_user_site, upload_file
 logger = logging.getLogger(__name__)
 
 
+def create_cropped_file_text(file_name: str) -> str:
+
+    ...
+
+
+def get_file_text(file_name: str) -> str:
+
+    ...
+
+
 def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
     user: Any,
+    wikitext: str = None,
 ) -> dict[str, Any]:
     """
     Upload cropped file to Commons with new name.
@@ -25,6 +36,7 @@ def upload_cropped_file(
         cropped_filename: The new filename for the cropped version (with File: prefix)
         cropped_path: Path to the cropped file
         user: User authentication data for OAuth uploads
+        wikitext: The wikitext content for the cropped file
 
     Returns:
         dict with keys: success (bool), cropped_filename (str|None), error (str|None)
@@ -56,6 +68,7 @@ def upload_cropped_file(
         upload_result = upload_file(
             file_name=clean_cropped_name,
             file_path=cropped_path,
+            description=wikitext,
             site=site,
             summary=summary,
             new_file=True,

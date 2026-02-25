@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 def upload_file(
-    file_name,
-    file_path,
-    site=None,
-    summary=None,
-    new_file=False,
+    file_name: str,
+    file_path: Path,
+    site: mwclient.client.Site = None,
+    summary: str = None,
+    description: str = None,
+    new_file: bool = False,
 ) -> dict[str, str] | dict:
     """
     Upload an SVG file to Wikimedia Commons using mwclient.
@@ -48,6 +49,7 @@ def upload_file(
             response = site.upload(
                 # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
                 file=f,
+                description=description,
                 filename=file_name,
                 comment=summary or "",
                 ignore=True,  # skip warnings like "file exists"

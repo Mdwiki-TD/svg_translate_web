@@ -39,6 +39,7 @@ def test_upload_cropped_file_success(tmp_path):
         site=mock_site,
         summary="Cropped version of file",
         new_file=True,
+        description=None,
     )
 
 
