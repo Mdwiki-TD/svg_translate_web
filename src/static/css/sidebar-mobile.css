@@ -1,6 +1,7 @@
 :root {
-    --btn_toggle_color: #000000A6;
-    --btn_toggle_hover-color: #000000;
+    --white_in_light_None_in_dark: #fff;
+    --btn_toggle_color: #000000a6;
+    --black_in_light_white_in_dark: #000000;
     /* --btn_toggle_hover-bg: #d2f4ea; */
     --btn_toggle_active-color: #000000;
     --btn_toggle_nav-active-bg: #dee2e6;
@@ -8,12 +9,12 @@
 }
 
 :root[data-bs-theme="dark"] {
-    --btn_toggle_color: #A0A0A0;
-    --btn_toggle_hover-color: #FFFFFF;
-    --btn_toggle_hover-bg: #3A3A3A;
-    --btn_toggle_active-color: #FFFFFF;
+    --btn_toggle_color: #a0a0a0;
+    --black_in_light_white_in_dark: #ffffff;
+    --btn_toggle_hover-bg: #3a3a3a;
+    --btn_toggle_active-color: #ffffff;
     --btn_toggle_nav-active-bg: #505050;
-    --btn_toggle_nav-hover-bg: #3A3A3A;
+    --btn_toggle_nav-hover-bg: #3a3a3a;
 }
 
 .dropdown-toggle {
@@ -23,7 +24,7 @@
 .btn-toggle {
     display: inline-flex;
     align-items: center;
-    padding: .25rem .5rem;
+    padding: 0.25rem 0.5rem;
     font-weight: 600;
     color: var(--btn_toggle_color);
     background-color: transparent;
@@ -32,19 +33,19 @@
 
 .btn-toggle:hover,
 .btn-toggle:focus {
-    color: var(--btn_toggle_hover-color);
+    color: var(--black_in_light_white_in_dark);
     background-color: var(--btn_toggle_hover-bg);
 }
 
 .btn-toggle-nav-mobile a {
     display: inline-flex;
-    padding: .1875rem .5rem;
-    margin-top: .125rem;
+    padding: 0.1875rem 0.5rem;
+    margin-top: 0.125rem;
     margin-left: 1.25rem;
     text-decoration: none;
 }
 
-.btn-toggle-nav-mobile li.active>a {
+.btn-toggle-nav-mobile li.active > a {
     background-color: var(--btn_toggle_nav-active-bg);
 }
 
@@ -67,17 +68,15 @@
 }
 
 @media (max-width: 767.98px) {
-
     .btn-toggle::before {
         width: 1.25em;
         line-height: 0;
         content: "\f285";
         /* \f285: <i class="bi bi-chevron-right"></i> */
         font-family: "bootstrap-icons";
-        transition: transform .35s ease;
-        transform-origin: .5em 50%;
+        transition: transform 0.35s ease;
+        transform-origin: 0.5em 50%;
     }
-
 
     .btn-toggle[aria-expanded="true"]::before {
         content: "\f282";

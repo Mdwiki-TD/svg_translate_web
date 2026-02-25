@@ -1,12 +1,12 @@
 .btn-toggle-nav a {
     display: inline-flex;
-    padding: .1875rem .5rem;
-    margin-top: .125rem;
+    padding: 0.1875rem 0.5rem;
+    margin-top: 0.125rem;
     margin-left: 1.25rem;
     text-decoration: none;
 }
 
-.btn-toggle-nav li.active>a {
+.btn-toggle-nav li.active > a {
     background-color: var(--btn_toggle_nav-active-bg);
 }
 
@@ -15,11 +15,9 @@
     background-color: var(--btn_toggle_nav-hover-bg);
 }
 
-
 @media (min-width: 768px) {
-
     .main-toggle-btn {
-        background: white;
+        background: var(--bs-secondary-bg);
         border-radius: 50%;
         width: 30px;
         height: 30px;
@@ -83,5 +81,4 @@
     .colmd10.expanded {
         width: 94%;
     }
-
 }

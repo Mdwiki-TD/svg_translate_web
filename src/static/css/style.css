@@ -1,3 +1,11 @@
+/* style="width:auto; height:320px; object-fit:cover;" */
+.svg-thumbnail-compare {
+    border: 1px solid rgba(44, 62, 80, 0.98);
+    border-radius: 10px;
+    width: 30rem;
+    height: auto;
+    object-fit: cover;
+}
 
 /* Mobile Responsiveness */
 @media (max-width: 960px) {
@@ -14,5 +22,4 @@
         border: none;
         color: var(--light-text);
     }
-
 }
