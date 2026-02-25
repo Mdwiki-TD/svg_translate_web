@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.tasks.uploads.upload_bot import upload_file
+from src.main_app.utils.upload_bot import upload_file
 
 
 @pytest.fixture
