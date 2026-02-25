@@ -4,11 +4,12 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 
 from __future__ import annotations
 
+import mwclient
 import logging
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 from ... import template_service
 from ...config import settings
@@ -17,39 +18,57 @@ from .. import jobs_service
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
+from ...tasks.uploads.wiki_client import get_user_site
 from .utils import generate_cropped_filename
+from .wikitext import create_cropped_file_text, update_original_file_text
+from .api import get_file_text, update_file_text
 
 logger = logging.getLogger(__name__)
 
 
 def upload_one(
-    job_id,
-    file_info,
-    user,
-    result,
+    job_id: int,
+    file_info: dict[str, Any],
+    site: mwclient.Site | None,
+    result: dict[str, Any],
 ):
-
+    original_file = file_info["original_file"]
     cropped_filename = file_info["cropped_filename"]
     cropped_path = file_info.get("cropped_path")
 
-    if cropped_path:
-        # Step 4: Upload cropped file to Commons
-        upload_result = upload_cropped_file(
-            cropped_filename,
-            cropped_path,
-            user,
-        )
+    if not cropped_path:
+        return
 
-        if upload_result["success"]:
-            file_info["status"] = "uploaded"
-            result["summary"]["uploaded"] += 1
-            logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
-        else:
-            file_info["status"] = "failed"
-            file_info["reason"] = "upload_failed"
-            file_info["error"] = upload_result.get("error", "Unknown upload error")
-            result["summary"]["failed"] += 1
-            logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
+    wikitext = get_file_text(original_file, site)
+    cropped_file_wikitext = create_cropped_file_text(original_file, wikitext)
+
+    # Step 4: Upload cropped file to Commons
+    upload_result = upload_cropped_file(
+        cropped_filename,
+        cropped_path,
+        site,
+        cropped_file_wikitext,
+    )
+
+    if not upload_result["success"]:
+        file_info["status"] = "failed"
+        file_info["reason"] = "upload_failed"
+        file_info["error"] = upload_result.get("error", "Unknown upload error")
+        result["summary"]["failed"] += 1
+        logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
+        return
+
+    file_info["status"] = "uploaded"
+    result["summary"]["uploaded"] += 1
+    logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
+
+    # Step 5: Update original file wikitext to link to cropped version
+    updated_file_text = update_original_file_text(cropped_filename, wikitext)
+    update_text = update_file_text(original_file, updated_file_text, site)
+
+    if not update_text["success"]:
+        error = update_text.get("error", "Unknown error")
+        logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
 
 
 def process_one(
@@ -130,7 +149,7 @@ def process_crops(
     job_id: int,
     result: dict[str, Any],
     result_file: str,
-    user: Any | None,
+    user: Dict[str, Any] | None,
     cancel_event: threading.Event | None = None,
     upload_files: bool = False,
 ) -> dict[str, Any]:
@@ -175,6 +194,9 @@ def process_crops(
     # Process each template
     original_dir = Path(settings.paths.crop_main_files_path) / "original"
     cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
+
+    # Get user site for upload
+    site = get_user_site(user)
 
     for n, template in enumerate(templates_with_files, start=1):
         # Check for cancellation
@@ -229,7 +251,7 @@ def process_crops(
         upload_one(
             job_id,
             file_info,
-            user,
+            site,
             result,
         )
 

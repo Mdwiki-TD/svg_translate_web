@@ -5,10 +5,10 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 from __future__ import annotations
 
 import logging
+import mwclient
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-from ...tasks.uploads.wiki_client import get_user_site
 from ...tasks.uploads import upload_file
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
-    user: Dict[str, Any],
+    site: mwclient.Site | None,
     wikitext: str = None,
 ) -> dict[str, Any]:
     """
@@ -26,7 +26,7 @@ def upload_cropped_file(
     Args:
         cropped_filename: The new filename for the cropped version (with File: prefix)
         cropped_path: Path to the cropped file
-        user: User authentication data for OAuth uploads
+        site: Authenticated mwclient.Site object for Commons
         wikitext: The wikitext content for the cropped file
 
     Returns:
@@ -38,18 +38,12 @@ def upload_cropped_file(
         "error": None,
     }
 
-    if not user:
-        result["error"] = "No user authentication provided"
+    if not site:
+        result["error"] = "Failed to authenticate with Commons"
         return result
 
     # Get clean filename (remove File: prefix)
     clean_cropped_name = cropped_filename[5:] if cropped_filename.startswith("File:") else cropped_filename
-
-    # Get user site for upload
-    site = get_user_site(user)
-    if not site:
-        result["error"] = "Failed to authenticate with Commons"
-        return result
 
     # Prepare upload summary
     summary_parts = ["Cropped version of file"]
