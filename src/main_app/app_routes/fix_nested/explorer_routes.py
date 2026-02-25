@@ -15,7 +15,7 @@ from flask import (
     url_for,
 )
 
-from ...tasks.uploads.wiki_client import get_user_site
+from ...utils.wiki_client import get_user_site
 from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db.db_class import Database

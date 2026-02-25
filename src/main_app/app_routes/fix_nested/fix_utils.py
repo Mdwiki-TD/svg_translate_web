@@ -15,7 +15,7 @@ from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...tasks.downloads import download_one_file
 from ...tasks.uploads import upload_file
-from ...tasks.uploads.wiki_client import get_user_site
+from ...utils.wiki_client import get_user_site
 
 logger = logging.getLogger(__name__)
 

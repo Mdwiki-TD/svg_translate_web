@@ -5,8 +5,8 @@ from typing import Dict, Any
 
 import mwclient
 import logging
-from ...config import settings
-from ...crypto import decrypt_value
+from ..config import settings
+from ..crypto import decrypt_value
 
 logger = logging.getLogger(__name__)
 

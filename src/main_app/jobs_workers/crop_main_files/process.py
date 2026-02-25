@@ -15,7 +15,7 @@ import requests
 
 from ... import template_service
 from ...config import settings
-from ...tasks.uploads.wiki_client import get_user_site
+from ...utils.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
 from .api import get_file_text, update_file_text

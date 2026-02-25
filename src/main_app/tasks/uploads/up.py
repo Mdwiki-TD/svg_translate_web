@@ -11,7 +11,7 @@ from tqdm import tqdm
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...users.store import mark_token_used
 from .upload_bot import upload_file
-from .wiki_client import build_upload_site, coerce_encrypted
+from ...utils.wiki_client import build_upload_site, coerce_encrypted
 
 logger = logging.getLogger(__name__)
 
