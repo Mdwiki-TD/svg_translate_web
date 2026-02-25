@@ -46,7 +46,9 @@ def coerce_encrypted(value: object) -> bytes | None:
     return None
 
 
-def get_user_site(user: Dict[str, Any]) -> mwclient.Site | None:
+def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
+    if user is None:
+        return None
     access_token = coerce_encrypted(user.get("access_token"))
     access_secret = coerce_encrypted(user.get("access_secret"))
 
