@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
+import requests
+
 from ... import template_service
 from ...config import settings
 from ...utils.commons_client import create_commons_session
@@ -31,7 +33,7 @@ def upload_one(
     file_info: dict[str, Any],
     site: mwclient.Site | None,
     result: dict[str, Any],
-):
+) -> None:
     original_file = file_info["original_file"]
     cropped_filename = file_info["cropped_filename"]
     cropped_path = file_info.get("cropped_path")
@@ -64,6 +66,10 @@ def upload_one(
 
     # Step 5: Update original file wikitext to link to cropped version
     updated_file_text = update_original_file_text(cropped_filename, wikitext)
+    if wikitext == updated_file_text:
+        logger.info(f"Job {job_id}: No update needed for original file text of {original_file}")
+        return
+
     update_text = update_file_text(original_file, updated_file_text, site)
 
     if not update_text["success"]:
@@ -72,12 +78,12 @@ def upload_one(
 
 
 def process_one(
-    job_id,
-    template,
-    result,
+    job_id: int,
+    template: template_service.TemplateRecord,
+    result: dict[str, Any],
     original_dir: Path,
     cropped_dir: Path,
-    session,
+    session: requests.Session,
 ):
 
     file_info = {
