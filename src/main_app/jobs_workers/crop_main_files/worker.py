@@ -56,7 +56,8 @@ def crop_main_files_for_templates(
             result_file,
             user,
             cancel_event=cancel_event,
-            upload_files=settings.dynamic.get("crop_newest_jobs_uploads"),
+            # upload_files=settings.dynamic.get("crop_newest_jobs_uploads"),
+            upload_files=False,
         )
     except Exception as e:
         logger.exception(f"Job {job_id}: Error during crop processing")
