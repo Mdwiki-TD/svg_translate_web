@@ -8,7 +8,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict
 
-from ...tasks.uploads import get_user_site, upload_file
+from ...tasks.uploads.wiki_client import get_user_site
+from ...tasks.uploads import upload_file
 
 logger = logging.getLogger(__name__)
 

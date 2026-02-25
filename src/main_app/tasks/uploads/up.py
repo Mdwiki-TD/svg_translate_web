@@ -11,23 +11,9 @@ from tqdm import tqdm
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...users.store import mark_token_used
 from .upload_bot import upload_file
-from .wiki_client import build_upload_site
+from .wiki_client import build_upload_site, coerce_encrypted
 
 logger = logging.getLogger(__name__)
-
-
-def _coerce_encrypted(value: object) -> bytes | None:
-    if value is None:
-        return None
-    if isinstance(value, bytes):
-        return value
-    if isinstance(value, bytearray):
-        return bytes(value)
-    if isinstance(value, memoryview):
-        return value.tobytes()
-    if isinstance(value, str):
-        return value.encode("utf-8")
-    return None
 
 
 def start_upload(
@@ -113,20 +99,6 @@ def start_upload(
     return upload_result, stages
 
 
-def get_user_site(user) -> mwclient.Site | None:
-    access_token = _coerce_encrypted(user.get("access_token"))
-    access_secret = _coerce_encrypted(user.get("access_secret"))
-
-    if not access_token or not access_secret:
-        return None
-    try:
-        site = build_upload_site(access_token, access_secret)
-    except Exception as exc:  # pragma: no cover - network interaction
-        logger.exception("Failed to build OAuth site", exc_info=exc)
-        return None
-    return site
-
-
 def upload_task(
     stages: Dict[str, Any],
     files_to_upload: Dict[str, Dict[str, object]],
@@ -164,9 +136,8 @@ def upload_task(
         return {"done": 0, "not_done": 0, "skipped": True, "reason": "no-input"}, stages
 
     user = user or {}
-    # site = get_user_site(user)
-    access_token = _coerce_encrypted(user.get("access_token"))
-    access_secret = _coerce_encrypted(user.get("access_secret"))
+    access_token = coerce_encrypted(user.get("access_token"))
+    access_secret = coerce_encrypted(user.get("access_secret"))
 
     if not access_token or not access_secret:
         stages["status"] = "Failed"

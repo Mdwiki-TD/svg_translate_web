@@ -15,12 +15,13 @@ from flask import (
     url_for,
 )
 
+from ...tasks.uploads.wiki_client import get_user_site
 from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...routes_utils import load_auth_payload
-from ...tasks.uploads import get_user_site, upload_file
+from ...tasks.uploads import upload_file
 from ...users.current import current_user
 from ..explorer.compare import analyze_file
 from ..fix_nested.fix_utils import log_to_task
