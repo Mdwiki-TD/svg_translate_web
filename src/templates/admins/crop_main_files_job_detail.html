@@ -1,8 +1,5 @@
-{% extends "admins/base.html" %}
-
-{% block title %}Crop Newest World Files Job #{{ job.id }} · Copy SVG Translation{% endblock %}
-
-{% block contents %}
+{% extends "admins/base.html" %} {% block title %}Crop Newest World Files Job
+#{{ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -137,9 +134,7 @@
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
-                {% if result_data.error %}
+                {% endif %} {% if result_data.error %}
                 <div class="alert alert-danger" role="alert">
                     <h5 class="alert-heading">Error!</h5>
                     <strong>{{ result_data.error_type }}:</strong> {{ result_data.error }}
@@ -152,7 +147,9 @@
         {% if result_data.files_processed %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0">Files Processed ({{ result_data.files_processed|length }})</h5>
+                <h5 class="mb-0">
+                    Files Processed ({{ result_data.files_processed|length }})
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -160,8 +157,10 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Original File</th>
-                                <th>Cropped File</th>
+                                <th>File</th>
+                                <th>Original</th>
+                                <th>Cropped</th>
+                                <th>Compare</th>
                                 <th>Status</th>
                                 <th>Details</th>
                             </tr>
@@ -171,20 +170,22 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td>
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.original_file }}'
-                                        target='_blank' rel='noopener noreferrer'>
+                                    <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}"
+                                        target="_blank" rel="noopener noreferrer">
                                         {{ file.original_file }}
                                     </a>
                                 </td>
                                 <td>
-                                    {% if file.status == 'uploaded' %}
-                                    <a href='https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}'
-                                        target='_blank' rel='noopener noreferrer'>
-                                        {{ file.cropped_filename }}
-                                    </a>
-                                    {% else %}
-                                    <code>{{ file.cropped_filename }}</code>
-                                    {% endif %}
+                                    <a href="{{ url_for('admin.serve_crop_original_file', filename=file.original_file) }}"
+                                        target="_blank">View Original</a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.serve_crop_cropped_file', filename=file.cropped_filename) }}"
+                                        target="_blank">View Cropped</a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
+                                        target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
                                 </td>
                                 <td>
                                     {% if file.status == 'uploaded' %}
@@ -198,8 +199,7 @@
                                 <td>
                                     {% if file.reason %}
                                     <small class="text-muted">{{ file.reason }}</small>
-                                    {% endif %}
-                                    {% if file.error %}
+                                    {% endif %} {% if file.error %}
                                     <small class="text-danger">{{ file.error }}</small>
                                     {% endif %}
                                 </td>
@@ -210,11 +210,10 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-
-        {% else %}
+        {% endif %} {% else %}
         <div class="alert alert-info" role="alert">
-            No job result data available yet. The job may still be running or the result file may not exist.
+            No job result data available yet. The job may still be running or the
+            result file may not exist.
         </div>
         {% endif %}
     </div>
