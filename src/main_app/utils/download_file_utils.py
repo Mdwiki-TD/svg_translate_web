@@ -8,8 +8,8 @@ from typing import Dict
 
 import requests
 
-from ...config import settings
-from ...utils.commons_client import create_commons_session, download_commons_file_core
+from ..config import settings
+from .commons_client import create_commons_session, download_commons_file_core
 
 logger = logging.getLogger(__name__)
 
