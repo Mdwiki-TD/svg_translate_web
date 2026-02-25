@@ -5,7 +5,9 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 from __future__ import annotations
 
 import logging
+
 import wikitextparser as wtp
+
 logger = logging.getLogger(__name__)
 
 

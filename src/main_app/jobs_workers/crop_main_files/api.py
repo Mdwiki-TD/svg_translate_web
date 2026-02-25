@@ -5,7 +5,8 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
 import mwclient
 
 logger = logging.getLogger(__name__)

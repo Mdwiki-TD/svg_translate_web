@@ -4,26 +4,26 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 
 from __future__ import annotations
 
-import mwclient
 import logging
 import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
+import mwclient
 import requests
 
 from ... import template_service
 from ...config import settings
+from ...tasks.uploads.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
+from .api import get_file_text, update_file_text
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
-from ...tasks.uploads.wiki_client import get_user_site
 from .utils import generate_cropped_filename
 from .wikitext import create_cropped_file_text, update_original_file_text
-from .api import get_file_text, update_file_text
 
 logger = logging.getLogger(__name__)
 
