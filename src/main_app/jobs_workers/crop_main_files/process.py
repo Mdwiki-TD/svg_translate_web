@@ -5,7 +5,6 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 from __future__ import annotations
 
 import logging
-import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -104,7 +103,7 @@ def process_one(
 
     # Step 2: Crop the SVG (placeholder)
     cropped_filename = generate_cropped_filename(template.last_world_file)
-    cropped_output_path = cropped_dir / cropped_filename.removeprefix("File:")
+    cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
 
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
 

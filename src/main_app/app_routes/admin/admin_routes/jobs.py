@@ -231,14 +231,22 @@ class Jobs:
         @bp_admin.get("/crop-main-files/original/<path:filename>")
         @admin_required
         def serve_crop_original_file(filename: str) -> Response:
-            """Serve an original file from the crop_main_files_path/original directory."""
+            """
+            Serve an original file from the crop_main_files_path/original directory.
+
+            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
+            """
             filename = filename.removeprefix("File:")
             return send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
 
         @bp_admin.get("/crop-main-files/cropped/<path:filename>")
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
-            """Serve a cropped file from the crop_main_files_path/cropped directory."""
+            """
+            Serve a cropped file from the crop_main_files_path/cropped directory.
+
+            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
+            """
             filename = filename.removeprefix("File:")
             return send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
 
