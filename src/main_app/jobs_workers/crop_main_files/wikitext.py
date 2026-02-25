@@ -15,11 +15,24 @@ def get_file_text(file_name: str) -> str:
     ...
 
 
-def create_cropped_file_text(file_name: str) -> str:
+def add_other_versions(
+    param_text: str,
+    text: str,
+) -> str:
+    """
+    """
+    return ""
+
+
+def create_cropped_file_text(
+    file_name: str,
+    text: str,
+) -> str:
     """
     Create wikitext for the cropped file based on the original file's wikitext.
     Args:
         file_name: The name of the original file (with File: prefix)
+        text: The wikitext content of the original file
     Returns:
         The wikitext content for the cropped file
     """
