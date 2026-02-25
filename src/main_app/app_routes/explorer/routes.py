@@ -106,7 +106,11 @@ def main():
 
 @bp_explorer.route("/media/<title_dir>/<subdir>/<path:filename>")
 def serve_media(title_dir: str, subdir: str, filename: str):
-    """Serve SVG files"""
+    """
+    Serve SVG files
+
+    TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
+    """
     dir_path = svg_data_path / title_dir / subdir
     dir_path = str(dir_path.absolute())
 

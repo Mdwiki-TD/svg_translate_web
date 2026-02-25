@@ -206,8 +206,11 @@ class Jobs:
         @bp_admin.get("/download-main-files/file/<path:filename>")
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
-            """Serve a downloaded main file from the main_files_path directory."""
+            """
+            Serve a downloaded main file from the main_files_path directory.
 
+            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
+            """
             return send_from_directory(settings.paths.main_files_path, filename)
 
         @bp_admin.get("/download-main-files/download-all")
