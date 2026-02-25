@@ -45,6 +45,7 @@ def test_Paths():
         fix_nested_data="/fix/nested",
         svg_jobs_path="/jobs",
         main_files_path="/main_files",
+        crop_main_files_path="/crop_main_files",
     )
 
     assert paths.svg_data == "/svg/data"
@@ -53,6 +54,7 @@ def test_Paths():
     assert paths.fix_nested_data == "/fix/nested"
     assert paths.svg_jobs_path == "/jobs"
     assert paths.main_files_path == "/main_files"
+    assert paths.crop_main_files_path == "/crop_main_files"
 
 
 def test_CookieConfig():
@@ -88,7 +90,7 @@ def test_Settings():
     # Create a minimal settings object for testing
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
-    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files")
+    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
     download_config = DownloadConfig(dev_limit=0)
     security_config = SecurityConfig(
         max_content_length=100 * 1024 * 1024,

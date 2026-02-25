@@ -5,7 +5,6 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 from __future__ import annotations
 
 import logging
-import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -57,7 +56,8 @@ def process_one(
     job_id,
     template,
     result,
-    temp_dir,
+    original_dir: Path,
+    cropped_dir: Path,
     session,
 ):
 
@@ -76,7 +76,7 @@ def process_one(
     try:
         download_result = download_file_for_cropping(
             template.last_world_file,
-            temp_dir,
+            original_dir,
             session=session,
         )
 
@@ -103,7 +103,7 @@ def process_one(
 
     # Step 2: Crop the SVG (placeholder)
     cropped_filename = generate_cropped_filename(template.last_world_file)
-    cropped_output_path = downloaded_path.parent / cropped_filename.removeprefix("File:")
+    cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
 
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
 
@@ -173,66 +173,67 @@ def process_crops(
     session = create_commons_session(settings.oauth.user_agent)
 
     # Process each template
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        temp_dir = Path(tmp_dir)
+    original_dir = Path(settings.paths.crop_main_files_path) / "original"
+    cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
 
-        for n, template in enumerate(templates_with_files, start=1):
-            # Check for cancellation
-            if cancel_event and cancel_event.is_set():
-                logger.info(f"Job {job_id}: Cancellation detected, stopping.")
-                result["status"] = "cancelled"
-                result["cancelled_at"] = datetime.now().isoformat()
-                break
+    for n, template in enumerate(templates_with_files, start=1):
+        # Check for cancellation
+        if cancel_event and cancel_event.is_set():
+            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
+            result["status"] = "cancelled"
+            result["cancelled_at"] = datetime.now().isoformat()
+            break
 
-            # Save progress periodically
-            if n == 1 or n % 10 == 0:
-                jobs_service.save_job_result_by_name(result_file, result)
+        # Save progress periodically
+        if n == 1 or n % 10 == 0:
+            jobs_service.save_job_result_by_name(result_file, result)
 
-            logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
+        logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
-            file_info = process_one(
-                job_id,
-                template,
-                result,
-                temp_dir,
-                session,
+        file_info = process_one(
+            job_id,
+            template,
+            result,
+            original_dir,
+            cropped_dir,
+            session,
+        )
+        status = file_info["status"]
+        if status == "failed":
+            logger.warning(
+                f"Job {job_id}: Failed to process {template.last_world_file} (reason: {file_info['reason']})"
             )
-            status = file_info["status"]
-            if status == "failed":
-                logger.warning(
-                    f"Job {job_id}: Failed to process {template.last_world_file} (reason: {file_info['reason']})"
-                )
-                result["files_processed"].append(file_info)
-                continue
-
-            cropped_filename = file_info.get("cropped_filename")
-
-            if not user:
-                # No user provided, skip upload
-                file_info["status"] = "skipped"
-                file_info["reason"] = "no_user_auth"
-                result["summary"]["skipped"] += 1
-                logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no user auth)")
-                result["files_processed"].append(file_info)
-                continue
-
-            if not upload_files:
-                file_info["status"] = "skipped"
-                file_info["reason"] = "upload disabled"
-                result["summary"]["skipped"] += 1
-                logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (upload disabled)")
-                result["files_processed"].append(file_info)
-                continue
-
-            # Upload the file
-            upload_one(
-                job_id,
-                file_info,
-                user,
-                result,
-            )
-
             result["files_processed"].append(file_info)
+            continue
+
+        cropped_filename = file_info.get("cropped_filename")
+
+        if not user:
+            # No user provided, skip upload
+            file_info["status"] = "skipped"
+            file_info["reason"] = "no_user_auth"
+            result["summary"]["skipped"] += 1
+            logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no user auth)")
+            result["files_processed"].append(file_info)
+            continue
+
+        if not upload_files:
+            file_info["status"] = "skipped"
+            file_info["reason"] = "upload disabled"
+            result["summary"]["skipped"] += 1
+            logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (upload disabled)")
+            result["files_processed"].append(file_info)
+            continue
+
+        # Upload the file
+        upload_one(
+            job_id,
+            file_info,
+            user,
+            result,
+        )
+
+        result["files_processed"].append(file_info)
 
     # Mark as completed if not cancelled or failed
     if result.get("status") != "cancelled":

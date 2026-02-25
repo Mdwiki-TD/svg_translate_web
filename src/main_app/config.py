@@ -25,6 +25,7 @@ class Paths:
     fix_nested_data: str
     svg_jobs_path: str
     main_files_path: str
+    crop_main_files_path: str
 
 
 @dataclass(frozen=True)
@@ -122,6 +123,9 @@ def _get_paths() -> Paths:
     fix_nested_data = f"{main_dir}/fix_nested_data"
     svg_jobs_path = f"{main_dir}/svg_jobs"
     main_files_path = f"{main_dir}/main_files"
+    crop_main_files_path = f"{main_dir}/crop_main_files"
+    crop_main_files_original = f"{crop_main_files_path}/original"
+    crop_main_files_cropped = f"{crop_main_files_path}/cropped"
 
     # Ensure directories exist
     Path(svg_data).mkdir(parents=True, exist_ok=True)
@@ -130,6 +134,8 @@ def _get_paths() -> Paths:
     Path(fix_nested_data).mkdir(parents=True, exist_ok=True)
     Path(svg_jobs_path).mkdir(parents=True, exist_ok=True)
     Path(main_files_path).mkdir(parents=True, exist_ok=True)
+    Path(crop_main_files_original).mkdir(parents=True, exist_ok=True)
+    Path(crop_main_files_cropped).mkdir(parents=True, exist_ok=True)
 
     return Paths(
         svg_data=svg_data,
@@ -138,6 +144,7 @@ def _get_paths() -> Paths:
         fix_nested_data=fix_nested_data,
         svg_jobs_path=svg_jobs_path,
         main_files_path=main_files_path,
+        crop_main_files_path=crop_main_files_path,
     )
 
 

@@ -37,6 +37,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_settings.download.dev_limit = 0  # No limit in tests
     mock_settings.oauth = MagicMock()
     mock_settings.oauth.user_agent = "TestBot/1.0"
+    mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
     monkeypatch.setattr("src.main_app.jobs_workers.crop_main_files.process.settings", mock_settings)
 
     # Mock create_commons_session
@@ -145,7 +146,8 @@ def test_process_one_success(mock_services, tmp_path):
             "failed": 0,
         }
     }
-    temp_dir = tmp_path
+    original_dir = tmp_path / "original"
+    cropped_dir = tmp_path / "cropped"
     session = Mock()
 
     with (
@@ -158,7 +160,7 @@ def test_process_one_success(mock_services, tmp_path):
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, temp_dir, session)
+        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
 
     assert file_info["status"] != "failed"
     assert file_info["template_id"] == 1
@@ -185,13 +187,14 @@ def test_process_one_download_failure(mock_services, tmp_path):
             "failed": 0,
         }
     }
-    temp_dir = tmp_path
+    original_dir = tmp_path / "original"
+    cropped_dir = tmp_path / "cropped"
     session = Mock()
 
     with patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download:
         mock_download.return_value = {"success": False, "error": "404 Not Found"}
 
-        file_info = process.process_one(job_id, template, result, temp_dir, session)
+        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "download_failed"
@@ -215,7 +218,8 @@ def test_process_one_crop_failure(mock_services, tmp_path):
             "failed": 0,
         }
     }
-    temp_dir = tmp_path
+    original_dir = tmp_path / "original"
+    cropped_dir = tmp_path / "cropped"
     session = Mock()
 
     with (
@@ -228,7 +232,7 @@ def test_process_one_crop_failure(mock_services, tmp_path):
         mock_crop.return_value = {"success": False, "error": "No footer found"}
         mock_generate.return_value = "File:test (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, temp_dir, session)
+        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "crop_failed"
@@ -253,13 +257,14 @@ def test_process_one_exception_handling(mock_services, tmp_path):
             "failed": 0,
         }
     }
-    temp_dir = tmp_path
+    original_dir = tmp_path / "original"
+    cropped_dir = tmp_path / "cropped"
     session = Mock()
 
     with patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download:
         mock_download.side_effect = RuntimeError("Unexpected error")
 
-        file_info = process.process_one(job_id, template, result, temp_dir, session)
+        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "exception"
@@ -594,7 +599,8 @@ def test_process_one_creates_output_path_with_cropped_suffix(mock_services, tmp_
             "failed": 0,
         }
     }
-    temp_dir = tmp_path
+    original_dir = tmp_path / "original"
+    cropped_dir = tmp_path / "cropped"
     session = Mock()
 
     downloaded_path = tmp_path / "example.svg"
@@ -609,13 +615,13 @@ def test_process_one_creates_output_path_with_cropped_suffix(mock_services, tmp_
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:example (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, temp_dir, session)
+        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
 
         # Verify crop was called with correct output path
         crop_call_args = mock_crop.call_args[0]
         assert crop_call_args[0] == downloaded_path
-        # Output path should be in temp_dir and not have File: prefix
-        expected_output = temp_dir / "example (cropped).svg"
+        # Output path should be in cropped_dir and not have File: prefix
+        expected_output = cropped_dir / "example (cropped).svg"
         assert crop_call_args[1] == expected_output
 
 

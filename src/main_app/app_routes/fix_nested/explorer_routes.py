@@ -123,7 +123,11 @@ def task_detail(task_id: str):
 
 @bp_fix_nested_explorer.route("/tasks/<task_id>/files/<file_type>")
 def serve_file(task_id: str, file_type: str):
-    """Serve original or fixed file."""
+    """
+    Serve original or fixed file.
+
+    TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
+    """
     if file_type not in ["original", "fixed"]:
         abort(400, description="Invalid file type")
 
