@@ -7,6 +7,7 @@ from src.main_app.config import (
     CookieConfig,
     DbConfig,
     DownloadConfig,
+    DynamicSettingsStore,
     OAuthConfig,
     Paths,
     SecurityConfig,
@@ -98,6 +99,7 @@ def test_Settings():
         max_form_parts=1000,
         secret_key_fallbacks=(),
     )
+    dynamic_store = DynamicSettingsStore(db_config)
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
@@ -113,6 +115,7 @@ def test_Settings():
         download=download_config,
         security=security_config,
         csrf_time_limit=3600,
+        dynamic=dynamic_store,
     )
 
     assert settings.database_data.db_host == "localhost"

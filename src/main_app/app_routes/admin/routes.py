@@ -15,6 +15,7 @@ from ...admins.admins_required import admin_required
 from .admin_routes.coordinators import Coordinators
 from .admin_routes.jobs import Jobs
 from .admin_routes.recent import Recent
+from .admin_routes.settings import SettingsRoutes
 from .admin_routes.templates import Templates
 from .sidebar import create_side
 
@@ -45,3 +46,5 @@ Recent(bp_admin)
 Templates(bp_admin)
 
 Jobs(bp_admin)
+
+SettingsRoutes(bp_admin)
