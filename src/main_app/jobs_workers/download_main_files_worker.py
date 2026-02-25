@@ -9,7 +9,7 @@ import threading
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import requests
 from flask import send_file
@@ -234,7 +234,7 @@ def process_downloads(
 
 def download_main_files_for_templates(
     job_id: int,
-    user: Any | None = None,
+    user: Dict[str, Any] | None = None,
     cancel_event: threading.Event | None = None,
 ) -> None:
     """

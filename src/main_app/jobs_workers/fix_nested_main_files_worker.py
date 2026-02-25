@@ -9,7 +9,7 @@ import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 from .. import template_service
 from ..app_routes.fix_nested.fix_utils import (
@@ -284,7 +284,7 @@ def process_templates(
 
 
 def fix_nested_main_files_for_templates(
-    job_id: int, user: Any | None, cancel_event: threading.Event | None = None
+    job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Event | None = None
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.

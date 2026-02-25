@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 from ...tasks.uploads import get_user_site, upload_file
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
-    user: Any,
+    user: Dict[str, Any],
     wikitext: str = None,
 ) -> dict[str, Any]:
     """
