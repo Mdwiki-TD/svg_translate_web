@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...tasks.downloads import download_one_file
+from ...tasks.downloads.download_file_utils import download_one_file
 from ...tasks.uploads import upload_file
 from ...utils.wiki_client import get_user_site
 
