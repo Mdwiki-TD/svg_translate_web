@@ -15,16 +15,20 @@ from src.main_app.jobs_workers.crop_main_files import worker
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by worker module."""
 
-    # Mock jobs_service (now accessed via base_worker)
-    mock_update_job_status = MagicMock()
+    # Mock functions imported in base_worker
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status",
-        mock_update_job_status,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mock_save_job_result,
+    )
+    
+    # Mock JobsDB used in base_worker for status updates
+    mock_jobs_db = MagicMock()
+    mock_update_job_status = MagicMock()
+    mock_jobs_db.return_value.update_status = mock_update_job_status
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobsDB",
+        mock_jobs_db,
     )
 
     # Mock generate_result_file_name (imported from utils in base_worker)

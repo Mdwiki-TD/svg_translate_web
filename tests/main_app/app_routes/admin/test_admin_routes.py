@@ -15,7 +15,7 @@ from src.main_app.db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
 class FakeDatabase:
     """Lightweight stub that mimics the Database helper using in-memory rows."""
 
-    def __init__(self, _db_data: dict[str, Any]):
+    def __init__(self, _db_data: dict[str, Any], use_bg_engine: bool = False):
         self._rows: list[dict[str, Any]] = []
         self._next_id = 1
 

@@ -281,17 +281,16 @@ def test_task_store_context_manager_closes_database():
     db_mock.close.assert_called_once()
 
 
-def test_database_close_calls_internal_close():
+def test_database_close_is_noop_with_pooling():
+    """Test that close() is a no-op with SQLAlchemy connection pooling."""
     db = Database.__new__(Database)
-    close_mock = MagicMock()
-    db._close_connection = close_mock  # type: ignore[method-assign]
-
+    # close() should not raise and should be a no-op
     db.close()
+    # No assertions needed - just verifying it doesn't raise
 
-    close_mock.assert_called_once()
 
-
-def test_database_close_closes_connection_object():
+def test_database_close_does_not_close_connection_object():
+    """Test that close() does not close underlying connection with pooling."""
     db = Database.__new__(Database)
     db._lock = threading.RLock()
     connection_mock = MagicMock()
@@ -299,17 +298,16 @@ def test_database_close_closes_connection_object():
 
     db.close()
 
-    connection_mock.close.assert_called_once()
-    assert db.connection is None
+    # With pooling, close() is a no-op - connections are returned to pool automatically
+    connection_mock.close.assert_not_called()
 
 
-def test_database_context_manager_closes_on_exit():
+def test_database_context_manager_works_with_pooling():
+    """Test that context manager works with SQLAlchemy pooling."""
     db = Database.__new__(Database)
     db._lock = threading.RLock()
-    connection_mock = MagicMock()
-    db.connection = connection_mock
 
     with db as ctx:
         assert ctx is db
 
-    connection_mock.close.assert_called_once()
+    # Context manager should complete without errors
