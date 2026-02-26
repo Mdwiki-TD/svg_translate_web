@@ -24,6 +24,7 @@ def add_image_extracted_template(
         "other_versions"
     ]
     param_text = f"{{{{Image extracted|1={file_name}}}}}"
+    add_done = False
     for template in parsed.templates:
         if template.name.strip().lower() == "information":
             arg_found = False
@@ -32,11 +33,15 @@ def add_image_extracted_template(
                     new_value = arg.value.strip() + "\n" + param_text
                     arg.value = f"{new_value.strip()}\n"
                     arg_found = True
+                    add_done = True
                     break
             if not arg_found:
                 template.set_arg("other versions", f"{param_text}\n")
+                add_done = True
 
-    # If no Information template found, return original text
+    if not add_done:
+        logger.warning("No {{Information}} template found in the wikitext. The other versions parameter was not added.")
+
     return parsed.string
 
 
