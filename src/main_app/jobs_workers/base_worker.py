@@ -207,10 +207,10 @@ class BaseJobWorker(ABC):
             error: The exception that occurred
             context: Additional context about where the error occurred
         """
-        prefix = f"Job {self.job_id}: "
+        prefix = f"Job {self.job_id}"
         if context:
-            prefix += f"{context}: "
-        logger.exception(f"{prefix}{error}")
+            prefix += f": {context}"
+        logger.exception(prefix)
 
         self.result["status"] = "failed"
         self.result["error"] = str(error)
