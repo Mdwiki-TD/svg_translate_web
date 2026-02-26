@@ -35,8 +35,12 @@ def get_file_text(
 
     file_name = ensure_file_prefix(file_name)
 
-    # TODO: Implement the logic to retrieve the wikitext of the file using mwclient.
-    return ""
+    try:
+        page = site.pages[file_name]
+        return page.text()
+    except Exception as exc:
+        logger.exception(f"Failed to retrieve wikitext for {file_name}", exc_info=exc)
+        return ""
 
 
 def update_file_text(
