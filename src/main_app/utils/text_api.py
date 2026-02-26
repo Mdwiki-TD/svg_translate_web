@@ -5,31 +5,11 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
-
 import mwclient
 
+from .text_utils import ensure_file_prefix, verify_required_fields
+
 logger = logging.getLogger(__name__)
-
-
-def verify_required_fields(required_fields: Dict[str, Any]) -> Dict[str, bool]:
-    """
-    Verify that all required fields are present in the data dictionary.
-
-    Args:
-        data: The dictionary to check.
-        required_fields: A list of required field names.
-    Returns:
-
-    """
-    data = {}
-    for field, value in required_fields.items():
-        if not value:
-            logger.error(f"Missing required field: {field}")
-            data[field] = False
-        else:
-            data[field] = True
-    return data
 
 
 def get_file_text(
@@ -44,15 +24,18 @@ def get_file_text(
     Returns:
         The wikitext of the file, or an empty string if it cannot be retrieved.
     """
-    if not file_name:
-        logger.error("No file name provided to get_file_text")
+    missing_fields = verify_required_fields({
+        "file_name": file_name,
+        "site": site,
+    })
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for get_file_text: {list_str}")
         return ""
-    if not site:
-        logger.error("No site provided to get_file_text")
-        return ""
-    if not file_name.startswith("File:"):
-        file_name = "File:" + file_name
 
+    file_name = ensure_file_prefix(file_name)
+
+    # TODO: Implement the logic to retrieve the wikitext of the file using mwclient.
     return ""
 
 
@@ -72,16 +55,22 @@ def update_file_text(
     Returns:
         A dictionary with 'success' (bool) and optionally 'error' (str).
     """
-    is_all_fields_valid = verify_required_fields({
+    missing_fields = verify_required_fields({
         "original_file": original_file,
         "updated_file_text": updated_file_text,
         "site": site,
     })
-    if not all(is_all_fields_valid.values()):
-        unfilled_fields = [field for field, is_valid in is_all_fields_valid.items() if not is_valid]
-        list_str = ", ".join(unfilled_fields)
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for update_file_text: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    if not original_file.startswith("File:"):
-        original_file = "File:" + original_file
+    original_file = ensure_file_prefix(original_file)
+
+    # TODO: Implement the logic to update the wikitext of the original file using mwclient.
+
+
+__all__ = [
+    "get_file_text",
+    "update_file_text",
+]
