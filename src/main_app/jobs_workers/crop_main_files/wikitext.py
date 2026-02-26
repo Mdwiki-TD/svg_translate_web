@@ -114,9 +114,6 @@ def update_original_file_text(
     if modified_text == text:
         modified_text = insert_before_methods(text, other_versions_text)
 
-    if modified_text == text:
-        modified_text = insert_before_methods(text, other_versions_text)
-
     return modified_text
 
 
