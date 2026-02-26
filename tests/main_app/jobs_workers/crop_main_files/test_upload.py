@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -15,18 +15,12 @@ def test_upload_cropped_file_success(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
     assert result["cropped_filename"] == cropped_filename
@@ -36,37 +30,20 @@ def test_upload_cropped_file_success(tmp_path):
     mock_upload.assert_called_once_with(
         file_name="test (cropped).svg",
         file_path=cropped_path,
-        site=mock_site,
-        summary="Cropped version of file",
+        site=site,
+        summary="[[:File:test.svg]] cropped to remove the footer.",
         new_file=True,
         description=None,
     )
 
 
-def test_upload_cropped_file_no_user():
-    """Test upload fails when no user is provided."""
+def test_upload_cropped_file_no_site():
+    """Test upload fails when no site is provided."""
     cropped_filename = "File:test (cropped).svg"
     cropped_path = Path("/tmp/test_cropped.svg")
-    user = None
+    site = None
 
-    result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
-
-    assert result["success"] is False
-    assert result["error"] == "No user authentication provided"
-    assert result["cropped_filename"] == cropped_filename
-
-
-def test_upload_cropped_file_get_site_fails(tmp_path):
-    """Test upload fails when getting user site fails."""
-    cropped_filename = "File:test (cropped).svg"
-    cropped_path = tmp_path / "test_cropped.svg"
-    cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
-
-    with patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site:
-        mock_get_site.return_value = None
-
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+    result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is False
     assert result["error"] == "Failed to authenticate with Commons"
@@ -78,18 +55,12 @@ def test_upload_cropped_file_upload_fails(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Failure", "error": "File already exists"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is False
     assert "Upload failed" in result["error"]
@@ -102,18 +73,12 @@ def test_upload_cropped_file_exception_during_upload(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.side_effect = RuntimeError("Network timeout")
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is False
     assert "Exception during upload" in result["error"]
@@ -126,18 +91,12 @@ def test_upload_cropped_file_strips_file_prefix(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Verify the File: prefix was stripped
     call_args = mock_upload.call_args[1]
@@ -150,18 +109,12 @@ def test_upload_cropped_file_without_file_prefix(tmp_path):
     cropped_filename = "test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
     # Should use the filename as-is
@@ -174,18 +127,12 @@ def test_upload_cropped_file_with_special_characters(tmp_path):
     cropped_filename = "File:test & image (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
     call_args = mock_upload.call_args[1]
@@ -197,18 +144,12 @@ def test_upload_cropped_file_uses_new_file_flag(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Verify new_file=True is set
     call_args = mock_upload.call_args[1]
@@ -220,31 +161,25 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Verify summary is correct
     call_args = mock_upload.call_args[1]
-    assert call_args["summary"] == "Cropped version of file"
+    assert call_args["summary"] == "[[:File:test.svg]] cropped to remove the footer."
 
 
 def test_upload_cropped_file_returns_filename_in_result():
     """Test that result always includes the cropped filename."""
     cropped_filename = "File:test (cropped).svg"
     cropped_path = Path("/tmp/test_cropped.svg")
-    user = None
+    site = None
 
-    result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+    result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Even on failure, filename should be in result
     assert result["cropped_filename"] == cropped_filename
@@ -256,18 +191,12 @@ def test_upload_cropped_file_with_very_long_filename(tmp_path):
     cropped_filename = f"File:{long_name} (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
 
@@ -277,19 +206,13 @@ def test_upload_cropped_file_upload_result_missing_keys(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         # Return a result without 'error' key
         mock_upload.return_value = {"result": "Failure"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is False
     # Should handle missing 'error' key gracefully
@@ -301,18 +224,12 @@ def test_upload_cropped_file_with_unicode_filename(tmp_path):
     cropped_filename = "File:测试图片 (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
     call_args = mock_upload.call_args[1]
@@ -324,23 +241,17 @@ def test_upload_cropped_file_passes_correct_site(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
+    site.name = "commons"
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_site.name = "commons"
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Verify the exact site object was passed
     call_args = mock_upload.call_args[1]
-    assert call_args["site"] is mock_site
+    assert call_args["site"] is site
     assert call_args["site"].name == "commons"
 
 
@@ -349,18 +260,12 @@ def test_upload_cropped_file_with_path_object(tmp_path):
     cropped_filename = "File:test (cropped).svg"
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     assert result["success"] is True
     # Verify Path object was passed correctly
@@ -373,18 +278,30 @@ def test_upload_cropped_file_empty_filename(tmp_path):
     cropped_filename = ""
     cropped_path = tmp_path / "test_cropped.svg"
     cropped_path.write_text("<svg></svg>")
-    user = {"username": "testuser"}
+    site = Mock()
 
-    with (
-        patch("src.main_app.jobs_workers.crop_main_files.upload.get_user_site") as mock_get_site,
-        patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload,
-    ):
-
-        mock_site = Mock()
-        mock_get_site.return_value = mock_site
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, user)
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
     # Should still attempt upload, but with empty filename
     assert result["success"] is True
+
+
+def test_upload_cropped_file_with_wikitext(tmp_path):
+    """Test upload with wikitext parameter."""
+    cropped_filename = "File:test (cropped).svg"
+    cropped_path = tmp_path / "test_cropped.svg"
+    cropped_path.write_text("<svg></svg>")
+    site = Mock()
+    wikitext = "==Summary==\nTest description"
+
+    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
+        mock_upload.return_value = {"result": "Success"}
+
+        result = upload.upload_cropped_file(cropped_filename, cropped_path, site, wikitext)
+
+    assert result["success"] is True
+    call_args = mock_upload.call_args[1]
+    assert call_args["description"] == wikitext

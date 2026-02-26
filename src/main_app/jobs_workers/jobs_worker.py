@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any
+from typing import Any, Dict
 
 from . import jobs_service
 from .collect_main_files_worker import collect_main_files_for_templates
@@ -34,7 +34,7 @@ def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
         return CANCEL_EVENTS.get(job_id)
 
 
-def _runner(job_id: int, user: Any | None, cancel_event: threading.Event, target_func: Any) -> None:
+def _runner(job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Event, target_func: Any) -> None:
     try:
         target_func(job_id, user, cancel_event=cancel_event)
     finally:
@@ -54,7 +54,7 @@ def cancel_job(job_id: int) -> bool:
     return False
 
 
-def start_job(user: Any | None, job_type: str) -> int:
+def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     """
     Start a background job to fix nested tags in all template main files.
     Returns the job ID.

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.tasks.uploads.upload_bot import upload_file
+from src.main_app.utils.upload_bot import upload_file
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def test_upload_file_no_site():
     assert res == {"error": "No site provided"}
 
 
-@patch("src.main_app.tasks.uploads.upload_bot.Path")
+@patch("src.main_app.utils.upload_bot.Path")
 def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
     mock_site.Pages.__getitem__.return_value.exists = False
 
@@ -25,7 +25,7 @@ def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
     assert res == {"error": "File not found on Commons"}
 
 
-@patch("src.main_app.tasks.uploads.upload_bot.Path")
+@patch("src.main_app.utils.upload_bot.Path")
 def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
     mock_site.Pages.__getitem__.return_value.exists = True
     mock_path_instance = MagicMock()
@@ -36,8 +36,8 @@ def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
     assert res == {"error": "File not found on server"}
 
 
-@patch("src.main_app.tasks.uploads.upload_bot.open", create=True)
-@patch("src.main_app.tasks.uploads.upload_bot.Path")
+@patch("src.main_app.utils.upload_bot.open", create=True)
+@patch("src.main_app.utils.upload_bot.Path")
 def test_upload_file_success(mock_path_cls, mock_open, mock_site):
     mock_site.Pages.__getitem__.return_value.exists = True
     mock_path_instance = MagicMock()
@@ -51,8 +51,8 @@ def test_upload_file_success(mock_path_cls, mock_open, mock_site):
     mock_site.upload.assert_called_once()
 
 
-@patch("src.main_app.tasks.uploads.upload_bot.open", create=True)
-@patch("src.main_app.tasks.uploads.upload_bot.Path")
+@patch("src.main_app.utils.upload_bot.open", create=True)
+@patch("src.main_app.utils.upload_bot.Path")
 def test_upload_file_fileexists_no_change(mock_path_cls, mock_open, mock_site):
     mock_site.Pages.__getitem__.return_value.exists = True
     mock_path_instance = MagicMock()

@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 from .. import template_service
 from ..tasks.texts.text_bot import get_wikitext
@@ -142,7 +142,7 @@ def process_templates(
 
 def collect_main_files_for_templates(
     job_id: int,
-    user: Any | None = None,
+    user: Dict[str, Any] | None = None,
     cancel_event: threading.Event | None = None,
 ) -> None:
     """

@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from .users.store import UserTokenRecord
 
 logger = logging.getLogger(__name__)
 
 
-def load_auth_payload(user: Any | None):
+def load_auth_payload(user: Optional[UserTokenRecord] | None) -> Dict[str, Any]:
     auth_payload: Dict[str, Any] = {}
     if user:
         # returns (access_key, access_secret) and marks token used
