@@ -136,6 +136,9 @@ def create_cropped_file_text(
     file_name = file_name.removeprefix("File:")
     other_versions_text = f"{{{{Extracted from|1={file_name}}}}}"
 
+    if not text:
+        return other_versions_text
+
     modified_text = add_other_versions(other_versions_text, text)
 
     if modified_text == text:

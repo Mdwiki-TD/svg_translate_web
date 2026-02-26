@@ -236,12 +236,11 @@ def process_crops(
 
         cropped_filename = file_info.get("cropped_filename")
 
-        if not user:
-            # No user provided, skip upload
+        if not site:
             file_info["status"] = "skipped"
-            file_info["reason"] = "no_user_auth"
+            file_info["reason"] = "no_site_auth"
             result["summary"]["skipped"] += 1
-            logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no user auth)")
+            logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no site)")
             result["files_processed"].append(file_info)
             continue
 
