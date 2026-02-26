@@ -1,7 +1,7 @@
 """Tests for the wikitext module."""
 
 from __future__ import annotations
-from src.main_app.jobs_workers.crop_main_files.wikitext_new import appendImageExtractedTemplate
+from src.main_app.jobs_workers.crop_main_files.wikitext import appendImageExtractedTemplate
 
 
 class TestAddOtherVersions:
