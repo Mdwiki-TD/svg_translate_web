@@ -15,20 +15,20 @@ from src.main_app.jobs_workers.crop_main_files import worker
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by worker module."""
 
-    # Mock jobs_service
+    # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
     )
 
-    # Mock generate_result_file_name
+    # Mock generate_result_file_name (imported from utils in base_worker)
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.worker.generate_result_file_name", mock_generate_result_file_name
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name", mock_generate_result_file_name
     )
 
     return {
@@ -460,7 +460,7 @@ def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(mock
     """Test that exceptions are logged with full traceback."""
     with (
         patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process,
-        patch("src.main_app.jobs_workers.crop_main_files.worker.logger") as mock_logger,
+        patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger,
     ):
 
         mock_process.side_effect = RuntimeError("Test error")
@@ -469,9 +469,7 @@ def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(mock
 
     # Verify logger.exception was called (logs with traceback)
     mock_logger.exception.assert_called_once()
-    assert "Test error" in str(mock_logger.exception.call_args) or "Error during crop processing" in str(
-        mock_logger.exception.call_args
-    )
+    assert "Test error" in str(mock_logger.exception.call_args)
 
 
 def test_crop_main_files_for_templates_completed_status_default(mock_services):

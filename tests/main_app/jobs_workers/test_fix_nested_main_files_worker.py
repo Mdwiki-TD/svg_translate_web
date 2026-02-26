@@ -24,29 +24,21 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.fix_nested_main_files_worker.template_service.update_template", mock_update_template
     )
 
-    # Mock jobs_service
+    # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
-
-    # Mock get_wikitext
-    mock_get_wikitext = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files_worker.get_wikitext", mock_get_wikitext)
-
-    # Mock find_main_title
-    mock_find_main_title = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files_worker.find_main_title", mock_find_main_title)
 
     return {
         "list_templates": mock_list_templates,
@@ -54,8 +46,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
-        "get_wikitext": mock_get_wikitext,
-        "find_main_title": mock_find_main_title,
     }
 
 
@@ -68,19 +58,19 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
     )
 
-    # Mock jobs_service
+    # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
 

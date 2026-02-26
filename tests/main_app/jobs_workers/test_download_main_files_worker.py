@@ -24,19 +24,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.download_main_files_worker.template_service.list_templates", mock_list_templates
     )
 
-    # Mock jobs_service
+    # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
@@ -382,28 +382,6 @@ def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["exists"] == 1
     assert result["summary"]["downloaded"] == 1
-
-
-def test_process_downloads_handles_job_not_found(mock_services, tmp_path):
-    """Test that process_downloads handles job not found gracefully."""
-    mock_services["update_job_status"].side_effect = LookupError("Job not found")
-
-    result = {
-        "job_id": 1,
-        "summary": {"total": 0, "downloaded": 0, "failed": 0, "exists": 0},
-        "files_downloaded": [],
-        "files_failed": [],
-    }
-
-    returned_result = download_main_files_worker.process_downloads(
-        1,
-        result,
-        "test_result.json",
-        tmp_path,
-    )
-
-    # Should return the result without crashing
-    assert returned_result == result
 
 
 def test_download_main_files_fatal_error_handling(mock_services):
@@ -790,40 +768,6 @@ def test_download_file_from_commons_with_special_characters(tmp_path):
 
     assert result["success"] is True
     assert (output_dir / "test-file_v2.0.svg").exists()
-
-
-def test_process_downloads_with_cancelled_status(mock_services, tmp_path):
-    """Test that cancelled status is preserved in final update."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
-    mock_services["list_templates"].return_value = templates
-
-    cancel_event = threading.Event()
-    cancel_event.set()  # Cancel immediately
-
-    result = {
-        "job_id": 1,
-        "summary": {"total": 0, "downloaded": 0, "failed": 0, "exists": 0},
-        "files_downloaded": [],
-        "files_failed": [],
-    }
-
-    with patch("src.main_app.jobs_workers.download_main_files_worker.requests.Session"):
-        returned_result = download_main_files_worker.process_downloads(
-            1,
-            result,
-            "test_result.json",
-            tmp_path,
-            cancel_event=cancel_event,
-        )
-
-    # Verify cancelled status was set
-    assert returned_result.get("status") == "cancelled"
-
-    # Verify final status update was called with "cancelled"
-    final_call = mock_services["update_job_status"].call_args
-    assert final_call[0][1] == "cancelled"
 
 
 def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path):

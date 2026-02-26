@@ -17,8 +17,7 @@ from flask import send_file
 from .. import template_service
 from ..config import settings
 from ..utils.commons_client import create_commons_session, download_commons_file_core
-from . import jobs_service
-from .utils import generate_result_file_name
+from .base_worker import BaseJobWorker
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -91,145 +90,148 @@ def download_file_from_commons(
     return result
 
 
-def process_downloads(
-    job_id: int,
-    result: dict[str, Any],
-    result_file: str,
-    output_dir: Path,
-    cancel_event: threading.Event | None = None,
-) -> dict[str, Any]:
-    """
-    Process downloading all main files for templates.
+class DownloadMainFilesWorker(BaseJobWorker):
+    """Worker for downloading main files from Commons to local filesystem."""
 
-    Args:
-        job_id: The job ID
-        result: The result dictionary to populate
-        result_file: The result file name
-        output_dir: Directory to save downloaded files
-        cancel_event: Optional event to check for cancellation
+    def __init__(
+        self,
+        job_id: int,
+        user: Dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
+    ):
+        self.output_dir = Path(settings.paths.main_files_path)
+        super().__init__(job_id, user, cancel_event)
 
-    Returns:
-        The populated result dictionary
-    """
-    # Update job status to running
-    try:
-        jobs_service.update_job_status(job_id, "running", result_file, job_type="download_main_files")
-    except LookupError:
-        logger.warning(f"Job {job_id}: Could not update status to running, job record might have been deleted.")
-        return result
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "download_main_files"
 
-    # Get all templates with main files
-    templates = template_service.list_templates()
-    templates_with_files = [t for t in templates if t.main_file]
-
-    # Apply development mode limit from settings
-    dev_limit = settings.download.dev_limit
-    if dev_limit > 0 and len(templates_with_files) > dev_limit:
-        logger.info(
-            f"Job {job_id}: Development mode - limiting download from "
-            f"{len(templates_with_files)} to {dev_limit} files"
-        )
-        templates_with_files = templates_with_files[:dev_limit]
-
-    result["summary"]["total"] = len(templates_with_files)
-    result["output_path"] = str(output_dir)
-
-    logger.info(f"Job {job_id}: Found {len(templates_with_files)} templates with main files")
-
-    # Create output directory if it doesn't exist
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Create a shared session for all downloads
-    session = create_commons_session(settings.oauth.user_agent)
-
-    for n, template in enumerate(templates_with_files, start=1):
-        # Check for cancellation
-        if cancel_event and cancel_event.is_set():
-            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
-            result["status"] = "cancelled"
-            result["cancelled_at"] = datetime.now().isoformat()
-            break
-
-        # Save progress periodically
-        if n == 1 or n % 10 == 0:
-            jobs_service.save_job_result_by_name(result_file, result)
-
-        logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
-
-        file_info = {
-            "template_id": template.id,
-            "template_title": template.title,
-            "filename": template.main_file,
-            "timestamp": datetime.now().isoformat(),
+    def get_initial_result(self) -> Dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "job_id": self.job_id,
+            "started_at": datetime.now().isoformat(),
+            "output_path": str(self.output_dir),
+            "files_downloaded": [],
+            "files_failed": [],
+            "summary": {
+                "total": 0,
+                "downloaded": 0,
+                "failed": 0,
+                "exists": 0,
+            },
         }
 
-        # Extract just the filename part (remove "File:" prefix if present)
-        clean_filename = template.main_file
-        if clean_filename.startswith("File:"):
-            clean_filename = clean_filename[5:]
+    def process(self) -> Dict[str, Any]:
+        """Execute the download processing logic."""
+        from . import jobs_service
 
-        try:
-            # Check if the file already exists
-            if (output_dir / clean_filename).exists():
-                result["summary"]["exists"] += 1
+        result = self.result
 
-            # Download the file (will overwrite if exists)
-            download_result = download_file_from_commons(
-                clean_filename,
-                output_dir,
-                session=session,
+        # Get all templates with main files
+        templates = template_service.list_templates()
+        templates_with_files = [t for t in templates if t.main_file]
+
+        # Apply development mode limit from settings
+        dev_limit = settings.download.dev_limit
+        if dev_limit > 0 and len(templates_with_files) > dev_limit:
+            logger.info(
+                f"Job {self.job_id}: Development mode - limiting download from "
+                f"{len(templates_with_files)} to {dev_limit} files"
             )
+            templates_with_files = templates_with_files[:dev_limit]
 
-            if download_result["success"]:
-                file_info["status"] = "downloaded"
-                file_info["path"] = download_result["path"]
-                file_info["size_bytes"] = download_result["size_bytes"]
-                result["files_downloaded"].append(file_info)
-                result["summary"]["downloaded"] += 1
-            else:
+        result["summary"]["total"] = len(templates_with_files)
+        result["output_path"] = str(self.output_dir)
+
+        logger.info(f"Job {self.job_id}: Found {len(templates_with_files)} templates with main files")
+
+        # Create output directory if it doesn't exist
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create a shared session for all downloads
+        session = create_commons_session(settings.oauth.user_agent)
+
+        for n, template in enumerate(templates_with_files, start=1):
+            # Check for cancellation
+            if self.is_cancelled():
+                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
+                break
+
+            # Save progress periodically
+            if n == 1 or n % 10 == 0:
+                try:
+                    jobs_service.save_job_result_by_name(self.result_file, result)
+                except Exception:
+                    logger.exception(f"Job {self.job_id}: Failed to save progress")
+
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
+
+            file_info = {
+                "template_id": template.id,
+                "template_title": template.title,
+                "filename": template.main_file,
+                "timestamp": datetime.now().isoformat(),
+            }
+
+            # Extract just the filename part (remove "File:" prefix if present)
+            clean_filename = template.main_file
+            if clean_filename.startswith("File:"):
+                clean_filename = clean_filename[5:]
+
+            try:
+                # Check if the file already exists
+                if (self.output_dir / clean_filename).exists():
+                    result["summary"]["exists"] += 1
+
+                # Download the file (will overwrite if exists)
+                download_result = download_file_from_commons(
+                    clean_filename,
+                    self.output_dir,
+                    session=session,
+                )
+
+                if download_result["success"]:
+                    file_info["status"] = "downloaded"
+                    file_info["path"] = download_result["path"]
+                    file_info["size_bytes"] = download_result["size_bytes"]
+                    result["files_downloaded"].append(file_info)
+                    result["summary"]["downloaded"] += 1
+                else:
+                    file_info["status"] = "failed"
+                    file_info["reason"] = download_result["error"]
+                    result["files_failed"].append(file_info)
+                    result["summary"]["failed"] += 1
+                    logger.warning(
+                        f"Job {self.job_id}: Failed to download {clean_filename}: {download_result['error']}"
+                    )
+
+            except Exception as e:
                 file_info["status"] = "failed"
-                file_info["reason"] = download_result["error"]
+                file_info["reason"] = f"Exception: {str(e)}"
+                file_info["error_type"] = type(e).__name__
                 result["files_failed"].append(file_info)
                 result["summary"]["failed"] += 1
-                logger.warning(f"Job {job_id}: Failed to download {clean_filename}: {download_result['error']}")
+                logger.exception(f"Job {self.job_id}: Error processing {template.title}")
 
-        except Exception as e:
-            file_info["status"] = "failed"
-            file_info["reason"] = f"Exception: {str(e)}"
-            file_info["error_type"] = type(e).__name__
-            result["files_failed"].append(file_info)
-            result["summary"]["failed"] += 1
-            logger.exception(f"Job {job_id}: Error processing {template.title}")
+        # Final save
+        result["completed_at"] = datetime.now().isoformat()
 
-    # Final save
-    result["completed_at"] = datetime.now().isoformat()
-    jobs_service.save_job_result_by_name(result_file, result)
+        # Generate zip file after successful completion
+        if result.get("status") != "cancelled":
+            try:
+                generate_main_files_zip()
+                logger.info(f"Job {self.job_id}: Generated main_files.zip successfully")
+            except Exception as e:
+                logger.exception(f"Job {self.job_id}: Failed to generate main_files.zip: {e}")
 
-    # Update job status
-    final_status = "completed"
-    if result.get("status") == "cancelled":
-        final_status = "cancelled"
+        logger.info(
+            f"Job {self.job_id} completed: "
+            f"{result['summary']['downloaded']} downloaded, "
+            f"{result['summary']['failed']} failed"
+        )
 
-    try:
-        jobs_service.update_job_status(job_id, final_status, result_file, job_type="download_main_files")
-    except LookupError:
-        logger.warning(f"Job {job_id}: Could not update status to {final_status}, job record might have been deleted.")
-
-    logger.info(
-        f"Job {job_id} {final_status}: "
-        f"{result['summary']['downloaded']} downloaded, "
-        f"{result['summary']['failed']} failed"
-    )
-
-    # Generate zip file after successful completion
-    if final_status == "completed":
-        try:
-            generate_main_files_zip()
-            logger.info(f"Job {job_id}: Generated main_files.zip successfully")
-        except Exception as e:
-            logger.exception(f"Job {job_id}: Failed to generate main_files.zip: {e}")
-
-    return result
+        return result
 
 
 def download_main_files_for_templates(
@@ -253,60 +255,8 @@ def download_main_files_for_templates(
         cancel_event: Optional event to check for cancellation
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
-    job_type = "download_main_files"
-
-    # Get output directory from settings
-    output_dir = Path(settings.paths.main_files_path)
-
-    # Initialize result tracking
-    result = {
-        "job_id": job_id,
-        "started_at": datetime.now().isoformat(),
-        "output_path": str(output_dir),
-        "files_downloaded": [],
-        "files_failed": [],
-        "summary": {
-            "total": 0,
-            "downloaded": 0,
-            "failed": 0,
-            "exists": 0,
-        },
-    }
-
-    result_file = generate_result_file_name(job_id, job_type)
-
-    try:
-        result = process_downloads(
-            job_id,
-            result,
-            result_file,
-            output_dir,
-            cancel_event=cancel_event,
-        )
-    except Exception as e:
-        logger.exception(f"Job {job_id}: Fatal error during execution")
-
-        # Save error result
-        error_result = {
-            "job_id": job_id,
-            "started_at": result.get("started_at", datetime.now().isoformat()),
-            "completed_at": datetime.now().isoformat(),
-            "output_path": str(output_dir),
-            "error": str(e),
-            "error_type": type(e).__name__,
-        }
-
-        try:
-            jobs_service.save_job_result_by_name(result_file, error_result)
-            jobs_service.update_job_status(job_id, "failed", result_file, job_type="download_main_files")
-        except LookupError:
-            logger.warning(f"Job {job_id}: Could not update status to failed, job record might have been deleted.")
-        except Exception:
-            logger.exception(f"Job {job_id}: Failed to save error result")
-            try:
-                jobs_service.update_job_status(job_id, "failed", job_type="download_main_files")
-            except LookupError:
-                pass
+    worker = DownloadMainFilesWorker(job_id, user, cancel_event)
+    worker.run()
 
 
 def generate_main_files_zip() -> Path:
@@ -379,6 +329,7 @@ def create_main_files_zip() -> tuple[Any, int]:
 
 __all__ = [
     "download_main_files_for_templates",
+    "DownloadMainFilesWorker",
     "create_main_files_zip",
     "generate_main_files_zip",
     "MAIN_FILES_ZIP_NAME",
