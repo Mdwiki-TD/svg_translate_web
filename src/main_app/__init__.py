@@ -24,9 +24,11 @@ from .app_routes import (
 )
 from .config import settings
 from .cookies import CookieHeaderClient
-from .db import close_cached_db
+from .db import close_cached_db, dispose_engines
 from .users.current import context_user
 from .users.store import ensure_user_token_table
+
+import atexit
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +122,9 @@ def create_app() -> Flask:
             close_task_store()
         except Exception:
             logger.debug("Failed to close task store during teardown", exc_info=True)
+
+    # Register engine disposal on application shutdown
+    atexit.register(dispose_engines)
 
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
-import json
 
 from ..config import DbConfig
-from . import Database
+from .db_class import Database
+from .db_sqlalchemy import DatabaseSQLAlchemy
+from .engine_factory import USE_SQLALCHEMY_POOLING
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +15,31 @@ logger = logging.getLogger(__name__)
 class SettingsDB:
     """MySQL-backed application settings store."""
 
-    def __init__(self, database_data: DbConfig):
-        self.db = Database(database_data)
+    def __init__(
+        self,
+        database_data: DbConfig,
+        use_background_engine: bool = False,
+    ):
+        """
+        Initialize SettingsDB with the provided database configuration.
+
+        Args:
+            database_data: Database connection configuration
+            use_background_engine: Use background-optimized engine for batch processing
+        """
+        if USE_SQLALCHEMY_POOLING:
+            self.db = DatabaseSQLAlchemy(
+                database_data,
+                use_background_engine=use_background_engine,
+            )
+            logger.debug(
+                "event=settings_db_init engine=sqlalchemy background=%s",
+                use_background_engine,
+            )
+        else:
+            self.db = Database(database_data)
+            logger.debug("event=settings_db_init engine=pymysql")
+
         self._ensure_table()
 
     def _ensure_table(self) -> None:

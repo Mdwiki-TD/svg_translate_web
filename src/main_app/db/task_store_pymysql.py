@@ -8,6 +8,8 @@ from .db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
 from .db_StageStore import StageStore
 from .db_TasksListDB import TasksListDB
+from .db_sqlalchemy import DatabaseSQLAlchemy
+from .engine_factory import USE_SQLALCHEMY_POOLING
 from .utils import DbUtils
 
 logger = logging.getLogger(__name__)
@@ -16,16 +18,32 @@ logger = logging.getLogger(__name__)
 class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
-    def __init__(self, database_data: DbConfig) -> None:
-        # Note: db connection is managed inside execute_query/fetch_query
-        # self._lock = threading.Lock()
+    def __init__(
+        self,
+        database_data: DbConfig,
+        use_background_engine: bool = False,
+    ) -> None:
         """
-        Initialize the task store with the given database configuration and ensure required schema and indexes exist.
+        Initialize the task store with the given database configuration.
 
         Parameters:
-            database_data (DbConfig): Database connection configuration used to create the internal Database instance.
+            database_data: Database connection configuration
+            use_background_engine: Use background-optimized engine for batch processing
         """
-        self.db = Database(database_data)
+        if USE_SQLALCHEMY_POOLING:
+            self.db = DatabaseSQLAlchemy(
+                database_data,
+                use_background_engine=use_background_engine,
+            )
+            logger.debug(
+                "event=task_store_init engine=sqlalchemy background=%s",
+                use_background_engine,
+            )
+        else:
+            # Fallback to legacy implementation
+            self.db = Database(database_data)
+            logger.debug("event=task_store_init engine=pymysql")
+
         self._init_schema()
         super().__init__(self.db)
 

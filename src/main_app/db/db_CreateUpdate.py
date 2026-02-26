@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 # from .utils import DbUtils
 # from .db_TasksListDB import TasksListDB
 # from .db_StageStore import StageStore
 from .db_class import Database
+from .db_sqlalchemy import DatabaseSQLAlchemy
 
 logger = logging.getLogger(__name__)
+
+# Type alias for database wrapper (supports both legacy and new implementations)
+DatabaseWrapper = Union[Database, DatabaseSQLAlchemy]
 TERMINAL_STATUSES = ("Completed", "Failed", "Cancelled")
 TERMINAL_PLACEHOLDERS = ", ".join(["%s"] * len(TERMINAL_STATUSES))
 
@@ -40,7 +44,7 @@ class TaskAlreadyExistsError(Exception):
 class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
-    def __init__(self, db: Database | None = None) -> None:
+    def __init__(self, db: DatabaseWrapper | None = None) -> None:
         self.db = db
 
     def delete_task(self, task_id: str) -> None:

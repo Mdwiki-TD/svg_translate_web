@@ -9,7 +9,9 @@ from datetime import datetime
 from typing import Any, List
 
 from ..config import DbConfig
-from . import Database
+from .db_class import Database
+from .db_sqlalchemy import DatabaseSQLAlchemy
+from .engine_factory import USE_SQLALCHEMY_POOLING
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +33,31 @@ class JobRecord:
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(
+        self,
+        database_data: DbConfig,
+        use_background_engine: bool = False,
+    ):
         """
-        Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
+        Initialize the JobsDB with the provided database configuration.
 
         Parameters:
-            database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
+            database_data: Configuration used to instantiate the Database wrapper
+            use_background_engine: Use background-optimized engine for batch processing
         """
-        self.db = Database(database_data)
+        if USE_SQLALCHEMY_POOLING:
+            self.db = DatabaseSQLAlchemy(
+                database_data,
+                use_background_engine=use_background_engine,
+            )
+            logger.debug(
+                "event=jobs_db_init engine=sqlalchemy background=%s",
+                use_background_engine,
+            )
+        else:
+            self.db = Database(database_data)
+            logger.debug("event=jobs_db_init engine=pymysql")
+
         self._ensure_table()
 
     def _ensure_table(self) -> None:

@@ -18,11 +18,14 @@ logger = logging.getLogger(__name__)
 _JOBS_STORE: JobsDB | None = None
 
 
-def get_jobs_db() -> JobsDB:
+def get_jobs_db(use_background_engine: bool = False) -> JobsDB:
     """
     Return the singleton JobsDB instance used by the module, creating it if necessary.
 
     Creates and caches a JobsDB initialized from settings.database_data on first call.
+
+    Args:
+        use_background_engine: Use background-optimized engine for batch processing
 
     Returns:
         JobsDB: The singleton jobs database instance.
@@ -37,7 +40,10 @@ def get_jobs_db() -> JobsDB:
             raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
 
         try:
-            _JOBS_STORE = JobsDB(settings.database_data)
+            _JOBS_STORE = JobsDB(
+                settings.database_data,
+                use_background_engine=use_background_engine,
+            )
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
             logger.exception("Failed to initialize MySQL jobs store")
             raise RuntimeError("Unable to initialize jobs store") from exc

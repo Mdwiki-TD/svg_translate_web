@@ -7,7 +7,9 @@ from typing import Any, List
 import pymysql
 
 from ..config import DbConfig
-from . import Database
+from .db_class import Database
+from .db_sqlalchemy import DatabaseSQLAlchemy
+from .engine_factory import USE_SQLALCHEMY_POOLING
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +27,33 @@ class TemplateRecord:
 
 
 class TemplatesDB:
-    """MySQL-backed"""
+    """MySQL-backed template store."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(
+        self,
+        database_data: DbConfig,
+        use_background_engine: bool = False,
+    ):
         """
-        Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
+        Initialize TemplatesDB with the given database configuration.
 
-        Parameters:
-            database_data (DbConfig): Configuration used to construct the underlying Database connection.
+        Args:
+            database_data: Database connection configuration
+            use_background_engine: Use background-optimized engine for batch processing
         """
-        self.db = Database(database_data)
+        if USE_SQLALCHEMY_POOLING:
+            self.db = DatabaseSQLAlchemy(
+                database_data,
+                use_background_engine=use_background_engine,
+            )
+            logger.debug(
+                "event=templates_db_init engine=sqlalchemy background=%s",
+                use_background_engine,
+            )
+        else:
+            self.db = Database(database_data)
+            logger.debug("event=templates_db_init engine=pymysql")
+
         self._ensure_table()
 
     def _ensure_table(self) -> None:

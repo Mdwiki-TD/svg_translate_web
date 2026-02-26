@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 # from .utils import DbUtils
 from .db_class import Database
+from .db_sqlalchemy import DatabaseSQLAlchemy
 
 logger = logging.getLogger(__name__)
+
+# Type alias for database wrapper (supports both legacy and new implementations)
+DatabaseWrapper = Union[Database, DatabaseSQLAlchemy]
 
 
 class StageStore:  # (DbUtils)
     """Utility mixin providing CRUD helpers for task stage persistence."""
 
-    def __init__(self, db: Database | None = None) -> None:
+    def __init__(self, db: DatabaseWrapper | None = None) -> None:
         self.db = db
 
     def update_stage(self, task_id: str, stage_name: str, stage_data: Dict[str, Any]) -> None:

@@ -119,6 +119,47 @@ USER_AGENT="Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; you
 ADMINS=user1,user2,user3
 ```
 
+#### Database Connection Pooling (SQLAlchemy)
+
+The application uses SQLAlchemy with connection pooling to manage MySQL connections efficiently and prevent "max_user_connections exceeded" errors.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `USE_SQLALCHEMY_POOLING` | `true` | Enable/disable SQLAlchemy connection pooling |
+| `DB_POOL_SIZE` | `3` | Permanent connections in HTTP worker pool |
+| `DB_MAX_OVERFLOW` | `2` | Temporary connections allowed beyond pool_size |
+| `DB_BG_POOL_SIZE` | `4` | Permanent connections in background worker pool |
+| `DB_BG_MAX_OVERFLOW` | `4` | Temporary connections for background workers |
+| `DB_POOL_RECYCLE` | `3600` | Seconds before recycling connections (1 hour) |
+| `DB_POOL_TIMEOUT` | `30` | Seconds to wait for available connection (HTTP) |
+| `DB_BG_POOL_TIMEOUT` | `60` | Seconds to wait for available connection (background) |
+
+**Example configuration for Toolforge (max_user_connections=100):**
+
+```bash
+# Default settings work well for Toolforge deployment
+# With 2 replicas × 7 workers = 14 workers total:
+# Max connections = 14 × (3 + 2) = 70 for HTTP workers
+
+USE_SQLALCHEMY_POOLING=true
+DB_POOL_SIZE=3
+DB_MAX_OVERFLOW=2
+DB_BG_POOL_SIZE=4
+DB_BG_MAX_OVERFLOW=4
+DB_POOL_RECYCLE=3600
+```
+
+**To disable pooling and use legacy PyMySQL:**
+
+```bash
+USE_SQLALCHEMY_POOLING=false
+```
+
+**Health Check Endpoints:**
+
+- `GET /health` - Basic application health
+- `GET /health/db` - Database connectivity and pool statistics
+
 For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
 
 ## Usage
@@ -227,6 +268,7 @@ Deployment is automated via GitHub Actions when pushing to the `main` branch.
 Key dependencies include:
 
 -   **Flask** - Web framework
+-   **SQLAlchemy** - SQL toolkit and ORM for connection pooling
 -   **flask-limiter** - Rate limiting
 -   **mwclient** - MediaWiki API client
 -   **mwoauth** - MediaWiki OAuth
