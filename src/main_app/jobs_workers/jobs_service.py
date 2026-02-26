@@ -16,6 +16,7 @@ from ..db.db_Jobs import JobRecord, JobsDB
 logger = logging.getLogger(__name__)
 
 _JOBS_STORE: JobsDB | None = None
+_JOBS_STORE_BG: JobsDB | None = None
 
 
 def get_jobs_db() -> JobsDB:
@@ -43,6 +44,34 @@ def get_jobs_db() -> JobsDB:
             raise RuntimeError("Unable to initialize jobs store") from exc
 
     return _JOBS_STORE
+
+
+def get_jobs_db_bg() -> JobsDB:
+    """
+    Return the singleton JobsDB instance for background workers using the background engine pool.
+
+    Creates and caches a JobsDB initialized from settings.database_data on first call,
+    using the background engine pool to avoid starving HTTP requests.
+
+    Returns:
+        JobsDB: The singleton jobs database instance for background workers.
+
+    Raises:
+        RuntimeError: If no database configuration is available or if JobsDB initialization fails.
+    """
+    global _JOBS_STORE_BG
+
+    if _JOBS_STORE_BG is None:
+        if not has_db_config():
+            raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
+
+        try:
+            _JOBS_STORE_BG = JobsDB(settings.database_data, use_bg_engine=True)
+        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+            logger.exception("Failed to initialize MySQL jobs store for background workers")
+            raise RuntimeError("Unable to initialize jobs store for background workers") from exc
+
+    return _JOBS_STORE_BG
 
 
 @functools.lru_cache(maxsize=1)
@@ -129,6 +158,7 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
 
 __all__ = [
     "get_jobs_db",
+    "get_jobs_db_bg",
     "create_job",
     "get_job",
     "list_jobs",

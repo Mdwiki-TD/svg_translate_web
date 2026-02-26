@@ -26,14 +26,15 @@ class CoordinatorRecord:
 class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False):
         """
         Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
 
         Parameters:
             database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
+            use_bg_engine (bool): If True, use the background engine pool for batch jobs.
         """
-        self.db = Database(database_data)
+        self.db = Database(database_data, use_bg_engine=use_bg_engine)
         self._ensure_table()
 
     def _ensure_table(self) -> None:
