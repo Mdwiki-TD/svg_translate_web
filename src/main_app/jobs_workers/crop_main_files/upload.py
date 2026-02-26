@@ -47,7 +47,7 @@ def upload_cropped_file(
     clean_cropped_name = cropped_filename[5:] if cropped_filename.startswith("File:") else cropped_filename
 
     # Prepare upload summary
-    original_file = clean_cropped_name.replace(" (cropped)", "")
+    original_file = clean_cropped_name.replace(" (cropped).svg", ".svg")
     summary = f"[[:File:{original_file}]] cropped to remove the footer."
 
     try:
