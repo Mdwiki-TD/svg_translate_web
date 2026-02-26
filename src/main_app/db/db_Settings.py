@@ -59,24 +59,34 @@ class SettingsDB:
     def create_setting(self, key: str, title: str, value_type: str, value: Any) -> bool:
         """Create a new setting."""
         str_val = self._serialize_value(value, value_type)
+        if self.get_by_key(key) is not None:
+            return False
         try:
-            self.db.execute_query_safe(
-                "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+            affected_rows = self.db.execute_query_safe(
+                # "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
                 (key, title, value_type, str_val)
             )
-            return True
+            return affected_rows > 0
         except Exception as e:
             logger.error(f"Failed to create setting '{key}': {e}")
             return False
 
-    def update_setting(self, key: str, value: Any) -> bool:
-        """Update an existing setting."""
-        # First retrieve the value_type
-        rows = self.db.fetch_query_safe("SELECT `value_type` FROM `settings` WHERE `key` = %s", (key,))
-        if not rows:
-            return False
+    def update_setting(self, key: str, value: Any, value_type: str | None = None) -> bool:
+        """Update an existing setting.
 
-        value_type = rows[0]["value_type"]
+        Args:
+            key: The setting key to update.
+            value: The new value.
+            value_type: Optional value type. If provided, skips the SELECT query.
+        """
+        # If value_type not provided, retrieve it from the database
+        if value_type is None:
+            rows = self.db.fetch_query_safe("SELECT `value_type` FROM `settings` WHERE `key` = %s", (key,))
+            if not rows:
+                return False
+            value_type = rows[0]["value_type"]
+
         str_val = self._serialize_value(value, value_type)
 
         try:
@@ -112,7 +122,10 @@ class SettingsDB:
         if value_type == "boolean":
             return "true" if value else "false"
         elif value_type == "integer":
-            return str(int(value))
+            try:
+                return str(int(value))
+            except (ValueError, TypeError):
+                return "0"
         elif value_type == "json":
             return json.dumps(value, ensure_ascii=False)
         return str(value)

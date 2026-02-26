@@ -4,11 +4,20 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 
 from __future__ import annotations
 
+import re
 import logging
 
 import wikitextparser as wtp
 
 logger = logging.getLogger(__name__)
+
+
+def addBefore(text: str, newText: str, searchText: str) -> str:
+    res = re.search(searchText, text, flags=re.IGNORECASE | re.MULTILINE)
+    if res:
+        start = res.start()
+        text = text[:start].rstrip() + "\n" + newText + "\n\n" + text[start:].lstrip()
+    return text
 
 
 def add_other_versions(
@@ -30,20 +39,85 @@ def add_other_versions(
         "other versions",
         "other_versions"
     ]
+    add_done = False
     for template in parsed.templates:
         if template.name.strip().lower() == "information":
             arg_found = False
             for arg in template.arguments:
                 if arg.name.strip().lower() in args_names:
                     new_value = arg.value.strip() + "\n" + param_text
-                    arg.value = new_value.strip()
+                    arg.value = f"{new_value.strip()}\n"
                     arg_found = True
+                    add_done = True
                     break
             if not arg_found:
-                template.set_arg("other versions", param_text)
+                template.set_arg("other versions", f"{param_text}\n")
+                add_done = True
 
-    # If no Information template found, return original text
+    if not add_done:
+        return text
+
     return parsed.string
+
+
+def insert_before_methods(text, other_versions_text):
+    # Try to add before the license header
+    modified_text = addBefore(text, other_versions_text, r'==\s*\{\{\s*int:license-header\s*\}\}\s*==')
+
+    if modified_text == text:
+        # Try to add before the first category
+        modified_text = addBefore(text, other_versions_text, r'\[\[\s*category:')
+    return modified_text
+
+
+def appendImageExtractedTemplate(
+    cropped_file_name: str,
+    text: str,
+) -> str:
+    """
+    Update the original file's wikitext to include the cropped file information.
+    # If the page already contains a {{Image extracted}} template, append the file to it
+
+    """
+    cropped_file_name = cropped_file_name.removeprefix("File:")
+    template_name_regex = r"(extracted ?(images?|file|photo)?|image ?extracted|cropped version)"
+    match = re.search(r"{{\s*" + template_name_regex + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.IGNORECASE | re.MULTILINE)
+    if not match:
+        return text
+
+    start, length = match.start(), match.end() - match.start()
+    tplText = text[start:start + length]
+
+    # Find out how many existing arguments there are
+    argNo = tplText.count('|') + 1
+
+    # Append |$name before the }} of the template
+    modified_text = text[:start + length - 2] + f"|{argNo}={cropped_file_name}" + text[start + length - 2:]
+
+    return modified_text
+
+
+def update_original_file_text(
+    cropped_file_name: str,
+    text: str,
+) -> str:
+    """
+    Update the original file's wikitext to include the cropped file information.
+    """
+    cropped_file_name = cropped_file_name.removeprefix("File:")
+    other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
+    modified_text = appendImageExtractedTemplate(cropped_file_name, text)
+
+    if modified_text == text:
+        modified_text = add_other_versions(other_versions_text, text)
+
+    if modified_text == text:
+        modified_text = insert_before_methods(text, other_versions_text)
+
+    if modified_text == text:
+        modified_text = insert_before_methods(text, other_versions_text)
+
+    return modified_text
 
 
 def create_cropped_file_text(
@@ -61,18 +135,19 @@ def create_cropped_file_text(
     # add new argment like |other versions = {{Extracted from|1=Daily meat consumption per person, World, 2022.svg}} to template {{Information}} in the wikitext
     file_name = file_name.removeprefix("File:")
     other_versions_text = f"{{{{Extracted from|1={file_name}}}}}"
+
+    if not text:
+        return other_versions_text
+
     modified_text = add_other_versions(other_versions_text, text)
+
+    if modified_text == text:
+        modified_text = insert_before_methods(text, other_versions_text)
+
     return modified_text
 
 
-def update_original_file_text(
-    cropped_file_name: str,
-    text: str,
-) -> str:
-    """
-    Update the original file's wikitext to include the cropped file information.
-    """
-    cropped_file_name = cropped_file_name.removeprefix("File:")
-    other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
-    modified_text = add_other_versions(other_versions_text, text)
-    return modified_text
+__all__ = [
+    "update_original_file_text",
+    "create_cropped_file_text",
+]

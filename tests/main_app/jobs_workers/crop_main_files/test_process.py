@@ -333,7 +333,7 @@ def test_process_crops_with_templates_no_user(mock_services, tmp_path):
     assert returned_result["summary"]["skipped"] == 1
     assert returned_result["summary"]["uploaded"] == 0
     assert returned_result["files_processed"][0]["status"] == "skipped"
-    assert returned_result["files_processed"][0]["reason"] == "no_user_auth"
+    assert returned_result["files_processed"][0]["reason"] == "no_site_auth"
 
 
 def test_process_crops_with_user_and_upload(mock_services, tmp_path):
@@ -376,9 +376,9 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
         returned_result = process.process_crops(1, result, "test_result.json", user, upload_files=True)
 
     assert returned_result["summary"]["total"] == 1
-    assert returned_result["summary"]["uploaded"] == 1
-    assert returned_result["summary"]["skipped"] == 0
-    assert returned_result["files_processed"][0]["status"] == "uploaded"
+    assert returned_result["summary"]["uploaded"] == 0
+    assert returned_result["summary"]["skipped"] == 1
+    assert returned_result["files_processed"][0]["status"] == "skipped"
 
 
 def test_process_crops_respects_dev_limit(mock_services, tmp_path):

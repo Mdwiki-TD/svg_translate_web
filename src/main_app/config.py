@@ -73,13 +73,13 @@ class DynamicSettingsStore:
     def get_all(self) -> Dict[str, Any]:
         """Get all dynamic settings, loading from db if not cached."""
         if self._cache is not None:
-            return self._cache
+            return dict(self._cache)
 
         # Lazy import to avoid circular dependencies
         from .db.db_Settings import SettingsDB
         db = SettingsDB(self._db_config)
         self._cache = db.get_all()
-        return self._cache
+        return dict(self._cache)
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a specific dynamic setting by key."""
