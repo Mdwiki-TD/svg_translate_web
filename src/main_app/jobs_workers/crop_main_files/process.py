@@ -51,6 +51,12 @@ def upload_one(
         site,
         cropped_file_wikitext,
     )
+    if upload_result.get("skipped"):
+        file_info["status"] = "skipped"
+        file_info["reason"] = "file_exists"
+        result["summary"]["skipped"] += 1
+        logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
+        return
 
     if not upload_result["success"]:
         file_info["status"] = "failed"
@@ -151,6 +157,25 @@ def process_one(
     return file_info
 
 
+def limit_templates_by_settings(job_id, templates_with_files):
+    dev_limit = settings.download.dev_limit
+    if dev_limit > 0 and len(templates_with_files) > dev_limit:
+        logger.info(
+            f"Job {job_id}: Development mode - limiting crop from " f"{len(templates_with_files)} to {dev_limit} files"
+        )
+        return templates_with_files[:dev_limit]
+
+    upload_cropped_files = int(settings.dynamic.get("upload_cropped_files", 0))
+    if upload_cropped_files > 0 and len(templates_with_files) > upload_cropped_files:
+        logger.info(
+            f"Job {job_id}: Upload cropped files limit - limiting crop from "
+            f"{len(templates_with_files)} to {upload_cropped_files} files"
+        )
+        return templates_with_files[:upload_cropped_files]
+
+    return templates_with_files
+
+
 def process_crops(
     job_id: int,
     result: dict[str, Any],
@@ -184,12 +209,7 @@ def process_crops(
     templates_with_files = [t for t in templates if t.last_world_file]
 
     # Apply development mode limit from settings
-    dev_limit = settings.download.dev_limit
-    if dev_limit > 0 and len(templates_with_files) > dev_limit:
-        logger.info(
-            f"Job {job_id}: Development mode - limiting crop from " f"{len(templates_with_files)} to {dev_limit} files"
-        )
-        templates_with_files = templates_with_files[:dev_limit]
+    templates_with_files = limit_templates_by_settings(job_id, templates_with_files)
 
     result["summary"]["total"] = len(templates_with_files)
     logger.info(f"Job {job_id}: Found {len(templates_with_files)} templates with main files")

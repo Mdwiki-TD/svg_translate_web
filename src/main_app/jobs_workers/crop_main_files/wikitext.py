@@ -53,6 +53,8 @@ def add_other_versions(
             if not arg_found:
                 template.set_arg("other versions", f"{param_text}\n")
                 add_done = True
+                break
+            break
 
     if not add_done:
         return text
@@ -110,9 +112,6 @@ def update_original_file_text(
 
     if modified_text == text:
         modified_text = add_other_versions(other_versions_text, text)
-
-    if modified_text == text:
-        modified_text = insert_before_methods(text, other_versions_text)
 
     if modified_text == text:
         modified_text = insert_before_methods(text, other_versions_text)

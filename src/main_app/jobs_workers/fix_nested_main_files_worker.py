@@ -19,8 +19,7 @@ from ..app_routes.fix_nested.fix_utils import (
     upload_fixed_svg,
     verify_fix,
 )
-from . import jobs_service
-from .utils import generate_result_file_name
+from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,7 @@ def repair_nested_svg_tags(
     Args:
         filename: Name of the SVG file to fix
         user: User object for authentication during upload
+        cancel_event: Optional event to check for cancellation
     """
     # Use temp directory for processing
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -104,187 +104,160 @@ def repair_nested_svg_tags(
         }
 
 
-def log_skipped_template_no_main_file(result, template_info) -> None:
-    """
-    Logs a skipped template due to the absence of a main file.
+class FixNestedMainFilesWorker(BaseJobWorker):
+    """Worker for fixing nested tags in main files of templates."""
 
-    Args:
-        result: Dictionary tracking the overall processing results.
-        template_info: Dictionary containing information about the template.
-    """
-    template_info["status"] = "skipped"
-    template_info["reason"] = "No main_file set"
-    result["templates_skipped"].append(template_info)
-    result["summary"]["no_main_file"] += 1
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "fix_nested_main_files"
 
-
-def log_skipped_template_no_nested_tags(result, template_info, fix_result) -> None:
-    """
-    Logs information about a template that was skipped due to having no nested tags.
-
-    Args:
-        result: A dictionary tracking the overall job results.
-        template_info: A dictionary containing metadata about the template.
-        fix_result: A dictionary containing the result of the fix attempt.
-    """
-    template_info["status"] = "skipped"
-    template_info["reason"] = "No nested tags found"
-    template_info["fix_result"] = fix_result
-    result["templates_skipped"].append(template_info)
-    result["summary"]["skipped"] += 1
-
-
-def log_successful_template_processing(result, template_info, fix_result) -> None:
-    """
-    Logs a successfully processed template.
-
-    Args:
-        result: Dictionary tracking the overall processing results.
-        template_info: Dictionary containing information about the template.
-        fix_result: Dictionary containing the results of the fix operation.
-    """
-    template_info["status"] = "success"
-    template_info["fix_result"] = fix_result
-    result["templates_success"].append(template_info)
-    result["summary"]["success"] += 1
-
-
-def log_template_failure(result, template_info, e) -> None:
-    """
-    Logs a template processing failure due to an exception.
-
-    Args:
-        result: A dictionary tracking the overall job results.
-        template_info: A dictionary containing metadata about the template.
-        e: The exception that caused the failure.
-    """
-    template_info["status"] = "failed"
-    template_info["reason"] = f"Exception: {str(e)}"
-    template_info["error_type"] = type(e).__name__
-    result["templates_failed"].append(template_info)
-    result["summary"]["failed"] += 1
-
-
-def log_failed_template(result, template_info, fix_result) -> None:
-    """
-    Logs a template that failed during processing.
-
-    Args:
-        result: A dictionary tracking the overall job results.
-        template_info: A dictionary containing metadata about the template.
-        fix_result: A dictionary containing the result of the fix attempt.
-    """
-    template_info["status"] = "failed"
-    template_info["reason"] = fix_result.get("message", "Unknown error")
-    template_info["fix_result"] = fix_result
-    result["templates_failed"].append(template_info)
-    result["summary"]["failed"] += 1
-
-
-def process_templates(
-    job_id,
-    user,
-    result: dict[str, list[dict]],
-    result_file: str,
-    cancel_event: threading.Event | None = None,
-) -> dict[str, list[dict]]:
-    # Update job status to running
-    try:
-        jobs_service.update_job_status(job_id, "running", result_file, job_type="fix_nested_main_files")
-    except LookupError:
-        logger.warning(f"Job {job_id}: Could not update status to running, job record might have been deleted.")
-        return result
-
-    # Get all templates
-    templates = template_service.list_templates()
-    result["summary"]["total"] = len(templates)
-
-    logger.info(f"Job {job_id}: Found {len(templates)} templates")
-
-    for n, template in enumerate(templates, start=1):
-        logger.info(f"Job {job_id}: Processing template {n}/{len(templates)}: {template.title}")
-
-        if cancel_event and cancel_event.is_set():
-            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
-            result["status"] = "cancelled"
-            result["cancelled_at"] = datetime.now().isoformat()
-            break
-
-        # Save progress after check for cancellation
-        if n == 1 or n % 10 == 0:
-            # Save result to JSON file
-            jobs_service.save_job_result_by_name(result_file, result)
-
-        template_info = {
-            "id": template.id,
-            "title": template.title,
-            "main_file": template.main_file,
-            "timestamp": datetime.now().isoformat(),
+    def get_initial_result(self) -> Dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "job_id": self.job_id,
+            "started_at": datetime.now().isoformat(),
+            "templates_processed": [],
+            "templates_success": [],
+            "templates_failed": [],
+            "templates_skipped": [],
+            "summary": {
+                "total": 0,
+                "success": 0,
+                "failed": 0,
+                "skipped": 0,
+                "no_main_file": 0,
+            },
         }
 
-        # Skip if template doesn't have a main_file
-        if not template.main_file:
-            log_skipped_template_no_main_file(result, template_info)
-            continue
+    def _log_skipped_no_main_file(self, template_info: dict) -> None:
+        """Log a skipped template due to the absence of a main file."""
+        template_info["status"] = "skipped"
+        template_info["reason"] = "No main_file set"
+        self.result["templates_skipped"].append(template_info)
+        self.result["summary"]["no_main_file"] += 1
 
-        fix_result = {}
-        try:
-            # Process without task_id and db_store since we're tracking in the job
-            fix_result = repair_nested_svg_tags(
-                filename=template.main_file,
-                user=user,
-                cancel_event=cancel_event,
-            )
+    def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
+        """Log information about a template that was skipped due to having no nested tags."""
+        template_info["status"] = "skipped"
+        template_info["reason"] = "No nested tags found"
+        template_info["fix_result"] = fix_result
+        self.result["templates_skipped"].append(template_info)
+        self.result["summary"]["skipped"] += 1
 
-        except Exception as e:
-            log_template_failure(result, template_info, e)
-            logger.exception(f"Job {job_id}: Error processing template {template.title}")
-            continue
+    def _log_success(self, template_info: dict, fix_result: dict) -> None:
+        """Log a successfully processed template."""
+        template_info["status"] = "success"
+        template_info["fix_result"] = fix_result
+        self.result["templates_success"].append(template_info)
+        self.result["summary"]["success"] += 1
 
-        if fix_result.get("cancelled"):
-            logger.info(f"Job {job_id}: Cancellation detected, stopping.")
-            result["status"] = "cancelled"
-            result["cancelled_at"] = datetime.now().isoformat()
-            break
+    def _log_failure(self, template_info: dict, reason: str, error_type: str = "") -> None:
+        """Log a template processing failure."""
+        template_info["status"] = "failed"
+        template_info["reason"] = reason
+        if error_type:
+            template_info["error_type"] = error_type
+        self.result["templates_failed"].append(template_info)
+        self.result["summary"]["failed"] += 1
 
-        if fix_result["success"]:
-            log_successful_template_processing(result, template_info, fix_result)
-            logger.info(f"Job {job_id}: Successfully processed {template.main_file}")
+    def _log_failed_fix(self, template_info: dict, fix_result: dict) -> None:
+        """Log a template that failed during processing."""
+        template_info["status"] = "failed"
+        template_info["reason"] = fix_result.get("message", "Unknown error")
+        template_info["fix_result"] = fix_result
+        self.result["templates_failed"].append(template_info)
+        self.result["summary"]["failed"] += 1
 
-        elif fix_result.get("no_nested_tags", False):
-            log_skipped_template_no_nested_tags(result, template_info, fix_result)
-            logger.info(f"Job {job_id}: No nested tags found in {template.main_file}")
+    def process(self) -> Dict[str, Any]:
+        """Execute the fix nested tags processing logic."""
+        from . import jobs_service
 
-        else:
-            log_failed_template(result, template_info, fix_result)
-            logger.warning(f"Job {job_id}: Failed to process {template.main_file}: " f"{fix_result.get('message')}")
+        result = self.result
 
-    # Update summary skipped count
-    result["summary"]["skipped"] = len(result["templates_skipped"])
-    result["completed_at"] = datetime.now().isoformat()
+        # Get all templates
+        templates = template_service.list_templates()
+        result["summary"]["total"] = len(templates)
 
-    # Save result to JSON file
-    jobs_service.save_job_result_by_name(result_file, result)
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
 
-    # Update job status to completed or cancelled
-    final_status = "cancelled" if result.get("status") == "cancelled" else "completed"
+        for n, template in enumerate(templates, start=1):
+            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates)}: {template.title}")
 
-    try:
-        jobs_service.update_job_status(job_id, final_status, result_file, job_type="fix_nested_main_files")
-    except LookupError:
-        logger.warning(f"Job {job_id}: Could not update status to {final_status}, job record might have been deleted.")
+            if self.is_cancelled():
+                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
+                break
 
-    logger.info(
-        f"Job {job_id} {final_status}: {result['summary']['success']} successful, "
-        f"{result['summary']['failed']} failed, "
-        f"{result['summary']['skipped']} skipped"
-    )
+            # Save progress after check for cancellation
+            if n == 1 or n % 10 == 0:
+                try:
+                    jobs_service.save_job_result_by_name(self.result_file, result)
+                except Exception:
+                    logger.exception(f"Job {self.job_id}: Failed to save progress")
 
-    return result
+            template_info = {
+                "id": template.id,
+                "title": template.title,
+                "main_file": template.main_file,
+                "timestamp": datetime.now().isoformat(),
+            }
+
+            # Skip if template doesn't have a main_file
+            if not template.main_file:
+                self._log_skipped_no_main_file(template_info)
+                continue
+
+            fix_result = {}
+            try:
+                # Process without task_id and db_store since we're tracking in the job
+                fix_result = repair_nested_svg_tags(
+                    filename=template.main_file,
+                    user=self.user,
+                    cancel_event=self.cancel_event,
+                )
+
+            except Exception as e:
+                self._log_failure(template_info, f"Exception: {str(e)}", type(e).__name__)
+                logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
+                continue
+
+            if fix_result.get("cancelled"):
+                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
+                result["status"] = "cancelled"
+                result["cancelled_at"] = datetime.now().isoformat()
+                break
+
+            if fix_result["success"]:
+                self._log_success(template_info, fix_result)
+                logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
+
+            elif fix_result.get("no_nested_tags", False):
+                self._log_skipped_no_nested_tags(template_info, fix_result)
+                logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
+
+            else:
+                self._log_failed_fix(template_info, fix_result)
+                logger.warning(
+                    f"Job {self.job_id}: Failed to process {template.main_file}: "
+                    f"{fix_result.get('message')}"
+                )
+
+        # Update summary skipped count
+        result["summary"]["skipped"] = len(result["templates_skipped"])
+
+        logger.info(
+            f"Job {self.job_id} completed: "
+            f"{result['summary']['success']} successful, "
+            f"{result['summary']['failed']} failed, "
+            f"{result['summary']['skipped']} skipped"
+        )
+
+        return result
 
 
 def fix_nested_main_files_for_templates(
-    job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Event | None = None
+    job_id: int,
+    user: Dict[str, Any] | None = None,
+    cancel_event: threading.Event | None = None,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
@@ -295,56 +268,18 @@ def fix_nested_main_files_for_templates(
        - Runs the fix_nested process (download, fix, upload)
        - Uses the user's OAuth credentials for file uploads
     3. Saves a detailed report to a JSON file
+
+    Args:
+        job_id: The job ID
+        user: User authentication data for OAuth uploads
+        cancel_event: Optional event to check for cancellation
     """
-    job_type = "fix_nested_main_files"
-
     logger.info(f"Starting job {job_id}: fix nested tags for template main files")
-
-    # Initialize result tracking early to avoid NameError in exception handler
-    result = {
-        "job_id": job_id,
-        "started_at": datetime.now().isoformat(),
-        "templates_processed": [],
-        "templates_success": [],
-        "templates_failed": [],
-        "templates_skipped": [],
-        "summary": {
-            "total": 0,
-            "success": 0,
-            "failed": 0,
-            "skipped": 0,
-            "no_main_file": 0,
-        },
-    }
-    result_file = generate_result_file_name(job_id, job_type)
-    try:
-        result = process_templates(job_id, user, result, result_file, cancel_event=cancel_event)
-
-    except Exception as e:
-        logger.exception(f"Job {job_id}: Fatal error during execution")
-
-        # Save error result
-        error_result = {
-            "job_id": job_id,
-            "started_at": result.get("started_at", datetime.now().isoformat()),
-            "completed_at": datetime.now().isoformat(),
-            "error": str(e),
-            "error_type": type(e).__name__,
-        }
-
-        try:
-            jobs_service.save_job_result_by_name(result_file, error_result)
-            jobs_service.update_job_status(job_id, "failed", result_file, job_type="fix_nested_main_files")
-        except LookupError:
-            logger.warning(f"Job {job_id}: Could not update status to failed, job record might have been deleted.")
-        except Exception:
-            logger.exception(f"Job {job_id}: Failed to save error result")
-            try:
-                jobs_service.update_job_status(job_id, "failed", job_type="fix_nested_main_files")
-            except LookupError:
-                pass
+    worker = FixNestedMainFilesWorker(job_id, user, cancel_event)
+    worker.run()
 
 
 __all__ = [
     "fix_nested_main_files_for_templates",
+    "FixNestedMainFilesWorker",
 ]
