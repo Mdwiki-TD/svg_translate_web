@@ -53,6 +53,8 @@ def add_other_versions(
             if not arg_found:
                 template.set_arg("other versions", f"{param_text}\n")
                 add_done = True
+                break
+            break
 
     if not add_done:
         return text

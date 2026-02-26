@@ -54,7 +54,7 @@ class CropMainFilesWorker(BaseJobWorker):
             self.result_file,
             self.user,
             cancel_event=self.cancel_event,
-            upload_files=False,
+            upload_files=settings.dynamic.get("upload_cropped_files", False),
         )
 
 
