@@ -158,7 +158,7 @@ def process_one(
 
 
 def limit_templates_by_settings(job_id, templates_with_files):
-    upload_cropped_files = int(settings.dynamic.get("upload_cropped_files", 0))
+    upload_cropped_files = int(settings.dynamic.get("crop_newest_upload_limit", 0))
     if upload_cropped_files > 0 and len(templates_with_files) > upload_cropped_files:
         logger.info(
             f"Job {job_id}: Upload cropped files limit - limiting crop from "
