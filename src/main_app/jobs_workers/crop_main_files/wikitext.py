@@ -103,8 +103,6 @@ def update_original_file_text(
 ) -> str:
     """
     Update the original file's wikitext to include the cropped file information.
-    # If the page already contains a {{Image extracted}} template, append the file to it
-
     """
     cropped_file_name = cropped_file_name.removeprefix("File:")
     other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"

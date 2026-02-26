@@ -1,7 +1,7 @@
 """Tests for the wikitext module."""
 
 from __future__ import annotations
-from src.main_app.jobs_workers.crop_main_files.wikitext import appendImageExtractedTemplate
+from src.main_app.jobs_workers.crop_main_files.wikitext import appendImageExtractedTemplate, update_original_file_text
 
 
 class TestAddOtherVersions:
@@ -60,7 +60,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
 
 [[Category:Essar Steel Algoma]]"""
 
-        result = appendImageExtractedTemplate('My new file.jpg', oldText)
+        result = update_original_file_text('My new file.jpg', oldText)
         assert result == newText
 
     def testItAppendsToExistingImageExtractedTemplate(self):
