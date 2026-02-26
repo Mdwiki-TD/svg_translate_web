@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import json
+import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
@@ -27,6 +28,10 @@ class SettingsRoutes:
             key = request.form.get("key", "").strip()
             title = request.form.get("title", "").strip()
             value_type = request.form.get("value_type", "boolean").strip()
+
+            if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
+                flash("Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.", "danger")
+                return redirect(url_for("admin.settings_view"))
 
             if value_type == "boolean":
                 value = False

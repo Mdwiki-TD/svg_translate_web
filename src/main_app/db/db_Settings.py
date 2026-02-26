@@ -59,12 +59,15 @@ class SettingsDB:
     def create_setting(self, key: str, title: str, value_type: str, value: Any) -> bool:
         """Create a new setting."""
         str_val = self._serialize_value(value, value_type)
+        if self.get_by_key(key) is not None:
+            return False
         try:
-            self.db.execute_query_safe(
-                "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+            affected_rows = self.db.execute_query_safe(
+                # "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
                 (key, title, value_type, str_val)
             )
-            return True
+            return affected_rows > 0
         except Exception as e:
             logger.error(f"Failed to create setting '{key}': {e}")
             return False
@@ -119,7 +122,10 @@ class SettingsDB:
         if value_type == "boolean":
             return "true" if value else "false"
         elif value_type == "integer":
-            return str(int(value))
+            try:
+                return str(int(value))
+            except (ValueError, TypeError):
+                return "0"
         elif value_type == "json":
             return json.dumps(value, ensure_ascii=False)
         return str(value)
