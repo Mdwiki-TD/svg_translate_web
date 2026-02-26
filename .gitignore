@@ -19,3 +19,4 @@ docs/plans/*.md
 !docs/plans/crop_main_files_job_plan.md
 !docs/plans/optimize_templates_page_plan.md
 .claude/settings.json
+/.claude/mwclient
