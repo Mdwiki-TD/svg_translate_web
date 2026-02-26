@@ -19,17 +19,20 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     # Mock template_service
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.template_service.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.crop_main_files.process.template_service.list_templates",
+        mock_list_templates,
     )
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.update_job_status",
+        mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.save_job_result_by_name",
+        mock_save_job_result,
     )
 
     # Mock settings
@@ -38,11 +41,17 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_settings.oauth = MagicMock()
     mock_settings.oauth.user_agent = "TestBot/1.0"
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
-    monkeypatch.setattr("src.main_app.jobs_workers.crop_main_files.process.settings", mock_settings)
+    mock_settings.dynamic = {}  # Empty dict for dynamic settings
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.crop_main_files.process.settings", mock_settings
+    )
 
     # Mock create_commons_session
     mock_create_session = MagicMock(return_value=Mock())
-    monkeypatch.setattr("src.main_app.jobs_workers.crop_main_files.process.create_commons_session", mock_create_session)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.crop_main_files.process.create_commons_session",
+        mock_create_session,
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -70,7 +79,9 @@ def test_upload_one_success(mock_services):
         }
     }
 
-    with patch("src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+    ) as mock_upload:
         mock_upload.return_value = {"success": True}
 
         process.upload_one(job_id, file_info, user, result)
@@ -97,8 +108,13 @@ def test_upload_one_failure(mock_services):
         }
     }
 
-    with patch("src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file") as mock_upload:
-        mock_upload.return_value = {"success": False, "error": "Upload failed: Network error"}
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+    ) as mock_upload:
+        mock_upload.return_value = {
+            "success": False,
+            "error": "Upload failed: Network error",
+        }
 
         process.upload_one(job_id, file_info, user, result)
 
@@ -126,7 +142,9 @@ def test_upload_one_skips_if_no_path():
         }
     }
 
-    with patch("src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+    ) as mock_upload:
         process.upload_one(job_id, file_info, user, result)
 
     # Upload should not be called if no path
@@ -154,16 +172,23 @@ def test_process_one_success(mock_services, tmp_path):
     session = Mock()
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
+        file_info = process.process_one(
+            job_id, template, result, original_dir, cropped_dir, session
+        )
 
     assert file_info["status"] != "failed"
     assert file_info["template_id"] == 1
@@ -194,10 +219,14 @@ def test_process_one_download_failure(mock_services, tmp_path):
     cropped_dir = tmp_path / "cropped"
     session = Mock()
 
-    with patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download:
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+    ) as mock_download:
         mock_download.return_value = {"success": False, "error": "404 Not Found"}
 
-        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
+        file_info = process.process_one(
+            job_id, template, result, original_dir, cropped_dir, session
+        )
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "download_failed"
@@ -226,16 +255,23 @@ def test_process_one_crop_failure(mock_services, tmp_path):
     session = Mock()
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": False, "error": "No footer found"}
         mock_generate.return_value = "File:test (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
+        file_info = process.process_one(
+            job_id, template, result, original_dir, cropped_dir, session
+        )
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "crop_failed"
@@ -264,10 +300,14 @@ def test_process_one_exception_handling(mock_services, tmp_path):
     cropped_dir = tmp_path / "cropped"
     session = Mock()
 
-    with patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download:
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+    ) as mock_download:
         mock_download.side_effect = RuntimeError("Unexpected error")
 
-        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
+        file_info = process.process_one(
+            job_id, template, result, original_dir, cropped_dir, session
+        )
 
     assert file_info["status"] == "failed"
     assert file_info["reason"] == "exception"
@@ -301,7 +341,9 @@ def test_process_crops_with_no_templates(mock_services):
 def test_process_crops_with_templates_no_user(mock_services, tmp_path):
     """Test processing templates without user authentication."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None),
+        TemplateRecord(
+            id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None
+        ),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -318,11 +360,16 @@ def test_process_crops_with_templates_no_user(mock_services, tmp_path):
     }
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -339,7 +386,9 @@ def test_process_crops_with_templates_no_user(mock_services, tmp_path):
 def test_process_crops_with_user_and_upload(mock_services, tmp_path):
     """Test processing templates with user authentication and upload enabled."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None),
+        TemplateRecord(
+            id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None
+        ),
     ]
     mock_services["list_templates"].return_value = templates
     user = {"username": "testuser"}
@@ -357,12 +406,19 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
     }
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
-        patch("src.main_app.jobs_workers.crop_main_files.process.upload_one") as mock_upload_one,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.upload_one"
+        ) as mock_upload_one,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -373,7 +429,9 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
 
         mock_upload_one.side_effect = upload_one_impl
 
-        returned_result = process.process_crops(1, result, "test_result.json", user, upload_files=True)
+        returned_result = process.process_crops(
+            1, result, "test_result.json", user, upload_files=True
+        )
 
     assert returned_result["summary"]["total"] == 1
     assert returned_result["summary"]["uploaded"] == 0
@@ -384,7 +442,12 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
 def test_process_crops_respects_dev_limit(mock_services, tmp_path):
     """Test that development limit is respected."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", last_world_file=f"File:test{i}.svg", main_file=None)
+        TemplateRecord(
+            id=i,
+            title=f"Template:Test{i}",
+            last_world_file=f"File:test{i}.svg",
+            main_file=None,
+        )
         for i in range(1, 21)
     ]
     mock_services["list_templates"].return_value = templates
@@ -403,11 +466,16 @@ def test_process_crops_respects_dev_limit(mock_services, tmp_path):
     }
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -421,7 +489,12 @@ def test_process_crops_respects_dev_limit(mock_services, tmp_path):
 def test_process_crops_respects_cancellation(mock_services):
     """Test that processing respects cancellation event."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", last_world_file=f"File:test{i}.svg", main_file=None)
+        TemplateRecord(
+            id=i,
+            title=f"Template:Test{i}",
+            last_world_file=f"File:test{i}.svg",
+            main_file=None,
+        )
         for i in range(1, 21)
     ]
     mock_services["list_templates"].return_value = templates
@@ -441,7 +514,9 @@ def test_process_crops_respects_cancellation(mock_services):
         "files_processed": [],
     }
 
-    returned_result = process.process_crops(1, result, "test_result.json", None, cancel_event=cancel_event)
+    returned_result = process.process_crops(
+        1, result, "test_result.json", None, cancel_event=cancel_event
+    )
 
     assert returned_result["status"] == "cancelled"
     assert "cancelled_at" in returned_result
@@ -450,7 +525,12 @@ def test_process_crops_respects_cancellation(mock_services):
 def test_process_crops_saves_progress_periodically(mock_services, tmp_path):
     """Test that progress is saved periodically during processing."""
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", last_world_file=f"File:test{i}.svg", main_file=None)
+        TemplateRecord(
+            id=i,
+            title=f"Template:Test{i}",
+            last_world_file=f"File:test{i}.svg",
+            main_file=None,
+        )
         for i in range(1, 15)
     ]
     mock_services["list_templates"].return_value = templates
@@ -468,11 +548,16 @@ def test_process_crops_saves_progress_periodically(mock_services, tmp_path):
     }
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -508,9 +593,18 @@ def test_process_crops_handles_job_not_found(mock_services):
 def test_process_crops_filters_templates_without_main_file(mock_services):
     """Test that templates without main_file are filtered out."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", last_world_file="File:test1.svg", main_file=None),
-        TemplateRecord(id=2, title="Template:Test2", last_world_file=None, main_file=None),
-        TemplateRecord(id=3, title="Template:Test3", last_world_file="", main_file=None),
+        TemplateRecord(
+            id=1,
+            title="Template:Test1",
+            last_world_file="File:test1.svg",
+            main_file=None,
+        ),
+        TemplateRecord(
+            id=2, title="Template:Test2", last_world_file=None, main_file=None
+        ),
+        TemplateRecord(
+            id=3, title="Template:Test3", last_world_file="", main_file=None
+        ),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -527,11 +621,16 @@ def test_process_crops_filters_templates_without_main_file(mock_services):
     }
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": Path("/tmp/test.svg")}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -545,9 +644,24 @@ def test_process_crops_filters_templates_without_main_file(mock_services):
 def test_process_crops_mixed_success_and_failure(mock_services, tmp_path):
     """Test processing with mixed success and failure results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", last_world_file="File:test1.svg", main_file=None),
-        TemplateRecord(id=2, title="Template:Test2", last_world_file="File:test2.svg", main_file=None),
-        TemplateRecord(id=3, title="Template:Test3", last_world_file="File:test3.svg", main_file=None),
+        TemplateRecord(
+            id=1,
+            title="Template:Test1",
+            last_world_file="File:test1.svg",
+            main_file=None,
+        ),
+        TemplateRecord(
+            id=2,
+            title="Template:Test2",
+            last_world_file="File:test2.svg",
+            main_file=None,
+        ),
+        TemplateRecord(
+            id=3,
+            title="Template:Test3",
+            last_world_file="File:test3.svg",
+            main_file=None,
+        ),
     ]
     mock_services["list_templates"].return_value = templates
 
@@ -569,11 +683,16 @@ def test_process_crops_mixed_success_and_failure(mock_services, tmp_path):
         return {"success": True, "path": tmp_path / filename}
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.side_effect = download_side_effect
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
@@ -609,16 +728,23 @@ def test_process_one_creates_output_path_with_cropped_suffix(mock_services, tmp_
     downloaded_path = tmp_path / "example.svg"
 
     with (
-        patch("src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping") as mock_download,
-        patch("src.main_app.jobs_workers.crop_main_files.process.crop_svg_file") as mock_crop,
-        patch("src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename") as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
     ):
-
         mock_download.return_value = {"success": True, "path": downloaded_path}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:example (cropped).svg"
 
-        file_info = process.process_one(job_id, template, result, original_dir, cropped_dir, session)
+        file_info = process.process_one(
+            job_id, template, result, original_dir, cropped_dir, session
+        )
 
         # Verify crop was called with correct output path
         crop_call_args = mock_crop.call_args[0]

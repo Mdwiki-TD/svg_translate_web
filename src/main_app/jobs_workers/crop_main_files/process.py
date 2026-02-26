@@ -51,6 +51,12 @@ def upload_one(
         site,
         cropped_file_wikitext,
     )
+    if upload_result.get("skipped"):
+        file_info["status"] = "skipped"
+        file_info["reason"] = "file_exists"
+        result["summary"]["skipped"] += 1
+        logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
+        return
 
     if not upload_result["success"]:
         file_info["status"] = "failed"
