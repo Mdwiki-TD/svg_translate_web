@@ -62,7 +62,7 @@ class SettingsRoutes:
 
                 if v_type == "boolean":
                     value = request.form.get(form_key) == "on"
-                    if not db_settings.update_setting(key, value):
+                    if not db_settings.update_setting(key, value, v_type):
                         failed_keys.append(key)
                 else:
                     # check if it is included in the dictionary (distinguish unchecked checkboxes vs missing files)
@@ -81,7 +81,7 @@ class SettingsRoutes:
                                 continue
                         else:
                             value = raw_val
-                        if not db_settings.update_setting(key, value):
+                        if not db_settings.update_setting(key, value, v_type):
                             failed_keys.append(key)
 
             # Invalidate runtime cache only if all updates succeeded

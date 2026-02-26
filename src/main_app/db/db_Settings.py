@@ -69,14 +69,21 @@ class SettingsDB:
             logger.error(f"Failed to create setting '{key}': {e}")
             return False
 
-    def update_setting(self, key: str, value: Any) -> bool:
-        """Update an existing setting."""
-        # First retrieve the value_type
-        rows = self.db.fetch_query_safe("SELECT `value_type` FROM `settings` WHERE `key` = %s", (key,))
-        if not rows:
-            return False
+    def update_setting(self, key: str, value: Any, value_type: str | None = None) -> bool:
+        """Update an existing setting.
 
-        value_type = rows[0]["value_type"]
+        Args:
+            key: The setting key to update.
+            value: The new value.
+            value_type: Optional value type. If provided, skips the SELECT query.
+        """
+        # If value_type not provided, retrieve it from the database
+        if value_type is None:
+            rows = self.db.fetch_query_safe("SELECT `value_type` FROM `settings` WHERE `key` = %s", (key,))
+            if not rows:
+                return False
+            value_type = rows[0]["value_type"]
+
         str_val = self._serialize_value(value, value_type)
 
         try:
