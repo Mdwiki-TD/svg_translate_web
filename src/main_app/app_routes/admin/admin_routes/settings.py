@@ -53,6 +53,7 @@ class SettingsRoutes:
         def settings_update():
             db_settings = SettingsDB(settings.database_data)
             all_settings = db_settings.get_raw_all()
+            failed_keys: list[str] = []
 
             for s in all_settings:
                 key = s["key"]
@@ -61,7 +62,8 @@ class SettingsRoutes:
 
                 if v_type == "boolean":
                     value = request.form.get(form_key) == "on"
-                    db_settings.update_setting(key, value)
+                    if not db_settings.update_setting(key, value):
+                        failed_keys.append(key)
                 else:
                     # check if it is included in the dictionary (distinguish unchecked checkboxes vs missing files)
                     if form_key in request.form:
@@ -75,12 +77,17 @@ class SettingsRoutes:
                             try:
                                 value = json.loads(raw_val)
                             except Exception:
-                                continue  # Invalid JSON string
+                                failed_keys.append(key)
+                                continue
                         else:
                             value = raw_val
-                        db_settings.update_setting(key, value)
+                        if not db_settings.update_setting(key, value):
+                            failed_keys.append(key)
 
-            # Invalidate runtime cache
-            settings.dynamic.invalidate()
-            flash("Settings updated successfully.", "success")
+            # Invalidate runtime cache only if all updates succeeded
+            if not failed_keys:
+                settings.dynamic.invalidate()
+                flash("Settings updated successfully.", "success")
+            else:
+                flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
             return redirect(url_for("admin.settings_view"))
