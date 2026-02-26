@@ -14,7 +14,7 @@ from typing import Any, Dict
 import requests
 from flask import send_file
 
-from .. import template_service
+from ..db.db_Templates import TemplatesDB
 from ..config import settings
 from ..utils.commons_client import create_commons_session, download_commons_file_core
 from .base_worker import BaseJobWorker
@@ -129,7 +129,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
         result = self.result
 
         # Get all templates with main files
-        templates = template_service.list_templates()
+        templates_db = TemplatesDB(settings.database_data, use_bg_engine=True)
+        templates = templates_db.list()
         templates_with_files = [t for t in templates if t.main_file]
 
         # Apply development mode limit from settings

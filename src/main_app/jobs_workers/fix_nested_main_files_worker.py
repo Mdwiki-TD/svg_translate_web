@@ -11,7 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from .. import template_service
+from ..config import settings
+from ..db.db_Templates import TemplatesDB
 from ..app_routes.fix_nested.fix_utils import (
     detect_nested_tags,
     download_svg_file,
@@ -175,7 +176,8 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         result = self.result
 
         # Get all templates
-        templates = template_service.list_templates()
+        templates_db = TemplatesDB(settings.database_data, use_bg_engine=True)
+        templates = templates_db.list()
         result["summary"]["total"] = len(templates)
 
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import logging
 from datetime import datetime
 from typing import Tuple
@@ -25,6 +26,7 @@ from .app_routes import (
 from .config import settings
 from .cookies import CookieHeaderClient
 from .db import close_cached_db
+from .db.engine_factory import dispose_all
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 
@@ -120,6 +122,9 @@ def create_app() -> Flask:
             close_task_store()
         except Exception:
             logger.debug("Failed to close task store during teardown", exc_info=True)
+
+    # Register engine pool disposal on process shutdown
+    atexit.register(dispose_all)
 
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:

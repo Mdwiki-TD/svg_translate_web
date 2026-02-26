@@ -19,6 +19,61 @@ class MaxUserConnectionsError(Exception):
     pass
 
 
+def _convert_params(params: Any) -> dict[str, Any] | list[dict[str, Any]] | None:
+    """
+    Convert PyMySQL-style parameters to SQLAlchemy 2.0 format.
+    
+    SQLAlchemy 2.0 with text() expects:
+    - dict for single-row named parameters: {"param1": value1, "param2": value2}
+    - list of dicts for executemany: [{"param1": val1}, {"param1": val2}]
+    
+    This helper converts tuple/list params to dict format with auto-generated keys.
+    """
+    if params is None:
+        return None
+    
+    # If it's already a dict, return as-is
+    if isinstance(params, dict):
+        return params
+    
+    # If it's a tuple or list, convert to dict with positional keys
+    if isinstance(params, (tuple, list)):
+        return {f"p{i}": v for i, v in enumerate(params)}
+    
+    # Single value - wrap in dict
+    return {"p0": params}
+
+
+def _convert_sql(sql: str, params: Any) -> tuple[str, dict[str, Any] | None]:
+    """
+    Convert PyMySQL-style SQL (%s placeholders) to SQLAlchemy named parameters.
+    
+    Returns:
+        Tuple of (converted_sql, converted_params)
+    """
+    converted_params = _convert_params(params)
+    
+    if converted_params is None:
+        return sql, None
+    
+    # Replace %s with :p0, :p1, etc.
+    import re
+    param_names = list(converted_params.keys())
+    param_index = [0]
+    
+    def replace_placeholder(match):
+        idx = param_index[0]
+        if idx < len(param_names):
+            param_index[0] += 1
+            return f":{param_names[idx]}"
+        return match.group(0)  # Should not happen
+    
+    # Replace %s placeholders with :pN named parameters
+    converted_sql = re.sub(r"%s", replace_placeholder, sql)
+    
+    return converted_sql, converted_params
+
+
 class Database:
     """Thin wrapper around SQLAlchemy engine with convenience helpers.
     
@@ -86,6 +141,20 @@ class Database:
     # Retry utilities
     # ------------------------------------------------------------------
     def _exception_code(self, exc: BaseException) -> int | None:
+        """Extract MySQL error code from exception.
+        
+        Handles both raw PyMySQL exceptions and SQLAlchemy-wrapped exceptions.
+        """
+        # Handle SQLAlchemy wrapped exceptions
+        if hasattr(exc, "__cause__") and exc.__cause__ is not None:
+            inner = exc.__cause__
+            if isinstance(inner, (pymysql.err.OperationalError, pymysql.err.InterfaceError)):
+                try:
+                    return inner.args[0]
+                except (IndexError, TypeError):
+                    return None
+        
+        # Handle raw PyMySQL exceptions
         if isinstance(exc, (pymysql.err.OperationalError, pymysql.err.InterfaceError)):
             try:
                 code = exc.args[0]
@@ -158,7 +227,9 @@ class Database:
         """Execute a statement and return rows for SELECTs or rowcount for writes."""
 
         def _op(conn, sql, op_params):
-            result = conn.execute(text(sql), op_params or {})
+            # Convert PyMySQL-style %s to SQLAlchemy named parameters
+            conv_sql, conv_params = _convert_sql(sql, op_params)
+            result = conn.execute(text(conv_sql), conv_params or {})
             # Check if this is a SELECT-like query that returns rows
             if result.returns_rows:
                 rows = result.mappings().all()
@@ -183,7 +254,9 @@ class Database:
         """Execute a query and return all fetched rows as dictionaries."""
 
         def _op(conn, sql, op_params):
-            result = conn.execute(text(sql), op_params or {})
+            # Convert PyMySQL-style %s to SQLAlchemy named parameters
+            conv_sql, conv_params = _convert_sql(sql, op_params)
+            result = conn.execute(text(conv_sql), conv_params or {})
             rows = result.mappings().all()
             return [dict(row) for row in rows]
 
@@ -241,7 +314,15 @@ class Database:
         if not batch:
             return 0
         try:
-            result = conn.execute(text(sql_query), batch)
+            # Convert SQL and params for SQLAlchemy 2.0
+            # For executemany, convert list of tuples to list of dicts
+            conv_sql, first_params = _convert_sql(sql_query, batch[0] if batch else None)
+            # Convert all items in batch to dicts
+            if isinstance(batch[0], (tuple, list)):
+                param_dicts = [{f"p{i}": v for i, v in enumerate(item)} for item in batch]
+            else:
+                param_dicts = list(batch)
+            result = conn.execute(text(conv_sql), param_dicts)
             return result.rowcount
         except (pymysql.err.OperationalError, pymysql.err.InterfaceError):
             if len(batch) <= 1:

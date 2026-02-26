@@ -47,10 +47,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_generate_result_file_name,
     )
     
-    # Mock for download_main_files_worker which calls jobs_service directly
+    # Mock for download_main_files_worker which imports jobs_service locally
+    mock_jobs_service = MagicMock()
+    mock_jobs_service.save_job_result_by_name = mock_save_job_result
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.jobs_service.save_job_result_by_name",
-        mock_save_job_result,
+        "src.main_app.jobs_workers.jobs_service",
+        mock_jobs_service,
     )
 
     # Mock settings
