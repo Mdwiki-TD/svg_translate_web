@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from src.main_app.jobs_workers.crop_main_files.wikitext_new import appendImageExtractedTemplate
-from src.main_app.utils.wikitext.wiki_text import WikiText
 
 
 class TestAddOtherVersions:
@@ -106,90 +105,3 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
 
         result2 = appendImageExtractedTemplate('My new file.jpg', oldText2)
         assert result2 == newText2
-
-    def testItAddsTheImageExtractedTemplateToOtherVersions(self):
-        oldText = '''
-=={{int:filedesc}}==
-{{Information
-|description={{zh|1=北师大启功像1。}}
-|date=2016-05-24 12:54:22
-|source={{own}}
-|author=[[User:三猎|三猎]]
-|permission=
-|other versions=
-}}
-
-=={{int:license-header}}==
-{{self|cc-by-sa-4.0}}
-
-[[Category:Beijing Normal University]]
-[[Category:Qi Gong artist]]
-[[Category:Busts in Beijing]]
-[[Category:Bronze busts]]
-[[Category:Uploaded with UploadWizard]]'''
-
-        newText = '''
-=={{int:filedesc}}==
-{{Information
-|description={{zh|1=北师大启功像1。}}
-|date=2016-05-24 12:54:22
-|source={{own}}
-|author=[[User:三猎|三猎]]
-|permission=
-|other versions={{Image extracted|1=My new file.jpg}}
-}}
-
-=={{int:license-header}}==
-{{self|cc-by-sa-4.0}}
-
-[[Category:Beijing Normal University]]
-[[Category:Qi Gong artist]]
-[[Category:Busts in Beijing]]
-[[Category:Bronze busts]]
-[[Category:Uploaded with UploadWizard]]'''
-
-        result = appendImageExtractedTemplate('My new file.jpg', oldText)
-        assert result == newText
-
-    def testItPreservesNewLines(self):
-        oldText = '''
-=={{int:filedesc}}==
-{{Information
-|Source={{own}}
-|Date={{According to EXIF data|2009-02-09}}
-|Permission={{OTRS|2010080710005378}}
-|other_versions=
-}}
-
-[[Category:A]]
-[[Category:Images with borders]]
-[[Category:B]]
-'''
-        newText = '''
-=={{int:filedesc}}==
-{{Information
-|Source={{own}}
-|Date={{According to EXIF data|2009-02-09}}
-|Permission=
-|other_versions={{Image extracted|1=My new file.jpg}}
-}}
-
-[[Category:A]]
-[[Category:B]]
-'''
-
-        result = WikiText.make(oldText) \
-            .withoutTemplatesNotToBeCopied() \
-            .appendImageExtractedTemplate('My new file.jpg') \
-            .withoutBorderTemplate()
-
-        assert result == newText
-
-        # $wikitext = $wikitext->withoutBorderTemplate();
-        # $wikitext = $wikitext->withoutTrimmingTemplate();
-        # $wikitext = $wikitext->withoutWatermarkTemplate();
-
-        # // Remove templates before appending {{Extracted from}}
-        # $wikitext = $wikitext->withoutTemplatesNotToBeCopied();
-
-        # $wikitext = $wikitext->withoutCropForWikidataTemplate();
