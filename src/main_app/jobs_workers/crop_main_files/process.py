@@ -158,13 +158,6 @@ def process_one(
 
 
 def limit_templates_by_settings(job_id, templates_with_files):
-    dev_limit = settings.download.dev_limit
-    if dev_limit > 0 and len(templates_with_files) > dev_limit:
-        logger.info(
-            f"Job {job_id}: Development mode - limiting crop from " f"{len(templates_with_files)} to {dev_limit} files"
-        )
-        return templates_with_files[:dev_limit]
-
     upload_cropped_files = int(settings.dynamic.get("upload_cropped_files", 0))
     if upload_cropped_files > 0 and len(templates_with_files) > upload_cropped_files:
         logger.info(
@@ -172,6 +165,13 @@ def limit_templates_by_settings(job_id, templates_with_files):
             f"{len(templates_with_files)} to {upload_cropped_files} files"
         )
         return templates_with_files[:upload_cropped_files]
+
+    dev_limit = settings.download.dev_limit
+    if dev_limit > 0 and len(templates_with_files) > dev_limit:
+        logger.info(
+            f"Job {job_id}: Development mode - limiting crop from " f"{len(templates_with_files)} to {dev_limit} files"
+        )
+        return templates_with_files[:dev_limit]
 
     return templates_with_files
 
