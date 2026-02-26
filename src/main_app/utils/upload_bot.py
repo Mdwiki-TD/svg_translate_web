@@ -28,13 +28,16 @@ def upload_file(
     if file_name.lower().startswith("file:"):
         file_name = file_name[5:].lstrip()
 
+    page = site.Pages[f"File:{file_name}"]
     if not new_file:
         # Check if file exists
-        page = site.Pages[f"File:{file_name}"]
-
         if not page.exists:
             logger.error(f"Warning: File {file_name} not exists on Commons")
             return {"error": "File not found on Commons"}
+    else:
+        if page.exists:
+            logger.error(f"Warning: File {file_name} already exists on Commons")
+            return {"error": "File already exists on Commons"}
 
     file_path = Path(str(file_path))
 
