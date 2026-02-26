@@ -1,3 +1,4 @@
+from .batch_processor import BatchProcessor, process_files_with_pool
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
 from .db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
@@ -11,25 +12,33 @@ from .engine_factory import (
     check_connection_health,
     dispose_engines,
     get_background_engine,
+    get_connection,
     get_http_engine,
+    get_raw_connection,
     log_all_pool_status,
+    PoolMonitor,
 )
 from .svg_db import close_cached_db, fetch_query_safe, get_db, has_db_config
 
 __all__ = [
+    "BatchProcessor",
     "Database",
     "DatabaseSQLAlchemy",
     "MaxUserConnectionsError",
+    "PoolMonitor",
     "USE_SQLALCHEMY_POOLING",
-    "fetch_query_safe",
-    "get_db",
-    "has_db_config",
+    "check_connection_health",
     "close_cached_db",
     "dispose_engines",
-    "get_http_engine",
+    "fetch_query_safe",
     "get_background_engine",
-    "check_connection_health",
+    "get_connection",
+    "get_db",
+    "get_http_engine",
+    "get_raw_connection",
+    "has_db_config",
     "log_all_pool_status",
+    "process_files_with_pool",
     "TaskAlreadyExistsError",
     "CreateUpdateTask",
     "CoordinatorRecord",
