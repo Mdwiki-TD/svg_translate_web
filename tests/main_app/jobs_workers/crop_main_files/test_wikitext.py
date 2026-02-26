@@ -55,6 +55,7 @@ class TestAddOtherVersions:
         text_input = """{{Information
 |description=Test
 |author=Author
+|other_versions=
 }}"""
 
         result = add_other_versions("Other version info", text_input)
@@ -63,4 +64,4 @@ class TestAddOtherVersions:
         assert result.startswith("{{Information")
         assert result.endswith("}}")
         # Check that other versions is in the template
-        assert "|other versions=Other version info" in result
+        assert "|other_versions=Other version info" in result

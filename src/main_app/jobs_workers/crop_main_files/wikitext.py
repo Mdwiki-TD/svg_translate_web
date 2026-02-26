@@ -26,14 +26,24 @@ def add_other_versions(
         The modified wikitext with the other versions parameter added
     """
     parsed = wtp.parse(text)
-
+    args_names = [
+        "other versions",
+        "other_versions"
+    ]
     for template in parsed.templates:
-        if template.name.strip() == "Information":
-            template.set_arg("other versions", param_text)
-            return parsed.string
+        if template.name.strip().lower() == "information":
+            arg_found = False
+            for arg in template.arguments:
+                if arg.name.strip().lower() in args_names:
+                    new_value = arg.value.strip() + "\n" + param_text
+                    arg.value = new_value.strip()
+                    arg_found = True
+                    break
+            if not arg_found:
+                template.set_arg("other versions", param_text)
 
     # If no Information template found, return original text
-    return text
+    return parsed.string
 
 
 def create_cropped_file_text(
