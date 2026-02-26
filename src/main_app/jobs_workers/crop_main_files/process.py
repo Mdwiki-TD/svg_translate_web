@@ -18,7 +18,7 @@ from ...config import settings
 from ...utils.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
-from .api import get_file_text, update_file_text
+from ...utils.text_api import get_file_text, update_file_text
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
