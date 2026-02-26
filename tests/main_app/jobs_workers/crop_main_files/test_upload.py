@@ -31,7 +31,7 @@ def test_upload_cropped_file_success(tmp_path):
         file_name="test (cropped).svg",
         file_path=cropped_path,
         site=site,
-        summary="Cropped version of file",
+        summary="[[:File:test.svg]] cropped to remove the footer.",
         new_file=True,
         description=None,
     )
@@ -170,7 +170,7 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
 
     # Verify summary is correct
     call_args = mock_upload.call_args[1]
-    assert call_args["summary"] == "Cropped version of file"
+    assert call_args["summary"] == "[[:File:test.svg]] cropped to remove the footer."
 
 
 def test_upload_cropped_file_returns_filename_in_result():

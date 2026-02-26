@@ -35,6 +35,10 @@ def get_file_text(
 
     file_name = ensure_file_prefix(file_name)
 
+    if site is None:
+        logger.error("Site is None after validation check")
+        return ""
+
     try:
         page = site.pages[file_name]
         return page.text()
@@ -71,7 +75,16 @@ def update_file_text(
 
     original_file = ensure_file_prefix(original_file)
 
-    # TODO: Implement the logic to update the wikitext of the original file using mwclient.
+    summary = "Adding/updating {{Image extracted}}"
+
+    try:
+        page = site.pages[original_file]
+        page.edit(updated_file_text, summary=summary)
+        return {"success": True}
+    except Exception as exc:
+        error_msg = str(exc)
+        logger.exception(f"Failed to update wikitext for {original_file}", exc_info=exc)
+        return {"success": False, "error": error_msg}
 
 
 __all__ = [

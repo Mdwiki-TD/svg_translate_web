@@ -1,7 +1,7 @@
 """Tests for text_api module."""
 
 import logging
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -11,23 +11,31 @@ from src.main_app.utils.text_api import get_file_text, update_file_text
 class TestGetFileText:
     """Tests for get_file_text function."""
 
-    def test_valid_inputs_returns_empty_string(self):
-        """Test with valid inputs - currently returns empty string (TODO implementation)."""
+    def _create_mock_site(self, text_content=""):
+        """Helper to create a properly mocked mwclient.Site."""
         mock_site = MagicMock()
+        mock_page = MagicMock()
+        mock_page.text.return_value = text_content
+        mock_site.pages.__getitem__.return_value = mock_page
+        return mock_site
+
+    def test_valid_inputs_returns_text(self):
+        """Test with valid inputs returns the page text."""
+        mock_site = self._create_mock_site(text_content="Sample wikitext content")
         result = get_file_text("Example.svg", mock_site)
-        assert result == ""
+        assert result == "Sample wikitext content"
+        mock_site.pages.__getitem__.assert_called_once_with("File:Example.svg")
 
     def test_adds_file_prefix(self):
         """Test that File: prefix is added to filename."""
-        mock_site = MagicMock()
-        # Even though the function returns empty string currently,
-        # we verify it processes without error when prefix is missing
-        result = get_file_text("Example.svg", mock_site)
-        assert result == ""
+        mock_site = self._create_mock_site(text_content="content")
+        get_file_text("Example.svg", mock_site)
+        # Verify the filename was prefixed before accessing pages
+        mock_site.pages.__getitem__.assert_called_once_with("File:Example.svg")
 
     def test_missing_file_name_returns_empty_string(self, caplog):
         """Test that missing file_name returns empty string and logs error."""
-        mock_site = MagicMock()
+        mock_site = self._create_mock_site()
         with caplog.at_level(logging.ERROR):
             result = get_file_text(None, mock_site)
 
@@ -46,7 +54,7 @@ class TestGetFileText:
 
     def test_empty_file_name_returns_empty_string(self, caplog):
         """Test that empty file_name returns empty string."""
-        mock_site = MagicMock()
+        mock_site = self._create_mock_site()
         with caplog.at_level(logging.ERROR):
             result = get_file_text("", mock_site)
 
@@ -63,10 +71,36 @@ class TestGetFileText:
         assert "site" in caplog.text
 
     def test_with_prefixed_filename(self):
-        """Test with already prefixed filename."""
-        mock_site = MagicMock()
+        """Test with already prefixed filename - prefix is not doubled."""
+        mock_site = self._create_mock_site(text_content="prefixed content")
         result = get_file_text("File:Example.svg", mock_site)
+        assert result == "prefixed content"
+        # ensure_file_prefix doesn't double the prefix
+        mock_site.pages.__getitem__.assert_called_once_with("File:Example.svg")
+
+    def test_site_exception_returns_empty_string(self, caplog):
+        """Test that exception from site.pages raises proper error and returns empty string."""
+        mock_site = MagicMock()
+        mock_site.pages.__getitem__.side_effect = Exception("Connection error")
+
+        with caplog.at_level(logging.ERROR):
+            result = get_file_text("Example.svg", mock_site)
+
         assert result == ""
+        assert "Failed to retrieve wikitext" in caplog.text
+
+    def test_text_method_exception_returns_empty_string(self, caplog):
+        """Test that exception from page.text() returns empty string."""
+        mock_site = MagicMock()
+        mock_page = MagicMock()
+        mock_page.text.side_effect = Exception("Page not found")
+        mock_site.pages.__getitem__.return_value = mock_page
+
+        with caplog.at_level(logging.ERROR):
+            result = get_file_text("Example.svg", mock_site)
+
+        assert result == ""
+        assert "Failed to retrieve wikitext" in caplog.text
 
 
 class TestUpdateFileText:
