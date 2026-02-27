@@ -16,12 +16,12 @@ from src.main_app.template_service import TemplateRecord
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by process module."""
 
-    # Mock get_templates_db_bg
+    # Mock get_templates_db_bg (imported in process module)
     mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
     mock_templates_db_instance.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.template_service.get_templates_db_bg",
+        "src.main_app.jobs_workers.crop_main_files.process.get_templates_db_bg",
         MagicMock(return_value=mock_templates_db_instance),
     )
 
