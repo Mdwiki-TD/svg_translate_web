@@ -9,8 +9,8 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ..db.db_Templates import TemplatesDB
 from ..config import settings
+from ..db.db_Templates import TemplatesDB
 from ..tasks.texts.text_bot import get_wikitext
 from ..tasks.titles.utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
@@ -118,10 +118,9 @@ class CollectMainFilesWorker(BaseJobWorker):
                 )
 
                 templates_db.update_if_not_none(
-                    template.id,
-                    template.title,
-                    main_file,
-                    last_world_file,
+                    id=template.id,
+                    main_file=main_file,
+                    last_world_file=last_world_file,
                 )
 
                 template_info["status"] = "updated"

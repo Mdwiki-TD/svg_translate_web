@@ -14,8 +14,8 @@ from typing import Any, Dict
 import requests
 from flask import send_file
 
-from ..db.db_Templates import TemplatesDB
 from ..config import settings
+from ..db.db_Templates import TemplatesDB
 from ..utils.commons_client import create_commons_session, download_commons_file_core
 from .base_worker import BaseJobWorker
 

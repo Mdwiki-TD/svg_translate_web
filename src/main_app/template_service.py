@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import List
 
 from .config import settings
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 _TEMPLATE_STORE: TemplatesDB | None = None
 _TEMPLATE_STORE_BG: TemplatesDB | None = None
+_TEMPLATE_STORE_BG_LOCK = threading.Lock()
 
 
 def get_templates_db() -> TemplatesDB:
@@ -59,16 +61,19 @@ def get_templates_db_bg() -> TemplatesDB:
     global _TEMPLATE_STORE_BG
 
     if _TEMPLATE_STORE_BG is None:
-        if not has_db_config():
-            raise RuntimeError(
-                "Template administration requires database configuration; no fallback store is available."
-            )
+        with _TEMPLATE_STORE_BG_LOCK:
+            # Double-checked locking pattern
+            if _TEMPLATE_STORE_BG is None:
+                if not has_db_config():
+                    raise RuntimeError(
+                        "Template administration requires database configuration; no fallback store is available."
+                    )
 
-        try:
-            _TEMPLATE_STORE_BG = TemplatesDB(settings.database_data, use_bg_engine=True)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store for background workers")
-            raise RuntimeError("Unable to initialize template store for background workers") from exc
+                try:
+                    _TEMPLATE_STORE_BG = TemplatesDB(settings.database_data, use_bg_engine=True)
+                except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+                    logger.exception("Failed to initialize MySQL template store for background workers")
+                    raise RuntimeError("Unable to initialize template store for background workers") from exc
 
     return _TEMPLATE_STORE_BG
 

@@ -10,8 +10,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
 from ..config import settings
-from ..db.db_Jobs import JobsDB
-from .jobs_service import save_job_result_by_name
+from .jobs_service import get_jobs_db_bg, save_job_result_by_name
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,7 @@ def job_exception_handler(
 
                 try:
                     save_job_result_by_name(result_file, error_result)
-                    jobs_db = JobsDB(settings.database_data, use_bg_engine=True)
+                    jobs_db = get_jobs_db_bg()
                     jobs_db.update_status(
                         job_id, "failed", result_file, job_type=job_type
                     )
@@ -70,7 +69,7 @@ def job_exception_handler(
                 except Exception:
                     logger.exception(f"Job {job_id}: Failed to save error result")
                     try:
-                        jobs_db = JobsDB(settings.database_data, use_bg_engine=True)
+                        jobs_db = get_jobs_db_bg()
                         jobs_db.update_status(
                             job_id, "failed", job_type=job_type
                         )
@@ -156,7 +155,7 @@ class BaseJobWorker(ABC):
             True to continue with processing, False to abort
         """
         try:
-            jobs_db = JobsDB(settings.database_data, use_bg_engine=True)
+            jobs_db = get_jobs_db_bg()
             jobs_db.update_status(
                 self.job_id, "running", self.result_file, job_type=self.job_type
             )
@@ -182,7 +181,7 @@ class BaseJobWorker(ABC):
 
         # Update final status
         try:
-            jobs_db = JobsDB(settings.database_data, use_bg_engine=True)
+            jobs_db = get_jobs_db_bg()
             jobs_db.update_status(
                 self.job_id, final_status, self.result_file, job_type=self.job_type
             )

@@ -6,6 +6,7 @@ import functools
 import json
 import logging
 import os
+import threading
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 _JOBS_STORE: JobsDB | None = None
 _JOBS_STORE_BG: JobsDB | None = None
+_JOBS_STORE_BG_LOCK = threading.Lock()
 
 
 def get_jobs_db() -> JobsDB:
@@ -62,14 +64,17 @@ def get_jobs_db_bg() -> JobsDB:
     global _JOBS_STORE_BG
 
     if _JOBS_STORE_BG is None:
-        if not has_db_config():
-            raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
+        with _JOBS_STORE_BG_LOCK:
+            # Double-checked locking pattern
+            if _JOBS_STORE_BG is None:
+                if not has_db_config():
+                    raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
 
-        try:
-            _JOBS_STORE_BG = JobsDB(settings.database_data, use_bg_engine=True)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL jobs store for background workers")
-            raise RuntimeError("Unable to initialize jobs store for background workers") from exc
+                try:
+                    _JOBS_STORE_BG = JobsDB(settings.database_data, use_bg_engine=True)
+                except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+                    logger.exception("Failed to initialize MySQL jobs store for background workers")
+                    raise RuntimeError("Unable to initialize jobs store for background workers") from exc
 
     return _JOBS_STORE_BG
 
