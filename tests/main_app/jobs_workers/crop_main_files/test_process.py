@@ -16,22 +16,22 @@ from src.main_app.template_service import TemplateRecord
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by process module."""
 
-    # Mock TemplatesDB
-    mock_templates_db = MagicMock()
+    # Mock get_templates_db_bg
+    mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
-    mock_templates_db.return_value.list = mock_list_templates
+    mock_templates_db_instance.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.TemplatesDB",
-        mock_templates_db,
+        "src.main_app.template_service.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_instance),
     )
 
-    # Mock JobsDB for job status updates
-    mock_jobs_db = MagicMock()
+    # Mock get_jobs_db_bg for job status updates
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
-    mock_jobs_db.return_value.update_status = mock_update_job_status
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.JobsDB",
-        mock_jobs_db,
+        "src.main_app.jobs_workers.jobs_service.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
     )
 
     # Mock save_job_result_by_name via jobs_service

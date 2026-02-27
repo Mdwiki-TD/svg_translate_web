@@ -26,17 +26,18 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.download_main_files_worker.TemplatesDB", mock_templates_db
     )
 
-    # Mock JobsDB and functions imported in base_worker
-    mock_jobs_db = MagicMock()
+    # Mock get_jobs_db_bg and functions imported in base_worker
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
-    mock_jobs_db.return_value.update_status = mock_update_job_status
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsDB", mock_jobs_db
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
     )
-    
-    mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
+
+    mock_save_job_result = MagicMock(return_value="job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    
+
     # Mock for base_worker
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
@@ -46,7 +47,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
-    
+
     # Mock for download_main_files_worker which imports jobs_service locally
     mock_jobs_service = MagicMock()
     mock_jobs_service.save_job_result_by_name = mock_save_job_result

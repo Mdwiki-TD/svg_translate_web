@@ -33,13 +33,14 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.fix_nested_main_files_worker.TemplatesDB", mock_templates_db_fix
     )
 
-    # Mock JobsDB and functions imported in base_worker
-    mock_jobs_db = MagicMock()
-    mock_jobs_db.return_value.update_status = mock_update_job_status
+    # Mock get_jobs_db_bg and functions imported in base_worker
+    mock_jobs_db_instance = MagicMock()
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsDB", mock_jobs_db
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
     )
-    
+
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
     )
@@ -79,7 +80,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs", lambda x: None
     )
-    
+
     # Re-mock TemplatesDB with update_if_not_none that sets cancel_event
     mock_templates_db = MagicMock()
     mock_templates_db.return_value.list = mock_common_services["list_templates"]

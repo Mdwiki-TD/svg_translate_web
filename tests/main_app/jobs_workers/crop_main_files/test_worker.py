@@ -21,14 +21,14 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mock_save_job_result,
     )
-    
-    # Mock JobsDB used in base_worker for status updates
-    mock_jobs_db = MagicMock()
+
+    # Mock get_jobs_db_bg used in base_worker for status updates
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
-    mock_jobs_db.return_value.update_status = mock_update_job_status
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsDB",
-        mock_jobs_db,
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
     )
 
     # Mock generate_result_file_name (imported from utils in base_worker)

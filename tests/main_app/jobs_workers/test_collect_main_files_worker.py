@@ -24,14 +24,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.collect_main_files_worker.TemplatesDB", mock_templates_db
     )
 
-    # Mock JobsDB and save_job_result_by_name (imported in base_worker)
-    mock_jobs_db = MagicMock()
+    # Mock get_jobs_db_bg and save_job_result_by_name (imported in base_worker)
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
-    mock_jobs_db.return_value.update_status = mock_update_job_status
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsDB", mock_jobs_db
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
     )
-    
+
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
@@ -109,8 +110,10 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
 
-    # Should update template
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg", None)
+    # Should update template (using keyword arguments)
+    mock_services["update_template"].assert_called_once_with(
+        id=1, main_file="test.svg", last_world_file=None
+    )
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
