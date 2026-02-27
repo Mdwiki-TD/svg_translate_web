@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from ..config import settings
-from ..db.db_Templates import TemplatesDB
+from ..template_service import get_templates_db_bg
 from ..app_routes.fix_nested.fix_utils import (
     detect_nested_tags,
     download_svg_file,
@@ -176,7 +176,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         result = self.result
 
         # Get all templates
-        templates_db = TemplatesDB(settings.database_data, use_bg_engine=True)
+        templates_db = get_templates_db_bg()
         templates = templates_db.list()
         result["summary"]["total"] = len(templates)
 
