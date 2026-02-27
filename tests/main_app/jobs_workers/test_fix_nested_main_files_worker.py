@@ -52,12 +52,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by fix_nested_main_files_for_templates."""
-    # Mock TemplatesDB
-    mock_templates_db = MagicMock()
+    # Mock get_templates_db_bg
+    mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
-    mock_templates_db.return_value.list = mock_list_templates
+    mock_templates_db_instance.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.TemplatesDB", mock_templates_db
+        "src.main_app.jobs_workers.fix_nested_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_instance),
     )
 
     # Mock get_jobs_db_bg and functions imported in base_worker

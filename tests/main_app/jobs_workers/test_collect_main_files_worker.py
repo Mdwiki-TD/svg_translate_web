@@ -14,14 +14,15 @@ from src.main_app.template_service import TemplateRecord
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by collect_main_files_worker."""
 
-    # Mock TemplatesDB
-    mock_templates_db = MagicMock()
+    # Mock get_templates_db_bg
+    mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
     mock_update_template = MagicMock()
-    mock_templates_db.return_value.list = mock_list_templates
-    mock_templates_db.return_value.update_if_not_none = mock_update_template
+    mock_templates_db_instance.list = mock_list_templates
+    mock_templates_db_instance.update_if_not_none = mock_update_template
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.TemplatesDB", mock_templates_db
+        "src.main_app.jobs_workers.collect_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_instance),
     )
 
     # Mock get_jobs_db_bg and save_job_result_by_name (imported in base_worker)
