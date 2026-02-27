@@ -7,8 +7,10 @@ import time
 from typing import Any, Iterable, Sequence
 
 import pymysql
+from sqlalchemy import text
 
 from ..config import DbConfig
+from .engine_factory import db_connection, get_http_engine, get_bg_engine
 
 logger = logging.getLogger(__name__)
 
@@ -17,85 +19,117 @@ class MaxUserConnectionsError(Exception):
     pass
 
 
+def _convert_params(params: Any) -> dict[str, Any] | list[dict[str, Any]] | None:
+    """
+    Convert PyMySQL-style parameters to SQLAlchemy 2.0 format.
+    
+    SQLAlchemy 2.0 with text() expects:
+    - dict for single-row named parameters: {"param1": value1, "param2": value2}
+    - list of dicts for executemany: [{"param1": val1}, {"param1": val2}]
+    
+    This helper converts tuple/list params to dict format with auto-generated keys.
+    """
+    if params is None:
+        return None
+    
+    # If it's already a dict, return as-is
+    if isinstance(params, dict):
+        return params
+    
+    # If it's a tuple or list, convert to dict with positional keys
+    if isinstance(params, (tuple, list)):
+        return {f"p{i}": v for i, v in enumerate(params)}
+    
+    # Single value - wrap in dict
+    return {"p0": params}
+
+
+def _convert_sql(sql: str, params: Any) -> tuple[str, dict[str, Any] | None]:
+    """
+    Convert PyMySQL-style SQL (%s placeholders) to SQLAlchemy named parameters.
+    
+    Returns:
+        Tuple of (converted_sql, converted_params)
+    """
+    converted_params = _convert_params(params)
+    
+    if converted_params is None:
+        return sql, None
+    
+    # Replace %s with :p0, :p1, etc.
+    import re
+    param_names = list(converted_params.keys())
+    param_index = [0]
+    
+    def replace_placeholder(match):
+        idx = param_index[0]
+        if idx < len(param_names):
+            param_index[0] += 1
+            return f":{param_names[idx]}"
+        return match.group(0)  # Should not happen
+    
+    # Replace %s placeholders with :pN named parameters
+    converted_sql = re.sub(r"%s", replace_placeholder, sql)
+    
+    return converted_sql, converted_params
+
+
 class Database:
-    """Thin wrapper around a PyMySQL connection with convenience helpers."""
+    """Thin wrapper around SQLAlchemy engine with convenience helpers.
+    
+    Uses connection pooling via engine_factory to avoid max_user_connections errors.
+    Maintains backward compatibility with the original PyMySQL-based interface.
+    """
 
     RETRYABLE_ERROR_CODES = {2006, 2013, 2014, 2017, 2018, 2055}
     MAX_RETRIES = 3
     BASE_BACKOFF = 0.2
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False):
         """
-        Create a Database wrapper and store connection credentials from the provided DbConfig.
+        Create a Database wrapper using SQLAlchemy connection pooling.
 
         Parameters:
-            database_data (DbConfig): Configuration object with attributes `db_host`, `db_name`, `db_user`, and `db_password`. The values are stored on the instance and used to build the credentials dict; a reentrant lock is initialized and the connection is set to None.
+            database_data (DbConfig): Configuration object with attributes `db_host`, `db_name`, `db_user`, and `db_password`.
+            use_bg_engine (bool): If True, use the background engine pool (for batch jobs).
         """
-
+        self._use_bg_engine = use_bg_engine
+        self._engine = None  # Lazy initialization
+        self._lock = threading.RLock()
+        # Keep these for backward compatibility (some code may access them)
         self.host = database_data.db_host
         self.dbname = database_data.db_name
-
         self.user = database_data.db_user
         self.password = database_data.db_password
-
         self.credentials = {"user": self.user, "password": self.password}
+        self.connection: Any | None = None  # Not used with pooling, but kept for compatibility
 
-        self._lock = threading.RLock()
-        self.connection: Any | None = None
+    def _get_engine(self):
+        """Get the appropriate engine (lazy initialization)."""
+        if self._engine is None:
+            with self._lock:
+                if self._engine is None:
+                    if self._use_bg_engine:
+                        self._engine = get_bg_engine()
+                    else:
+                        self._engine = get_http_engine()
+        return self._engine
 
-    # ------------------------------------------------------------------
-    # Connection helpers
-    # ------------------------------------------------------------------
     def _connect(self) -> None:
-        """Establish a new PyMySQL connection and store it on ``self``."""
-        with self._lock:
-            self.connection = pymysql.connect(
-                host=self.host,
-                database=self.dbname,
-                connect_timeout=5,
-                read_timeout=10,
-                write_timeout=10,
-                charset="utf8mb4",
-                init_command="SET time_zone = '+00:00'",
-                autocommit=True,
-                cursorclass=pymysql.cursors.DictCursor,
-                **self.credentials,
-            )
+        """No-op for compatibility - connections are managed by the pool."""
+        pass
 
     def _ensure_connection(self) -> None:
-        """Ensure the current connection is alive, reconnecting as needed."""
-        with self._lock:
-            try:
-                if self.connection is None:
-                    self._connect()
-                    return
-
-                self.connection.ping(reconnect=True)
-
-            except pymysql.MySQLError as exc:
-                code = self._exception_code(exc)
-
-                if code == 1203:
-                    logger.error("event=max_user_connections")
-                    raise MaxUserConnectionsError from exc
-
-                logger.exception(f"event=db_connection_failed host={self.host} db={self.dbname}, code={code}")
-                self._close_connection()
-                raise
+        """No-op for compatibility - pool handles connection health."""
+        pass
 
     def _close_connection(self) -> None:
-        with self._lock:
-            if self.connection is not None:
-                try:
-                    self.connection.close()
-                except Exception:  # pragma: no cover - best effort cleanup
-                    pass
-                finally:
-                    self.connection = None
+        """No-op for compatibility - connections are returned to pool automatically."""
+        pass
 
     def close(self) -> None:
-        """Close the underlying PyMySQL connection."""
-        self._close_connection()
+        """No-op for compatibility - pool manages connections."""
+        pass
 
     def __enter__(self) -> "Database":
         return self
@@ -107,6 +141,20 @@ class Database:
     # Retry utilities
     # ------------------------------------------------------------------
     def _exception_code(self, exc: BaseException) -> int | None:
+        """Extract MySQL error code from exception.
+        
+        Handles both raw PyMySQL exceptions and SQLAlchemy-wrapped exceptions.
+        """
+        # Handle SQLAlchemy wrapped exceptions
+        if hasattr(exc, "__cause__") and exc.__cause__ is not None:
+            inner = exc.__cause__
+            if isinstance(inner, (pymysql.err.OperationalError, pymysql.err.InterfaceError)):
+                try:
+                    return inner.args[0]
+                except (IndexError, TypeError):
+                    return None
+        
+        # Handle raw PyMySQL exceptions
         if isinstance(exc, (pymysql.err.OperationalError, pymysql.err.InterfaceError)):
             try:
                 code = exc.args[0]
@@ -126,20 +174,6 @@ class Database:
         code = exc.args[0] if getattr(exc, "args", None) else None
         logger.debug("event=%s attempt=%s code=%s elapsed_ms=%s", event, attempt, code, elapsed_ms)
 
-    def _rollback_if_needed(self) -> None:
-        with self._lock:
-            if self.connection is None:
-                return
-            try:
-                autocommit = self.connection.get_autocommit()  # type: ignore[attr-defined]
-            except AttributeError:  # pragma: no cover - PyMySQL always exposes it
-                autocommit = True
-            if not autocommit:
-                try:
-                    self.connection.rollback()
-                except Exception:  # pragma: no cover - defensive cleanup
-                    pass
-
     def _execute_with_retry(
         self,
         operation,
@@ -147,68 +181,41 @@ class Database:
         params: Any,
         *,
         timeout_override: float | None = None,
+        readonly: bool = False,
     ):
         last_exc: BaseException | None = None
         for attempt in range(1, self.MAX_RETRIES + 1):
             start = time.monotonic()
             try:
-                self._ensure_connection()
-                assert self.connection is not None  # for type checkers
-                with self._lock:
-                    cursor = self.connection.cursor()
+                with db_connection(self._get_engine(), readonly=readonly) as conn:
+                    if timeout_override is not None:
+                        milliseconds = max(int(timeout_override * 1000), 1)
+                        conn.execute(text("SET SESSION MAX_EXECUTION_TIME=:ms"), {"ms": milliseconds})
                     try:
-                        if timeout_override is not None:
-                            self._set_query_timeout(cursor, timeout_override)
-                        result = operation(cursor, sql_query, params)
+                        result = operation(conn, sql_query, params)
                         return result
                     finally:
                         if timeout_override is not None:
-                            self._reset_query_timeout(cursor)
-                        cursor.close()
+                            conn.execute(text("SET SESSION MAX_EXECUTION_TIME=0"))
             except Exception as exc:  # noqa: PERF203 - retries require broad catch
                 elapsed_ms = int((time.monotonic() - start) * 1000)
                 if self._should_retry(exc) and attempt < self.MAX_RETRIES:
                     self._log_retry("db_retry", attempt, exc, elapsed_ms)
-                    self._rollback_if_needed()
-                    self._close_connection()
                     time.sleep(self._compute_backoff(attempt))
                     last_exc = exc
                     continue
 
                 if isinstance(exc, pymysql.MySQLError):
+                    code = self._exception_code(exc)
+                    if code == 1203:
+                        logger.error("event=max_user_connections")
+                        raise MaxUserConnectionsError from exc
                     self._log_retry("db_retry_failed", attempt, exc, elapsed_ms)
-                self._rollback_if_needed()
                 last_exc = exc
                 break
 
         assert last_exc is not None  # for mypy
         raise last_exc
-
-    # ------------------------------------------------------------------
-    # Timeout helpers
-    # ------------------------------------------------------------------
-    def _set_query_timeout(self, cursor, timeout_override: float) -> None:
-        milliseconds = max(int(timeout_override * 1000), 1)
-        try:
-            cursor.execute("SET SESSION MAX_EXECUTION_TIME=%s", (milliseconds,))
-        except pymysql.MySQLError:
-            logger.warning("event=db_set_timeout_failed timeout_ms=%s", milliseconds)
-
-    def _reset_query_timeout(self, cursor) -> None:
-        try:
-            cursor.execute("SET SESSION MAX_EXECUTION_TIME=0")
-        except pymysql.MySQLError:
-            logger.warning("event=db_reset_timeout_failed")
-
-    def _maybe_commit(self) -> None:
-        if self.connection is None:
-            return
-        try:
-            autocommit = self.connection.get_autocommit()  # type: ignore[attr-defined]
-        except AttributeError:  # pragma: no cover - PyMySQL always exposes it
-            autocommit = True
-        if not autocommit:
-            self.connection.commit()
 
     def execute_query(
         self,
@@ -218,20 +225,23 @@ class Database:
         timeout_override: float | None = None,
     ):
         """Execute a statement and return rows for SELECTs or rowcount for writes."""
-        # TODO The new execute_query only commits when cursor.description is falsy. Statements that both modify data and produce a result set—such as stored procedures or INSERT/UPDATE … RETURNING in MySQL 8—set cursor.description, so this branch will fetch rows and return without ever calling _maybe_commit() when autocommit is disabled. Prior to this change execute_query always issued a commit, so these writes would persist. With the new logic those operations will leave the transaction uncommitted and silently lose data until the caller commits manually. Consider committing for any non‑SELECT statement (e.g. based on the SQL verb) even if it yields rows.
 
-        def _op(cursor, sql, op_params):
-            cursor.execute(sql, op_params)
-            if cursor.description:
-                return cursor.fetchall()
-            self._maybe_commit()
-            return cursor.rowcount
+        def _op(conn, sql, op_params):
+            # Convert PyMySQL-style %s to SQLAlchemy named parameters
+            conv_sql, conv_params = _convert_sql(sql, op_params)
+            result = conn.execute(text(conv_sql), conv_params or {})
+            # Check if this is a SELECT-like query that returns rows
+            if result.returns_rows:
+                rows = result.mappings().all()
+                return [dict(row) for row in rows]
+            return result.rowcount
 
         return self._execute_with_retry(
             _op,
             sql_query,
             params,
             timeout_override=timeout_override,
+            readonly=False,
         )
 
     def fetch_query(
@@ -243,15 +253,19 @@ class Database:
     ) -> list[dict[str, Any]]:
         """Execute a query and return all fetched rows as dictionaries."""
 
-        def _op(cursor, sql, op_params):
-            cursor.execute(sql, op_params)
-            return cursor.fetchall()
+        def _op(conn, sql, op_params):
+            # Convert PyMySQL-style %s to SQLAlchemy named parameters
+            conv_sql, conv_params = _convert_sql(sql, op_params)
+            result = conn.execute(text(conv_sql), conv_params or {})
+            rows = result.mappings().all()
+            return [dict(row) for row in rows]
 
         result = self._execute_with_retry(
             _op,
             sql_query,
             params,
             timeout_override=timeout_override,
+            readonly=True,
         )
         return list(result or [])
 
@@ -269,21 +283,21 @@ class Database:
         if not params_list:
             return 0
 
-        def _op(cursor, sql, _params_list):
-            return self._execute_many_batches(cursor, sql, params_list, batch_size)
+        def _op(conn, sql, _params_list):
+            return self._execute_many_batches(conn, sql, params_list, batch_size)
 
         result = self._execute_with_retry(
             _op,
             sql_query,
             params_list,
             timeout_override=timeout_override,
+            readonly=False,
         )
-        self._maybe_commit()
         return int(result)
 
     def _execute_many_batches(
         self,
-        cursor,
+        conn,
         sql_query: str,
         params_list: Sequence[Any],
         batch_size: int,
@@ -292,23 +306,30 @@ class Database:
         index = 0
         while index < len(params_list):
             batch = params_list[index : index + batch_size]
-            total += self._execute_many_batch(cursor, sql_query, batch)
+            total += self._execute_many_batch(conn, sql_query, batch)
             index += batch_size
         return total
 
-    def _execute_many_batch(self, cursor, sql_query: str, batch: Sequence[Any]) -> int:
+    def _execute_many_batch(self, conn, sql_query: str, batch: Sequence[Any]) -> int:
         if not batch:
             return 0
         try:
-            cursor.executemany(sql_query, batch)
-            return cursor.rowcount
+            # Convert SQL and params for SQLAlchemy 2.0
+            # For executemany, convert list of tuples to list of dicts
+            conv_sql, first_params = _convert_sql(sql_query, batch[0] if batch else None)
+            # Convert all items in batch to dicts
+            if isinstance(batch[0], (tuple, list)):
+                param_dicts = [{f"p{i}": v for i, v in enumerate(item)} for item in batch]
+            else:
+                param_dicts = list(batch)
+            result = conn.execute(text(conv_sql), param_dicts)
+            return result.rowcount
         except (pymysql.err.OperationalError, pymysql.err.InterfaceError):
             if len(batch) <= 1:
                 raise
-            # mid = max(len(batch) // 2, 1)
             mid = (len(batch) + 1) // 2
-            return self._execute_many_batch(cursor, sql_query, batch[:mid]) + self._execute_many_batch(
-                cursor, sql_query, batch[mid:]
+            return self._execute_many_batch(conn, sql_query, batch[:mid]) + self._execute_many_batch(
+                conn, sql_query, batch[mid:]
             )
 
     def fetch_query_safe(self, sql_query, params=None, *, timeout_override: float | None = None):

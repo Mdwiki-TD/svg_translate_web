@@ -34,7 +34,7 @@ def test_settings_db_init(mock_database_class, db_config):
 
     settings_db = SettingsDB(db_config)
 
-    mock_database_class.assert_called_once_with(db_config)
+    mock_database_class.assert_called_once_with(db_config, use_bg_engine=False)
     mock_db.execute_query_safe.assert_called_once()
     # Verify the CREATE TABLE statement was executed
     call_args = mock_db.execute_query_safe.call_args[0][0]

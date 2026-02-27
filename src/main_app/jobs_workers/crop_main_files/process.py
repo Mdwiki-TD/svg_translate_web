@@ -13,7 +13,9 @@ from typing import Any, Dict
 import mwclient
 import requests
 
-from ... import template_service
+from ...template_service import get_templates_db_bg
+from ...db.db_Jobs import JobsDB
+from ...db.db_Templates import TemplatesDB, TemplateRecord
 from ...config import settings
 from ...utils.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
@@ -85,7 +87,7 @@ def upload_one(
 
 def process_one(
     job_id: int,
-    template: template_service.TemplateRecord,
+    template: TemplateRecord,
     result: dict[str, Any],
     original_dir: Path,
     cropped_dir: Path,
@@ -197,15 +199,17 @@ def process_crops(
     Returns:
         The populated result dictionary
     """
-    # Update job status to running
+    # Update job status to running - use bg engine via cached accessor
     try:
-        jobs_service.update_job_status(job_id, "running", result_file, job_type="crop_main_files")
+        jobs_db = jobs_service.get_jobs_db_bg()
+        jobs_db.update_status(job_id, "running", result_file, job_type="crop_main_files")
     except LookupError:
         logger.warning(f"Job {job_id}: Could not update status to running, job record might have been deleted.")
         return result
 
-    # Get all templates with main files
-    templates = template_service.list_templates()
+    # Get all templates with main files - use bg engine via cached accessor
+    templates_db = get_templates_db_bg()
+    templates = templates_db.list()
     templates_with_files = [t for t in templates if t.last_world_file]
 
     # Apply development mode limit from settings

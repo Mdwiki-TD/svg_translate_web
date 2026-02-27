@@ -19,24 +19,36 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
     mock_save_job_result = MagicMock()
     mock_generate_result_file_name = MagicMock(return_value="result.json")
 
-    # Mock for collect_main_files_worker (now accessed via base_worker)
+    # Mock get_templates_db_bg for collect_main_files_worker
+    mock_templates_db_collect = MagicMock()
+    mock_templates_db_collect.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.collect_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_collect),
     )
+
+    # Mock get_templates_db_bg for fix_nested_main_files_worker
+    mock_templates_db_fix = MagicMock()
+    mock_templates_db_fix.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
+        "src.main_app.jobs_workers.fix_nested_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_fix),
     )
+
+    # Mock get_jobs_db_bg and functions imported in base_worker
+    mock_jobs_db_instance = MagicMock()
+    mock_jobs_db_instance.update_status = mock_update_job_status
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
+    )
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
-    )
-
-    # Mock for fix_nested_main_files_worker (now accessed via base_worker)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
     )
 
     return {
@@ -70,9 +82,14 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs", lambda x: None
     )
+
+    # Re-mock get_templates_db_bg with update_if_not_none that sets cancel_event
+    mock_templates_db = MagicMock()
+    mock_templates_db.list = mock_common_services["list_templates"]
+    mock_templates_db.update_if_not_none = mock_update_template
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
-        mock_update_template,
+        "src.main_app.jobs_workers.collect_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db),
     )
 
     collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)

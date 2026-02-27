@@ -27,14 +27,15 @@ class TemplateRecord:
 class TemplatesDB:
     """MySQL-backed"""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
 
         Parameters:
             database_data (DbConfig): Configuration used to construct the underlying Database connection.
+            use_bg_engine (bool): If True, use the background engine pool for batch jobs.
         """
-        self.db = Database(database_data)
+        self.db = Database(database_data, use_bg_engine=use_bg_engine)
         self._ensure_table()
 
     def _ensure_table(self) -> None:

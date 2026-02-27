@@ -13,7 +13,8 @@ from src.main_app import template_service
 class FakeDatabase:
     """Lightweight stub that mimics the Database helper using in-memory rows."""
 
-    def __init__(self, _db_data: dict[str, Any]):
+    def __init__(self, _db_data: dict[str, Any], use_bg_engine: bool = False):
+        _ = use_bg_engine  # Mark as intentionally unused (API compatibility)
         self._rows: list[dict[str, Any]] = []
         self._next_id = 1
 

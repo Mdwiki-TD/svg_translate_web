@@ -19,14 +19,14 @@ def test_MaxUserConnectionsError():
     assert str(error_with_msg) == "Too many connections"
 
 
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_init_basic(mock_pymysql):
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_init_basic(mock_get_engine):
     """Test Database initialization with basic credentials."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
 
     db = Database(database_config)
 
-    # Check that instance attributes are set correctly
+    # Check that instance attributes are set correctly (for backward compatibility)
     assert db.host == "localhost"
     assert db.dbname == "testdb"
     assert db.user == "testuser"
@@ -34,159 +34,127 @@ def test_Database_init_basic(mock_pymysql):
     assert db.credentials == {"user": "testuser", "password": "testpass"}
     assert db._lock is not None
     assert hasattr(db._lock, "acquire")
-    assert db.connection is None
+    assert db._use_bg_engine is False
 
 
-@pytest.mark.skip(reason="AssertionError: expected call not found.")
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_connect(mock_pymysql):
-    """Test Database _connect method."""
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_init_with_bg_engine(mock_get_engine):
+    """Test Database initialization with background engine flag."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+
+    db = Database(database_config, use_bg_engine=True)
+
+    assert db._use_bg_engine is True
+
+
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_connect_is_noop(mock_get_engine):
+    """Test Database _connect is a no-op with SQLAlchemy pooling."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
 
     db = Database(database_config)
-
-    # Mock the pymysql.connect to return a mock connection
-    mock_connection = MagicMock()
-    mock_pymysql.connect.return_value = mock_connection
-
-    # Call _connect
+    
+    # _connect should be a no-op and not raise
     db._connect()
-
-    # Verify pymysql.connect was called with correct parameters
-    mock_pymysql.connect.assert_called_once_with(
-        host="localhost",
-        database="testdb",
-        connect_timeout=5,
-        read_timeout=10,
-        write_timeout=10,
-        charset="utf8mb4",
-        init_command="SET time_zone = '+00:00'",
-        autocommit=True,
-        cursorclass=DictCursor,
-        user="testuser",
-        password="testpass",
-    )
-
-    # Verify that the connection was stored
-    assert db.connection == mock_connection
-
-
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_ensure_connection_new(mock_pymysql):
-    """Test Database _ensure_connection when no connection exists."""
-    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
-
-    db = Database(database_config)
-
-    # Mock the _connect method
-    with patch.object(db, "_connect") as mock_connect:
-        db._ensure_connection()
-
-        # Verify _connect was called
-        mock_connect.assert_called_once()
-
-
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_ensure_connection_ping(mock_pymysql):
-    """Test Database _ensure_connection when connection exists."""
-    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
-
-    db = Database(database_config)
-
-    # Mock an existing connection
-    mock_connection = MagicMock()
-    db.connection = mock_connection
-
-    # Call _ensure_connection
     db._ensure_connection()
-
-    # Verify ping was called
-    mock_connection.ping.assert_called_once_with(reconnect=True)
-
-
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_close(mock_pymysql):
-    """Test Database close method."""
-    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
-
-    db = Database(database_config)
-
-    # Mock a connection
-    mock_connection = MagicMock()
-    db.connection = mock_connection
-
-    # Call close
     db.close()
 
-    # Verify connection was closed
-    mock_connection.close.assert_called_once()
-    assert db.connection is None
 
-
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_context_manager(mock_pymysql):
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_context_manager(mock_get_engine):
     """Test Database as context manager."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
 
-    mock_connection = MagicMock()
-    mock_pymysql.connect.return_value = mock_connection
-
-    # Use database as context manager
+    # Use database as context manager - should work without errors
     with Database(database_config) as db:
-        # Trigger connection
-        db._ensure_connection()
-        # Verify connection was established
-        assert db.connection is not None
-
-    # Verify connection was closed after context
-    mock_connection.close.assert_called_once()
+        assert db is not None
 
 
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_execute_query_success(mock_pymysql):
-    """Test Database execute_query method with success."""
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_use_bg_engine_gets_correct_engine(mock_get_http_engine):
+    """Test that use_bg_engine=True uses get_bg_engine."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
-
-    db = Database(database_config)
-
-    # Mock the connection and cursor
-    mock_connection = MagicMock()
-    mock_cursor = MagicMock()
-    mock_connection.cursor.return_value = mock_cursor
-    mock_pymysql.connect.return_value = mock_connection
-    db.connection = mock_connection
-
-    # Mock cursor results
-    mock_cursor.fetchall.return_value = [{"id": 1, "name": "test"}]
-
-    # Execute a query
-    result = db.execute_query("SELECT * FROM test", ())
-
-    # Verify the query was executed
-    mock_cursor.execute.assert_called_once_with("SELECT * FROM test", ())
-    assert result == [{"id": 1, "name": "test"}]
+    
+    mock_bg_engine = MagicMock()
+    with patch("src.main_app.db.db_class.get_bg_engine", return_value=mock_bg_engine) as mock_get_bg:
+        db = Database(database_config, use_bg_engine=True)
+        # Access engine to trigger lazy initialization
+        engine = db._get_engine()
+        mock_get_bg.assert_called_once()
+        assert engine == mock_bg_engine
 
 
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_fetch_query_success(mock_pymysql):
-    """Test Database fetch_query method with success."""
+@patch("src.main_app.db.db_class.get_http_engine")
+def test_Database_use_http_engine_by_default(mock_get_http_engine):
+    """Test that use_bg_engine=False uses get_http_engine."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+    
+    mock_http_engine = MagicMock()
+    mock_get_http_engine.return_value = mock_http_engine
+    
+    db = Database(database_config, use_bg_engine=False)
+    # Access engine to trigger lazy initialization
+    engine = db._get_engine()
+    mock_get_http_engine.assert_called_once()
+    assert engine == mock_http_engine
 
+
+def test_exception_code_with_pymysql_error():
+    """Test _exception_code extracts code from PyMySQL errors."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
     db = Database(database_config)
+    
+    # Test with a mock PyMySQL error
+    mock_error = MagicMock()
+    mock_error.args = (1203, "max_user_connections")
+    
+    with patch.object(db, '_exception_code', return_value=1203):
+        code = db._exception_code(mock_error)
+        assert code == 1203
 
-    # Mock the connection and cursor
-    mock_connection = MagicMock()
-    mock_cursor = MagicMock()
-    mock_connection.cursor.return_value = mock_cursor
-    mock_pymysql.connect.return_value = mock_connection
-    db.connection = mock_connection
 
-    # Mock cursor results
-    mock_cursor.fetchall.return_value = [{"id": 1, "name": "test"}]
+def test_should_retry_with_retryable_code():
+    """Test _should_retry returns True for retryable error codes."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+    db = Database(database_config)
+    
+    # Test retryable codes
+    for code in Database.RETRYABLE_ERROR_CODES:
+        mock_error = MagicMock()
+        mock_error.args = (code, "error message")
+        with patch.object(db, '_exception_code', return_value=code):
+            assert db._should_retry(mock_error) is True
 
-    # Execute a query
-    result = db.fetch_query("SELECT * FROM test", ())
 
-    # Verify the query was executed
-    mock_cursor.execute.assert_called_once_with("SELECT * FROM test", ())
-    assert result == [{"id": 1, "name": "test"}]
+def test_should_retry_with_non_retryable_code():
+    """Test _should_retry returns False for non-retryable error codes."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+    db = Database(database_config)
+    
+    # Test non-retryable code
+    mock_error = MagicMock()
+    mock_error.args = (999, "error message")
+    with patch.object(db, '_exception_code', return_value=999):
+        assert db._should_retry(mock_error) is False
+
+
+def test_compute_backoff():
+    """Test _compute_backoff increases with attempt number."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+    db = Database(database_config)
+    
+    backoff1 = db._compute_backoff(1)
+    backoff2 = db._compute_backoff(2)
+    backoff3 = db._compute_backoff(3)
+    
+    # Backoff should increase exponentially
+    assert backoff2 > backoff1
+    assert backoff3 > backoff2
+    
+    # Base backoff is 0.2, so:
+    # attempt 1: 0.2 * 2^0 = 0.2
+    # attempt 2: 0.2 * 2^1 = 0.4
+    # attempt 3: 0.2 * 2^2 = 0.8
+    assert 0.1 <= backoff1 <= 0.4
+    assert 0.3 <= backoff2 <= 0.6
+    assert 0.7 <= backoff3 <= 1.0

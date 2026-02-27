@@ -14,25 +14,29 @@ from src.main_app.template_service import TemplateRecord
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by collect_main_files_worker."""
 
-    # Mock template_service
+    # Mock get_templates_db_bg
+    mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
     mock_update_template = MagicMock()
+    mock_templates_db_instance.list = mock_list_templates
+    mock_templates_db_instance.update_if_not_none = mock_update_template
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
-        mock_update_template,
+        "src.main_app.jobs_workers.collect_main_files_worker.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_instance),
     )
 
-    # Mock jobs_service (now accessed via base_worker)
+    # Mock get_jobs_db_bg and save_job_result_by_name (imported in base_worker)
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
+    mock_jobs_db_instance.update_status = mock_update_job_status
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
+    )
+
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
     )
 
     # Mock get_wikitext
@@ -107,8 +111,10 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
 
-    # Should update template
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg", None)
+    # Should update template (using keyword arguments)
+    mock_services["update_template"].assert_called_once_with(
+        id=1, main_file="test.svg", last_world_file=None
+    )
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]

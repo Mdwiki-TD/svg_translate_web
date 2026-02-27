@@ -31,14 +31,15 @@ class JobRecord:
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
 
         Parameters:
             database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
+            use_bg_engine (bool): If True, use the background engine pool for batch jobs.
         """
-        self.db = Database(database_data)
+        self.db = Database(database_data, use_bg_engine=use_bg_engine)
         self._ensure_table()
 
     def _ensure_table(self) -> None:

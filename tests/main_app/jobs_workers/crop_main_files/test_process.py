@@ -16,22 +16,28 @@ from src.main_app.template_service import TemplateRecord
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by process module."""
 
-    # Mock template_service
+    # Mock get_templates_db_bg (imported in process module)
+    mock_templates_db_instance = MagicMock()
     mock_list_templates = MagicMock()
+    mock_templates_db_instance.list = mock_list_templates
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.template_service.list_templates",
-        mock_list_templates,
+        "src.main_app.jobs_workers.crop_main_files.process.get_templates_db_bg",
+        MagicMock(return_value=mock_templates_db_instance),
     )
 
-    # Mock jobs_service
+    # Mock get_jobs_db_bg for job status updates
+    mock_jobs_db_instance = MagicMock()
     mock_update_job_status = MagicMock()
+    mock_jobs_db_instance.update_status = mock_update_job_status
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_service.get_jobs_db_bg",
+        MagicMock(return_value=mock_jobs_db_instance),
+    )
+
+    # Mock save_job_result_by_name via jobs_service
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.update_job_status",
-        mock_update_job_status,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.jobs_service.save_job_result_by_name",
         mock_save_job_result,
     )
 

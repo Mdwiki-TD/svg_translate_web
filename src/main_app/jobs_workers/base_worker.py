@@ -9,7 +9,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from . import jobs_service
+from ..config import settings
+from .jobs_service import get_jobs_db_bg, save_job_result_by_name
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
@@ -55,8 +56,9 @@ def job_exception_handler(
                 }
 
                 try:
-                    jobs_service.save_job_result_by_name(result_file, error_result)
-                    jobs_service.update_job_status(
+                    save_job_result_by_name(result_file, error_result)
+                    jobs_db = get_jobs_db_bg()
+                    jobs_db.update_status(
                         job_id, "failed", result_file, job_type=job_type
                     )
                 except LookupError:
@@ -67,7 +69,8 @@ def job_exception_handler(
                 except Exception:
                     logger.exception(f"Job {job_id}: Failed to save error result")
                     try:
-                        jobs_service.update_job_status(
+                        jobs_db = get_jobs_db_bg()
+                        jobs_db.update_status(
                             job_id, "failed", job_type=job_type
                         )
                     except LookupError:
@@ -152,7 +155,8 @@ class BaseJobWorker(ABC):
             True to continue with processing, False to abort
         """
         try:
-            jobs_service.update_job_status(
+            jobs_db = get_jobs_db_bg()
+            jobs_db.update_status(
                 self.job_id, "running", self.result_file, job_type=self.job_type
             )
             return True
@@ -171,13 +175,14 @@ class BaseJobWorker(ABC):
 
         # Save final results
         try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
+            save_job_result_by_name(self.result_file, self.result)
         except Exception:
             logger.exception(f"Job {self.job_id}: Failed to save job result")
 
         # Update final status
         try:
-            jobs_service.update_job_status(
+            jobs_db = get_jobs_db_bg()
+            jobs_db.update_status(
                 self.job_id, final_status, self.result_file, job_type=self.job_type
             )
         except LookupError:

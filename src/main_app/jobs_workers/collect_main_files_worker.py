@@ -9,7 +9,8 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from .. import template_service
+from ..config import settings
+from ..template_service import get_templates_db_bg
 from ..tasks.texts.text_bot import get_wikitext
 from ..tasks.titles.utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
@@ -47,7 +48,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         result = self.result
 
         # Get all templates
-        templates = template_service.list_templates()
+        templates_db = get_templates_db_bg()
+        templates = templates_db.list()
         result["summary"]["total"] = len(templates)
         result["summary"]["already_had_main_file"] = len(
             [t for t in templates if t.main_file and t.last_world_file]
@@ -115,11 +117,10 @@ class CollectMainFilesWorker(BaseJobWorker):
                     f"and last_world_file: {last_world_file}"
                 )
 
-                template_service.update_template_if_not_none(
-                    template.id,
-                    template.title,
-                    main_file,
-                    last_world_file,
+                templates_db.update_if_not_none(
+                    id=template.id,
+                    main_file=main_file,
+                    last_world_file=last_world_file,
                 )
 
                 template_info["status"] = "updated"

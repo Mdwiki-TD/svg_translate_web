@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 class SettingsDB:
     """MySQL-backed application settings store."""
 
-    def __init__(self, database_data: DbConfig):
-        self.db = Database(database_data)
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False):
+        self.db = Database(database_data, use_bg_engine=use_bg_engine)
         self._ensure_table()
 
     def _ensure_table(self) -> None:

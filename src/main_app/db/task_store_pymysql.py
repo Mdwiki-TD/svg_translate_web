@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
-    def __init__(self, database_data: DbConfig) -> None:
+    def __init__(self, database_data: DbConfig, use_bg_engine: bool = False) -> None:
         # Note: db connection is managed inside execute_query/fetch_query
         # self._lock = threading.Lock()
         """
@@ -24,8 +24,9 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
 
         Parameters:
             database_data (DbConfig): Database connection configuration used to create the internal Database instance.
+            use_bg_engine (bool): If True, use the background engine pool for batch jobs.
         """
-        self.db = Database(database_data)
+        self.db = Database(database_data, use_bg_engine=use_bg_engine)
         self._init_schema()
         super().__init__(self.db)
 
