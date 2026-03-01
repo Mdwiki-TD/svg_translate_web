@@ -161,16 +161,22 @@
                                 <th>File</th>
                                 <th>Cropped</th>
                                 <th>Compare</th>
-                                <th>Status</th>
-                                <th>Details</th>
-                                <th>Steps</th>
+                                <th>Download</th>
+                                <th>Crop</th>
+                                <th>Upload</th>
+                                <th title="Add Template:Image extracted to original file">
+                                    Update File
+                                </th>
+                                <th>Update Template</th>
+                                <!-- <th>Status</th>
+                                <th>Details</th> -->
                             </tr>
                         </thead>
                         <tbody>
                             {% for file in result_data.files_processed %}
                             <tr>
                                 <td>{{ loop.index }}</td>
-                                <td>
+                                <td style="width: 30%;">
                                     <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}"
                                         target="_blank" rel="noopener noreferrer">
                                         {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
@@ -194,38 +200,36 @@
                                     <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
                                         target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
                                 </td>
+                                {% set step_keys = [
+                                    'download',
+                                    'crop',
+                                    'upload_cropped',
+                                    'update_original',
+                                    'update_template'
+                                ] %}
+                                {% for step_key in step_keys %}
                                 <td>
-                                    {% if file.steps %}
-                                    {% set step_labels = {
-                                        'download': 'Download',
-                                        'crop': 'Crop',
-                                        'upload_cropped': 'Upload',
-                                        'update_original': 'Upd. Original',
-                                        'update_template': 'Upd. Template'
-                                    } %}
-                                    <div class="d-flex flex-wrap gap-1">
-                                        {% for step_key, step_label in step_labels.items() %}
-                                        {% set step = file.steps.get(step_key) %}
-                                        {% if step %}
-                                        {% if step.result == true %}
-                                        <span class="badge bg-success" title="{{ step.msg }}">
-                                            <i class="bi bi-check-lg"></i> {{ step_label }}
-                                        </span>
-                                        {% elif step.result == false %}
-                                        <span class="badge bg-danger" title="{{ step.msg }}">
-                                            <i class="bi bi-x-lg"></i> {{ step_label }}
-                                        </span>
-                                        {% elif step.result is none and step.msg %}
-                                        <span class="badge bg-secondary" title="{{ step.msg }}">
-                                            <i class="bi bi-dash"></i> {{ step_label }}
-                                        </span>
-                                        {% endif %}
-                                        {% endif %}
-                                        {% endfor %}
-                                    </div>
+                                    {% set step = file.steps.get(step_key) if file.steps else None %}
+                                    {% if step %}
+                                    {% if step.result == true %}
+                                    <span class="badge bg-success" title="{{ step.msg }}">
+                                        <i class="bi bi-check-lg"></i>
+                                    </span>
+                                    {% elif step.result == false %}
+                                    <span class="badge bg-danger" title="{{ step.msg }}">
+                                        <i class="bi bi-x-lg"></i>
+                                    </span>
+                                    {% elif step.result is none and step.msg %}
+                                    <span class="badge bg-secondary" title="{{ step.msg }}">
+                                        <i class="bi bi-dash"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                {% endfor %}
+                                <!-- <td>
                                     {% if file.status == 'uploaded' %}
                                     <span class="badge bg-success">{{ file.status }}</span>
                                     {% elif file.status == 'failed' %}
@@ -241,7 +245,7 @@
                                     {% if file.error %}
                                     <small class="text-danger">{{ file.error }}</small>
                                     {% endif %}
-                                </td>
+                                </td> -->
                             </tr>
                             {% endfor %}
                         </tbody>
