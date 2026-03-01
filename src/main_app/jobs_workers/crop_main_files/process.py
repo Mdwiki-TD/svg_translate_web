@@ -48,7 +48,7 @@ def update_template_references(
     template_title: str,
     file_info: dict[str, Any],
     site: mwclient.Site | None,
-) -> None:
+) -> Dict[str, Any]:
     original_file = file_info["original_file"]
     cropped_filename = file_info["cropped_filename"]
 
@@ -57,7 +57,7 @@ def update_template_references(
 
     if template_text == updated_template_text:
         logger.info(f"Job {job_id}: No update needed for template page {template_title}")
-        return None
+        return {"result": None, "msg": "No update needed"}
 
     summary = f"Update file reference to [[File:{cropped_filename.removeprefix('File:')}]]"
     update_result = update_page_text(template_title, updated_template_text, site, summary=summary)
@@ -67,9 +67,9 @@ def update_template_references(
             f"Job {job_id}: Failed to update template page {template_title} "
             f"(reason: {update_result.get('error', 'Unknown error')})"
         )
-        return False
+        return {"result": False, "msg": f"Failed to update template {template_title}"}
 
-    return True
+    return {"result": True, "msg": f"Updated template {template_title}"}
 
 
 def upload_one(
@@ -143,24 +143,8 @@ def process_one(
     original_dir: Path,
     cropped_dir: Path,
     session: requests.Session,
+    file_info: dict[str, Any],
 ):
-
-    file_info = {
-        "template_id": template.id,
-        "template_title": template.title,
-        "original_file": template.last_world_file,
-        "timestamp": datetime.now().isoformat(),
-        "status": "pending",
-        "cropped_filename": None,
-        "error": None,
-        "steps": {
-            "download": {"result": None, "msg": ""},
-            "crop": {"result": None, "msg": ""},
-            "upload_cropped": {"result": None, "msg": ""},
-            "update_original": {"result": None, "msg": ""},
-            "update_template": {"result": None, "msg": ""},
-        }
-    }
 
     cropped_filename = generate_cropped_filename(template.last_world_file)
 
@@ -288,6 +272,12 @@ def process_crops(
     # Get user site for upload
     site = get_user_site(user)
 
+    if not site:
+        logger.warning(f"Job {job_id}: No site authentication available")
+        result["status"] = "failed"
+        result["failed_at"] = datetime.now().isoformat()
+        return result
+
     for n, template in enumerate(templates_with_files, start=1):
         # Check for cancellation
         if cancel_event and cancel_event.is_set():
@@ -302,6 +292,23 @@ def process_crops(
 
         logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
+        file_info = {
+            "template_id": template.id,
+            "template_title": template.title,
+            "original_file": template.last_world_file,
+            "timestamp": datetime.now().isoformat(),
+            "status": "pending",
+            "cropped_filename": None,
+            "error": None,
+            "steps": {
+                "download": {"result": None, "msg": ""},
+                "crop": {"result": None, "msg": ""},
+                "upload_cropped": {"result": None, "msg": ""},
+                "update_original": {"result": None, "msg": ""},
+                "update_template": {"result": None, "msg": ""},
+            }
+        }
+
         file_info = process_one(
             job_id,
             template,
@@ -309,8 +316,10 @@ def process_crops(
             original_dir,
             cropped_dir,
             session,
+            file_info,
         )
         status = file_info["status"]
+
         if status == "failed":
             logger.warning(
                 f"Job {job_id}: Failed to process {template.last_world_file}"
@@ -319,16 +328,6 @@ def process_crops(
             continue
 
         cropped_filename = file_info.get("cropped_filename")
-
-        if not site:
-            file_info["status"] = "skipped"
-            file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – no site authentication"}
-            file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – no site authentication"}
-            file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – no site authentication"}
-            result["summary"]["skipped"] += 1
-            logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no site)")
-            result["files_processed"].append(file_info)
-            continue
 
         if not upload_files:
             file_info["status"] = "skipped"
@@ -351,21 +350,18 @@ def process_crops(
 
         template_title = file_info.get("template_title")
         # Step 6: Update template page to reference cropped file
-        if is_upload_successful:
-            update_result = update_template_references(
-                job_id,
-                template_title,
-                file_info,
-                site,
-            )
-            if update_result is None:
-                file_info["steps"]["update_template"] = {"result": None, "msg": "No update needed"}
-            elif update_result:
-                file_info["steps"]["update_template"] = {"result": True, "msg": f"Updated template {template_title}"}
-            else:
-                file_info["steps"]["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
-        else:
+        if not is_upload_successful:
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload was not successful"}
+            result["files_processed"].append(file_info)
+            continue
+
+        update_result = update_template_references(
+            job_id,
+            template_title,
+            file_info,
+            site,
+        )
+        file_info["steps"]["update_template"] = update_result
 
         result["files_processed"].append(file_info)
 
