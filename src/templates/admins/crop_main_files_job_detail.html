@@ -197,8 +197,10 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    {% if file.cropped_filename %}
                                     <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
                                         target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
+                                    {% endif %}
                                 </td>
                                 {% set step_keys = [
                                     'download',
