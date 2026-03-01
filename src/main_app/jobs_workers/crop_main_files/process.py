@@ -132,11 +132,11 @@ def process_one(
         "reason": None,
         "error": None,
         "steps": {
-            "download": None,
-            "crop": None,
-            "upload_cropped": None,
-            "update_original": None,
-            "update_template": None,
+            "download": {"result": None, "msg": ""},
+            "crop": {"result": None, "msg": ""},
+            "upload_cropped": {"result": None, "msg": ""},
+            "update_original": {"result": None, "msg": ""},
+            "update_template": {"result": None, "msg": ""},
         }
     }
 
