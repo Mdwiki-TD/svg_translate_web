@@ -28,6 +28,21 @@ from .wikitext import create_cropped_file_text, update_original_file_text, updat
 logger = logging.getLogger(__name__)
 
 
+def is_cropped_file_existing(
+    template: template_service.TemplateRecord,
+    site: mwclient.Site | None,
+):
+
+    cropped_filename = generate_cropped_filename(template.last_world_file)
+
+    page = site.Pages[cropped_filename]
+
+    if page.exists:
+        logger.error(f"Warning: File {cropped_filename} already exists on Commons")
+        return True
+    return False
+
+
 def update_template_references(
     job_id: int,
     template_title: str,
@@ -147,6 +162,8 @@ def process_one(
         }
     }
 
+    cropped_filename = generate_cropped_filename(template.last_world_file)
+
     # Step 1: Download the original file
     try:
         download_result = download_file_for_cropping(
@@ -180,7 +197,6 @@ def process_one(
     result["summary"]["processed"] += 1
 
     # Step 2: Crop the SVG
-    cropped_filename = generate_cropped_filename(template.last_world_file)
     cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
 
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
