@@ -153,8 +153,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
+                    <table class="table table-sm table-striped">                        <thead>
                             <tr>
                                 <th>#</th>
                                 <th>File</th>
@@ -162,6 +161,7 @@
                                 <th>Compare</th>
                                 <th>Status</th>
                                 <th>Details</th>
+                                <th>Steps</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -198,8 +198,40 @@
                                 <td>
                                     {% if file.reason %}
                                     <small class="text-muted">{{ file.reason }}</small>
-                                    {% endif %} {% if file.error %}
+                                    {% endif %}
+                                    {% if file.error %}
                                     <small class="text-danger">{{ file.error }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if file.steps %}
+                                    {% set step_labels = {
+                                        'download': 'Download',
+                                        'crop': 'Crop',
+                                        'upload_cropped': 'Upload',
+                                        'update_original': 'Upd. Original',
+                                        'update_template': 'Upd. Template'
+                                    } %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for step_key, step_label in step_labels.items() %}
+                                        {% set step = file.steps.get(step_key) %}
+                                        {% if step %}
+                                            {% if step.result == true %}
+                                                <span class="badge bg-success" title="{{ step.msg }}">
+                                                    <i class="bi bi-check-lg"></i> {{ step_label }}
+                                                </span>
+                                            {% elif step.result == false %}
+                                                <span class="badge bg-danger" title="{{ step.msg }}">
+                                                    <i class="bi bi-x-lg"></i> {{ step_label }}
+                                                </span>
+                                            {% elif step.result is none and step.msg %}
+                                                <span class="badge bg-secondary" title="{{ step.msg }}">
+                                                    <i class="bi bi-dash"></i> {{ step_label }}
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% endfor %}
+                                    </div>
                                     {% endif %}
                                 </td>
                             </tr>

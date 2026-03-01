@@ -42,7 +42,7 @@ def update_template_references(
 
     if template_text == updated_template_text:
         logger.info(f"Job {job_id}: No update needed for template page {template_title}")
-        return False
+        return None
 
     summary = f"Update file reference to [[File:{cropped_filename.removeprefix('File:')}]]"
     update_result = update_page_text(template_title, updated_template_text, site, summary=summary)
@@ -83,33 +83,43 @@ def upload_one(
     if upload_result.get("file_exists"):
         file_info["status"] = "skipped"
         file_info["reason"] = "file_exists"
+        file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
+        file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload was skipped"}
         result["summary"]["skipped"] += 1
         logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
         return True
 
     if not upload_result["success"]:
+        error = upload_result.get("error", "Unknown upload error")
         file_info["status"] = "failed"
         file_info["reason"] = "upload_failed"
-        file_info["error"] = upload_result.get("error", "Unknown upload error")
+        file_info["error"] = error
+        file_info["steps"]["upload_cropped"] = {"result": False, "msg": error}
+        file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
         return False
 
     file_info["status"] = "uploaded"
+    file_info["steps"]["upload_cropped"] = {"result": True, "msg": f"Uploaded as {cropped_filename}"}
     result["summary"]["uploaded"] += 1
     logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
 
     # Step 5: Update original file wikitext to link to cropped version
     updated_file_text = update_original_file_text(cropped_filename, wikitext)
     if wikitext == updated_file_text:
+        file_info["steps"]["update_original"] = {"result": None, "msg": "No update needed"}
         logger.info(f"Job {job_id}: No update needed for original file text of {original_file}")
     else:
-
         update_text = update_file_text(original_file, updated_file_text, site)
 
         if not update_text["success"]:
             error = update_text.get("error", "Unknown error")
+            file_info["steps"]["update_original"] = {"result": False, "msg": error}
             logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
+        else:
+            file_info["steps"]["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
+
     return True
 
 
@@ -149,43 +159,50 @@ def process_one(
         )
 
     except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
         file_info["status"] = "failed"
         file_info["reason"] = "exception"
-        file_info["error"] = f"{type(e).__name__}: {str(e)}"
+        file_info["error"] = error_msg
+        file_info["steps"]["download"] = {"result": False, "msg": error_msg}
 
         result["summary"]["failed"] += 1
         logger.exception(f"Job {job_id}: Exception processing {template.last_world_file}")
         return file_info
 
     if not download_result["success"]:
+        error_msg = download_result.get("error", "Unknown download error")
         file_info["status"] = "failed"
         file_info["reason"] = "download_failed"
-        file_info["error"] = download_result.get("error", "Unknown download error")
+        file_info["error"] = error_msg
+        file_info["steps"]["download"] = {"result": False, "msg": error_msg}
 
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to download {template.last_world_file}")
         return file_info
 
     downloaded_path = download_result["path"]
+    file_info["steps"]["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
     result["summary"]["processed"] += 1
 
-    # Step 2: Crop the SVG (placeholder)
+    # Step 2: Crop the SVG
     cropped_filename = generate_cropped_filename(template.last_world_file)
     cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
 
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
 
     if not crop_result["success"]:
+        error_msg = crop_result.get("error", "Unknown crop error")
         file_info["status"] = "failed"
         file_info["reason"] = "crop_failed"
-        file_info["error"] = crop_result.get("error", "Unknown crop error")
+        file_info["error"] = error_msg
+        file_info["steps"]["crop"] = {"result": False, "msg": error_msg}
 
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to crop {template.last_world_file}")
         return file_info
 
+    file_info["steps"]["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
     file_info["cropped_path"] = cropped_output_path
-
     result["summary"]["cropped"] += 1
 
     # Step 3: Generate cropped filename
@@ -296,6 +313,9 @@ def process_crops(
         if not site:
             file_info["status"] = "skipped"
             file_info["reason"] = "no_site_auth"
+            file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – no site authentication"}
+            file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – no site authentication"}
+            file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – no site authentication"}
             result["summary"]["skipped"] += 1
             logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (no site)")
             result["files_processed"].append(file_info)
@@ -304,6 +324,9 @@ def process_crops(
         if not upload_files:
             file_info["status"] = "skipped"
             file_info["reason"] = "upload disabled"
+            file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – upload disabled"}
+            file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload disabled"}
+            file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload disabled"}
             result["summary"]["skipped"] += 1
             logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (upload disabled)")
             result["files_processed"].append(file_info)
@@ -321,12 +344,20 @@ def process_crops(
         template_title = file_info.get("template_title")
         # Step 6: Update template page to reference cropped file
         if is_upload_successful:
-            update_refs = update_template_references(
+            update_result = update_template_references(
                 job_id,
                 template_title,
                 file_info,
                 site,
             )
+            if update_result is None:
+                file_info["steps"]["update_template"] = {"result": None, "msg": "No update needed"}
+            elif update_result:
+                file_info["steps"]["update_template"] = {"result": True, "msg": f"Updated template {template_title}"}
+            else:
+                file_info["steps"]["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
+        else:
+            file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload was not successful"}
 
         result["files_processed"].append(file_info)
 
