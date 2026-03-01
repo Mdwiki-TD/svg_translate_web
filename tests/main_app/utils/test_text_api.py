@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.utils.text_api import get_file_text, update_file_text
+from src.main_app.utils.text_api import get_file_text, update_file_text, get_page_text, update_page_text
 
 
 class TestGetFileText:
@@ -194,3 +194,104 @@ class TestUpdateFileText:
         # Should contain comma-separated list of missing fields
         assert "original_file" in result["error"]
         assert "updated_file_text" in result["error"]
+
+
+class TestGetPageText:
+    """Tests for get_page_text function."""
+
+    def _create_mock_site(self, text_content=""):
+        mock_site = MagicMock()
+        mock_page = MagicMock()
+        mock_page.text.return_value = text_content
+        mock_site.pages.__getitem__.return_value = mock_page
+        return mock_site
+
+    def test_valid_inputs_returns_text(self):
+        """Test with valid inputs returns the page text."""
+        mock_site = self._create_mock_site(text_content="Template wikitext")
+        result = get_page_text("Template:OWID/Barley yields", mock_site)
+        assert result == "Template wikitext"
+        mock_site.pages.__getitem__.assert_called_once_with("Template:OWID/Barley yields")
+
+    def test_does_not_add_file_prefix(self):
+        """Test that no File: prefix is added to the page name."""
+        mock_site = self._create_mock_site(text_content="content")
+        get_page_text("Template:OWID/Test", mock_site)
+        mock_site.pages.__getitem__.assert_called_once_with("Template:OWID/Test")
+
+    def test_missing_page_name_returns_empty_string(self, caplog):
+        """Test that missing page_name returns empty string."""
+        mock_site = self._create_mock_site()
+        with caplog.at_level(logging.ERROR):
+            result = get_page_text(None, mock_site)
+        assert result == ""
+        assert "Missing required fields for get_page_text" in caplog.text
+
+    def test_missing_site_returns_empty_string(self, caplog):
+        """Test that missing site returns empty string."""
+        with caplog.at_level(logging.ERROR):
+            result = get_page_text("Template:Test", None)
+        assert result == ""
+        assert "Missing required fields for get_page_text" in caplog.text
+
+    def test_site_exception_returns_empty_string(self, caplog):
+        """Test that exception from site returns empty string."""
+        mock_site = MagicMock()
+        mock_site.pages.__getitem__.side_effect = Exception("Connection error")
+        with caplog.at_level(logging.ERROR):
+            result = get_page_text("Template:Test", mock_site)
+        assert result == ""
+        assert "Failed to retrieve wikitext" in caplog.text
+
+
+class TestUpdatePageText:
+    """Tests for update_page_text function."""
+
+    def test_valid_inputs_calls_edit(self):
+        """Test with valid inputs calls page.edit."""
+        mock_site = MagicMock()
+        result = update_page_text("Template:Test", "new wikitext", mock_site, summary="test edit")
+        assert result["success"] is True
+        mock_site.pages.__getitem__.assert_called_once_with("Template:Test")
+
+    def test_missing_page_name_returns_error(self, caplog):
+        """Test that missing page_name returns error dict."""
+        mock_site = MagicMock()
+        with caplog.at_level(logging.ERROR):
+            result = update_page_text(None, "new wikitext", mock_site)
+        assert result["success"] is False
+        assert "page_name" in result["error"]
+
+    def test_missing_updated_text_returns_error(self, caplog):
+        """Test that missing updated_text returns error dict."""
+        mock_site = MagicMock()
+        with caplog.at_level(logging.ERROR):
+            result = update_page_text("Template:Test", None, mock_site)
+        assert result["success"] is False
+        assert "updated_text" in result["error"]
+
+    def test_missing_site_returns_error(self, caplog):
+        """Test that missing site returns error dict."""
+        with caplog.at_level(logging.ERROR):
+            result = update_page_text("Template:Test", "new wikitext", None)
+        assert result["success"] is False
+        assert "site" in result["error"]
+
+    def test_edit_exception_returns_error(self, caplog):
+        """Test that exception from page.edit returns error dict."""
+        mock_site = MagicMock()
+        mock_page = MagicMock()
+        mock_page.edit.side_effect = Exception("Edit conflict")
+        mock_site.pages.__getitem__.return_value = mock_page
+        with caplog.at_level(logging.ERROR):
+            result = update_page_text("Template:Test", "new wikitext", mock_site)
+        assert result["success"] is False
+        assert "Edit conflict" in result["error"]
+
+    def test_default_empty_summary(self):
+        """Test that default empty summary is used."""
+        mock_site = MagicMock()
+        mock_page = MagicMock()
+        mock_site.pages.__getitem__.return_value = mock_page
+        update_page_text("Template:Test", "new wikitext", mock_site)
+        mock_page.edit.assert_called_once_with("new wikitext", summary="")

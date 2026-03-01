@@ -18,14 +18,43 @@ from ...config import settings
 from ...utils.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
-from ...utils.text_api import get_file_text, update_file_text
+from ...utils.text_api import get_file_text, update_file_text, get_page_text, update_page_text
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
-from .wikitext import create_cropped_file_text, update_original_file_text
+from .wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 
 logger = logging.getLogger(__name__)
+
+
+def update_template_references(
+    job_id: int,
+    template_title: str,
+    file_info: dict[str, Any],
+    site: mwclient.Site | None,
+) -> None:
+    original_file = file_info["original_file"]
+    cropped_filename = file_info["cropped_filename"]
+
+    template_text = get_page_text(template_title, site)
+    updated_template_text = update_template_page_file_reference(original_file, cropped_filename, template_text)
+
+    if template_text == updated_template_text:
+        logger.info(f"Job {job_id}: No update needed for template page {template_title}")
+        return False
+
+    summary = f"Update file reference to [[File:{cropped_filename.removeprefix('File:')}]]"
+    update_result = update_page_text(template_title, updated_template_text, site, summary=summary)
+
+    if not update_result["success"]:
+        logger.warning(
+            f"Job {job_id}: Failed to update template page {template_title} "
+            f"(reason: {update_result.get('error', 'Unknown error')})"
+        )
+        return False
+
+    return True
 
 
 def upload_one(
@@ -39,7 +68,7 @@ def upload_one(
     cropped_path = file_info.get("cropped_path")
 
     if not cropped_path:
-        return
+        return False
 
     wikitext = get_file_text(original_file, site)
     cropped_file_wikitext = create_cropped_file_text(original_file, wikitext)
@@ -56,7 +85,7 @@ def upload_one(
         file_info["reason"] = "file_exists"
         result["summary"]["skipped"] += 1
         logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
-        return
+        return False
 
     if not upload_result["success"]:
         file_info["status"] = "failed"
@@ -64,7 +93,7 @@ def upload_one(
         file_info["error"] = upload_result.get("error", "Unknown upload error")
         result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
-        return
+        return False
 
     file_info["status"] = "uploaded"
     result["summary"]["uploaded"] += 1
@@ -74,13 +103,14 @@ def upload_one(
     updated_file_text = update_original_file_text(cropped_filename, wikitext)
     if wikitext == updated_file_text:
         logger.info(f"Job {job_id}: No update needed for original file text of {original_file}")
-        return
+    else:
 
-    update_text = update_file_text(original_file, updated_file_text, site)
+        update_text = update_file_text(original_file, updated_file_text, site)
 
-    if not update_text["success"]:
-        error = update_text.get("error", "Unknown error")
-        logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
+        if not update_text["success"]:
+            error = update_text.get("error", "Unknown error")
+            logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
+    return True
 
 
 def process_one(
@@ -273,12 +303,23 @@ def process_crops(
             continue
 
         # Upload the file
-        upload_one(
+        # Step 4 and Step 5
+        is_upload_successful = upload_one(
             job_id,
             file_info,
             site,
             result,
         )
+
+        template_title = file_info.get("template_title")
+        # Step 6: Update template page to reference cropped file
+        if is_upload_successful:
+            update_template_references(
+                job_id,
+                template_title,
+                file_info,
+                site,
+            )
 
         result["files_processed"].append(file_info)
 
