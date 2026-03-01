@@ -80,12 +80,12 @@ def upload_one(
         site,
         cropped_file_wikitext,
     )
-    if upload_result.get("skipped"):
+    if upload_result.get("file_exists"):
         file_info["status"] = "skipped"
         file_info["reason"] = "file_exists"
         result["summary"]["skipped"] += 1
         logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
-        return False
+        return True
 
     if not upload_result["success"]:
         file_info["status"] = "failed"
@@ -131,6 +131,13 @@ def process_one(
         "cropped_filename": None,
         "reason": None,
         "error": None,
+        "steps": {
+            "download": None,
+            "crop": None,
+            "upload": None,
+            "update_original": None,
+            "update_template": None,
+        }
     }
 
     # Step 1: Download the original file
@@ -314,7 +321,7 @@ def process_crops(
         template_title = file_info.get("template_title")
         # Step 6: Update template page to reference cropped file
         if is_upload_successful:
-            update_template_references(
+            update_refs = update_template_references(
                 job_id,
                 template_title,
                 file_info,
