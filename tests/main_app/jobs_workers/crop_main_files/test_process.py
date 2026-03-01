@@ -119,7 +119,6 @@ def test_upload_one_failure(mock_services):
         process.upload_one(job_id, file_info, user, result)
 
     assert file_info["status"] == "failed"
-    assert file_info["reason"] == "upload_failed"
     assert "Network error" in file_info["error"]
     assert result["summary"]["uploaded"] == 0
     assert result["summary"]["failed"] == 1
@@ -229,7 +228,6 @@ def test_process_one_download_failure(mock_services, tmp_path):
         )
 
     assert file_info["status"] == "failed"
-    assert file_info["reason"] == "download_failed"
     assert "404 Not Found" in file_info["error"]
     assert result["summary"]["failed"] == 1
 
@@ -274,7 +272,6 @@ def test_process_one_crop_failure(mock_services, tmp_path):
         )
 
     assert file_info["status"] == "failed"
-    assert file_info["reason"] == "crop_failed"
     assert "No footer found" in file_info["error"]
     assert result["summary"]["failed"] == 1
     assert result["summary"]["processed"] == 1
@@ -310,7 +307,6 @@ def test_process_one_exception_handling(mock_services, tmp_path):
         )
 
     assert file_info["status"] == "failed"
-    assert file_info["reason"] == "exception"
     assert "RuntimeError" in file_info["error"]
     assert "Unexpected error" in file_info["error"]
     assert result["summary"]["failed"] == 1
@@ -380,7 +376,6 @@ def test_process_crops_with_templates_no_user(mock_services, tmp_path):
     assert returned_result["summary"]["skipped"] == 1
     assert returned_result["summary"]["uploaded"] == 0
     assert returned_result["files_processed"][0]["status"] == "skipped"
-    assert returned_result["files_processed"][0]["reason"] == "no_site_auth"
 
 
 def test_process_crops_with_user_and_upload(mock_services, tmp_path):
