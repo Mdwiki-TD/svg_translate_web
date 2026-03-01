@@ -134,7 +134,7 @@ def process_one(
         "steps": {
             "download": None,
             "crop": None,
-            "upload": None,
+            "upload_cropped": None,
             "update_original": None,
             "update_template": None,
         }
