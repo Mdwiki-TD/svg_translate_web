@@ -82,7 +82,7 @@ def upload_one(
     )
     if upload_result.get("file_exists"):
         file_info["status"] = "skipped"
-        file_info["reason"] = "file_exists"
+        # file_info["reason"] = "file_exists"
         file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
         file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload was skipped"}
         result["summary"]["skipped"] += 1
@@ -92,7 +92,7 @@ def upload_one(
     if not upload_result["success"]:
         error = upload_result.get("error", "Unknown upload error")
         file_info["status"] = "failed"
-        file_info["reason"] = "upload_failed"
+        # file_info["reason"] = "upload_failed"
         file_info["error"] = error
         file_info["steps"]["upload_cropped"] = {"result": False, "msg": error}
         file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
@@ -161,7 +161,7 @@ def process_one(
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
         file_info["status"] = "failed"
-        file_info["reason"] = "exception"
+        # file_info["reason"] = "exception"
         file_info["error"] = error_msg
         file_info["steps"]["download"] = {"result": False, "msg": error_msg}
 
@@ -172,7 +172,7 @@ def process_one(
     if not download_result["success"]:
         error_msg = download_result.get("error", "Unknown download error")
         file_info["status"] = "failed"
-        file_info["reason"] = "download_failed"
+        # file_info["reason"] = "download_failed"
         file_info["error"] = error_msg
         file_info["steps"]["download"] = {"result": False, "msg": error_msg}
 
@@ -193,7 +193,7 @@ def process_one(
     if not crop_result["success"]:
         error_msg = crop_result.get("error", "Unknown crop error")
         file_info["status"] = "failed"
-        file_info["reason"] = "crop_failed"
+        # file_info["reason"] = "crop_failed"
         file_info["error"] = error_msg
         file_info["steps"]["crop"] = {"result": False, "msg": error_msg}
 
@@ -312,7 +312,7 @@ def process_crops(
 
         if not site:
             file_info["status"] = "skipped"
-            file_info["reason"] = "no_site_auth"
+            # file_info["reason"] = "no_site_auth"
             file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – no site authentication"}
             file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – no site authentication"}
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – no site authentication"}
@@ -323,7 +323,7 @@ def process_crops(
 
         if not upload_files:
             file_info["status"] = "skipped"
-            file_info["reason"] = "upload disabled"
+            # file_info["reason"] = "upload disabled"
             file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – upload disabled"}
             file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload disabled"}
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload disabled"}
