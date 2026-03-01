@@ -18,12 +18,12 @@ from ...config import settings
 from ...utils.wiki_client import get_user_site
 from ...utils.commons_client import create_commons_session
 from .. import jobs_service
-from ...utils.text_api import get_file_text, update_file_text
+from ...utils.text_api import get_file_text, update_file_text, get_page_text, update_page_text
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
-from .wikitext import create_cropped_file_text, update_original_file_text
+from .wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +74,27 @@ def upload_one(
     updated_file_text = update_original_file_text(cropped_filename, wikitext)
     if wikitext == updated_file_text:
         logger.info(f"Job {job_id}: No update needed for original file text of {original_file}")
-        return
+    else:
+        update_text = update_file_text(original_file, updated_file_text, site)
+        if not update_text["success"]:
+            error = update_text.get("error", "Unknown error")
+            logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
 
-    update_text = update_file_text(original_file, updated_file_text, site)
-
-    if not update_text["success"]:
-        error = update_text.get("error", "Unknown error")
-        logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
+    # Step 6: Update template page to reference cropped file
+    template_title = file_info.get("template_title")
+    if template_title:
+        template_text = get_page_text(template_title, site)
+        updated_template_text = update_template_page_file_reference(original_file, cropped_filename, template_text)
+        if template_text != updated_template_text:
+            summary = f"Update file reference to [[File:{cropped_filename.removeprefix('File:')}]]"
+            update_result = update_page_text(template_title, updated_template_text, site, summary=summary)
+            if not update_result["success"]:
+                logger.warning(
+                    f"Job {job_id}: Failed to update template page {template_title} "
+                    f"(reason: {update_result.get('error', 'Unknown error')})"
+                )
+        else:
+            logger.info(f"Job {job_id}: No update needed for template page {template_title}")
 
 
 def process_one(

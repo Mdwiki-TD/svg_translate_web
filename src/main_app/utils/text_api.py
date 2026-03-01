@@ -87,7 +87,78 @@ def update_file_text(
         return {"success": False, "error": error_msg}
 
 
+def get_page_text(
+    page_name: str,
+    site: mwclient.Site | None,
+) -> str:
+    """
+    Get the wikitext of any page on Wikimedia Commons.
+
+    Args:
+        page_name: The name of the page (e.g., "Template:OWID/Barley yields").
+        site: Authenticated mwclient.Site object for Commons.
+
+    Returns:
+        The wikitext of the page, or an empty string if it cannot be retrieved.
+    """
+    missing_fields = verify_required_fields({
+        "page_name": page_name,
+        "site": site,
+    })
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for get_page_text: {list_str}")
+        return ""
+
+    try:
+        page = site.pages[page_name]
+        return page.text()
+    except Exception as exc:
+        logger.exception(f"Failed to retrieve wikitext for {page_name}", exc_info=exc)
+        return ""
+
+
+def update_page_text(
+    page_name: str,
+    updated_text: str,
+    site: mwclient.Site | None,
+    summary: str = "",
+) -> dict:
+    """
+    Update the wikitext of any page on Wikimedia Commons.
+
+    Args:
+        page_name: The name of the page to update.
+        updated_text: The new wikitext for the page.
+        site: Authenticated mwclient.Site object for Commons.
+        summary: Edit summary.
+
+    Returns:
+        A dictionary with 'success' (bool) and optionally 'error' (str).
+    """
+    missing_fields = verify_required_fields({
+        "page_name": page_name,
+        "updated_text": updated_text,
+        "site": site,
+    })
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for update_page_text: {list_str}")
+        return {"success": False, "error": f"Missing required fields: {list_str}"}
+
+    try:
+        page = site.pages[page_name]
+        page.edit(updated_text, summary=summary)
+        return {"success": True}
+    except Exception as exc:
+        error_msg = str(exc)
+        logger.exception(f"Failed to update wikitext for {page_name}", exc_info=exc)
+        return {"success": False, "error": error_msg}
+
+
 __all__ = [
     "get_file_text",
     "update_file_text",
+    "get_page_text",
+    "update_page_text",
 ]
