@@ -157,6 +157,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Template</th>
                                 <th>File</th>
                                 <th>Cropped</th>
                                 <th>Compare</th>
@@ -170,39 +171,28 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td>
+                                    <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}"
+                                        target="_blank" rel="noopener noreferrer">
+                                        {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
+                                    </a>
+                                </td>
+                                <td>
                                     <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}"
                                         target="_blank" rel="noopener noreferrer">
-                                        {{ file.original_file }}
+                                        File
                                     </a>
                                 </td>
                                 <td>
                                     {% if file.status == 'uploaded' or file.status == 'skipped' %}
                                     <a href="https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}"
                                         target="_blank" rel="noopener noreferrer">
-                                        View Cropped
+                                        Cropped
                                     </a>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
                                         target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
-                                </td>
-                                <td>
-                                    {% if file.status == 'uploaded' %}
-                                    <span class="badge bg-success">{{ file.status }}</span>
-                                    {% elif file.status == 'failed' %}
-                                    <span class="badge bg-danger">{{ file.status }}</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ file.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if file.reason %}
-                                    <small class="text-muted">{{ file.reason }}</small>
-                                    {% endif %}
-                                    {% if file.error %}
-                                    <small class="text-danger">{{ file.error }}</small>
-                                    {% endif %}
                                 </td>
                                 <td>
                                     {% if file.steps %}
@@ -233,6 +223,23 @@
                                         {% endif %}
                                         {% endfor %}
                                     </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if file.status == 'uploaded' %}
+                                    <span class="badge bg-success">{{ file.status }}</span>
+                                    {% elif file.status == 'failed' %}
+                                    <span class="badge bg-danger">{{ file.status }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ file.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if file.reason %}
+                                    <small class="text-muted">{{ file.reason }}</small>
+                                    {% endif %}
+                                    {% if file.error %}
+                                    <small class="text-danger">{{ file.error }}</small>
                                     {% endif %}
                                 </td>
                             </tr>
