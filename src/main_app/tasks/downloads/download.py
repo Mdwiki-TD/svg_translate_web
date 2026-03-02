@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from ...config import settings
 from ...db.task_store_pymysql import TaskStorePyMysql
-from ...utils.commons_client import create_commons_session
+from ...utils.clients import create_commons_session
 from ...utils.download_file_utils import download_one_file
 
 logger = logging.getLogger(__name__)
