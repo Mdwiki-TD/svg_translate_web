@@ -7,8 +7,8 @@ from __future__ import annotations
 import logging
 import mwclient
 
-from .verify import verify_required_fields
-from .wikitext import ensure_file_prefix
+from ..utils.verify import verify_required_fields
+from ..utils.wikitext import ensure_file_prefix
 
 logger = logging.getLogger(__name__)
 

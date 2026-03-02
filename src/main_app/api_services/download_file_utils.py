@@ -9,7 +9,7 @@ from typing import Dict
 import requests
 
 from ..config import settings
-from ..api_services.clients import create_commons_session, download_commons_file_core
+from .clients import create_commons_session, download_commons_file_core
 
 logger = logging.getLogger(__name__)
 

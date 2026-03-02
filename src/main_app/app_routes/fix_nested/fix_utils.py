@@ -13,8 +13,8 @@ from werkzeug.utils import secure_filename
 
 from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...utils.download_file_utils import download_one_file
-from ...utils.upload_bot import upload_file
+from ...api_services.download_file_utils import download_one_file
+from ...api_services.upload_bot import upload_file
 from ...api_services.clients import get_user_site
 
 logger = logging.getLogger(__name__)
