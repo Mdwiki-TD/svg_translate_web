@@ -243,19 +243,13 @@ class CropMainFilesProcessor:
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
             logger.exception(f"Job {self.job_id}: Exception downloading {template.last_world_file}")
-            file_info.steps["download"] = {"result": False, "msg": error_msg}
-            file_info.status = "failed"
-            file_info.error = error_msg
-            self.result["summary"]["failed"] += 1
+            self._fail(file_info, "download", error_msg)
             return False
 
         if not download_result["success"]:
             error_msg = download_result.get("error", "Unknown download error")
             logger.warning(f"Job {self.job_id}: Failed to download {template.last_world_file}")
-            file_info.steps["download"] = {"result": False, "msg": error_msg}
-            file_info.status = "failed"
-            file_info.error = error_msg
-            self.result["summary"]["failed"] += 1
+            self._fail(file_info, "download", error_msg)
             return False
 
         downloaded_path = download_result["path"]
@@ -276,10 +270,7 @@ class CropMainFilesProcessor:
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
             logger.warning(f"Job {self.job_id}: Failed to crop {template.last_world_file}")
-            file_info.steps["crop"] = {"result": False, "msg": error_msg}
-            file_info.status = "failed"
-            file_info.error = error_msg
-            self.result["summary"]["failed"] += 1
+            self._fail(file_info, "crop", error_msg)
             return False
 
         file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
@@ -304,7 +295,7 @@ class CropMainFilesProcessor:
                 f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} "
                 "(file already exists on Commons)"
             )
-            file_info.steps["upload_cropped"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
+            self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")
             file_info.status = "skipped"
             self.result["summary"]["skipped"] += 1
             # Still continue to wikitext updates even if file existed
@@ -313,13 +304,12 @@ class CropMainFilesProcessor:
         if not upload_result["success"]:
             error = upload_result.get("error", "Unknown upload error")
             logger.warning(f"Job {self.job_id}: Failed to upload {file_info.cropped_filename}")
-            file_info.steps["upload_cropped"] = {"result": False, "msg": error}
-            file_info.steps["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
-            file_info.steps["update_template"] = {"result": None, "msg": "Skipped – upload was not successful"}
+
+            self._skip_step(file_info, "update_original", "Skipped – upload failed")
+            self._skip_step(file_info, "update_template", "Skipped – upload was not successful")
+
+            self._fail(file_info, "upload_cropped", error)
             file_info.cropped_filename = None
-            file_info.status = "failed"
-            file_info.error = error
-            self.result["summary"]["failed"] += 1
             return False
 
         logger.info(f"Job {self.job_id}: Successfully uploaded {file_info.cropped_filename}")
@@ -345,6 +335,7 @@ class CropMainFilesProcessor:
                 f"Job {self.job_id}: Failed to update original file text for "
                 f"{file_info.original_file} (reason: {error})"
             )
+            # self._fail(file_info, "update_original", error)
             file_info.steps["update_original"] = {"result": False, "msg": error}
         else:
             file_info.steps["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
@@ -371,6 +362,7 @@ class CropMainFilesProcessor:
                 f"Job {self.job_id}: Failed to update template page {template_title} "
                 f"(reason: {error})"
             )
+            # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
             file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
         else:
             file_info.steps["update_template"] = {"result": True, "msg": f"Updated template {template_title}"}
