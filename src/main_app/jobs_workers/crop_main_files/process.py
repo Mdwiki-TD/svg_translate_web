@@ -294,6 +294,26 @@ def process_crops(
             },
         }
 
+        # pre steps
+        if is_cropped_file_existing(template, site):
+            file_info["steps"]["download"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
+            file_info["steps"]["crop"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
+            file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
+
+            # Step 4: Update original file wikitext to link to cropped version
+            file_info["steps"]["update_original"] = update_original_file_wikitext(job_id, file_info, site)
+
+            # Step 5: Update template page to reference cropped file
+            file_info["steps"]["update_template"] = update_template_references(
+                job_id,
+                file_info,
+                site,
+            )
+
+            result["files_processed"].append(file_info)
+            logger.info(f"Job {job_id}: Skipped cropping for {cropped_filename} (file already exists on Commons)")
+            continue
+
         # Step 1: Download the original file
         file_info["steps"]["download"] = process_one(
             job_id,
@@ -350,7 +370,7 @@ def process_crops(
             result["files_processed"].append(file_info)
             continue
 
-        # Step 4: Upload cropped file to Commons
+        # Step 3: Upload cropped file to Commons
         file_info["steps"]["upload_cropped"] = upload_one(
             job_id,
             file_info,
@@ -376,10 +396,10 @@ def process_crops(
             file_info["status"] = "skipped"
             result["summary"]["skipped"] += 1
 
-        # Step 5: Update original file wikitext to link to cropped version
+        # Step 4: Update original file wikitext to link to cropped version
         file_info["steps"]["update_original"] = update_original_file_wikitext(job_id, file_info, site)
 
-        # Step 6: Update template page to reference cropped file
+        # Step 5: Update template page to reference cropped file
         file_info["steps"]["update_template"] = update_template_references(
             job_id,
             file_info,
