@@ -45,12 +45,12 @@ def is_cropped_file_existing(
 
 def update_template_references(
     job_id: int,
-    template_title: str,
     file_info: dict[str, Any],
     site: mwclient.Site | None,
 ) -> Dict[str, Any]:
     original_file = file_info["original_file"]
     cropped_filename = file_info["cropped_filename"]
+    template_title = file_info.get("template_title")
 
     template_text = get_page_text(template_title, site)
     updated_template_text = update_template_page_file_reference(original_file, cropped_filename, template_text)
@@ -76,19 +76,14 @@ def upload_one(
     job_id: int,
     file_info: dict[str, Any],
     site: mwclient.Site | None,
-    result: dict[str, Any],
-) -> None:
+) -> Dict[str, Any]:
     original_file = file_info["original_file"]
     cropped_filename = file_info["cropped_filename"]
     cropped_path = file_info.get("cropped_path")
 
-    if not cropped_path:
-        return False
-
     wikitext = get_file_text(original_file, site)
     cropped_file_wikitext = create_cropped_file_text(original_file, wikitext)
 
-    # Step 4: Upload cropped file to Commons
     upload_result = upload_cropped_file(
         cropped_filename,
         cropped_path,
@@ -96,44 +91,41 @@ def upload_one(
         cropped_file_wikitext,
     )
     if upload_result.get("file_exists"):
-        file_info["status"] = "skipped"
-        file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – file already exists on Commons"}
-        file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload was skipped"}
-        result["summary"]["skipped"] += 1
         logger.warning(f"Job {job_id}: Skipped upload for {cropped_filename} (file already exists on Commons)")
-        return True
+        return {"result": None, "msg": "Skipped – file already exists on Commons"}
 
     if not upload_result["success"]:
         error = upload_result.get("error", "Unknown upload error")
-        file_info["status"] = "failed"
-        file_info["error"] = error
-        file_info["steps"]["upload_cropped"] = {"result": False, "msg": error}
-        file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
-        result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to upload {cropped_filename}")
-        return False
+        return {"result": False, "msg": error}
 
-    file_info["status"] = "uploaded"
-    file_info["steps"]["upload_cropped"] = {"result": True, "msg": f"Uploaded as {cropped_filename}"}
-    result["summary"]["uploaded"] += 1
     logger.info(f"Job {job_id}: Successfully uploaded {cropped_filename}")
 
-    # Step 5: Update original file wikitext to link to cropped version
+    return {"result": True, "msg": f"Uploaded as {cropped_filename}"}
+
+
+def update_original_file_wikitext(job_id, file_info, site):
+    step_result = {}
+
+    original_file = file_info["original_file"]
+    wikitext = get_file_text(original_file, site)
+    cropped_filename = file_info.get("cropped_filename")
+
     updated_file_text = update_original_file_text(cropped_filename, wikitext)
     if wikitext == updated_file_text:
-        file_info["steps"]["update_original"] = {"result": None, "msg": "No update needed"}
+        step_result = {"result": None, "msg": "No update needed"}
         logger.info(f"Job {job_id}: No update needed for original file text of {original_file}")
     else:
         update_text = update_file_text(original_file, updated_file_text, site)
 
         if not update_text["success"]:
             error = update_text.get("error", "Unknown error")
-            file_info["steps"]["update_original"] = {"result": False, "msg": error}
+            step_result = {"result": False, "msg": error}
             logger.warning(f"Job {job_id}: Failed to update original file text for {original_file} (reason: {error})")
         else:
-            file_info["steps"]["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
+            step_result = {"result": True, "msg": "Updated original file wikitext"}
 
-    return True
+    return step_result
 
 
 def process_one(
@@ -339,29 +331,47 @@ def process_crops(
             result["files_processed"].append(file_info)
             continue
 
-        # Upload the file
-        # Step 4 and Step 5
-        is_upload_successful = upload_one(
+        cropped_path = file_info.get("cropped_path")
+
+        if not cropped_path:
+            file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – cropped file not found"}
+            result["files_processed"].append(file_info)
+            continue
+
+        # Step 4: Upload cropped file to Commons
+        file_info["steps"]["upload_cropped"] = upload_one(
             job_id,
             file_info,
             site,
-            result,
         )
 
-        template_title = file_info.get("template_title")
-        # Step 6: Update template page to reference cropped file
-        if not is_upload_successful:
+        # if not is_upload_successful:
+        upload_cropped_result = file_info["steps"]["upload_cropped"]["result"]
+        if upload_cropped_result is False:
+            result["summary"]["failed"] += 1
+            file_info["status"] = "failed"
+            file_info["error"] = file_info["steps"]["upload_cropped"]["msg"]
+            file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload was not successful"}
             result["files_processed"].append(file_info)
             continue
 
-        update_result = update_template_references(
+        if upload_cropped_result:
+            file_info["status"] = "uploaded"
+            result["summary"]["uploaded"] += 1
+        elif upload_cropped_result is None:
+            file_info["status"] = "skipped"
+            result["summary"]["skipped"] += 1
+
+        # Step 5: Update original file wikitext to link to cropped version
+        file_info["steps"]["update_original"] = update_original_file_wikitext(job_id, file_info, site)
+
+        # Step 6: Update template page to reference cropped file
+        file_info["steps"]["update_template"] = update_template_references(
             job_id,
-            template_title,
             file_info,
             site,
         )
-        file_info["steps"]["update_template"] = update_result
 
         result["files_processed"].append(file_info)
 
