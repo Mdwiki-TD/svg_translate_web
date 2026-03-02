@@ -1,7 +1,7 @@
 """Unit tests for OAuth mwclient site builder (no network)."""
 
 from src.main_app.crypto import encrypt_value
-from src.main_app.utils.clients.wiki_client import build_upload_site
+from src.main_app.api_services.clients.wiki_client import build_upload_site
 
 
 def test_build_upload_site_uses_decrypted_tokens_and_consumer(monkeypatch):

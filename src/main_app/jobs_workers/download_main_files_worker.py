@@ -16,7 +16,7 @@ from flask import send_file
 
 from .. import template_service
 from ..config import settings
-from ..utils.clients import create_commons_session, download_commons_file_core
+from ..api_services.clients import create_commons_session, download_commons_file_core
 from .base_worker import BaseJobWorker
 
 # Zip file name constant
