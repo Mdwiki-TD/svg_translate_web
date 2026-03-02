@@ -78,7 +78,7 @@ def is_cropped_file_existing(
     page = site.Pages[cropped_filename]
 
     if page.exists:
-        logger.error(f"Warning: File {cropped_filename} already exists on Commons")
+        logger.warning(f"File {cropped_filename} already exists on Commons")
         return True
     return False
 
@@ -135,8 +135,13 @@ class CropMainFilesProcessor:
                 break
 
             if n == 1 or n % 10 == 0:
-                jobs_service.save_job_result_by_name(self.result_file, self.result)
-
+                try:
+                    jobs_service.save_job_result_by_name(self.result_file, self.result)
+                except Exception as exc:
+                    logger.warning(
+                        f"Job {self.job_id}: Failed to persist periodic progress; continuing",
+                        exc_info=exc,
+                    )
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
             self._process_template(template)
 
@@ -419,9 +424,9 @@ class CropMainFilesProcessor:
         for step in ("upload_cropped", "update_original", "update_template"):
             self._skip_step(file_info, step, "Skipped – upload disabled")
         file_info.status = "skipped"
-        file_info.cropped_filename = None
         self.result["summary"]["skipped"] += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
+        file_info.cropped_filename = None
 
     def _is_cancelled(self) -> bool:
         if self.cancel_event and self.cancel_event.is_set():

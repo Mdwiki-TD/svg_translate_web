@@ -74,7 +74,7 @@ def download_one_file(
         data["path"] = str(out_path)
     except Exception as e:
         data["result"] = "failed"
-        data["msg"] = ""
+        data["msg"] = f"Failed to save file: {e}"
         logger.error(f"[{i}] Failed to save: {title} -> {e}")
 
     return data

@@ -426,15 +426,6 @@ class TestRepairNestedSvgTags:
         """Test cancellation after fix but before verify."""
         cancel_event = threading.Event()
 
-        call_count = 0
-
-        def set_cancel_after_detect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return {"count": 3}
-            return {"count": 0}
-
         def set_cancel_on_fix(*args, **kwargs):
             cancel_event.set()
             return True
