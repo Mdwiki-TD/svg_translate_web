@@ -9,7 +9,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.main_app.tasks.titles.utils.main_file import find_main_title
+from src.main_app.tasks.titles.titles_utils.main_file import find_main_title
 
 
 

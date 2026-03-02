@@ -11,7 +11,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.main_app.tasks.titles.utils.main_file import (
+from src.main_app.tasks.titles.titles_utils.main_file import (
     find_main_title,
     find_main_title_from_owidslidersrcs,
     match_main_title_from_url,
