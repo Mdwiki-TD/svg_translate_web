@@ -10,7 +10,7 @@ import re
 
 import wikitextparser as wtp
 
-from .utils.main_file import find_main_title, match_main_title_from_url
+from .utils.main_file import find_main_title
 
 
 def get_titles_from_wikilinks(text):
