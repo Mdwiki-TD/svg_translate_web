@@ -4,8 +4,8 @@ Module for handling upload of cropped SVG files to Wikimedia Commons.
 
 from __future__ import annotations
 
-import re
 import logging
+import re
 
 import wikitextparser as wtp
 
@@ -35,10 +35,7 @@ def add_other_versions(
         The modified wikitext with the other versions parameter added
     """
     parsed = wtp.parse(text)
-    args_names = [
-        "other versions",
-        "other_versions"
-    ]
+    args_names = ["other versions", "other_versions"]
     add_done = False
     for template in parsed.templates:
         if template.name.strip().lower() == "information":
@@ -64,11 +61,11 @@ def add_other_versions(
 
 def insert_before_methods(text, other_versions_text):
     # Try to add before the license header
-    modified_text = addBefore(text, other_versions_text, r'==\s*\{\{\s*int:license-header\s*\}\}\s*==')
+    modified_text = addBefore(text, other_versions_text, r"==\s*\{\{\s*int:license-header\s*\}\}\s*==")
 
     if modified_text == text:
         # Try to add before the first category
-        modified_text = addBefore(text, other_versions_text, r'\[\[\s*category:')
+        modified_text = addBefore(text, other_versions_text, r"\[\[\s*category:")
     return modified_text
 
 
@@ -81,6 +78,8 @@ def appendImageExtractedTemplate(
     # If the page already contains a {{Image extracted}} template, append the file to it
 
     """
+    if cropped_file_name.lower() in text.replace("_", " ").lower():
+        return text
     cropped_file_name = cropped_file_name.removeprefix("File:")
     template_name_regex = r"(extracted ?(images?|file|photo)?|image ?extracted|cropped version)"
     match = re.search(r"{{\s*" + template_name_regex + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.IGNORECASE | re.MULTILINE)
@@ -88,13 +87,13 @@ def appendImageExtractedTemplate(
         return text
 
     start, length = match.start(), match.end() - match.start()
-    tplText = text[start:start + length]
+    tplText = text[start : start + length]
 
     # Find out how many existing arguments there are
-    argNo = tplText.count('|') + 1
+    argNo = tplText.count("|") + 1
 
     # Append |$name before the }} of the template
-    modified_text = text[:start + length - 2] + f"|{argNo}={cropped_file_name}" + text[start + length - 2:]
+    modified_text = text[: start + length - 2] + f"|{argNo}={cropped_file_name}" + text[start + length - 2 :]
 
     return modified_text
 
@@ -106,7 +105,10 @@ def update_original_file_text(
     """
     Update the original file's wikitext to include the cropped file information.
     """
-    cropped_file_name = cropped_file_name.removeprefix("File:")
+    cropped_file_name = cropped_file_name.removeprefix("File:").replace("_", " ").strip()
+    if cropped_file_name.lower() in text.replace("_", " ").lower():
+        return text
+
     other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
     modified_text = appendImageExtractedTemplate(cropped_file_name, text)
 

@@ -37,6 +37,7 @@ def upload_cropped_file(
         "success": False,
         "cropped_filename": cropped_filename,
         "error": None,
+        "file_exists": None,
         "skipped": None,
     }
 
@@ -67,7 +68,7 @@ def upload_cropped_file(
         else:
             error_msg = upload_result.get("error", "Unknown upload error")
             if error_msg == "File already exists on Commons":
-                result["skipped"] = True
+                result["file_exists"] = True
                 logger.warning(f"Skipped upload for {cropped_filename}: file already exists on Commons")
             else:
                 result["error"] = f"Upload failed: {error_msg}"

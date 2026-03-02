@@ -63,7 +63,7 @@ def download_file_for_cropping(
             result["path"] = Path(download_result["path"])
             logger.info(f"Using existing file for cropping: {clean_filename}")
         else:
-            result["error"] = f"Download failed: {download_result.get('result', 'unknown')}"
+            result["error"] = f"Download failed: {download_result.get('msg', 'unknown')}"
             logger.warning(f"Failed to download {clean_filename}")
 
     except Exception as e:

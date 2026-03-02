@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 from ...config import settings
 from ..base_worker import BaseJobWorker
-from .process import process_crops
+from .process_new import process_crops
 
 logger = logging.getLogger(__name__)
 

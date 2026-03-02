@@ -37,6 +37,7 @@ def download_one_file(
     """
     data = {
         "result": "",
+        "msg": "",
         "path": "",
     }
 
@@ -48,6 +49,7 @@ def download_one_file(
     if out_path.exists() and not overwrite:
         logger.debug(f"[{i}] Skipped existing: {title}")
         data["result"] = "existing"
+        data["msg"] = "Skip existing file, no overwrite"
         data["path"] = str(out_path)
         return data
 
@@ -60,6 +62,9 @@ def download_one_file(
     except Exception as e:
         data["result"] = "failed"
         logger.error(f"[{i}] Failed: {title} -> {e}")
+        if "404 Client Error: Not Found for url" in str(e):
+            data["msg"] = "File not found"
+        # 2026-03-02 02:28:16,694 - main_app.utils.download_file_utils - ERROR [1] Failed: share with mental and substance disorders, World, 2021zz.svg -> 404 Client Error: Not Found for url: https://commons.wikimedia.org/wiki/Special:Redirect/file/share_with_mental_and_substance_disorders,_World,_2021zz.svg
         return data
 
     try:
@@ -69,6 +74,7 @@ def download_one_file(
         data["path"] = str(out_path)
     except Exception as e:
         data["result"] = "failed"
+        data["msg"] = ""
         logger.error(f"[{i}] Failed to save: {title} -> {e}")
 
     return data
