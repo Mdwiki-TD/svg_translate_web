@@ -1,6 +1,6 @@
 """Tests for text_utils module."""
 
-from src.main_app.utils.text_utils import ensure_file_prefix
+from src.main_app.utils.wikitext import ensure_file_prefix
 
 
 class TestEnsureFilePrefix:
