@@ -70,6 +70,21 @@ class FileProcessingInfo:
         }
 
 
+def is_cropped_file_existing(
+    template: TemplateRecord,
+    site: mwclient.Site | None,
+) -> bool:
+
+    cropped_filename = generate_cropped_filename(template.last_world_file)
+
+    page = site.Pages[cropped_filename]
+
+    if page.exists:
+        logger.error(f"Warning: File {cropped_filename} already exists on Commons")
+        return True
+    return False
+
+
 class CropMainFilesProcessor:
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
@@ -253,7 +268,10 @@ class CropMainFilesProcessor:
             return False
 
         downloaded_path = download_result["path"]
-        file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
+        file_info.steps["download"] = {
+            "result": True,
+            "msg": f"Downloaded to {downloaded_path}"
+        }
         file_info.downloaded_path = downloaded_path
         self.result["summary"]["processed"] += 1
         return True
