@@ -379,11 +379,20 @@ class CropMainFilesProcessor:
     # Helpers
     # ------------------------------------------------------------------
 
+    def _fail(self, file_info: FileProcessingInfo, step: str, error: str) -> None:
+        """Mark a step and the file as failed, and increment the summary counter."""
+        file_info.steps[step] = {"result": False, "msg": error}
+        file_info.status = "failed"
+        file_info.error = error
+        self.result["summary"]["failed"] += 1
+
+    def _skip_step(self, file_info: FileProcessingInfo, step: str, reason: str) -> None:
+        """Mark a step as skipped (result=None)."""
+        file_info.steps[step] = {"result": None, "msg": reason}
+
     def _skip_upload_steps(self, file_info: FileProcessingInfo) -> None:
-        skipped = {"result": None, "msg": "Skipped – upload disabled"}
-        file_info.steps["upload_cropped"] = skipped
-        file_info.steps["update_original"] = skipped
-        file_info.steps["update_template"] = skipped
+        for step in ("upload_cropped", "update_original", "update_template"):
+            self._skip_step(file_info, step, "Skipped – upload disabled")
         file_info.status = "skipped"
         file_info.cropped_filename = None
         self.result["summary"]["skipped"] += 1
