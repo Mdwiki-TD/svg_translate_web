@@ -24,7 +24,7 @@ from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
-from .wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
+from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 
 logger = logging.getLogger(__name__)
 

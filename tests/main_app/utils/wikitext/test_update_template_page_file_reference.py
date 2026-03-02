@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.crop_main_files.wikitext import update_template_page_file_reference
+from src.main_app.utils.wikitext import update_template_page_file_reference
 
 
 class TestUpdateTemplatePageFileReference:

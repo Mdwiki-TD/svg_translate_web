@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.crop_main_files.wikitext import add_other_versions
+from src.main_app.utils.wikitext import add_other_versions
 
 
 class TestAddOtherVersions:

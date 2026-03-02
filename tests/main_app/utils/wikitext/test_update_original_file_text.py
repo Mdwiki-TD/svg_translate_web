@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.crop_main_files.wikitext import update_original_file_text
+from src.main_app.utils.wikitext import update_original_file_text
 
 
 class TestUpdate_original_file_text:
