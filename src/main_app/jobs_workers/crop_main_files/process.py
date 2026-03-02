@@ -137,8 +137,7 @@ def process_one(
     session: requests.Session,
     file_info: dict[str, Any],
 ):
-
-    cropped_filename = generate_cropped_filename(template.last_world_file)
+    cropped_filename = file_info.get("cropped_filename")
 
     # Step 1: Download the original file
     try:
@@ -190,9 +189,6 @@ def process_one(
     file_info["steps"]["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
     file_info["cropped_path"] = cropped_output_path
     result["summary"]["cropped"] += 1
-
-    # Step 3: Generate cropped filename
-    file_info["cropped_filename"] = cropped_filename
 
     return file_info
 
@@ -284,13 +280,15 @@ def process_crops(
 
         logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
+        cropped_filename = generate_cropped_filename(template.last_world_file)
+
         file_info = {
             "template_id": template.id,
             "template_title": template.title,
             "original_file": template.last_world_file,
             "timestamp": datetime.now().isoformat(),
             "status": "pending",
-            "cropped_filename": None,
+            "cropped_filename": cropped_filename,
             "error": None,
             "steps": {
                 "download": {"result": None, "msg": ""},
@@ -318,8 +316,6 @@ def process_crops(
             )
             result["files_processed"].append(file_info)
             continue
-
-        cropped_filename = file_info.get("cropped_filename")
 
         if not upload_files:
             file_info["status"] = "skipped"
