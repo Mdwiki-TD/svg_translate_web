@@ -184,17 +184,17 @@ def process_cropping(
     return {"result": True, "msg": f"Cropped to {cropped_output_path}"}
 
 
-def limit_templates_by_settings(
+def _apply_limits(
     job_id: int,
     templates_with_files: List[TemplateRecord],
 ) -> List[TemplateRecord]:
-    upload_cropped_files = int(settings.dynamic.get("crop_newest_upload_limit", 0))
-    if upload_cropped_files > 0 and len(templates_with_files) > upload_cropped_files:
+    upload_limit = int(settings.dynamic.get("crop_newest_upload_limit", 0))
+    if upload_limit > 0 and len(templates_with_files) > upload_limit:
         logger.info(
             f"Job {job_id}: Upload cropped files limit - limiting crop from "
-            f"{len(templates_with_files)} to {upload_cropped_files} files"
+            f"{len(templates_with_files)} to {upload_limit} files"
         )
-        return templates_with_files[:upload_cropped_files]
+        return templates_with_files[:upload_limit]
 
     dev_limit = settings.download.dev_limit
     if dev_limit > 0 and len(templates_with_files) > dev_limit:
@@ -239,10 +239,10 @@ def process_crops(
     templates_with_files = [t for t in templates if t.last_world_file]
 
     # Apply development mode limit from settings
-    templates_with_files = limit_templates_by_settings(job_id, templates_with_files)
+    templates = _apply_limits(job_id, templates_with_files)
 
-    result["summary"]["total"] = len(templates_with_files)
-    logger.info(f"Job {job_id}: Found {len(templates_with_files)} templates with main files")
+    result["summary"]["total"] = len(templates)
+    logger.info(f"Job {job_id}: Found {len(templates)} templates with main files")
 
     # Create a shared session for all downloads
     session = create_commons_session(settings.oauth.user_agent)
@@ -260,7 +260,7 @@ def process_crops(
         result["failed_at"] = datetime.now().isoformat()
         return result
 
-    for n, template in enumerate(templates_with_files, start=1):
+    for n, template in enumerate(templates, start=1):
         # Check for cancellation
         if cancel_event and cancel_event.is_set():
             logger.info(f"Job {job_id}: Cancellation detected, stopping.")
@@ -272,7 +272,7 @@ def process_crops(
         if n == 1 or n % 10 == 0:
             jobs_service.save_job_result_by_name(result_file, result)
 
-        logger.info(f"Job {job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
+        logger.info(f"Job {job_id}: Processing {n}/{len(templates)}: {template.title}")
 
         cropped_filename = generate_cropped_filename(template.last_world_file)
 
