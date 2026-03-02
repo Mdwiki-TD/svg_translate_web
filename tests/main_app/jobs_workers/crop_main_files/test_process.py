@@ -44,17 +44,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_settings.dynamic = {}  # Empty dict for dynamic settings
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.process.settings", mock_settings
-    )
-
-    # Mock create_commons_session
+    )    # Mock create_commons_session
     mock_create_session = MagicMock(return_value=Mock())
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.process.create_commons_session",
         mock_create_session,
     )
 
-    # Mock get_user_site
-    mock_get_user_site = MagicMock(return_value=Mock())
+    # Mock get_user_site - create a mock site with proper Pages mock
+    mock_site = MagicMock()
+    mock_page = MagicMock()
+    mock_page.exists = False  # Default: cropped file doesn't exist
+    mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
+    mock_get_user_site = MagicMock(return_value=mock_site)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.process.get_user_site",
         mock_get_user_site,
@@ -67,6 +69,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "settings": mock_settings,
         "create_commons_session": mock_create_session,
         "get_user_site": mock_get_user_site,
+        "mock_site": mock_site,
+        "mock_page": mock_page,
     }
 
 
@@ -290,10 +294,18 @@ def test_process_crops_with_user_and_upload(mock_services, tmp_path):
         patch(
             "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
         ) as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+        ) as mock_upload,
     ):
         mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
         mock_crop.return_value = {"success": True}
         mock_generate.return_value = "File:test (cropped).svg"
+        mock_get_file_text.return_value = "{{Information}}"
+        mock_upload.return_value = {"success": True}
 
         returned_result = process.process_crops(
             1, result, "test_result.json", user, upload_files=True
