@@ -637,3 +637,315 @@ def test_process_cropping_failure(mock_services, tmp_path):
 
     assert result["result"] is False
     assert "No footer found" in result["msg"]
+
+
+# =============================================================================
+# Tests for is_cropped_file_existing
+# =============================================================================
+
+
+def test_is_cropped_file_existing_returns_true_when_file_exists(mock_services):
+    """Test that is_cropped_file_existing returns True when the cropped file exists."""
+    template = TemplateRecord(
+        id=1,
+        title="Template:Test",
+        last_world_file="File:test.svg",
+        main_file=None,
+    )
+    mock_site = Mock()
+    mock_page = Mock()
+    mock_page.exists = True
+    mock_site.Pages.__getitem__ = Mock(return_value=mock_page)
+
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+    ) as mock_generate:
+        mock_generate.return_value = "File:test (cropped).svg"
+
+        result = process.is_cropped_file_existing(template, mock_site)
+
+    assert result is True
+
+
+def test_is_cropped_file_existing_returns_false_when_file_does_not_exist(mock_services):
+    """Test that is_cropped_file_existing returns False when the cropped file doesn't exist."""
+    template = TemplateRecord(
+        id=1,
+        title="Template:Test",
+        last_world_file="File:test.svg",
+        main_file=None,
+    )
+    mock_site = Mock()
+    mock_page = Mock()
+    mock_page.exists = False
+    mock_site.Pages.__getitem__ = Mock(return_value=mock_page)
+
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+    ) as mock_generate:
+        mock_generate.return_value = "File:test (cropped).svg"
+
+        result = process.is_cropped_file_existing(template, mock_site)
+
+    assert result is False
+
+
+# =============================================================================
+# Tests for update_template_references
+# =============================================================================
+
+
+def test_update_template_references_success(mock_services):
+    """Test successful update of template references."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+        "template_title": "Template:Test",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_page_text"
+        ) as mock_get_page,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_template_page_file_reference"
+        ) as mock_update_ref,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_page_text"
+        ) as mock_update_page,
+    ):
+        mock_get_page.return_value = "[[File:test.svg|thumb]]"
+        mock_update_ref.return_value = "[[File:test (cropped).svg|thumb]]"
+        mock_update_page.return_value = {"success": True}
+
+        result = process.update_template_references(job_id, file_info, mock_site)
+
+    assert result["result"] is True
+    assert "Updated template" in result["msg"]
+
+
+def test_update_template_references_no_update_needed(mock_services):
+    """Test when no update is needed for template references."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+        "template_title": "Template:Test",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_page_text"
+        ) as mock_get_page,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_template_page_file_reference"
+        ) as mock_update_ref,
+    ):
+        template_text = "No file reference here"
+        mock_get_page.return_value = template_text
+        # Return unchanged text to indicate no update needed
+        mock_update_ref.return_value = template_text
+
+        result = process.update_template_references(job_id, file_info, mock_site)
+
+    assert result["result"] is None
+    assert "No update needed" in result["msg"]
+
+
+def test_update_template_references_failure(mock_services):
+    """Test handling of failed template reference update."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+        "template_title": "Template:Test",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_page_text"
+        ) as mock_get_page,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_template_page_file_reference"
+        ) as mock_update_ref,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_page_text"
+        ) as mock_update_page,
+    ):
+        mock_get_page.return_value = "[[File:test.svg|thumb]]"
+        mock_update_ref.return_value = "[[File:test (cropped).svg|thumb]]"
+        mock_update_page.return_value = {"success": False, "error": "Permission denied"}
+
+        result = process.update_template_references(job_id, file_info, mock_site)
+
+    assert result["result"] is False
+    assert "Failed to update template" in result["msg"]
+
+
+# =============================================================================
+# Tests for update_original_file_wikitext
+# =============================================================================
+
+
+def test_update_original_file_wikitext_success(mock_services):
+    """Test successful update of original file wikitext."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_original_file_text"
+        ) as mock_update_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_file_text"
+        ) as mock_update_file,
+    ):
+        mock_get_file.return_value = "{{Information}}"
+        mock_update_text.return_value = "{{Information|other_versions={{Image extracted|test.svg}}}}"
+        mock_update_file.return_value = {"success": True}
+
+        result = process.update_original_file_wikitext(job_id, file_info, mock_site)
+
+    assert result["result"] is True
+    assert "Updated original file wikitext" in result["msg"]
+
+
+def test_update_original_file_wikitext_no_update_needed(mock_services):
+    """Test when no update is needed for original file wikitext."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_original_file_text"
+        ) as mock_update_text,
+    ):
+        wikitext = "{{Information|other_versions={{Image extracted|test (cropped).svg}}}}"
+        mock_get_file.return_value = wikitext
+        # Return unchanged text to indicate no update needed
+        mock_update_text.return_value = wikitext
+
+        result = process.update_original_file_wikitext(job_id, file_info, mock_site)
+
+    assert result["result"] is None
+    assert "No update needed" in result["msg"]
+
+
+def test_update_original_file_wikitext_failure(mock_services):
+    """Test handling of failed original file wikitext update."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+    }
+    mock_site = Mock()
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_original_file_text"
+        ) as mock_update_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_file_text"
+        ) as mock_update_file,
+    ):
+        mock_get_file.return_value = "{{Information}}"
+        mock_update_text.return_value = "{{Information|other_versions={{Image extracted|test.svg}}}}"
+        mock_update_file.return_value = {"success": False, "error": "Protected page"}
+
+        result = process.update_original_file_wikitext(job_id, file_info, mock_site)
+
+    assert result["result"] is False
+    assert "Protected page" in result["msg"]
+
+
+# =============================================================================
+# Tests for upload_one file_exists handling
+# =============================================================================
+
+
+def test_upload_one_file_already_exists(mock_services):
+    """Test upload_one skips when file already exists on Commons."""
+    job_id = 1
+    file_info = {
+        "original_file": "File:test.svg",
+        "cropped_filename": "File:test (cropped).svg",
+        "cropped_path": Path("/tmp/test_cropped.svg"),
+        "status": "pending",
+    }
+    site = Mock()
+
+    with patch(
+        "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+    ) as mock_upload:
+        mock_upload.return_value = {"success": False, "file_exists": True}
+
+        result = process.upload_one(job_id, file_info, site)
+
+    assert result["result"] is None
+    assert "already exists" in result["msg"]
+
+
+# =============================================================================
+# Tests for _apply_limits
+# =============================================================================
+
+
+def test_apply_limits_with_upload_limit(mock_services):
+    """Test that upload limit from dynamic settings is applied."""
+    mock_services["settings"].dynamic = {"crop_newest_upload_limit": 3}
+    mock_services["settings"].download.dev_limit = 0  # Disable dev limit
+
+    templates = [
+        TemplateRecord(
+            id=i,
+            title=f"Template:Test{i}",
+            last_world_file=f"File:test{i}.svg",
+            main_file=None,
+        )
+        for i in range(1, 11)  # 10 templates
+    ]
+
+    result = process._apply_limits(1, templates)
+
+    assert len(result) == 3
+
+
+def test_apply_limits_without_any_limits(mock_services):
+    """Test that no limit is applied when both limits are 0."""
+    mock_services["settings"].dynamic = {"crop_newest_upload_limit": 0}
+    mock_services["settings"].download.dev_limit = 0
+
+    templates = [
+        TemplateRecord(
+            id=i,
+            title=f"Template:Test{i}",
+            last_world_file=f"File:test{i}.svg",
+            main_file=None,
+        )
+        for i in range(1, 11)  # 10 templates
+    ]
+
+    result = process._apply_limits(1, templates)
+
+    assert len(result) == 10
