@@ -78,6 +78,8 @@ def appendImageExtractedTemplate(
     # If the page already contains a {{Image extracted}} template, append the file to it
 
     """
+    if cropped_file_name in text:
+        return text
     cropped_file_name = cropped_file_name.removeprefix("File:")
     template_name_regex = r"(extracted ?(images?|file|photo)?|image ?extracted|cropped version)"
     match = re.search(r"{{\s*" + template_name_regex + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.IGNORECASE | re.MULTILINE)
@@ -103,7 +105,10 @@ def update_original_file_text(
     """
     Update the original file's wikitext to include the cropped file information.
     """
-    cropped_file_name = cropped_file_name.removeprefix("File:")
+    cropped_file_name = cropped_file_name.removeprefix("File:").replace("_", " ").strip()
+    if cropped_file_name in text:
+        return text
+
     other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
     modified_text = appendImageExtractedTemplate(cropped_file_name, text)
 
