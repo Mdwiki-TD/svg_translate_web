@@ -1,7 +1,7 @@
 #
 import logging
 
-from .text_bot import get_wikitext
+from ...utils.text_bot import get_wikitext
 
 logger = logging.getLogger(__name__)
 

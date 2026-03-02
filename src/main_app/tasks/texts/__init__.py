@@ -1,5 +1,6 @@
+
 from .start_bot import text_task
-from .text_bot import get_wikitext
+from ...utils.text_bot import get_wikitext
 
 __all__ = [
     "text_task",

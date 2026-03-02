@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from .. import template_service
-from ..tasks.texts.text_bot import get_wikitext
+from ..utils.text_bot import get_wikitext
 from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
 

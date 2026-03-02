@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.tasks.texts.text_bot import get_wikitext
+from src.main_app.utils.text_bot import get_wikitext
 
 
 @patch("src.main_app.tasks.texts.text_bot.requests.Session")
