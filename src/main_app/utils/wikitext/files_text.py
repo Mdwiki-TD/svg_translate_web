@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import re
-from .before_mothods import insert_before_methods
+from .before_methods import insert_before_methods
 from .other_versions import add_other_versions
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.before_mothods import insert_before_methods
+from src.main_app.utils.wikitext.before_methods import insert_before_methods
 
 
 class TestInsertBeforeMethods:
