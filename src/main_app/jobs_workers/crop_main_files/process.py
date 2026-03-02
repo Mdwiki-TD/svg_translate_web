@@ -8,10 +8,12 @@ import logging
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import mwclient
 import requests
+
+from ...db.db_Templates import TemplateRecord
 
 from ... import template_service
 from ...config import settings
@@ -29,9 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 def is_cropped_file_existing(
-    template: template_service.TemplateRecord,
+    template: TemplateRecord,
     site: mwclient.Site | None,
-):
+) -> bool:
 
     cropped_filename = generate_cropped_filename(template.last_world_file)
 
@@ -104,7 +106,11 @@ def upload_one(
     return {"result": True, "msg": f"Uploaded as {cropped_filename}"}
 
 
-def update_original_file_wikitext(job_id, file_info, site):
+def update_original_file_wikitext(
+    job_id,
+    file_info,
+    site,
+) -> dict[str, Any]:
     step_result = {}
 
     original_file = file_info["original_file"]
@@ -130,7 +136,7 @@ def update_original_file_wikitext(job_id, file_info, site):
 
 def process_one(
     job_id: int,
-    template: template_service.TemplateRecord,
+    template: TemplateRecord,
     original_dir: Path,
     session: requests.Session,
 ) -> Dict[str, Any]:
@@ -165,7 +171,7 @@ def process_one(
 
 def process_cropping(
     job_id: int,
-    template: template_service.TemplateRecord,
+    template: TemplateRecord,
     downloaded_path: Path,
     cropped_output_path: Path,
 ) -> Dict[str, Any]:
@@ -179,7 +185,10 @@ def process_cropping(
     return {"result": True, "msg": f"Cropped to {cropped_output_path}"}
 
 
-def limit_templates_by_settings(job_id, templates_with_files):
+def limit_templates_by_settings(
+    job_id: int,
+    templates_with_files: List[TemplateRecord],
+) -> List[TemplateRecord]:
     upload_cropped_files = int(settings.dynamic.get("crop_newest_upload_limit", 0))
     if upload_cropped_files > 0 and len(templates_with_files) > upload_cropped_files:
         logger.info(
