@@ -961,3 +961,117 @@ def test_apply_limits_without_any_limits(mock_services):
     result = process._apply_limits(1, templates)
 
     assert len(result) == 10
+
+
+# =============================================================================
+# Tests for process_crops edge cases
+# =============================================================================
+
+
+def test_process_crops_skips_when_cropped_file_exists(mock_services, tmp_path):
+    """Test that processing is skipped when cropped file already exists on Commons."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None
+        ),
+    ]
+    mock_services["list_templates"].return_value = templates
+    # Make the cropped file appear to exist
+    mock_services["mock_page"].exists = True
+
+    result = {
+        "summary": {
+            "total": 0,
+            "processed": 0,
+            "cropped": 0,
+            "uploaded": 0,
+            "failed": 0,
+            "skipped": 0,
+        },
+        "files_processed": [],
+    }
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_original_file_text"
+        ) as mock_update_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_file_text"
+        ) as mock_update_file,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_page_text"
+        ) as mock_get_page,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_template_page_file_reference"
+        ) as mock_update_ref,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.update_page_text"
+        ) as mock_update_page,
+    ):
+        mock_generate.return_value = "File:test (cropped).svg"
+        mock_get_file_text.return_value = "{{Information}}"
+        mock_update_text.return_value = "{{Information|other_versions=...}}"
+        mock_update_file.return_value = {"success": True}
+        mock_get_page.return_value = "[[File:test.svg|thumb]]"
+        mock_update_ref.return_value = "[[File:test (cropped).svg|thumb]]"
+        mock_update_page.return_value = {"success": True}
+
+        returned_result = process.process_crops(
+            1, result, "test_result.json", None, upload_files=True
+        )
+
+    # Should skip download/crop/upload but still update wikitext
+    assert len(returned_result["files_processed"]) == 1
+    file_info = returned_result["files_processed"][0]
+    assert file_info["steps"]["download"]["result"] is None
+    assert file_info["steps"]["crop"]["result"] is None
+    assert file_info["steps"]["upload_cropped"]["result"] is None
+
+
+def test_process_crops_handles_upload_failure(mock_services, tmp_path):
+    """Test that upload failures are handled correctly."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test", last_world_file="File:test.svg", main_file=None
+        ),
+    ]
+    mock_services["list_templates"].return_value = templates
+    mock_services["mock_page"].exists = False
+
+    result = {
+        "summary": {
+            "total": 0,
+            "processed": 0,
+            "cropped": 0,
+            "uploaded": 0,
+            "failed": 0,
+            "skipped": 0,
+        },
+        "files_processed": [],
+    }
+
+    with (
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.download_file_for_cropping"
+        ) as mock_download,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.crop_svg_file"
+        ) as mock_crop,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.generate_cropped_filename"
+        ) as mock_generate,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.get_file_text"
+        ) as mock_get_file_text,
+        patch(
+            "src.main_app.jobs_workers.crop_main_files.process.upload_cropped_file"
+        ) as mock_upload,
+    ):
+        mock_download.return_value = {"success": True, "path": tmp_path / "test.svg"}
+        mock_crop.return_value = {"success": True}
