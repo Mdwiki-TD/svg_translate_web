@@ -4,13 +4,12 @@
 """
 Pytest test suite for:
 - get_titles
-- get_titles_from_wikilinks
 
 """
 
 import pytest
 
-from src.main_app.tasks.titles.temps_bot import get_titles, get_titles_from_wikilinks
+from src.main_app.utils.wikitext.temps_bot import get_titles
 
 # ---------- Fixtures with realistic wikitext samples ----------
 
@@ -137,13 +136,3 @@ def test_get_titles_regex_variants(block, expected_count):
     titles = get_titles(block)
     assert len(titles) == expected_count
     assert all(t.endswith(".svg") for t in titles)
-
-
-def test_get_titles_from_wikilinks(sample_from_prompt: str):
-    """Returns empty list when owidslidersrcs contains no File entries."""
-    titles = get_titles(sample_from_prompt)
-
-    titles_new = get_titles_from_wikilinks(sample_from_prompt)
-
-    assert "Health-expenditure-government-expenditure,World,2022 (cropped).svg" not in titles
-    assert "Health-expenditure-government-expenditure,World,2022 (cropped).svg" in titles_new

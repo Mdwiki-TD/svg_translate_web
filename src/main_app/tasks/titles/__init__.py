@@ -1,4 +1,5 @@
-from .temps_bot import get_files_list, get_titles
+
+from ...utils.wikitext.temps_bot import get_files_list, get_titles
 from .titles_tasks import titles_task
 
 __all__ = [
