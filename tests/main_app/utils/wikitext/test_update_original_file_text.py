@@ -6,7 +6,7 @@ from src.main_app.utils.wikitext import update_original_file_text
 
 
 class TestUpdate_original_file_text:
-    """Tests for the add_other_versions function."""
+    """Tests for the update_original_file_text function."""
 
     def testItAddsImageExtractedTemplateToOtherVersions2(self):
         oldText = """

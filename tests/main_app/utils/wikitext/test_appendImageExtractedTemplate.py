@@ -5,7 +5,7 @@ from src.main_app.utils.wikitext import appendImageExtractedTemplate
 
 
 class TestAddOtherVersions:
-    """Tests for the add_other_versions function."""
+    """Tests for the appendImageExtractedTemplate function."""
 
     def testItAppendsToExistingImageExtractedTemplate(self):
         oldText1 = '''
