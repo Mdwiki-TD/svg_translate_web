@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 from .. import template_service
 from ..tasks.texts.text_bot import get_wikitext
-from ..tasks.titles.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
+from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)

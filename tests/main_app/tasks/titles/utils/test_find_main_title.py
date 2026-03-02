@@ -9,19 +9,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.main_app.tasks.titles.titles_utils.main_file import find_main_title
-
-
-
-
-
-
-
-
-
-
-
-
+from src.main_app.utils.wikitext.titles_utils.main_file import find_main_title
 
 
 # ---------- Tests for find_main_title ----------
