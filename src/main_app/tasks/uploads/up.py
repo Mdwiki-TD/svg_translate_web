@@ -10,8 +10,8 @@ from tqdm import tqdm
 
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...users.store import mark_token_used
-from ...utils.upload_bot import upload_file
-from ...utils.wiki_client import build_upload_site, coerce_encrypted
+from ...api_services.upload_bot import upload_file
+from ...api_services.clients.wiki_client import build_upload_site, coerce_encrypted
 
 logger = logging.getLogger(__name__)
 

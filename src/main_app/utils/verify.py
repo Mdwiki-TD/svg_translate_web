@@ -8,12 +8,6 @@ from typing import Any, Dict, List
 logger = logging.getLogger(__name__)
 
 
-def ensure_file_prefix(file_name) -> str:
-    if not file_name.startswith("File:"):
-        file_name = "File:" + file_name
-    return file_name
-
-
 def verify_required_fields(required_fields: Dict[str, Any]) -> List[str]:
     """
     Verify that all required fields are present in the data dictionary.
@@ -33,6 +27,5 @@ def verify_required_fields(required_fields: Dict[str, Any]) -> List[str]:
 
 
 __all__ = [
-    "ensure_file_prefix",
     "verify_required_fields",
 ]
