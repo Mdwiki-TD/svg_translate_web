@@ -6,67 +6,10 @@ from __future__ import annotations
 
 import logging
 import re
-
-import wikitextparser as wtp
+from .before_mothods import insert_before_methods
+from .other_versions import add_other_versions
 
 logger = logging.getLogger(__name__)
-
-
-def addBefore(text: str, newText: str, searchText: str) -> str:
-    res = re.search(searchText, text, flags=re.IGNORECASE | re.MULTILINE)
-    if res:
-        start = res.start()
-        text = text[:start].rstrip() + "\n" + newText + "\n\n" + text[start:].lstrip()
-    return text
-
-
-def add_other_versions(
-    param_text: str,
-    text: str,
-) -> str:
-    """
-    Add |other versions = <param_text> parameter to the {{Information}} template in wikitext.
-
-    Args:
-        param_text: The text to add to the other versions parameter
-        text: The wikitext content to modify
-
-    Returns:
-        The modified wikitext with the other versions parameter added
-    """
-    parsed = wtp.parse(text)
-    args_names = ["other versions", "other_versions"]
-    add_done = False
-    for template in parsed.templates:
-        if template.name.strip().lower() == "information":
-            arg_found = False
-            for arg in template.arguments:
-                if arg.name.strip().lower() in args_names:
-                    new_value = arg.value.strip() + "\n" + param_text
-                    arg.value = f"{new_value.strip()}\n"
-                    arg_found = True
-                    add_done = True
-                    break
-            if not arg_found:
-                template.set_arg("other versions", f"{param_text}\n")
-                add_done = True
-                break
-            break
-
-    if not add_done:
-        return text
-
-    return parsed.string
-
-
-def insert_before_methods(text, other_versions_text):
-    # Try to add before the license header
-    modified_text = addBefore(text, other_versions_text, r"==\s*\{\{\s*int:license-header\s*\}\}\s*==")
-
-    if modified_text == text:
-        # Try to add before the first category
-        modified_text = addBefore(text, other_versions_text, r"\[\[\s*category:")
-    return modified_text
 
 
 def appendImageExtractedTemplate(
@@ -148,32 +91,8 @@ def create_cropped_file_text(
     return modified_text
 
 
-def update_template_page_file_reference(
-    original_file: str,
-    cropped_file: str,
-    text: str,
-) -> str:
-    """
-    Replace the file reference in a template page's wikitext.
-
-    Replaces [[File:<original_file>...]] with [[File:<cropped_file>...]]
-    everywhere in the template page wikitext (including inside syntaxhighlight blocks).
-
-    Args:
-        original_file: The original world file name (with or without "File:" prefix)
-        cropped_file: The cropped file name (with or without "File:" prefix)
-        text: The template page wikitext to modify
-
-    Returns:
-        The modified wikitext with file references replaced
-    """
-    original_name = original_file.removeprefix("File:")
-    cropped_name = cropped_file.removeprefix("File:")
-    return text.replace(f"[[File:{original_name}|", f"[[File:{cropped_name}|")
-
-
 __all__ = [
+    "appendImageExtractedTemplate",
     "update_original_file_text",
     "create_cropped_file_text",
-    "update_template_page_file_reference",
 ]

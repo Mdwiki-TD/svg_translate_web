@@ -1,7 +1,7 @@
 #
 import logging
 
-from .temps_bot import get_files_list
+from ...utils.wikitext import get_files_list
 
 logger = logging.getLogger(__name__)
 

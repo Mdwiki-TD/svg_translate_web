@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.utils.text_api import get_file_text, update_file_text, get_page_text, update_page_text
+from src.main_app.api_services.text_api import get_file_text, update_file_text, get_page_text, update_page_text
 
 
 class TestGetFileText:
