@@ -71,11 +71,9 @@ class FileProcessingInfo:
 
 
 def is_cropped_file_existing(
-    template: TemplateRecord,
+    cropped_filename: str,
     site: mwclient.Site | None,
 ) -> bool:
-
-    cropped_filename = generate_cropped_filename(template.last_world_file)
 
     page = site.Pages[cropped_filename]
 
@@ -213,6 +211,18 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
+        # pre steps if the file already in commons, skip download/upload files.
+        if is_cropped_file_existing(cropped_filename, self.site):
+            self._skip_step(file_info, "download", "Skipped – file already exists on Commons")
+            self._skip_step(file_info, "crop", "Skipped – file already exists on Commons")
+            self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")
+
+            # Step 4 & 5 – Update wikitext references
+            self.update_file_references(file_info)
+
+            self._append(file_info)
+            return
+
         # Step 1 – Download
         if not self._step_download(file_info, template):
             self._append(file_info)
@@ -235,13 +245,18 @@ class CropMainFilesProcessor:
             self._append(file_info)
             return
 
+        # Step 4 & 5 – Update wikitext references
+        self.update_file_references(file_info)
+
+        self._append(file_info)
+
+    def update_file_references(self, file_info):
+
         # Step 4 – Update original file wikitext
         self._step_update_original(file_info)
 
         # Step 5 – Update template page reference
         self._step_update_template(file_info)
-
-        self._append(file_info)
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
