@@ -131,15 +131,10 @@ def update_original_file_wikitext(job_id, file_info, site):
 def process_one(
     job_id: int,
     template: template_service.TemplateRecord,
-    result: dict[str, Any],
     original_dir: Path,
-    cropped_dir: Path,
     session: requests.Session,
-    file_info: dict[str, Any],
-):
-    cropped_filename = file_info.get("cropped_filename")
+) -> Dict[str, Any]:
 
-    # Step 1: Download the original file
     try:
         download_result = download_file_for_cropping(
             template.last_world_file,
@@ -149,48 +144,39 @@ def process_one(
 
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        file_info["status"] = "failed"
-        file_info["error"] = error_msg
-        file_info["steps"]["download"] = {"result": False, "msg": error_msg}
-
-        result["summary"]["failed"] += 1
         logger.exception(f"Job {job_id}: Exception processing {template.last_world_file}")
-        return file_info
+        return {"result": False, "msg": error_msg}
 
     if not download_result["success"]:
         error_msg = download_result.get("error", "Unknown download error")
-        file_info["status"] = "failed"
-        file_info["error"] = error_msg
-        file_info["steps"]["download"] = {"result": False, "msg": error_msg}
-
-        result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to download {template.last_world_file}")
-        return file_info
+        return {"result": False, "msg": error_msg}
 
     downloaded_path = download_result["path"]
-    file_info["steps"]["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
-    result["summary"]["processed"] += 1
 
-    # Step 2: Crop the SVG
-    cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
+    result = {
+        "result": True,
+        "msg": f"Downloaded to {downloaded_path}",
+        "downloaded_path": downloaded_path,
+    }
 
+    return result
+
+
+def process_cropping(
+    job_id: int,
+    template: template_service.TemplateRecord,
+    downloaded_path: Path,
+    cropped_output_path: Path,
+) -> Dict[str, Any]:
     crop_result = crop_svg_file(downloaded_path, cropped_output_path)
 
     if not crop_result["success"]:
         error_msg = crop_result.get("error", "Unknown crop error")
-        file_info["status"] = "failed"
-        file_info["error"] = error_msg
-        file_info["steps"]["crop"] = {"result": False, "msg": error_msg}
-
-        result["summary"]["failed"] += 1
         logger.warning(f"Job {job_id}: Failed to crop {template.last_world_file}")
-        return file_info
+        return {"result": False, "msg": error_msg}
 
-    file_info["steps"]["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
-    file_info["cropped_path"] = cropped_output_path
-    result["summary"]["cropped"] += 1
-
-    return file_info
+    return {"result": True, "msg": f"Cropped to {cropped_output_path}"}
 
 
 def limit_templates_by_settings(job_id, templates_with_files):
@@ -290,6 +276,7 @@ def process_crops(
             "status": "pending",
             "cropped_filename": cropped_filename,
             "error": None,
+            "downloaded_path": None,
             "steps": {
                 "download": {"result": None, "msg": ""},
                 "crop": {"result": None, "msg": ""},
@@ -299,23 +286,42 @@ def process_crops(
             }
         }
 
-        file_info = process_one(
+        # Step 1: Download the original file
+        file_info["steps"]["download"] = process_one(
             job_id,
             template,
-            result,
             original_dir,
-            cropped_dir,
             session,
-            file_info,
         )
-        status = file_info["status"]
 
-        if status == "failed":
-            logger.warning(
-                f"Job {job_id}: Failed to process {template.last_world_file}"
-            )
+        if file_info["steps"]["download"]["result"] is False:
+            file_info["status"] = "failed"
+            file_info["error"] = file_info["steps"]["download"]["msg"]
+            result["summary"]["failed"] += 1
+
+            logger.warning(f"Job {job_id}: Failed to process {template.last_world_file}")
             result["files_processed"].append(file_info)
             continue
+
+        result["summary"]["processed"] += 1
+
+        # Step 2: Crop the SVG
+        downloaded_path = file_info["steps"]["download"].get("downloaded_path")
+        cropped_output_path = cropped_dir / Path(cropped_filename.removeprefix("File:")).name
+
+        file_info["steps"]["crop"] = process_cropping(
+            job_id,
+            template,
+            downloaded_path,
+            cropped_output_path,
+        )
+        if not file_info["steps"]["crop"]["result"]:
+            result["summary"]["failed"] += 1
+            file_info["status"] = "failed"
+            file_info["error"] = file_info["steps"]["crop"]["msg"]
+        else:
+            result["summary"]["cropped"] += 1
+            file_info["cropped_path"] = cropped_output_path
 
         if not upload_files:
             file_info["status"] = "skipped"
@@ -324,13 +330,15 @@ def process_crops(
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload disabled"}
             result["summary"]["skipped"] += 1
             logger.info(f"Job {job_id}: Skipped upload for {cropped_filename} (upload disabled)")
+            file_info["cropped_filename"] = None
             result["files_processed"].append(file_info)
             continue
 
-        cropped_path = file_info.get("cropped_path")
+        cropped_path = cropped_output_path
 
         if not cropped_path:
             file_info["steps"]["upload_cropped"] = {"result": None, "msg": "Skipped – cropped file not found"}
+            file_info["cropped_filename"] = None
             result["files_processed"].append(file_info)
             continue
 
@@ -349,6 +357,7 @@ def process_crops(
             file_info["error"] = file_info["steps"]["upload_cropped"]["msg"]
             file_info["steps"]["update_original"] = {"result": None, "msg": "Skipped – upload failed"}
             file_info["steps"]["update_template"] = {"result": None, "msg": "Skipped – upload was not successful"}
+            file_info["cropped_filename"] = None
             result["files_processed"].append(file_info)
             continue
 
