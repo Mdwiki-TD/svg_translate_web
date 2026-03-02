@@ -12,6 +12,11 @@ import pytest
 from src.main_app.jobs_workers.base_worker import BaseJobWorker, job_exception_handler
 
 
+# =============================================================================
+# Tests for job_exception_handler decorator
+# =============================================================================
+
+
 class TestJobExceptionHandler:
     """Tests for the job_exception_handler decorator."""
 
@@ -32,11 +37,14 @@ class TestJobExceptionHandler:
         def failing_func():
             raise ValueError("Test error")
 
-        with patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
-        ) as mock_save, patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
-        ) as mock_update:
+        with (
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
+            ) as mock_save,
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
+            ) as mock_update,
+        ):
             result = failing_func()
 
         assert result is None
@@ -50,10 +58,13 @@ class TestJobExceptionHandler:
         def failing_func():
             raise RuntimeError("Unexpected failure")
 
-        with patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
-        ) as mock_save, patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
+        with (
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
+            ) as mock_save,
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
+            ),
         ):
             failing_func()
 
@@ -74,6 +85,7 @@ class TestJobExceptionHandler:
             "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
         ) as mock_save:
             mock_save.side_effect = LookupError("Job not found")
+
             result = failing_func()
 
         assert result is None
@@ -85,16 +97,23 @@ class TestJobExceptionHandler:
         def failing_func():
             raise ValueError("Test error")
 
-        with patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
-        ) as mock_save, patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
-        ) as mock_update:
+        with (
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
+            ) as mock_save,
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
+            ) as mock_update,
+        ):
+            # First save fails with a generic exception
             mock_save.side_effect = Exception("Database connection failed")
+            # Update should still be attempted
             mock_update.return_value = None
+
             result = failing_func()
 
         assert result is None
+        # update_job_status should still be called
         mock_update.assert_called()
 
     def test_handles_lookup_error_in_fallback_update(self):
@@ -104,16 +123,28 @@ class TestJobExceptionHandler:
         def failing_func():
             raise ValueError("Test error")
 
-        with patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
-        ) as mock_save, patch(
-            "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
-        ) as mock_update:
+        with (
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name"
+            ) as mock_save,
+            patch(
+                "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"
+            ) as mock_update,
+        ):
+            # Save fails with generic exception
             mock_save.side_effect = Exception("DB error")
+            # Update fails with LookupError
             mock_update.side_effect = LookupError("Job not found")
+
             result = failing_func()
 
+        # Should complete without raising
         assert result is None
+
+
+# =============================================================================
+# Tests for BaseJobWorker
+# =============================================================================
 
 
 class ConcreteTestWorker(BaseJobWorker):
@@ -138,15 +169,17 @@ class ConcreteTestWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         if self.should_fail:
             raise RuntimeError("Processing failed")
+
         if self._process_result:
             return self._process_result
+
         self.result["items"].append("item1")
         self.result["status"] = "completed"
         return self.result
 
 
 @pytest.fixture
-def mock_base_services(monkeypatch):
+def mock_base_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by BaseJobWorker."""
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
@@ -178,6 +211,7 @@ class TestBaseJobWorker:
     def test_worker_initialization(self, mock_base_services):
         """Test that worker is initialized correctly."""
         worker = ConcreteTestWorker(job_id=1, user={"username": "test"})
+
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
         assert worker.job_type == "test_worker"
@@ -188,9 +222,12 @@ class TestBaseJobWorker:
         """Test successful job run."""
         worker = ConcreteTestWorker(job_id=1)
         result = worker.run()
+
         assert result["status"] == "completed"
         assert "item1" in result["items"]
         assert "completed_at" in result
+
+        # Should update status to running, then completed
         assert mock_base_services["update_job_status"].call_count == 2
         mock_base_services["save_job_result_by_name"].assert_called()
 
@@ -198,6 +235,7 @@ class TestBaseJobWorker:
         """Test job run that fails with exception."""
         worker = ConcreteTestWorker(job_id=1, should_fail=True)
         result = worker.run()
+
         assert result["status"] == "failed"
         assert "error" in result
         assert result["error_type"] == "RuntimeError"
@@ -206,7 +244,9 @@ class TestBaseJobWorker:
         """Test cancellation detection."""
         cancel_event = threading.Event()
         worker = ConcreteTestWorker(job_id=1, cancel_event=cancel_event)
+
         assert worker.is_cancelled() is False
+
         cancel_event.set()
         assert worker.is_cancelled() is True
         assert worker.result["status"] == "cancelled"
@@ -214,14 +254,17 @@ class TestBaseJobWorker:
     def test_before_run_returns_false_on_lookup_error(self, mock_base_services):
         """Test that before_run returns False when job not found."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
+
         worker = ConcreteTestWorker(job_id=1)
         result = worker.before_run()
+
         assert result is False
 
     def test_handle_error(self, mock_base_services):
         """Test error handling method."""
         worker = ConcreteTestWorker(job_id=1)
         worker.handle_error(ValueError("Test error"), context="test context")
+
         assert worker.result["status"] == "failed"
         assert worker.result["error"] == "Test error"
         assert worker.result["error_type"] == "ValueError"
@@ -229,19 +272,26 @@ class TestBaseJobWorker:
     def test_after_run_handles_save_exception(self, mock_base_services):
         """Test that after_run handles save exceptions gracefully."""
         mock_base_services["save_job_result_by_name"].side_effect = Exception("DB error")
+
         worker = ConcreteTestWorker(job_id=1)
-        worker.after_run()
+        worker.after_run()  # Should not raise
+
+        # Update should still be called
         mock_base_services["update_job_status"].assert_called()
 
     def test_after_run_handles_lookup_error(self, mock_base_services):
         """Test that after_run handles LookupError when updating status."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
+
         worker = ConcreteTestWorker(job_id=1)
-        worker.after_run()
+        worker.after_run()  # Should not raise
 
     def test_run_returns_early_when_before_run_fails(self, mock_base_services):
         """Test that run returns early when before_run returns False."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
+
         worker = ConcreteTestWorker(job_id=1)
         result = worker.run()
+
+        # Should return initial result without processing
         assert result["status"] == "pending"
