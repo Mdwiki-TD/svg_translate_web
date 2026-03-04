@@ -10,13 +10,15 @@ logger = logging.getLogger(__name__)
 
 def verify_required_fields(required_fields: Dict[str, Any]) -> List[str]:
     """
-    Verify that all required fields are present in the data dictionary.
+    Verify that all required fields in a dictionary have truthy values.
 
     Args:
-        data: The dictionary to check.
-        required_fields: A list of required field names.
-    Returns:
+        required_fields: A dictionary where keys are field names and values are the
+            values to check.
 
+    Returns:
+        A list of field names that are missing (i.e., have falsy values like
+        None, "", [], {}, 0, or False).
     """
     missing_fields = []
     for field, value in required_fields.items():

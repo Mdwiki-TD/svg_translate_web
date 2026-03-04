@@ -1,5 +1,5 @@
 """
-Module for handling upload of cropped SVG files to Wikimedia Commons.
+
 """
 
 from __future__ import annotations

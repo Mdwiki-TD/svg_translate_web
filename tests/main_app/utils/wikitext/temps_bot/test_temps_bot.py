@@ -12,7 +12,7 @@ from src.main_app.utils.wikitext.temps_bot import get_titles, get_titles_from_wi
 
 
 def test_get_titles_from_wikilinks(sample_from_prompt: str):
-    """Returns empty list when owidslidersrcs contains no File entries."""
+    """Ensures wikilink-based SVG titles are extracted separately from owidslidersrcs titles."""
     titles = get_titles(sample_from_prompt)
 
     titles_new = get_titles_from_wikilinks(sample_from_prompt)
