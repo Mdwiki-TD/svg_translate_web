@@ -12,7 +12,6 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from .app_routes import (
     bp_admin,
     bp_auth,
-    bp_cli,
     bp_explorer,
     bp_extract,
     bp_fix_nested,
@@ -23,6 +22,7 @@ from .app_routes import (
     bp_templates,
     close_task_store,
 )
+from .scheduler import init_scheduler
 from .config import settings
 from .cookies import CookieHeaderClient
 from .db import close_cached_db
@@ -164,7 +164,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_fix_nested_explorer)
     app.register_blueprint(bp_extract)
 
-    # Register CLI blueprint (provides CLI commands)
-    app.register_blueprint(bp_cli)
+    # Initialize scheduler for cron jobs
+    init_scheduler(app)
 
     return app
