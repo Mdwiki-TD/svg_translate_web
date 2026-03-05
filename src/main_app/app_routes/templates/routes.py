@@ -12,7 +12,7 @@ from flask import (
 
 from ...config import settings
 from ...template_service import get_templates_db
-from .category import get_category_members
+from ...api_services.category import get_category_members
 
 bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
 logger = logging.getLogger(__name__)
@@ -84,7 +84,9 @@ def main():
     templates = get_category_members("Category:Pages using gadget owidslider")
 
     templates = [
-        x for x in templates if x.startswith("Template:") and x.lower() not in ["template:owidslider", "template:owid"]
+        x for x in templates
+        if x.startswith("Template:")
+        and x.lower() not in ["template:owidslider", "template:owid"]
     ]
 
     data = {temp: temp_data(temp) for temp in templates}
