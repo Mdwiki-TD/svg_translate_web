@@ -1,9 +1,7 @@
-"""Flask-APScheduler configuration for background jobs."""
+"""APScheduler BackgroundScheduler configuration for cron jobs."""
 
 from __future__ import annotations
-
 import logging
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
@@ -41,13 +39,13 @@ def collect_main_files_job() -> None:
 
 def init_scheduler(app: Flask) -> BackgroundScheduler | None:
     """
-    Initialize and start the APScheduler.
+    Initialize and start the BackgroundScheduler.
 
     Args:
-        app: Flask application instance
+        app: Flask application instance (kept for API compatibility)
 
     Returns:
-        APScheduler instance or None if initialization fails
+        BackgroundScheduler instance or None if initialization fails
     """
     global _scheduler
 
@@ -89,8 +87,8 @@ def shutdown_scheduler() -> None:
     if _scheduler is not None:
         try:
             _scheduler.shutdown()
-            logger.info("APScheduler shut down successfully")
+            logger.info("BackgroundScheduler shut down successfully")
         except Exception:
-            logger.exception("Error shutting down APScheduler")
+            logger.exception("Error shutting down BackgroundScheduler")
         finally:
             _scheduler = None
