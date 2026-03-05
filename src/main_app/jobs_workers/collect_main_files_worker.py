@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from .. import template_service
+from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
@@ -29,12 +30,14 @@ class CollectMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
+            "templates_added": [],
             "templates_processed": [],
             "templates_updated": [],
             "templates_failed": [],
             "templates_skipped": [],
             "summary": {
                 "total": 0,
+                "added": 0,
                 "updated": 0,
                 "failed": 0,
                 "skipped": 0,
@@ -42,11 +45,73 @@ class CollectMainFilesWorker(BaseJobWorker):
             },
         }
 
+    def _fetch_and_add_new_templates(self) -> int:
+        """
+        Fetch templates from the category and add new ones to the database.
+
+        Returns:
+            Number of new templates added
+        """
+        logger.info(f"Job {self.job_id}: Fetching templates from category")
+
+        # Get templates from category
+        category_templates = get_category_members("Category:Pages using gadget owidslider")
+        logger.info(f"Job {self.job_id}: Found {len(category_templates)} templates in category")
+
+        if not category_templates:
+            return 0
+
+        # Get existing template titles
+        existing_templates = template_service.list_templates()
+        existing_titles = {t.title for t in existing_templates}
+
+        # Find new templates
+        new_templates = [t for t in category_templates if t not in existing_titles]
+        logger.info(f"Job {self.job_id}: Found {len(new_templates)} new templates to add")
+
+        added_count = 0
+        for title in new_templates:
+            if self.is_cancelled():
+                logger.info(f"Job {self.job_id}: Cancellation detected during template addition.")
+                break
+
+            try:
+                # Add template with empty main files
+                template_service.add_template(title, "", "")
+                self.result["templates_added"].append({
+                    "title": title,
+                    "timestamp": datetime.now().isoformat(),
+                })
+                added_count += 1
+                logger.info(f"Job {self.job_id}: Added new template: {title}")
+            except ValueError as e:
+                # Template already exists (race condition)
+                logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
+            except Exception as e:
+                logger.exception(f"Job {self.job_id}: Failed to add template {title}")
+                self.result["templates_failed"].append({
+                    "title": title,
+                    "timestamp": datetime.now().isoformat(),
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "context": "adding_new_template",
+                })
+
+        return added_count
+
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
         result = self.result
 
-        # Get all templates
+        # Step 1: Fetch new templates from category and add them
+        added_count = self._fetch_and_add_new_templates()
+        result["summary"]["added"] = added_count
+
+        if self.is_cancelled():
+            logger.info(f"Job {self.job_id}: Cancelled after adding templates.")
+            return result
+
+        # Step 2: Get all templates (including newly added)
         templates = template_service.list_templates()
         result["summary"]["total"] = len(templates)
         result["summary"]["already_had_main_file"] = len(
@@ -54,7 +119,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         )
 
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
 
         for n, template in enumerate(templates_to_process, start=1):
             if self.is_cancelled():
