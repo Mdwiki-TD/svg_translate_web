@@ -16,9 +16,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
     # Mock template_service
     mock_list_templates = MagicMock()
+    mock_add_template = MagicMock()
     mock_update_template = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template", mock_add_template
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
@@ -35,6 +39,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
     )
 
+    # Mock get_category_members
+    mock_get_category_members = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.get_category_members", mock_get_category_members
+    )
+
     # Mock get_wikitext
     mock_get_wikitext = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_wikitext", mock_get_wikitext)
@@ -45,9 +55,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
     return {
         "list_templates": mock_list_templates,
+        "add_template": mock_add_template,
         "update_template": mock_update_template,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
+        "get_category_members": mock_get_category_members,
         "get_wikitext": mock_get_wikitext,
         "find_main_title": mock_find_main_title,
     }
@@ -55,6 +67,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 def test_collect_main_files_with_no_templates(mock_services):
     """Test collect_main_files_for_templates when there are no templates."""
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = []
 
     collect_main_files_worker.collect_main_files_for_templates(1)
@@ -69,6 +82,7 @@ def test_collect_main_files_with_no_templates(mock_services):
     mock_services["save_job_result_by_name"].assert_called_once()
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
+    assert result["summary"]["added"] == 0
 
 
 def test_collect_main_files_skips_templates_with_main_file(mock_services):
@@ -77,6 +91,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services):
         TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
         TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg"),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     collect_main_files_worker.collect_main_files_for_templates(1)
@@ -88,6 +103,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services):
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
     assert result["summary"]["already_had_main_file"] == 2
+    assert result["summary"]["added"] == 0
 
 
 def test_collect_main_files_updates_template_without_main_file(mock_services):
@@ -95,6 +111,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
@@ -123,6 +140,7 @@ def test_collect_main_files_handles_missing_wikitext(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = None
 
@@ -144,6 +162,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = "some wikitext without SVGLanguages"
     mock_services["find_main_title"].return_value = None
@@ -166,6 +185,7 @@ def test_collect_main_files_handles_exception(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].side_effect = Exception("Network error")
 
@@ -186,6 +206,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
         TemplateRecord(id=2, title="Template:Test2", main_file="already.svg", last_world_file=None),
         TemplateRecord(id=3, title="Template:Test3", main_file=None, last_world_file=None),
     ]
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     # First template: success
@@ -217,3 +238,84 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
     assert result["summary"]["total"] == 3
     assert result["summary"]["updated"] == 2
     assert result["summary"]["skipped"] == 0
+
+
+def test_collect_main_files_adds_new_templates_from_category(mock_services):
+    """Test that new templates from category are added to database."""
+    # Existing template
+    existing_templates = [
+        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg"),
+    ]
+    # New templates from category
+    category_templates = [
+        "Template:Existing",  # Already exists
+        "Template:New1",       # New
+        "Template:New2",       # New
+    ]
+    
+    mock_services["get_category_members"].return_value = category_templates
+    mock_services["list_templates"].return_value = existing_templates
+    
+    collect_main_files_worker.collect_main_files_for_templates(1)
+    
+    # Should add 2 new templates
+    assert mock_services["add_template"].call_count == 2
+    mock_services["add_template"].assert_any_call("Template:New1", "", "")
+    mock_services["add_template"].assert_any_call("Template:New2", "", "")
+    
+    # Should save result with added templates
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["added"] == 2
+    assert len(result["templates_added"]) == 2
+
+
+def test_collect_main_files_handles_add_template_value_error(mock_services):
+    """Test that ValueError from add_template (template already exists) is handled gracefully."""
+    existing_templates = [
+        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg"),
+    ]
+    category_templates = ["Template:New1"]
+    
+    mock_services["get_category_members"].return_value = category_templates
+    mock_services["list_templates"].return_value = existing_templates
+    mock_services["add_template"].side_effect = ValueError("Template 'Template:New1' already exists")
+    
+    collect_main_files_worker.collect_main_files_for_templates(1)
+    
+    # Should continue processing without error
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["added"] == 0
+    assert len(result["templates_failed"]) == 0  # ValueError is handled gracefully (race condition)
+
+
+def test_collect_main_files_full_workflow_with_new_templates(mock_services):
+    """Test full workflow: add new templates then collect main files."""
+    # First call returns empty (for adding phase), second call returns with new templates
+    existing_templates = [
+        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg"),
+    ]
+    new_template = TemplateRecord(id=2, title="Template:NewFromCategory", main_file="", last_world_file="")
+    
+    category_templates = ["Template:Existing", "Template:NewFromCategory"]
+    
+    mock_services["get_category_members"].return_value = category_templates
+    # First call returns existing, second call returns existing + new
+    mock_services["list_templates"].side_effect = [existing_templates, existing_templates + [new_template]]
+    mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
+    mock_services["find_main_title"].return_value = "newfile.svg"
+    
+    collect_main_files_worker.collect_main_files_for_templates(1)
+    
+    # Should add new template
+    mock_services["add_template"].assert_called_once_with("Template:NewFromCategory", "", "")
+    
+    # Should process the new template (fetch wikitext)
+    mock_services["get_wikitext"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
+    
+    # Should update the new template with main file
+    mock_services["update_template"].assert_called_once_with(2, "Template:NewFromCategory", "newfile.svg", None)
+    
+    # Should save result with correct counts
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["added"] == 1
+    assert result["summary"]["updated"] == 1
