@@ -12,6 +12,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from .app_routes import (
     bp_admin,
     bp_auth,
+    bp_cli,
     bp_explorer,
     bp_extract,
     bp_fix_nested,
@@ -91,17 +92,6 @@ def create_app() -> Flask:
     if settings.database_data.db_host or settings.database_data.db_user:
         ensure_user_token_table()
 
-    app.register_blueprint(bp_main)
-    app.register_blueprint(bp_tasks)
-    app.register_blueprint(bp_explorer)
-    app.register_blueprint(bp_templates)
-    app.register_blueprint(bp_tasks_managers)
-    app.register_blueprint(bp_admin)
-    app.register_blueprint(bp_auth)
-    app.register_blueprint(bp_fix_nested)
-    app.register_blueprint(bp_fix_nested_explorer)
-    app.register_blueprint(bp_extract)
-
     @app.context_processor
     def _inject_user():  # pragma: no cover - trivial wrapper
         return context_user()
@@ -162,5 +152,19 @@ def create_app() -> Flask:
         logger.error("CSRF error: %s", e)
         flash("Session expired or invalid. Please try again.", "warning")
         return render_template("index.html", title="Session Expired"), 400
+
+    app.register_blueprint(bp_main)
+    app.register_blueprint(bp_tasks)
+    app.register_blueprint(bp_explorer)
+    app.register_blueprint(bp_templates)
+    app.register_blueprint(bp_tasks_managers)
+    app.register_blueprint(bp_admin)
+    app.register_blueprint(bp_auth)
+    app.register_blueprint(bp_fix_nested)
+    app.register_blueprint(bp_fix_nested_explorer)
+    app.register_blueprint(bp_extract)
+
+    # Register CLI blueprint (provides CLI commands)
+    app.register_blueprint(bp_cli)
 
     return app

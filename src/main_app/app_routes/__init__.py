@@ -2,6 +2,7 @@
 from .admin.routes import bp_admin
 from .auth.routes import bp_auth
 from .cancel_restart.routes import bp_tasks_managers
+from .cli import bp_cli
 from .explorer.routes import bp_explorer
 from .extract import bp_extract
 from .fix_nested import bp_fix_nested, bp_fix_nested_explorer
@@ -20,5 +21,6 @@ __all__ = [
     "bp_fix_nested",
     "bp_fix_nested_explorer",
     "bp_extract",
+    "bp_cli",
     "close_task_store",
 ]
