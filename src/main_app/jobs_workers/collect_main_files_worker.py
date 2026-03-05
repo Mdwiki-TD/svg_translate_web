@@ -70,6 +70,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: Found {len(new_templates)} new templates to add")
 
         added_count = 0
+        timestamp = datetime.now().isoformat()
         for title in new_templates:
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected during template addition.")
@@ -80,7 +81,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 template_service.add_template(title, "", "")
                 self.result["templates_added"].append({
                     "title": title,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": timestamp,
                 })
                 added_count += 1
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
@@ -91,7 +92,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
                 self.result["templates_failed"].append({
                     "title": title,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": timestamp,
                     "error": str(e),
                     "error_type": type(e).__name__,
                     "context": "adding_new_template",
