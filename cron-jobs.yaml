@@ -1,0 +1,8 @@
+# Test locally
+# python -m flask --app src.app collect-main-files
+
+- name: collect-main-files
+  command: www/python/venv/bin/flask --app www.python.src.app collect-main-files
+  schedule: "@daily"
+  image: python3.11
+  emails: none
