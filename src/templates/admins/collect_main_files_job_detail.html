@@ -87,7 +87,7 @@
             </div>
             <div class="card-body">
                 {% if result_data.summary %}
-                <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+                <div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
                     <div class="col col-sm-12">
                         <div class="card h-100 border">
                             <div class="card-body p-2">
@@ -115,6 +115,16 @@
                                     {{ result_data.summary.failed }}
                                 </h4>
                                 <small>Failed</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 border-secondary">
+                            <div class="card-body p-2">
+                                <h4 class="mb-0">
+                                    {{ result_data.summary.added or 0 }}
+                                </h4>
+                                <small>Added</small>
                             </div>
                         </div>
                     </div>
