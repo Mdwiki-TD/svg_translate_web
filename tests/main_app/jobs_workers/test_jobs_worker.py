@@ -34,7 +34,7 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     job_id = jobs_worker.start_job(None, "collect_main_files")
 
     assert job_id == 1
-    mock_create_job.assert_called_once_with("collect_main_files")
+    mock_create_job.assert_called_once_with("collect_main_files", None)
     mock_thread.assert_called_once()
     # Verify the thread was started with correct arguments
     args = mock_thread.call_args[1]["args"]
@@ -61,7 +61,7 @@ def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     job_id = jobs_worker.start_job(user, "fix_nested_main_files")
 
     assert job_id == 2
-    mock_create_job.assert_called_once_with("fix_nested_main_files")
+    mock_create_job.assert_called_once_with("fix_nested_main_files", "test_user")
     mock_thread.assert_called_once()
 
     # Verify event was registered
@@ -118,7 +118,7 @@ def test_start_download_main_files_job(mock_thread, mock_create_job):
     job_id = jobs_worker.start_job(user, "download_main_files")
 
     assert job_id == 3
-    mock_create_job.assert_called_once_with("download_main_files")
+    mock_create_job.assert_called_once_with("download_main_files", "test_user")
     mock_thread.assert_called_once()
 
     # Verify event was registered

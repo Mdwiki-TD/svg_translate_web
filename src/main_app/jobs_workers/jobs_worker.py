@@ -70,8 +70,11 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     }
     if job_type not in jobs_targets:
         raise ValueError(f"Unknown job type: {job_type}")
+
+    username = user.get("username") if user else None
+
     # Create job record
-    job = jobs_service.create_job(job_type)
+    job = jobs_service.create_job(job_type, username)
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
