@@ -54,6 +54,10 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th>User:</th>
+                                <td>{{ job.username if job.username else '-' }}</td>
+                            </tr>
+                            <tr>
                                 <th>Created:</th>
                                 <td>{{ job.created_at }}</td>
                             </tr>

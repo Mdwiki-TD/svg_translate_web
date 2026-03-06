@@ -57,10 +57,10 @@ def get_jobs_data_dir() -> Path:
     return jobs_dir
 
 
-def create_job(job_type: str) -> JobRecord:
+def create_job(job_type: str, username: str | None = None) -> JobRecord:
     """Create a new job."""
     store = get_jobs_db()
-    return store.create(job_type)
+    return store.create(job_type, username)
 
 
 def get_job(job_id: int, job_type: str) -> JobRecord:

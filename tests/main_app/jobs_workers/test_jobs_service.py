@@ -24,11 +24,12 @@ class FakeJobsDB:
         self._records: list[JobRecord] = []
         self._next_id = 1
 
-    def create(self, job_type: str) -> JobRecord:
+    def create(self, job_type: str, username: str | None = None) -> JobRecord:
         record = JobRecord(
             id=self._next_id,
             job_type=job_type,
             status="pending",
+            username=username,
         )
         self._records.append(record)
         self._next_id += 1
@@ -90,6 +91,17 @@ def test_create_job(jobs_db_fixture):
     assert job.id == 1
     assert job.job_type == "collect_main_files"
     assert job.status == "pending"
+
+
+def test_create_job_with_username(jobs_db_fixture):
+    """Test creating a new job with username."""
+    job = jobs_service.create_job("collect_main_files", username="test_user")
+
+    assert job is not None
+    assert job.id == 1
+    assert job.job_type == "collect_main_files"
+    assert job.status == "pending"
+    assert job.username == "test_user"
 
 
 def test_get_job(jobs_db_fixture):

@@ -56,7 +56,8 @@ def test_create_success(jobs_db, mock_db_instance):
     record = jobs_db.create("type_a")
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        "\n            INSERT INTO jobs (job_type, status) VALUES (%s, %s)\n            ", ("type_a", "pending")
+        """\n            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)\n            """,
+        ("type_a", "pending", None)
     )
     assert record.id == 1
     assert record.job_type == "type_a"

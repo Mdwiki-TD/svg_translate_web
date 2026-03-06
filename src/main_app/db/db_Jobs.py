@@ -26,6 +26,7 @@ class JobRecord:
     result_file: str | None = None  # Path to JSON file with job results
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    username: str | None = None  # User who started the job
 
 
 class JobsDB:
@@ -47,7 +48,7 @@ class JobsDB:
 
         Creates a `jobs` table (if it does not already exist) containing columns:
         `id`, `job_type`, `status`, `started_at`, `completed_at`, `result_file`,
-        `created_at`, and `updated_at`, and an index `idx_status_created` on
+        `created_at`, `updated_at`, and `username`, and an index `idx_status_created` on
         `(status, created_at)`.
         """
         self.db.execute_query_safe(
@@ -55,6 +56,7 @@ class JobsDB:
             CREATE TABLE IF NOT EXISTS jobs (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 job_type VARCHAR(255) NOT NULL,
+                username VARCHAR(255) NULL,
                 status VARCHAR(50) NOT NULL DEFAULT 'pending',
                 started_at TIMESTAMP NULL,
                 completed_at TIMESTAMP NULL,
@@ -70,6 +72,7 @@ class JobsDB:
         return JobRecord(
             id=int(row["id"]),
             job_type=row["job_type"],
+            username=row.get("username"),
             status=row["status"],
             started_at=row.get("started_at"),
             completed_at=row.get("completed_at"),
@@ -78,17 +81,17 @@ class JobsDB:
             updated_at=row.get("updated_at"),
         )
 
-    def create(self, job_type: str) -> JobRecord:
+    def create(self, job_type: str, username: str | None = None) -> JobRecord:
         """Create a new job."""
         self.db.execute_query_safe(
             """
-            INSERT INTO jobs (job_type, status) VALUES (%s, %s)
+            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
             """,
-            (job_type, "pending"),
+            (job_type, "pending", username),
         )
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
             WHERE id = LAST_INSERT_ID()
             """
@@ -116,7 +119,7 @@ class JobsDB:
         """Get a job by ID."""
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
             WHERE id = %s AND job_type = %s
             """,
@@ -131,7 +134,7 @@ class JobsDB:
         if job_type:
             rows = self.db.fetch_query_safe(
                 """
-                SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+                SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
                 FROM jobs
                 WHERE job_type = %s
                 ORDER BY created_at DESC
@@ -142,7 +145,7 @@ class JobsDB:
         else:
             rows = self.db.fetch_query_safe(
                 """
-                SELECT id, job_type, status, started_at, completed_at, result_file, created_at, updated_at
+                SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
                 FROM jobs
                 ORDER BY created_at DESC
                 LIMIT %s
