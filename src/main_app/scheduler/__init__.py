@@ -6,7 +6,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from .jobs_workers import jobs_worker
+from ..jobs_workers import jobs_worker
 
 logger = logging.getLogger(__name__)
 
@@ -65,30 +65,37 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
             timezone=timezone,
         )
 
-        # Add daily job at 3:00 AM
-        job = scheduler.add_job(
-            collect_main_files_job,
-            trigger="cron",
-            hour=3,
-            minute=0,
-            timezone=timezone,
-            id="collect_main_files_daily",
-            replace_existing=True,
-        )
-
-        logger.info("Scheduled collect_main_files job: daily at 03:00")
-
-        scheduler.start()
-        _scheduler = scheduler
-        # next run time
-        next_run = job.next_run_time
-        logger.info(f"BackgroundScheduler started successfully. Next run at: {next_run}")
-
-        return scheduler
-
     except Exception:
         logger.exception("Failed to initialize BackgroundScheduler")
         return None
+
+    # Add daily job at 3:00 AM
+    job = scheduler.add_job(
+        collect_main_files_job,
+        trigger="cron",
+        hour=3,
+        minute=0,
+        timezone=timezone,
+        id="collect_main_files_daily",
+        replace_existing=True,
+    )
+
+    logger.info("Scheduled collect_main_files job: daily at 03:00")
+
+    scheduler.start()
+    _scheduler = scheduler
+    # next run time
+    next_run = job.next_run_time
+    logger.info(f"BackgroundScheduler started successfully. Next run at: {next_run}")
+
+    return scheduler
+
+
+def get_job_information(job_id):
+    job = None
+    # next run time
+    next_run = job.job_scheduler.next_run_time
+    return next_run
 
 
 def shutdown_scheduler() -> None:
