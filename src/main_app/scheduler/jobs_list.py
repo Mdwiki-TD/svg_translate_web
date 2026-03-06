@@ -1,9 +1,11 @@
 """
+Background job definitions and registry.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
+from typing import Any
 
 from ..jobs_workers import jobs_worker
 logger = logging.getLogger(__name__)
@@ -11,12 +13,13 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class BackgroundJob:
+    """Job configuration and runtime state."""
     id: str
     hour: int
     minute: int
     func: callable
     upload_host: str
-    job_scheduler: None
+    job_scheduler: Any = field(default=None, repr=False)
 
 
 def collect_main_files_job() -> None:
@@ -29,20 +32,37 @@ def collect_main_files_job() -> None:
         logger.exception("Failed to start scheduled collect_main_files job")
 
 
-jobs_data = [
-    BackgroundJob(
+# Job registry - dictionary for O(1) lookup by job_id
+jobs_data: dict[str, BackgroundJob] = {
+    "collect_main_files_daily": BackgroundJob(
         id="collect_main_files_daily",
         hour=3,
         minute=0,
         func=collect_main_files_job,
         upload_host="",
-        job_scheduler=None,
     )
-]
+}
 
 
-def get_job_information(job_id):
-    job = None
-    # next run time
-    next_run = job.job_scheduler.next_run_time
-    return next_run
+def get_job_information(job_id: str) -> Any | None:
+    """Get the next run time for a job by ID."""
+    job = jobs_data.get(job_id)
+    if job is None or job.job_scheduler is None:
+        return None
+    return job.job_scheduler.next_run_time
+
+
+def get_all_jobs_info() -> list[dict]:
+    """Get information about all scheduled jobs."""
+    result = []
+    for job_id, job in jobs_data.items():
+        info = {
+            "id": job.id,
+            "hour": job.hour,
+            "minute": job.minute,
+            "next_run": None,
+        }
+        if job.job_scheduler is not None:
+            info["next_run"] = job.job_scheduler.next_run_time
+        result.append(info)
+    return result

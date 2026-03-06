@@ -58,9 +58,8 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
         logger.exception("Failed to initialize BackgroundScheduler")
         return None
 
-    for job in jobs_data:
-        job_time = f"{job.hour}{job.minute}"
-        # Add daily job at 3:00 AM
+    for job_id, job in jobs_data.items():
+        job_time = f"{job.hour:02d}{job.minute:02d}"
         _job_scheduler = scheduler.add_job(
             job.func,
             trigger="cron",
@@ -70,7 +69,7 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
             replace_existing=True,
         )
         job.job_scheduler = _job_scheduler
-        logger.info(f"Scheduled {job.id} job: daily at {job_time}")
+        logger.info(f"Scheduled {job_id} job: daily at {job_time}")
 
     scheduler.start()
     _scheduler = scheduler
