@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
 from ..jobs_workers import jobs_worker
-
+from .jobs_list import jobs_data
 logger = logging.getLogger(__name__)
 
 # Scheduler singleton
@@ -29,16 +29,6 @@ class Config:
         "max_instances": 1,
         "misfire_grace_time": 3600,  # 1 hour grace period
     }
-
-
-def collect_main_files_job() -> None:
-    """Scheduled job to collect main files."""
-    logger.info("Starting scheduled collect_main_files job")
-    try:
-        job_id = jobs_worker.start_job(user=None, job_type="collect_main_files")
-        logger.info(f"Scheduled collect_main_files job started with ID {job_id}")
-    except Exception:
-        logger.exception("Failed to start scheduled collect_main_files job")
 
 
 def init_scheduler(app: Flask) -> BackgroundScheduler | None:
@@ -84,18 +74,9 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
 
     scheduler.start()
     _scheduler = scheduler
-    # next run time
-    next_run = job.next_run_time
-    logger.info(f"BackgroundScheduler started successfully. Next run at: {next_run}")
+    logger.info("BackgroundScheduler started successfully.")
 
     return scheduler
-
-
-def get_job_information(job_id):
-    job = None
-    # next run time
-    next_run = job.job_scheduler.next_run_time
-    return next_run
 
 
 def shutdown_scheduler() -> None:
