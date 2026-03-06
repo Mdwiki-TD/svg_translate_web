@@ -31,9 +31,27 @@ def create_side(active_route):
 
     main_menu = {
         "Tasks": [
-            {"id": "last", "admin": 0, "href": "recent", "title": "Recent", "icon": "bi-clock-history"},
-            {"id": "admins", "admin": 1, "href": "coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
-            {"id": "templates", "admin": 1, "href": "templates", "title": "Templates", "icon": "bi-list-columns"},
+            {
+                "id": "last",
+                "admin": 0,
+                "href": "recent",
+                "title": "Recent",
+                "icon": "bi-clock-history",
+            },
+            {
+                "id": "admins",
+                "admin": 1,
+                "href": "coordinators",
+                "title": "Coordinators",
+                "icon": "bi-person-gear",
+            },
+            {
+                "id": "templates",
+                "admin": 1,
+                "href": "templates",
+                "title": "Templates",
+                "icon": "bi-list-columns",
+            },
         ],
         "Jobs": [
             {
