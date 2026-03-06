@@ -29,7 +29,16 @@ def collect_main_files_job() -> None:
         logger.exception("Failed to start scheduled collect_main_files job")
 
 
-jobs_data = None
+jobs_data = [
+    BackgroundJob(
+        id="collect_main_files_daily",
+        hour=3,
+        minute=0,
+        func=collect_main_files_job,
+        upload_host="",
+        job_scheduler=None,
+    )
+]
 
 
 def get_job_information(job_id):
