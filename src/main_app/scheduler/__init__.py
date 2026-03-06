@@ -6,7 +6,6 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from ..jobs_workers import jobs_worker
 from .jobs_list import jobs_data
 logger = logging.getLogger(__name__)
 
@@ -59,18 +58,19 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
         logger.exception("Failed to initialize BackgroundScheduler")
         return None
 
-    # Add daily job at 3:00 AM
-    job = scheduler.add_job(
-        collect_main_files_job,
-        trigger="cron",
-        hour=3,
-        minute=0,
-        timezone=timezone,
-        id="collect_main_files_daily",
-        replace_existing=True,
-    )
-
-    logger.info("Scheduled collect_main_files job: daily at 03:00")
+    for job in jobs_data:
+        job_time = f"{job.hour}{job.minute}"
+        # Add daily job at 3:00 AM
+        _job_scheduler = scheduler.add_job(
+            job.func,
+            trigger="cron",
+            hour=job.hour,
+            minute=job.minute,
+            id=job.id,
+            replace_existing=True,
+        )
+        job.job_scheduler = _job_scheduler
+        logger.info(f"Scheduled {job.id} job: daily at {job_time}")
 
     scheduler.start()
     _scheduler = scheduler
