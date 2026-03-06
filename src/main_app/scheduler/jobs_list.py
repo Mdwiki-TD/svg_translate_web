@@ -6,6 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import logging
 from typing import Any
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..jobs_workers import jobs_worker
 from apscheduler.jobstores.base import JobLookupError
@@ -44,7 +45,7 @@ jobs_data: dict[str, BackgroundJob] = {
 }
 
 
-def get_all_jobs_info(scheduler) -> list[dict]:
+def get_all_jobs_info(scheduler: BackgroundScheduler | None) -> list[dict]:
     """Get information about all scheduled jobs."""
 
     result = []
