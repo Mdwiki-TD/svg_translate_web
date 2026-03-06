@@ -3,6 +3,7 @@ Logging configuration with colored output.
 """
 
 import logging
+import os
 import sys
 from logging.handlers import WatchedFileHandler
 from pathlib import Path
@@ -94,3 +95,29 @@ def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: in
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(level)
     project_logger.addHandler(file_handler)
+
+
+def configure_logging(DEBUG) -> None:
+    # Create log directory if needed
+    main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
+
+    log_dir = Path(main_dir) / "logs"
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        setup_logging(level=logging.DEBUG if DEBUG else logging.INFO, name="main_app")
+        logging.getLogger("main_app").warning(
+            "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
+        )
+        return
+
+    # Define paths
+    all_log_path = log_dir / "app.log"
+    error_log_path = log_dir / "errors.log"
+
+    setup_logging(
+        level=logging.DEBUG if DEBUG else logging.INFO,
+        name="main_app",
+        log_file=all_log_path,
+        error_log_file=error_log_path,
+    )
