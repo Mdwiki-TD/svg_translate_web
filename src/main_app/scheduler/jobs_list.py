@@ -8,6 +8,8 @@ import logging
 from typing import Any
 
 from ..jobs_workers import jobs_worker
+from apscheduler.jobstores.base import JobLookupError
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,25 +46,26 @@ jobs_data: dict[str, BackgroundJob] = {
 }
 
 
-def get_job_information(job_id: str) -> Any | None:
-    """Get the next run time for a job by ID."""
-    job = jobs_data.get(job_id)
-    if job is None or job.job_scheduler is None:
-        return None
-    return job.job_scheduler.next_run_time
-
-
-def get_all_jobs_info() -> list[dict]:
+def get_all_jobs_info(scheduler) -> list[dict]:
     """Get information about all scheduled jobs."""
+
     result = []
     for job_id, job in jobs_data.items():
         info = {
             "id": job.id,
             "hour": job.hour,
             "minute": job.minute,
+            "last_run": None,
             "next_run": None,
         }
         if job.job_scheduler is not None:
             info["next_run"] = job.job_scheduler.next_run_time
+            # Get last run time from scheduler's job store
+            try:
+                scheduler_job = scheduler.get_job(job_id) if scheduler else None
+                if scheduler_job and hasattr(scheduler_job, 'last_run_time'):
+                    info["last_run"] = scheduler_job.last_run_time
+            except JobLookupError:
+                pass
         result.append(info)
     return result

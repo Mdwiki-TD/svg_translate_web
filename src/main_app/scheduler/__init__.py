@@ -6,7 +6,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from .jobs_list import jobs_data
+from .jobs_list import jobs_data, get_all_jobs_info
 logger = logging.getLogger(__name__)
 
 # Scheduler singleton
@@ -28,6 +28,13 @@ class Config:
         "max_instances": 1,
         "misfire_grace_time": 3600,  # 1 hour grace period
     }
+
+
+def get_jobs_info() -> list[dict]:
+    """
+    Get information about all scheduled jobs.
+    """
+    return get_all_jobs_info(_scheduler)
 
 
 def init_scheduler(app: Flask) -> BackgroundScheduler | None:
