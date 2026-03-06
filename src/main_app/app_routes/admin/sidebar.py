@@ -1,6 +1,22 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SidebarItem:
+    """Sidebar menu item definition."""
+
+    id: str
+    admin: int
+    href: str
+    title: str
+    icon: str | None = None
+    target: str | None = None
+    disabled: bool = False
 
 
 def generate_list_item(href, title, icon=None, target=None):
@@ -31,48 +47,74 @@ def create_side(active_route):
 
     main_menu = {
         "Tasks": [
-            {"id": "last", "admin": 0, "href": "recent", "title": "Recent", "icon": "bi-clock-history"},
-            {"id": "admins", "admin": 1, "href": "coordinators", "title": "Coordinators", "icon": "bi-person-gear"},
-            {"id": "templates", "admin": 1, "href": "templates", "title": "Templates", "icon": "bi-list-columns"},
+            SidebarItem(
+                id="last",
+                admin=0,
+                href="recent",
+                title="Recent",
+                icon="bi-clock-history",
+            ),
+            SidebarItem(
+                id="admins",
+                admin=1,
+                href="coordinators",
+                title="Coordinators",
+                icon="bi-person-gear",
+            ),
+            SidebarItem(
+                id="templates",
+                admin=1,
+                href="templates",
+                title="Templates",
+                icon="bi-list-columns",
+            ),
         ],
         "Jobs": [
-            {
-                "id": "collect_main_files",
-                "admin": 1,
-                "href": "collect_main_files/list",
-                "title": "Collect Main Files",
-                "icon": "bi-kanban",
-            },
-            {
-                "id": "crop_main_files",
-                "admin": 1,
-                "href": "crop_main_files/list",
-                "title": "Crop Newest World Files",
-                "icon": "bi-crop",
-            },
-            {
-                "id": "fix_nested_main_files",
-                "admin": 1,
-                "href": "fix_nested_main_files/list",
-                "title": "Fix Nested Main Files",
-                "icon": "bi-tools",
-            },
-            {
-                "id": "download_main_files",
-                "admin": 1,
-                "href": "download_main_files/list",
-                "title": "Download Main Files",
-                "icon": "bi-download",
-            },
+            SidebarItem(
+                id="collect_main_files",
+                admin=1,
+                href="collect_main_files/list",
+                title="Collect Main Files",
+                icon="bi-kanban",
+            ),
+            SidebarItem(
+                id="crop_main_files",
+                admin=1,
+                href="crop_main_files/list",
+                title="Crop Newest World Files",
+                icon="bi-crop",
+            ),
+            SidebarItem(
+                id="fix_nested_main_files",
+                admin=1,
+                href="fix_nested_main_files/list",
+                title="Fix Nested Main Files",
+                icon="bi-tools",
+            ),
+            SidebarItem(
+                id="download_main_files",
+                admin=1,
+                href="download_main_files/list",
+                title="Download Main Files",
+                icon="bi-download",
+                disabled=True,
+            ),
+            SidebarItem(
+                id="schedulers",
+                admin=1,
+                href="schedulers",
+                title="Schedulers",
+                icon="bi-clock-history",
+            ),
         ],
         "Settings": [
-            {
-                "id": "settings",
-                "admin": 1,
-                "href": "settings",
-                "title": "Settings",
-                "icon": "bi-gear",
-            }
+            SidebarItem(
+                id="settings",
+                admin=1,
+                href="settings",
+                title="Settings",
+                icon="bi-gear",
+            ),
         ],
     }
 
@@ -85,15 +127,13 @@ def create_side(active_route):
         group_is_active = True
         key_id = key.lower().replace(" ", "_")
         for item in items:
-            href = item.get("href", "")
-            # group_is_active = href == active_route
+            if item.disabled:
+                continue
 
-            icon_1 = item.get("icon")
-            target = item.get("target")
-            css_class = "active" if (active_route == href or href.startswith(f"{active_route}/")) else ""
-            href_full = href if target else f"/admin/{href}"
-            link = generate_list_item(href_full, item["title"], icon_1, target)
-            lis.append(f"<li id='{item['id']}' class='{css_class}'>{link}</li>")
+            css_class = "active" if (active_route == item.href or item.href.startswith(f"{active_route}/")) else ""
+            href_full = item.href if item.target else f"/admin/{item.href}"
+            link = generate_list_item(href_full, item.title, item.icon, item.target)
+            lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
 
         if lis:
             show = "show" if group_is_active else ""

@@ -6,8 +6,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from .jobs_workers import jobs_worker
-
+from .jobs_list import jobs_data, get_all_jobs_info
 logger = logging.getLogger(__name__)
 
 # Scheduler singleton
@@ -31,14 +30,11 @@ class Config:
     }
 
 
-def collect_main_files_job() -> None:
-    """Scheduled job to collect main files."""
-    logger.info("Starting scheduled collect_main_files job")
-    try:
-        job_id = jobs_worker.start_job(user=None, job_type="collect_main_files")
-        logger.info(f"Scheduled collect_main_files job started with ID {job_id}")
-    except Exception:
-        logger.exception("Failed to start scheduled collect_main_files job")
+def get_jobs_info() -> list[dict]:
+    """
+    Get information about all scheduled jobs.
+    """
+    return get_all_jobs_info(_scheduler)
 
 
 def init_scheduler(app: Flask) -> BackgroundScheduler | None:
@@ -65,30 +61,28 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
             timezone=timezone,
         )
 
-        # Add daily job at 3:00 AM
-        job = scheduler.add_job(
-            collect_main_files_job,
-            trigger="cron",
-            hour=3,
-            minute=0,
-            timezone=timezone,
-            id="collect_main_files_daily",
-            replace_existing=True,
-        )
-
-        logger.info("Scheduled collect_main_files job: daily at 03:00")
-
-        scheduler.start()
-        _scheduler = scheduler
-        # next run time
-        next_run = job.next_run_time
-        logger.info(f"BackgroundScheduler started successfully. Next run at: {next_run}")
-
-        return scheduler
-
     except Exception:
         logger.exception("Failed to initialize BackgroundScheduler")
         return None
+
+    for job_id, job in jobs_data.items():
+        job_time = f"{job.hour:02d}{job.minute:02d}"
+        _job_scheduler = scheduler.add_job(
+            job.func,
+            trigger="cron",
+            hour=job.hour,
+            minute=job.minute,
+            id=job.id,
+            replace_existing=True,
+        )
+        job.job_scheduler = _job_scheduler
+        logger.info(f"Scheduled {job_id} job: daily at {job_time}")
+
+    scheduler.start()
+    _scheduler = scheduler
+    logger.info("BackgroundScheduler started successfully.")
+
+    return scheduler
 
 
 def shutdown_scheduler() -> None:
