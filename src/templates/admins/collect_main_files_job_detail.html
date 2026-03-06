@@ -164,6 +164,40 @@
             </div>
         </div>
 
+        <!-- Added Templates -->
+        {% if result_data.templates_added %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Added Templates ({{ result_data.templates_added|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for template in result_data.templates_added %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                        rel='noopener noreferrer'>
+                                        {{ template.title }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Updated Templates -->
         {% if result_data.templates_updated %}
         <div class="card mb-3">
