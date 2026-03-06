@@ -63,6 +63,7 @@ def create_side(active_route):
                 "href": "download_main_files/list",
                 "title": "Download Main Files",
                 "icon": "bi-download",
+                "disabled": True,
             },
             {
                 "id": "schedulers",
@@ -88,6 +89,9 @@ def create_side(active_route):
     logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
+        if items.get("disabled"):
+            continue
+
         lis = []
         group_is_active = True
         key_id = key.lower().replace(" ", "_")

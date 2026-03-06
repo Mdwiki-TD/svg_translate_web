@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from flask import Blueprint, render_template
-from typing import Any
 
 from ....admins.admins_required import admin_required
 from ....scheduler import get_jobs_info

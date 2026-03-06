@@ -12,12 +12,14 @@ from flask import (
 )
 
 from ...admins.admins_required import admin_required
-from .admin_routes.coordinators import Coordinators
-from .admin_routes.jobs import Jobs
-from .admin_routes.recent import Recent
-from .admin_routes.schedulers import Schedulers
-from .admin_routes.settings import SettingsRoutes
-from .admin_routes.templates import Templates
+from .admin_routes import (
+    Coordinators,
+    Jobs,
+    Recent,
+    Schedulers,
+    SettingsRoutes,
+    Templates,
+)
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)
