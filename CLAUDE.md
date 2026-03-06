@@ -26,15 +26,27 @@ python src/app.py debug  # Debug mode
 
 ```bash
 pytest                           # Run all tests
-pytest tests/test_file.py        # Run specific test file
-pytest --cov=src                 # Run with coverage
+pytest tests/test_file.py       # Run specific test file
+pytest -k test_function_name    # Run specific test function
+pytest --cov=src                # Run with coverage
+pytest -m "not network"         # Skip network tests
 ```
 
 ### Code Formatting
 
 ```bash
-black .                          # Format with Black (line length: 120)
-isort .                          # Sort imports
+black .                         # Format with Black (line length: 120)
+isort .                         # Sort imports
+```
+
+### Linting
+
+Configuration files are in `0/` directory:
+
+```bash
+flake8 --config=0/.flake8 src    # Linting (max line: 100)
+pylint --rcfile=0/.pylintrc src  # Additional linting
+mypy --config-file=0/mypy.ini src # Type checking
 ```
 
 ## Architecture
@@ -79,24 +91,35 @@ Tasks run in background threads with cancellation support via `threading.Event`.
 
 ### Configuration
 
--   Environment variables loaded via `src/svg_config.py` using python-dotenv
--   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `PathsConfig`, `DownloadConfig`
+-   Environment variables loaded via `src/svg_config.py` using python-dotenv (expects `.env` file in `src/`)
+-   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `DownloadConfig`, `SecurityConfig`
 -   Settings cached via `@lru_cache` in `src/main_app/config.py`
--   Required env vars: `FLASK_SECRET_KEY`, `OAUTH_ENCRYPTION_KEY`, `OAUTH_CONSUMER_KEY`, `OAUTH_CONSUMER_SECRET`, `DB_*`, `MAIN_DIR`
 
-#### Environment-Specific Variables
-
-Variables that change based on the environment (development vs production):
-
-| Variable             | Description                                       | Development | Production |
-| -------------------- | ------------------------------------------------- | ----------- | ---------- |
-| `DEV_DOWNLOAD_LIMIT` | Limit downloads in main files job (0 = unlimited) | `10`        | `0`        |
-
-Example `.env` for development:
+#### Required Environment Variables
 
 ```bash
-# Development settings
-DEV_DOWNLOAD_LIMIT=10
+# Flask
+FLASK_SECRET_KEY=           # Generate: python -c "import secrets; print(secrets.token_hex(16))"
+
+# Database
+DB_NAME=svg_langs
+DB_HOST=127.0.0.1
+TOOL_REPLICA_USER=
+TOOL_REPLICA_PASSWORD=
+
+# OAuth
+OAUTH_MWURI=https://commons.wikimedia.org/w/index.php
+OAUTH_CONSUMER_KEY=
+OAUTH_CONSUMER_SECRET=
+OAUTH_ENCRYPTION_KEY=       # Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# Storage
+MAIN_DIR=/path/to/data      # Root for svg_data/, logs/, etc.
+
+# Optional
+ADMINS=user1,user2          # Comma-separated admin usernames
+DISABLE_UPLOADS=0           # Set to 1 to disable uploads
+DEV_DOWNLOAD_LIMIT=10       # Limit downloads in dev (0 = unlimited)
 ```
 
 ### External Dependencies
@@ -104,8 +127,17 @@ DEV_DOWNLOAD_LIMIT=10
 -   **CopySVGTranslation**: Core SVG translation library (external package)
 -   **mwclient/mwoauth**: MediaWiki API and OAuth integration
 -   **lxml**: XML/SVG processing
--   **Fernet encryption**: OAuth token encryption
+-   **cryptography.Fernet**: OAuth token encryption
 
 ## Deployment
 
 Automated via GitHub Actions on `main` branch push to Wikimedia Toolforge Kubernetes. See `service.template` for resource configuration (2 replicas, 3 CPU, 6GB memory).
+
+## File Locations
+
+-   Source code: `src/`
+-   Tests: `tests/`
+-   Templates: `src/templates/`
+-   Static assets: `src/static/`
+-   Config files: `0/` (flake8, pylint, mypy)
+-   Deployment scripts: `web_sh/`
