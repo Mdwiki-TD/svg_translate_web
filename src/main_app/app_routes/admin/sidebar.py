@@ -89,13 +89,13 @@ def create_side(active_route):
     logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
-        if items.get("disabled"):
-            continue
-
         lis = []
         group_is_active = True
         key_id = key.lower().replace(" ", "_")
         for item in items:
+            if item.get("disabled"):
+                continue
+
             href = item.get("href", "")
             # group_is_active = href == active_route
 
