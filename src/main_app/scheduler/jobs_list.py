@@ -20,7 +20,6 @@ class BackgroundJob:
     hour: int
     minute: int
     func: callable
-    upload_host: str
     job_scheduler: Any = field(default=None, repr=False)
 
 
@@ -41,7 +40,6 @@ jobs_data: dict[str, BackgroundJob] = {
         hour=3,
         minute=0,
         func=collect_main_files_job,
-        upload_host="",
     )
 }
 
