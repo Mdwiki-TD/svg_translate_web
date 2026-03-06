@@ -64,6 +64,13 @@ def create_side(active_route):
                 "title": "Download Main Files",
                 "icon": "bi-download",
             },
+            {
+                "id": "schedulers",
+                "admin": 1,
+                "href": "schedulers",
+                "title": "Schedulers",
+                "icon": "bi-clock-history",
+            },
         ],
         "Settings": [
             {
