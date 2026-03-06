@@ -258,3 +258,5 @@ def test_get_category_members_case_sensitivity(monkeypatch: pytest.MonkeyPatch) 
     assert "Template:OWIDSLIDER" not in result
     assert "Template:oWiDsLiDeR" not in result
     assert "Template:Owid" not in result
+    assert "TEMPLATE:owid" not in result
+    assert "template:test" not in result

@@ -56,11 +56,13 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
     if _scheduler is not None and _scheduler.running:
         return _scheduler
 
+    timezone = app.config.get("SCHEDULER_TIMEZONE", "UTC")
     try:
         # Create BackgroundScheduler with config
         scheduler = BackgroundScheduler(
             executors=Config.SCHEDULER_EXECUTORS,
             job_defaults=Config.SCHEDULER_JOB_DEFAULTS,
+            timezone=timezone,
         )
 
         # Add daily job at 3:00 AM
@@ -69,6 +71,7 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
             trigger="cron",
             hour=3,
             minute=0,
+            timezone=timezone,
             id="collect_main_files_daily",
             replace_existing=True,
         )
