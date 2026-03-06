@@ -1,4 +1,5 @@
-"""APScheduler BackgroundScheduler configuration for cron jobs."""
+"""
+APScheduler BackgroundScheduler configuration for background jobs."""
 
 from __future__ import annotations
 import logging
@@ -14,7 +15,10 @@ _scheduler: BackgroundScheduler | None = None
 
 
 class Config:
-    """Scheduler configuration."""
+    """
+    Scheduler configuration.
+
+    """
 
     SCHEDULER_API_ENABLED = False
     SCHEDULER_EXECUTORS = {
@@ -49,7 +53,7 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
     """
     global _scheduler
 
-    if _scheduler is not None:
+    if _scheduler is not None and _scheduler.running:
         return _scheduler
 
     try:
@@ -60,7 +64,7 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
         )
 
         # Add daily job at 3:00 AM
-        scheduler.add_job(
+        job = scheduler.add_job(
             collect_main_files_job,
             trigger="cron",
             hour=3,
@@ -68,11 +72,14 @@ def init_scheduler(app: Flask) -> BackgroundScheduler | None:
             id="collect_main_files_daily",
             replace_existing=True,
         )
+
         logger.info("Scheduled collect_main_files job: daily at 03:00")
 
         scheduler.start()
         _scheduler = scheduler
-        logger.info("BackgroundScheduler started successfully")
+        # next run time
+        next_run = job.next_run_time
+        logger.info(f"BackgroundScheduler started successfully. Next run at: {next_run}")
 
         return scheduler
 
