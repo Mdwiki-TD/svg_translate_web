@@ -130,14 +130,9 @@ def create_side(active_route):
             if item.disabled:
                 continue
 
-            href = item.href
-            # group_is_active = href == active_route
-
-            icon_1 = item.icon
-            target = item.target
-            css_class = "active" if (active_route == href or href.startswith(f"{active_route}/")) else ""
-            href_full = href if target else f"/admin/{href}"
-            link = generate_list_item(href_full, item.title, icon_1, target)
+            css_class = "active" if (active_route == item.href or item.href.startswith(f"{active_route}/")) else ""
+            href_full = item.href if item.target else f"/admin/{item.href}"
+            link = generate_list_item(href_full, item.title, item.icon, item.target)
             lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
 
         if lis:
