@@ -40,7 +40,8 @@ jobs:
               rm -rf ~/svg_tr_repo &&
               cp -r /mnt/nfs/labstore-secondary-tools-home/${{ secrets.USERNAME }}/svg_tr_repo_tmp ~/svg_tr_repo &&
               cp -r ~/svg_tr_repo/web_sh/* ~/web_sh &&
-              chmod -R 770 ~/web_sh &&
+              sed -i 's/\r$//' ~/web_sh/*.sh &&
+              chmod +x ~/web_sh/*.sh &&
               toolforge-jobs run update --image python3.13 --command ~/web_sh/update.sh --wait &&
               rm -rf ~/svg_tr_repo &&
               echo \"Updated on: $(date '+%Y-%m-%d %H:%M:%S')\" > ~/update_from_github &&

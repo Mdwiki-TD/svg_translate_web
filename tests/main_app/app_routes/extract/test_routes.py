@@ -110,7 +110,7 @@ def test_extract_post_strips_file_prefix(
     # Assert that download was called with the stripped filename
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
 
-    assert patch_render["context"]["filename"] == "File: Test.svg"
+    assert patch_render["context"]["filename"] == "File:Test.svg"
 
 
 def test_extract_post_download_failure(
