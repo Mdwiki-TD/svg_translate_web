@@ -174,7 +174,7 @@ def upload_task(
         except Exception:  # pragma: no cover - defensive logging
             logger.exception("Failed to record token usage", extra={"user_id": user_id})
 
-    main_title_link = f"[[:File:{main_title}]]"
+    main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
     if check_cancel("upload"):
         return {"done": 0, "not_done": total, "no_changes": 0, "errors": 0}, stages
