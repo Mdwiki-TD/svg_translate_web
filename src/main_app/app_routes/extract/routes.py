@@ -33,6 +33,7 @@ def extract_translations_post():
     original_filename = filename
     if filename.lower().startswith("file:"):
         filename = filename[5:].lstrip()
+    original_filename = f"File:{filename}"
 
     if not filename:
         flash("Please provide a file name", "danger")

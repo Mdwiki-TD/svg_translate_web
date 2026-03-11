@@ -20,9 +20,9 @@
                         <div class="mb-3">
                             <h3 class="mb-1">
                                 <i class="bi bi-file-earmark-image"></i>
-                                <a href="https://commons.wikimedia.org/wiki/File:{{ filename | replace(' ', '_') }}"
+                                <a href="https://commons.wikimedia.org/wiki/{{ filename | replace(' ', '_') }}"
                                     target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                                    File:{{ filename }}
+                                    {{ filename }}
                                 </a>
                             </h3>
 
@@ -88,7 +88,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if translations and translations.title %}
+                    {% if translations and translations.title_new %}
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4 class="mb-0">
@@ -97,7 +97,7 @@
                         </div>
                         <div class="card-body">
 
-                            {% for text, langs in translations.title.items() %}
+                            {% for text, langs in translations.title_new.items() %}
                             <div class="card mb-3">
                                 <div class="card-header bg-light">
                                     <strong>EN:</strong> {{ text }}
