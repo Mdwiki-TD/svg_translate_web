@@ -252,7 +252,7 @@ class TemplateProcessor:
             new_title,
             info._new_text,
             self.site,
-            summary=f"Updating OWID page from [[{info.template_title}]]"
+            summary=f"Updating OWID page from [[{info.template_title}]]",
         )
 
         if not res["success"]:
@@ -276,7 +276,7 @@ class TemplateProcessor:
             new_title,
             info._new_text,
             self.site,
-            summary=f"Creating OWID page from [[{info.template_title}]]"
+            summary=f"Creating OWID page from [[{info.template_title}]]",
         )
 
         if not res["success"]:
