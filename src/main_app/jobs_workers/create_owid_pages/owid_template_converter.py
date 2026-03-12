@@ -39,11 +39,11 @@ def _extract_display_categories(wikitext: str) -> list[str]:
         if target.startswith("Category:"):
             cats.append(target)
 
-    # The output example always adds "Category:Categories per capita"
-    per_capita = "Category:Categories per capita"
-    if per_capita not in cats:
-        # Insert after the first category, matching the example's ordering
-        cats.insert(1, per_capita)
+    # # The output example always adds "Category:Categories per capita"
+    # per_capita = "Category:Categories per capita"
+    # if per_capita not in cats:
+    #     # Insert after the first category, matching the example's ordering
+    #     cats.insert(1, per_capita)
 
     return cats
 

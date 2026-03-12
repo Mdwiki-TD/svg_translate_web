@@ -34,7 +34,6 @@ class TemplateProcessingInfo:
 
     template_id: int
     template_title: str
-    original_file: str | None = None
     new_page_title: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "pending"
@@ -55,7 +54,6 @@ class TemplateProcessingInfo:
         return {
             "template_id": self.template_id,
             "template_title": self.template_title,
-            "original_file": self.original_file,
             "new_page_title": self.new_page_title,
             "timestamp": self.timestamp,
             "status": self.status,
@@ -177,7 +175,6 @@ class TemplateProcessor:
         file_info = TemplateProcessingInfo(
             template_id=template.id,
             template_title=template.title,
-            original_file=template.last_world_file,
         )
 
         # Step 1 – load_template_text

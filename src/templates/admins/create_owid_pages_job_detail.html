@@ -163,7 +163,6 @@ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
               <tr>
                 <th>#</th>
                 <th>Template</th>
-                <th>Original File</th>
                 <th>New Page</th>
                 <th>Load Text</th>
                 <th>Generate Text</th>
@@ -180,20 +179,8 @@ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {{ item.template_title.split('/', 1)[1] if '/' in
-                    item.template_title else item.template_title }}
+                    {{ item.template_title }}
                   </a>
-                </td>
-                <td>
-                  {% if item.original_file %}
-                  <a
-                    href="https://commons.wikimedia.org/wiki/{{ item.original_file }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    File
-                  </a>
-                  {% else %} - {% endif %}
                 </td>
                 <td>
                   {% if item.new_page_title %}

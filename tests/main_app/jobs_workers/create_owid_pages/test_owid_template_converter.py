@@ -73,7 +73,6 @@ You can use this interactive visualization in Wikipedia articles as well with th
 *'''Template''': [[Template:OWID/daily meat consumption per person]]
 
 [[Category:Meat consumption maps of the world]]
-[[Category:Categories per capita]]
 [[Category:Meat statistics]]
 [[Category:Meat consumption maps]]
 """
