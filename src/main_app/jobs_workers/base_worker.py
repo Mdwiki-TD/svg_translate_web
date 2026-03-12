@@ -56,20 +56,15 @@ def job_exception_handler(
 
                 try:
                     jobs_service.save_job_result_by_name(result_file, error_result)
-                    jobs_service.update_job_status(
-                        job_id, "failed", result_file, job_type=job_type
-                    )
+                    jobs_service.update_job_status(job_id, "failed", result_file, job_type=job_type)
                 except LookupError:
                     logger.warning(
-                        f"Job {job_id}: Could not update status to failed, "
-                        "job record might have been deleted."
+                        f"Job {job_id}: Could not update status to failed, " "job record might have been deleted."
                     )
                 except Exception:
                     logger.exception(f"Job {job_id}: Failed to save error result")
                     try:
-                        jobs_service.update_job_status(
-                            job_id, "failed", job_type=job_type
-                        )
+                        jobs_service.update_job_status(job_id, "failed", job_type=job_type)
                     except LookupError:
                         pass
 
@@ -152,14 +147,11 @@ class BaseJobWorker(ABC):
             True to continue with processing, False to abort
         """
         try:
-            jobs_service.update_job_status(
-                self.job_id, "running", self.result_file, job_type=self.job_type
-            )
+            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             return True
         except LookupError:
             logger.warning(
-                f"Job {self.job_id}: Could not update status to running, "
-                "job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running, " "job record might have been deleted."
             )
             return False
 
@@ -177,14 +169,9 @@ class BaseJobWorker(ABC):
 
         # Update final status
         try:
-            jobs_service.update_job_status(
-                self.job_id, final_status, self.result_file, job_type=self.job_type
-            )
+            jobs_service.update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except LookupError:
-            logger.warning(
-                f"Job {self.job_id}: Could not update final status, "
-                "job record might have been deleted."
-            )
+            logger.warning(f"Job {self.job_id}: Could not update final status, " "job record might have been deleted.")
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 

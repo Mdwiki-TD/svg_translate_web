@@ -29,9 +29,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,
@@ -63,9 +61,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,
@@ -245,9 +241,7 @@ class TestRepairNestedSvgTags:
 
     def test_download_failure_returns_error(self):
         """Test that download failure returns an error result."""
-        with patch(
-            "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-        ) as mock_download:
+        with patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download:
             mock_download.return_value = {"ok": False, "error": "404 Not Found"}
 
             result = fix_nested_main_files_worker.repair_nested_svg_tags(
@@ -262,12 +256,8 @@ class TestRepairNestedSvgTags:
     def test_no_nested_tags_found(self):
         """Test that files without nested tags are handled correctly."""
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 0}
@@ -284,15 +274,9 @@ class TestRepairNestedSvgTags:
     def test_fix_nested_tags_failure(self):
         """Test handling when fix_nested_tags fails."""
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}
@@ -309,18 +293,10 @@ class TestRepairNestedSvgTags:
     def test_verify_fix_shows_no_tags_fixed(self):
         """Test handling when verify_fix shows no tags were fixed."""
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix"
-            ) as mock_verify,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix") as mock_verify,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}
@@ -338,21 +314,11 @@ class TestRepairNestedSvgTags:
     def test_upload_failure(self):
         """Test handling when upload fails after successful fix."""
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix"
-            ) as mock_verify,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.upload_fixed_svg"
-            ) as mock_upload,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix") as mock_verify,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.upload_fixed_svg") as mock_upload,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}
@@ -371,21 +337,11 @@ class TestRepairNestedSvgTags:
     def test_successful_fix_and_upload(self):
         """Test successful fix and upload process."""
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix"
-            ) as mock_verify,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.upload_fixed_svg"
-            ) as mock_upload,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix") as mock_verify,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.upload_fixed_svg") as mock_upload,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}
@@ -407,9 +363,7 @@ class TestRepairNestedSvgTags:
         cancel_event = threading.Event()
         cancel_event.set()  # Cancel immediately
 
-        with patch(
-            "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-        ) as mock_download:
+        with patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download:
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
 
             result = fix_nested_main_files_worker.repair_nested_svg_tags(
@@ -431,15 +385,9 @@ class TestRepairNestedSvgTags:
             return True
 
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}
@@ -463,18 +411,10 @@ class TestRepairNestedSvgTags:
             return {"fixed": 3}
 
         with (
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix"
-            ) as mock_verify,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
+            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix") as mock_verify,
         ):
             mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
             mock_detect.return_value = {"count": 3}

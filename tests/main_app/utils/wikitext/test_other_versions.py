@@ -18,7 +18,9 @@ class TestAddOtherVersions:
 |permission = "License: All of Our World in Data is completely open access and all work is licensed under the Creative Commons BY license. You have the permission to use, distribute, and reproduce in any medium, provided the source and authors are credited."
 }}"""
 
-        result = add_other_versions("{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}", text_input)
+        result = add_other_versions(
+            "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}", text_input
+        )
 
         assert "|other versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}" in result
         # Verify other parameters are preserved
@@ -44,7 +46,9 @@ class TestAddOtherVersions:
 |param1=value1
 }}"""
 
-        result = add_other_versions("{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}", text_input)
+        result = add_other_versions(
+            "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}", text_input
+        )
 
         assert result == text_input
 

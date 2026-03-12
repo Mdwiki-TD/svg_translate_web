@@ -14,13 +14,11 @@ import mwclient
 import requests
 
 from ... import template_service
+from ...api_services.clients import create_commons_session, get_user_site
+from ...api_services.text_api import create_page, get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
-from ...api_services.clients import create_commons_session
-from ...api_services.text_api import get_page_text, create_page
-from ...api_services.clients import get_user_site
 from .. import jobs_service
-
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
@@ -127,16 +125,10 @@ class TemplateProcessor:
     def _initialize(self) -> bool:
         """Set up job status, auth session, and site. Returns False on failure."""
         try:
-            jobs_service.update_job_status(
-                self.job_id,
-                "running",
-                self.result_file,
-                job_type="create_owid_pages"
-            )
+            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="create_owid_pages")
         except LookupError:
             logger.warning(
-                f"Job {self.job_id}: Could not update status to running – "
-                "job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running – " "job record might have been deleted."
             )
             return False
 
@@ -232,10 +224,7 @@ class TemplateProcessor:
         new_title = info.template_title.replace("Template:OWID/", "OWID/")
         try:
             res = create_page(
-                new_title,
-                info._new_text,
-                self.site,
-                summary=f"Creating OWID page from [[{info.template_title}]]"
+                new_title, info._new_text, self.site, summary=f"Creating OWID page from [[{info.template_title}]]"
             )
 
             if not res["success"]:
@@ -296,6 +285,7 @@ class TemplateProcessor:
 # ------------------------------------------------------------------
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
+
 
 def process_create_owid_pages(
     job_id: int,

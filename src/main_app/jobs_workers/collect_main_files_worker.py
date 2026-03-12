@@ -79,10 +79,12 @@ class CollectMainFilesWorker(BaseJobWorker):
             try:
                 # Add template with empty main files
                 template_service.add_template(title, "", "")
-                self.result["templates_added"].append({
-                    "title": title,
-                    "timestamp": timestamp,
-                })
+                self.result["templates_added"].append(
+                    {
+                        "title": title,
+                        "timestamp": timestamp,
+                    }
+                )
                 added_count += 1
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
             except ValueError as e:
@@ -90,13 +92,15 @@ class CollectMainFilesWorker(BaseJobWorker):
                 logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
             except Exception as e:
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
-                self.result["templates_failed"].append({
-                    "title": title,
-                    "timestamp": timestamp,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                    "context": "adding_new_template",
-                })
+                self.result["templates_failed"].append(
+                    {
+                        "title": title,
+                        "timestamp": timestamp,
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "context": "adding_new_template",
+                    }
+                )
 
         return added_count
 
@@ -115,9 +119,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         # Step 2: Get all templates (including newly added)
         templates = template_service.list_templates()
         result["summary"]["total"] = len(templates)
-        result["summary"]["already_had_main_file"] = len(
-            [t for t in templates if t.main_file and t.last_world_file]
-        )
+        result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
 
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
@@ -131,9 +133,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             if n == 1 or n % 10 == 0:
                 self._save_progress()
 
-            logger.info(
-                f"Job {self.job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}"
-            )
+            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
             template_info = {
                 "id": template.id,
                 "title": template.title,

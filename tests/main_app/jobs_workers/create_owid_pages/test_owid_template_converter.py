@@ -1,5 +1,5 @@
-"""
-"""
+""" """
+
 from src.main_app.jobs_workers.create_owid_pages.owid_template_converter import create_new_text
 
 EXAMPLE_TEMPLATE_TITLE = "Template:OWID/daily meat consumption per person"

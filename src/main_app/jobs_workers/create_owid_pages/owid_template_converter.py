@@ -7,6 +7,7 @@ the corresponding gallery/showcase page (OWID/...) using WikiTextParser.
 """
 
 import re
+
 import wikitextparser as wtp
 
 
@@ -16,10 +17,7 @@ def _extract_bullet_url(wikitext: str, label: str) -> str | None:
         *'''Source''': https://…
     Returns the URL string, or None if not found.
     """
-    pattern = re.compile(
-        r"^\*'''%s''':\s*(\S+)" % re.escape(label),
-        re.MULTILINE
-    )
+    pattern = re.compile(r"^\*'''%s''':\s*(\S+)" % re.escape(label), re.MULTILINE)
     m = pattern.search(wikitext)
     return m.group(1) if m else None
 
@@ -63,8 +61,8 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     # Strip <syntaxhighlight> blocks first so their contents are not parsed
     # as live wikitext (they are display-only code examples).
     wikitext_clean = re.sub(
-        r'<syntaxhighlight\b[^>]*>.*?</syntaxhighlight>',
-        '',
+        r"<syntaxhighlight\b[^>]*>.*?</syntaxhighlight>",
+        "",
         wikitext,
         flags=re.DOTALL | re.IGNORECASE,
     )
@@ -89,14 +87,10 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     # ------------------------------------------------------------------ #
     # 2. Build the *display* slider (upright=4.0, center)                 #
     # ------------------------------------------------------------------ #
-    def patch_file_param(slider_text: str,
-                         new_upright: str = "4.0",
-                         add_center: bool = True) -> str:
+    def patch_file_param(slider_text: str, new_upright: str = "4.0", add_center: bool = True) -> str:
         """Replace upright=X and optionally add |center| in the |file= param."""
         # Match the |file = [[File:...|...]] argument
-        file_pattern = re.compile(
-            r'(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)(\|)'
-        )
+        file_pattern = re.compile(r"(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)(\|)")
 
         def replacer(m):
             before = m.group(1)
@@ -115,13 +109,12 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     # ------------------------------------------------------------------ #
     def patch_file_param_snippet(slider_text: str) -> str:
         """Replace upright=X and add |right| (remove center if present)."""
-        file_pattern = re.compile(
-            r'(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)\|(center\|)?'
-        )
+        file_pattern = re.compile(r"(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)\|(center\|)?")
 
         def replacer(m):
             before = m.group(1)
             return f"{before}1.6|right|"
+
         return file_pattern.sub(replacer, slider_text)
 
     snippet_slider = patch_file_param_snippet(slider_raw)
@@ -149,15 +142,8 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     parts.append("{{clear}}")
 
     # Usage instructions + snippet
-    parts.append(
-        "You can use this interactive visualization in Wikipedia articles "
-        "as well with the following code:"
-    )
-    parts.append(
-        '<syntaxhighlight lang="wikitext" style="overflow:auto;">\n'
-        + snippet_slider
-        + "\n</syntaxhighlight>"
-    )
+    parts.append("You can use this interactive visualization in Wikipedia articles " "as well with the following code:")
+    parts.append('<syntaxhighlight lang="wikitext" style="overflow:auto;">\n' + snippet_slider + "\n</syntaxhighlight>")
 
     # Bullet list
     if source_link:
@@ -168,7 +154,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
 
     # Categories
     if categories:
-        parts.append("")          # blank line before cats
+        parts.append("")  # blank line before cats
         for cat in categories:
             parts.append(f"[[{cat}]]")
 

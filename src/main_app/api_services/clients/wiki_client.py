@@ -1,10 +1,12 @@
 """Helpers for creating OAuth-authenticated MediaWiki clients."""
 
 from __future__ import annotations
-from typing import Dict, Any
+
+import logging
+from typing import Any, Dict
 
 import mwclient
-import logging
+
 from ...config import settings
 from ...crypto import decrypt_value
 

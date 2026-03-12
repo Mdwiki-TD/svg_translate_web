@@ -8,10 +8,10 @@ from typing import Any, Callable, Dict, Optional
 import mwclient
 from tqdm import tqdm
 
+from ...api_services.clients.wiki_client import build_upload_site, coerce_encrypted
+from ...api_services.upload_bot import upload_file
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...users.store import mark_token_used
-from ...api_services.upload_bot import upload_file
-from ...api_services.clients.wiki_client import build_upload_site, coerce_encrypted
 
 logger = logging.getLogger(__name__)
 

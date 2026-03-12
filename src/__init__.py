@@ -1,4 +1,4 @@
-from . import svg_config, logger_config
+from . import logger_config, svg_config
 
 __all__ = [
     "svg_config",

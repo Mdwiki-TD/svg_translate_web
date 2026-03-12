@@ -1,5 +1,3 @@
-
-
 from .titles_tasks import titles_task
 
 __all__ = [

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
-import json
 
 from ..config import DbConfig
 from . import Database
@@ -48,10 +48,7 @@ class SettingsDB:
         return self.db.fetch_query_safe("SELECT * FROM `settings` ORDER BY `id` ASC")
 
     def get_by_key(self, key: str) -> Optional[Any]:
-        rows = self.db.fetch_query_safe(
-            "SELECT `value`, `value_type` FROM `settings` WHERE `key` = %s",
-            (key,)
-        )
+        rows = self.db.fetch_query_safe("SELECT `value`, `value_type` FROM `settings` WHERE `key` = %s", (key,))
         if not rows:
             return None
         return self._parse_value(rows[0]["value"], rows[0]["value_type"])
@@ -65,7 +62,7 @@ class SettingsDB:
             affected_rows = self.db.execute_query_safe(
                 # "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
                 "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
-                (key, title, value_type, str_val)
+                (key, title, value_type, str_val),
             )
             return affected_rows > 0
         except Exception as e:
@@ -90,10 +87,7 @@ class SettingsDB:
         str_val = self._serialize_value(value, value_type)
 
         try:
-            self.db.execute_query_safe(
-                "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
-                (str_val, key)
-            )
+            self.db.execute_query_safe("UPDATE `settings` SET `value` = %s WHERE `key` = %s", (str_val, key))
             return True
         except Exception as e:
             logger.error(f"Failed to update setting '{key}': {e}")

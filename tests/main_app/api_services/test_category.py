@@ -54,6 +54,7 @@ def test_get_category_members_api_success(monkeypatch: pytest.MonkeyPatch) -> No
 
 def test_get_category_members_api_no_results(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members_api with empty category."""
+
     class DummyResponse:
         def __init__(self):
             self.status_code = 200
@@ -80,12 +81,14 @@ def test_get_category_members_api_no_results(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_get_category_members_api_request_exception(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members_api handles request exceptions."""
+
     class DummySession:
         def __init__(self) -> None:
             self.headers = {}
 
         def get(self, url, params=None, timeout=None):
             import requests
+
             raise requests.exceptions.RequestException("Network error")
 
     monkeypatch.setattr("src.main_app.api_services.category.requests.Session", DummySession)
@@ -97,12 +100,14 @@ def test_get_category_members_api_request_exception(monkeypatch: pytest.MonkeyPa
 
 def test_get_category_members_api_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members_api handles timeout."""
+
     class DummySession:
         def __init__(self) -> None:
             self.headers = {}
 
         def get(self, url, params=None, timeout=None):
             import requests
+
             raise requests.exceptions.Timeout("Request timed out")
 
     monkeypatch.setattr("src.main_app.api_services.category.requests.Session", DummySession)
@@ -114,12 +119,14 @@ def test_get_category_members_api_timeout(monkeypatch: pytest.MonkeyPatch) -> No
 
 def test_get_category_members_api_http_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members_api handles HTTP errors."""
+
     class DummyResponse:
         def __init__(self):
             self.status_code = 500
 
         def raise_for_status(self) -> None:
             import requests
+
             raise requests.exceptions.HTTPError("500 Server Error")
 
     class DummySession:
@@ -138,6 +145,7 @@ def test_get_category_members_api_http_error(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_get_category_members_api_multiple_pages(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members_api with multiple pages of results."""
+
     class DummyResponse:
         def __init__(self, pages, has_continue=False):
             self._pages = pages
@@ -178,12 +186,13 @@ def test_get_category_members_api_multiple_pages(monkeypatch: pytest.MonkeyPatch
 
 def test_get_category_members_filters_templates(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members filters to Template: namespace and excludes specific templates."""
+
     def mock_api(category, project, limit):
         return [
             "Template:ValidTemplate1",
             "Template:ValidTemplate2",
             "Template:OWIDslider",  # Should be excluded (case insensitive)
-            "Template:OWID",         # Should be excluded (case insensitive)
+            "Template:OWID",  # Should be excluded (case insensitive)
             "File:NotATemplate.svg",  # Should be excluded (not Template:)
             "Category:NotATemplate",  # Should be excluded (not Template:)
         ]
@@ -197,6 +206,7 @@ def test_get_category_members_filters_templates(monkeypatch: pytest.MonkeyPatch)
 
 def test_get_category_members_custom_category(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members with custom category parameter."""
+
     def mock_api(category, project, limit):
         assert category == "Category:CustomCategory"
         return ["Template:Test"]
@@ -210,6 +220,7 @@ def test_get_category_members_custom_category(monkeypatch: pytest.MonkeyPatch) -
 
 def test_get_category_members_empty_results(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members with empty API results."""
+
     def mock_api(category, project, limit):
         return []
 
@@ -222,6 +233,7 @@ def test_get_category_members_empty_results(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_get_category_members_no_valid_templates(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members when all templates are excluded."""
+
     def mock_api(category, project, limit):
         return [
             "Template:OWIDslider",
@@ -238,13 +250,14 @@ def test_get_category_members_no_valid_templates(monkeypatch: pytest.MonkeyPatch
 
 def test_get_category_members_case_sensitivity(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_category_members handles case variations correctly."""
+
     def mock_api(category, project, limit):
         return [
             "Template:OWIDSLIDER",  # Different case
             "Template:oWiDsLiDeR",  # Mixed case
-            "Template:Owid",        # Different case
-            "TEMPLATE:owid",        # Different case namespace (but still starts with Template:)
-            "template:test",        # Lowercase namespace (but still starts with Template:)
+            "Template:Owid",  # Different case
+            "TEMPLATE:owid",  # Different case namespace (but still starts with Template:)
+            "template:test",  # Lowercase namespace (but still starts with Template:)
         ]
 
     monkeypatch.setattr("src.main_app.api_services.category.get_category_members_api", mock_api)

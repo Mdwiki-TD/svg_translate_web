@@ -1,12 +1,11 @@
-"""
-
-"""
+""" """
 
 from __future__ import annotations
 
 import logging
 
 import wikitextparser as wtp
+
 logger = logging.getLogger(__name__)
 
 

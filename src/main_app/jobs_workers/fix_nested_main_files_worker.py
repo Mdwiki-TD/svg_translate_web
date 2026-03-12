@@ -237,8 +237,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             else:
                 self._log_failed_fix(template_info, fix_result)
                 logger.warning(
-                    f"Job {self.job_id}: Failed to process {template.main_file}: "
-                    f"{fix_result.get('message')}"
+                    f"Job {self.job_id}: Failed to process {template.main_file}: " f"{fix_result.get('message')}"
                 )
 
         # Update summary skipped count

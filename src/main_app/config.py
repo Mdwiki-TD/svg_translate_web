@@ -77,6 +77,7 @@ class DynamicSettingsStore:
 
         # Lazy import to avoid circular dependencies
         from .db.db_Settings import SettingsDB
+
         db = SettingsDB(self._db_config)
         self._cache = db.get_all()
         return dict(self._cache)

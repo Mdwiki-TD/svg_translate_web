@@ -95,7 +95,7 @@ def test_temps_main_files_uses_database_main_file(monkeypatch: pytest.MonkeyPatc
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="dbfile.svg", last_world_file=None)
     monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: [mock_template])
+        lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
 
     data = routes.temps_main_files(template_entry)
@@ -112,11 +112,10 @@ def test_temps_main_files_prefixes_file_correctly(monkeypatch: pytest.MonkeyPatc
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="example.svg", last_world_file=None)
     monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: [mock_template])
+        lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_main_data",
-        lambda title: {"main_title": "example.svg"}
+        "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "example.svg"}
     )
 
     data = routes.temps_main_files(template_entry)
@@ -132,11 +131,10 @@ def test_temps_main_files_no_duplicate_prefix(monkeypatch: pytest.MonkeyPatch) -
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="File:example.svg", last_world_file=None)
     monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: [mock_template])
+        lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_main_data",
-        lambda title: {"main_title": "File:example.svg"}
+        "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "File:example.svg"}
     )
 
     data = routes.temps_main_files(template_entry)
@@ -154,17 +152,15 @@ def test_main_route_integration(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # Mock get_templates_db
     mock_template = TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None)
-    monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_category_members",
-        mock_get_category_members
-    )
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.get_category_members", mock_get_category_members)
     monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: [mock_template])
+        lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
 
     # Capture render_template call
     rendered = {}
+
     def mock_render_template(template, **context):
         rendered["template"] = template
         rendered["context"] = context
@@ -192,16 +188,14 @@ def test_main_route_sorting_by_main_file(monkeypatch: pytest.MonkeyPatch) -> Non
         TemplateRecord(id=1, title="Template:WithFile", main_file="file.svg", last_world_file=None),
     ]
 
-    monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_category_members",
-        mock_get_category_members
-    )
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.get_category_members", mock_get_category_members)
     monkeypatch.setattr(
         "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: mock_templates)
+        lambda: types.SimpleNamespace(list=lambda: mock_templates),
     )
 
     rendered = {}
+
     def mock_render_template(template, **context):
         rendered["template"] = template
         rendered["context"] = context
@@ -220,22 +214,20 @@ def test_main_route_sorting_by_main_file(monkeypatch: pytest.MonkeyPatch) -> Non
 
 def test_main_route_filters_templates_correctly(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that main route filters out non-template items and excluded templates."""
+
     def mock_get_category_members(category):
         return [
             "Template:Valid",
             "File:NotATemplate.svg",  # This should be filtered by get_category_members
         ]
 
+    monkeypatch.setattr("src.main_app.app_routes.templates.routes.get_category_members", mock_get_category_members)
     monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_category_members",
-        mock_get_category_members
-    )
-    monkeypatch.setattr(
-        "src.main_app.app_routes.templates.routes.get_templates_db",
-        lambda: types.SimpleNamespace(list=lambda: [])
+        "src.main_app.app_routes.templates.routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: [])
     )
 
     rendered = {}
+
     def mock_render_template(template, **context):
         rendered["template"] = template
         rendered["context"] = context

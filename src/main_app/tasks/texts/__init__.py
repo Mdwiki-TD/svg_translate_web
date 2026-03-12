@@ -1,4 +1,3 @@
-
 from .start_bot import text_task
 
 __all__ = [

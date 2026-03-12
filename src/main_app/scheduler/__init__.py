@@ -2,11 +2,14 @@
 APScheduler BackgroundScheduler configuration for background jobs."""
 
 from __future__ import annotations
+
 import logging
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from .jobs_list import jobs_data, get_all_jobs_info
+from .jobs_list import get_all_jobs_info, jobs_data
+
 logger = logging.getLogger(__name__)
 
 # Scheduler singleton
