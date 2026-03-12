@@ -235,6 +235,7 @@ class TemplateProcessor:
                 self._fail(info, "create_new_page", err)
                 return False
 
+            self.result["summary"]["created"] += 1
             info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
             info.new_page_title = new_title
             return True
