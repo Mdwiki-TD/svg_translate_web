@@ -4,12 +4,48 @@ OWID Template Converter
 Reads a Wikimedia template page (Template:OWID/...) and generates
 the corresponding gallery/showcase page (OWID/...) using WikiTextParser.
 
-Usage:
-    python owid_template_converter.py
 """
 
 import re
 import wikitextparser as wtp
+
+
+def _extract_bullet_url(wikitext: str, label: str) -> str | None:
+    """
+    Extract the URL from a bullet like:
+        *'''Source''': https://…
+    Returns the URL string, or None if not found.
+    """
+    pattern = re.compile(
+        r"^\*'''%s''':\s*(\S+)" % re.escape(label),
+        re.MULTILINE
+    )
+    m = pattern.search(wikitext)
+    return m.group(1) if m else None
+
+
+def _extract_display_categories(wikitext: str) -> list[str]:
+    """
+    Return category names (e.g. 'Category:Meat consumption maps') found
+    in the wikitext, excluding navigation/meta categories such as
+    'Category:List of interactive graphs', etc.
+    We also add [[Category:Categories per capita]] if not already present,
+    following the pattern seen in the example output.
+    """
+    parsed = wtp.parse(wikitext)
+    cats = []
+    for wl in parsed.wikilinks:
+        target = wl.target.strip()
+        if target.startswith("Category:"):
+            cats.append(target)
+
+    # The output example always adds "Category:Categories per capita"
+    per_capita = "Category:Categories per capita"
+    if per_capita not in cats:
+        # Insert after the first category, matching the example's ordering
+        cats.insert(1, per_capita)
+
+    return cats
 
 
 def create_new_text(wikitext: str, template_title: str) -> str:
@@ -64,7 +100,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
 
         def replacer(m):
             before = m.group(1)
-            after = m.group(3)
+            _after = m.group(3)
             # insert center after upright if not already present
             center_part = "center|" if add_center else ""
             return f"{before}{new_upright}|{center_part}"
@@ -139,97 +175,6 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     return "\n".join(parts) + "\n"
 
 
-# --------------------------------------------------------------------------- #
-# Helper functions                                                             #
-# --------------------------------------------------------------------------- #
-
-def _extract_bullet_url(wikitext: str, label: str) -> str | None:
-    """
-    Extract the URL from a bullet like:
-        *'''Source''': https://…
-    Returns the URL string, or None if not found.
-    """
-    pattern = re.compile(
-        r"^\*'''%s''':\s*(\S+)" % re.escape(label),
-        re.MULTILINE
-    )
-    m = pattern.search(wikitext)
-    return m.group(1) if m else None
-
-
-def _extract_display_categories(wikitext: str) -> list[str]:
-    """
-    Return category names (e.g. 'Category:Meat consumption maps') found
-    in the wikitext, excluding navigation/meta categories such as
-    'Category:List of interactive graphs', etc.
-    We also add [[Category:Categories per capita]] if not already present,
-    following the pattern seen in the example output.
-    """
-    parsed = wtp.parse(wikitext)
-    cats = []
-    for wl in parsed.wikilinks:
-        target = wl.target.strip()
-        if target.startswith("Category:"):
-            cats.append(target)
-
-    # The output example always adds "Category:Categories per capita"
-    per_capita = "Category:Categories per capita"
-    if per_capita not in cats:
-        # Insert after the first category, matching the example's ordering
-        cats.insert(1, per_capita)
-
-    return cats
-
-
-# --------------------------------------------------------------------------- #
-# Demo / self-test                                                             #
-# --------------------------------------------------------------------------- #
-
-EXAMPLE_TEMPLATE_TITLE = "Template:OWID/daily meat consumption per person"
-
-EXAMPLE_WIKITEXT = r"""*[[Commons:List of interactive graphs|Return to list]]
-[[Category:Meat consumption maps of the world]]
-[[Category:Meat statistics]]
-[[Category:Meat consumption maps]]
-{{owidslider
-|start        = 2022
-|list         = Template:OWID/daily meat consumption per person#gallery
-|location      = commons
-|caption      =
-|title        =
-|language     =
-|file         = [[File:daily meat consumption per person, World, 2022 (cropped).svg|link=|thumb|upright=1.6|Daily meat consumption per person]]
-|startingView = World
-}}
-<syntaxhighlight lang="wikitext" style="overflow:auto;">
-{{owidslider
-|start        = 2022
-|list         = Template:OWID/daily meat consumption per person#gallery
-|location      = commons
-|caption      =
-|title        =
-|language     =
-|file         = [[File:daily meat consumption per person, World, 2022 (cropped).svg|link=|thumb|upright=1.6|Daily meat consumption per person]]
-|startingView = World
-}}
-</syntaxhighlight>
-*'''Source''': https://ourworldindata.org/grapher/daily-meat-consumption-per-person
-*'''Translate''': https://svgtranslate.toolforge.org/File:daily_meat_consumption_per_person,_World,_1961.svg
-
-{{-}}
-
-==Data==
-{{owidslidersrcs|id=gallery|widths=240|heights=240
-|gallery-Oceania=
-File:daily meat consumption per person, Oceania, 1961.svg!year=1961
-File:daily meat consumption per person, Oceania, 1962.svg!year=1962
-}}
-"""
-
-
-if __name__ == "__main__":
-    result = create_new_text(EXAMPLE_WIKITEXT, EXAMPLE_TEMPLATE_TITLE)
-    print("=" * 70)
-    print("Generated page text for [[OWID/daily meat consumption per person]]:")
-    print("=" * 70)
-    print(result)
+__all__ = [
+    "create_new_text",
+]

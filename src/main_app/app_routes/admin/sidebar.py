@@ -85,6 +85,13 @@ def create_side(active_route):
                 icon="bi-crop",
             ),
             SidebarItem(
+                id="create_owid_pages",
+                admin=1,
+                href="create_owid_pages/list",
+                title="Create OWID Pages",
+                icon="bi-file-earmark-text",
+            ),
+            SidebarItem(
                 id="fix_nested_main_files",
                 admin=1,
                 href="fix_nested_main_files/list",

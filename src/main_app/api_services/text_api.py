@@ -119,6 +119,15 @@ def get_page_text(
         return ""
 
 
+def create_page(
+    page_name: str,
+    updated_text: str,
+    site: mwclient.Site | None,
+    summary: str = "",
+) -> dict:
+    ...
+
+
 def update_page_text(
     page_name: str,
     updated_text: str,

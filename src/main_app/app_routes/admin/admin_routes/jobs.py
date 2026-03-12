@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 JOB_TYPE_TEMPLATES = {
     "collect_main_files": "admins/collect_main_files_job_detail.html",
     "crop_main_files": "admins/crop_main_files_job_detail.html",
+    "create_owid_pages": "admins/create_owid_pages_job_detail.html",
     "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
     "download_main_files": "admins/download_main_files_job_detail.html",
 }
@@ -91,6 +92,7 @@ def _start_job(job_type: str) -> int | None:
 JOB_TYPE_LIST_TEMPLATES = {
     "collect_main_files": "admins/collect_main_files_jobs.html",
     "crop_main_files": "admins/crop_main_files_jobs.html",
+    "create_owid_pages": "admins/create_owid_pages_jobs.html",
     "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
     "download_main_files": "admins/download_main_files_jobs.html",
 }
