@@ -20,9 +20,8 @@ from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from .. import jobs_service
-from .owid_template_converter import create_new_text
-
 from ..base_worker import BaseJobWorker
+from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
 
