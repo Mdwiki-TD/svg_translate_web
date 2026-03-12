@@ -35,6 +35,8 @@ class TemplateProcessingInfo:
 
     template_id: int
     template_title: str
+    original_file: str | None = None
+    new_page_title: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "pending"
     error: str | None = None
@@ -46,10 +48,16 @@ class TemplateProcessingInfo:
         }
     )
 
+    # Internal temporary state
+    _template_text: str | None = None
+    _new_text: str | None = None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "template_id": self.template_id,
             "template_title": self.template_title,
+            "original_file": self.original_file,
+            "new_page_title": self.new_page_title,
             "timestamp": self.timestamp,
             "status": self.status,
             "error": self.error,
@@ -162,16 +170,81 @@ class TemplateProcessor:
         )
 
         # Step 1 – load_template_text
+        if not self._step_load_template_text(file_info):
+            self._append(file_info)
+            return
 
         # Step 2 – create_new_text
+        if not self._step_create_new_text(file_info):
+            self._append(file_info)
+            return
 
         # Step 3 – create_new_page
+        if not self._step_create_new_page(file_info):
+            self._append(file_info)
+            return
 
+        file_info.status = "completed"
+        self.result["summary"]["processed"] += 1
         self._append(file_info)
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
     # ------------------------------------------------------------------
+
+    def _step_load_template_text(self, info: TemplateProcessingInfo) -> bool:
+        """Download the original Template wikitext. Returns True on success."""
+        try:
+            text = get_page_text(info.template_title, self.site)
+            if not text:
+                self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
+                return False
+
+            info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
+            info._template_text = text
+            return True
+        except Exception as exc:
+            self._fail(info, "load_template_text", str(exc))
+            return False
+
+    def _step_create_new_text(self, info: TemplateProcessingInfo) -> bool:
+        """Generate the new OWID page wikitext. Returns True on success."""
+        try:
+            new_text = create_new_text(info._template_text, info.template_title)
+            info.steps["create_new_text"] = {"result": True, "msg": "Target wikitext generated"}
+            info._new_text = new_text
+            return True
+        except Exception as exc:
+            self._fail(info, "create_new_text", str(exc))
+            return False
+
+    def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
+        """Create/Update the OWID gallery page on Commons. Returns True on success."""
+        try:
+            # Expected pattern: Template:OWID/... -> OWID/...
+            new_title = info.template_title.replace("Template:OWID/", "OWID/")
+            if new_title == info.template_title:
+                # Fallback if prefix doesn't match exactly
+                new_title = "OWID/" + info.template_title.removeprefix("Template:")
+
+            res = create_page(
+                new_title,
+                info._new_text,
+                self.site,
+                summary=f"Creating OWID page from [[{info.template_title}]]"
+            )
+
+            if not res["success"]:
+                err = res.get("error", "Unknown error")
+                self._fail(info, "create_new_page", err)
+                return False
+
+            info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
+            info.new_page_title = new_title
+            return True
+        except Exception as exc:
+            self._fail(info, "create_new_page", str(exc))
+            return False
 
     # ------------------------------------------------------------------
     # Helpers
@@ -206,9 +279,13 @@ class TemplateProcessor:
 
     def _finalize(self) -> None:
         # Mark as completed if not cancelled or failed
-        if self.result.get("status") != "cancelled":
+        if self.result.get("status") not in ("cancelled", "failed"):
             self.result["status"] = "completed"
-            logger.info(f"Job {self.job_id}: Crop processing completed")
+            self.result["completed_at"] = datetime.now().isoformat()
+            logger.info(f"Job {self.job_id}: OWID pages creation completed")
+
+    def _append(self, file_info: TemplateProcessingInfo) -> None:
+        self.result["templates_processed"].append(file_info.to_dict())
 
 
 # ------------------------------------------------------------------

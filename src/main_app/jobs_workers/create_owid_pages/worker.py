@@ -25,22 +25,29 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
-            "job_id": self.job_id,
+            "status": "pending",
             "started_at": datetime.now().isoformat(),
-            "pages_created": [],
-            "pages_processed": [],
-            "pages_updated": [],
-            "pages_failed": [],
-            "pages_skipped": [],
+            "completed_at": None,
+            "cancelled_at": None,
             "summary": {
+                "total": 0,
+                "processed": 0,
+                "failed": 0,
+                "skipped": 0,
             },
+            "templates_processed": [],
         }
 
+    def before_run(self) -> bool:
+        """Skip status update as process_create_owid_pages handles it internally."""
+        return True
+
     def process(self) -> Dict[str, Any]:
-        """Execute the collection processing logic."""
+        """Execute the processing logic."""
         return process_create_owid_pages(
             self.job_id,
             self.result,
+            self.result_file,
             self.user,
             cancel_event=self.cancel_event,
         )
