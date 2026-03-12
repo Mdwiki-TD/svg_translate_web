@@ -97,7 +97,7 @@ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
       </div>
       <div class="card-body">
         {% if result_data.summary %}
-        <div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+        <div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
           <div class="col">
             <div class="card h-100 border">
               <div class="card-body p-2">
@@ -119,6 +119,14 @@ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
               <div class="card-body p-2">
                 <h4 class="mb-0">{{ result_data.summary.created or 0 }}</h4>
                 <small>Created</small>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100 border-success">
+              <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.updated or 0 }}</h4>
+                <small>Updated</small>
               </div>
             </div>
           </div>

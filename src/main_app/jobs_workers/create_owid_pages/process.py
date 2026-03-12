@@ -65,8 +65,9 @@ class TemplateProcessor:
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
     Steps:
-        2. load template wikitext
-        3. create new wikitext using create_new_text
+        1. load template wikitext
+        2. create new wikitext using create_new_text
+        3. check if new page already exists then compare if text need to be updated
         4. create new page with new wikitext
     """
 
@@ -180,7 +181,13 @@ class TemplateProcessor:
             self._append(file_info)
             return
 
-        # Step 3 – create_new_page
+        # Step 3 – check if new page already exists then compare if text need to be updated
+        # if page text == new text then summary.skipped++ else summary.updated++
+        if not self._step_check_exists_and_update(file_info):
+            self._append(file_info)
+            return
+
+        # Step 4 – create_new_page
         if not self._step_create_new_page(file_info):
             self._append(file_info)
             return

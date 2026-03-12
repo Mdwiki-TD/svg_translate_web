@@ -56,6 +56,12 @@ def create_page(
 
     try:
         page = site.pages[page_name]
+    except Exception as exc:
+        error_msg = str(exc)
+        logger.exception(f"Failed to load page {page_name}", exc_info=exc)
+        return {"success": False, "error": error_msg}
+
+    try:
         page.edit(wikitext, summary=summary)
         return {"success": True}
     except Exception as exc:
