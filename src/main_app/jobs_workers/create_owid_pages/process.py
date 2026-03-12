@@ -158,8 +158,7 @@ class TemplateProcessor:
         _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
         if _limit > 0 and len(templates) > _limit:
             logger.info(
-                f"Job {self.job_id}: create owid pages limit – "
-                f"limiting from {len(templates)} to {_limit} page"
+                f"Job {self.job_id}: create owid pages limit – " f"limiting from {len(templates)} to {_limit} page"
             )
             return templates[:_limit]
 
