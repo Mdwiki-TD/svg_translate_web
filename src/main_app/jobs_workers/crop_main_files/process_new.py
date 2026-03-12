@@ -122,9 +122,16 @@ class CropMainFilesProcessor:
 
     def run(self) -> dict[str, Any]:
         """Run the full crop pipeline and return the populated result dict."""
-        if not self._initialize():
+        if not self.before_run():
             return self.result
 
+        self.process()
+
+        self.after_run()
+
+        return self.result
+
+    def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
@@ -145,14 +152,12 @@ class CropMainFilesProcessor:
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                         exc_info=exc,
                     )
-        self._finalize()
-        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def _initialize(self) -> bool:
+    def before_run(self) -> bool:
         """Set up job status, auth session, and site. Returns False on failure."""
         try:
             jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
@@ -426,7 +431,7 @@ class CropMainFilesProcessor:
     def _append(self, file_info: FileProcessingInfo) -> None:
         self.result["files_processed"].append(file_info.to_dict())
 
-    def _finalize(self) -> None:
+    def after_run(self) -> None:
         # Mark as completed if not cancelled or failed
         if self.result.get("status") != "cancelled":
             self.result["status"] = "completed"

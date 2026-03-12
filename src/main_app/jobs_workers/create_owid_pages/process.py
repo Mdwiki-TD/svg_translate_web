@@ -95,9 +95,15 @@ class TemplateProcessor:
 
     def run(self) -> dict[str, Any]:
         """Run the full crop pipeline and return the populated result dict."""
-        if not self._initialize():
+        if not self.before_run():
             return self.result
 
+        self.process()
+
+        self.after_run()
+        return self.result
+
+    def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
@@ -112,9 +118,6 @@ class TemplateProcessor:
             if n == 1 or n % 10 == 0:
                 self._save_progress()
 
-        self._finalize()
-        return self.result
-
     def _save_progress(self):
         try:
             jobs_service.save_job_result_by_name(self.result_file, self.result)
@@ -128,7 +131,7 @@ class TemplateProcessor:
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def _initialize(self) -> bool:
+    def before_run(self) -> bool:
         """Set up job status, auth session, and site. Returns False on failure."""
         try:
             jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="create_owid_pages")
@@ -325,7 +328,7 @@ class TemplateProcessor:
             return True
         return False
 
-    def _finalize(self) -> None:
+    def after_run(self) -> None:
         # Mark as completed if not cancelled or failed
         if self.result.get("status") not in ("cancelled", "failed"):
             self.result["status"] = "completed"
