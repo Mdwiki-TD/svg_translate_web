@@ -194,18 +194,14 @@ class TemplateProcessor:
 
     def _step_load_template_text(self, info: TemplateProcessingInfo) -> bool:
         """Download the original Template wikitext. Returns True on success."""
-        try:
-            text = get_page_text(info.template_title, self.site)
-            if not text:
-                self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
-                return False
-
-            info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
-            info._template_text = text
-            return True
-        except Exception as exc:
-            self._fail(info, "load_template_text", str(exc))
+        text = get_page_text(info.template_title, self.site)
+        if not text:
+            self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
+
+        info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
+        info._template_text = text
+        return True
 
     def _step_create_new_text(self, info: TemplateProcessingInfo) -> bool:
         """Generate the new OWID page wikitext. Returns True on success."""
@@ -222,23 +218,22 @@ class TemplateProcessor:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
         new_title = info.template_title.replace("Template:OWID/", "OWID/")
-        try:
-            res = create_page(
-                new_title, info._new_text, self.site, summary=f"Creating OWID page from [[{info.template_title}]]"
-            )
+        res = create_page(
+            new_title,
+            info._new_text,
+            self.site,
+            summary=f"Creating OWID page from [[{info.template_title}]]"
+        )
 
-            if not res["success"]:
-                err = res.get("error", "Unknown error")
-                self._fail(info, "create_new_page", err)
-                return False
-
-            self.result["summary"]["created"] += 1
-            info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
-            info.new_page_title = new_title
-            return True
-        except Exception as exc:
-            self._fail(info, "create_new_page", str(exc))
+        if not res["success"]:
+            err = res.get("error", "Unknown error")
+            self._fail(info, "create_new_page", err)
             return False
+
+        self.result["summary"]["created"] += 1
+        info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
+        info.new_page_title = new_title
+        return True
 
     # ------------------------------------------------------------------
     # Helpers
