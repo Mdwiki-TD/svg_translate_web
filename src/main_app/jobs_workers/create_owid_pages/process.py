@@ -15,7 +15,8 @@ import requests
 
 from ... import template_service
 from ...api_services.clients import create_commons_session, get_user_site
-from ...api_services.text_api import create_page, get_page_text
+from ...api_services.pages_api import create_page, is_page_exists
+from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from .. import jobs_service

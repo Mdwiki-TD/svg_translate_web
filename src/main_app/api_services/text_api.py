@@ -124,46 +124,6 @@ def get_page_text(
         return ""
 
 
-def create_page(
-    page_name: str,
-    wikitext: str,
-    site: mwclient.Site | None,
-    summary: str = "",
-) -> dict:
-    """
-    Create a new page on Wikimedia Commons.
-
-    Args:
-        page_name: The name of the page to create.
-        wikitext: The wikitext content for the new page.
-        site: Authenticated mwclient.Site object for Commons.
-        summary: Edit summary.
-
-    Returns:
-        A dictionary with 'success' (bool) and optionally 'error' (str).
-    """
-    missing_fields = verify_required_fields(
-        {
-            "page_name": page_name,
-            "wikitext": wikitext,
-            "site": site,
-        }
-    )
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for create_page: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    try:
-        page = site.pages[page_name]
-        page.edit(wikitext, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to create page {page_name}", exc_info=exc)
-        return {"success": False, "error": error_msg}
-
-
 def update_page_text(
     page_name: str,
     updated_text: str,
@@ -208,6 +168,5 @@ __all__ = [
     "get_file_text",
     "update_file_text",
     "get_page_text",
-    "create_page",
     "update_page_text",
 ]
