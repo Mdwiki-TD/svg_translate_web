@@ -8,7 +8,7 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
+from datetime import datetime
 from typing import Any
 
 import mwclient
@@ -156,6 +156,7 @@ class TemplateProcessor:
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = template_service.list_templates()
+        templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return templates
 
     # ------------------------------------------------------------------
@@ -220,13 +221,9 @@ class TemplateProcessor:
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
+        # Expected pattern: Template:OWID/... -> OWID/...
+        new_title = info.template_title.replace("Template:OWID/", "OWID/")
         try:
-            # Expected pattern: Template:OWID/... -> OWID/...
-            new_title = info.template_title.replace("Template:OWID/", "OWID/")
-            if new_title == info.template_title:
-                # Fallback if prefix doesn't match exactly
-                new_title = "OWID/" + info.template_title.removeprefix("Template:")
-
             res = create_page(
                 new_title,
                 info._new_text,
