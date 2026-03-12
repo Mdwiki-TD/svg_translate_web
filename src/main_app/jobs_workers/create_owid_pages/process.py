@@ -156,6 +156,17 @@ class TemplateProcessor:
     def _load_templates(self) -> list[TemplateRecord]:
         templates = template_service.list_templates()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
+        return self._apply_limits(templates)
+
+    def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
+        upload_limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
+        if upload_limit > 0 and len(templates) > upload_limit:
+            logger.info(
+                f"Job {self.job_id}: create owid pages limit – "
+                f"limiting from {len(templates)} to {upload_limit} files"
+            )
+            return templates[:upload_limit]
+
         return templates
 
     # ------------------------------------------------------------------
