@@ -211,15 +211,6 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         return result
 
-    def _save_progress(self) -> None:
-        """Save current progress to result file."""
-        from . import jobs_service
-
-        try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
-        except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save progress")
-
 
 def collect_main_files_for_templates(
     job_id: int,

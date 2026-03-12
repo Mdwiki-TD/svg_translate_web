@@ -162,10 +162,7 @@ class BaseJobWorker(ABC):
         final_status = self.result.get("status", "completed")
 
         # Save final results
-        try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
-        except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save job result")
+        self._save_progress()
 
         # Update final status
         try:
@@ -174,6 +171,12 @@ class BaseJobWorker(ABC):
             logger.warning(f"Job {self.job_id}: Could not update final status, " "job record might have been deleted.")
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
+
+    def _save_progress(self):
+        try:
+            jobs_service.save_job_result_by_name(self.result_file, self.result)
+        except Exception:
+            logger.exception(f"Job {self.job_id}: Failed to save job result")
 
     def is_cancelled(self) -> bool:
         """Check if the job has been cancelled.

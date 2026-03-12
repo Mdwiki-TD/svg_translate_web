@@ -1,5 +1,5 @@
 """
-Processor class
+Processor class for create_owid_pages job.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ class TemplateProcessingInfo:
 
 class TemplateProcessor:
     """
-    Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
+    Orchestrates the full pipeline for create_owid_pages job.
     Steps:
         1. load template wikitext
         2. create new wikitext using create_new_text
@@ -106,6 +106,9 @@ class TemplateProcessor:
             if self._is_cancelled():
                 break
 
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            self._process_template(template)
+
             if n == 1 or n % 10 == 0:
                 try:
                     jobs_service.save_job_result_by_name(self.result_file, self.result)
@@ -114,8 +117,6 @@ class TemplateProcessor:
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                         exc_info=exc,
                     )
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
 
         self._finalize()
         return self.result
@@ -151,13 +152,13 @@ class TemplateProcessor:
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        upload_limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
-        if upload_limit > 0 and len(templates) > upload_limit:
+        _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
+        if _limit > 0 and len(templates) > _limit:
             logger.info(
                 f"Job {self.job_id}: create owid pages limit – "
-                f"limiting from {len(templates)} to {upload_limit} files"
+                f"limiting from {len(templates)} to {_limit} page"
             )
-            return templates[:upload_limit]
+            return templates[:_limit]
 
         return templates
 
@@ -333,30 +334,6 @@ class TemplateProcessor:
         self.result["templates_processed"].append(file_info.to_dict())
 
 
-# ------------------------------------------------------------------
-# Backwards-compatible entry-point
-# ------------------------------------------------------------------
-
-
-def process_create_owid_pages(
-    job_id: int,
-    result: dict[str, Any],
-    result_file: str,
-    user: dict[str, Any] | None,
-    cancel_event: threading.Event | None = None,
-) -> dict[str, Any]:
-    """Thin shim kept for backwards compatibility."""
-    processor = TemplateProcessor(
-        job_id=job_id,
-        result=result,
-        result_file=result_file,
-        user=user,
-        cancel_event=cancel_event,
-    )
-    return processor.run()
-
-
 __all__ = [
     "TemplateProcessor",
-    "process_create_owid_pages",
 ]

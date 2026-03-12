@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from ..base_worker import BaseJobWorker
-from .process import process_create_owid_pages
+from .process import TemplateProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +41,19 @@ class CreateOwidPagesWorker(BaseJobWorker):
         }
 
     def before_run(self) -> bool:
-        """Skip status update as process_create_owid_pages handles it internally."""
+        """Skip status update as TemplateProcessor handles it internally."""
         return True
 
     def process(self) -> Dict[str, Any]:
         """Execute the processing logic."""
-        return process_create_owid_pages(
-            self.job_id,
-            self.result,
-            self.result_file,
-            self.user,
+        processor = TemplateProcessor(
+            job_id=self.job_id,
+            result=self.result,
+            result_file=self.result_file,
+            user=self.user,
             cancel_event=self.cancel_event,
         )
+        return processor.run()
 
 
 def create_owid_pages_for_templates(

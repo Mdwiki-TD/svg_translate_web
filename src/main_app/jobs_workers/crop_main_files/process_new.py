@@ -133,7 +133,11 @@ class CropMainFilesProcessor:
             if self._is_cancelled():
                 break
 
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            self._process_template(template)
+
             if n == 1 or n % 10 == 0:
+                self._save_progress()
                 try:
                     jobs_service.save_job_result_by_name(self.result_file, self.result)
                 except Exception as exc:
@@ -141,9 +145,6 @@ class CropMainFilesProcessor:
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                         exc_info=exc,
                     )
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
-
         self._finalize()
         return self.result
 
