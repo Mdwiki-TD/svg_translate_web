@@ -185,6 +185,7 @@ class BaseJobWorker(ABC):
             True if cancelled, False otherwise
         """
         if self.cancel_event and self.cancel_event.is_set():
+            logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
             self.result["status"] = "cancelled"
             self.result["cancelled_at"] = datetime.now().isoformat()
             return True
