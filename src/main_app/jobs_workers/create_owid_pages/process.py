@@ -222,10 +222,52 @@ class TemplateProcessor:
             self._fail(info, "create_new_text", str(exc))
             return False
 
+    def _step_check_exists_and_update(self, info: TemplateProcessingInfo) -> bool:
+        """
+        Check if the target OWID page exists and compare its content.
+        If identical, skip creation. If different, update here and return False.
+        Returns True to continue to Step 4 (Creation) if page does not exist.
+        """
+        new_title = self.create_new_page_title(info)
+
+        if not is_page_exists(new_title, self.site):
+            return True
+
+        # Page exists, check if update is needed
+        current_text = get_page_text(new_title, self.site)
+        if current_text.strip() == info._new_text.strip():
+            self._skip_step(info, "create_new_page", "Skipped – page content is already identical")
+            info.status = "skipped"
+            info.new_page_title = new_title
+            self.result["summary"]["skipped"] += 1
+            self.result["summary"]["processed"] += 1
+            return False
+
+        # Content is different, perform update
+        res = create_page(
+            new_title,
+            info._new_text,
+            self.site,
+            summary=f"Updating OWID page from [[{info.template_title}]]"
+        )
+
+        if not res["success"]:
+            err = res.get("error", "Unknown error")
+            self._fail(info, "create_new_page", err)
+            return False
+
+        self.result["summary"]["updated"] += 1
+        self.result["summary"]["processed"] += 1
+        info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
+        info.new_page_title = new_title
+        info.status = "completed"
+        return False
+
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
-        new_title = info.template_title.replace("Template:OWID/", "OWID/")
+        new_title = self.create_new_page_title(info)
+
         res = create_page(
             new_title,
             info._new_text,
@@ -242,6 +284,12 @@ class TemplateProcessor:
         info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
         info.new_page_title = new_title
         return True
+
+    def create_new_page_title(self, info):
+        new_title = info.template_title.replace("Template:OWID/", "OWID/")
+        if new_title == info.template_title:
+            new_title = "OWID/" + info.template_title.removeprefix("Template:")
+        return new_title
 
     # ------------------------------------------------------------------
     # Helpers
