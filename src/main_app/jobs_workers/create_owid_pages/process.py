@@ -18,7 +18,7 @@ from ... import template_service
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ...api_services.clients import create_commons_session
-from ...api_services.text_api import get_page_text, update_page_text, create_page
+from ...api_services.text_api import get_page_text, create_page
 from ...api_services.clients import get_user_site
 from .. import jobs_service
 

@@ -121,7 +121,7 @@ def get_page_text(
 
 def create_page(
     page_name: str,
-    updated_text: str,
+    wikitext: str,
     site: mwclient.Site | None,
     summary: str = "",
 ) -> dict:
