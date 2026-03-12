@@ -110,16 +110,19 @@ class TemplateProcessor:
             self._process_template(template)
 
             if n == 1 or n % 10 == 0:
-                try:
-                    jobs_service.save_job_result_by_name(self.result_file, self.result)
-                except Exception as exc:
-                    logger.warning(
-                        f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                        exc_info=exc,
-                    )
+                self._save_progress()
 
         self._finalize()
         return self.result
+
+    def _save_progress(self):
+        try:
+            jobs_service.save_job_result_by_name(self.result_file, self.result)
+        except Exception as exc:
+            logger.warning(
+                f"Job {self.job_id}: Failed to persist periodic progress; continuing",
+                exc_info=exc,
+            )
 
     # ------------------------------------------------------------------
     # Initialisation helpers
