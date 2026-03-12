@@ -11,21 +11,17 @@ from datetime import datetime
 from typing import Any, Dict
 
 import mwclient
-import requests
 
 from ... import template_service
-from ...api_services.clients import create_commons_session, get_user_site
+from ...api_services.clients import get_user_site
 from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
-from .. import jobs_service
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
-
-
 StepResult = dict[str, Any]
 
 
@@ -63,9 +59,9 @@ class TemplateProcessingInfo:
         }
 
 
-class TemplateProcessor:
+class CreateOwidPagesWorker(BaseJobWorker):
     """
-    Orchestrates the full pipeline for create_owid_pages job.
+    Worker for create_owid_pages.
     Steps:
         1. load template wikitext
         2. create new wikitext using create_new_text
@@ -87,72 +83,13 @@ class TemplateProcessor:
         self.result_file = result_file
         self.user = user
         self.cancel_event = cancel_event
-
         self.site: mwclient.Site | None = None
-        self.session: requests.Session | None = None
 
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def run(self) -> dict[str, Any]:
-        """Run the full crop pipeline and return the populated result dict."""
-        if not self.before_run():
-            return self.result
-
-        self.process()
-
-        self.after_run()
-        return self.result
-
-    def process(self):
-        templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
-
-        for n, template in enumerate(templates, start=1):
-            if self._is_cancelled():
-                break
-
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
-
-            if n == 1 or n % 10 == 0:
-                self._save_progress()
-
-    def _save_progress(self):
-        try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
-        except Exception as exc:
-            logger.warning(
-                f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                exc_info=exc,
-            )
+        super().__init__(job_id, user, cancel_event)
 
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
-
-    def before_run(self) -> bool:
-        """Set up job status, auth session, and site. Returns False on failure."""
-        try:
-            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="create_owid_pages")
-        except LookupError:
-            logger.warning(
-                f"Job {self.job_id}: Could not update status to running – " "job record might have been deleted."
-            )
-            return False
-
-        self.session = create_commons_session(settings.oauth.user_agent)
-        self.site = get_user_site(self.user)
-
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
-            return False
-
-        return True
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = template_service.list_templates()
@@ -314,35 +251,12 @@ class TemplateProcessor:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _skip_upload_steps(self, file_info: TemplateProcessingInfo) -> None:
-        for step in ("upload_cropped", "update_original", "update_template"):
-            self._skip_step(file_info, step, "Skipped – upload disabled")
-        file_info.status = "skipped"
-        self.result["summary"]["skipped"] += 1
-        logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
-        file_info.cropped_filename = None
-
-    def _is_cancelled(self) -> bool:
-        if self.cancel_event and self.cancel_event.is_set():
-            logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
-            self.result["status"] = "cancelled"
-            self.result["cancelled_at"] = datetime.now().isoformat()
-            return True
-        return False
-
-    def after_run(self) -> None:
-        # Mark as completed if not cancelled or failed
-        if self.result.get("status") not in ("cancelled", "failed"):
-            self.result["status"] = "completed"
-            self.result["completed_at"] = datetime.now().isoformat()
-            logger.info(f"Job {self.job_id}: OWID pages creation completed")
-
     def _append(self, file_info: TemplateProcessingInfo) -> None:
         self.result["templates_processed"].append(file_info.to_dict())
 
-
-class CreateOwidPagesWorker(BaseJobWorker):
-    """Worker for create_owid_pages."""
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -366,20 +280,29 @@ class CreateOwidPagesWorker(BaseJobWorker):
             "templates_processed": [],
         }
 
-    def before_run(self) -> bool:
-        """Skip status update as TemplateProcessor handles it internally."""
-        return True
+    def process(self):
 
-    def process(self) -> Dict[str, Any]:
-        """Execute the processing logic."""
-        processor = TemplateProcessor(
-            job_id=self.job_id,
-            result=self.result,
-            result_file=self.result_file,
-            user=self.user,
-            cancel_event=self.cancel_event,
-        )
-        return processor.run()
+        self.site = get_user_site(self.user)
+
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.result["status"] = "failed"
+            self.result["failed_at"] = datetime.now().isoformat()
+            return False
+
+        templates = self._load_templates()
+        self.result["summary"]["total"] = len(templates)
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+
+        for n, template in enumerate(templates, start=1):
+            if self.is_cancelled():
+                break
+
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            self._process_template(template)
+
+            if n == 1 or n % 10 == 0:
+                self._save_progress()
 
 
 def create_owid_pages_for_templates(
@@ -397,6 +320,5 @@ def create_owid_pages_for_templates(
 
 __all__ = [
     "create_owid_pages_for_templates",
-    "TemplateProcessor",
     "CreateOwidPagesWorker",
 ]
