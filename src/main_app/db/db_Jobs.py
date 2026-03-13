@@ -155,7 +155,10 @@ class JobsDB:
         return [self._row_to_record(row) for row in rows]
 
     def update_status(
-        self, job_id: int, status: str, result_file: str | None = None, job_type: str = "fix_nested_main_files"
+        self, job_id: int,
+        status: str,
+        result_file: str | None = None,
+        job_type: str = "fix_nested_main_files",
     ) -> JobRecord:
         """
         Update job status.

@@ -5,6 +5,8 @@ Background job definitions and registry.
 from __future__ import annotations
 import sys
 from pathlib import Path
+import threading
+
 
 if _path_ := Path(__file__).parent.parent:
     sys.path.append(str(_path_))
@@ -18,19 +20,23 @@ from src.main_app.utils.wikitext.titles_utils.last_world_file import find_last_w
 from src.main_app.utils.wikitext.titles_utils import find_main_title
 from src.main_app.api_services.category import get_category_members
 from src.main_app.api_services.text_bot import get_wikitext
-
+from src.main_app.jobs_workers.base_worker import BaseJobWorker
+from src.main_app.jobs_workers import jobs_service
 
 logger = logging.getLogger(__name__)
 
 
-class MainFilesWorker:
+class MainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
-    def __init__(self):
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "collect_main_files"
+
+    def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
-        self.job_id = 0
-        self.result = {
-            "job_id": 0,
+        return {
+            "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "templates_added": [],
             "templates_processed": [],
@@ -74,6 +80,7 @@ class MainFilesWorker:
         added_count = 0
         timestamp = datetime.now().isoformat()
         for title in new_templates:
+
             try:
                 # Add template with empty main files
                 template_service.add_template(title, "", "")
@@ -119,7 +126,13 @@ class MainFilesWorker:
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
 
+        per_item = self.get_priority(len(templates_to_process))
+
         for n, template in enumerate(templates_to_process, start=1):
+
+            # Save progress after check for cancellation
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
 
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
             template_info = {
@@ -199,15 +212,24 @@ class MainFilesWorker:
 
         return self.result
 
-    def run(self) -> Dict[str, Any]:
-        """Run the job."""
-        self.process()
+    def before_run1(self) -> bool:
+        """Called before processing starts.
+
+        Returns:
+            True to continue with processing, False to abort
+        """
+        jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+        return True
 
 
 def start(
 ) -> None:
+    user = None
+    # Get auth payload for OAuth uploads
+    cancel_event = threading.Event()
+    job_id = jobs_service.create_job("collect_main_files", "Mr. Ibrahem")
     logger.info("Starting collect main files offline job.")
-    worker = MainFilesWorker()
+    worker = MainFilesWorker(job_id, user, cancel_event)
     worker.run()
 
 
