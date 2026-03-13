@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
-
 from werkzeug.utils import secure_filename
 
 from ...api_services.clients import get_user_site

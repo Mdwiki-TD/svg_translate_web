@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
-from .utils import DbUtils
 from .db_class import Database
+from .utils import DbUtils
 
 logger = logging.getLogger(__name__)
 

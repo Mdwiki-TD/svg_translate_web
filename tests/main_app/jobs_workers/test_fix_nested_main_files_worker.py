@@ -360,6 +360,7 @@ class TestRepairNestedSvgTags:
         assert "Successfully fixed" in result["message"]
         assert "3 nested tag(s)" in result["message"]
 
+
 # =============================================================================
 # Additional worker tests
 # =============================================================================
