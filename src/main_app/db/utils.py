@@ -86,13 +86,17 @@ class DbUtils:
             # without triggering an additional query.
             stages = self.fetch_stages(row["id"])
 
+        form_json = self._deserialize(row.get("form_json"))
+        if isinstance(form_json, dict):
+            form_json.pop("csrf_token", None)
+
         return {
             "id": row["id"],
             "username": row.get("username", ""),
             "title": row["title"],
             "normalized_title": row["normalized_title"],
             "status": row["status"],
-            "form": self._deserialize(row.get("form_json")),
+            "form": form_json,
             "data": self._deserialize(row.get("data_json")),
             "main_file": row.get("main_file", ""),
             "results": self._deserialize(row.get("results_json")),
@@ -117,6 +121,8 @@ class DbUtils:
         """
         if value is None:
             return None
+        if isinstance(value, dict):
+            value.pop("csrf_token", None)
         return json.dumps(value, ensure_ascii=False)
 
     def _deserialize(self, value: Optional[str]) -> Any:
