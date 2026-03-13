@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
 import hashlib
+import json
 import logging
 import threading
 import uuid
+from typing import Any, Dict, List, Optional
 
 from flask import (
     Blueprint,
@@ -109,21 +110,22 @@ def load_state_hash(
     # Auto-refresh tracking: get refresh count and previous state hash from query params
     refresh_count = request.args.get("refresh_count", 0, type=int)
     prev_state_hash = request.args.get("state_hash", "")
-
-    # Compute current state hash based on task status and stages status
-    current_state_hash = ""
-    if isinstance(task, dict) and task.get("status"):
-        stages_status = "".join(
-            f"{s[0]}:{s[1].get('status', '')}" for s in sorted(stages, key=lambda x: x[1].get("number", 0))
-        )
-        state_string = f"{task.get('status', '')}:{stages_status}"
-        current_state_hash = hashlib.md5(state_string.encode()).hexdigest()[:8]
-
-        # If state changed, reset refresh counter
-        if current_state_hash != prev_state_hash:
-            refresh_count = 0
-        else:
-            refresh_count += 1
+    state_payload = {
+        "task_status": task.get("status", "") if isinstance(task, dict) else "",
+        "task_updated_at": task.get("updated_at", "") if isinstance(task, dict) else "",
+        "stages": [
+            {
+                "name": name,
+                "status": stage.get("status", ""),
+                "message": stage.get("message", ""),
+                "sub_name": stage.get("sub_name", ""),
+                "updated_at": stage.get("updated_at", ""),
+            }
+            for name, stage in stages
+        ],
+    }
+    current_state_hash = hashlib.sha256(json.dumps(state_payload, sort_keys=True, default=str).encode()).hexdigest()[:8]
+    refresh_count = 0 if current_state_hash != prev_state_hash else refresh_count + 1
     return refresh_count, current_state_hash
 
 
