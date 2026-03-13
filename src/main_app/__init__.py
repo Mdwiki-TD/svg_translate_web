@@ -22,10 +22,10 @@ from .app_routes import (
     bp_templates,
     close_task_store,
 )
-from .scheduler import init_scheduler
 from .config import settings
 from .cookies import CookieHeaderClient
 from .db import close_cached_db
+from .scheduler import init_scheduler
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 

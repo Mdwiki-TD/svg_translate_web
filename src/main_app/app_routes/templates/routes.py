@@ -10,9 +10,9 @@ from flask import (
     render_template,
 )
 
+from ...api_services.category import get_category_members
 from ...config import settings
 from ...template_service import get_templates_db
-from ...api_services.category import get_category_members
 
 bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
 logger = logging.getLogger(__name__)

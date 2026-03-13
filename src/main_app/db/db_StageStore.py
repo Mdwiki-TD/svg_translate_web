@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-# from .utils import DbUtils
+from .utils import DbUtils
 from .db_class import Database
 
 logger = logging.getLogger(__name__)
 
 
-class StageStore:  # (DbUtils)
+class StageStore(DbUtils):
     """Utility mixin providing CRUD helpers for task stage persistence."""
 
     def __init__(self, db: Database | None = None) -> None:

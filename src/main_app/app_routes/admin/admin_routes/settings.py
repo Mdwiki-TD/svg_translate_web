@@ -1,6 +1,7 @@
 """Admin-only routes for managing application settings."""
 
 from __future__ import annotations
+
 import json
 import re
 
@@ -30,7 +31,10 @@ class SettingsRoutes:
             value_type = request.form.get("value_type", "boolean").strip()
 
             if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
-                flash("Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.", "danger")
+                flash(
+                    "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
+                    "danger",
+                )
                 return redirect(url_for("admin.settings_view"))
 
             if value_type == "boolean":

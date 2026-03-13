@@ -1,7 +1,7 @@
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
-from .db_Settings import SettingsDB
 from .db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from .db_Settings import SettingsDB
 from .db_StageStore import StageStore
 from .db_TasksListDB import TasksListDB
 from .db_Templates import TemplateRecord, TemplatesDB

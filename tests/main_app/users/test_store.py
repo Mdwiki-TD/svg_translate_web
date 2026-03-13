@@ -205,9 +205,7 @@ class TestEnsureUserTokenTable:
         # Should execute table creation
         mock_db.execute_query_safe.assert_called()
         calls = mock_db.execute_query_safe.call_args_list
-        assert any(
-            "CREATE TABLE IF NOT EXISTS user_tokens" in str(call) for call in calls
-        )
+        assert any("CREATE TABLE IF NOT EXISTS user_tokens" in str(call) for call in calls)
 
     @patch("src.main_app.users.store.get_db")
     @patch("src.main_app.users.store.has_db_config")
@@ -215,9 +213,7 @@ class TestEnsureUserTokenTable:
         """Test ensure_user_token_table skips index creation if exists."""
         mock_has_config.return_value = True
         mock_db = MagicMock()
-        mock_db.fetch_query_safe.return_value = [
-            {"Key_name": "idx_user_tokens_username"}
-        ]
+        mock_db.fetch_query_safe.return_value = [{"Key_name": "idx_user_tokens_username"}]
         mock_get_db.return_value = mock_db
 
         ensure_user_token_table()

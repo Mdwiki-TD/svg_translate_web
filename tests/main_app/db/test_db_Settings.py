@@ -207,18 +207,14 @@ def test_get_raw_all(mock_database_class, db_config):
     assert len(result) == 2
     assert result[0]["key"] == "setting1"
     assert result[1]["key"] == "setting2"
-    mock_db.fetch_query_safe.assert_called_with(
-        "SELECT * FROM `settings` ORDER BY `id` ASC"
-    )
+    mock_db.fetch_query_safe.assert_called_with("SELECT * FROM `settings` ORDER BY `id` ASC")
 
 
 @patch("src.main_app.db.db_Settings.Database")
 def test_get_by_key_found(mock_database_class, db_config):
     """Test get_by_key returns value when key exists."""
     mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [
-        {"value": "test_value", "value_type": "string"}
-    ]
+    mock_db.fetch_query_safe.return_value = [{"value": "test_value", "value_type": "string"}]
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
@@ -416,9 +412,7 @@ def test_update_setting_without_value_type_queries_db(mock_database_class, db_co
 
     assert result is True
     # Should have SELECT call to get value_type
-    mock_db.fetch_query_safe.assert_called_once_with(
-        "SELECT `value_type` FROM `settings` WHERE `key` = %s", ("key",)
-    )
+    mock_db.fetch_query_safe.assert_called_once_with("SELECT `value_type` FROM `settings` WHERE `key` = %s", ("key",))
     # Value should be serialized as integer
     mock_db.execute_query_safe.assert_any_call(
         "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
@@ -429,9 +423,7 @@ def test_update_setting_without_value_type_queries_db(mock_database_class, db_co
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_with_value_type_serializes_correctly(
-    mock_database_class, db_config
-):
+def test_update_setting_with_value_type_serializes_correctly(mock_database_class, db_config):
     """Test update_setting uses provided value_type for serialization."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db

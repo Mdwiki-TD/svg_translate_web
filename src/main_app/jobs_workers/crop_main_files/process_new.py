@@ -15,17 +15,16 @@ import mwclient
 import requests
 
 from ... import template_service
+from ...api_services.clients import create_commons_session, get_user_site
+from ...api_services.text_api import get_file_text, get_page_text, update_file_text, update_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
-from ...api_services.clients import create_commons_session
-from ...api_services.text_api import get_file_text, get_page_text, update_file_text, update_page_text
-from ...api_services.clients import get_user_site
+from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from .. import jobs_service
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 from .utils import generate_cropped_filename
-from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 
 logger = logging.getLogger(__name__)
 
@@ -123,18 +122,46 @@ class CropMainFilesProcessor:
 
     def run(self) -> dict[str, Any]:
         """Run the full crop pipeline and return the populated result dict."""
-        if not self._initialize():
+        if not self.before_run():
             return self.result
 
+        self.process()
+
+        self.after_run()
+
+        return self.result
+
+    def get_priority(self, length) -> int:
+        if length < 11:
+            return 1
+        # Calculate the interval for progress updates to aim for about 10 updates.
+        return min(10, length // 10)
+
+    def _save_progress(self):
+        try:
+            jobs_service.save_job_result_by_name(self.result_file, self.result)
+        except Exception as exc:
+            logger.warning(
+                f"Job {self.job_id}: Failed to persist periodic progress; continuing",
+                exc_info=exc,
+            )
+
+    def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+
+        per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
             if self._is_cancelled():
                 break
 
-            if n == 1 or n % 10 == 0:
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            self._process_template(template)
+
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
                 try:
                     jobs_service.save_job_result_by_name(self.result_file, self.result)
                 except Exception as exc:
@@ -142,29 +169,18 @@ class CropMainFilesProcessor:
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                         exc_info=exc,
                     )
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
-
-        self._finalize()
-        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def _initialize(self) -> bool:
+    def before_run(self) -> bool:
         """Set up job status, auth session, and site. Returns False on failure."""
         try:
-            jobs_service.update_job_status(
-                self.job_id,
-                "running",
-                self.result_file,
-                job_type="crop_main_files"
-            )
+            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
         except LookupError:
             logger.warning(
-                f"Job {self.job_id}: Could not update status to running – "
-                "job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running – " "job record might have been deleted."
             )
             return False
 
@@ -196,8 +212,7 @@ class CropMainFilesProcessor:
         dev_limit = settings.download.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
             logger.info(
-                f"Job {self.job_id}: Development mode – "
-                f"limiting from {len(templates)} to {dev_limit} files"
+                f"Job {self.job_id}: Development mode – " f"limiting from {len(templates)} to {dev_limit} files"
             )
             return templates[:dev_limit]
 
@@ -288,10 +303,7 @@ class CropMainFilesProcessor:
             return False
 
         downloaded_path = download_result["path"]
-        file_info.steps["download"] = {
-            "result": True,
-            "msg": f"Downloaded to {downloaded_path}"
-        }
+        file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
         file_info.downloaded_path = downloaded_path
         self.result["summary"]["processed"] += 1
         return True
@@ -396,10 +408,7 @@ class CropMainFilesProcessor:
 
         if not update_result["success"]:
             error = update_result.get("error", "Unknown error")
-            logger.warning(
-                f"Job {self.job_id}: Failed to update template page {template_title} "
-                f"(reason: {error})"
-            )
+            logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} " f"(reason: {error})")
             # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
             file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
         else:
@@ -439,7 +448,7 @@ class CropMainFilesProcessor:
     def _append(self, file_info: FileProcessingInfo) -> None:
         self.result["files_processed"].append(file_info.to_dict())
 
-    def _finalize(self) -> None:
+    def after_run(self) -> None:
         # Mark as completed if not cancelled or failed
         if self.result.get("status") != "cancelled":
             self.result["status"] = "completed"
@@ -449,6 +458,7 @@ class CropMainFilesProcessor:
 # ------------------------------------------------------------------
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
+
 
 def process_crops(
     job_id: int,

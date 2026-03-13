@@ -28,9 +28,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     )
 
     # Mock generate_result_file_name (imported from utils in base_worker)
-    mock_generate_result_file_name = MagicMock(
-        side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json"
-    )
+    mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
@@ -53,9 +51,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 def test_crop_main_files_for_templates_basic_flow(mock_services):
     """Test basic flow of crop_main_files_for_templates."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -76,13 +72,7 @@ def test_crop_main_files_for_templates_basic_flow(mock_services):
     call_args = mock_process.call_args
 
     assert call_args[0][0] == 1  # job_id
-    call_kwargs = (
-        call_args.kwargs
-        if hasattr(call_args, "kwargs")
-        else call_args[1]
-        if len(call_args) > 1
-        else {}
-    )
+    call_kwargs = call_args.kwargs if hasattr(call_args, "kwargs") else call_args[1] if len(call_args) > 1 else {}
     assert call_kwargs.get("user") is None
     assert call_kwargs.get("cancel_event") is None
     assert call_kwargs.get("upload_files") is False
@@ -90,13 +80,9 @@ def test_crop_main_files_for_templates_basic_flow(mock_services):
 
 def test_crop_main_files_for_templates_initializes_result(mock_services):
     """Test that result structure is properly initialized."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
 
-        def capture_result(
-            job_id, result, result_file, user, cancel_event=None, upload_files=False
-        ):
+        def capture_result(job_id, result, result_file, user, cancel_event=None, upload_files=False):
             # Verify the initial result structure
             assert result["status"] == "pending"
             assert "started_at" in result
@@ -120,9 +106,7 @@ def test_crop_main_files_for_templates_with_user(mock_services):
     """Test crop_main_files_for_templates with user authentication."""
     user = {"username": "testuser"}
 
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -148,9 +132,7 @@ def test_crop_main_files_for_templates_with_cancel_event(mock_services):
     """Test crop_main_files_for_templates with cancel event."""
     cancel_event = threading.Event()
 
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "cancelled",
             "summary": {
@@ -173,9 +155,7 @@ def test_crop_main_files_for_templates_with_cancel_event(mock_services):
 
 def test_crop_main_files_for_templates_handles_exception(mock_services):
     """Test that exceptions during processing are handled gracefully."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.side_effect = RuntimeError("Database connection failed")
 
         worker.crop_main_files_for_templates(1)
@@ -189,9 +169,7 @@ def test_crop_main_files_for_templates_handles_exception(mock_services):
 
 def test_crop_main_files_for_templates_sets_completed_timestamp(mock_services):
     """Test that completed_at timestamp is set."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -216,9 +194,7 @@ def test_crop_main_files_for_templates_sets_completed_timestamp(mock_services):
 
 def test_crop_main_files_for_templates_saves_final_result(mock_services):
     """Test that final result is saved."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -242,9 +218,7 @@ def test_crop_main_files_for_templates_saves_final_result(mock_services):
 
 def test_crop_main_files_for_templates_updates_final_status(mock_services):
     """Test that final job status is updated."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -272,9 +246,7 @@ def test_crop_main_files_for_templates_handles_save_failure(mock_services):
     """Test that failures to save results are handled gracefully."""
     mock_services["save_job_result_by_name"].side_effect = Exception("Disk full")
 
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -296,9 +268,7 @@ def test_crop_main_files_for_templates_handles_status_update_failure(mock_servic
     """Test that failures to update status are handled gracefully."""
     mock_services["update_job_status"].side_effect = LookupError("Job not found")
 
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -320,9 +290,7 @@ def test_crop_main_files_for_templates_generates_correct_result_file_name(
     mock_services,
 ):
     """Test that result file name is generated correctly."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -339,16 +307,12 @@ def test_crop_main_files_for_templates_generates_correct_result_file_name(
         worker.crop_main_files_for_templates(1)
 
     # Verify generate_result_file_name was called correctly
-    mock_services["generate_result_file_name"].assert_called_once_with(
-        1, "crop_main_files"
-    )
+    mock_services["generate_result_file_name"].assert_called_once_with(1, "crop_main_files")
 
 
 def test_crop_main_files_for_templates_passes_result_file_to_process(mock_services):
     """Test that result_file is passed to process_crops."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -371,9 +335,7 @@ def test_crop_main_files_for_templates_passes_result_file_to_process(mock_servic
 
 def test_crop_main_files_for_templates_preserves_cancelled_status(mock_services):
     """Test that cancelled status is preserved in final update."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "cancelled",
             "cancelled_at": datetime.now().isoformat(),
@@ -397,9 +359,7 @@ def test_crop_main_files_for_templates_preserves_cancelled_status(mock_services)
 
 def test_crop_main_files_for_templates_preserves_failed_status(mock_services):
     """Test that failed status from process_crops is preserved."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "failed",
             "error": "Some processing error",
@@ -433,9 +393,7 @@ def test_crop_main_files_for_templates_different_exception_types(mock_services):
     for exception, expected_type in exception_types:
         mock_services["save_job_result_by_name"].reset_mock()
 
-        with patch(
-            "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-        ) as mock_process:
+        with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
             mock_process.side_effect = exception
 
             worker.crop_main_files_for_templates(1)
@@ -447,9 +405,7 @@ def test_crop_main_files_for_templates_different_exception_types(mock_services):
 
 def test_crop_main_files_for_templates_upload_files_flag(mock_services):
     """Test that upload_files flag is always False."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -472,9 +428,7 @@ def test_crop_main_files_for_templates_upload_files_flag(mock_services):
 
 def test_crop_main_files_for_templates_multiple_jobs(mock_services):
     """Test running multiple jobs with different IDs."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.return_value = {
             "status": "completed",
             "summary": {
@@ -502,13 +456,9 @@ def test_crop_main_files_for_templates_multiple_jobs(mock_services):
 
 def test_crop_main_files_for_templates_started_at_timestamp(mock_services):
     """Test that started_at timestamp is set correctly."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
 
-        def capture_result(
-            job_id, result, result_file, user, cancel_event=None, upload_files=False
-        ):
+        def capture_result(job_id, result, result_file, user, cancel_event=None, upload_files=False):
             # Verify started_at is a valid timestamp
             assert "started_at" in result
             datetime.fromisoformat(result["started_at"])
@@ -524,9 +474,7 @@ def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(
 ):
     """Test that exceptions are logged with full traceback."""
     with (
-        patch(
-            "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-        ) as mock_process,
+        patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process,
         patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger,
     ):
         mock_process.side_effect = RuntimeError("Test error")
@@ -539,9 +487,7 @@ def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(
 
 def test_crop_main_files_for_templates_completed_status_default(mock_services):
     """Test that default status is completed when no other status is set."""
-    with patch(
-        "src.main_app.jobs_workers.crop_main_files.worker.process_crops"
-    ) as mock_process:
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         # Return result without explicit status
         mock_process.return_value = {
             "summary": {

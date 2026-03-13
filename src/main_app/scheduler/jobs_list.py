@@ -3,13 +3,15 @@ Background job definitions and registry.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+
 import logging
+from dataclasses import dataclass, field
 from typing import Any
+
+from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..jobs_workers import jobs_worker
-from apscheduler.jobstores.base import JobLookupError
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BackgroundJob:
     """Job configuration and runtime state."""
+
     id: str
     hour: int
     minute: int
@@ -62,7 +65,7 @@ def get_all_jobs_info(scheduler: BackgroundScheduler | None) -> list[dict]:
             # Get last run time from scheduler's job store
             try:
                 scheduler_job = scheduler.get_job(job_id) if scheduler else None
-                if scheduler_job and hasattr(scheduler_job, 'last_run_time'):
+                if scheduler_job and hasattr(scheduler_job, "last_run_time"):
                     info["last_run"] = scheduler_job.last_run_time
             except JobLookupError:
                 pass

@@ -20,7 +20,7 @@
                         <div class="mb-3">
                             <h3 class="mb-1">
                                 <i class="bi bi-file-earmark-image"></i>
-                                <a href="https://commons.wikimedia.org/wiki/{{ filename | replace(' ', '_') }}"
+                                <a href="https://commons.wikimedia.org/wiki/{{ filename | replace(' ', '_') | urlencode }}"
                                     target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                                     {{ filename }}
                                 </a>

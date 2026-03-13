@@ -1,13 +1,12 @@
-"""
-"""
+""" """
 
 from __future__ import annotations
 
 from .before_methods import insert_before_methods
+from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
 from .template_page import update_template_page_file_reference
-from .files_text import appendImageExtractedTemplate, update_original_file_text, create_cropped_file_text
-from .temps_bot import get_titles, get_titles_from_wikilinks, get_files_list
+from .temps_bot import get_files_list, get_titles, get_titles_from_wikilinks
 
 
 def ensure_file_prefix(file_name) -> str:

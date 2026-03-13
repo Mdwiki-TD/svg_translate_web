@@ -32,9 +32,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
     )
@@ -249,8 +247,8 @@ def test_collect_main_files_adds_new_templates_from_category(mock_services):
     # New templates from category
     category_templates = [
         "Template:Existing",  # Already exists
-        "Template:New1",       # New
-        "Template:New2",       # New
+        "Template:New1",  # New
+        "Template:New2",  # New
     ]
 
     mock_services["get_category_members"].return_value = category_templates
@@ -345,7 +343,7 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs",
-        mock_find_last_world
+        mock_find_last_world,
     )
 
     collect_main_files_worker.collect_main_files_for_templates(1)
@@ -423,8 +421,7 @@ def test_collect_main_files_progress_saving_frequency(mock_services, monkeypatch
     """Test that progress is saved every 10 templates."""
     # Create 25 templates to process
     templates = [
-        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=None, last_world_file=None)
-        for i in range(1, 26)
+        TemplateRecord(id=i, title=f"Template:Test{i}", main_file=None, last_world_file=None) for i in range(1, 26)
     ]
 
     mock_services["get_category_members"].return_value = []
@@ -472,15 +469,13 @@ def test_collect_main_files_only_last_world_file(mock_services, monkeypatch: pyt
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs",
-        mock_find_last_world
+        mock_find_last_world,
     )
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should update template with only last_world_file
-    mock_services["update_template"].assert_called_once_with(
-        1, "Template:Test", None, "File:test, World, 2021.svg"
-    )
+    mock_services["update_template"].assert_called_once_with(1, "Template:Test", None, "File:test, World, 2021.svg")
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -529,22 +524,16 @@ def test_collect_main_files_add_template_generic_exception(mock_services):
 def test_worker_class_get_job_type(mock_services):
     """Test CollectMainFilesWorker.get_job_type returns correct type."""
     import threading
-    worker = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1,
-        user=None,
-        cancel_event=threading.Event()
-    )
+
+    worker = collect_main_files_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
     assert worker.get_job_type() == "collect_main_files"
 
 
 def test_worker_class_get_initial_result(mock_services):
     """Test CollectMainFilesWorker.get_initial_result returns proper structure."""
     import threading
-    worker = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1,
-        user=None,
-        cancel_event=threading.Event()
-    )
+
+    worker = collect_main_files_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
     result = worker.get_initial_result()
 
     assert result["job_id"] == 1

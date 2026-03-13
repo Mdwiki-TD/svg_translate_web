@@ -1,10 +1,9 @@
-"""
-
-"""
+""" """
 
 from __future__ import annotations
 
 import logging
+
 import mwclient
 
 from ..utils.verify import verify_required_fields
@@ -25,10 +24,12 @@ def get_file_text(
     Returns:
         The wikitext of the file, or an empty string if it cannot be retrieved.
     """
-    missing_fields = verify_required_fields({
-        "file_name": file_name,
-        "site": site,
-    })
+    missing_fields = verify_required_fields(
+        {
+            "file_name": file_name,
+            "site": site,
+        }
+    )
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for get_file_text: {list_str}")
@@ -64,11 +65,13 @@ def update_file_text(
     Returns:
         A dictionary with 'success' (bool) and optionally 'error' (str).
     """
-    missing_fields = verify_required_fields({
-        "original_file": original_file,
-        "updated_file_text": updated_file_text,
-        "site": site,
-    })
+    missing_fields = verify_required_fields(
+        {
+            "original_file": original_file,
+            "updated_file_text": updated_file_text,
+            "site": site,
+        }
+    )
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for update_file_text: {list_str}")
@@ -102,10 +105,12 @@ def get_page_text(
     Returns:
         The wikitext of the page, or an empty string if it cannot be retrieved.
     """
-    missing_fields = verify_required_fields({
-        "page_name": page_name,
-        "site": site,
-    })
+    missing_fields = verify_required_fields(
+        {
+            "page_name": page_name,
+            "site": site,
+        }
+    )
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for get_page_text: {list_str}")
@@ -137,11 +142,13 @@ def update_page_text(
     Returns:
         A dictionary with 'success' (bool) and optionally 'error' (str).
     """
-    missing_fields = verify_required_fields({
-        "page_name": page_name,
-        "updated_text": updated_text,
-        "site": site,
-    })
+    missing_fields = verify_required_fields(
+        {
+            "page_name": page_name,
+            "updated_text": updated_text,
+            "site": site,
+        }
+    )
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for update_page_text: {list_str}")

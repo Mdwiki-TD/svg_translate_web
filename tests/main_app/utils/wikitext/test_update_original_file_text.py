@@ -61,7 +61,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
 
 [[Category:Essar Steel Algoma]]"""
 
-        result = update_original_file_text('My new file.jpg', oldText)
+        result = update_original_file_text("My new file.jpg", oldText)
         assert result == newText
 
     def testnotduplicateinsert(self):
@@ -74,7 +74,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         |other versions ={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
         }}"""
 
-        result = update_original_file_text('File:Share-with-drug-use-disorders,World,2021_(cropped).svg', oldText)
+        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", oldText)
         assert result == oldText
 
 
@@ -119,9 +119,7 @@ class TestUpdate_original_file_text_extensive:
         text = """{{Information
 |other_versions={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
 }}"""
-        result = update_original_file_text(
-            "File:Share-with-drug-use-disorders,World,2021_(cropped).svg", text
-        )
+        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", text)
         assert result == text
 
     def test_no_duplicate_insert_when_already_in_other_versions(self):
@@ -135,9 +133,7 @@ class TestUpdate_original_file_text_extensive:
         |other versions ={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
         }}"""
 
-        result = update_original_file_text(
-            "File:Share-with-drug-use-disorders,World,2021_(cropped).svg", old_text
-        )
+        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", old_text)
         assert result == old_text
 
     # ------------------------------------------------------------------

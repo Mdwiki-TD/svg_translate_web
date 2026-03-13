@@ -10,7 +10,6 @@ import pytest
 
 from src.main_app.utils.wikitext.temps_bot import get_files_list
 
-
 # ---------- Tests for get_files_list (integration) ----------
 
 

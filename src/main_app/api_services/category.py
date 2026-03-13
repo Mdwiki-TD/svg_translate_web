@@ -53,9 +53,9 @@ def get_category_members(category="Category:Pages using gadget owidslider", proj
 
     logger.info(f"Found {len(result)} pages in category {category}")
 
+    EXCLUDED_TEMPLATES = {"template:owidslider", "template:owid"}
     result = [
         x for x in result
-        if x.startswith("Template:")
-        and x.lower() not in ["template:owidslider", "template:owid"]
+        if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES
     ]
     return result

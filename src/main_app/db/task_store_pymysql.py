@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict
 
 from ..config import DbConfig
 from .db_class import Database

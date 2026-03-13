@@ -3,9 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-# from .utils import DbUtils
-# from .db_TasksListDB import TasksListDB
-# from .db_StageStore import StageStore
+from .utils import DbUtils
 from .db_class import Database
 
 logger = logging.getLogger(__name__)
@@ -37,7 +35,7 @@ class TaskAlreadyExistsError(Exception):
         self.task = task
 
 
-class CreateUpdateTask:  # (StageStore, TasksListDB, DbUtils):
+class CreateUpdateTask(DbUtils):
     """MySQL-backed task store using helper functions execute_query/fetch_query."""
 
     def __init__(self, db: Database | None = None) -> None:

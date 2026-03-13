@@ -11,7 +11,6 @@ import pytest
 
 from src.main_app.utils.wikitext.titles_utils.main_file import find_main_title
 
-
 # ---------- Tests for find_main_title ----------
 
 

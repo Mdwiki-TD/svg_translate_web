@@ -5,12 +5,13 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable
+
 from tqdm import tqdm
 
-from ...config import settings
-from ...db.task_store_pymysql import TaskStorePyMysql
 from ...api_services.clients import create_commons_session
 from ...api_services.download_file_utils import download_one_file
+from ...config import settings
+from ...db.task_store_pymysql import TaskStorePyMysql
 
 logger = logging.getLogger(__name__)
 

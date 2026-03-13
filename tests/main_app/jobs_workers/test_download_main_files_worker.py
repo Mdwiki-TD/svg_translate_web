@@ -28,9 +28,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
         mock_save_job_result,

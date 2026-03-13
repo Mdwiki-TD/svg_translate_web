@@ -170,15 +170,13 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
     def process(self) -> Dict[str, Any]:
         """Execute the fix nested tags processing logic."""
-        from . import jobs_service
-
-        result = self.result
-
         # Get all templates
         templates = template_service.list_templates()
-        result["summary"]["total"] = len(templates)
+        self.result["summary"]["total"] = len(templates)
 
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
+
+        per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates)}: {template.title}")
@@ -188,11 +186,8 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 break
 
             # Save progress after check for cancellation
-            if n == 1 or n % 10 == 0:
-                try:
-                    jobs_service.save_job_result_by_name(self.result_file, result)
-                except Exception:
-                    logger.exception(f"Job {self.job_id}: Failed to save progress")
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
 
             template_info = {
                 "id": template.id,
@@ -222,8 +217,8 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
             if fix_result.get("cancelled"):
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
-                result["status"] = "cancelled"
-                result["cancelled_at"] = datetime.now().isoformat()
+                self.result["status"] = "cancelled"
+                self.result["cancelled_at"] = datetime.now().isoformat()
                 break
 
             if fix_result["success"]:
@@ -237,21 +232,20 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             else:
                 self._log_failed_fix(template_info, fix_result)
                 logger.warning(
-                    f"Job {self.job_id}: Failed to process {template.main_file}: "
-                    f"{fix_result.get('message')}"
+                    f"Job {self.job_id}: Failed to process {template.main_file}: " f"{fix_result.get('message')}"
                 )
 
         # Update summary skipped count
-        result["summary"]["skipped"] = len(result["templates_skipped"])
+        self.result["summary"]["skipped"] = len(self.result["templates_skipped"])
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{result['summary']['success']} successful, "
-            f"{result['summary']['failed']} failed, "
-            f"{result['summary']['skipped']} skipped"
+            f"{self.result['summary']['success']} successful, "
+            f"{self.result['summary']['failed']} failed, "
+            f"{self.result['summary']['skipped']} skipped"
         )
 
-        return result
+        return self.result
 
 
 def fix_nested_main_files_for_templates(
