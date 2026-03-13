@@ -134,7 +134,7 @@ class CropMainFilesProcessor:
     def get_priority(self, length) -> int:
         if length < 11:
             return 1
-        # we need at least 10 times to update the progress if it's posible more then return 10
+        # Calculate the interval for progress updates to aim for about 10 updates.
         return min(10, length // 10)
 
     def _save_progress(self):
