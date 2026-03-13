@@ -160,7 +160,7 @@ class ConcreteTestWorker(BaseJobWorker):
 
 
 @pytest.fixture
-def mock_base_services(monkeypatch: pytest.MonkeyPatch):
+def mock_base_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by BaseJobWorker."""
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
@@ -183,6 +183,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch):
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 

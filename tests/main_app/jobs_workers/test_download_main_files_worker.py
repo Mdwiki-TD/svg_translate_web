@@ -15,7 +15,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by download_main_files_worker."""
 
     # Mock template_service
@@ -53,6 +53,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
         "settings": mock_settings,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
