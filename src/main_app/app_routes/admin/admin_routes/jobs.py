@@ -28,20 +28,20 @@ logger = logging.getLogger(__name__)
 
 
 JOB_TYPE_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files_job_detail.html",
-    "crop_main_files": "admins/crop_main_files_job_detail.html",
-    "create_owid_pages": "admins/create_owid_pages_job_detail.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
-    "download_main_files": "admins/download_main_files_job_detail.html",
+    "collect_main_files": "admins/jobs_templates/collect_main_files/details.html",
+    "crop_main_files": "admins/jobs_templates/crop_main_files/details.html",
+    "create_owid_pages": "admins/jobs_templates/create_owid_pages/details.html",
+    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
+    "download_main_files": "admins/jobs_templates/download_main_files/details.html",
 }
 
 
 JOB_TYPE_LIST_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files/list.html",
-    "crop_main_files": "admins/crop_main_files_jobs.html",
-    "create_owid_pages": "admins/create_owid_pages_jobs.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
-    "download_main_files": "admins/download_main_files_jobs.html",
+    "collect_main_files": "admins/jobs_templates/collect_main_files/list.html",
+    "crop_main_files": "admins/jobs_templates/crop_main_files/list.html",
+    "create_owid_pages": "admins/jobs_templates/create_owid_pages/list.html",
+    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
+    "download_main_files": "admins/jobs_templates/download_main_files/list.html",
 }
 
 
