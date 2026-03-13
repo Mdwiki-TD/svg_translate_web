@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def is_page_exists(
     page_title: str,
-    site: mwclient.Site | None,
+    site: mwclient.Site,
 ) -> bool:
 
     page = site.Pages[page_title]
