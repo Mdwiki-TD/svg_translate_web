@@ -25,7 +25,6 @@ from .app_routes import (
 from .config import settings
 from .cookies import CookieHeaderClient
 from .db import close_cached_db
-from .scheduler import init_scheduler
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 
@@ -163,8 +162,5 @@ def create_app() -> Flask:
     app.register_blueprint(bp_fix_nested)
     app.register_blueprint(bp_fix_nested_explorer)
     app.register_blueprint(bp_extract)
-
-    # Initialize scheduler for cron jobs
-    init_scheduler(app)
 
     return app

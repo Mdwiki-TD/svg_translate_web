@@ -106,13 +106,6 @@ def create_side(active_route):
                 icon="bi-download",
                 disabled=True,
             ),
-            SidebarItem(
-                id="schedulers",
-                admin=1,
-                href="schedulers",
-                title="Schedulers",
-                icon="bi-clock-history",
-            ),
         ],
         "Settings": [
             SidebarItem(

@@ -16,7 +16,6 @@ from .admin_routes import (
     Coordinators,
     Jobs,
     Recent,
-    Schedulers,
     SettingsRoutes,
     Templates,
 )
@@ -51,5 +50,3 @@ Templates(bp_admin)
 Jobs(bp_admin)
 
 SettingsRoutes(bp_admin)
-
-Schedulers(bp_admin)

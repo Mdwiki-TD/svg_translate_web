@@ -28,11 +28,20 @@ logger = logging.getLogger(__name__)
 
 
 JOB_TYPE_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files_job_detail.html",
-    "crop_main_files": "admins/crop_main_files_job_detail.html",
-    "create_owid_pages": "admins/create_owid_pages_job_detail.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_job_detail.html",
-    "download_main_files": "admins/download_main_files_job_detail.html",
+    "collect_main_files": "admins/jobs_templates/collect_main_files/details.html",
+    "crop_main_files": "admins/jobs_templates/crop_main_files/details.html",
+    "create_owid_pages": "admins/jobs_templates/create_owid_pages/details.html",
+    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
+    "download_main_files": "admins/jobs_templates/download_main_files/details.html",
+}
+
+
+JOB_TYPE_LIST_TEMPLATES = {
+    "collect_main_files": "admins/jobs_templates/collect_main_files/list.html",
+    "crop_main_files": "admins/jobs_templates/crop_main_files/list.html",
+    "create_owid_pages": "admins/jobs_templates/create_owid_pages/list.html",
+    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
+    "download_main_files": "admins/jobs_templates/download_main_files/list.html",
 }
 
 
@@ -88,21 +97,15 @@ def _start_job(job_type: str) -> int | None:
 # Jobs handlers
 # ================================
 
-
-JOB_TYPE_LIST_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files_jobs.html",
-    "crop_main_files": "admins/crop_main_files_jobs.html",
-    "create_owid_pages": "admins/create_owid_pages_jobs.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
-    "download_main_files": "admins/download_main_files_jobs.html",
-}
-
-
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     user = current_user()
     # Filter jobs at database level for better performance
     jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+
+    # sort jobs by created_at key
+    if jobs:
+        jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
 
     template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
     if not template:
