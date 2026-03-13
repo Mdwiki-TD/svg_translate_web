@@ -300,6 +300,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             if n == 1 or n % 10 == 0:
                 self._save_progress()
 
+        self.result["status"] = "completed"
         return self.result
 
 
