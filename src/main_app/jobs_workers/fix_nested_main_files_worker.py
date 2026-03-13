@@ -27,14 +27,15 @@ logger = logging.getLogger(__name__)
 def repair_nested_svg_tags(
     filename: str,
     user,
-    cancel_event: threading.Event | None = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
     Args:
         filename: Name of the SVG file to fix
         user: User object for authentication during upload
-        cancel_event: Optional event to check for cancellation
+
+    Returns:
+        Dictionary with success status, message, and details.
     """
     # Use temp directory for processing
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -49,9 +50,6 @@ def repair_nested_svg_tags(
             }
 
         file_path = download["path"]
-
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
 
         detect_before = detect_nested_tags(file_path)
 
@@ -70,9 +68,6 @@ def repair_nested_svg_tags(
                 "details": {"nested_count": detect_before["count"]},
             }
 
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
-
         verify = verify_fix(file_path, detect_before["count"])
 
         if verify["fixed"] == 0:
@@ -81,9 +76,6 @@ def repair_nested_svg_tags(
                 "message": f"No nested tags were fixed in {filename}",
                 "details": verify,
             }
-
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
 
         upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
 
@@ -207,7 +199,6 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 fix_result = repair_nested_svg_tags(
                     filename=template.main_file,
                     user=self.user,
-                    cancel_event=self.cancel_event,
                 )
 
             except Exception as e:

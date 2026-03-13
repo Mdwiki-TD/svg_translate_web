@@ -10,7 +10,7 @@ from src.main_app.app_routes.tasks import routes
 
 
 def test_start_redirects_to_correct_task_endpoint(monkeypatch):
-    """Test that start() redirects to 'tasks.task' not 'tasks.task1'."""
+    """Test that start() redirects to 'tasks.task'."""
     app = Flask(__name__)
     app.secret_key = "test"
 
@@ -37,7 +37,7 @@ def test_start_redirects_to_correct_task_endpoint(monkeypatch):
 
                             # Verify url_for was called with correct endpoint name
                             mock_url_for.assert_any_call(
-                                "tasks.task",  # Should be 'task' not 'task1'
+                                "tasks.task",
                                 task_id="existing-task-123",
                                 title="Test Title",
                             )

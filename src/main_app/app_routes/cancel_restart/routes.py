@@ -5,17 +5,17 @@ from __future__ import annotations
 import logging
 import threading
 import uuid
-from functools import wraps
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
 from flask import (
     Blueprint,
     flash,
     jsonify,
     redirect,
+    render_template,
+    request,
     url_for,
 )
-from flask.wrappers import Response
 from werkzeug.datastructures import MultiDict
 
 from ...admins.admin_service import active_coordinators
@@ -46,19 +46,6 @@ def _task_store() -> TaskStorePyMysql:
     if TASK_STORE is None:
         TASK_STORE = TaskStorePyMysql(settings.database_data)
     return TASK_STORE
-
-
-def login_required_json(fn: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator that redirects anonymous users to the index page."""
-
-    @wraps(fn)
-    def wrapper(*args, **kwargs) -> Response | Any:
-        if not current_user():  # and not getattr(g, "is_authenticated", False)
-            flash("You must be logged in to view this page", "warning")
-            return jsonify({"error": "login-required"})
-        return fn(*args, **kwargs)
-
-    return wrapper
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/cancel")

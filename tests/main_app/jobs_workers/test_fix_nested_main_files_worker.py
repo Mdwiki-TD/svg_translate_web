@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +11,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by fix_nested_main_files_worker."""
 
     # Mock template_service
@@ -45,11 +44,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
 @pytest.fixture
-def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
+def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by fix_nested_main_files_for_templates."""
     # Mock template_service
     mock_list_templates = MagicMock()
@@ -83,6 +83,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
         "repair_nested_svg_tags": mock_process_fix_nested,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
@@ -141,11 +142,9 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user)
 
     # Should call repair_nested_svg_tags
-    mock_fix_nested_services["repair_nested_svg_tags"].assert_called_once_with(
-        filename="test.svg",
-        user=user,
-        cancel_event=None,
-    )
+    call_args = mock_fix_nested_services["repair_nested_svg_tags"].call_args
+    assert call_args.kwargs["filename"] == "test.svg"
+    assert call_args.kwargs["user"] == user
 
     # Should save result with successful template
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
@@ -208,7 +207,10 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     mock_fix_nested_services["list_templates"].return_value = templates
 
     # First template: success, third template: success
-    def process_fix_nested_side_effect(filename, user, cancel_event=None):
+    def process_fix_nested_side_effect(
+        filename,
+        user,
+    ):
         if "test1" in filename:
             return {"success": True, "message": "Fixed test1.svg"}
         elif "test3" in filename:
@@ -357,79 +359,6 @@ class TestRepairNestedSvgTags:
         assert result["success"] is True
         assert "Successfully fixed" in result["message"]
         assert "3 nested tag(s)" in result["message"]
-
-    def test_cancellation_after_download(self):
-        """Test cancellation after download."""
-        cancel_event = threading.Event()
-        cancel_event.set()  # Cancel immediately
-
-        with patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download:
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-
-            result = fix_nested_main_files_worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-                cancel_event=cancel_event,
-            )
-
-        assert result["success"] is False
-        assert result.get("cancelled") is True
-        assert "Cancelled" in result["message"]
-
-    def test_cancellation_after_fix(self):
-        """Test cancellation after fix but before verify."""
-        cancel_event = threading.Event()
-
-        def set_cancel_on_fix(*args, **kwargs):
-            cancel_event.set()
-            return True
-
-        with (
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.side_effect = set_cancel_on_fix
-
-            result = fix_nested_main_files_worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-                cancel_event=cancel_event,
-            )
-
-        assert result["success"] is False
-        assert result.get("cancelled") is True
-
-    def test_cancellation_after_verify(self):
-        """Test cancellation after verify but before upload."""
-        cancel_event = threading.Event()
-
-        def set_cancel_on_verify(*args, **kwargs):
-            cancel_event.set()
-            return {"fixed": 3}
-
-        with (
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.download_svg_file") as mock_download,
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.detect_nested_tags") as mock_detect,
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.fix_nested_tags") as mock_fix,
-            patch("src.main_app.jobs_workers.fix_nested_main_files_worker.verify_fix") as mock_verify,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.return_value = True
-            mock_verify.side_effect = set_cancel_on_verify
-
-            result = fix_nested_main_files_worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-                cancel_event=cancel_event,
-            )
-
-        assert result["success"] is False
-        assert result.get("cancelled") is True
-
 
 # =============================================================================
 # Additional worker tests

@@ -127,12 +127,26 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
         return None
 
 
+def cancel_job(job_id: int, job_type: str | None = None) -> bool:
+    """Mark a job as cancelled."""
+    store = get_jobs_db()
+    return store.cancel(job_id, job_type)
+
+
+def is_job_cancelled(job_id: int, job_type: str) -> bool:
+    """Check if a job is marked as cancelled."""
+    store = get_jobs_db()
+    return store.is_cancelled(job_id, job_type)
+
+
 __all__ = [
     "get_jobs_db",
     "create_job",
     "get_job",
     "list_jobs",
     "update_job_status",
+    "cancel_job",
+    "is_job_cancelled",
     "save_job_result_by_name",
     "save_job_result",
     "load_job_result",

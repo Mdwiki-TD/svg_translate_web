@@ -80,6 +80,25 @@ class FakeJobsDB:
         except LookupError:
             return False
 
+    def cancel(self, job_id: int, job_type: str | None = None) -> bool:
+        """Mark a job as cancelled."""
+        for index, record in enumerate(self._records):
+            if record.id == job_id:
+                if job_type and record.job_type != job_type:
+                    continue
+                if record.status in ["pending", "running"]:
+                    self._records[index] = replace(record, status="cancelled")
+                    return True
+        return False
+
+    def is_cancelled(self, job_id: int, job_type: str) -> bool:
+        """Check if a job is marked as cancelled."""
+        try:
+            index = self._find_index(job_id, job_type)
+            return self._records[index].status == "cancelled"
+        except LookupError:
+            return False
+
 
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):

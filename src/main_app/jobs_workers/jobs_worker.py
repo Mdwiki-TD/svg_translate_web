@@ -42,17 +42,26 @@ def _runner(job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Ev
         _pop_cancel_event(job_id)
 
 
-def cancel_job(job_id: int, job_type: str = None) -> bool:
+def cancel_job(job_id: int, job_type: str | None = None) -> bool:
     """
     Cancel a running job.
-    Returns True if a cancel event was found and set, False otherwise.
+    Works across multiple processes by updating the database status.
+    Returns True if the job was found and cancellation was requested.
     """
+    # 1. Try local cancellation (if the job is in this process)
     cancel_event = get_jobs_cancel_event(job_id)
+    local_cancelled = False
     if cancel_event:
         cancel_event.set()
-        logger.info(f"Cancellation requested for job {job_id}")
-        return True
-    return False
+        logger.info(f"Local cancellation requested for job {job_id}")
+        local_cancelled = True
+
+    # 2. Persist cancellation to DB (for cross-process detection)
+    db_cancelled = jobs_service.cancel_job(job_id, job_type)
+    if db_cancelled:
+        logger.info(f"Database cancellation requested for job {job_id}")
+
+    return local_cancelled or db_cancelled
 
 
 def start_job(user: Dict[str, Any] | None, job_type: str) -> int:

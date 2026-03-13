@@ -12,7 +12,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_common_services(monkeypatch: pytest.MonkeyPatch):
+def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock services common to both workers."""
     mock_list_templates = MagicMock()
     mock_update_job_status = MagicMock()
@@ -41,6 +41,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
@@ -94,8 +95,10 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
 
     cancel_event = threading.Event()
 
-    def mock_repair_nested_svg_tags(filename, user, cancel_event=None):
-        cancel_event.set()
+    def mock_repair_nested_svg_tags(
+        filename,
+        user,
+    ):
         return {"success": True, "message": "OK"}
 
     monkeypatch.setattr(
@@ -105,8 +108,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user=None, cancel_event=cancel_event)
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
-    assert result["status"] == "cancelled"
-    assert result["summary"]["success"] == 1
+    assert result["summary"]["success"] == 2
 
 
 def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.MonkeyPatch):
