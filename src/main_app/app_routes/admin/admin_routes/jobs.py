@@ -38,7 +38,7 @@ JOB_TYPE_TEMPLATES = {
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
-    if jobs_worker.cancel_job(job_id):
+    if jobs_worker.cancel_job(job_id, job_type):
         flash(f"Job {job_id} cancellation requested.", "success")
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
@@ -51,7 +51,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
     try:
         # Cancel the job if it's running
-        if jobs_worker.cancel_job(job_id):
+        if jobs_worker.cancel_job(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
         jobs_service.delete_job(job_id, job_type)
