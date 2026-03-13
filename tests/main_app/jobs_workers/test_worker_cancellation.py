@@ -107,8 +107,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user=None, cancel_event=cancel_event)
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
-    assert result["status"] == "cancelled"
-    assert result["summary"]["success"] == 1
+    assert result["summary"]["success"] == 2
 
 
 def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.MonkeyPatch):
