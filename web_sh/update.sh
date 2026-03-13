@@ -50,6 +50,7 @@ if [ -f "$CLONE_DIR/requirements.txt" ]; then
     cp "$CLONE_DIR/requirements.txt" "$TARGET_DIR/requirements.txt"
     if source "$HOME/www/python/venv/bin/activate"; then
         pip install -r "$CLONE_DIR/requirements.txt"
+        pip install --upgrade CopySVGTranslation
     else
         echo "Failed to activate virtual environment" >&2
     fi
