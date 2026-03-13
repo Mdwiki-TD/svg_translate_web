@@ -176,7 +176,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
 
-        per_item = self.get_per_item(len(templates))
+        per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates)}: {template.title}")

@@ -125,7 +125,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
 
-        per_item = self.get_per_item(len(templates_to_process))
+        per_item = self.get_priority(len(templates_to_process))
 
         for n, template in enumerate(templates_to_process, start=1):
             if self.is_cancelled():

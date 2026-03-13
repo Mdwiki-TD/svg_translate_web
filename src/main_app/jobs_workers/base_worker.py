@@ -191,10 +191,11 @@ class BaseJobWorker(ABC):
             return True
         return False
 
-    def get_per_item(self, length):
+    def get_priority(self, length) -> int:
         if length < 11:
             return 1
-        return 10
+        # we need at least 10 times to update the progress if it's posible more then return 10
+        return min(10, length // 10)
 
     def handle_error(self, error: Exception, context: str = "") -> None:
         """Handle an error during processing.

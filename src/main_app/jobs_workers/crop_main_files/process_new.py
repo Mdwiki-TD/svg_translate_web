@@ -131,17 +131,18 @@ class CropMainFilesProcessor:
 
         return self.result
 
-    def get_per_item(self, length):
+    def get_priority(self, length) -> int:
         if length < 11:
             return 1
-        return 10
+        # we need at least 10 times to update the progress if it's posible more then return 10
+        return min(10, length // 10)
 
     def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
-        per_item = self.get_per_item(len(templates))
+        per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
             if self._is_cancelled():

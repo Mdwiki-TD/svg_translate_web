@@ -149,7 +149,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         # Create a shared session for all downloads
         session = create_commons_session(settings.oauth.user_agent)
 
-        per_item = self.get_per_item(len(templates_with_files))
+        per_item = self.get_priority(len(templates_with_files))
 
         for n, template in enumerate(templates_with_files, start=1):
             # Check for cancellation
