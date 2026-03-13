@@ -222,13 +222,13 @@ class MainFilesWorker(BaseJobWorker):
         return True
 
 
-def start(
-) -> None:
+def start() -> None:
     user = None
     # Get auth payload for OAuth uploads
     cancel_event = threading.Event()
-    job_id = jobs_service.create_job("collect_main_files", "Mr. Ibrahem")
-    logger.info("Starting collect main files offline job.")
+    job_record = jobs_service.create_job("collect_main_files", "Mr. Ibrahem")
+    job_id = job_record.id
+    logger.info(f"Starting collect main files offline job with job_id={job_id}.")
     worker = MainFilesWorker(job_id, user, cancel_event)
     worker.run()
 
