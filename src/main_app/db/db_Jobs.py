@@ -200,6 +200,32 @@ class JobsDB:
 
         return self.get(job_id, job_type)
 
+    def cancel(self, job_id: int, job_type: str | None = None) -> bool:
+        """
+        Mark a job as cancelled in the database.
+        Returns True if the job was found and its status was updated to 'cancelled'.
+        """
+        query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
+        params = [job_id]
+        if job_type:
+            query += " AND job_type = %s"
+            params.append(job_type)
+
+        rowcount = self.db.execute_query_safe(query, tuple(params))
+        return rowcount > 0
+
+    def is_cancelled(self, job_id: int, job_type: str) -> bool:
+        """
+        Check if a job is marked as cancelled in the database.
+        """
+        rows = self.db.fetch_query_safe(
+            "SELECT status FROM jobs WHERE id = %s AND job_type = %s",
+            (job_id, job_type),
+        )
+        if not rows:
+            return False
+        return rows[0]["status"] == "cancelled"
+
 
 __all__ = [
     "JobsDB",

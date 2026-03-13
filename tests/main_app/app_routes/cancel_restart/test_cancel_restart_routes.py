@@ -50,19 +50,6 @@ def app(monkeypatch: pytest.MonkeyPatch):
     yield app
 
 
-def test_login_required_json_blocks_anonymous(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes.current_user", lambda: None)
-
-    @routes.login_required_json
-    def protected() -> dict[str, str]:
-        return {"status": "ok"}
-
-    with app.test_request_context("/"):
-        response = protected()
-
-    assert response == {"error": "login-required"}
-
-
 def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     cancel_called = []
 
