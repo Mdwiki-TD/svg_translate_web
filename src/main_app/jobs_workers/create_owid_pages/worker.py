@@ -316,7 +316,7 @@ def create_owid_pages_for_templates(
     """
     Background worker
     """
-    logger.info(f"Starting job {job_id}: collect main files for templates")
+    logger.info(f"Starting job {job_id}: create OWID pages for templates")
     worker = CreateOwidPagesWorker(
         job_id=job_id,
         user=user,
