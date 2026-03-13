@@ -118,7 +118,9 @@ class CollectMainFilesWorker(BaseJobWorker):
         # Step 2: Get all templates (including newly added)
         templates = template_service.list_templates()
         self.result["summary"]["total"] = len(templates)
-        self.result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
+        self.result["summary"]["already_had_main_file"] = len(
+            [t for t in templates if t.main_file and t.last_world_file]
+        )
 
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
