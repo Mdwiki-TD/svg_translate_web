@@ -443,6 +443,13 @@ class CropMainFilesProcessor:
             self.result["status"] = "cancelled"
             self.result["cancelled_at"] = datetime.now().isoformat()
             return True
+
+        if jobs_service.is_job_cancelled(self.job_id, job_type="crop_main_files"):
+            logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
+            self.result["status"] = "cancelled"
+            self.result["cancelled_at"] = datetime.now().isoformat()
+            return True
+
         return False
 
     def _append(self, file_info: FileProcessingInfo) -> None:

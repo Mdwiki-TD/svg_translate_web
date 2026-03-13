@@ -28,6 +28,7 @@ def repair_nested_svg_tags(
     filename: str,
     user,
     cancel_event: threading.Event | None = None,
+    is_cancelled_callback: callable | None = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
@@ -39,6 +40,10 @@ def repair_nested_svg_tags(
     def is_cancelled() -> dict[str, Any] | None:
         if cancel_event and cancel_event.is_set():
             return {"success": False, "message": "Cancelled", "cancelled": True}
+
+        if is_cancelled_callback and is_cancelled_callback():
+            return {"success": False, "message": "Cancelled", "cancelled": True}
+
         return None
     # Use temp directory for processing
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -212,6 +217,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                     filename=template.main_file,
                     user=self.user,
                     cancel_event=self.cancel_event,
+                    is_cancelled_callback=self.is_cancelled,
                 )
 
             except Exception as e:
