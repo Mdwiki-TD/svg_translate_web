@@ -3,14 +3,13 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
-# from .utils import DbUtils
-# from .db_StageStore import StageStore
+from .utils import DbUtils
 from .db_class import Database
 
 logger = logging.getLogger(__name__)
 
 
-class TasksListDB:  # (StageStore, DbUtils)
+class TasksListDB(DbUtils):
     def __init__(self, db: Database | None = None) -> None:
         self.db = db
 
