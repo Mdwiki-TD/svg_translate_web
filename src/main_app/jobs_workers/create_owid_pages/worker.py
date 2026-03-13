@@ -290,6 +290,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
+        per_item = self.get_per_item(len(templates))
+
         for n, template in enumerate(templates, start=1):
             if self.is_cancelled():
                 break
@@ -297,10 +299,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
             self._process_template(template)
 
-            if n == 1 or n % 10 == 0:
+            if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        self.result["status"] = "completed"
+        if self.result.get("status") == "pending":
+            self.result["status"] = "completed"
+
         return self.result
 
 

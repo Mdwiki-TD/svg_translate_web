@@ -191,6 +191,11 @@ class BaseJobWorker(ABC):
             return True
         return False
 
+    def get_per_item(self, length):
+        if length < 11:
+            return 1
+        return 10
+
     def handle_error(self, error: Exception, context: str = "") -> None:
         """Handle an error during processing.
 

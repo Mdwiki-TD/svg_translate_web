@@ -124,9 +124,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
     def process(self) -> Dict[str, Any]:
         """Execute the download processing logic."""
-        from . import jobs_service
-
-        result = self.result
 
         # Get all templates with main files
         templates = template_service.list_templates()
@@ -141,8 +138,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
             )
             templates_with_files = templates_with_files[:dev_limit]
 
-        result["summary"]["total"] = len(templates_with_files)
-        result["output_path"] = str(self.output_dir)
+        self.result["summary"]["total"] = len(templates_with_files)
+        self.result["output_path"] = str(self.output_dir)
 
         logger.info(f"Job {self.job_id}: Found {len(templates_with_files)} templates with main files")
 
@@ -152,6 +149,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
         # Create a shared session for all downloads
         session = create_commons_session(settings.oauth.user_agent)
 
+        per_item = self.get_per_item(len(templates_with_files))
+
         for n, template in enumerate(templates_with_files, start=1):
             # Check for cancellation
             if self.is_cancelled():
@@ -159,11 +158,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 break
 
             # Save progress periodically
-            if n == 1 or n % 10 == 0:
-                try:
-                    jobs_service.save_job_result_by_name(self.result_file, result)
-                except Exception:
-                    logger.exception(f"Job {self.job_id}: Failed to save progress")
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
@@ -182,7 +178,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
             try:
                 # Check if the file already exists
                 if (self.output_dir / clean_filename).exists():
-                    result["summary"]["exists"] += 1
+                    self.result["summary"]["exists"] += 1
 
                 # Download the file (will overwrite if exists)
                 download_result = download_file_from_commons(
@@ -195,13 +191,13 @@ class DownloadMainFilesWorker(BaseJobWorker):
                     file_info["status"] = "downloaded"
                     file_info["path"] = download_result["path"]
                     file_info["size_bytes"] = download_result["size_bytes"]
-                    result["files_downloaded"].append(file_info)
-                    result["summary"]["downloaded"] += 1
+                    self.result["files_downloaded"].append(file_info)
+                    self.result["summary"]["downloaded"] += 1
                 else:
                     file_info["status"] = "failed"
                     file_info["reason"] = download_result["error"]
-                    result["files_failed"].append(file_info)
-                    result["summary"]["failed"] += 1
+                    self.result["files_failed"].append(file_info)
+                    self.result["summary"]["failed"] += 1
                     logger.warning(
                         f"Job {self.job_id}: Failed to download {clean_filename}: {download_result['error']}"
                     )
@@ -210,15 +206,15 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 file_info["status"] = "failed"
                 file_info["reason"] = f"Exception: {str(e)}"
                 file_info["error_type"] = type(e).__name__
-                result["files_failed"].append(file_info)
-                result["summary"]["failed"] += 1
+                self.result["files_failed"].append(file_info)
+                self.result["summary"]["failed"] += 1
                 logger.exception(f"Job {self.job_id}: Error processing {template.title}")
 
         # Final save
-        result["completed_at"] = datetime.now().isoformat()
+        self.result["completed_at"] = datetime.now().isoformat()
 
         # Generate zip file after successful completion
-        if result.get("status") != "cancelled":
+        if self.result.get("status") != "cancelled":
             try:
                 generate_main_files_zip()
                 logger.info(f"Job {self.job_id}: Generated main_files.zip successfully")
@@ -227,11 +223,11 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{result['summary']['downloaded']} downloaded, "
-            f"{result['summary']['failed']} failed"
+            f"{self.result['summary']['downloaded']} downloaded, "
+            f"{self.result['summary']['failed']} failed"
         )
 
-        return result
+        return self.result
 
 
 def download_main_files_for_templates(

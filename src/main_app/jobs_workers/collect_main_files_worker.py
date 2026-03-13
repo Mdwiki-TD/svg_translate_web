@@ -106,23 +106,24 @@ class CollectMainFilesWorker(BaseJobWorker):
 
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
-        result = self.result
 
         # Step 1: Fetch new templates from category and add them
         added_count = self._fetch_and_add_new_templates()
-        result["summary"]["added"] = added_count
+        self.result["summary"]["added"] = added_count
 
         if self.is_cancelled():
             logger.info(f"Job {self.job_id}: Cancelled after adding templates.")
-            return result
+            return self.result
 
         # Step 2: Get all templates (including newly added)
         templates = template_service.list_templates()
-        result["summary"]["total"] = len(templates)
-        result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
+        self.result["summary"]["total"] = len(templates)
+        self.result["summary"]["already_had_main_file"] = len([t for t in templates if t.main_file and t.last_world_file])
 
         templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
+
+        per_item = self.get_per_item(len(templates_to_process))
 
         for n, template in enumerate(templates_to_process, start=1):
             if self.is_cancelled():
@@ -130,7 +131,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 break
 
             # Save progress after check for cancellation
-            if n == 1 or n % 10 == 0:
+            if n == 1 or n % per_item == 0:
                 self._save_progress()
 
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
@@ -150,8 +151,8 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if not wikitext:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not fetch wikitext from Commons"
-                    result["templates_failed"].append(template_info)
-                    result["summary"]["failed"] += 1
+                    self.result["templates_failed"].append(template_info)
+                    self.result["summary"]["failed"] += 1
                     logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
                     continue
 
@@ -168,8 +169,8 @@ class CollectMainFilesWorker(BaseJobWorker):
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find main file or last world file in wikitext"
                     template_info["wikitext_length"] = len(wikitext)
-                    result["templates_failed"].append(template_info)
-                    result["summary"]["failed"] += 1
+                    self.result["templates_failed"].append(template_info)
+                    self.result["summary"]["failed"] += 1
                     logger.warning(
                         f"Job {self.job_id}: Could not find main file or last world file for {template.title}"
                     )
@@ -189,27 +190,27 @@ class CollectMainFilesWorker(BaseJobWorker):
                 )
 
                 template_info["status"] = "updated"
-                result["templates_updated"].append(template_info)
-                result["summary"]["updated"] += 1
+                self.result["templates_updated"].append(template_info)
+                self.result["summary"]["updated"] += 1
 
             except Exception as e:
                 template_info["status"] = "failed"
                 template_info["reason"] = f"Exception: {str(e)}"
                 template_info["error_type"] = type(e).__name__
-                result["templates_failed"].append(template_info)
-                result["summary"]["failed"] += 1
+                self.result["templates_failed"].append(template_info)
+                self.result["summary"]["failed"] += 1
                 logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 
         # Update summary skipped count
-        result["summary"]["skipped"] = len(result["templates_skipped"])
+        self.result["summary"]["skipped"] = len(self.result["templates_skipped"])
 
         logger.info(
-            f"Job {self.job_id} completed: {result['summary']['updated']} updated, "
-            f"{result['summary']['failed']} failed, "
-            f"{result['summary']['skipped']} skipped"
+            f"Job {self.job_id} completed: {self.result['summary']['updated']} updated, "
+            f"{self.result['summary']['failed']} failed, "
+            f"{self.result['summary']['skipped']} skipped"
         )
 
-        return result
+        return self.result
 
 
 def collect_main_files_for_templates(
