@@ -97,10 +97,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
     def mock_repair_nested_svg_tags(
         filename,
         user,
-        cancel_event=None,
-        is_cancelled_callback: callable | None = None,
     ):
-        cancel_event.set()
         return {"success": True, "message": "OK"}
 
     monkeypatch.setattr(

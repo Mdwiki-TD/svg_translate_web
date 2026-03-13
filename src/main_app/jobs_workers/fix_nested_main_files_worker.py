@@ -27,24 +27,16 @@ logger = logging.getLogger(__name__)
 def repair_nested_svg_tags(
     filename: str,
     user,
-    cancel_event: threading.Event | None = None,
-    is_cancelled_callback: callable | None = None,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
     Args:
         filename: Name of the SVG file to fix
         user: User object for authentication during upload
-        cancel_event: Optional event to check for cancellation
+
+    Returns:
+        Dictionary with success status, message, and details.
     """
-    def is_cancelled() -> dict[str, Any] | None:
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
-
-        if is_cancelled_callback and is_cancelled_callback():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
-
-        return None
     # Use temp directory for processing
     with tempfile.TemporaryDirectory() as tmp_dir:
         temp_dir = Path(tmp_dir)
@@ -58,9 +50,6 @@ def repair_nested_svg_tags(
             }
 
         file_path = download["path"]
-
-        if job_cancelled := is_cancelled():
-            return job_cancelled
 
         detect_before = detect_nested_tags(file_path)
 
@@ -79,9 +68,6 @@ def repair_nested_svg_tags(
                 "details": {"nested_count": detect_before["count"]},
             }
 
-        if job_cancelled := is_cancelled():
-            return job_cancelled
-
         verify = verify_fix(file_path, detect_before["count"])
 
         if verify["fixed"] == 0:
@@ -90,9 +76,6 @@ def repair_nested_svg_tags(
                 "message": f"No nested tags were fixed in {filename}",
                 "details": verify,
             }
-
-        if job_cancelled := is_cancelled():
-            return job_cancelled
 
         upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
 
@@ -216,8 +199,6 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 fix_result = repair_nested_svg_tags(
                     filename=template.main_file,
                     user=self.user,
-                    cancel_event=self.cancel_event,
-                    is_cancelled_callback=self.is_cancelled,
                 )
 
             except Exception as e:
