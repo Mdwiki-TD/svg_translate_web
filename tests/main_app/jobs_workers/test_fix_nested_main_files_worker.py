@@ -144,10 +144,6 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     call_args = mock_fix_nested_services["repair_nested_svg_tags"].call_args
     assert call_args.kwargs["filename"] == "test.svg"
     assert call_args.kwargs["user"] == user
-    assert call_args.kwargs["cancel_event"] is None
-    # is_cancelled_callback should be a bound method, not None
-    assert call_args.kwargs["is_cancelled_callback"] is not None
-    assert callable(call_args.kwargs["is_cancelled_callback"])
 
     # Should save result with successful template
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
@@ -213,8 +209,6 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     def process_fix_nested_side_effect(
         filename,
         user,
-        cancel_event=None,
-        is_cancelled_callback: callable | None = None,
     ):
         if "test1" in filename:
             return {"success": True, "message": "Fixed test1.svg"}
