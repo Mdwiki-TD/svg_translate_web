@@ -106,6 +106,27 @@ def sample_with_both_titles() -> str:
 
 
 @pytest.fixture
+def mock_jobs_service(monkeypatch: pytest.MonkeyPatch):
+    """Mock the jobs_service.is_job_cancelled function to avoid database calls.
+
+    This fixture mocks the is_job_cancelled function to return False by default,
+    allowing worker tests to run without requiring database configuration.
+
+    Returns:
+        MagicMock: The mock is_job_cancelled function that can be configured per test.
+    """
+    from unittest.mock import MagicMock
+
+    mock_is_cancelled = MagicMock(return_value=False)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_service.is_job_cancelled",
+        mock_is_cancelled,
+    )
+
+    return mock_is_cancelled
+
+
+@pytest.fixture
 def sample_without_titles() -> str:
     """Wikitext lacking both SVGLanguages and Translate line."""
     return "No main title here.\n{{owidslidersrcs|id=x|widths=100|heights=100|gallery-AllCountries=}}\n"

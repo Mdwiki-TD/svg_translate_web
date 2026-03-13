@@ -11,7 +11,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by collect_main_files_worker."""
 
     # Mock template_service
@@ -60,6 +60,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "get_category_members": mock_get_category_members,
         "get_wikitext": mock_get_wikitext,
         "find_main_title": mock_find_main_title,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
