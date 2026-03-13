@@ -11,7 +11,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by fix_nested_main_files_worker."""
 
     # Mock template_service
@@ -44,11 +44,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
 @pytest.fixture
-def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
+def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by fix_nested_main_files_for_templates."""
     # Mock template_service
     mock_list_templates = MagicMock()
@@ -82,6 +83,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
         "repair_nested_svg_tags": mock_process_fix_nested,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 

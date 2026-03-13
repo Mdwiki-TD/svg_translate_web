@@ -12,7 +12,7 @@ from src.main_app.template_service import TemplateRecord
 
 
 @pytest.fixture
-def mock_common_services(monkeypatch: pytest.MonkeyPatch):
+def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock services common to both workers."""
     mock_list_templates = MagicMock()
     mock_update_job_status = MagicMock()
@@ -41,6 +41,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
+        "is_job_cancelled": mock_jobs_service,
     }
 
 
