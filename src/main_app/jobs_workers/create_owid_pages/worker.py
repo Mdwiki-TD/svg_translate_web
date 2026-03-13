@@ -72,18 +72,15 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        result: dict[str, Any],
-        result_file: str,
         user: dict[str, Any] | None,
-        *,
         cancel_event: threading.Event | None = None,
     ) -> None:
         self.job_id = job_id
-        self.result = result
-        self.result_file = result_file
         self.user = user
         self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+
+        self.result = {}
 
         super().__init__(job_id, user, cancel_event)
 
@@ -283,12 +280,11 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def process(self):
 
         self.site = get_user_site(self.user)
-
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.result["status"] = "failed"
             self.result["failed_at"] = datetime.now().isoformat()
-            return False
+            return self.result
 
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
@@ -304,6 +300,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
             if n == 1 or n % 10 == 0:
                 self._save_progress()
 
+        return self.result
+
 
 def create_owid_pages_for_templates(
     job_id: int,
@@ -314,7 +312,11 @@ def create_owid_pages_for_templates(
     Background worker
     """
     logger.info(f"Starting job {job_id}: collect main files for templates")
-    worker = CreateOwidPagesWorker(job_id, user, cancel_event)
+    worker = CreateOwidPagesWorker(
+        job_id=job_id,
+        user=user,
+        cancel_event=cancel_event,
+    )
     worker.run()
 
 
