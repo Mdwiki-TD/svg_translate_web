@@ -36,6 +36,15 @@ JOB_TYPE_TEMPLATES = {
 }
 
 
+JOB_TYPE_LIST_TEMPLATES = {
+    "collect_main_files": "admins/collect_main_files/list.html",
+    "crop_main_files": "admins/crop_main_files_jobs.html",
+    "create_owid_pages": "admins/create_owid_pages_jobs.html",
+    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
+    "download_main_files": "admins/download_main_files_jobs.html",
+}
+
+
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     if jobs_worker.cancel_job(job_id, job_type):
@@ -88,21 +97,14 @@ def _start_job(job_type: str) -> int | None:
 # Jobs handlers
 # ================================
 
-
-JOB_TYPE_LIST_TEMPLATES = {
-    "collect_main_files": "admins/collect_main_files_jobs.html",
-    "crop_main_files": "admins/crop_main_files_jobs.html",
-    "create_owid_pages": "admins/create_owid_pages_jobs.html",
-    "fix_nested_main_files": "admins/fix_nested_main_files_jobs.html",
-    "download_main_files": "admins/download_main_files_jobs.html",
-}
-
-
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     user = current_user()
     # Filter jobs at database level for better performance
     jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+
+    # sort jobs by created_at key
+    jobs = sorted(jobs, key=lambda x: x.created_at, reverse=True)
 
     template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
     if not template:
