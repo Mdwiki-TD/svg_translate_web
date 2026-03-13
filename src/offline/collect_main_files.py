@@ -8,7 +8,7 @@ from pathlib import Path
 import threading
 
 
-if _path_ := Path(__file__).parent.parent:
+if _path_ := Path(__file__).parent.parent.parent:
     sys.path.append(str(_path_))
 
 from datetime import datetime
