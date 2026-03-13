@@ -104,7 +104,8 @@ def _jobs_list(job_type: str) -> str:
     jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
 
     # sort jobs by created_at key
-    jobs = sorted(jobs, key=lambda x: x.created_at, reverse=True)
+    if jobs:
+        jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
 
     template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
     if not template:
