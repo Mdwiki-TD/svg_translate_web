@@ -185,11 +185,17 @@ class BaseJobWorker(ABC):
             True if cancelled, False otherwise
         """
         if self.cancel_event and self.cancel_event.is_set():
-            logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
-            self.result["status"] = "cancelled"
-            self.result["cancelled_at"] = datetime.now().isoformat()
+            logger.info(f"Job {self.job_id}: Local cancellation detected, stopping.")
+            self._mark_as_cancelled_in_result()
             return True
         return False
+
+    def _mark_as_cancelled_in_result(self) -> None:
+        """Standardize the result dictionary for a cancelled job."""
+        self.result["status"] = "cancelled"
+        # if "cancelled_at" not in self.result:
+        if self.result.get("cancelled_at") is None:
+            self.result["cancelled_at"] = datetime.now().isoformat()
 
     def get_priority(self, length) -> int:
         if length < 11:
