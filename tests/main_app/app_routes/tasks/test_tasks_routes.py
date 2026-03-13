@@ -190,11 +190,11 @@ def test_task2_includes_ordered_stages(
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.render_template", fake_render)
 
-    with app.test_request_context("/task2/task42"):
-        result = routes.task2("task42")
+    with app.test_request_context("/task/task42"):
+        result = routes.task("task42")
 
     assert result == "rendered"
-    assert captured["template"] == "task2.html"
+    assert captured["template"] == "task.html"
     assert [name for name, _ in captured["context"]["stages"]] == ["download", "convert"]
     assert captured["context"]["task"]["id"] == "task42"
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Dict, List, Optional
+import hashlib
 import logging
 import threading
 import uuid
@@ -62,8 +64,6 @@ def close_task_store() -> None:
         TASK_STORE.close()
 
 
-@bp_tasks.get("/task1")
-@bp_tasks.get("/task1/<task_id>")
 @bp_tasks.get("/task")
 @bp_tasks.get("/task/<task_id>")
 def task(task_id: str | None = None):
@@ -71,36 +71,7 @@ def task(task_id: str | None = None):
         flash("No task id provided", "warning")
         return redirect(url_for("main.index"))
 
-    task = _task_store().get_task(task_id)
-
-    if not task:
-        task = {"error": "not-found"}
-        logger.debug(f"Task {task_id} not found!!")
-
-    title = request.args.get("title")
-    error_message = get_error_message(request.args.get("error"))
-
-    if error_message:
-        flash(error_message, "warning")
-
-    current_user_obj = current_user()
-    return render_template(
-        "task.html",
-        task_id=task_id,
-        current_user=current_user_obj,
-        title=title or task.get("title", "") if isinstance(task, dict) else "",
-        task=task,
-        form=task.get("form", {}),
-    )
-
-
-@bp_tasks.get("/task2/<task_id>")
-def task2(task_id: str | None = None):
-    if not task_id:
-        flash("No task id provided", "warning")
-        return redirect(url_for("main.index"))
-
-    task = _task_store().get_task(task_id)
+    task: Optional[Dict[str, Any]] = _task_store().get_task(task_id)
 
     if not task:
         task = {"error": "not-found"}
@@ -114,16 +85,46 @@ def task2(task_id: str | None = None):
 
     stages = order_stages(task.get("stages") if isinstance(task, dict) else None)
 
+    refresh_count, current_state_hash = load_state_hash(task, stages)
+
     current_user_obj = current_user()
     return render_template(
-        "task2.html",
+        "task.html",
         task_id=task_id,
         current_user=current_user_obj,
         title=title or task.get("title", "") if isinstance(task, dict) else "",
         task=task,
         stages=stages,
         form=task.get("form", {}),
+        refresh_count=refresh_count,
+        state_hash=current_state_hash,
     )
+
+
+def load_state_hash(
+    task: Optional[Dict[str, Any]],
+    stages: List[tuple[str, Dict[str, Any]]],
+) -> tuple[int, str]:
+
+    # Auto-refresh tracking: get refresh count and previous state hash from query params
+    refresh_count = request.args.get("refresh_count", 0, type=int)
+    prev_state_hash = request.args.get("state_hash", "")
+
+    # Compute current state hash based on task status and stages status
+    current_state_hash = ""
+    if isinstance(task, dict) and task.get("status"):
+        stages_status = "".join(
+            f"{s[0]}:{s[1].get('status', '')}" for s in sorted(stages, key=lambda x: x[1].get("number", 0))
+        )
+        state_string = f"{task.get('status', '')}:{stages_status}"
+        current_state_hash = hashlib.md5(state_string.encode()).hexdigest()[:8]
+
+        # If state changed, reset refresh counter
+        if current_state_hash != prev_state_hash:
+            refresh_count = 0
+        else:
+            refresh_count += 1
+    return refresh_count, current_state_hash
 
 
 @bp_tasks.post("/")

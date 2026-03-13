@@ -28,6 +28,20 @@
     }
 </style>
 {% endblock %}
+
+{% block extra_head %}
+{% set should_refresh = (
+    task_id and
+    task and
+    task.status not in ['Completed', 'Failed', 'Cancelled', 'error'] and
+    task.error != 'not-found' and
+    refresh_count < 10
+) %}
+{% if should_refresh %}
+<meta http-equiv="refresh"
+    content="3; url={{ url_for('tasks.task', task_id=task_id, state_hash=state_hash, refresh_count=refresh_count) }}">
+{% endif %}
+{% endblock %}
 {% block content %}
 <div class="container">
     <div
@@ -107,7 +121,7 @@
             <div class="btn-group gap-2" role="group" aria-label="Task actions">
                 {% if not hide_cancel or show_all %}
                 <form action="{{ url_for('tasks_managers.cancel', task_id=task_id) }}" method="post" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-danger" id="cancel-task-btn">
                         Stop
                     </button>
@@ -115,7 +129,7 @@
                 {% endif %}
                 {% if show_restart or show_all %}
                 <form action="{{ url_for('tasks_managers.restart', task_id=task_id) }}" method="post" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-primary btn-rounded" id="restart-task-btn">
                         Restart
                     </button>
@@ -123,7 +137,7 @@
                 {% endif %}
                 {% if is_admin or show_all %}
                 <form action="{{ url_for('tasks.delete_task', task_id=task_id) }}" method="post" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
                 {% endif %}
@@ -133,11 +147,17 @@
         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
             <div id="task-meta" class="mb-2 text-muted">
                 <a href="/status/{{ task_id }}" target="_blank">Task ID:</a> <code>{{ task_id }}</code>
+                {% if refresh_count is defined and refresh_count > 0 %}
+                <span class="ms-2 badge text-bg-info" title="Auto-refresh count">
+                    <i class="bi bi-arrow-clockwise"></i> {{ refresh_count }}/10
+                </span>
+                {% endif %}
             </div>
             <span id="task-title" class="fw-bold">
                 {{ title if title else (task.title if task and task.title else '') }}
             </span>
             <div class="small text-muted" id="last-update">
+                Last updated: {{ task.updated_at | format_stage_timestamp }}
             </div>
         </div>
         <div class="progress mb-3" style="height:8px;">
@@ -146,6 +166,36 @@
         <div class="col-sm-12" id="alert_div">
         </div>
         <ul id="stagesnew" class="list-group">
+            {% for name, st in stages %}
+            {% set status = st.status or 'Pending' %}
+            {% set color = status_classes.get(status, 'secondary') %}
+            {% set percents = {'Completed': 100, 'Running': 60, 'Pending': 10} %}
+            {% set percent = percents.get(status, 0) %}
+            {% set cls = 'running' if status == 'Running' else '' %}
+            {% set subname = ' <small class="text-muted">(' ~ st.sub_name ~ ')</small>' if st.sub_name else '' %}
+            {% set message_html = st.message or '' %}
+            {% set timestamp = st.updated_at | format_stage_timestamp %}
+            {% set timestamp_html = 'Updated: ' ~ timestamp if timestamp else '' %}
+            <li class="list-group-item {{ cls }} border border-{{ color }}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold">
+                        {{ st.number }}. {{ name.title() | safe }}{{ subname | safe }}
+                    </span>
+                    <span class="badge text-bg-{{ color }} border border-{{ color }}">{{ status }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1 stage-card-body">
+                    <div class="small text-muted">
+                        {{ message_html | safe }}
+                    </div>
+                    <div class="stage-timestamp text-muted">
+                        {{ timestamp_html | safe }}
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-{{ color }}" style="width:{{ percent }}%"></div>
+                </div>
+            </li>
+            {% endfor %}
         </ul>
         <div class="mt-4" id="results">
         </div>
@@ -155,5 +205,4 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/task.js') }}"></script>
 {% endblock %}
