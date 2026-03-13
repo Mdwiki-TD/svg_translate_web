@@ -57,6 +57,23 @@ class SettingsRoutes:
 
             return redirect(url_for("admin.settings_view"))
 
+        def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
+            """Returns (value, success)"""
+            if v_type == "boolean":
+                return raw_val == "on", True
+            elif v_type == "integer":
+                try:
+                    return int(raw_val), True
+                except ValueError:
+                    return 0, True
+            elif v_type == "json":
+                try:
+                    return json.loads(raw_val), True
+                except Exception:
+                    return None, False
+            else:
+                return raw_val, True
+
         @bp_admin.post("/settings/update")
         @admin_required
         def settings_update():
@@ -80,34 +97,22 @@ class SettingsRoutes:
                     continue
 
                 if v_type == "boolean":
-                    value = request.form.get(form_key) == "on"
-                    if not db_settings.update_setting(key, value, v_type):
-                        failed_keys.append(key)
+                    raw_val = request.form.get(form_key, "")
+                elif form_key in request.form:
+                    raw_val = request.form.get(form_key, "")
                 else:
-                    # check if it is included in the dictionary (distinguish unchecked checkboxes vs missing files)
-                    if form_key in request.form:
-                        raw_val = request.form.get(form_key, "")
-                        if v_type == "integer":
-                            try:
-                                value = int(raw_val)
-                            except ValueError:
-                                value = 0
-                        elif v_type == "json":
-                            try:
-                                value = json.loads(raw_val)
-                            except Exception:
-                                failed_keys.append(key)
-                                continue
-                        else:
-                            value = raw_val
-                        if not db_settings.update_setting(key, value, v_type):
-                            failed_keys.append(key)
+                    continue
+
+                value, success = _parse_setting_value(v_type, raw_val)
+                if not success or not db_settings.update_setting(key, value, v_type):
+                    failed_keys.append(key)
 
             # Invalidate runtime cache only if all updates succeeded
             if not failed_keys:
                 settings.dynamic.invalidate()
                 if deleted_keys:
                     flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
+
                 flash("Settings updated successfully.", "success")
             else:
                 flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
