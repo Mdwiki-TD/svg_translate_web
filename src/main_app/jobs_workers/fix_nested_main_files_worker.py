@@ -36,6 +36,10 @@ def repair_nested_svg_tags(
         user: User object for authentication during upload
         cancel_event: Optional event to check for cancellation
     """
+    def is_cancelled() -> dict[str, Any] | None:
+        if cancel_event and cancel_event.is_set():
+            return {"success": False, "message": "Cancelled", "cancelled": True}
+        return None
     # Use temp directory for processing
     with tempfile.TemporaryDirectory() as tmp_dir:
         temp_dir = Path(tmp_dir)
@@ -50,8 +54,8 @@ def repair_nested_svg_tags(
 
         file_path = download["path"]
 
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
+        if job_cancelled := is_cancelled():
+            return job_cancelled
 
         detect_before = detect_nested_tags(file_path)
 
@@ -70,8 +74,8 @@ def repair_nested_svg_tags(
                 "details": {"nested_count": detect_before["count"]},
             }
 
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
+        if job_cancelled := is_cancelled():
+            return job_cancelled
 
         verify = verify_fix(file_path, detect_before["count"])
 
@@ -82,8 +86,8 @@ def repair_nested_svg_tags(
                 "details": verify,
             }
 
-        if cancel_event and cancel_event.is_set():
-            return {"success": False, "message": "Cancelled", "cancelled": True}
+        if job_cancelled := is_cancelled():
+            return job_cancelled
 
         upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
 
