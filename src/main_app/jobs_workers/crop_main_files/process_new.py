@@ -137,6 +137,15 @@ class CropMainFilesProcessor:
         # we need at least 10 times to update the progress if it's posible more then return 10
         return min(10, length // 10)
 
+    def _save_progress(self):
+        try:
+            jobs_service.save_job_result_by_name(self.result_file, self.result)
+        except Exception as exc:
+            logger.warning(
+                f"Job {self.job_id}: Failed to persist periodic progress; continuing",
+                exc_info=exc,
+            )
+
     def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
