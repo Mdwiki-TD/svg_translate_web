@@ -63,11 +63,21 @@ class SettingsRoutes:
             db_settings = SettingsDB(settings.database_data)
             all_settings = db_settings.get_raw_all()
             failed_keys: list[str] = []
+            deleted_keys: list[str] = []
 
             for s in all_settings:
                 key = s["key"]
                 v_type = s["value_type"]
                 form_key = f"setting_{key}"
+                delete_key = f"delete_{key}"
+
+                # Check if marked for deletion
+                if request.form.get(delete_key) == "on":
+                    if db_settings.delete_setting(key):
+                        deleted_keys.append(key)
+                    else:
+                        failed_keys.append(key)
+                    continue
 
                 if v_type == "boolean":
                     value = request.form.get(form_key) == "on"
@@ -96,6 +106,8 @@ class SettingsRoutes:
             # Invalidate runtime cache only if all updates succeeded
             if not failed_keys:
                 settings.dynamic.invalidate()
+                if deleted_keys:
+                    flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
                 flash("Settings updated successfully.", "success")
             else:
                 flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")

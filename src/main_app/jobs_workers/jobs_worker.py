@@ -42,7 +42,7 @@ def _runner(job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Ev
         _pop_cancel_event(job_id)
 
 
-def cancel_job(job_id: int) -> bool:
+def cancel_job(job_id: int, job_type: str = None) -> bool:
     """
     Cancel a running job.
     Returns True if a cancel event was found and set, False otherwise.

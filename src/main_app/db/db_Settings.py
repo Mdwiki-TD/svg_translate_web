@@ -110,6 +110,15 @@ class SettingsDB:
                 return None
         return value  # string
 
+    def delete_setting(self, key: str) -> bool:
+        """Delete a setting by key."""
+        try:
+            affected_rows = self.db.execute_query_safe("DELETE FROM `settings` WHERE `key` = %s", (key,))
+            return affected_rows > 0
+        except Exception as e:
+            logger.error(f"Failed to delete setting '{key}': {e}")
+            return False
+
     def _serialize_value(self, value: Any, value_type: str) -> Optional[str]:
         if value is None:
             return None
