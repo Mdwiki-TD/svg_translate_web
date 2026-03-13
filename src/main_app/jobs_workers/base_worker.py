@@ -188,6 +188,12 @@ class BaseJobWorker(ABC):
             logger.info(f"Job {self.job_id}: Local cancellation detected, stopping.")
             self._mark_as_cancelled_in_result()
             return True
+
+        if jobs_service.is_job_cancelled(self.job_id, job_type=self.job_type):
+            logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
+            self._mark_as_cancelled_in_result()
+            return True
+
         return False
 
     def _mark_as_cancelled_in_result(self) -> None:
