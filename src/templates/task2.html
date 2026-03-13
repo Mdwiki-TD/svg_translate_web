@@ -28,6 +28,12 @@
     }
 </style>
 {% endblock %}
+
+{% block extra_head %}
+{% if task_id and task and task.status not in ['Completed', 'Failed', 'Cancelled', 'error'] and task.error != 'not-found' %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
+{% endblock %}
 {% block content %}
 <div class="container">
     <div
