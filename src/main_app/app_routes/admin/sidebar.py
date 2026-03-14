@@ -37,7 +37,7 @@ def create_side(active_route):
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
-        "Tasks": "bi-file-text",
+        "Main": "bi-file-text",
         "Fix Nested Tasks": "bi-database",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
@@ -46,12 +46,12 @@ def create_side(active_route):
     }
 
     main_menu = {
-        "Tasks": [
+        "Main": [
             SidebarItem(
                 id="last",
                 admin=0,
                 href="recent",
-                title="Recent",
+                title="Tasks",
                 icon="bi-clock-history",
             ),
             SidebarItem(
