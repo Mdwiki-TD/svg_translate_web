@@ -98,6 +98,7 @@ def _start_job(job_type: str) -> int | None:
 # Jobs handlers
 # ================================
 
+
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     user = current_user()
@@ -277,7 +278,6 @@ class Jobs:
         @bp_admin.get("/read-job-result-file/<path:result_file>")
         @admin_required
         def read_job_result_file(result_file: str) -> str:
-            """
-            """
+            """ """
             result_data = jobs_service.load_job_result(result_file)
             return jsonify(result_data)

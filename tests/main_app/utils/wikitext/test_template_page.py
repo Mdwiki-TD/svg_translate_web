@@ -19,9 +19,7 @@ class TestUpdateTemplatePageFileReference:
     def test_replace_file_reference_with_file_prefix(self) -> None:
         """Test replacing file reference when names include 'File:' prefix."""
         text = "[[File:Original.svg|link=|thumb]]"
-        result = update_template_page_file_reference(
-            "File:Original.svg", "File:Cropped.svg", text
-        )
+        result = update_template_page_file_reference("File:Original.svg", "File:Cropped.svg", text)
         assert result == "[[File:Cropped.svg|link=|thumb]]"
 
     def test_replace_multiple_file_references(self) -> None:
@@ -70,6 +68,4 @@ class TestUpdateTemplatePageFileReference:
         """Test replacing file reference with multiple parameters."""
         text = "[[File:Original.svg|link=|thumb|upright=1.6|Description text]]"
         result = update_template_page_file_reference("Original.svg", "Cropped.svg", text)
-        assert (
-            result == "[[File:Cropped.svg|link=|thumb|upright=1.6|Description text]]"
-        )
+        assert result == "[[File:Cropped.svg|link=|thumb|upright=1.6|Description text]]"

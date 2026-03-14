@@ -1,7 +1,28 @@
+
+# ============================================
+#                 BLACK
+# ============================================
 [tool.black]
 line-length = 120
-target-version = ["py311"]
+target-version = ["py313"]
+include = '\.pyi?$'
+exclude = '''
+    /(
+        \.git
+      | \.hg
+      | \.mypy_cache
+      | \.tox
+      | \.venv
+      | _build
+      | buck-out
+      | build
+      | dist
+    )/
+'''
 
+# ============================================
+#                 ISORT
+# ============================================
 [tool.isort]
 profile = "black"
 line_length = 120
@@ -14,3 +35,111 @@ include_trailing_comma = true
 
 # OPTIONAL: You can add this to ensure isort does NOT collapse into one line
 ensure_newline_before_comments = true
+
+# Project paths
+skip = [
+    ".env",
+    "env",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".git",
+]
+
+# ============================================
+#                 RUFF
+# ============================================
+[tool.ruff]
+exclude = [
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "old",
+    "build",
+    "dist",
+    "site-packages",
+    "venv",
+]
+line-length = 120
+target-version = "py313"
+fix = true
+
+[tool.ruff.format]
+# Allow Ruff/Black to maintain vertical list formatting
+skip-magic-trailing-comma = false
+
+# Keep Black-like behavior
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# Format code blocks inside docstrings (excellent for README-like docstrings)
+docstring-code-format = true
+docstring-code-line-length = 120
+
+[tool.ruff.lint]
+# "E402", "E225", "E226", "E227", "E228", "E252", "F841", "E224", "E203", "F401",
+ignore = ["E501", "UP035", "UP006", "N806", "N999", "UP015", "I001", "N802", "UP007", "UP045"]
+select = [
+  "E",       # pycodestyle (error)
+  "F",       # pyflakes
+  "W",       # pycodestyle (warning)
+  "B",       # flake8-bugbear
+  "I",       # isort
+  "N",       # pep8-naming
+  "PIE",     # flake8-pie
+  "PLE",     # pylint error
+  "RUF100",  # Unused noqa comments
+  "PGH004",  # blanket noqa comments
+  "UP",      # pyupgrade
+  "C4",      # flake8-comprehensions
+  "SIM101",  # merge duplicate isinstance calls
+  "SIM201", "SIM202", "SIM222", "SIM223",  # flake8-simplify
+  "FURB168", # Prefer is operator over isinstance for None checks
+  "FURB169", # Do not use is comparison with type(None). Use None
+  "FURB187", # avoid list reverse copy
+  "FURB188", # use str.remove(pre|suf)fix
+  "ISC001",  # implicitly concatenated string
+  "RET501", "RET502",  # better return None handling
+]
+# ============================================
+#                 Flynt
+# ============================================
+[tool.flynt]
+# Keep it aligned with Black/Ruff
+line_length = 120
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+line-length = 120
+
+[tool.pylint.messages_control]
+max-line-length = 120
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "R0913",  # too-many-arguments
+]

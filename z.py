@@ -1,6 +1,7 @@
 import ast
-from tqdm import tqdm
 from pathlib import Path
+
+from tqdm import tqdm
 
 list_files = """
 tests/main_app/admins/test_admin_service.py
