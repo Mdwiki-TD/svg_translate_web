@@ -79,11 +79,21 @@
                         <table class="table table-sm">
                             <tr>
                                 <th style="width: 40%">Completed:</th>
-                                <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}</td>
+                                <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
+                                </td>
                             </tr>
                             <tr>
                                 <th>Result File:</th>
-                                <td>{{ job.result_file if job.result_file else '-' }}</td>
+                                <td>
+                                    {% if job.result_file %}
+                                    <a href="{{ url_for('admin.read_job_result_file', result_file=job.result_file) }}"
+                                        target="_blank">
+                                        {{ job.result_file }}
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% block job_info_extra %}{% endblock %}
                         </table>
