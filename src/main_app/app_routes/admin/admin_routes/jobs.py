@@ -9,6 +9,7 @@ from flask import (
     Blueprint,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     send_from_directory,
@@ -115,6 +116,7 @@ def _jobs_list(job_type: str) -> str:
         template,
         current_user=user,
         jobs=jobs,
+        job_type=job_type,
     )
 
 
@@ -142,6 +144,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
         template,
         current_user=user,
         job=job,
+        job_type=job_type,
         result_data=result_data,
     )
 
@@ -270,3 +273,11 @@ class Jobs:
                 file_original=original,
                 file_cropped=cropped,
             )
+
+        @bp_admin.get("/read-job-result-file/<path:result_file>")
+        @admin_required
+        def read_job_result_file(result_file: str) -> str:
+            """
+            """
+            result_data = jobs_service.load_job_result(result_file)
+            return jsonify(result_data)

@@ -254,8 +254,8 @@ def test_jobs_page_has_collect_button(admin_jobs_client):
     response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "Start New Job" in page
-    assert "/admin/collect_main_files/start" in page
+    assert 'action="/admin/collect_main_files/start"' in page
+    assert 'type="submit"' in page
 
 
 def test_jobs_list_filters_by_job_type(admin_jobs_client):
@@ -393,8 +393,8 @@ def test_fix_nested_jobs_page_has_start_button(admin_jobs_client):
     response = client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "Start New Job" in page
-    assert "/admin/fix_nested_main_files/start" in page
+    assert 'type="submit"' in page
+    assert 'action="/admin/fix_nested_main_files/start"' in page
 
 
 def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
@@ -693,8 +693,8 @@ def test_download_main_files_jobs_page_has_start_button(admin_jobs_client):
     response = client.get("/admin/download_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "Start New Job" in page
-    assert "/admin/download_main_files/start" in page
+    assert 'type="submit"' in page
+    assert 'action="/admin/download_main_files/start"' in page
 
 
 def test_download_main_files_jobs_list_filters_by_job_type(admin_jobs_client):
