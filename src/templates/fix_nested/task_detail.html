@@ -18,7 +18,7 @@
             {% if is_admin %}
             <form method="POST" action="{{ url_for('fix_nested_explorer.delete_task', task_id=task.id) }}"
                 onsubmit="return confirm('Are you sure you want to DELETE this task? This action cannot be undone!');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-sm btn-outline-danger">
                     <i class="bi bi-trash"></i> Delete
                 </button>
@@ -105,9 +105,14 @@
     <!-- Files Section -->
     <div class="card shadow mb-4">
         <div class="card-header">
-            <h4 class="mb-0">
-                <i class="bi bi-files"></i> Files
-            </h4>
+            <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                <h4 class="mb-0"> <i class="bi bi-files"></i> Files </h4>
+                <div class="card-tools">
+                    <button type="button" class="btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <div class="row">
@@ -151,9 +156,16 @@
     {% if metadata and is_admin %}
     <div class="card shadow mb-4">
         <div class="card-header">
-            <h4 class="mb-0">
-                <i class="bi bi-file-earmark-code"></i> Metadata
-            </h4>
+            <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-file-earmark-code"></i> Metadata
+                </h4>
+                <div class="card-tools">
+                    <button type="button" class="btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <pre class="bg-light p-3 rounded"><code>{{ metadata | tojson(indent=2) }}</code></pre>
@@ -165,9 +177,16 @@
     {% if log_content and is_admin %}
     <div class="card shadow mb-4">
         <div class="card-header bg-warning text-dark">
-            <h4 class="mb-0">
-                <i class="bi bi-terminal"></i> Task Log
-            </h4>
+            <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-terminal"></i> Task Log
+                </h4>
+                <div class="card-tools">
+                    <button type="button" class="btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <pre class="bg-dark text-light p-3 rounded"
@@ -184,14 +203,21 @@
     {% if task.status == 'completed' and task.upload_result and task.upload_result.result == 'Success' %}
     <div class="card shadow mb-4">
         <div class="card-header bg-success text-white">
-            <h4 class="mb-0">
-                <i class="bi bi-gear"></i> Actions
-            </h4>
+            <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-gear"></i> Actions
+                </h4>
+                <div class="card-tools">
+                    <button type="button" class="btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('fix_nested_explorer.undo_task', task_id=task.id) }}"
                 onsubmit="return confirm('Are you sure you want to undo this task and restore the original file? This will upload the original file back to Commons.');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-warning">
                     <i class="bi bi-arrow-counterclockwise"></i> Undo & Restore Original
                 </button>

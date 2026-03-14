@@ -1,273 +1,164 @@
-{% extends "admins/base.html" %} {% block title %}Crop Newest World Files Job
-#{{ job.id }} · Copy SVG Translation{% endblock %} {% block contents %}
+{% extends "admins/jobs_templates/base_details.html" %}
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">Crop Newest World Files Job #{{ job.id }}</h3>
-        <div class="d-flex gap-2">
-            {% if job.status == 'running' or job.status == 'pending' %}
-            <form method="POST" action="{{ url_for('admin.cancel_job', job_type='crop_main_files', job_id=job.id) }}"
-                onsubmit="return confirm('Are you sure you want to cancel this job?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-x-circle"></i> Cancel Job
+{% set job_type = 'crop_main_files' %}
+
+{% block detail_title %}Crop Newest World Files{% endblock %}
+{% block detail_headline %}Crop Newest World Files{% endblock %}
+
+{% block job_summary %}
+{% if result_data.summary %}
+<div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
+    <div class="col">
+        <div class="card h-100 border">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.total }}</h4>
+                <small class="text-muted">Total</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-primary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.processed }}</h4>
+                <small>Processed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-success">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.cropped }}</h4>
+                <small>Cropped</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-info">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.uploaded }}</h4>
+                <small>Uploaded</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-danger">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
+                <small>Failed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-secondary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
+                <small>Skipped</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block job_details %}
+{% if result_data.files_processed %}
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+            <h5 class="mb-0"> Files Processed ({{ result_data.files_processed|length }}) </h5>
+            <div class="card-tools">
+                <button type="button" class="btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
                 </button>
-            </form>
-            {% endif %}
-            <form method="POST" action="{{ url_for('admin.delete_job', job_type='crop_main_files', job_id=job.id) }}"
-                onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-            </form>
-            <a href="{{ url_for('admin.jobs_list', job_type='crop_main_files') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to List
-            </a>
+            </div>
         </div>
     </div>
     <div class="card-body">
-        <!-- Job Summary -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">Job Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-sm">
-                            <tr>
-                                <th style="width: 40%">Status:</th>
-                                <td>
-                                    {% if job.status == 'completed' %}
-                                    <span class="badge bg-success">{{ job.status }}</span>
-                                    {% elif job.status == 'failed' %}
-                                    <span class="badge bg-danger">{{ job.status }}</span>
-                                    {% elif job.status == 'running' %}
-                                    <span class="badge bg-primary">{{ job.status }}</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ job.status }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>User:</th>
-                                <td>{{ job.username if job.username else '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Created:</th>
-                                <td>{{ job.created_at }}</td>
-                            </tr>
-                            <tr>
-                                <th>Started:</th>
-                                <td>{{ job.started_at if job.started_at else '-' }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <table class="table table-sm">
-                            <tr>
-                                <th style="width: 40%">Completed:</th>
-                                <td>{{ job.completed_at if job.completed_at else '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Result File:</th>
-                                <td>{{ job.result_file if job.result_file else '-' }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Template</th>
+                        <th>File</th>
+                        <th>Cropped</th>
+                        <th>Compare</th>
+                        <th>Download</th>
+                        <th>Crop</th>
+                        <th>Upload</th>
+                        <th title="Add Template:Image extracted to original file">
+                            Update File
+                        </th>
+                        <th>Update Template</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in result_data.files_processed %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td style="width: 30%;">
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}" target="_blank"
+                                rel="noopener noreferrer">
+                                File
+                            </a>
+                        </td>
+                        <td>
+                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}" target="_blank"
+                                rel="noopener noreferrer">
+                                Cropped
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
+                            <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
+                                target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
+                            {% endif %}
+                        </td>
+                        {% set step_keys = [
+                            'download',
+                            'crop',
+                            'upload_cropped',
+                            'update_original',
+                            'update_template'
+                        ] %}
+                        {% for step_key in step_keys %}
+                        <td>
+                            {% set step = file.steps.get(step_key) if file.steps else None %}
+                            {% if step %}
+                            {% if step.result == true %}
+                            <span class="badge bg-success" title="{{ step.msg }}">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            {% elif step.result == false %}
+                            <span class="badge bg-danger" title="{{ step.msg }}">
+                                <i class="bi bi-x-lg"></i>
+                            </span>
+                            {% elif step.result is none and step.msg %}
+                            <span class="badge bg-secondary" title="{{ step.msg }}">
+                                <i class="bi bi-dash"></i>
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
-        <!-- Job Results -->
-        {% if result_data %}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">Job Summary</h5>
-            </div>
-            <div class="card-body">
-                {% if result_data.summary %}
-                <div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
-                    <div class="col">
-                        <div class="card h-100 border">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.total }}</h4>
-                                <small class="text-muted">Total</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-primary">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.processed }}</h4>
-                                <small>Processed</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-success">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.cropped }}</h4>
-                                <small>Cropped</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-info">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.uploaded }}</h4>
-                                <small>Uploaded</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-danger">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
-                                <small>Failed</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 border-secondary">
-                            <div class="card-body p-2">
-                                <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
-                                <small>Skipped</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %} {% if result_data.error %}
-                <div class="alert alert-danger" role="alert">
-                    <h5 class="alert-heading">Error!</h5>
-                    <strong>{{ result_data.error_type }}:</strong> {{ result_data.error }}
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Files Processed -->
-        {% if result_data.files_processed %}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    Files Processed ({{ result_data.files_processed|length }})
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Template</th>
-                                <th>File</th>
-                                <th>Cropped</th>
-                                <th>Compare</th>
-                                <th>Download</th>
-                                <th>Crop</th>
-                                <th>Upload</th>
-                                <th title="Add Template:Image extracted to original file">
-                                    Update File
-                                </th>
-                                <th>Update Template</th>
-                                <!-- <th>Status</th>
-                                <th>Details</th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for file in result_data.files_processed %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td style="width: 30%;">
-                                    <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}"
-                                        target="_blank" rel="noopener noreferrer">
-                                        {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}"
-                                        target="_blank" rel="noopener noreferrer">
-                                        File
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                                    <a href="https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}"
-                                        target="_blank" rel="noopener noreferrer">
-                                        Cropped
-                                    </a>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                                    <a href="{{ url_for('admin.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
-                                        target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
-                                    {% endif %}
-                                </td>
-                                {% set step_keys = [
-                                    'download',
-                                    'crop',
-                                    'upload_cropped',
-                                    'update_original',
-                                    'update_template'
-                                ] %}
-                                {% for step_key in step_keys %}
-                                <td>
-                                    {% set step = file.steps.get(step_key) if file.steps else None %}
-                                    {% if step %}
-                                    {% if step.result == true %}
-                                    <span class="badge bg-success" title="{{ step.msg }}">
-                                        <i class="bi bi-check-lg"></i>
-                                    </span>
-                                    {% elif step.result == false %}
-                                    <span class="badge bg-danger" title="{{ step.msg }}">
-                                        <i class="bi bi-x-lg"></i>
-                                    </span>
-                                    {% elif step.result is none and step.msg %}
-                                    <span class="badge bg-secondary" title="{{ step.msg }}">
-                                        <i class="bi bi-dash"></i>
-                                    </span>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                {% endfor %}
-                                <!-- <td>
-                                    {% if file.status == 'uploaded' %}
-                                    <span class="badge bg-success">{{ file.status }}</span>
-                                    {% elif file.status == 'failed' %}
-                                    <span class="badge bg-danger">{{ file.status }}</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ file.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if file.reason %}
-                                    <small class="text-muted">{{ file.reason }}</small>
-                                    {% endif %}
-                                    {% if file.error %}
-                                    <small class="text-danger">{{ file.error }}</small>
-                                    {% endif %}
-                                </td> -->
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        {% endif %} {% else %}
-        <div class="alert alert-info" role="alert">
-            No job result data available yet. The job may still be running or the
-            result file may not exist.
-        </div>
-        {% endif %}
     </div>
 </div>
-
+{% endif %}
 {% endblock %}
