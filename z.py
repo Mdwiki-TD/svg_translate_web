@@ -98,39 +98,56 @@ main_dir = Path(__file__).parent
 created = 0
 
 
-def _get_file_functions(file_path: Path) -> list[str]:
-    """
-    use ast to get all functions in file
-    """
-    ...
-
-
 def get_file_functions(file_path: Path) -> list[str]:
-    result = ["*"]
-    if not file_path.exists():
-        return result
+    """
+    Use AST to get all functions in file.
 
-    return result
+    Args:
+        file_path: Path to the Python file to analyze.
+
+    Returns:
+        List of function names found in the file.
+    """
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            source = f.read()
+
+        tree = ast.parse(source)
+        functions = []
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                functions.append(node.name)
+
+        return functions
+    except (SyntaxError, UnicodeDecodeError, FileNotFoundError) as e:
+        print(f"Error reading {file_path}: {e}")
+        return []
 
 
 for x in tqdm(list_files):
     file_path = main_dir / x
     file_path.parent.mkdir(parents=True, exist_ok=True)
     if not file_path.exists():
-        src_path = x.replace("tests/", "src/").replace("test_", "")
-        file_functions = get_file_functions(Path(main_dir / src_path))
-        file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
-        file_text = (
-            '"""\n'
-            f"TODO: write tests for {src_path}\n"
-            '"""\n'
-            "\n\n"
-            f"from {src_path.replace(".py", "").replace("/", ".")} import (\n"
-            f"{file_functions_str}\n"
-            ")\n"
-        )
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(file_text)
-        created += 1
+        srcpath_str = x.replace("tests/", "src/").replace("test_", "")
+        src_path = Path(main_dir / srcpath_str)
+
+        if src_path.exists():
+
+            file_functions = get_file_functions(Path(main_dir / srcpath_str))
+            file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
+            file_text = (
+                '"""\n'
+                f"TODO: write tests for {srcpath_str}\n"
+                '"""\n'
+                "\n\n"
+                f"from {srcpath_str.replace(".py", "").replace("/", ".")} import (\n"
+                f"{file_functions_str}\n"
+                ")\n"
+            )
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(file_text)
+            created += 1
+            break
 
 print(f"{created=}")
