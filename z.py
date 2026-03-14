@@ -119,10 +119,13 @@ def get_file_functions(file_path: Path) -> list[str]:
             if not isinstance(node, ast.FunctionDef | ast.ClassDef):
                 continue
 
-            if ": Blueprint)" in source:
+            if ": Blueprint)" in source or "Blueprint(" in source:
                 continue
 
             if f"    def {node.name}(" in source:
+                continue
+
+            if node.name.startswith("_"):
                 continue
 
             functions.append(node.name)
