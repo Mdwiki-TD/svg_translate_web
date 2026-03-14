@@ -66,3 +66,59 @@ def test_find_main_title_new():
 *'''Translation''': https://svgtranslate.toolforge.org/File:Military-spending-as-a-share-of-gdp-sipri,World,1949.svg
 {{-}}"""
     assert find_main_title(text) == "File:Military-spending-as-a-share-of-gdp-sipri,World,1949.svg"
+
+
+class TestFindMainTitle:
+    """Tests for the find_main_title function."""
+
+    def test_priority_svglanguages_template(self) -> None:
+        """Test that SVGLanguages template has highest priority."""
+        text = """
+        {{SVGLanguages|from-template.svg}}
+        *'''Translate''': https://svgtranslate.toolforge.org/File:from-url.svg
+        {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
+        """
+        result = find_main_title(text)
+        assert result == "from-template.svg"
+
+    def test_fallback_to_url(self) -> None:
+        """Test fallback to URL when no SVGLanguages template."""
+        # Note: match_main_title_from_url_new is checked before match_main_title_from_url
+        # and it matches the owidslidersrcs content, so owidslidersrcs takes precedence
+        text = """
+        *'''Translate''': https://svgtranslate.toolforge.org/File:from-url.svg
+        {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
+        """
+        result = find_main_title(text)
+        assert result == "File:from-owid.svg"
+
+    def test_fallback_to_owidslidersrcs(self) -> None:
+        """Test fallback to owidslidersrcs when no template or URL."""
+        text = """
+        {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
+        """
+        result = find_main_title(text)
+        assert result == "File:from-owid.svg"
+
+    def test_no_main_title_found(self) -> None:
+        """Test when no main title can be found."""
+        text = "Some text without any title sources"
+        result = find_main_title(text)
+        assert result is None
+
+    def test_empty_text(self) -> None:
+        """Test with empty text."""
+        result = find_main_title("")
+        assert result is None
+
+    def test_underscores_converted_to_spaces(self) -> None:
+        """Test that underscores are converted to spaces in result."""
+        text = "{{SVGLanguages|test_file_name.svg}}"
+        result = find_main_title(text)
+        assert result == "test file name.svg"
+
+    def test_whitespace_stripped(self) -> None:
+        """Test that whitespace is stripped from result."""
+        text = "{{SVGLanguages|  test.svg  }}"
+        result = find_main_title(text)
+        assert result == "test.svg"
