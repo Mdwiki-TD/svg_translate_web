@@ -116,8 +116,16 @@ def get_file_functions(file_path: Path) -> list[str]:
         functions = []
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef | ast.ClassDef):
-                functions.append(node.name)
+            if not isinstance(node, ast.FunctionDef | ast.ClassDef):
+                continue
+
+            if ": Blueprint)" in source:
+                continue
+
+            if f"    def {node.name}(" in source:
+                continue
+
+            functions.append(node.name)
 
         return functions
     except (SyntaxError, UnicodeDecodeError, FileNotFoundError) as e:
@@ -133,21 +141,22 @@ for x in tqdm(list_files):
         src_path = Path(main_dir / srcpath_str)
 
         if src_path.exists():
-
             file_functions = get_file_functions(Path(main_dir / srcpath_str))
-            file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
-            file_text = (
-                '"""\n'
-                f"TODO: write tests for {srcpath_str}\n"
-                '"""\n'
-                "\n\n"
-                f"from {srcpath_str.replace(".py", "").replace("/", ".")} import (\n"
-                f"{file_functions_str}\n"
-                ")\n"
-            )
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(file_text)
-            created += 1
-            break
+
+            if file_functions:
+                file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
+                file_text = (
+                    '"""\n'
+                    f"TODO: write tests for {srcpath_str}\n"
+                    '"""\n'
+                    "\n\n"
+                    f"from {srcpath_str.replace(".py", "").replace("/", ".")} import (\n"
+                    f"{file_functions_str}\n"
+                    ")\n"
+                )
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(file_text)
+                created += 1
+                break
 
 print(f"{created=}")
