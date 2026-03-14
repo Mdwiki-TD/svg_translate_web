@@ -115,6 +115,7 @@ def _jobs_list(job_type: str) -> str:
         template,
         current_user=user,
         jobs=jobs,
+        job_type=job_type,
     )
 
 
@@ -142,6 +143,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
         template,
         current_user=user,
         job=job,
+        job_type=job_type,
         result_data=result_data,
     )
 
