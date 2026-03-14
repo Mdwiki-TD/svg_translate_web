@@ -67,11 +67,11 @@
                             </tr>
                             <tr>
                                 <th>Created:</th>
-                                <td>{{ job.created_at }}</td>
+                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Started:</th>
-                                <td>{{ job.started_at if job.started_at else '-' }}</td>
+                                <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}</td>
                             </tr>
                         </table>
                     </div>
@@ -79,7 +79,7 @@
                         <table class="table table-sm">
                             <tr>
                                 <th style="width: 40%">Completed:</th>
-                                <td>{{ job.completed_at if job.completed_at else '-' }}</td>
+                                <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Result File:</th>

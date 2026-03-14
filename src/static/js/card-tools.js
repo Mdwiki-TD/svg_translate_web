@@ -9,7 +9,7 @@ const childrens = `.card-body, .card-footer`
 
 function collapse(element) {
     console.log("function collapse(element)")
-    var d = element.parents(".card").first()
+    const d = element.parents(".card").first()
     d.addClass('collapsing-card').children(childrens)
         .slideUp("normal", () => {
             d.addClass('collapsed-card').removeClass('collapsing-card')
@@ -25,7 +25,7 @@ function collapse(element) {
 function expand(element) {
     console.log("function expand(element)")
 
-    var d = element.parents(".card").first()
+    const d = element.parents(".card").first()
     d.addClass('expanding-card').children(childrens)
         .slideDown("normal", () => {
             d.removeClass('collapsed-card').removeClass('expanding-card')
@@ -43,8 +43,8 @@ $(document).on('click', '[data-card-widget="collapse"]', function (event) {
     if (event) {
         event.preventDefault()
     }
-    var element = $(this);
-    var d = element.parents(".card").first()
+    const element = $(this);
+    const d = element.parents(".card").first()
     if (d.hasClass('collapsed-card')) {
         expand(element)
         return

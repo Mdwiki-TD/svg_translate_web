@@ -3,7 +3,7 @@
     margin-right: -0.625rem;
 }
 
-.card-header > .card-tools [data-toggle="tooltip"] {
+.card-header > .card-tools [data-bs-toggle="tooltip"] {
     position: relative;
 }
 
