@@ -117,7 +117,7 @@ for x in tqdm(list_files):
             f"TODO: write tests for {src_path}\n"
             '"""\n'
             "\n\n"
-            f"from {src_path.replace(".py", "")} import (\n"
+            f"from {src_path.replace(".py", "").replace("/", ".")} import (\n"
             f"{file_functions_str}\n"
             ")\n"
         )
