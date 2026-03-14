@@ -116,7 +116,7 @@ def get_file_functions(file_path: Path) -> list[str]:
         functions = []
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            if isinstance(node, ast.FunctionDef | ast.ClassDef):
                 functions.append(node.name)
 
         return functions
