@@ -1,4 +1,4 @@
-
+import ast
 from tqdm import tqdm
 from pathlib import Path
 
@@ -98,10 +98,18 @@ main_dir = Path(__file__).parent
 created = 0
 
 
+def _get_file_functions(file_path: Path) -> list[str]:
+    """
+    use ast to get all functions in file
+    """
+    ...
+
+
 def get_file_functions(file_path: Path) -> list[str]:
-    result = []
+    result = ["*"]
     if not file_path.exists():
         return result
+
     return result
 
 
@@ -111,7 +119,7 @@ for x in tqdm(list_files):
     if not file_path.exists():
         src_path = x.replace("tests/", "src/").replace("test_", "")
         file_functions = get_file_functions(Path(main_dir / src_path))
-        file_functions_str = "\t,\n".join(file_functions)
+        file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
         file_text = (
             '"""\n'
             f"TODO: write tests for {src_path}\n"
