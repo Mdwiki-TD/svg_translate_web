@@ -160,6 +160,6 @@ for x in tqdm(list_files):
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(file_text)
                 created += 1
-                break
+                # break
 
 print(f"{created=}")
