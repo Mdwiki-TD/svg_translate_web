@@ -82,6 +82,20 @@
                                 <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
                                 </td>
                             </tr>
+                            {% if job.failed_at or result_data.failed_at %}
+                            <tr>
+                                <th style="width: 40%">Failed At:</th>
+                                <td>{{ (job.failed_at or result_data.failed_at) }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if job.cancelled_at or result_data.cancelled_at %}
+                            <tr>
+                                <th style="width: 40%">Failed At:</th>
+                                <td>{{ (job.cancelled_at or result_data.cancelled_at) }}
+                                </td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <th>Result File:</th>
                                 <td>
