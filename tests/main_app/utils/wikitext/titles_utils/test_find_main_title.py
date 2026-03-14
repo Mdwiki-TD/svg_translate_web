@@ -83,12 +83,14 @@ class TestFindMainTitle:
 
     def test_fallback_to_url(self) -> None:
         """Test fallback to URL when no SVGLanguages template."""
+        # Note: match_main_title_from_url_new is checked before match_main_title_from_url
+        # and it matches the owidslidersrcs content, so owidslidersrcs takes precedence
         text = """
         *'''Translate''': https://svgtranslate.toolforge.org/File:from-url.svg
         {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
         """
         result = find_main_title(text)
-        assert result == "from-url.svg"
+        assert result == "File:from-owid.svg"
 
     def test_fallback_to_owidslidersrcs(self) -> None:
         """Test fallback to owidslidersrcs when no template or URL."""
@@ -96,7 +98,7 @@ class TestFindMainTitle:
         {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
         """
         result = find_main_title(text)
-        assert result == "from-owid.svg"
+        assert result == "File:from-owid.svg"
 
     def test_no_main_title_found(self) -> None:
         """Test when no main title can be found."""

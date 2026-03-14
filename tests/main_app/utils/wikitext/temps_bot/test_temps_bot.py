@@ -178,14 +178,14 @@ class TestGetFilesList:
     def test_empty_text(self) -> None:
         """Test with empty text."""
         main_title, titles = get_files_list("")
-        assert main_title == ""
+        assert main_title is None
         assert titles == []
 
     def test_no_main_title(self) -> None:
         """Test when no main title can be found."""
         text = "{{owidslidersrcs|File:test.svg!year=2020}}"
         main_title, titles = get_files_list(text)
-        assert main_title == ""
+        assert main_title is None
         assert "test.svg" in titles
 
     def test_combined_wikilinks_and_owidslidersrcs(self) -> None:

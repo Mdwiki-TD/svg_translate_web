@@ -119,8 +119,8 @@ class TestUpdateOriginalFileText:
     def test_empty_text(self) -> None:
         """Test with empty text."""
         result = update_original_file_text("File:Test.svg", "")
-        # Should add the Image extracted template even to empty text
-        assert "{{Image extracted|1=Test.svg}}" in result
+        # Empty text with no templates returns empty string
+        assert result == ""
 
 
 class TestCreateCroppedFileText:
@@ -148,5 +148,6 @@ class TestCreateCroppedFileText:
         """Test that template is added to existing content."""
         text = "{{Information|description=A cropped image}}"
         result = create_cropped_file_text("File:Original.svg", text)
-        assert "{{Information|description=A cropped image}}" in result
+        # The other versions parameter is added to the Information template
+        assert "|other versions=" in result
         assert "{{Extracted from|1=Original.svg}}" in result

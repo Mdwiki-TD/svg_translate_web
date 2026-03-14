@@ -24,6 +24,7 @@ class TestIsPageExists:
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = True
+        mock_site.Pages = MagicMock()
         mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = is_page_exists("File:Test.svg", mock_site)
@@ -36,6 +37,7 @@ class TestIsPageExists:
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = False
+        mock_site.Pages = MagicMock()
         mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = is_page_exists("File:NonExistent.svg", mock_site)
@@ -48,13 +50,14 @@ class TestIsPageExists:
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = True
+        mock_site.Pages = MagicMock()
         mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
 
         with caplog.at_level(logging.WARNING):
             result = is_page_exists("File:Existing.svg", mock_site)
 
         assert result is True
-        assert "File Existing.svg already exists on Commons" in caplog.text
+        assert "File:Existing.svg already exists on Commons" in caplog.text
 
 
 class TestCreatePage:
@@ -64,6 +67,7 @@ class TestCreatePage:
         """Test successful page creation."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = create_page(
@@ -83,6 +87,7 @@ class TestCreatePage:
         """Test page creation with default empty summary."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = create_page(
@@ -137,6 +142,7 @@ class TestCreatePage:
     def test_create_page_load_page_exception(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test create_page handles exception when loading page fails."""
         mock_site = MagicMock(spec=mwclient.Site)
+        mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(side_effect=Exception("Page load failed"))
 
         with caplog.at_level(logging.ERROR):
@@ -154,6 +160,7 @@ class TestCreatePage:
         """Test create_page handles exception when edit fails."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
         mock_page.edit = MagicMock(side_effect=Exception("Edit failed"))
 

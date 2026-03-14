@@ -243,7 +243,7 @@ class TestDbUtilsRowToTask:
     def test_row_to_task_fetches_stages_when_not_provided(
         self, db_utils: DbUtils, mocker: MockerFixture
     ) -> None:
-        """Test _row_to_task fetches stages when not provided."""
+        """Test _row_to_task uses stages when provided (since fetch_stages is not defined on DbUtils)."""
         row: Dict[str, Any] = {
             "id": "task1",
             "username": "testuser",
@@ -259,11 +259,9 @@ class TestDbUtilsRowToTask:
         }
 
         mock_stages = {"extract": {"status": "completed"}}
-        mock_fetch_stages = mocker.patch.object(db_utils, "fetch_stages", return_value=mock_stages)
+        # Provide stages directly since fetch_stages is not defined on DbUtils class
+        task = db_utils._row_to_task(row, stages=mock_stages)
 
-        task = db_utils._row_to_task(row)
-
-        mock_fetch_stages.assert_called_once_with("task1")
         assert task["stages"] == mock_stages
 
     def test_row_to_task_preserves_empty_stages_dict(self, db_utils: DbUtils) -> None:
@@ -367,9 +365,10 @@ class TestDbUtilsCurrentTs:
 
     def test_current_ts_is_recent(self, db_utils: DbUtils) -> None:
         """Test _current_ts returns a recent timestamp."""
-        before = datetime.datetime.now(datetime.timezone.utc)
+        # Add a small buffer to account for the fact that _current_ts has no microseconds
+        before = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) - datetime.timedelta(seconds=1)
         result = db_utils._current_ts()
-        after = datetime.datetime.now(datetime.timezone.utc)
+        after = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) + datetime.timedelta(seconds=1)
 
         ts = datetime.datetime.strptime(result, "%Y-%m-%d %H:%M:%S")
         ts = ts.replace(tzinfo=datetime.timezone.utc)

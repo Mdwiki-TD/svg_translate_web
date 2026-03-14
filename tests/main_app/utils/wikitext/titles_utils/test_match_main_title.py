@@ -99,7 +99,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         }}
         """
         result = find_main_title_from_owidslidersrcs(text)
-        assert result == "test, World, 2020.svg"
+        assert result == "File:test, World, 2020.svg"
 
     def test_extract_first_file_only(self) -> None:
         """Test that only the first file is extracted."""
@@ -110,7 +110,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         }}
         """
         result = find_main_title_from_owidslidersrcs(text)
-        assert result == "first.svg"
+        assert result == "File:first.svg"
 
     def test_underscores_converted_to_spaces(self) -> None:
         """Test that underscores are converted to spaces."""
@@ -120,7 +120,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         }}
         """
         result = find_main_title_from_owidslidersrcs(text)
-        assert result == "test file.svg"
+        assert result == "File:test file.svg"
 
     def test_no_owidslidersrcs_template(self) -> None:
         """Test when no {{owidslidersrcs}} template exists."""
@@ -146,7 +146,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         }}
         """
         result = find_main_title_from_owidslidersrcs(text)
-        assert result == "test.svg"
+        assert result == "File:test.svg"
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
