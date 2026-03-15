@@ -51,7 +51,11 @@ def list_templates() -> List[TemplateRecord]:
     return coords
 
 
-def add_template(title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
+def add_template(
+    title: str,
+    main_file: str,
+    last_world_file: str | None = None,
+) -> TemplateRecord:
     """Add a template."""
 
     store = get_templates_db()
@@ -60,7 +64,12 @@ def add_template(title: str, main_file: str, last_world_file: str | None = None)
     return record
 
 
-def update_template(template_id: int, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
+def update_template(
+    template_id: int,
+    title: str,
+    main_file: str,
+    last_world_file: str | None = None,
+) -> TemplateRecord:
     """Update template."""
 
     store = get_templates_db()
