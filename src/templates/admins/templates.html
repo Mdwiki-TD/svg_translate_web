@@ -7,9 +7,9 @@ Translation{% endblock %} {% block contents %}
         <form method="post" action="{{ url_for('admin.start_job', job_type='collect_main_files') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="btn btn-success btn-sm"
-                data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Collect Templates data Jobs page. Continue?"
+                data-confirm-message="This will start a background job to collect templates data for all templates. You can track progress in the Collect Templates data Jobs page. Continue?"
                 onclick="return confirm(this.dataset.confirmMessage);"
-                title="Collect main files for templates without one">
+                title="Collect Templates data for templates without one">
                 <i class="bi bi-download"></i> Collect Templates data
             </button>
         </form>

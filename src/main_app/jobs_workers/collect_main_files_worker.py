@@ -229,7 +229,7 @@ def collect_main_files_for_templates(
     cancel_event: threading.Event | None = None,
 ) -> None:
     """
-    Background worker to collect main files for templates that don't have one.
+    Background worker to collect templates data for templates that don't have one.
 
     This function:
     1. Fetches all templates from the database
@@ -239,7 +239,7 @@ def collect_main_files_for_templates(
        - Updates the template in the database
     3. Saves a detailed report to a JSON file
     """
-    logger.info(f"Starting job {job_id}: collect main files for templates")
+    logger.info(f"Starting job {job_id}: collect templates data for templates")
     worker = CollectMainFilesWorker(job_id, user, cancel_event)
     worker.run()
 
