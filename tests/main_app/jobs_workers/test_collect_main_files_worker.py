@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -109,8 +109,12 @@ def test_collect_main_files_with_no_templates(mock_services):
 def test_collect_main_files_skips_templates_with_main_file(mock_services, mock_find_source):
     """Test that templates with main_file AND last_world_file AND source are skipped."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="test"),
-        TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg", source="test"),
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="test"
+        ),
+        TemplateRecord(
+            id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg", source="test"
+        ),
     ]
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
@@ -293,7 +297,13 @@ def test_collect_main_files_adds_new_templates_from_category(mock_services):
 def test_collect_main_files_handles_add_template_value_error(mock_services):
     """Test that ValueError from add_template (template already exists) is handled gracefully."""
     existing_templates = [
-        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg", source="test"),
+        TemplateRecord(
+            id=1,
+            title="Template:Existing",
+            main_file="existing.svg",
+            last_world_file="existing_2020.svg",
+            source="test",
+        ),
     ]
     category_templates = ["Template:New1"]
 
@@ -313,7 +323,13 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     """Test full workflow: add new templates then collect templates data."""
     # First call returns empty (for adding phase), second call returns with new templates
     existing_templates = [
-        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg", source="test"),
+        TemplateRecord(
+            id=1,
+            title="Template:Existing",
+            main_file="existing.svg",
+            last_world_file="existing_2020.svg",
+            source="test",
+        ),
     ]
     new_template = TemplateRecord(id=2, title="Template:NewFromCategory", main_file="", last_world_file="", source="")
 

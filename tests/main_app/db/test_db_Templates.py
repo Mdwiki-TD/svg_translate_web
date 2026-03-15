@@ -180,7 +180,7 @@ def test_add_with_whitespace(templates_db, mock_db_instance):
         {"id": 1, "title": "trimmed", "main_file": "file.svg", "created_at": None, "updated_at": None}
     ]
 
-    rec = templates_db.add("  trimmed  ", "  file.svg  ")
+    _rec = templates_db.add("  trimmed  ", "  file.svg  ")
 
     # Verify the execute_query was called with trimmed values
     call_args = mock_db_instance.execute_query.call_args[0][1]
