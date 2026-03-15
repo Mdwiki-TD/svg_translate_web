@@ -152,7 +152,7 @@ def test_jobs_list_page_displays_jobs(admin_jobs_client):
     response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "Collect Main Files Jobs" in page
+    assert "Collect Templates data Jobs" in page
 
 
 def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
@@ -162,7 +162,7 @@ def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "Collect Main Files Jobs" in page
+    assert "Collect Templates data Jobs" in page
 
 
 def test_job_detail_page_displays_job_info(admin_jobs_client):
@@ -175,7 +175,7 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
     response = client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert f"Collect Main Files Job #{job.id}" in page
+    assert f"Collect Templates data Job #{job.id}" in page
     assert "completed" in page
 
 
