@@ -128,14 +128,29 @@ class TemplatesDB:
         if not title:
             raise ValueError("Title is required")
 
+        add_fields = []
+        add_values = []
+
+        template_fields = {
+            "title": title,
+            "main_file": main_file,
+            "last_world_file": last_world_file,
+            "source": source,
+        }
+        for field, value in template_fields.items():
+            if value is not None:
+                # update_fields.append(f"{field} = %s")
+                add_fields.append(field)
+                add_values.append(value)
+
         try:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
-                """
-                INSERT INTO templates (title, main_file, last_world_file, source)
-                VALUES (%s, %s, %s, %s)
+                f"""
+                INSERT INTO templates ({', '.join(add_fields)})
+                VALUES ({', '.join(["%s" for x in add_fields])})
                 """,
-                (title, main_file, last_world_file, source),
+                tuple(add_values),
             )
         except pymysql.err.IntegrityError:
             # This assumes a UNIQUE constraint on the title column
