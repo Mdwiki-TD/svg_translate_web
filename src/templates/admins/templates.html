@@ -72,10 +72,35 @@ Translation{% endblock %} {% block contents %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <!-- <td>{{ template.id }}</td> -->
-                        <td>{{ template.title }}</td>
-                        <td class="text-center">{{ template.main_file or '-' }}</td>
-                        <td class="text-center">{{ template.last_world_file or '-' }}</td>
-                        <td class="text-center">{{ template.source or '-' }}</td>
+                        <td>
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.title }}
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            {% if template.main_file %}
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.main_file }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if template.last_world_file %}
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.last_world_file }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.last_world_file }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if template.source %}
+                            <a href='{{ template.source }}' target='_blank' rel='noopener noreferrer'>
+                                {{ template.source }}
+                            </a>
+                            {% endif %}
+                        </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-outline-primary btn-sm"
                                 pup-target="{{ url_for('admin.edit_template', template_id=template.id) }}"
