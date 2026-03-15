@@ -21,7 +21,7 @@ from src.main_app.api_services.text_bot import get_wikitext
 from src.main_app.jobs_workers import jobs_service
 from src.main_app.jobs_workers.base_worker import BaseJobWorker
 from src.main_app.utils.wikitext.titles_utils import find_main_title
-from src.main_app.utils.wikitext.titles_utils.last_world_file import find_last_world_file_from_owidslidersrcs
+from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import find_last_world_file_from_owidslidersrcs
 
 logger = logging.getLogger(__name__)
 
