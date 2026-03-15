@@ -4,7 +4,7 @@ Tests for src/main_app/utils/wikitext/titles_utils/last_world_file.py
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.titles_utils.last_world_file import (
+from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import (
     find_last_world_file_from_owidslidersrcs,
     match_last_world_file,
 )

@@ -79,9 +79,7 @@ class TestCreatePage:
 
         assert result == {"success": True}
         mock_site.pages.__getitem__.assert_called_once_with("File:Test.svg")
-        mock_page.edit.assert_called_once_with(
-            "{{Information}}", summary="Test summary"
-        )
+        mock_page.edit.assert_called_once_with("{{Information}}", summary="Test summary")
 
     def test_create_page_without_summary(self) -> None:
         """Test page creation with default empty summary."""

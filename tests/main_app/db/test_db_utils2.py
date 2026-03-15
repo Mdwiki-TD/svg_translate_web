@@ -240,9 +240,7 @@ class TestDbUtilsRowToTask:
         assert task["data"] is None
         assert task["results"] is None
 
-    def test_row_to_task_fetches_stages_when_not_provided(
-        self, db_utils: DbUtils, mocker: MockerFixture
-    ) -> None:
+    def test_row_to_task_fetches_stages_when_not_provided(self, db_utils: DbUtils, mocker: MockerFixture) -> None:
         """Test _row_to_task uses stages when provided (since fetch_stages is not defined on DbUtils)."""
         row: Dict[str, Any] = {
             "id": "task1",
