@@ -1,6 +1,6 @@
-
-
-def find_template_source(wikitext: str, ) -> str:
+def find_template_source(
+    wikitext: str,
+) -> str:
     """
     Input:
         *'''Source''': https://ourworldindata.org/grapher/share-electricity-renewables

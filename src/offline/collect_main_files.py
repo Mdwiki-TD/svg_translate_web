@@ -8,7 +8,6 @@ import sys
 import threading
 from pathlib import Path
 
-
 if _path_ := Path(__file__).parent.parent.parent:
     sys.path.append(str(_path_))
 
@@ -20,8 +19,8 @@ from src.main_app import template_service
 from src.main_app.api_services import get_category_members, get_wikitext
 from src.main_app.jobs_workers import jobs_service
 from src.main_app.jobs_workers.base_worker import BaseJobWorker
-from src.main_app.utils.wikitext.titles_utils import find_main_title, find_last_world_file_from_owidslidersrcs
 from src.main_app.utils.wikitext import find_template_source
+from src.main_app.utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 
 logger = logging.getLogger(__name__)
 
