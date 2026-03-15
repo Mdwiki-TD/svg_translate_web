@@ -49,11 +49,11 @@ class FakeDatabase:
             # SQL format: INSERT INTO templates (field1, field2, ...) VALUES (%s, %s, ...)
             field_part = sql[sql.find("(") + 1 : sql.find(")")]
             fields = [f.strip() for f in field_part.split(",")]
-            
+
             # Build row dict from fields and params
-            row_data = dict(zip(fields, params))
+            row_data = dict(zip(fields, params, strict=False))
             title = row_data.get("title")
-            
+
             if any(row["title"] == title for row in self._rows):
                 raise pymysql.err.IntegrityError(1062, "Duplicate entry")
 
