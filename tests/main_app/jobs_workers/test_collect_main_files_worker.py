@@ -309,13 +309,13 @@ def test_collect_main_files_handles_add_template_value_error(mock_services):
     assert len(result["templates_failed"]) == 0  # ValueError is handled gracefully (race condition)
 
 
-def test_collect_main_files_full_workflow_with_new_templates(mock_services):
+def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock_find_source):
     """Test full workflow: add new templates then collect templates data."""
     # First call returns empty (for adding phase), second call returns with new templates
     existing_templates = [
-        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg"),
+        TemplateRecord(id=1, title="Template:Existing", main_file="existing.svg", last_world_file="existing_2020.svg", source="test"),
     ]
-    new_template = TemplateRecord(id=2, title="Template:NewFromCategory", main_file="", last_world_file="")
+    new_template = TemplateRecord(id=2, title="Template:NewFromCategory", main_file="", last_world_file="", source="")
 
     category_templates = ["Template:Existing", "Template:NewFromCategory"]
 
@@ -330,11 +330,11 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services):
     # Should add new template
     mock_services["add_template"].assert_called_once_with("Template:NewFromCategory", "", "")
 
-    # Should process the new template (fetch wikitext)
+    # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
     mock_services["get_wikitext"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
 
-    # Should update the new template with main file
-    mock_services["update_template"].assert_called_once_with(2, "Template:NewFromCategory", "newfile.svg", None)
+    # Should update the new template with main file (includes source parameter)
+    mock_services["update_template"].assert_called_once_with(2, "Template:NewFromCategory", "newfile.svg", None, "")
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
