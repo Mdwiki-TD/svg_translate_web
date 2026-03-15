@@ -58,7 +58,8 @@ Translation{% endblock %} {% block contents %}
             <table class="table table-hover align-middle mb-0 DataTable">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col" style="width: 5%">ID</th>
+                        <th scope="col" style="width: 5%">#</th>
+                        <!-- <th scope="col" style="width: 5%">ID</th> -->
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
                         <th scope="col" class="text-center">Last World File</th>
@@ -69,7 +70,8 @@ Translation{% endblock %} {% block contents %}
                 <tbody>
                     {% for template in templates %}
                     <tr>
-                        <td>{{ template.id }}</td>
+                        <td>{{ loop.index }}</td>
+                        <!-- <td>{{ template.id }}</td> -->
                         <td>{{ template.title }}</td>
                         <td class="text-center">{{ template.main_file or '-' }}</td>
                         <td class="text-center">{{ template.last_world_file or '-' }}</td>
