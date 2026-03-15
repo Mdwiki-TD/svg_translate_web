@@ -35,11 +35,9 @@ def find_template_source(
     except ValueError:
         return None
 
-    if parsed.netloc.lower() != "ourworldindata.org":
+    if parsed.netloc.lower() not in {"ourworldindata.org", "www.ourworldindata.org"}:
         return None
 
     path = urllib.parse.unquote(parsed.path.lstrip("/"))
-    if not path.lower().endswith(".svg"):
-        return None
 
     return path
