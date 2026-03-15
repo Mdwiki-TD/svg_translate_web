@@ -55,11 +55,12 @@ def add_template(
     title: str,
     main_file: str,
     last_world_file: str | None = None,
+    source: str | None = None,
 ) -> TemplateRecord:
     """Add a template."""
 
     store = get_templates_db()
-    record = store.add(title, main_file, last_world_file)
+    record = store.add(title, main_file, last_world_file, source)
 
     return record
 
@@ -69,11 +70,12 @@ def update_template(
     title: str,
     main_file: str,
     last_world_file: str | None = None,
+    source: str | None = None,
 ) -> TemplateRecord:
     """Update template."""
 
     store = get_templates_db()
-    record = store.update(template_id, title, main_file, last_world_file)
+    record = store.update(template_id, title, main_file, last_world_file, source)
 
     return record
 
@@ -83,11 +85,12 @@ def update_template_if_not_none(
     title: str | None = None,
     main_file: str | None = None,
     last_world_file: str | None = None,
+    source: str | None = None,
 ) -> TemplateRecord:
     """Update template only if not None."""
 
     store = get_templates_db()
-    record = store.update_if_not_none(template_id, title, main_file, last_world_file)
+    record = store.update_if_not_none(template_id, title, main_file, last_world_file, source)
 
     return record
 
