@@ -49,7 +49,7 @@ class TemplatesDB:
         - `last_world_file`: nullable string (up to 255 chars)
         - `created_at`: timestamp defaulting to the current time
         - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
-        - `source`: nullable string (up to 255 chars)
+        - `source`: non-null string (up to 255 chars), defaults to empty string
         """
         self.db.execute_query_safe(
             """

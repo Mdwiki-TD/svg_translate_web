@@ -183,7 +183,7 @@ class MainFilesWorker(BaseJobWorker):
                 # Update template with main file
                 logger.info(
                     f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
-                    f"and last_world_file: {last_world_file}"
+                    f"and last_world_file: {last_world_file} "
                     f"and source: {source}"
                 )
 
