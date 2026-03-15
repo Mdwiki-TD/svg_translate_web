@@ -31,7 +31,11 @@ class FakeDatabase:
         }
 
     def execute_query(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+        self,
+        sql: str,
+        params: Iterable[Any] | None = None,
+        *,
+        timeout_override: float | None = None,
     ) -> int:
         del timeout_override
         params = tuple(params or ())
@@ -41,7 +45,7 @@ class FakeDatabase:
             return 0
 
         if normalized.startswith("insert into templates") and "on duplicate key" not in normalized:
-            title, main_file, last_world_file = params
+            title, main_file, last_world_file, source = params
             if any(row["title"] == title for row in self._rows):
                 raise pymysql.err.IntegrityError(1062, "Duplicate entry")
 
@@ -50,6 +54,7 @@ class FakeDatabase:
                 "title": title,
                 "main_file": main_file,
                 "last_world_file": last_world_file,
+                "source": source,
                 "created_at": None,
                 "updated_at": None,
             }
@@ -58,11 +63,12 @@ class FakeDatabase:
             return 1
 
         if "on duplicate key update" in normalized:
-            title, main_file, last_world_file = params
+            title, main_file, last_world_file, source = params
             for row in self._rows:
                 if row["title"] == title:
                     row["main_file"] = main_file
                     row["last_world_file"] = last_world_file
+                    row["source"] = source
                     return 1
             # Not found, insert new
             row = {
@@ -70,6 +76,7 @@ class FakeDatabase:
                 "title": title,
                 "main_file": main_file,
                 "last_world_file": last_world_file,
+                "source": source,
                 "created_at": None,
                 "updated_at": None,
             }
