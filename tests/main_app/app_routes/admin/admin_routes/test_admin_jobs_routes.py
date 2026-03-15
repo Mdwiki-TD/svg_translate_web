@@ -230,7 +230,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 @patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
-    """Test that the start collect main files job route works."""
+    """Test that the start collect templates data job route works."""
     client, store = admin_jobs_client
 
     # Mock the auth payload and job creation
@@ -248,7 +248,7 @@ def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admi
 
 
 def test_jobs_page_has_collect_button(admin_jobs_client):
-    """Test that the jobs page has a collect main files button."""
+    """Test that the jobs page has a collect templates data button."""
     client, store = admin_jobs_client
 
     response = client.get("/admin/collect_main_files/list")
@@ -438,7 +438,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     response = client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "not a collect main files job" in page.lower()
+    assert "not a collect templates data job" in page.lower()
 
 
 def test_delete_collect_main_files_job(admin_jobs_client):

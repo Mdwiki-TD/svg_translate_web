@@ -40,7 +40,7 @@ def clean_cancel_events():
 @patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_collect_main_files_job(mock_thread, mock_create_job):
-    """Test starting a collect main files job."""
+    """Test starting a collect templates data job."""
     mock_job = JobRecord(id=1, job_type="collect_main_files", status="pending")
     mock_create_job.return_value = mock_job
 
