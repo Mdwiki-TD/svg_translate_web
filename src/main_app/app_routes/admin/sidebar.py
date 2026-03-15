@@ -74,7 +74,7 @@ def create_side(active_route):
                 id="collect_main_files",
                 admin=1,
                 href="collect_main_files/list",
-                title="Collect Main Files",
+                title="Collect Templates data",
                 icon="bi-kanban",
             ),
             SidebarItem(
