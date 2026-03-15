@@ -100,9 +100,9 @@ def test_sidebar_contains_jobs_section():
 
 
 def test_sidebar_contains_collect_main_files_job_link():
-    """Test that sidebar contains Collect Main Files job link."""
+    """Test that sidebar contains Collect Templates data job link."""
     result = sidebar.create_side("collect_main_files/list")
-    assert "Collect Main Files" in result
+    assert "Collect Templates data" in result
     assert "collect_main_files/list" in result
     assert "bi-kanban" in result
 
@@ -116,7 +116,7 @@ def test_sidebar_contains_fix_nested_main_files_job_link():
 
 
 def test_sidebar_marks_collect_main_files_as_active():
-    """Test that Collect Main Files is marked as active when selected."""
+    """Test that Collect Templates data is marked as active when selected."""
     result = sidebar.create_side("collect_main_files/list")
     # The link should have an active class
     assert "id='collect_main_files' class='active'" in result

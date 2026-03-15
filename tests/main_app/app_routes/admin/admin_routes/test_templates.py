@@ -51,7 +51,7 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         resp = _add_template()
         assert resp == "redirected"
 
-        mock_service.add_template.assert_called_with("NewT", "f.svg", "")
+        mock_service.add_template.assert_called_with("NewT", "f.svg", "", "")
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
 
@@ -81,7 +81,7 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _update_template()
         assert resp == "redirected"
 
-        mock_service.update_template.assert_called_with(1, "UpdT", "f2.svg", "")
+        mock_service.update_template.assert_called_with(1, "UpdT", "f2.svg", "", "")
         mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
 

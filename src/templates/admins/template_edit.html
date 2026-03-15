@@ -4,9 +4,14 @@
 
 {% block extra_css %}
 <style>
-    header { display: none !important; }
+    header {
+        display: none !important;
+    }
+
     /* Option to remove top padding since navbar is gone */
-    body { padding-top: 0 !important; }
+    body {
+        padding-top: 0 !important;
+    }
 </style>
 {% endblock %}
 
@@ -29,21 +34,31 @@
 
                 <div class="mb-3">
                     <label for="title" class="form-label">Template Name</label>
-                    <input type="text" class="form-control" id="title" name="title" value="{{ template.title }}" required />
+                    <input type="text" class="form-control" id="title" name="title" value="{{ template.title }}"
+                        required />
                 </div>
 
                 <div class="mb-3">
                     <label for="main_file" class="form-label">Main File</label>
-                    <input type="text" class="form-control" id="main_file" name="main_file" value="{{ template.main_file or '' }}" />
+                    <input type="text" class="form-control" id="main_file" name="main_file"
+                        value="{{ template.main_file or '' }}" />
                 </div>
 
                 <div class="mb-3">
                     <label for="last_world_file" class="form-label">Last World File</label>
-                    <input type="text" class="form-control" id="last_world_file" name="last_world_file" value="{{ template.last_world_file or '' }}" />
+                    <input type="text" class="form-control" id="last_world_file" name="last_world_file"
+                        value="{{ template.last_world_file or '' }}" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="source" class="form-label">Source</label>
+                    <input type="text" class="form-control" id="source" name="source"
+                        value="{{ template.source or '' }}" />
                 </div>
             </form>
 
-            <form id="deleteForm" method="post" action="{{ url_for('admin.delete_template', template_id=template.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ template.title }}?');">
+            <form id="deleteForm" method="post" action="{{ url_for('admin.delete_template', template_id=template.id) }}"
+                class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ template.title }}?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="from_popup" value="1" />
             </form>

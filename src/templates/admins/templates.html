@@ -7,10 +7,10 @@ Translation{% endblock %} {% block contents %}
         <form method="post" action="{{ url_for('admin.start_job', job_type='collect_main_files') }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="btn btn-success btn-sm"
-                data-confirm-message="This will start a background job to collect main files for all templates that don't have one. You can track progress in the Collect Main Files Jobs page. Continue?"
+                data-confirm-message="This will start a background job to collect templates data for all templates. You can track progress in the Collect Templates data Jobs page. Continue?"
                 onclick="return confirm(this.dataset.confirmMessage);"
-                title="Collect main files for templates without one">
-                <i class="bi bi-download"></i> Collect Main Files
+                title="Collect Templates data for templates without one">
+                <i class="bi bi-download"></i> Collect Templates data
             </button>
         </form>
     </div>
@@ -26,7 +26,7 @@ Translation{% endblock %} {% block contents %}
                                 <input type="text" class="form-control" id="title" name="title" required />
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-12">
+                        <!-- <div class="col-md-3 col-sm-12">
                             <div class="input-group">
                                 <span class="input-group-text">Main File</span>
                                 <input type="text" class="form-control" id="main_file" name="main_file" />
@@ -38,6 +38,12 @@ Translation{% endblock %} {% block contents %}
                                 <input type="text" class="form-control" id="last_world_file" name="last_world_file" />
                             </div>
                         </div>
+                        <div class="col-md-3 col-sm-12">
+                            <div class="input-group">
+                                <span class="input-group-text">Source</span>
+                                <input type="text" class="form-control" id="source" name="source" />
+                            </div>
+                        </div> -->
                         <div class="col-md-2 col-sm-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-person-plus-fill"></i> Add
@@ -52,20 +58,24 @@ Translation{% endblock %} {% block contents %}
             <table class="table table-hover align-middle mb-0 DataTable">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col" style="width: 5%">ID</th>
+                        <th scope="col" style="width: 5%">#</th>
+                        <!-- <th scope="col" style="width: 5%">ID</th> -->
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
                         <th scope="col" class="text-center">Last World File</th>
+                        <th scope="col" class="text-center">Source</th>
                         <th scope="col" class="text-center" style="width: 10%">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for template in templates %}
                     <tr>
-                        <td>{{ template.id }}</td>
+                        <td>{{ loop.index }}</td>
+                        <!-- <td>{{ template.id }}</td> -->
                         <td>{{ template.title }}</td>
                         <td class="text-center">{{ template.main_file or '-' }}</td>
                         <td class="text-center">{{ template.last_world_file or '-' }}</td>
+                        <td class="text-center">{{ template.source or '-' }}</td>
                         <td class="text-center">
                             <button type="button" class="btn btn-outline-primary btn-sm"
                                 pup-target="{{ url_for('admin.edit_template', template_id=template.id) }}"
@@ -87,7 +97,7 @@ Translation{% endblock %} {% block contents %}
         window.open(
             target,
             "",
-            "width=600,height=400,left=100,top=100,location=no"
+            "width=600,height=550,left=100,top=100,location=no"
         );
     }
 </script>

@@ -31,7 +31,11 @@ class FakeDatabase:
         }
 
     def execute_query(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
+        self,
+        sql: str,
+        params: Iterable[Any] | None = None,
+        *,
+        timeout_override: float | None = None,
     ) -> int:
         del timeout_override
         params = tuple(params or ())
@@ -41,15 +45,24 @@ class FakeDatabase:
             return 0
 
         if normalized.startswith("insert into templates") and "on duplicate key" not in normalized:
-            title, main_file, last_world_file = params
+            # Parse field names from SQL to handle dynamic INSERT queries
+            # SQL format: INSERT INTO templates (field1, field2, ...) VALUES (%s, %s, ...)
+            field_part = sql[sql.find("(") + 1 : sql.find(")")]
+            fields = [f.strip() for f in field_part.split(",")]
+
+            # Build row dict from fields and params
+            row_data = dict(zip(fields, params, strict=False))
+            title = row_data.get("title")
+
             if any(row["title"] == title for row in self._rows):
                 raise pymysql.err.IntegrityError(1062, "Duplicate entry")
 
             row = {
                 "id": self._next_id,
                 "title": title,
-                "main_file": main_file,
-                "last_world_file": last_world_file,
+                "main_file": row_data.get("main_file"),
+                "last_world_file": row_data.get("last_world_file"),
+                "source": row_data.get("source"),
                 "created_at": None,
                 "updated_at": None,
             }
@@ -58,11 +71,13 @@ class FakeDatabase:
             return 1
 
         if "on duplicate key update" in normalized:
-            title, main_file, last_world_file = params
+            # ON DUPLICATE KEY UPDATE always has all 4 fields
+            title, main_file, last_world_file, source = params
             for row in self._rows:
                 if row["title"] == title:
                     row["main_file"] = main_file
                     row["last_world_file"] = last_world_file
+                    row["source"] = source
                     return 1
             # Not found, insert new
             row = {
@@ -70,6 +85,7 @@ class FakeDatabase:
                 "title": title,
                 "main_file": main_file,
                 "last_world_file": last_world_file,
+                "source": source,
                 "created_at": None,
                 "updated_at": None,
             }
@@ -78,12 +94,14 @@ class FakeDatabase:
             return 1
 
         if normalized.startswith("update templates"):
-            title, main_file, last_world_file, template_id = params
+            # UPDATE has: title, main_file, last_world_file, source, template_id
+            title, main_file, last_world_file, source, template_id = params
             for row in self._rows:
                 if row["id"] == template_id:
                     row["title"] = title
                     row["main_file"] = main_file
                     row["last_world_file"] = last_world_file
+                    row["source"] = source
                     return 1
             return 0
 

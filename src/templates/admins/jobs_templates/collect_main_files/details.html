@@ -2,8 +2,8 @@
 
 {% set job_type = 'collect_main_files' %}
 
-{% block detail_title %}Collect Main Files{% endblock %}
-{% block detail_headline %}Collect Main Files{% endblock %}
+{% block detail_title %}Collect Templates data{% endblock %}
+{% block detail_headline %}Collect Templates data{% endblock %}
 
 {% block job_summary %}
 {% if result_data.summary %}
@@ -136,6 +136,7 @@
                         <th>Title</th>
                         <th>New Main File</th>
                         <th>Last World File</th>
+                        <th>Source</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -150,6 +151,7 @@
                         </td>
                         <td><code>{{ template.new_main_file }}</code></td>
                         <td><code>{{ template.last_world_file }}</code></td>
+                        <td><code>{{ template.source }}</code></td>
                     </tr>
                     {% endfor %}
                 </tbody>

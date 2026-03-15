@@ -46,8 +46,10 @@ def _add_template() -> ResponseReturnValue:
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
+    source = request.form.get("source", "").strip()
+
     try:
-        record = template_service.add_template(title, main_file, last_world_file)
+        record = template_service.add_template(title, main_file, last_world_file, source)
     except ValueError as exc:
         logger.exception("Unable to add template.")
         flash(str(exc), "warning")
@@ -83,9 +85,10 @@ def _update_template() -> ResponseReturnValue:
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
+    source = request.form.get("source", "").strip()
 
     try:
-        record = template_service.update_template(template_id, title, main_file, last_world_file)
+        record = template_service.update_template(template_id, title, main_file, last_world_file, source)
     except LookupError as exc:
         logger.exception("Unable to Update template.")
         flash(str(exc), "warning")

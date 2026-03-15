@@ -152,7 +152,7 @@ def test_jobs_list_page_displays_jobs(admin_jobs_client):
     response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "Collect Main Files Jobs" in page
+    assert "Collect Templates data Jobs" in page
 
 
 def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
@@ -162,7 +162,7 @@ def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
     response = client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "Collect Main Files Jobs" in page
+    assert "Collect Templates data Jobs" in page
 
 
 def test_job_detail_page_displays_job_info(admin_jobs_client):
@@ -175,7 +175,7 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
     response = client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert f"Collect Main Files Job #{job.id}" in page
+    assert f"Collect Templates data Job #{job.id}" in page
     assert "completed" in page
 
 
@@ -230,7 +230,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 @patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
-    """Test that the start collect main files job route works."""
+    """Test that the start collect templates data job route works."""
     client, store = admin_jobs_client
 
     # Mock the auth payload and job creation
@@ -248,7 +248,7 @@ def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admi
 
 
 def test_jobs_page_has_collect_button(admin_jobs_client):
-    """Test that the jobs page has a collect main files button."""
+    """Test that the jobs page has a collect templates data button."""
     client, store = admin_jobs_client
 
     response = client.get("/admin/collect_main_files/list")

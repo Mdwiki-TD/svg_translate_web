@@ -151,7 +151,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
 
 
 class Jobs:
-    """Collect Main Files Jobs management routes."""
+    """Collect Templates data Jobs management routes."""
 
     def __init__(self, bp_admin: Blueprint) -> None:
         # ================================

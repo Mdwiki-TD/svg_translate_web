@@ -75,8 +75,8 @@ def test_add_success(templates_db, mock_db_instance):
     rec = templates_db.add("new", "f.svg")
 
     mock_db_instance.execute_query.assert_called_with(
-        "\n                INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)\n                ",
-        ("new", "f.svg", None),
+        "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
+        ("new", "f.svg"),
     )
     assert rec.title == "new"
 
@@ -101,8 +101,13 @@ def test_update_success(templates_db, mock_db_instance):
     rec = templates_db.update(1, "new", "new.svg")
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        "UPDATE templates SET title = %s, main_file = %s , last_world_file = %s WHERE id = %s",
-        ("new", "new.svg", None, 1),
+        """
+            UPDATE templates
+                SET title = %s, main_file = %s, last_world_file = %s, source = %s
+            WHERE
+                id = %s
+            """,
+        ("new", "new.svg", None, None, 1),
     )
     assert rec.title == "new"
 
@@ -175,7 +180,7 @@ def test_add_with_whitespace(templates_db, mock_db_instance):
         {"id": 1, "title": "trimmed", "main_file": "file.svg", "created_at": None, "updated_at": None}
     ]
 
-    rec = templates_db.add("  trimmed  ", "  file.svg  ")
+    _rec = templates_db.add("  trimmed  ", "  file.svg  ")
 
     # Verify the execute_query was called with trimmed values
     call_args = mock_db_instance.execute_query.call_args[0][1]
