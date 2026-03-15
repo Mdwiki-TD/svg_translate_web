@@ -22,6 +22,7 @@ class TemplateRecord:
     last_world_file: str | None
     created_at: Any | None = None
     updated_at: Any | None = None
+    source: str | None = None
 
 
 class TemplatesDB:
