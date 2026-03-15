@@ -438,7 +438,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     response = client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "not a collect templates data job" in page.lower()
+    assert "not a collect main files job" in page.lower()
 
 
 def test_delete_collect_main_files_job(admin_jobs_client):
