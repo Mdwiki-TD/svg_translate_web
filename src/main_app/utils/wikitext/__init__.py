@@ -7,6 +7,7 @@ from .files_text import appendImageExtractedTemplate, create_cropped_file_text, 
 from .other_versions import add_other_versions
 from .template_page import update_template_page_file_reference
 from .temps_bot import get_files_list, get_titles, get_titles_from_wikilinks
+from .template_source import find_template_source
 
 
 def ensure_file_prefix(file_name) -> str:
@@ -17,6 +18,7 @@ def ensure_file_prefix(file_name) -> str:
 
 __all__ = [
     "ensure_file_prefix",
+    "find_template_source",
     "insert_before_methods",
     "add_other_versions",
     "update_original_file_text",

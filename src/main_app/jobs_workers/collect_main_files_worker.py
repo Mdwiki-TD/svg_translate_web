@@ -14,6 +14,7 @@ from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker
+from ..utils.wikitext import find_template_source
 
 logger = logging.getLogger(__name__)
 
@@ -119,10 +120,10 @@ class CollectMainFilesWorker(BaseJobWorker):
         templates = template_service.list_templates()
         self.result["summary"]["total"] = len(templates)
         self.result["summary"]["already_had_main_file"] = len(
-            [t for t in templates if t.main_file and t.last_world_file]
+            [t for t in templates if t.main_file and t.last_world_file and t.source]
         )
 
-        templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file)]
+        templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
 
         per_item = self.get_priority(len(templates_to_process))
@@ -144,6 +145,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 "timestamp": datetime.now().isoformat(),
                 "new_main_file": "",
                 "last_world_file": "",
+                "source": "",
             }
             try:
                 # Fetch wikitext from Commons
@@ -167,14 +169,18 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if last_world_file:
                     template_info["last_world_file"] = last_world_file
 
-                if not main_file and not last_world_file:
+                source = find_template_source(wikitext)
+                if source:
+                    template_info["source"] = source
+
+                if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
-                    template_info["reason"] = "Could not find main file or last world file in wikitext"
+                    template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
                     template_info["wikitext_length"] = len(wikitext)
                     self.result["templates_failed"].append(template_info)
                     self.result["summary"]["failed"] += 1
                     logger.warning(
-                        f"Job {self.job_id}: Could not find main file or last world file for {template.title}"
+                        f"Job {self.job_id}: Could not find main file or last world file or source for {template.title}"
                     )
                     continue
 
@@ -182,6 +188,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 logger.info(
                     f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
                     f"and last_world_file: {last_world_file}"
+                    f"and source: {source}"
                 )
 
                 template_service.update_template_if_not_none(
@@ -189,6 +196,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                     template.title,
                     main_file,
                     last_world_file,
+                    source,
                 )
 
                 template_info["status"] = "updated"
