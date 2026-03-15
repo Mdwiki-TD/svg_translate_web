@@ -113,7 +113,13 @@ class TemplatesDB:
         )
         return [self._row_to_record(row) for row in rows]
 
-    def add(self, title: str, main_file: str, last_world_file: str | None = None) -> TemplateRecord:
+    def add(
+        self,
+        title: str,
+        main_file: str,
+        last_world_file: str | None = None,
+        source: str | None = None,
+    ) -> TemplateRecord:
         title = title.strip()
         main_file = main_file.strip()
         if not title:
@@ -123,9 +129,9 @@ class TemplatesDB:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 """
-                INSERT INTO templates (title, main_file, last_world_file) VALUES (%s, %s, %s)
+                INSERT INTO templates (title, main_file, last_world_file, source) VALUES (%s, %s, %s, %s)
                 """,
-                (title, main_file, last_world_file),
+                (title, main_file, last_world_file, source),
             )
         except pymysql.err.IntegrityError:
             # This assumes a UNIQUE constraint on the title column
