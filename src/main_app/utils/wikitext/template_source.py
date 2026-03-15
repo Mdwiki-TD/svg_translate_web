@@ -26,7 +26,7 @@ def find_template_source(wikitext: str) -> str:
 
     match = pattern.search(wikitext)
     if not match:
-        return None
+        return ""
 
     # Clean trailing characters sometimes present in wikitext links
     url = match.group("url").rstrip("]')\">}")
@@ -34,10 +34,10 @@ def find_template_source(wikitext: str) -> str:
     try:
         parsed = urllib.parse.urlparse(url)
     except ValueError:
-        return None
+        return ""
 
     if parsed.netloc.lower() not in {"ourworldindata.org", "www.ourworldindata.org"}:
-        return None
+        return ""
 
     # Return the full validated URL
     return url

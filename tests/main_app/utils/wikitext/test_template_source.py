@@ -47,12 +47,12 @@ class TestFindTemplateSource:
 
     def test_invalid_domain(self):
         wikitext = "*'''Source''': https://example.org/data"
-        assert find_template_source(wikitext) is None
+        assert find_template_source(wikitext) == ""
 
     def test_missing_source(self):
         wikitext = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
-        assert find_template_source(wikitext) is None
+        assert find_template_source(wikitext) == ""
 
     def test_with_wikilink_brackets(self):
         wikitext = "*'''Source''': [https://ourworldindata.org/grapher/population-growth]"
-        assert find_template_source(wikitext) is None
+        assert find_template_source(wikitext) == ""
