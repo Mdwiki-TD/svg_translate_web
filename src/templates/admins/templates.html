@@ -133,7 +133,7 @@ Translation{% endblock %} {% block contents %}
                         <td class="text-center">
                             {% if template.source %}
                             <a href='{{ template.source }}' target='_blank' rel='noopener noreferrer'>
-                                {{ template.source.rstrip('/').rsplit('/', 1)[-1] }}
+                                {{ template.source | short_url }}
                             </a>
                             {% endif %}
                         </td>
