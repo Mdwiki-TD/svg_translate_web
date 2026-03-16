@@ -1,5 +1,5 @@
 """
-Tests for src/main_app/utils/wikitext/titles_utils/last_world_file.py
+Tests for src/main_app/utils/wikitext/titles_utils/last_world_file_utils.py
 """
 
 from __future__ import annotations
