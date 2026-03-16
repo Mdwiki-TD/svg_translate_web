@@ -53,7 +53,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     ]
     mock_common_services["list_templates"].return_value = templates
 
-    # Mock update_template_if_not_none to set the cancel event
+    # Mock update_template_data to set the cancel event
     cancel_event = threading.Event()
     mock_update_template = MagicMock()
 
@@ -70,7 +70,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs", lambda x: None
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_data",
         mock_update_template,
     )
 
