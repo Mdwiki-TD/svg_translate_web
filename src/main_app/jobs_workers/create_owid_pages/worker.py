@@ -20,6 +20,7 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
+from .categories_utils import extend_categories
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
@@ -182,6 +183,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["skipped"] += 1
             self.result["summary"]["processed"] += 1
             return False
+
+        # extend categories
+        info._new_text = extend_categories(current_text, info._new_text)
 
         # Content is different, perform update
         res = create_page(
