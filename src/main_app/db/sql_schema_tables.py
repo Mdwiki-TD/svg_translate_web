@@ -18,7 +18,7 @@ class TablesCreatesSql:
 
 user_tokens = """
     CREATE TABLE IF NOT EXISTS user_tokens (
-        user_id VARCHAR(255) NOT NULL,
+        user_id int NOT NULL,
         username VARCHAR(255) NOT NULL,
         access_token varbinary(1024) NOT NULL,
         access_secret varbinary(1024) NOT NULL,
@@ -53,7 +53,7 @@ tasks = """
 
 task_stages = """
     CREATE TABLE IF NOT EXISTS task_stages (
-    stage_id VARCHAR(255) NOT NULL,
+        stage_id VARCHAR(255) NOT NULL,
         task_id VARCHAR(128) NOT NULL,
         stage_name VARCHAR(255) NOT NULL,
         stage_number INT NOT NULL,
@@ -71,7 +71,7 @@ task_stages = """
 fix_nested_tasks = """
     CREATE TABLE IF NOT EXISTS fix_nested_tasks (
         id VARCHAR(128) NOT NULL,
-    username text DEFAULT NULL,
+        username text DEFAULT NULL,
         filename text NOT NULL,
         status VARCHAR(64) NOT NULL,
         nested_tags_before INT DEFAULT NULL,

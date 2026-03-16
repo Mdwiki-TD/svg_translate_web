@@ -15,7 +15,7 @@ SET
     NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user_tokens (
-    user_id VARCHAR(255) NOT NULL,
+    user_id int NOT NULL,
     username VARCHAR(255) NOT NULL,
     access_token varbinary(1024) NOT NULL,
     access_secret varbinary(1024) NOT NULL,
