@@ -5,7 +5,7 @@
 {% block contents %}
 <div class="card">
     <div class="card-header">
-        <h3 class="headline">Admin Dashboard</h3>
+        <h3 class="headline">Recent Tasks</h3>
 
     </div>
     <div class="card-body">
@@ -63,7 +63,12 @@
                 <tbody>
                     {% for task in tasks %}
                     <tr>
-                        <td><code>{{ task.id }}</code></td>
+                        <td>
+                            <a href="{{ url_for('tasks.task', task_id=task.id) }}" class="text-decoration-none"
+                                title="{{ task.id }}">
+                                {{ task.id[:10] }}...
+                            </a>
+                        </td>
                         <td>{{ task.title }}</td>
                         <td>{{ task.status or 'Unknown' }}</td>
                         <td>{{ task.new_translations_count }}</td>

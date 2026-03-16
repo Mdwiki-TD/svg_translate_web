@@ -15,6 +15,42 @@ Translation{% endblock %} {% block contents %}
         </form>
     </div>
     <div class="card-body">
+        {% if summary %}
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Total Templates</h2>
+                        <p class="display-6 mb-0">{{ summary.total }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">With Main File</h2>
+                        <p class="display-6 mb-0">{{ summary.with_main_file }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">With Last World File</h2>
+                        <p class="display-6 mb-0">{{ summary.with_last_world_file }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">With Source</h2>
+                        <p class="display-6 mb-0">{{ summary.with_source }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
                 <form method="post" action="{{ url_for('admin.add_template') }}" class="row g-2 align-items-end">
