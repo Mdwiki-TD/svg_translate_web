@@ -33,7 +33,7 @@ def extract_categories_list(
     Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
     """
     # Create a list of stripped target strings from new_categories for comparison
-    target_categories = [
+    base_targets = [
         x.target.strip()
         for x in target_categories
     ]
@@ -41,7 +41,7 @@ def extract_categories_list(
     # Filter new_categories to include only those not present in old_categories
     categories = [
         x for x in base_categories
-        if x.target.strip() not in target_categories
+        if x.target.strip() not in base_targets
     ]
 
     return categories
