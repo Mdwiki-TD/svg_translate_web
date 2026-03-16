@@ -1,10 +1,6 @@
 """
 Worker module for collecting main files for templates.
 
-TODO:
-The MainFilesWorker class in this file is nearly identical to CollectMainFilesWorker in src/main_app/jobs_workers/collect_main_files_worker.py. This significant code duplication makes maintenance difficult and error-prone.
-Please consider refactoring so both could use a shared base class or utility functions for the common logic.
-
 """
 
 from __future__ import annotations

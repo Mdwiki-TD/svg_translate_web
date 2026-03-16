@@ -1,5 +1,10 @@
 """
 Background job definitions and registry.
+
+TODO:
+The MainFilesWorker class in this file is nearly identical to CollectMainFilesWorker in src/main_app/jobs_workers/collect_main_files_worker.py. This significant code duplication makes maintenance difficult and error-prone.
+Please consider refactoring so both could use a shared base class or utility functions for the common logic.
+
 """
 
 from __future__ import annotations
@@ -156,18 +161,23 @@ class MainFilesWorker(BaseJobWorker):
                     logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
                     continue
 
+                template_data = {}
+
                 # Extract main file using find_main_title
                 main_file = find_main_title(wikitext)
-                if main_file:
+                if main_file and main_file != template.main_file:
                     template_info["new_main_file"] = main_file
+                    template_data["main_file"] = main_file
 
                 last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
-                if last_world_file:
+                if last_world_file and last_world_file != template.last_world_file:
+                    template_data["last_world_file"] = last_world_file
                     template_info["last_world_file"] = last_world_file
 
                 source = find_template_source(wikitext)
-                if source:
+                if source and source != template.source:
                     template_info["source"] = source
+                    template_data["source"] = source
 
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
@@ -180,6 +190,13 @@ class MainFilesWorker(BaseJobWorker):
                     )
                     continue
 
+                if not template_data:
+                    template_info["status"] = "skipped"
+                    self.result["templates_skipped"].append(template_info)
+                    self.result["summary"]["skipped"] += 1
+                    logger.info(f"Job {self.job_id}: No changes for {template.title}")
+                    continue
+
                 # Update template with main file
                 logger.info(
                     f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
@@ -187,12 +204,9 @@ class MainFilesWorker(BaseJobWorker):
                     f"and source: {source}"
                 )
 
-                template_service.update_template_if_not_none(
+                template_service.update_template_data(
                     template.id,
-                    template.title,
-                    main_file,
-                    last_world_file,
-                    source,
+                    template_data,
                 )
 
                 template_info["status"] = "updated"
