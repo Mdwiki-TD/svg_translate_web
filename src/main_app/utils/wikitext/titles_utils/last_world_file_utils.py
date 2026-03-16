@@ -123,7 +123,7 @@ def find_last_world_file_from_owidslidersrcs(text) -> str | None:
     # --- 1. Extract last_world_file from {{owidslidersrcs|gallery-World=...}}
     last_world_file = None
     for tpl in parsed.templates:
-        if tpl.name.strip().lower() != "owidslidersrcs" and tpl.arguments:
+        if tpl.name.strip().lower() != "owidslidersrcs":
             continue
 
         if tpl.arguments:
