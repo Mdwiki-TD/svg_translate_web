@@ -1,7 +1,7 @@
 """Tests for src/main_app/jinja_filters.py - Flask application factory."""
 import pytest
 
-from src.main_app.jinja_filters import format_stage_timestamp, short_url
+from src.main_app.utils.jinja_filters import format_stage_timestamp, short_url
 
 
 class TestFormatStageTimestamp:

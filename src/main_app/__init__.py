@@ -27,7 +27,7 @@ from .cookies import CookieHeaderClient
 from .db import close_cached_db
 from .users.current import context_user
 from .users.store import ensure_user_token_table
-from .jinja_filters import format_stage_timestamp, short_url
+from .utils.jinja_filters import format_stage_timestamp, short_url
 
 logger = logging.getLogger(__name__)
 
