@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from ..db.sql_shema_tables import sql_tables
-
 from ..config import DbConfig
+from ..db.sql_shema_tables import sql_tables
 from .db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
 from .db_StageStore import StageStore

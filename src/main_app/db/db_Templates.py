@@ -6,10 +6,9 @@ from typing import Any, List
 
 import pymysql
 
-from .sql_shema_tables import sql_tables
-
 from ..config import DbConfig
 from . import Database
+from .sql_shema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,6 @@ import logging
 from typing import Dict, List, Optional
 
 from ..db.sql_shema_tables import sql_tables
-
 from .db_class import Database
 
 logger = logging.getLogger(__name__)

@@ -5,8 +5,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
-from .sql_shema_tables import sql_tables
 from . import Database
+from .sql_shema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

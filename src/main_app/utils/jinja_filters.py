@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 from __future__ import annotations
 
@@ -45,7 +43,7 @@ def short_url(value: str) -> str:
     url = ""
     try:
         # Remove trailing slash, split by '/', take last segment
-        url = value.rstrip('/').rsplit('/', 1)[-1]
+        url = value.rstrip("/").rsplit("/", 1)[-1]
     except Exception:
         logger.exception("Failed to extract short URL from: %s", value)
 
