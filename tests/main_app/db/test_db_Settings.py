@@ -38,7 +38,7 @@ def test_settings_db_init(mock_database_class, db_config):
     mock_db.execute_query_safe.assert_called_once()
     # Verify the CREATE TABLE statement was executed
     call_args = mock_db.execute_query_safe.call_args[0][0]
-    assert "CREATE TABLE IF NOT EXISTS `settings`" in call_args
+    assert "CREATE TABLE IF NOT EXISTS settings" in call_args
 
 
 @patch("src.main_app.db.db_Settings.Database")
