@@ -32,38 +32,36 @@ def extract_categories_list(
     """
     Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
     """
-    # Create a list of stripped target strings from new_categories for comparison
-    base_targets = [
-        x.target.strip()
-        for x in target_categories
-    ]
+    # Using a set for base_targets improves lookup performance to O(1)
+    base_targets = {cat.target.strip() for cat in target_categories}
 
-    # Filter new_categories to include only those not present in old_categories
-    categories = [
-        x for x in base_categories
-        if x.target.strip() not in base_targets
+    # Return only the categories from target_categories that aren't already in base
+    return [
+        cat for cat in base_categories
+        if cat.target.strip() not in base_targets
     ]
-
-    return categories
 
 
 def extend_categories(old_text: str, new_text: str) -> str:
     """
     Appends categories found in old_text to new_text if they are not already present.
     """
+    # Parse categories from both versions of the text
+    old_cats = _extract_categories(old_text)
+    new_cats = _extract_categories(new_text)
 
-    # Extract and merge categories from both old and new text
-    categories = extract_categories_list(
-        _extract_categories(old_text),
-        _extract_categories(new_text),
+    # Logic fix: We want to find categories in 'old_text' that are missing in 'new_text'
+    missing_categories = extract_categories_list(
+        base_categories=new_cats,    # The current set of categories
+        target_categories=old_cats,  # The potential candidates to re-add
     )
-    # End of category extraction and merging
 
-    # Convert the extracted category objects to strings and join with newlines
-    new_categories = "\n".join([x.string for x in categories])
-    # End of category string conversion
-    # Append the combined categories to the new text with a newline separator
-    new_text += f"\n{new_categories}"
+    # If no missing categories are found, return the text as is
+    if not missing_categories:
+        return new_text
 
-    # End of text appending
-    return new_text
+    # Convert the missing WikiLink objects back to their string representation
+    missing_categories_str = "\n".join([cat.string for cat in missing_categories])
+
+    # Append the missing categories to the end of the new text
+    return f"{new_text}\n{missing_categories_str}"

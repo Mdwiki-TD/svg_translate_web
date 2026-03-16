@@ -191,4 +191,4 @@ class TestExtendCategories:
 
         result = extend_categories(old_text, new_text)
 
-        assert result == "New text\n"
+        assert result == new_text
