@@ -40,13 +40,15 @@ def short_url(value: str) -> str:
     Returns:
         The last segment of the URL path, or empty string if parsing fails.
     """
-    if not value:
+    if not value or not isinstance(value, str):
         return ""
     url = ""
     try:
+        # Remove trailing slash, split by '/', take last segment
         url = value.rstrip('/').rsplit('/', 1)[-1]
     except Exception:
         logger.exception("Failed to extract short URL from: %s", value)
 
+    # Remove query string
     url = url.split("?")[0].strip()
     return url
