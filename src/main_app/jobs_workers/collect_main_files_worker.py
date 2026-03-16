@@ -163,6 +163,8 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 template_data = {}
 
+                template_data = {}
+
                 # Extract main file using find_main_title
                 main_file = find_main_title(wikitext)
                 if main_file and main_file != template.main_file:

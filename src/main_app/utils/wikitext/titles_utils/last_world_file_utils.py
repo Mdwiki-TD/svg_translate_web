@@ -46,7 +46,7 @@ def match_last_world_file_with_full_date(text) -> str:
 
         # Try full date: "year=Apr 15, 1940"
         date_match = re.match(
-            r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})",
+            r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})",  # \s*$
             year_part
         )
         if date_match:
