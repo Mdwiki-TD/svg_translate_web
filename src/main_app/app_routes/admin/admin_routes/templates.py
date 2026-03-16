@@ -176,3 +176,17 @@ class Templates:
         @admin_required
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
+
+        @bp_admin.get("/templates/download-json")
+        @admin_required
+        def download_templates_json() -> ResponseReturnValue:
+            """Download all templates as a json file."""
+
+            response, status_code = create_main_files_zip()
+
+            # If the response is an error message (not a file), flash it and redirect
+            if status_code != 200:
+                flash(response, "warning" if status_code == 404 else "danger")
+                return redirect(url_for("admin.templates_dashboard"))
+
+            return response

@@ -222,6 +222,7 @@ class Jobs:
             """
             return send_from_directory(settings.paths.main_files_path, filename)
 
+
         @bp_admin.get("/download-main-files/download-all")
         @admin_required
         def download_all_main_files() -> ResponseReturnValue:
