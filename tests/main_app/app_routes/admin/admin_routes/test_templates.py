@@ -141,13 +141,14 @@ def test_Templates():
     bp = MagicMock()
     Templates(bp)
 
-    # Should register 2 GET routes, 3 POST routes
-    assert bp.get.call_count == 2
+    # Should register 3 GET routes, 3 POST routes
+    assert bp.get.call_count == 3
     assert bp.post.call_count == 3
 
     # Check endpoints
     bp.get.assert_any_call("/templates")
     bp.get.assert_any_call("/templates/<int:template_id>/edit")
+    bp.get.assert_any_call("/templates/download-json")
     bp.post.assert_any_call("/templates/add")
     bp.post.assert_any_call("/templates/update")
     bp.post.assert_any_call("/templates/<int:template_id>/delete")
