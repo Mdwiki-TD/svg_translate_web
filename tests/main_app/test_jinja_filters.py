@@ -1,4 +1,5 @@
 """Tests for src/main_app/jinja_filters.py - Flask application factory."""
+import pytest
 
 from src.main_app.jinja_filters import format_stage_timestamp, short_url
 
@@ -72,19 +73,19 @@ class TestFormatStageTimestamp:
 
 
 class TestShortUrl:
-    """Tests for short_url Jinja filter."""
+    """Tests for short_url function."""
 
-    def test_short_url_valid(self):
-        """Test short_url with valid URL."""
-        result = short_url("https://www.example.com/long/url")
-        assert result == "https://www.example.com/long/url"
-
-    def test_short_url_empty_string(self):
-        """Test short_url with empty string."""
-        result = short_url("")
-        assert result == ""
-
-    def test_short_url_none(self):
-        """Test short_url with None-like value."""
-        result = short_url(None)
-        assert result == ""
+    @pytest.mark.parametrize(
+        "input_url, expected",
+        [
+            ("https://www.example.com/long/url", "url"),  # normal URL
+            ("https://www.example.com/long/url/", "url"),  # trailing slash
+            ("https://www.example.com/long/url?query=1", "url"),  # with query
+            ("", ""),  # empty string
+            (None, ""),  # None input
+            ("/just/path/segment", "segment"),  # relative path
+            ("segment_only", "segment_only"),  # no slashes
+        ]
+    )
+    def test_short_url_various(self, input_url, expected):
+        assert short_url(input_url) == expected
