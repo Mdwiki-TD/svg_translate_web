@@ -12,23 +12,17 @@ logger = logging.getLogger(__name__)
 
 def _extract_categories(wikitext: str) -> list[WikiLink]:
     """
-    Extract category names from wikitext.
+    Extracts category WikiLinks from the given wikitext.
     """
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
-    # Initialize an empty list to store category WikiLinks
-    cats = []
-    # Iterate through all wikilinks found in the parsed text
-    for wl in parsed.wikilinks:
-        # Remove any leading or trailing whitespace from the target
-        target = wl.target.strip()
-        # Check if the target starts with "Category:" to identify categories
-        if target.startswith("Category:"):
-            # Add valid category WikiLinks to our list
-            cats.append(wl)
 
-    # Return the list of extracted categories
-    return cats
+    # Filter wikilinks to find those starting with "Category:"
+    # Added .lower() to ensure case-insensitive matching (e.g., [[category:...]])
+    return [
+        wl for wl in parsed.wikilinks
+        if wl.target.strip().lower().startswith("category:")
+    ]
 
 
 def extract_categories_list(
@@ -55,7 +49,7 @@ def extract_categories_list(
 
 def extend_categories(old_text: str, new_text: str) -> str:
     """
-    Extends the categories in new_text by combining with categories from old_text.
+    Appends categories found in old_text to new_text if they are not already present.
     """
 
     # Extract and merge categories from both old and new text
