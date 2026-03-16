@@ -184,7 +184,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["processed"] += 1
             return False
 
-        # extend categories
+        # extend categories from current text
         info._new_text = extend_categories(current_text, info._new_text)
 
         # Content is different, perform update
