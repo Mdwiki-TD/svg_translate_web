@@ -75,17 +75,17 @@ class TestExtractCategories:
 
 class TestExtractCategoriesList:
 
-    def test_new_category(self):
-        """Should return category when not present in old list."""
+    def test_old_category_not_in_new(self):
+        """Should return category from old list if it is missing in new list."""
         old = [WikiLink("[[Category:Cat1]]")]
-        new = [WikiLink("[[Category:Cat2]]")]
+        new = []
 
         result = extract_categories_list(old, new)
 
-        assert result == new
+        assert result == old
 
-    def test_existing_category(self):
-        """Should return empty when category already exists."""
+    def test_category_exists_in_both(self):
+        """Should not return category if it already exists in new list."""
         old = [WikiLink("[[Category:Cat1]]")]
         new = [WikiLink("[[Category:Cat1]]")]
 
@@ -93,25 +93,26 @@ class TestExtractCategoriesList:
 
         assert result == []
 
-    def test_mixed_categories(self):
-        """Should return only categories not present in old."""
+    def test_multiple_categories(self):
+        """Should return only old categories that are not present in new."""
         old = [
             WikiLink("[[Category:Cat1]]"),
-            WikiLink("[[Category:Cat2]]"),
-        ]
-
-        new = [
             WikiLink("[[Category:Cat2]]"),
             WikiLink("[[Category:Cat3]]"),
         ]
 
+        new = [
+            WikiLink("[[Category:Cat2]]"),
+        ]
+
         result = extract_categories_list(old, new)
 
-        assert len(result) == 1
-        assert result[0].target == "Category:Cat3"
+        assert len(result) == 2
+        assert result[0].target == "Category:Cat1"
+        assert result[1].target == "Category:Cat3"
 
-    def test_whitespace_difference(self):
-        """Should ignore whitespace differences."""
+    def test_whitespace_ignored(self):
+        """Whitespace differences should be ignored."""
         old = [WikiLink("[[Category:Cat1]]")]
         new = [WikiLink("[[Category:Cat1 ]]")]
 
@@ -119,8 +120,25 @@ class TestExtractCategoriesList:
 
         assert result == []
 
-    def test_empty_inputs(self):
-        """Should handle empty lists."""
+    def test_empty_old(self):
+        """Empty old list should return empty result."""
+        result = extract_categories_list([], [WikiLink("[[Category:Cat1]]")])
+
+        assert result == []
+
+    def test_empty_new(self):
+        """Empty new list should return all old categories."""
+        old = [
+            WikiLink("[[Category:Cat1]]"),
+            WikiLink("[[Category:Cat2]]"),
+        ]
+
+        result = extract_categories_list(old, [])
+
+        assert result == old
+
+    def test_both_empty(self):
+        """Both lists empty should return empty list."""
         result = extract_categories_list([], [])
 
         assert result == []

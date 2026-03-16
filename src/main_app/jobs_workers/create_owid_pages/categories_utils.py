@@ -75,16 +75,16 @@ def extract_categories_list(
           including spaces, tabs (\t), newlines (\n), and carriage returns (\r).
         - The original input lists are not modified.
     """
-    # Create a list of stripped target strings from old_categories for comparison
-    old_categories = [
+    # Create a list of stripped target strings from new_categories for comparison
+    new_categories = [
         x.target.strip()
-        for x in old_categories
+        for x in new_categories
     ]
 
     # Filter new_categories to include only those not present in old_categories
     categories = [
-        x for x in new_categories
-        if x.target.strip() not in old_categories
+        x for x in old_categories
+        if x.target.strip() not in new_categories
     ]
 
     return categories
