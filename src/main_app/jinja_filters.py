@@ -31,7 +31,7 @@ def format_stage_timestamp(value: str) -> str:
 def short_url(value: str) -> str:
     """Extract the last segment of a URL path.
 
-    For example, 'https://commons.wikimedia.org/wiki/File:Example.svg'
+    For example, 'https://commons.wikimedia.org/wiki/File:Example.svg?test'
     becomes 'File:Example.svg'.
 
     Args:
@@ -42,8 +42,11 @@ def short_url(value: str) -> str:
     """
     if not value:
         return ""
+    url = ""
     try:
-        return value.rstrip('/').rsplit('/', 1)[-1]
+        url = value.rstrip('/').rsplit('/', 1)[-1]
     except Exception:
         logger.exception("Failed to extract short URL from: %s", value)
-        return ""
+
+    url = url.split("?")[0].strip()
+    return url
