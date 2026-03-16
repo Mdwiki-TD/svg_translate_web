@@ -76,36 +76,36 @@ class TestExtractCategories:
 class TestExtractCategoriesList:
 
     def test_old_category_not_in_new(self):
-        """Should return category from old list if it is missing in new list."""
-        old = [WikiLink("[[Category:Cat1]]")]
-        new = []
+        """Should return category from base_categories list if it is missing in target_categories list."""
+        base_categories = [WikiLink("[[Category:Cat1]]")]
+        target_categories = []
 
-        result = extract_categories_list(old, new)
+        result = extract_categories_list(target_categories, base_categories)
 
-        assert result == old
+        assert result == base_categories
 
     def test_category_exists_in_both(self):
-        """Should not return category if it already exists in new list."""
-        old = [WikiLink("[[Category:Cat1]]")]
-        new = [WikiLink("[[Category:Cat1]]")]
+        """Should not return category if it already exists in target_categories list."""
+        base_categories = [WikiLink("[[Category:Cat1]]")]
+        target_categories = [WikiLink("[[Category:Cat1]]")]
 
-        result = extract_categories_list(old, new)
+        result = extract_categories_list(target_categories, base_categories)
 
         assert result == []
 
     def test_multiple_categories(self):
-        """Should return only old categories that are not present in new."""
-        old = [
+        """Should return only base_categories categories that are not present in target_categories."""
+        base_categories = [
             WikiLink("[[Category:Cat1]]"),
             WikiLink("[[Category:Cat2]]"),
             WikiLink("[[Category:Cat3]]"),
         ]
 
-        new = [
+        target_categories = [
             WikiLink("[[Category:Cat2]]"),
         ]
 
-        result = extract_categories_list(old, new)
+        result = extract_categories_list(target_categories, base_categories)
 
         assert len(result) == 2
         assert result[0].target == "Category:Cat1"
@@ -113,29 +113,29 @@ class TestExtractCategoriesList:
 
     def test_whitespace_ignored(self):
         """Whitespace differences should be ignored."""
-        old = [WikiLink("[[Category:Cat1]]")]
-        new = [WikiLink("[[Category:Cat1 ]]")]
+        base_categories = [WikiLink("[[Category:Cat1]]")]
+        target_categories = [WikiLink("[[Category:Cat1 ]]")]
 
-        result = extract_categories_list(old, new)
+        result = extract_categories_list(target_categories, base_categories)
 
         assert result == []
 
     def test_empty_old(self):
-        """Empty old list should return empty result."""
-        result = extract_categories_list([], [WikiLink("[[Category:Cat1]]")])
+        """Empty base_categories list should return empty result."""
+        result = extract_categories_list([WikiLink("[[Category:Cat1]]")], [])
 
         assert result == []
 
     def test_empty_new(self):
-        """Empty new list should return all old categories."""
-        old = [
+        """Empty target_categories list should return all base_categories categories."""
+        base_categories = [
             WikiLink("[[Category:Cat1]]"),
             WikiLink("[[Category:Cat2]]"),
         ]
 
-        result = extract_categories_list(old, [])
+        result = extract_categories_list([], base_categories)
 
-        assert result == old
+        assert result == base_categories
 
     def test_both_empty(self):
         """Both lists empty should return empty list."""
@@ -148,8 +148,8 @@ class TestExtendCategories:
 
     def test_add_missing_category(self):
         """Should append category from old text if missing in new text."""
-        old_text = "[[Category:Cat1]]"
-        new_text = "Article text"
+        new_text = "[[Category:Cat1]]"
+        old_text = "Article text"
 
         result = extend_categories(old_text, new_text)
 
@@ -157,8 +157,8 @@ class TestExtendCategories:
 
     def test_do_not_duplicate(self):
         """Should not duplicate categories already in new text."""
-        old_text = "[[Category:Cat1]]"
-        new_text = """
+        new_text = "[[Category:Cat1]]"
+        old_text = """
         Article text
         [[Category:Cat1]]
         """
@@ -169,12 +169,12 @@ class TestExtendCategories:
 
     def test_multiple_categories(self):
         """Should append multiple missing categories."""
-        old_text = """
+        new_text = """
         [[Category:Cat1]]
         [[Category:Cat2]]
         """
 
-        new_text = """
+        old_text = """
         Article text
         [[Category:Cat2]]
         """

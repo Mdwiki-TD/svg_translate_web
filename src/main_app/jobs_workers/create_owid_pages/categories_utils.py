@@ -32,8 +32,8 @@ def _extract_categories(wikitext: str) -> list[WikiLink]:
 
 
 def extract_categories_list(
-    base_categories: list[WikiLink],
     target_categories: list[WikiLink],
+    base_categories: list[WikiLink],
 ) -> list[WikiLink]:
     """
     Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
