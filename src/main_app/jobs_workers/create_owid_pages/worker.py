@@ -96,9 +96,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
         if _limit > 0 and len(templates) > _limit:
-            logger.info(
-                f"Job {self.job_id}: create owid pages limit – " f"limiting from {len(templates)} to {_limit} page"
-            )
+            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
 
         return templates
