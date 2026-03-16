@@ -1,4 +1,5 @@
 """Tests for src/main_app/jinja_filters.py - Flask application factory."""
+
 import pytest
 
 from src.main_app.utils.jinja_filters import format_stage_timestamp, short_url
@@ -85,7 +86,7 @@ class TestShortUrl:
             (None, ""),  # None input
             ("/just/path/segment", "segment"),  # relative path
             ("segment_only", "segment_only"),  # no slashes
-        ]
+        ],
     )
     def test_short_url_various(self, input_url, expected):
         assert short_url(input_url) == expected

@@ -1,4 +1,3 @@
-
 from src.main_app.utils.wikitext.template_source import _find_template_source, _find_template_source_2
 
 

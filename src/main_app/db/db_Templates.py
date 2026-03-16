@@ -8,6 +8,7 @@ import pymysql
 
 from ..config import DbConfig
 from . import Database
+from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -68,19 +69,7 @@ class TemplatesDB:
         - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
         - `source`: non-null string (up to 255 chars), defaults to empty string
         """
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS templates (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                title VARCHAR(255) NOT NULL UNIQUE,
-                main_file VARCHAR(255) NULL,
-                last_world_file VARCHAR(255) NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                source varchar(255) NOT NULL DEFAULT '',
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """
-        )
+        self.db.execute_query_safe(sql_tables.templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
         return TemplateRecord(

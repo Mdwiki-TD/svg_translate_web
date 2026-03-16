@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from ..crypto import decrypt_value, encrypt_value
 from ..db import get_db, has_db_config
+from ..db.sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -77,32 +78,7 @@ def ensure_user_token_table() -> None:
         return
 
     db = get_db()
-    db.execute_query_safe(
-        """
-        CREATE TABLE IF NOT EXISTS user_tokens (
-            user_id INT PRIMARY KEY,
-            username VARCHAR(255) NOT NULL,
-            access_token VARBINARY(1024) NOT NULL,
-            access_secret VARBINARY(1024) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            last_used_at DATETIME DEFAULT NULL,
-            rotated_at DATETIME DEFAULT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    """
-    )
-
-    # Ensure username index exists
-    existing_idx = db.fetch_query_safe(
-        "SHOW INDEX FROM user_tokens WHERE Key_name = %s",
-        ("idx_user_tokens_username",),
-    )
-    if not existing_idx:
-        db.execute_query_safe(
-            """
-            CREATE INDEX /*IF NOT EXISTS*/ idx_user_tokens_username ON user_tokens(username)
-            """
-        )
+    db.execute_query_safe(sql_tables.user_tokens)
 
 
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:

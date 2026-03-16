@@ -8,6 +8,7 @@ import pymysql
 
 from ..config import DbConfig
 from . import Database
+from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -49,17 +50,7 @@ class CoordinatorsDB:
 
         The table uses the InnoDB engine and `utf8mb4` character set.
         """
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS admin_users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(255) NOT NULL UNIQUE,
-                is_active TINYINT(1) NOT NULL DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """
-        )
+        self.db.execute_query_safe(sql_tables.admin_users)
 
     def _row_to_record(self, row: dict[str, Any]) -> CoordinatorRecord:
         return CoordinatorRecord(

@@ -27,18 +27,18 @@ def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
     templates = [
         TemplateRecord(
             id=0,
-            title='t1',
-            main_file='',
-            last_world_file='',
+            title="t1",
+            main_file="",
+            last_world_file="",
             created_at=None,
             updated_at=None,
             source=None,
         ),
         TemplateRecord(
             id=1,
-            title='t2',
-            main_file='',
-            last_world_file='',
+            title="t2",
+            main_file="",
+            last_world_file="",
             created_at=None,
             updated_at=None,
             source=None,
@@ -141,13 +141,14 @@ def test_Templates():
     bp = MagicMock()
     Templates(bp)
 
-    # Should register 2 GET routes, 3 POST routes
-    assert bp.get.call_count == 2
+    # Should register 3 GET routes, 3 POST routes
+    assert bp.get.call_count == 3
     assert bp.post.call_count == 3
 
     # Check endpoints
     bp.get.assert_any_call("/templates")
     bp.get.assert_any_call("/templates/<int:template_id>/edit")
+    bp.get.assert_any_call("/templates/download-json")
     bp.post.assert_any_call("/templates/add")
     bp.post.assert_any_call("/templates/update")
     bp.post.assert_any_call("/templates/<int:template_id>/delete")

@@ -1,8 +1,7 @@
-"""
-"""
+""" """
 
-from datetime import datetime
 import re
+from datetime import datetime
 
 import wikitextparser as wtp
 
@@ -22,9 +21,18 @@ def match_last_world_file_with_full_date(text) -> str:
         "File:youth mortality rate, World, Apr 15, 1953.svg"
     """
     MONTH_MAP = {
-        "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,
-        "May": 5, "Jun": 6, "Jul": 7, "Aug": 8,
-        "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
+        "Jan": 1,
+        "Feb": 2,
+        "Mar": 3,
+        "Apr": 4,
+        "May": 5,
+        "Jun": 6,
+        "Jul": 7,
+        "Aug": 8,
+        "Sep": 9,
+        "Oct": 10,
+        "Nov": 11,
+        "Dec": 12,
     }
 
     lines = text.strip().splitlines()
@@ -45,10 +53,7 @@ def match_last_world_file_with_full_date(text) -> str:
             continue
 
         # Try full date: "year=Apr 15, 1940"
-        date_match = re.match(
-            r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*$",
-            year_part
-        )
+        date_match = re.match(r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*$", year_part)
         if date_match:
             month_str, day_str, year_str = date_match.groups()
             month = MONTH_MAP.get(month_str.capitalize())
