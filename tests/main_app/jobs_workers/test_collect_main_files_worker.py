@@ -39,7 +39,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock template_service
     mock_list_templates = MagicMock()
     mock_add_template = MagicMock()
-    mock_update_template = MagicMock()
+    mock_update_template_data = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
     )
@@ -47,8 +47,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template", mock_add_template
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_if_not_none",
-        mock_update_template,
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_data",
+        mock_update_template_data,
     )
 
     # Mock jobs_service (now accessed via base_worker)
@@ -76,7 +76,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     return {
         "list_templates": mock_list_templates,
         "add_template": mock_add_template,
-        "update_template": mock_update_template,
+        "update_template_data": mock_update_template_data,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "get_category_members": mock_get_category_members,
@@ -149,8 +149,8 @@ def test_collect_main_files_updates_template_without_main_file(mock_services, mo
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
 
-    # Should update template (now includes source parameter)
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", "test.svg", None, "")
+    # Should update template with main_file
+    mock_services["update_template_data"].assert_called_once_with(1, {"main_file": "test.svg"})
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -195,7 +195,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should not update template
-    mock_services["update_template"].assert_not_called()
+    mock_services["update_template_data"].assert_not_called()
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -256,7 +256,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should update two templates
-    assert mock_services["update_template"].call_count == 2
+    assert mock_services["update_template_data"].call_count == 2
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -349,8 +349,8 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
     mock_services["get_wikitext"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
 
-    # Should update the new template with main file (includes source parameter)
-    mock_services["update_template"].assert_called_once_with(2, "Template:NewFromCategory", "newfile.svg", None, "")
+    # Should update the new template with main file
+    mock_services["update_template_data"].assert_called_once_with(2, {"main_file": "newfile.svg"})
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -387,9 +387,9 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
-    # Should update template with both main_file and last_world_file (includes source parameter)
-    mock_services["update_template"].assert_called_once_with(
-        1, "Template:Test", "test.svg", "File:test, World, 2021.svg", ""
+    # Should update template with both main_file and last_world_file
+    mock_services["update_template_data"].assert_called_once_with(
+        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg"}
     )
 
     # Should save result with correct data
@@ -513,8 +513,8 @@ def test_collect_main_files_only_last_world_file(mock_services, monkeypatch: pyt
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
-    # Should update template with only last_world_file (includes source parameter)
-    mock_services["update_template"].assert_called_once_with(1, "Template:Test", None, "File:test, World, 2021.svg", "")
+    # Should update template with only last_world_file
+    mock_services["update_template_data"].assert_called_once_with(1, {"last_world_file": "File:test, World, 2021.svg"})
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]

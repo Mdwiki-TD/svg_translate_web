@@ -95,6 +95,18 @@ def update_template_if_not_none(
     return record
 
 
+def update_template_data(
+    template_id: int,
+    template_data: dict[str, str],
+) -> TemplateRecord:
+    """Update template only if not None."""
+
+    store = get_templates_db()
+    record = store.update_template_data(template_id, template_data)
+
+    return record
+
+
 def delete_template(template_id: int) -> TemplateRecord:
     """Delete a template."""
 

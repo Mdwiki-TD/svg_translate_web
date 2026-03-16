@@ -176,6 +176,37 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
+    def update_template_data(
+        self,
+        template_id: int,
+        template_data: dict[str, str],
+    ) -> TemplateRecord:
+        """
+        Update the template record if the new values are not None.
+        """
+        _ = self._fetch_by_id(template_id)
+        update_fields = []
+        update_values = []
+
+        template_fields_keys = {
+            "title",
+            "main_file",
+            "last_world_file",
+            "source",
+        }
+        for field in template_fields_keys:
+            value = template_data.get(field)
+            if value is not None:
+                update_fields.append(f"{field} = %s")
+                update_values.append(value)
+
+        if update_fields:
+            query = f"UPDATE templates SET {', '.join(update_fields)} WHERE id = %s"
+            update_values.append(template_id)
+            self.db.execute_query_safe(query, tuple(update_values))
+
+        return self._fetch_by_id(template_id)
+
     def update_if_not_none(
         self,
         template_id: int,
