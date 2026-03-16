@@ -31,13 +31,20 @@ def _extract_categories(wikitext: str) -> list[WikiLink]:
         - The function uses the wtp.parse() method to process the wikitext
         - Category targets are stripped of leading/trailing whitespace
     """
+    # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
+    # Initialize an empty list to store category WikiLinks
     cats = []
+    # Iterate through all wikilinks found in the parsed text
     for wl in parsed.wikilinks:
+        # Remove any leading or trailing whitespace from the target
         target = wl.target.strip()
+        # Check if the target starts with "Category:" to identify categories
         if target.startswith("Category:"):
+            # Add valid category WikiLinks to our list
             cats.append(wl)
 
+    # Return the list of extracted categories
     return cats
 
 
@@ -68,11 +75,13 @@ def extract_categories_list(
           including spaces, tabs (\t), newlines (\n), and carriage returns (\r).
         - The original input lists are not modified.
     """
+    # Create a list of stripped target strings from old_categories for comparison
     old_categories = [
         x.target.strip()
         for x in old_categories
     ]
 
+    # Filter new_categories to include only those not present in old_categories
     categories = [
         x for x in new_categories
         if x.target.strip() not in old_categories
@@ -100,13 +109,16 @@ def extend_categories(old_text: str, new_text: str) -> str:
         and extract_categories_list(). The final categories are joined with newline
         characters and appended to new_text.
     """
+
+    #
     categories = extract_categories_list(
         _extract_categories(old_text),
         _extract_categories(new_text),
     )
+    #
 
     new_categories = "\n".join([x.string for x in categories])
-
+    #
     new_text += f"\n{new_categories}"
 
     return new_text
