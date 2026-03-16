@@ -10,6 +10,7 @@ from src.main_app.app_routes.admin.admin_routes.templates import (
     _templates_dashboard,
     _update_template,
 )
+from src.main_app.db import TemplateRecord
 
 
 @pytest.fixture
@@ -23,7 +24,27 @@ def app():
 @patch("src.main_app.app_routes.admin.admin_routes.templates.template_service")
 @patch("src.main_app.app_routes.admin.admin_routes.templates.current_user")
 def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
-    mock_service.list_templates.return_value = ["t1", "t2"]
+    templates = [
+        TemplateRecord(
+            id=0,
+            title='t1',
+            main_file='',
+            last_world_file='',
+            created_at=None,
+            updated_at=None,
+            source=None,
+        ),
+        TemplateRecord(
+            id=1,
+            title='t2',
+            main_file='',
+            last_world_file='',
+            created_at=None,
+            updated_at=None,
+            source=None,
+        ),
+    ]
+    mock_service.list_templates.return_value = templates
     mock_current_user.return_value = "user"
     mock_render.return_value = "rendered"
 
@@ -33,7 +54,7 @@ def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
 
         mock_render.assert_called_once()
         kwargs = mock_render.call_args[1]
-        assert kwargs["templates"] == ["t1", "t2"]
+        assert kwargs["templates"] == templates
         assert kwargs["total_templates"] == 2
         assert kwargs["current_user"] == "user"
 
