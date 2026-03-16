@@ -49,42 +49,22 @@ def _extract_categories(wikitext: str) -> list[WikiLink]:
 
 
 def extract_categories_list(
-    old_categories: list[WikiLink],
-    new_categories: list[WikiLink],
+    base_categories: list[WikiLink],
+    target_categories: list[WikiLink],
 ) -> list[WikiLink]:
     """
-    Extracts a list of new categories that are not present in the old categories.
-
-    This function compares two lists of WikiLink objects and returns a new list
-    containing only those categories from new_categories whose target property
-    (after stripping whitespace) is not present in the stripped targets of
-    old_categories. The comparison is case-sensitive and considers the exact
-    string match after stripping whitespace characters (including spaces, tabs,
-    newlines, and carriage returns).
-
-    Args:
-        old_categories (list[WikiLink]): A list of existing WikiLink objects to compare against.
-        new_categories (list[WikiLink]): A list of WikiLink objects to filter for new entries.
-
-    Returns:
-        list[WikiLink]: A filtered list containing only WikiLink objects from new_categories
-                       whose target (after stripping) is not found in old_categories.
-
-    Notes:
-        - The function strips whitespace from target strings before comparison,
-          including spaces, tabs (\t), newlines (\n), and carriage returns (\r).
-        - The original input lists are not modified.
+    Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
     """
     # Create a list of stripped target strings from new_categories for comparison
-    new_categories = [
+    target_categories = [
         x.target.strip()
-        for x in new_categories
+        for x in target_categories
     ]
 
     # Filter new_categories to include only those not present in old_categories
     categories = [
-        x for x in old_categories
-        if x.target.strip() not in new_categories
+        x for x in base_categories
+        if x.target.strip() not in target_categories
     ]
 
     return categories
