@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 
+from ..users.store import sql_tables
+
 from ..config import DbConfig
 from .db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
@@ -32,7 +34,7 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
         """Close the underlying database connection."""
         self.db.close()
 
-    def __enter__(self) -> "TaskStorePyMysql":
+    def __enter__(self) -> TaskStorePyMysql:
         return self
 
     def __exit__(self, exc_type, exc, exc_tb) -> None:
@@ -50,35 +52,8 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
         # Use TEXT for JSON fields for wider MySQL compatibility.
         # If your MySQL supports JSON type, you can switch to JSON.
         ddl = [
-            """
-            CREATE TABLE IF NOT EXISTS tasks (
-                id VARCHAR(128) PRIMARY KEY,
-                username TEXT NULL,
-                title TEXT NOT NULL,
-                normalized_title VARCHAR(512) NOT NULL,
-                main_file VARCHAR(512) NULL,
-                status VARCHAR(64) NOT NULL,
-                form_json LONGTEXT NULL,
-                data_json LONGTEXT NULL,
-                results_json LONGTEXT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS task_stages (
-                stage_id VARCHAR(255) PRIMARY KEY,
-                task_id VARCHAR(128) NOT NULL,
-                stage_name VARCHAR(255) NOT NULL,
-                stage_number INT NOT NULL,
-                stage_status VARCHAR(64) NOT NULL,
-                stage_sub_name LONGTEXT NULL,
-                stage_message LONGTEXT NULL,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-                CONSTRAINT uq_task_stage UNIQUE (task_id, stage_name)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """,
+            sql_tables.tasks,
+            sql_tables.task_stages,
         ]
         # MySQL before 8.0 does not accept "IF NOT EXISTS" on CREATE INDEX.
         # So we guard by checking INFORMATION_SCHEMA and creating conditionally.
@@ -86,30 +61,3 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
         self.db.execute_query_safe(ddl[0])
         self.db.execute_query_safe(ddl[1])
         # ---
-        # Conditionally create indexes for maximum compatibility
-        existing = self.db.fetch_query_safe(
-            """
-            SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS
-            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tasks'
-            """
-        )
-        existing_idx = {row["INDEX_NAME"] for row in existing}
-        if "idx_tasks_norm" not in existing_idx:
-            self.db.execute_query_safe("CREATE INDEX idx_tasks_norm ON tasks(normalized_title)")
-        # ---
-        if "idx_tasks_status" not in existing_idx:
-            self.db.execute_query_safe("CREATE INDEX idx_tasks_status ON tasks(status)")
-        # ---
-        if "idx_tasks_created" not in existing_idx:
-            self.db.execute_query_safe("CREATE INDEX idx_tasks_created ON tasks(created_at)")
-        # ---
-        existing_stage_idx = self.db.fetch_query_safe(
-            """
-            SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS
-            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'task_stages'
-            """
-        )
-        # ---
-        existing_stage_idx_names = {row["INDEX_NAME"] for row in existing_stage_idx}
-        if "idx_task_stages_task" not in existing_stage_idx_names:
-            self.db.execute_query_safe("CREATE INDEX idx_task_stages_task ON task_stages(task_id, stage_number)")

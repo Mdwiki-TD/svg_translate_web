@@ -80,18 +80,6 @@ def ensure_user_token_table() -> None:
     db = get_db()
     db.execute_query_safe(sql_tables.user_tokens)
 
-    # Ensure username index exists
-    existing_idx = db.fetch_query_safe(
-        "SHOW INDEX FROM user_tokens WHERE Key_name = %s",
-        ("idx_user_tokens_username",),
-    )
-    if not existing_idx:
-        db.execute_query_safe(
-            """
-            CREATE INDEX /*IF NOT EXISTS*/ idx_user_tokens_username ON user_tokens(username)
-            """
-        )
-
 
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
     """Insert or update the encrypted OAuth credentials for a user."""
