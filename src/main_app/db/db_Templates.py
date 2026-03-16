@@ -71,13 +71,19 @@ class TemplatesDB:
         self.db.execute_query_safe(
             """
             CREATE TABLE IF NOT EXISTS templates (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                title VARCHAR(255) NOT NULL UNIQUE,
-                main_file VARCHAR(255) NULL,
-                last_world_file VARCHAR(255) NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                source varchar(255) NOT NULL DEFAULT '',
+                id int(11) NOT NULL AUTO_INCREMENT,
+                title VARCHAR(255) NOT NULL,
+                main_file VARCHAR(255) DEFAULT NULL,
+                last_world_file VARCHAR(255) DEFAULT NULL,
+                source VARCHAR(255) NOT NULL DEFAULT '',
+                created_at timestamp NOT NULL DEFAULT current_timestamp(),
+                updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+                PRIMARY KEY (id),
+                UNIQUE KEY title (title),
+                KEY title_index (title),
+                KEY main_file (main_file),
+                KEY last_world_file (last_world_file),
+                KEY source (source)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """
         )

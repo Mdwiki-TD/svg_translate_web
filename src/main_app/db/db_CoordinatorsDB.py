@@ -52,12 +52,14 @@ class CoordinatorsDB:
         self.db.execute_query_safe(
             """
             CREATE TABLE IF NOT EXISTS admin_users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(255) NOT NULL UNIQUE,
-                is_active TINYINT(1) NOT NULL DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                id int(11) NOT NULL AUTO_INCREMENT,
+                username varchar(255) NOT NULL,
+                is_active tinyint(1) NOT NULL DEFAULT 1,
+                created_at timestamp NOT NULL DEFAULT current_timestamp(),
+                updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+                PRIMARY KEY (id),
+                UNIQUE KEY username (username)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
             """
         )
 
