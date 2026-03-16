@@ -6,6 +6,8 @@ from typing import Any, List
 
 import pymysql
 
+from .sql_shema_tables import sql_tables
+
 from ..config import DbConfig
 from . import Database
 
@@ -68,25 +70,7 @@ class TemplatesDB:
         - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
         - `source`: non-null string (up to 255 chars), defaults to empty string
         """
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS templates (
-                id int(11) NOT NULL AUTO_INCREMENT,
-                title VARCHAR(255) NOT NULL,
-                main_file VARCHAR(255) DEFAULT NULL,
-                last_world_file VARCHAR(255) DEFAULT NULL,
-                source VARCHAR(255) NOT NULL DEFAULT '',
-                created_at timestamp NOT NULL DEFAULT current_timestamp(),
-                updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-                PRIMARY KEY (id),
-                UNIQUE KEY title (title),
-                KEY title_index (title),
-                KEY main_file (main_file),
-                KEY last_world_file (last_world_file),
-                KEY source (source)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """
-        )
+        self.db.execute_query_safe(sql_tables.templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
         return TemplateRecord(

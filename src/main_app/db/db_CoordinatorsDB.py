@@ -8,6 +8,7 @@ import pymysql
 
 from ..config import DbConfig
 from . import Database
+from .sql_shema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -49,19 +50,7 @@ class CoordinatorsDB:
 
         The table uses the InnoDB engine and `utf8mb4` character set.
         """
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS admin_users (
-                id int(11) NOT NULL AUTO_INCREMENT,
-                username varchar(255) NOT NULL,
-                is_active tinyint(1) NOT NULL DEFAULT 1,
-                created_at timestamp NOT NULL DEFAULT current_timestamp(),
-                updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-                PRIMARY KEY (id),
-                UNIQUE KEY username (username)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-            """
-        )
+        self.db.execute_query_safe(sql_tables.admin_users)
 
     def _row_to_record(self, row: dict[str, Any]) -> CoordinatorRecord:
         return CoordinatorRecord(

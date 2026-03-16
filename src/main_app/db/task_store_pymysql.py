@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from ..users.store import sql_tables
+from ..db.sql_shema_tables import sql_tables
 
 from ..config import DbConfig
 from .db_class import Database
@@ -49,15 +49,6 @@ class TaskStorePyMysql(CreateUpdateTask, StageStore, TasksListDB, DbUtils):
         guarded for compatibility with MySQL versions that do not support CREATE INDEX IF NOT EXISTS.
         Logs a warning if schema initialization fails.
         """
-        # Use TEXT for JSON fields for wider MySQL compatibility.
-        # If your MySQL supports JSON type, you can switch to JSON.
-        ddl = [
-            sql_tables.tasks,
-            sql_tables.task_stages,
-        ]
-        # MySQL before 8.0 does not accept "IF NOT EXISTS" on CREATE INDEX.
-        # So we guard by checking INFORMATION_SCHEMA and creating conditionally.
         # ---
-        self.db.execute_query_safe(ddl[0])
-        self.db.execute_query_safe(ddl[1])
-        # ---
+        self.db.execute_query_safe(sql_tables.tasks)
+        self.db.execute_query_safe(sql_tables.task_stages)

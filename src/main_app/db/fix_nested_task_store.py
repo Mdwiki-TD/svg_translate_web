@@ -6,6 +6,8 @@ import json
 import logging
 from typing import Dict, List, Optional
 
+from ..db.sql_shema_tables import sql_tables
+
 from .db_class import Database
 
 logger = logging.getLogger(__name__)
@@ -25,26 +27,7 @@ class FixNestedTaskStore:
 
     def _init_schema(self) -> None:
         """Create the fix_nested_tasks table if it doesn't exist."""
-        ddl = """
-            CREATE TABLE IF NOT EXISTS fix_nested_tasks (
-                id VARCHAR(128) PRIMARY KEY,
-                username TEXT NULL,
-                filename TEXT NOT NULL,
-                status VARCHAR(64) NOT NULL,
-                nested_tags_before INT NULL,
-                nested_tags_after INT NULL,
-                nested_tags_fixed INT NULL,
-                download_result JSON NULL,
-                upload_result JSON NULL,
-                error_message TEXT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_fix_nested_status (status),
-                INDEX idx_fix_nested_username (username(255)),
-                INDEX idx_fix_nested_created (created_at)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-        """
-        self.db.execute_query_safe(ddl)
+        self.db.execute_query_safe(sql_tables.fix_nested_tasks)
 
     def create_task(
         self,

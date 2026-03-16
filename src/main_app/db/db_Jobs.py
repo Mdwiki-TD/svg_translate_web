@@ -10,6 +10,7 @@ from typing import Any, List
 
 from ..config import DbConfig
 from . import Database
+from .sql_shema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -51,22 +52,7 @@ class JobsDB:
         `created_at`, `updated_at`, and `username`, and an index `idx_status_created` on
         `(status, created_at)`.
         """
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS jobs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                job_type VARCHAR(255) NOT NULL,
-                username VARCHAR(255) NULL,
-                status VARCHAR(50) NOT NULL DEFAULT 'pending',
-                started_at TIMESTAMP NULL,
-                completed_at TIMESTAMP NULL,
-                result_file VARCHAR(500) NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_status_created (status, created_at)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-            """
-        )
+        self.db.execute_query_safe(sql_tables.jobs)
 
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(

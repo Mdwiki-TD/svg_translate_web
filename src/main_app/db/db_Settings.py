@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
+from .sql_shema_tables import sql_tables
 from . import Database
 
 logger = logging.getLogger(__name__)
@@ -18,22 +19,7 @@ class SettingsDB:
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.db.execute_query_safe(
-            """
-            CREATE TABLE IF NOT EXISTS `settings` (
-                `id` INT NOT NULL AUTO_INCREMENT,
-                `key` VARCHAR(190) COLLATE utf8mb4_unicode_ci NOT NULL,
-                `title` VARCHAR(500) COLLATE utf8mb4_unicode_ci NOT NULL,
-                `value` TEXT COLLATE utf8mb4_unicode_ci NULL,
-                `value_type` ENUM('boolean','string','integer','json')
-                    COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'boolean',
-                PRIMARY KEY (`id`),
-                UNIQUE KEY `unique_key` (`key`)
-            ) ENGINE=InnoDB
-                DEFAULT CHARSET=utf8mb4
-                COLLATE=utf8mb4_unicode_ci;
-            """
-        )
+        self.db.execute_query_safe(sql_tables.settings)
 
     def get_all(self) -> Dict[str, Any]:
         """Fetch all settings and return them as a dictionary of key -> parsed value."""
