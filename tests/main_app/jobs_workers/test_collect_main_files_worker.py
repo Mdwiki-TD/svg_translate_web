@@ -195,7 +195,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should not update template
-    mock_services["update_template"].assert_not_called()
+    mock_services["update_template_data"].assert_not_called()
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
