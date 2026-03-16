@@ -80,24 +80,24 @@ Translation{% endblock %} {% block contents %}
                         </td>
                         <td class="text-center">
                             {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.main_file }}
+                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.main_file }}" target="_blank"
+                                rel="noopener noreferrer">
+                                File:{{ template.main_file }}
                             </a>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if template.last_world_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.last_world_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.last_world_file }}
+                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.last_world_file }}"
+                                target="_blank" rel="noopener noreferrer">
+                                File:{{ template.last_world_file }}
                             </a>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if template.source %}
                             <a href='{{ template.source }}' target='_blank' rel='noopener noreferrer'>
-                                {{ template.source }}
+                                {{ template.source.rstrip('/').rsplit('/', 1)[-1] }}
                             </a>
                             {% endif %}
                         </td>
