@@ -88,7 +88,6 @@ class TestFindTemplateSource2:
 
     def test_wikilink_brackets(self):
         wikitext = "* [https://ourworldindata.org/grapher/child-mortality]"
-        expected = "https://ourworldindata.org/grapher/child-mortality"
         assert _find_template_source_2(wikitext) == ""
 
     def test_trailing_characters(self):

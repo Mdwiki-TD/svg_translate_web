@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import List
 
 from flask import (
     Blueprint,
@@ -13,6 +14,8 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+
+from ....db import TemplateRecord
 
 from .... import template_service
 from ....admins.admins_required import admin_required
@@ -25,14 +28,20 @@ def _templates_dashboard():
     """Render the template management dashboard."""
 
     user = current_user()
-    templates = template_service.list_templates()
+    templates: List[TemplateRecord] = template_service.list_templates()
     total = len(templates)
-
+    summary = {
+        "total": len(templates),
+        "with_main_file": len([template for template in templates if template.main_file]),
+        "with_last_world_file": len([t for t in templates if t.last_world_file]),
+        "with_source": len([template for template in templates if template.source]),
+    }
     return render_template(
         "admins/templates.html",
         current_user=user,
         templates=templates,
         total_templates=total,
+        summary=summary,
     )
 
 

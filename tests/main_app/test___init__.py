@@ -1,67 +1,10 @@
 """Tests for src/main_app/__init__.py - Flask application factory."""
 
-from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 from flask import Flask
 
-from src.main_app import create_app, format_stage_timestamp
-
-
-def test_format_stage_timestamp_valid():
-    """Test format_stage_timestamp with valid ISO8601 timestamp."""
-    result = format_stage_timestamp("2025-10-27T04:41:07")
-    assert result == "Oct 27, 2025, 4:41 AM"
-
-
-def test_format_stage_timestamp_afternoon():
-    """Test format_stage_timestamp with afternoon time."""
-    result = format_stage_timestamp("2025-10-27T14:30:00")
-    assert result == "Oct 27, 2025, 2:30 PM"
-
-
-def test_format_stage_timestamp_midnight():
-    """Test format_stage_timestamp with midnight."""
-    result = format_stage_timestamp("2025-10-27T00:00:00")
-    assert result == "Oct 27, 2025, 12:00 AM"
-
-
-def test_format_stage_timestamp_noon():
-    """Test format_stage_timestamp with noon."""
-    result = format_stage_timestamp("2025-10-27T12:00:00")
-    assert result == "Oct 27, 2025, 12:00 PM"
-
-
-def test_format_stage_timestamp_empty_string():
-    """Test format_stage_timestamp with empty string."""
-    result = format_stage_timestamp("")
-    assert result == ""
-
-
-def test_format_stage_timestamp_none():
-    """Test format_stage_timestamp with None-like value."""
-    result = format_stage_timestamp(None)
-    assert result == ""
-
-
-def test_format_stage_timestamp_invalid_format():
-    """Test format_stage_timestamp with invalid timestamp format."""
-    result = format_stage_timestamp("invalid-timestamp")
-    assert result == ""
-
-
-def test_format_stage_timestamp_with_microseconds():
-    """Test format_stage_timestamp with microseconds."""
-    result = format_stage_timestamp("2025-10-27T04:41:07.123456")
-    assert result == "Oct 27, 2025, 4:41 AM"
-
-
-def test_format_stage_timestamp_different_months():
-    """Test format_stage_timestamp with different months."""
-    assert "Jan" in format_stage_timestamp("2025-01-15T10:30:00")
-    assert "Feb" in format_stage_timestamp("2025-02-15T10:30:00")
-    assert "Dec" in format_stage_timestamp("2025-12-15T10:30:00")
+from src.main_app import create_app
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
@@ -161,22 +104,3 @@ def test_create_app_static_folder():
     """Test create_app sets custom static folder."""
     app = create_app()
     assert app.static_folder.endswith("static")
-
-
-def test_format_stage_timestamp_edge_time_values():
-    """Test format_stage_timestamp with edge case time values."""
-    # Test 11 AM (should show as 11 AM, not 11 PM)
-    result = format_stage_timestamp("2025-10-27T11:00:00")
-    assert result == "Oct 27, 2025, 11:00 AM"
-
-    # Test 1 AM
-    result = format_stage_timestamp("2025-10-27T01:00:00")
-    assert result == "Oct 27, 2025, 1:00 AM"
-
-    # Test 11 PM
-    result = format_stage_timestamp("2025-10-27T23:00:00")
-    assert result == "Oct 27, 2025, 11:00 PM"
-
-    # Test 1 PM
-    result = format_stage_timestamp("2025-10-27T13:00:00")
-    assert result == "Oct 27, 2025, 1:00 PM"

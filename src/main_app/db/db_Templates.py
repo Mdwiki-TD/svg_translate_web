@@ -12,6 +12,23 @@ from . import Database
 logger = logging.getLogger(__name__)
 
 
+def _strip_file_prefix(value: str | None) -> str | None:
+    """Remove 'File:' prefix from a filename if present.
+
+    Args:
+        value: The filename string that may have a 'File:' prefix.
+
+    Returns:
+        The filename without the 'File:' prefix, or None if input is None.
+    """
+    if value is None:
+        return None
+    stripped = value.strip()
+    if stripped.lower().startswith("file:"):
+        return stripped[5:]  # Remove 'File:' prefix
+    return stripped
+
+
 @dataclass
 class TemplateRecord:
     """Representation of a template."""
@@ -124,7 +141,8 @@ class TemplatesDB:
         source: str | None = None,
     ) -> TemplateRecord:
         title = title.strip()
-        main_file = main_file.strip()
+        main_file = _strip_file_prefix(main_file) or ""
+        last_world_file = _strip_file_prefix(last_world_file)
         if not title:
             raise ValueError("Title is required")
 
@@ -175,8 +193,8 @@ class TemplatesDB:
 
         template_fields = {
             "title": title,
-            "main_file": main_file,
-            "last_world_file": last_world_file,
+            "main_file": _strip_file_prefix(main_file),
+            "last_world_file": _strip_file_prefix(last_world_file),
             "source": source,
         }
         for field, value in template_fields.items():
@@ -200,6 +218,8 @@ class TemplatesDB:
         source: str | None = None,
     ) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
+        main_file = _strip_file_prefix(main_file) or ""
+        last_world_file = _strip_file_prefix(last_world_file)
         self.db.execute_query_safe(
             """
             UPDATE templates
@@ -227,7 +247,8 @@ class TemplatesDB:
         source: str | None = None,
     ) -> TemplateRecord:
         title = title.strip()
-        main_file = main_file.strip()
+        main_file = _strip_file_prefix(main_file) or ""
+        last_world_file = _strip_file_prefix(last_world_file)
 
         if not title:
             logger.error("Title is required for add_or_update")
