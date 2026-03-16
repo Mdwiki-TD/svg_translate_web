@@ -15,8 +15,8 @@ class TablesCreatesSql:
 
 user_tokens = """
     CREATE TABLE IF NOT EXISTS user_tokens (
-        user_id varchar(255) NOT NULL,
-        username varchar(255) NOT NULL,
+        user_id VARCHAR(255) NOT NULL,
+        username VARCHAR(255) NOT NULL,
         access_token varbinary(1024) NOT NULL,
         access_secret varbinary(1024) NOT NULL,
         created_at timestamp NOT NULL DEFAULT current_timestamp(),
@@ -31,16 +31,16 @@ user_tokens = """
 tasks = """
     CREATE TABLE IF NOT EXISTS tasks (
         id VARCHAR(128) PRIMARY KEY,
-        username TEXT NULL,
-        title TEXT NOT NULL,
+        username text NULL,
+        title text NOT NULL,
         normalized_title VARCHAR(512) NOT NULL,
         main_file VARCHAR(512) NULL,
         status VARCHAR(64) NOT NULL,
-        form_json LONGTEXT NULL,
-        data_json LONGTEXT NULL,
-        results_json LONGTEXT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        form_json longtext NULL,
+        data_json longtext NULL,
+        results_json longtext NULL,
+        created_at timestamp DEFAULT current_timestamp(),
+        updated_at timestamp DEFAULT current_timestamp() ON UPDATE current_timestamp()
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 """
 
@@ -51,9 +51,9 @@ task_stages = """
         stage_name VARCHAR(255) NOT NULL,
         stage_number INT NOT NULL,
         stage_status VARCHAR(64) NOT NULL,
-        stage_sub_name LONGTEXT NULL,
-        stage_message LONGTEXT NULL,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        stage_sub_name longtext NULL,
+        stage_message longtext NULL,
+        updated_at timestamp DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
         CONSTRAINT uq_task_stage UNIQUE (task_id, stage_name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -62,17 +62,17 @@ task_stages = """
 fix_nested_tasks = """
     CREATE TABLE IF NOT EXISTS fix_nested_tasks (
         id VARCHAR(128) PRIMARY KEY,
-        username TEXT NULL,
-        filename TEXT NOT NULL,
+        username text NULL,
+        filename text NOT NULL,
         status VARCHAR(64) NOT NULL,
         nested_tags_before INT NULL,
         nested_tags_after INT NULL,
         nested_tags_fixed INT NULL,
         download_result JSON NULL,
         upload_result JSON NULL,
-        error_message TEXT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        error_message text NULL,
+        created_at timestamp DEFAULT current_timestamp(),
+        updated_at timestamp DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         INDEX idx_fix_nested_status (status),
         INDEX idx_fix_nested_username (username(255)),
         INDEX idx_fix_nested_created (created_at)
@@ -100,7 +100,7 @@ templates = """
 admin_users = """
     CREATE TABLE IF NOT EXISTS admin_users (
         id int(11) NOT NULL AUTO_INCREMENT,
-        username varchar(255) NOT NULL,
+        username VARCHAR(255) NOT NULL,
         is_active tinyint(1) NOT NULL DEFAULT 1,
         created_at timestamp NOT NULL DEFAULT current_timestamp(),
         updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -115,25 +115,25 @@ jobs = """
         job_type VARCHAR(255) NOT NULL,
         username VARCHAR(255) NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'pending',
-        started_at TIMESTAMP NULL,
-        completed_at TIMESTAMP NULL,
+        started_at timestamp NULL,
+        completed_at timestamp NULL,
         result_file VARCHAR(500) NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at timestamp DEFAULT current_timestamp(),
+        updated_at timestamp DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         INDEX idx_status_created (status, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 """
 
 settings = """
-    CREATE TABLE IF NOT EXISTS `settings` (
-        `id` INT NOT NULL AUTO_INCREMENT,
-        `key` VARCHAR(190) COLLATE utf8mb4_unicode_ci NOT NULL,
-        `title` VARCHAR(500) COLLATE utf8mb4_unicode_ci NOT NULL,
-        `value` TEXT COLLATE utf8mb4_unicode_ci NULL,
-        `value_type` ENUM('boolean','string','integer','json')
+    CREATE TABLE IF NOT EXISTS settings (
+        id INT NOT NULL AUTO_INCREMENT,
+        key VARCHAR(190) COLLATE utf8mb4_unicode_ci NOT NULL,
+        title VARCHAR(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+        value text COLLATE utf8mb4_unicode_ci NULL,
+        value_type enum('boolean','string','integer','json')
             COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'boolean',
-        PRIMARY KEY (`id`),
-        UNIQUE KEY `unique_key` (`key`)
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_key (key)
     ) ENGINE=InnoDB
         DEFAULT CHARSET=utf8mb4
         COLLATE=utf8mb4_unicode_ci;
