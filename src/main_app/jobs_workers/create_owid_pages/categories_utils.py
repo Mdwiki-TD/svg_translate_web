@@ -32,6 +32,10 @@ def find_missing_categories(
     """
     Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
     """
+    # Return base_categories if there is nothing to compare against
+    if not target_categories:
+        return base_categories
+
     # Using a set for base_targets improves lookup performance to O(1)
     base_targets = {cat.target.strip() for cat in target_categories}
 
@@ -48,12 +52,16 @@ def merge_categories(old_text: str, new_text: str) -> str:
     """
     # Parse categories from both versions of the text
     old_cats = extract_categories(old_text)
+
+    if not old_cats:
+        return new_text
+
     new_cats = extract_categories(new_text)
 
     # Logic fix: We want to find categories in 'old_text' that are missing in 'new_text'
     missing_categories = find_missing_categories(
-        base_categories=new_cats,    # The current set of categories
-        target_categories=old_cats,  # The potential candidates to re-add
+        target_categories=new_cats,    # The current set of categories
+        base_categories=old_cats,  # The potential candidates to re-add
     )
 
     # If no missing categories are found, return the text as is
