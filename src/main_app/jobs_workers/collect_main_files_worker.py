@@ -194,6 +194,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 if not template_data:
                     template_info["status"] = "skipped"
+                    template_info["reason"] = "No changes needed"
                     self.result["templates_skipped"].append(template_info)
                     self.result["summary"]["skipped"] += 1
                     logger.info(f"Job {self.job_id}: No changes for {template.title}")
