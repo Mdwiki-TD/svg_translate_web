@@ -20,7 +20,7 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
-from .categories_utils import extend_categories
+from .categories_utils import merge_categories
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
@@ -185,7 +185,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return False
 
         # extend categories from current text
-        info._new_text = extend_categories(current_text, info._new_text)
+        info._new_text = merge_categories(current_text, info._new_text)
 
         # Content is different, perform update
         res = create_page(

@@ -10,7 +10,7 @@ from wikitextparser import WikiLink
 logger = logging.getLogger(__name__)
 
 
-def _extract_categories(wikitext: str) -> list[WikiLink]:
+def extract_categories(wikitext: str) -> list[WikiLink]:
     """
     Extracts category WikiLinks from the given wikitext.
     """
@@ -25,7 +25,7 @@ def _extract_categories(wikitext: str) -> list[WikiLink]:
     ]
 
 
-def extract_categories_list(
+def find_missing_categories(
     target_categories: list[WikiLink],
     base_categories: list[WikiLink],
 ) -> list[WikiLink]:
@@ -42,16 +42,16 @@ def extract_categories_list(
     ]
 
 
-def extend_categories(old_text: str, new_text: str) -> str:
+def merge_categories(old_text: str, new_text: str) -> str:
     """
     Appends categories found in old_text to new_text if they are not already present.
     """
     # Parse categories from both versions of the text
-    old_cats = _extract_categories(old_text)
-    new_cats = _extract_categories(new_text)
+    old_cats = extract_categories(old_text)
+    new_cats = extract_categories(new_text)
 
     # Logic fix: We want to find categories in 'old_text' that are missing in 'new_text'
-    missing_categories = extract_categories_list(
+    missing_categories = find_missing_categories(
         base_categories=new_cats,    # The current set of categories
         target_categories=old_cats,  # The potential candidates to re-add
     )
@@ -65,3 +65,8 @@ def extend_categories(old_text: str, new_text: str) -> str:
 
     # Append the missing categories to the end of the new text
     return f"{new_text}\n{missing_categories_str}"
+
+
+__all__ = [
+    "merge_categories",
+]
