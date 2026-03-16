@@ -110,15 +110,18 @@ def extend_categories(old_text: str, new_text: str) -> str:
         characters and appended to new_text.
     """
 
-    #
+    # Extract and merge categories from both old and new text
     categories = extract_categories_list(
         _extract_categories(old_text),
         _extract_categories(new_text),
     )
-    #
+    # End of category extraction and merging
 
+    # Convert the extracted category objects to strings and join with newlines
     new_categories = "\n".join([x.string for x in categories])
-    #
+    # End of category string conversion
+    # Append the combined categories to the new text with a newline separator
     new_text += f"\n{new_categories}"
 
+    # End of text appending
     return new_text
