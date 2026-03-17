@@ -77,7 +77,9 @@ def find_missing_categories(
     base_categories: list[CategoryLink],
 ) -> list[CategoryLink]:
     """
-    Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
+    Identifies WikiLinks in 'base_categories' that are missing from 'target_categories'.
+
+    Comparison is case-insensitive.
     """
     # Return base_categories if there is nothing to compare against
     if not target_categories:
