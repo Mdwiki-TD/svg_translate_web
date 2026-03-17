@@ -17,18 +17,27 @@ class CategoryLink:
     target: str
 
 
-def capitalize_category(str_category):
+def capitalize_category(str_category) -> str:
     """
+    Capitalizes the first letter of each part in a category string separated by a colon.
     """
     def upper_first(s) -> str:
+        """
+        Capitalizes the first character of a string.
+        """
         return f"{s[0].upper()}{s[1:]}" if len(s) > 1 else s.upper()
 
+    # Check if the string contains a colon separator
     if ":" not in str_category:
         return str_category
 
+    # Remove leading/trailing whitespace including special characters
     str_category = str_category.strip()
+
+    # Split the string into two parts at the first colon occurrence
     part_1, part_2 = str_category.split(":", 1)
 
+    # Capitalize the first letter of each part
     part_1 = upper_first(part_1)
     part_2 = upper_first(part_2)
 
@@ -36,6 +45,8 @@ def capitalize_category(str_category):
 
 
 def create_category_link_from_str(str_link: str) -> CategoryLink:
+    """
+    """
     link = WikiLink(str_link)
 
     # clean target
