@@ -163,3 +163,21 @@ File:youth mortality rate, World, 1953.svg!year=1953
         """
         result = find_last_world_file_from_owidslidersrcs(text)
         assert result == "File:first, World, 2000.svg"
+
+    def test_template_with_empty_gallery_world(self):
+        """Test template with empty gallery-World returns None (line 132)."""
+        text = """
+{{owidslidersrcs|id=gallery|widths=240
+|gallery-World=
+}}
+        """
+        result = find_last_world_file_from_owidslidersrcs(text)
+        assert result is None
+
+    def test_template_with_no_arguments(self):
+        """Test template with no arguments returns None."""
+        text = """
+{{owidslidersrcs}}
+        """
+        result = find_last_world_file_from_owidslidersrcs(text)
+        assert result is None

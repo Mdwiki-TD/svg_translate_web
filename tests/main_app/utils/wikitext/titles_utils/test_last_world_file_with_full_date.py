@@ -167,3 +167,39 @@ File:test, World, Apr 25, 1950.svg!year=Apr 25, 1950
         """
         result = match_last_world_file_with_full_date(text)
         assert result == "File:test, World, Apr 25, 1950.svg"
+
+    def test_line_without_bang_skipped(self):
+        """Test that lines without ! are skipped (line 45)."""
+        text = """
+File:test.svg
+File:valid, World, Apr 15, 2000.svg!year=Apr 15, 2000
+        """
+        result = match_last_world_file_with_full_date(text)
+        assert result == "File:valid, World, Apr 15, 2000.svg"
+
+    def test_invalid_filename_regex_skipped(self):
+        """Test that lines not matching filename regex are skipped (line 53)."""
+        text = """
+NoFilePrefix.svg!year=Apr 15, 1950
+File:valid, World, Apr 15, 2000.svg!year=Apr 15, 2000
+        """
+        result = match_last_world_file_with_full_date(text)
+        assert result == "File:valid, World, Apr 15, 2000.svg"
+
+    def test_invalid_month_skipped(self):
+        """Test that lines with invalid month are skipped (line 61)."""
+        text = """
+File:test, World, Invalid 15, 1950.svg!year=Invalid 15, 1950
+File:valid, World, Apr 15, 2000.svg!year=Apr 15, 2000
+        """
+        result = match_last_world_file_with_full_date(text)
+        assert result == "File:valid, World, Apr 15, 2000.svg"
+
+    def test_invalid_date_format_skipped(self):
+        """Test that lines with invalid date format are skipped (line 67)."""
+        text = """
+File:test, World, 1950.svg!year=not_a_year
+File:valid, World, Apr 15, 2000.svg!year=Apr 15, 2000
+        """
+        result = match_last_world_file_with_full_date(text)
+        assert result == "File:valid, World, Apr 15, 2000.svg"
