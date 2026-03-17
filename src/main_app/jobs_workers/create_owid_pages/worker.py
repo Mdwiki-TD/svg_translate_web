@@ -20,7 +20,7 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
-from .categories_utils import merge_categories
+from ...utils.wikitext.categories_utils import merge_categories
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
