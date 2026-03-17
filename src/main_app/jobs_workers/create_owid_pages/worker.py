@@ -20,6 +20,7 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
+from .categories_utils import merge_categories
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
@@ -96,9 +97,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
         if _limit > 0 and len(templates) > _limit:
-            logger.info(
-                f"Job {self.job_id}: create owid pages limit – " f"limiting from {len(templates)} to {_limit} page"
-            )
+            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
 
         return templates
@@ -184,6 +183,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["skipped"] += 1
             self.result["summary"]["processed"] += 1
             return False
+
+        # extend categories from current text
+        info._new_text = merge_categories(current_text, info._new_text)
 
         # Content is different, perform update
         res = create_page(

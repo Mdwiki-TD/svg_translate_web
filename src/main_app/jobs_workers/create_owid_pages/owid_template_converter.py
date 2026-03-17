@@ -17,7 +17,7 @@ def _extract_bullet_url(wikitext: str, label: str) -> str | None:
         *'''Source''': https://…
     Returns the URL string, or None if not found.
     """
-    pattern = re.compile(r"^\*'''%s''':\s*(\S+)" % re.escape(label), re.MULTILINE)
+    pattern = re.compile(rf"^\*'''{re.escape(label)}''':\s*(\S+)", re.MULTILINE)
     m = pattern.search(wikitext)
     return m.group(1) if m else None
 
@@ -142,7 +142,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     parts.append("{{clear}}")
 
     # Usage instructions + snippet
-    parts.append("You can use this interactive visualization in Wikipedia articles " "as well with the following code:")
+    parts.append("You can use this interactive visualization in Wikipedia articles as well with the following code:")
     parts.append('<syntaxhighlight lang="wikitext" style="overflow:auto;">\n' + snippet_slider + "\n</syntaxhighlight>")
 
     # Bullet list
