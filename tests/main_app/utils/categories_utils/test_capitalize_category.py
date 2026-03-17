@@ -4,7 +4,7 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
+from src.main_app.utils.wikitext.categories_utils import (
     capitalize_category,
 )
 

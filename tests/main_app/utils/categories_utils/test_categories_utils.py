@@ -4,7 +4,7 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
+from src.main_app.utils.wikitext.categories_utils import (
     create_category_link_from_str,
     extract_categories,
     find_missing_categories,
@@ -65,7 +65,7 @@ def test_full_pipeline_2() -> None:
         target_categories=new_cats,
     )
 
-    assert missing_categories[0].target == create_category_link_from_str('[[Category:Cat3 | test ]]').target
+    assert missing_categories[0].target == create_category_link_from_str("[[Category:Cat3 | test ]]").target
 
     result = merge_categories(old_text, new_text)
 

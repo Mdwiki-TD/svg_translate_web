@@ -4,7 +4,7 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
+from src.main_app.utils.wikitext.categories_utils import (
     create_category_link_from_str,
     extract_categories,
 )
@@ -16,7 +16,7 @@ class TestExtractCategories:
         [[Category:Category1]]
         """
         categories = extract_categories(text)
-        assert categories[0].link.string == create_category_link_from_str('[[Category:Category1]]').link.string
+        assert categories[0].link.string == create_category_link_from_str("[[Category:Category1]]").link.string
 
     def test_single_category(self):
         """Should extract one category."""
@@ -92,7 +92,7 @@ class TestExtractCategoriesWithSpecialChars:
         expected_targets = [
             "Category:Afghanistan",
             "Category:Data Graphics",
-            "Category:Graph of Cities"
+            "Category:Graph of Cities",
         ]
         assert targets == expected_targets
 

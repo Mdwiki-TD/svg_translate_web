@@ -4,7 +4,7 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
+from src.main_app.utils.wikitext.categories_utils import (
     create_category_link_from_str,
     find_missing_categories,
 )
@@ -118,7 +118,7 @@ class TestFindMissingCategoriesWithSpecialChars:
         """Missing multiple categories with underscores."""
         base_categories = [
             create_category_link_from_str("[[Category:afghanistan|2020]]"),
-            create_category_link_from_str("[[Category:Economy_Data]]")
+            create_category_link_from_str("[[Category:Economy_Data]]"),
         ]
         target_categories = [
             create_category_link_from_str("[[Category:Afghanistan]]")
