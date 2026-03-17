@@ -394,8 +394,11 @@ class CropMainFilesProcessor:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
         template_text = get_page_text(template_title, self.site)
+
         updated_text = update_template_page_file_reference(
-            file_info.original_file, file_info.cropped_filename, template_text
+            file_info.original_file,
+            file_info.cropped_filename,
+            template_text,
         )
 
         if template_text == updated_text:

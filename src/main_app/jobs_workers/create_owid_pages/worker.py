@@ -205,6 +205,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
         info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
         info.new_page_title = new_title
         info.status = "completed"
+
+        # return False to skip _step_create_new_page step
         return False
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
