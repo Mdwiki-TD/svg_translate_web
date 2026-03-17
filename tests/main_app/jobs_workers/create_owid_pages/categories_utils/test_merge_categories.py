@@ -27,7 +27,7 @@ class TestMergeCategoriesWithSpecialChars:
 
         result = merge_categories(old_text, new_text)
 
-        # يجب أن تظهر مرة واحدة فقط (تجنب التكرار)
+        # Should appear only once (avoid duplication)
         count = result.count("[[Category:Cyber_Security_Database]]")
         assert count == 1
 
@@ -50,13 +50,13 @@ class TestMergeCategoriesWithSpecialChars:
         result = merge_categories(old_text, new_text)
 
         assert "[[Category:Complex_Category_Name_With_Multiple_Underscores]]" in result
-        # التأكد من أن النص الأصلي تم إضافته كما هو دون كسر الصيغة
+        # Ensure the original text was added as-is without breaking the format
         assert result != new_text
 
     def test_long_category_name_with_underscores(self):
         """Test with a very long category name typical of OWID pages."""
         long_cat = "Category:Our_World_in_Data_graphs_of_Afghanistan_economy_overview"
-        new_text = f"[{long_cat}]"  # تم كتابة الويكي لينك بشكل خاطئ في الفكرة الأصلية لتصحيحها هنا
+        new_text = f"[{long_cat}]"  # Wiki link was written incorrectly in original idea, corrected here
         new_text_corrected = "[[Category:Another_Category]]"
 
         old_text = f"Some text [[{long_cat}]]"

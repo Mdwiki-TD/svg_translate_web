@@ -103,15 +103,15 @@ class TestFindMissingCategoriesWithSpecialChars:
 
     def test_special_chars_case_insensitive_matching(self):
         """Ensure matching works correctly even if case varies (standard wiki behavior)."""
-        # في ويكي، القوائم عادية الحروف غالباً لكن الترميز مهم.
-        # هنا نتحقق من أن الشرطات السفلية لا تكسر المقارنة إذا كانت الأسماء متطابقة.
+        # In Wiki, lists are usually case-insensitive but encoding is important.
+        # Here we verify that underscores don't break comparison if names match.
         base_categories = [create_category_link_from_str("[[Category:test_Data]]")]
         target_categories = [create_category_link_from_str("[[Category:Test_Data]]")]
 
         # Note: wtp behavior depends on settings, but the logic here is to ensure no duplicate addition
         result = find_missing_categories(target_categories, base_categories)
-        # عادة لا يتم اعتبارها مفقودة إذا كانت متطابقة في المعنى، ولكن حسب منطق الكود الحالي:
-        # يجب أن يعود راسياً (0) لأن النص تم ترميزه أو مقارنته كنصوص.
+        # Usually it should not be considered missing if semantically identical, but per current code logic:
+        # Should return zero (0) as the text was encoded or compared as strings.
         assert len(result) == 0
 
     def test_multiple_missing_with_underscores(self):
