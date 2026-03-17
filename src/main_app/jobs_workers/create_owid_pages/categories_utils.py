@@ -1,4 +1,5 @@
 """
+Utilities for extracting and merging wikitext categories.
 """
 
 from __future__ import annotations

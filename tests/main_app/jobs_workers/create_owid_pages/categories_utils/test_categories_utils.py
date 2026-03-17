@@ -11,7 +11,7 @@ from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
 )
 
 
-def test_full_pipline() -> None:
+def test_full_pipeline() -> None:
     """Should append multiple missing categories."""
     new_text = """
     [[Category:Cat1]]
