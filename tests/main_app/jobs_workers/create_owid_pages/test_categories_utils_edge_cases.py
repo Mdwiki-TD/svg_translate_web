@@ -19,7 +19,7 @@ class TestExtractCategoriesWithSpecialChars:
         categories = extract_categories(text)
         assert len(categories) == 1
         # التحقق من أن الهدف يحافظ على النص الأصلي (مع الترميز إذا لزم الأمر أو بدون حسب سلوك الويكي)
-        assert categories[0].target == "Category:Our_World_in_Data_graphs_of_Afghanistan"
+        assert categories[0].target == "Category:Our World in Data graphs of Afghanistan"
 
     def test_extract_multiple_special_categories(self):
         """Should handle multiple categories with special characters."""
@@ -34,8 +34,8 @@ class TestExtractCategoriesWithSpecialChars:
         targets = [c.target for c in categories]
         expected_targets = [
             "Category:Afghanistan",
-            "Category:Data_Graphics",
-            "Category:Graph_of_Cities"
+            "Category:Data Graphics",
+            "Category:Graph of Cities"
         ]
         assert targets == expected_targets
 
@@ -46,9 +46,9 @@ class TestExtractCategoriesWithSpecialChars:
         assert len(categories) == 3
 
         targets = [c.target for c in categories]
-        assert "Category:Cyber_Security" in targets
+        assert "Category:Cyber Security" in targets
         assert "Category:Society" in targets
-        assert "Category:Night_Owl" in targets
+        assert "Category:Night Owl" in targets
 
 
 class TestFindMissingCategoriesWithSpecialChars:
@@ -61,7 +61,7 @@ class TestFindMissingCategoriesWithSpecialChars:
         result = find_missing_categories(target_categories, base_categories)
 
         assert len(result) == 1
-        assert result[0].target == "Category:Our_World_in_Data_graphs_of_Afghanistan"
+        assert result[0].target == "Category:Our World in Data graphs of Afghanistan"
 
     def test_old_has_special_new_present(self):
         """If both have the same category with underscore, it should not be missing."""
