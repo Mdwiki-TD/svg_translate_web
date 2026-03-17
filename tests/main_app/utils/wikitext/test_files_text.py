@@ -154,8 +154,9 @@ class TestCreateCroppedFileText:
 
     def test_fallback_to_insert_before_methods(self) -> None:
         """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
-        # Text without {{Information}} template - should fallback to insert_before_methods
-        text = "Just plain text without any templates"
+        # Text with category but no {{Information}} template - should fallback to insert_before_methods
+        text = "[[Category:Test]]"
         result = create_cropped_file_text("File:Original.svg", text)
-        # The function should add the Extracted from template at the end
+        # The function should add the Extracted from template before the category
         assert "{{Extracted from|1=Original.svg}}" in result
+        assert result.index("{{Extracted from") < result.index("[[Category:")
