@@ -46,6 +46,7 @@ def capitalize_category(str_category) -> str:
 
 def create_category_link_from_str(str_link: str) -> CategoryLink:
     """
+    Create a CategoryLink object from a string representation of a wiki link.
     """
     link = WikiLink(str_link)
 
