@@ -4,12 +4,12 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from wikitextparser import WikiLink
-
 from src.main_app.jobs_workers.create_owid_pages.categories_utils import (
+    create_category_link_from_str,
     extract_categories,
     find_missing_categories,
     merge_categories,
+    capitalize_category,
 )
 
 
@@ -45,13 +45,20 @@ def test_full_pipline() -> None:
     assert result == new_text
 
 
+class TestCapitalizeCategory:
+    def test_capitalize_category(self):
+        """Should capitalize the first letter of the category name."""
+        capitalized_category = capitalize_category("cateGory:catTest")
+        assert capitalized_category == "CateGory:CatTest"
+
+
 class TestExtractCategories:
     def test_extract_categories(self):
         text = """
         [[Category:Category1]]
         """
         categories = extract_categories(text)
-        assert categories[0].string == WikiLink('[[Category:Category1]]').string
+        assert categories[0].link.string == create_category_link_from_str('[[Category:Category1]]').link.string
 
     def test_single_category(self):
         """Should extract one category."""
@@ -108,7 +115,7 @@ class TestFindMissingCategories:
 
     def test_old_category_not_in_new(self):
         """Should return category from base_categories list if it is missing in target_categories list."""
-        base_categories = [WikiLink("[[Category:Cat1]]")]
+        base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
         target_categories = []
 
         result = find_missing_categories(target_categories, base_categories)
@@ -117,8 +124,8 @@ class TestFindMissingCategories:
 
     def test_category_exists_in_both(self):
         """Should not return category if it already exists in target_categories list."""
-        base_categories = [WikiLink("[[Category:Cat1]]")]
-        target_categories = [WikiLink("[[Category:Cat1]]")]
+        base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
+        target_categories = [create_category_link_from_str("[[Category:Cat1]]")]
 
         result = find_missing_categories(target_categories, base_categories)
 
@@ -127,13 +134,13 @@ class TestFindMissingCategories:
     def test_multiple_categories(self):
         """Should return only base_categories categories that are not present in target_categories."""
         base_categories = [
-            WikiLink("[[Category:Cat1]]"),
-            WikiLink("[[Category:Cat2]]"),
-            WikiLink("[[Category:Cat3]]"),
+            create_category_link_from_str("[[Category:Cat1]]"),
+            create_category_link_from_str("[[Category:Cat2]]"),
+            create_category_link_from_str("[[Category:Cat3]]"),
         ]
 
         target_categories = [
-            WikiLink("[[Category:Cat2]]"),
+            create_category_link_from_str("[[Category:Cat2]]"),
         ]
 
         result = find_missing_categories(target_categories, base_categories)
@@ -144,8 +151,8 @@ class TestFindMissingCategories:
 
     def test_whitespace_ignored(self):
         """Whitespace differences should be ignored."""
-        base_categories = [WikiLink("[[Category:Cat1]]")]
-        target_categories = [WikiLink("[[Category:Cat1 ]]")]
+        base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
+        target_categories = [create_category_link_from_str("[[Category:Cat1 ]]")]
 
         result = find_missing_categories(target_categories, base_categories)
 
@@ -153,15 +160,15 @@ class TestFindMissingCategories:
 
     def test_empty_old(self):
         """Empty base_categories list should return empty result."""
-        result = find_missing_categories([WikiLink("[[Category:Cat1]]")], [])
+        result = find_missing_categories([create_category_link_from_str("[[Category:Cat1]]")], [])
 
         assert result == []
 
     def test_empty_new(self):
         """Empty target_categories list should return all base_categories categories."""
         base_categories = [
-            WikiLink("[[Category:Cat1]]"),
-            WikiLink("[[Category:Cat2]]"),
+            create_category_link_from_str("[[Category:Cat1]]"),
+            create_category_link_from_str("[[Category:Cat2]]"),
         ]
 
         result = find_missing_categories([], base_categories)

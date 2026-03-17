@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 import wikitextparser as wtp
 from wikitextparser import WikiLink
@@ -10,7 +11,36 @@ from wikitextparser import WikiLink
 logger = logging.getLogger(__name__)
 
 
-def extract_categories(wikitext: str) -> list[WikiLink]:
+@dataclass
+class CategoryLink:
+    link: WikiLink
+    target: str
+
+
+def capitalize_category(str_category):
+    """
+    """
+    if ":" not in str_category:
+        return str_category
+
+    part_1, part_2 = str_category.split(":", 1)
+
+    part_1 = f"{part_1[0].upper()}{part_1[1:]}" if len(part_1) > 1 else part_1.upper()
+
+    part_2 = f"{part_2[0].upper()}{part_2[1:]}"
+
+    return f"{part_1}:{part_2}"
+
+
+def create_category_link_from_str(str_link: str) -> CategoryLink:
+    link = WikiLink(str_link)
+    target = link.target.strip().replace("_", " ")
+
+    target = capitalize_category(target)
+    return CategoryLink(link=link, target=target)
+
+
+def extract_categories(wikitext: str) -> list[CategoryLink]:
     """
     Extracts category WikiLinks from the given wikitext.
     """
@@ -20,15 +50,15 @@ def extract_categories(wikitext: str) -> list[WikiLink]:
     # Filter wikilinks to find those starting with "Category:"
     # Added .lower() to ensure case-insensitive matching (e.g., [[category:...]])
     return [
-        wl for wl in parsed.wikilinks
+        create_category_link_from_str(wl.string) for wl in parsed.wikilinks
         if wl.target.strip().lower().startswith("category:")
     ]
 
 
 def find_missing_categories(
-    target_categories: list[WikiLink],
-    base_categories: list[WikiLink],
-) -> list[WikiLink]:
+    target_categories: list[CategoryLink],
+    base_categories: list[CategoryLink],
+) -> list[CategoryLink]:
     """
     Identifies WikiLinks in 'target_categories' that are missing from 'base_categories'.
     """
@@ -37,12 +67,15 @@ def find_missing_categories(
         return base_categories
 
     # Using a set for base_targets improves lookup performance to O(1)
-    base_targets = {cat.target.strip() for cat in target_categories}
+    base_targets = {
+        cat.target
+        for cat in target_categories
+    }
 
     # Return only the categories from target_categories that aren't already in base
     return [
         cat for cat in base_categories
-        if cat.target.strip() not in base_targets
+        if cat.target not in base_targets
     ]
 
 
@@ -68,8 +101,8 @@ def merge_categories(old_text: str, new_text: str) -> str:
     if not missing_categories:
         return new_text
 
-    # Convert the missing WikiLink objects back to their string representation
-    missing_categories_str = "\n".join([cat.string for cat in missing_categories])
+    # Convert the missing CategoryLink objects back to their string representation
+    missing_categories_str = "\n".join([cat.link.string for cat in missing_categories])
 
     # Append the missing categories to the end of the new text
     return f"{new_text}\n{missing_categories_str}"
