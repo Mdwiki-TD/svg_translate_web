@@ -85,13 +85,10 @@ def find_missing_categories(
     if not target_categories:
         return base_categories
 
-    # Using a set for base_targets improves lookup performance to O(1)
-    target_targets = {
-        cat.target
-        for cat in target_categories
-    }
+    # Using a set for target_targets improves lookup performance to O(1)
+    target_targets = {cat.target for cat in target_categories}
 
-    # Return only the categories from target_categories that aren't already in base
+    # Return only the categories from base_categories that aren't already in target_categories
     return [
         cat for cat in base_categories
         if cat.target not in target_targets
