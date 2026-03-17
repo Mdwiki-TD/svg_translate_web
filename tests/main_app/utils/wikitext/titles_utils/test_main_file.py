@@ -140,6 +140,14 @@ class TestMatchMainTitleFromUrlNew:
         result = match_main_title_from_url_new(text)
         assert result is None
 
+    def test_url_without_file_prefix_returns_none(self) -> None:
+        """Test URL without File: prefix returns None (line 36 domain check)."""
+        # The regex matches any path, but domain check happens after parsing
+        # This tests that non-matching domain returns None
+        text = "*'''Translate''': https://other-domain.toolforge.org/File:test.svg"
+        result = match_main_title_from_url_new(text)
+        assert result is None
+
 
 class TestFindMainTitleFromTemplate:
     """Tests for the find_main_title_from_template function."""
