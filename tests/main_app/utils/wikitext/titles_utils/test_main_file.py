@@ -126,6 +126,20 @@ class TestMatchMainTitleFromUrlNew:
         result = match_main_title_from_url_new(text)
         assert result == "File:test file.svg"
 
+    def test_invalid_url_raises_value_error(self) -> None:
+        """Test that invalid URL returns None due to ValueError."""
+        # URL with invalid format that causes urlparse to raise ValueError
+        # This tests the exception handler at lines 32-33
+        text = "*'''Translate''': http://[invalid-url"
+        result = match_main_title_from_url_new(text)
+        assert result is None
+
+    def test_wrong_domain_returns_none(self) -> None:
+        """Test that URL with wrong domain returns None (line 36)."""
+        text = "*'''Translate''': https://example.com/File:test.svg"
+        result = match_main_title_from_url_new(text)
+        assert result is None
+
 
 class TestFindMainTitleFromTemplate:
     """Tests for the find_main_title_from_template function."""

@@ -1,4 +1,13 @@
-from src.main_app.utils.wikitext.template_source import _find_template_source, _find_template_source_2
+from __future__ import annotations
+
+import pytest
+
+from src.main_app.utils.wikitext.template_source import (
+    _find_template_source,
+    _find_template_source_2,
+    check_url,
+    find_template_source,
+)
 
 
 class TestFindTemplateSource:
@@ -114,3 +123,58 @@ class TestFindTemplateSource2:
         """
         expected = "https://ourworldindata.org/grapher/energy-consumption"
         assert _find_template_source_2(wikitext) == expected
+
+
+class TestCheckUrl:
+    """Tests for the check_url helper function."""
+
+    def test_valid_ourworldindata_url(self):
+        """Test valid ourworldindata.org URL."""
+        result = check_url("https://ourworldindata.org/grapher/test")
+        assert result is True
+
+    def test_valid_www_ourworldindata_url(self):
+        """Test valid www.ourworldindata.org URL."""
+        result = check_url("https://www.ourworldindata.org/grapher/test")
+        assert result is True
+
+    def test_invalid_domain(self):
+        """Test URL with invalid domain returns False (line 14)."""
+        result = check_url("https://example.org/grapher/test")
+        assert result is False
+
+    def test_invalid_url_raises_value_error(self):
+        """Test invalid URL that raises ValueError (lines 10-11)."""
+        # URL with invalid format that causes urlparse to raise ValueError
+        result = check_url("http://[invalid-url")
+        assert result is False
+
+    def test_case_insensitive_netloc(self):
+        """Test that netloc matching is case insensitive."""
+        result = check_url("https://OURWORLDINDATA.ORG/grapher/test")
+        assert result is True
+
+
+class TestFindTemplateSource:
+    """Tests for the find_template_source function (integration)."""
+
+    def test_fallback_to_second_method(self):
+        """Test that find_template_source falls back to _find_template_source_2 (line 80)."""
+        # First method fails (no Source:), second method succeeds
+        wikitext = "* https://ourworldindata.org/grapher/test"
+        expected = "https://ourworldindata.org/grapher/test"
+        result = find_template_source(wikitext)
+        assert result == expected
+
+    def test_both_methods_fail_returns_empty(self):
+        """Test that find_template_source returns empty when both methods fail."""
+        wikitext = "No valid URL here"
+        result = find_template_source(wikitext)
+        assert result == ""
+
+    def test_first_method_succeeds(self):
+        """Test that first method is tried first."""
+        wikitext = "*'''Source''': https://ourworldindata.org/grapher/test"
+        expected = "https://ourworldindata.org/grapher/test"
+        result = find_template_source(wikitext)
+        assert result == expected

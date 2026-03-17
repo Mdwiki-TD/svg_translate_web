@@ -90,3 +90,9 @@ class TestShortUrl:
     )
     def test_short_url_various(self, input_url, expected):
         assert short_url(input_url) == expected
+
+    def test_short_url_exception_handling(self):
+        """Test short_url handles exceptions gracefully."""
+        # Test with non-string input that might cause rsplit to fail
+        result = short_url(12345)  # integer input
+        assert result == ""
