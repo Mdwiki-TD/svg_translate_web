@@ -20,23 +20,28 @@ class CategoryLink:
 def capitalize_category(str_category):
     """
     """
+    def upper_first(s) -> str:
+        return f"{s[0].upper()}{s[1:]}" if len(s) > 1 else s.upper()
+
     if ":" not in str_category:
         return str_category
 
+    str_category = str_category.strip()
     part_1, part_2 = str_category.split(":", 1)
 
-    part_1 = f"{part_1[0].upper()}{part_1[1:]}" if len(part_1) > 1 else part_1.upper()
-
-    part_2 = f"{part_2[0].upper()}{part_2[1:]}"
+    part_1 = upper_first(part_1)
+    part_2 = upper_first(part_2)
 
     return f"{part_1}:{part_2}"
 
 
 def create_category_link_from_str(str_link: str) -> CategoryLink:
     link = WikiLink(str_link)
-    target = link.target.strip().replace("_", " ")
 
+    # clean target
+    target = link.target.strip().replace("_", " ")
     target = capitalize_category(target)
+
     return CategoryLink(link=link, target=target)
 
 
