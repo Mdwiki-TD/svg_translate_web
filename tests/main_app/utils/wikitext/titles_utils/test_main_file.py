@@ -4,6 +4,8 @@ Tests for src/main_app/utils/wikitext/titles_utils/main_file.py
 
 from __future__ import annotations
 
+import unittest.mock as mock
+
 from src.main_app.utils.wikitext.titles_utils.main_file import (
     find_main_title_from_template,
     match_main_title_from_url,
@@ -147,6 +149,24 @@ class TestMatchMainTitleFromUrlNew:
         text = "*'''Translate''': https://other-domain.toolforge.org/File:test.svg"
         result = match_main_title_from_url_new(text)
         assert result is None
+
+    def test_urlparse_value_error_returns_none(self) -> None:
+        """Test that ValueError from urlparse returns None (lines 32-33)."""
+        # Mock urlparse to raise ValueError to test exception handler
+        text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        with mock.patch('urllib.parse.urlparse', side_effect=ValueError("Invalid URL")):
+            result = match_main_title_from_url_new(text)
+            assert result is None
+
+    def test_domain_mismatch_returns_none(self) -> None:
+        """Test that domain mismatch returns None (line 36)."""
+        # This tests the domain check at line 36 by mocking urlparse to return different netloc
+        text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        mock_parsed = mock.Mock()
+        mock_parsed.netloc = "different-domain.toolforge.org"
+        with mock.patch('urllib.parse.urlparse', return_value=mock_parsed):
+            result = match_main_title_from_url_new(text)
+            assert result is None
 
 
 class TestFindMainTitleFromTemplate:
