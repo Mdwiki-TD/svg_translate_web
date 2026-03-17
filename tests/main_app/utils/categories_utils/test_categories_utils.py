@@ -65,7 +65,7 @@ def test_full_pipeline_2() -> None:
         target_categories=new_cats,
     )
 
-    assert missing_categories[0].target == create_category_link_from_str('[[Category:Cat3 | test ]]').target
+    assert missing_categories[0].target == create_category_link_from_str("[[Category:Cat3 | test ]]").target
 
     result = merge_categories(old_text, new_text)
 

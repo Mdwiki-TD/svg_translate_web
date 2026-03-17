@@ -18,9 +18,9 @@ from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
+from ...utils.wikitext.categories_utils import merge_categories
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
-from ...utils.wikitext.categories_utils import merge_categories
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]

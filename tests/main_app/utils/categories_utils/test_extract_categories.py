@@ -16,7 +16,7 @@ class TestExtractCategories:
         [[Category:Category1]]
         """
         categories = extract_categories(text)
-        assert categories[0].link.string == create_category_link_from_str('[[Category:Category1]]').link.string
+        assert categories[0].link.string == create_category_link_from_str("[[Category:Category1]]").link.string
 
     def test_single_category(self):
         """Should extract one category."""
@@ -92,7 +92,7 @@ class TestExtractCategoriesWithSpecialChars:
         expected_targets = [
             "Category:Afghanistan",
             "Category:Data Graphics",
-            "Category:Graph of Cities"
+            "Category:Graph of Cities",
         ]
         assert targets == expected_targets
 

@@ -118,7 +118,7 @@ class TestFindMissingCategoriesWithSpecialChars:
         """Missing multiple categories with underscores."""
         base_categories = [
             create_category_link_from_str("[[Category:afghanistan|2020]]"),
-            create_category_link_from_str("[[Category:Economy_Data]]")
+            create_category_link_from_str("[[Category:Economy_Data]]"),
         ]
         target_categories = [
             create_category_link_from_str("[[Category:Afghanistan]]")

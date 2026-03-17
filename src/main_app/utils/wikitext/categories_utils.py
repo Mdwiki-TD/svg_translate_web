@@ -4,8 +4,9 @@ Utilities for extracting and merging wikitext categories.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+
 import wikitextparser as wtp
 from wikitextparser import WikiLink
 
@@ -22,6 +23,7 @@ def capitalize_category(str_category) -> str:
     """
     Capitalizes the first letter of each part in a category string separated by a colon.
     """
+
     def upper_first(s) -> str:
         """
         Capitalizes the first character of a string.
@@ -68,7 +70,8 @@ def extract_categories(wikitext: str) -> list[CategoryLink]:
     # Filter wikilinks to find those starting with "Category:"
     # Added .lower() to ensure case-insensitive matching (e.g., [[category:...]])
     return [
-        create_category_link_from_str(wl.string) for wl in parsed.wikilinks
+        create_category_link_from_str(wl.string)
+        for wl in parsed.wikilinks
         if wl.target.strip().lower().startswith("category:")
     ]
 
@@ -90,10 +93,7 @@ def find_missing_categories(
     target_targets = {cat.target for cat in target_categories}
 
     # Return only the categories from base_categories that aren't already in target_categories
-    return [
-        cat for cat in base_categories
-        if cat.target not in target_targets
-    ]
+    return [cat for cat in base_categories if cat.target not in target_targets]
 
 
 def merge_categories(old_text: str, new_text: str) -> str:
@@ -110,7 +110,7 @@ def merge_categories(old_text: str, new_text: str) -> str:
 
     # Logic fix: We want to find categories in 'old_text' that are missing in 'new_text'
     missing_categories = find_missing_categories(
-        target_categories=new_cats,    # The current set of categories
+        target_categories=new_cats,  # The current set of categories
         base_categories=old_cats,  # The potential candidates to re-add
     )
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .before_methods import insert_before_methods
+from .categories_utils import merge_categories
 from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
 from .template_page import update_template_page_file_reference
@@ -18,6 +19,7 @@ def ensure_file_prefix(file_name) -> str:
 
 __all__ = [
     "ensure_file_prefix",
+    "merge_categories",
     "find_template_source",
     "insert_before_methods",
     "add_other_versions",
