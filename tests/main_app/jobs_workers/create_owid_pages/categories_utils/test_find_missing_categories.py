@@ -84,9 +84,9 @@ class TestFindMissingCategories:
 class TestFindMissingCategoriesWithSpecialChars:
     def test_old_has_special_new_missing(self):
         """Old text has a category with underscore, new text is missing it."""
-        # نستخدم create_category_link_from_str مباشر لضمان التحكم في البيانات
+        # use create_category_link_from_str directly to ensure control over the data
         base_categories = [create_category_link_from_str("[[Category:Our_World_in_Data_graphs_of_Afghanistan]]")]
-        target_categories = []  # النص الجديد لا يحتوي عليه
+        target_categories = []
 
         result = find_missing_categories(target_categories, base_categories)
 
@@ -96,7 +96,7 @@ class TestFindMissingCategoriesWithSpecialChars:
     def test_old_has_special_new_present(self):
         """If both have the same category with underscore, it should not be missing."""
         base_categories = [create_category_link_from_str("[[Category:Cyber Security]]")]
-        target_categories = [create_category_link_from_str("[[Category:Cyber_Security]]")]  # نفس التصنيف
+        target_categories = [create_category_link_from_str("[[Category:Cyber_Security]]")]
 
         result = find_missing_categories(target_categories, base_categories)
         assert len(result) == 0
@@ -106,9 +106,9 @@ class TestFindMissingCategoriesWithSpecialChars:
         # في ويكي، القوائم عادية الحروف غالباً لكن الترميز مهم.
         # هنا نتحقق من أن الشرطات السفلية لا تكسر المقارنة إذا كانت الأسماء متطابقة.
         base_categories = [create_category_link_from_str("[[Category:test_Data]]")]
-        target_categories = [create_category_link_from_str("[[Category:Test_Data]]")]  # اختلاف في حالة الحروف
+        target_categories = [create_category_link_from_str("[[Category:Test_Data]]")]
 
-        # ملاحظة: سلوك wtp يعتمد على الإعدادات، لكن المنطق هنا هو التأكد من عدم الإضافة المزدوجة
+        # Note: wtp behavior depends on settings, but the logic here is to ensure no duplicate addition
         result = find_missing_categories(target_categories, base_categories)
         # عادة لا يتم اعتبارها مفقودة إذا كانت متطابقة في المعنى، ولكن حسب منطق الكود الحالي:
         # يجب أن يعود راسياً (0) لأن النص تم ترميزه أو مقارنته كنصوص.
@@ -122,7 +122,7 @@ class TestFindMissingCategoriesWithSpecialChars:
         ]
         target_categories = [
             create_category_link_from_str("[[Category:Afghanistan]]")
-            # Economy_Data مفقودة
+            # Economy_Data missing
         ]
 
         result = find_missing_categories(target_categories, base_categories)

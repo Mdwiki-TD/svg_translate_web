@@ -75,7 +75,7 @@ class TestExtractCategoriesWithSpecialChars:
         text = "[[Category:Our_World_in_Data_graphs_of_Afghanistan]]"
         categories = extract_categories(text)
         assert len(categories) == 1
-        # التحقق من أن الهدف يحافظ على النص الأصلي (مع الترميز إذا لزم الأمر أو بدون حسب سلوك الويكي)
+        # check if the target preserves the original text (with encoding if necessary or without depending on the wiki behavior)
         assert categories[0].target == "Category:Our World in Data graphs of Afghanistan"
 
     def test_extract_multiple_special_categories(self):
