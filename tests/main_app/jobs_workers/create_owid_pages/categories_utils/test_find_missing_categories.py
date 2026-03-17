@@ -23,7 +23,7 @@ class TestFindMissingCategories:
 
     def test_category_exists_in_both(self):
         """Should not return category if it already exists in target_categories list."""
-        base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
+        base_categories = [create_category_link_from_str("[[Category:cat1]]")]
         target_categories = [create_category_link_from_str("[[Category:Cat1]]")]
 
         result = find_missing_categories(target_categories, base_categories)
@@ -34,7 +34,7 @@ class TestFindMissingCategories:
         """Should return only base_categories categories that are not present in target_categories."""
         base_categories = [
             create_category_link_from_str("[[Category:Cat1]]"),
-            create_category_link_from_str("[[Category:Cat2]]"),
+            create_category_link_from_str("[[ category:cat2 ]]"),
             create_category_link_from_str("[[Category:Cat3]]"),
         ]
 
@@ -50,8 +50,8 @@ class TestFindMissingCategories:
 
     def test_whitespace_ignored(self):
         """Whitespace differences should be ignored."""
-        base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
-        target_categories = [create_category_link_from_str("[[Category:Cat1 ]]")]
+        base_categories = [create_category_link_from_str("[[Category:Cat1 new 2020{{!}}]]")]
+        target_categories = [create_category_link_from_str("[[ Category:Cat1 new 2020{{!}}]]")]
 
         result = find_missing_categories(target_categories, base_categories)
 
@@ -59,14 +59,14 @@ class TestFindMissingCategories:
 
     def test_empty_old(self):
         """Empty base_categories list should return empty result."""
-        result = find_missing_categories([create_category_link_from_str("[[Category:Cat1]]")], [])
+        result = find_missing_categories([create_category_link_from_str("[[Category:cat1]]")], [])
 
         assert result == []
 
     def test_empty_new(self):
         """Empty target_categories list should return all base_categories categories."""
         base_categories = [
-            create_category_link_from_str("[[Category:Cat1]]"),
+            create_category_link_from_str("[[Category:Cat1 new]]"),
             create_category_link_from_str("[[Category:Cat2]]"),
         ]
 
@@ -117,7 +117,7 @@ class TestFindMissingCategoriesWithSpecialChars:
     def test_multiple_missing_with_underscores(self):
         """Missing multiple categories with underscores."""
         base_categories = [
-            create_category_link_from_str("[[Category:Afghanistan]]"),
+            create_category_link_from_str("[[Category:afghanistan|2020]]"),
             create_category_link_from_str("[[Category:Economy_Data]]")
         ]
         target_categories = [
@@ -127,4 +127,4 @@ class TestFindMissingCategoriesWithSpecialChars:
 
         result = find_missing_categories(target_categories, base_categories)
         assert len(result) == 1
-        assert "Economy" in result[0].target
+        assert result[0].target == "Category:Economy Data"
