@@ -19,7 +19,7 @@ from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...data import get_slug_categories
 from ...db.db_Templates import TemplateRecord
-from ...utils.wikitext.categories_utils import merge_categories
+from ...utils.wikitext.categories_utils import merge_categories, sort_categories
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
 
@@ -198,6 +198,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
+        info._new_text = sort_categories(info._new_text)
 
         # Content is different, perform update
         res = create_page(
