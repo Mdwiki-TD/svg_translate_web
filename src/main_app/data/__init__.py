@@ -20,6 +20,26 @@ for file in json_files:
     except Exception as e:
         logger.error(f'Error loading data from {file}: {e}')
 
+
+def get_slug_categories(slug: str) -> list[str]:
+    topics = data_list.get("templates_slugs_topics", {}).get(slug)
+    if not topics:
+        logger.warning(f'No topics found for slug {slug}')
+        return []
+
+    topics_categories = data_list.get("topics_categories", {})
+
+    result = []
+
+    for x in topics:
+        result.extend(topics_categories.get(x, []))
+
+    logger.debug(f'Found categories for slug {slug}: {result}')
+
+    return result
+
+
 __all__ = [
     "data_list",
+    "get_slug_categories",
 ]
