@@ -245,8 +245,10 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
+        file_exists = (self.exists and self.exists.get(cropped_filename.removeprefix("File:"))) or is_cropped_file_existing(cropped_filename, self.site)
+
         # pre steps if the file already in commons, skip download/upload files.
-        if self.exists.get(cropped_filename.removeprefix("File:")):  # or is_cropped_file_existing(cropped_filename, self.site):
+        if file_exists:
             self._skip_step(file_info, "download", "Skipped – file already exists on Commons")
             self._skip_step(file_info, "crop", "Skipped – file already exists on Commons")
             self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")
