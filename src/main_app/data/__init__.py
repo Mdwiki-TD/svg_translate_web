@@ -52,8 +52,10 @@ def extract_slug_from_url(url: str) -> str:
 def get_slug_categories(slug: str) -> list[str]:
     if not slug:
         return ""
-    slug = fix_slug(slug)
+
+    slug = extract_slug_from_url(slug)
     templates_slugs_topics = load_data("templates_slugs_topics")
+
     topics = templates_slugs_topics.get(slug)
     if not topics:
         logger.warning(f"No topics found for slug {slug}")
