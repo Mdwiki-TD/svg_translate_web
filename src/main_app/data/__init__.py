@@ -24,7 +24,22 @@ def load_data(key):
     return data
 
 
+def fix_slug(slug):
+    """
+    input:
+        https://ourworldindata.org/grapher/unemployment-rate-estimates-modeled-vs-national
+    output:
+        unemployment-rate-estimates-modeled-vs-national
+    """
+    slug = slug.strip().split("?")[0]
+    slug = slug.split("#")[0]
+    return slug
+
+
 def get_slug_categories(slug: str) -> list[str]:
+    if not slug:
+        return ""
+    slug = fix_slug(slug)
     templates_slugs_topics = load_data("templates_slugs_topics")
     topics = templates_slugs_topics.get(slug)
     if not topics:

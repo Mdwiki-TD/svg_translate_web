@@ -131,7 +131,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._append(file_info)
             return
 
-        if file_info._new_text:
+        if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
         # Step 3 – check if new page already exists then compare if text need to be updated
