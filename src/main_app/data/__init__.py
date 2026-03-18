@@ -8,25 +8,28 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-json_files = Path(__file__).parent.glob("*.json")
 
-data_list = {}
-
-for file in json_files:
+def load_data(key):
+    key = Path(key).name
+    file_path = Path(__file__).parent / f"{key}.json"
+    data = {}
     try:
-        with open(file, "r", encoding="utf-8") as f:
-            data_list[file.stem] = json.load(f)
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
     except Exception as e:
-        logger.error(f"Error loading data from {file}: {e}")
+        logger.error(f"Error loading data from {key}: {e}")
+
+    return data
 
 
 def get_slug_categories(slug: str) -> list[str]:
-    topics = data_list.get("templates_slugs_topics", {}).get(slug)
+    templates_slugs_topics = load_data("templates_slugs_topics")
+    topics = templates_slugs_topics.get(slug)
     if not topics:
         logger.warning(f"No topics found for slug {slug}")
         return []
 
-    topics_categories = data_list.get("topics_categories", {})
+    topics_categories = load_data("topics_categories")
 
     result = []
 
@@ -39,6 +42,5 @@ def get_slug_categories(slug: str) -> list[str]:
 
 
 __all__ = [
-    "data_list",
     "get_slug_categories",
 ]
