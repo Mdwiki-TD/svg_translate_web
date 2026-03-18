@@ -17,6 +17,7 @@ from ...api_services.clients import get_user_site
 from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
+from ...data import get_slug_categories
 from ...db.db_Templates import TemplateRecord
 from ...utils.wikitext.categories_utils import merge_categories
 from ..base_worker import BaseJobWorker
@@ -105,6 +106,14 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
+    def add_slug_categories(self, new_text, source):
+        categories = get_slug_categories(source)
+
+        for x in categories:
+            if x not in new_text:
+                new_text += f"\n[[{x}]]"
+
+        return new_text
 
     def _process_template(self, template: TemplateRecord) -> None:
         file_info = TemplateProcessingInfo(
@@ -121,6 +130,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         if not self._step_create_new_text(file_info):
             self._append(file_info)
             return
+
+        if file_info._new_text:
+            file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
         # Step 3 – check if new page already exists then compare if text need to be updated
         # if page text == new text then summary.skipped++ else summary.updated++
