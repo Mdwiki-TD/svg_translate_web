@@ -148,13 +148,15 @@ class CropMainFilesProcessor:
                 exc_info=exc,
             )
 
-    def check_exists(self, templates):
+    def check_exists(self, templates) -> None:
 
         cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
         for file in exists_files:
-            self.exists[file] = exists_files[file]
+            self.exists[file.removeprefix('File:')] = exists_files[file]
+
+        logger.info(f"self.exists: {len(self.exists)}")
 
     def process(self):
         templates = self._load_templates()

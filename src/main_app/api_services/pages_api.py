@@ -15,12 +15,6 @@ def is_pages_exists(
     titles: list[str],
     site: mwclient.Site,
 ) -> dict[str, bool]:
-    params = {
-        # "action": "query",
-        "format": "json",
-        "formatversion": "2",
-    }
-
     result = {}
 
     for i in range(0, len(titles), 50):
@@ -28,8 +22,8 @@ def is_pages_exists(
 
         group = [f"File:{file.removeprefix('File:')}" for file in group]
 
-        params["titles"] = "|".join(group)
-        json1 = site.api("query", "GET", params)
+        json1 = site.get("query", titles="|".join(group))
+
         query = json1.get("query", {})
 
         normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
