@@ -32,7 +32,7 @@ def is_pages_exists(
         json1 = site.api(params)
         query = json1.get("query", {})
 
-        normalized = {red["to"]: red["from"] for red in query.get("normalized", {})}
+        normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
 
         query_pages = query.get("pages", {})
         for _, kk in query_pages.items():
