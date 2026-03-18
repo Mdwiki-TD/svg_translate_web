@@ -256,6 +256,11 @@ class CropMainFilesProcessor:
             # Step 4 & 5 – Update wikitext references
             self.update_file_references(file_info)
 
+            # if all file_info.steps "result" is None do:
+            if all(step["result"] is None for step in file_info.steps):
+                file_info.status = "skipped"
+                self.result["summary"]["skipped"] += 1
+
             self._append(file_info)
             return
 
