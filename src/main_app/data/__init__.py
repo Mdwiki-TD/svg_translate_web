@@ -68,6 +68,8 @@ def get_slug_categories(slug: str) -> list[str]:
     for x in topics:
         result.extend(topics_categories.get(x, []))
 
+    result = list(set(result))
+
     logger.debug(f"Found categories for slug {slug}: {result}")
 
     return result
