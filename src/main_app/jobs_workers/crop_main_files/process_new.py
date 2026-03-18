@@ -151,7 +151,7 @@ class CropMainFilesProcessor:
     def check_exists(self, templates):
 
         cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
-        exists_files = is_pages_exists(cropped_filenames)
+        exists_files = is_pages_exists(cropped_filenames, self.site)
 
         for file in exists_files:
             self.exists[file] = exists_files[file]
