@@ -154,7 +154,7 @@ class TestMatchMainTitleFromUrlNew:
         """Test that ValueError from urlparse returns None (lines 32-33)."""
         # Mock urlparse to raise ValueError to test exception handler
         text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
-        with mock.patch('urllib.parse.urlparse', side_effect=ValueError("Invalid URL")):
+        with mock.patch("urllib.parse.urlparse", side_effect=ValueError("Invalid URL")):
             result = match_main_title_from_url_new(text)
             assert result is None
 
@@ -164,7 +164,7 @@ class TestMatchMainTitleFromUrlNew:
         text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
         mock_parsed = mock.Mock()
         mock_parsed.netloc = "different-domain.toolforge.org"
-        with mock.patch('urllib.parse.urlparse', return_value=mock_parsed):
+        with mock.patch("urllib.parse.urlparse", return_value=mock_parsed):
             result = match_main_title_from_url_new(text)
             assert result is None
 
