@@ -14,10 +14,9 @@ from typing import Any
 import mwclient
 import requests
 
-from ...api_services.pages_api import is_pages_exists
-
 from ... import template_service
 from ...api_services.clients import create_commons_session, get_user_site
+from ...api_services.pages_api import is_pages_exists
 from ...api_services.text_api import get_file_text, get_page_text, update_file_text, update_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
@@ -151,9 +150,7 @@ class CropMainFilesProcessor:
 
     def check_exists(self, templates):
 
-        cropped_filenames = [
-            generate_cropped_filename(template.last_world_file) for template in templates
-        ]
+        cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
         exists_files = is_pages_exists(cropped_filenames)
 
         for file in exists_files:

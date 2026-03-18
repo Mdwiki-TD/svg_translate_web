@@ -26,10 +26,7 @@ def is_pages_exists(
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
 
-        group = [
-            f"File:{file.removeprefix('File:')}"
-            for file in group
-        ]
+        group = [f"File:{file.removeprefix('File:')}" for file in group]
 
         params["titles"] = "|".join(group)
         json1 = site.api(params)
