@@ -6,6 +6,7 @@ import functools
 import json
 import logging
 from pathlib import Path
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +25,28 @@ def load_data(key):
     return data
 
 
-def fix_slug(slug):
+def extract_slug_from_url(url: str) -> str:
     """
-    input:
-        https://ourworldindata.org/grapher/unemployment-rate-estimates-modeled-vs-national
-    output:
-        unemployment-rate-estimates-modeled-vs-national
+    Extracts the slug (path component) from a URL.
+
+    Args:
+        url: A URL string (e.g., "https://ourworldindata.org/grapher/unemployment-rate-estimates-modeled-vs-national")
+
+    Returns:
+        The slug part of the URL (e.g., "unemployment-rate-estimates-modeled-vs-national")
+
+    Examples:
+        >>> extract_slug_from_url("https://ourworldindata.org/grapher/unemployment-rate-estimates-modeled-vs-national")
+        'unemployment-rate-estimates-modeled-vs-national'
+        >>> extract_slug_from_url("https://example.com/path?query=1#fragment")
+        'path'
     """
-    slug = slug.strip().split("?")[0]
-    slug = slug.split("#")[0]
-    return slug
+    if not url:
+        return ""
+
+    parsed = urlparse(url)
+    path = parsed.path.strip("/")
+    return path.split("/")[-1] if path else ""
 
 
 def get_slug_categories(slug: str) -> list[str]:
