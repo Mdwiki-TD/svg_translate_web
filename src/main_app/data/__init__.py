@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+@functools.lru_cache(maxsize=1024)
 def load_data(key):
     key = Path(key).name
     file_path = Path(__file__).parent / f"{key}.json"
