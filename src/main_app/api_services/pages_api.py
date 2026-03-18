@@ -11,6 +11,33 @@ from ..utils.verify import verify_required_fields
 logger = logging.getLogger(__name__)
 
 
+def is_pages_exists(
+    titles: list[str],
+    site: mwclient.Site,
+) -> dict[str, bool]:
+    result = {}
+
+    for i in range(0, len(titles), 50):
+        group = titles[i : i + 50]
+
+        group = [f"File:{file.removeprefix('File:')}" for file in group]
+
+        json1 = site.get("query", titles="|".join(group))
+
+        query = json1.get("query", {})
+
+        normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
+
+        query_pages = query.get("pages", {})
+        for _, kk in query_pages.items():
+            title = kk.get("title", "")
+            if title:
+                original_title = normalized.get(title, title)
+                result[original_title] = "missing" not in kk
+
+    return result
+
+
 def is_page_exists(
     page_title: str,
     site: mwclient.Site,

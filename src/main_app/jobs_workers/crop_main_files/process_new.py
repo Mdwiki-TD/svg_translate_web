@@ -16,6 +16,7 @@ import requests
 
 from ... import template_service
 from ...api_services.clients import create_commons_session, get_user_site
+from ...api_services.pages_api import is_pages_exists
 from ...api_services.text_api import get_file_text, get_page_text, update_file_text, update_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
@@ -108,6 +109,7 @@ class CropMainFilesProcessor:
         self.result = result
         self.result_file = result_file
         self.user = user
+        self.exists = {}
         self.cancel_event = cancel_event
         self.upload_files = upload_files
 
@@ -146,10 +148,22 @@ class CropMainFilesProcessor:
                 exc_info=exc,
             )
 
+    def check_exists(self, templates) -> None:
+
+        cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
+        exists_files = is_pages_exists(cropped_filenames, self.site)
+
+        for file in exists_files:
+            self.exists[file.removeprefix('File:')] = exists_files[file]
+
+        logger.info(f"self.exists: {len(self.exists)}")
+
     def process(self):
         templates = self._load_templates()
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+
+        self.check_exists(templates)
 
         per_item = self.get_priority(len(templates))
 
@@ -231,8 +245,10 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
+        file_exists = (self.exists and self.exists.get(cropped_filename.removeprefix("File:"))) or is_cropped_file_existing(cropped_filename, self.site)
+
         # pre steps if the file already in commons, skip download/upload files.
-        if is_cropped_file_existing(cropped_filename, self.site):
+        if file_exists:
             self._skip_step(file_info, "download", "Skipped – file already exists on Commons")
             self._skip_step(file_info, "crop", "Skipped – file already exists on Commons")
             self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")

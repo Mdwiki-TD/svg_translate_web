@@ -4,12 +4,14 @@ Utility functions for cropping main files.
 
 from __future__ import annotations
 
+import functools
 import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
+@functools.lru_cache(maxsize=10_000)
 def generate_cropped_filename(filename: str) -> str:
     """
     Transform filename to cropped version.
