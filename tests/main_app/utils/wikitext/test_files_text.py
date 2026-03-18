@@ -151,3 +151,12 @@ class TestCreateCroppedFileText:
         # The other versions parameter is added to the Information template
         assert "|other versions=" in result
         assert "{{Extracted from|1=Original.svg}}" in result
+
+    def test_fallback_to_insert_before_methods(self) -> None:
+        """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
+        # Text with category but no {{Information}} template - should fallback to insert_before_methods
+        text = "[[Category:Test]]"
+        result = create_cropped_file_text("File:Original.svg", text)
+        # The function should add the Extracted from template before the category
+        assert "{{Extracted from|1=Original.svg}}" in result
+        assert result.index("{{Extracted from") < result.index("[[Category:")

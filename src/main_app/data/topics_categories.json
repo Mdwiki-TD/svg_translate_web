@@ -1,0 +1,479 @@
+{
+    "Population Change": [
+        "Category:Our World in Data - Population Change"
+    ],
+    "Population Growth": [
+        "Category:Our World in Data - Population Change"
+    ],
+    "Age Structure": [
+        "Category:Our World in Data - Population Change"
+    ],
+    "Gender Ratio": [
+        "Category:Our World in Data - Population Change"
+    ],
+    "Births & Deaths": [
+        "Category:Our World in Data - Births and Deaths"
+    ],
+    "Life Expectancy": [
+        "Category:Our World in Data - Births and Deaths",
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Fertility Rate": [
+        "Category:Our World in Data - Births and Deaths"
+    ],
+    "Child & Infant Mortality": [
+        "Category:Our World in Data - Births and Deaths",
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Geography of the World Population": [
+        "Category:Our World in Data - Geography of the World Population"
+    ],
+    "Urbanization": [
+        "Category:Our World in Data - Geography of the World Population"
+    ],
+    "Migration": [
+        "Category:Our World in Data - Geography of the World Population",
+        "Category:Our World in Data - Global Connections"
+    ],
+    "Life & Death": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Global Health": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Causes of Death": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Burden of Disease": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Mental Health": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Suicides": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Cardiovascular Diseases": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Cancer": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Maternal Mortality": [
+        "Category:Our World in Data - Life and Death"
+    ],
+    "Health Risks": [
+        "Category:Our World in Data - Health Risks"
+    ],
+    "Air Pollution": [
+        "Category:Our World in Data - Health Risks",
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Outdoor Air Pollution": [
+        "Category:Our World in Data - Health Risks",
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Indoor Air Pollution": [
+        "Category:Our World in Data - Housing and Infrastructure",
+        "Category:Our World in Data - Health Risks",
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Lead Pollution": [
+        "Category:Our World in Data - Health Risks",
+        "Category:Our World in Data - Waste and Pollution"
+    ],
+    "Alcohol Consumption": [
+        "Category:Our World in Data - Health Risks"
+    ],
+    "Illicit Drug Use": [
+        "Category:Our World in Data - Health Risks"
+    ],
+    "Obesity": [
+        "Category:Our World in Data - Health Risks",
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Smoking": [
+        "Category:Our World in Data - Health Risks"
+    ],
+    "Infectious Diseases": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Pandemics": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "COVID-19": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Malaria": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "HIV/AIDS": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Diarrheal Diseases": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Tuberculosis": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Polio": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Neglected Tropical Diseases": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Influenza": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Pneumonia": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Tetanus": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Mpox (monkeypox)": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Smallpox": [
+        "Category:Our World in Data - Infectious Diseases"
+    ],
+    "Health Institutions & Interventions": [
+        "Category:Our World in Data - Health Institutions and Interventions"
+    ],
+    "Eradication of Diseases": [
+        "Category:Our World in Data - Health Institutions and Interventions"
+    ],
+    "Vaccination": [
+        "Category:Our World in Data - Health Institutions and Interventions"
+    ],
+    "Antibiotics & Antibiotic Resistance": [
+        "Category:Our World in Data - Health Institutions and Interventions"
+    ],
+    "Healthcare Spending": [
+        "Category:Our World in Data - Health Institutions and Interventions",
+        "Category:Our World in Data - Public Sector"
+    ],
+    "Sexual & Reproductive Health": [
+        "Category:Our World in Data - Sexual and Reproductive Health"
+    ],
+    "Climate & Air": [
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Climate Change": [
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "CO2 & Greenhouse Gas Emissions": [
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Ozone Layer": [
+        "Category:Our World in Data - Climate and Air"
+    ],
+    "Energy Systems": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Energy": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Access to Energy": [
+        "Category:Our World in Data - Housing and Infrastructure",
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Energy Mix": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Fossil Fuels": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Nuclear Energy": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Bioenergy and Biofuels": [
+        "Category:Our World in Data - Energy Systems",
+        "Category:Our World in Data - Bioenergy and Biofuels"
+    ],
+    "Renewable Energy": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Metals & Minerals": [
+        "Category:Our World in Data - Energy Systems"
+    ],
+    "Environment & Ecosystems": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Natural Disasters": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Biodiversity": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Environmental Impacts of Food Production": [
+        "Category:Our World in Data - Food Production",
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Fish & Overfishing": [
+        "Category:Our World in Data - Food Production",
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Animal Welfare": [
+        "Category:Our World in Data - Food Production",
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Land Use": [
+        "Category:Our World in Data - Agricultural Inputs",
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Water Use & Stress": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Forests & Deforestation": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Wildfires": [
+        "Category:Our World in Data - Environment and Ecosystems"
+    ],
+    "Waste & Pollution": [
+        "Category:Our World in Data - Waste and Pollution"
+    ],
+    "Plastic Pollution": [
+        "Category:Our World in Data - Waste and Pollution"
+    ],
+    "Oil Spills": [
+        "Category:Our World in Data - Waste and Pollution"
+    ],
+    "Waste Management": [
+        "Category:Our World in Data - Waste and Pollution"
+    ],
+    "Clean Water & Sanitation": [
+        "Category:Our World in Data - Clean Water and Sanitation"
+    ],
+    "Clean Water": [
+        "Category:Our World in Data - Clean Water and Sanitation"
+    ],
+    "Sanitation": [
+        "Category:Our World in Data - Clean Water and Sanitation"
+    ],
+    "Electricity": [
+        "Category:Our World in Data - Electricity"
+    ],
+    "Electricity Mix": [
+        "Category:Our World in Data - Electricity"
+    ],
+    "Food Production": [
+        "Category:Our World in Data - Food Production"
+    ],
+    "Agricultural Production": [
+        "Category:Our World in Data - Food Production"
+    ],
+    "Meat & Dairy Production": [
+        "Category:Our World in Data - Food Production"
+    ],
+    "Crop Yields": [
+        "Category:Our World in Data - Food Production"
+    ],
+    "Farm Size": [
+        "Category:Our World in Data - Food Production"
+    ],
+    "Agricultural Inputs": [
+        "Category:Our World in Data - Agricultural Inputs"
+    ],
+    "Fertilizers": [
+        "Category:Our World in Data - Agricultural Inputs"
+    ],
+    "Pesticides": [
+        "Category:Our World in Data - Agricultural Inputs"
+    ],
+    "Employment in Agriculture": [
+        "Category:Our World in Data - Agricultural Inputs"
+    ],
+    "Nutrition": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Hunger & Undernourishment": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Food Supply": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Food Prices": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Famines": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Diet Compositions": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Micronutrient Deficiency": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Human Height": [
+        "Category:Our World in Data - Nutrition"
+    ],
+    "Poverty & Prosperity": [
+        "Category:Our World in Data - Poverty and Prosperity"
+    ],
+    "Poverty": [
+        "Category:Our World in Data - Poverty and Prosperity"
+    ],
+    "Economic Growth": [
+        "Category:Our World in Data - Poverty and Prosperity"
+    ],
+    "Economic Inequality": [
+        "Category:Our World in Data - Poverty and Prosperity"
+    ],
+    "Foreign Aid": [
+        "Category:Our World in Data - Poverty and Prosperity"
+    ],
+    "Public Sector": [
+        "Category:Our World in Data - Public Sector"
+    ],
+    "Government Spending": [
+        "Category:Our World in Data - Public Sector"
+    ],
+    "Taxation": [
+        "Category:Our World in Data - Public Sector"
+    ],
+    "Education Spending": [
+        "Category:Our World in Data - Education",
+        "Category:Our World in Data - Public Sector"
+    ],
+    "Work & Employment": [
+        "Category:Our World in Data - Work and Employment"
+    ],
+    "Women's Employment": [
+        "Category:Our World in Data - Work and Employment"
+    ],
+    "Working Hours": [
+        "Category:Our World in Data - Work and Employment",
+        "Category:Our World in Data - Time Use"
+    ],
+    "Unemployment": [
+        "Category:Our World in Data - Work and Employment"
+    ],
+    "Global Connections": [
+        "Category:Our World in Data - Global Connections"
+    ],
+    "Trade & Globalization": [
+        "Category:Our World in Data - Global Connections"
+    ],
+    "Tourism": [
+        "Category:Our World in Data - Global Connections"
+    ],
+    "Education": [
+        "Category:Our World in Data - Education"
+    ],
+    "Global Education": [
+        "Category:Our World in Data - Education"
+    ],
+    "Literacy": [
+        "Category:Our World in Data - Education"
+    ],
+    "Knowledge": [
+        "Category:Our World in Data - Knowledge"
+    ],
+    "Books": [
+        "Category:Our World in Data - Knowledge"
+    ],
+    "Technological Change": [
+        "Category:Our World in Data - Technological Change"
+    ],
+    "Research & Development": [
+        "Category:Our World in Data - Research and Development"
+    ],
+    "Artificial Intelligence": [
+        "Category:Our World in Data - Artificial Intelligence"
+    ],
+    "Internet": [
+        "Category:Our World in Data - Internet"
+    ],
+    "Space Exploration & Satellites": [
+        "Category:Our World in Data - Space Exploration and Satellites"
+    ],
+    "Transport": [
+        "Category:Our World in Data - Transport"
+    ],
+    "Medicine & Biotechnology": [
+        "Category:Our World in Data - Medicine and Biotechnology"
+    ],
+    "Housing & Infrastructure": [
+        "Category:Our World in Data - Housing and Infrastructure"
+    ],
+    "Homelessness": [
+        "Category:Our World in Data - Housing and Infrastructure"
+    ],
+    "Light at Night": [
+        "Category:Our World in Data - Housing and Infrastructure"
+    ],
+    "Time Use": [
+        "Category:Our World in Data - Time Use"
+    ],
+    "Relationships": [
+        "Category:Our World in Data - Relationships"
+    ],
+    "Marriages & Divorces": [
+        "Category:Our World in Data - Relationships"
+    ],
+    "Loneliness & Social Connections": [
+        "Category:Our World in Data - Relationships"
+    ],
+    "Trust": [
+        "Category:Our World in Data - Relationships"
+    ],
+    "Happiness & Wellbeing": [
+        "Category:Our World in Data - Happiness and Wellbeing"
+    ],
+    "Happiness & Life Satisfaction": [
+        "Category:Our World in Data - Happiness and Wellbeing"
+    ],
+    "Human Development Index (HDI)": [
+        "Category:Our World in Data - Happiness and Wellbeing"
+    ],
+    "Religion": [
+        "Category:Our World in Data - Religion"
+    ],
+    "Human Rights": [
+        "Category:Our World in Data - Human Rights"
+    ],
+    "Democracy": [
+        "Category:Our World in Data - Democracy"
+    ],
+    "State Capacity": [
+        "Category:Our World in Data - State Capacity"
+    ],
+    "Women's Rights": [
+        "Category:Our World in Data - Women's Rights"
+    ],
+    "LGBT+ Rights": [
+        "Category:Our World in Data - LGBT+ Rights"
+    ],
+    "Corruption": [
+        "Category:Our World in Data - Corruption"
+    ],
+    "Economic Inequality by Gender": [
+        "Category:Our World in Data - Economic Inequality by Gender"
+    ],
+    "Child Labor": [
+        "Category:Our World in Data - Child Labor"
+    ],
+    "Violence Against Children & Children's Rights": [
+        "Category:Our World in Data - Violence Against Children and Children's Rights"
+    ],
+    "Crime": [
+        "Category:Our World in Data - Crime"
+    ],
+    "War & Peace": [
+        "Category:Our World in Data - War and Peace"
+    ],
+    "Nuclear Weapons": [
+        "Category:Our World in Data - Nuclear Weapons"
+    ],
+    "Homicides": [
+        "Category:Our World in Data - Homicides"
+    ],
+    "Terrorism": [
+        "Category:Our World in Data - Terrorism"
+    ],
+    "Military Personnel & Spending": [
+        "Category:Our World in Data - Military Personnel and Spending"
+    ]
+}
