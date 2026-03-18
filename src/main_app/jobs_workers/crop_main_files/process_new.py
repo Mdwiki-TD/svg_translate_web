@@ -257,7 +257,7 @@ class CropMainFilesProcessor:
             self.update_file_references(file_info)
 
             # if all file_info.steps "result" is None do:
-            if all(step["result"] is None for step in file_info.steps):
+            if all(step["result"] is None for step in file_info.steps.values()):
                 file_info.status = "skipped"
                 self.result["summary"]["skipped"] += 1
 
