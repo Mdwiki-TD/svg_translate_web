@@ -195,9 +195,9 @@ def _env_int(name: str, default: int) -> int:
 
 
 def _load_oauth_config() -> Optional[OAuthConfig]:
-    mw_uri = os.getenv("OAUTH_MWURI")
-    consumer_key = os.getenv("OAUTH_CONSUMER_KEY")
-    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET")
+    mw_uri = os.getenv("OAUTH_MWURI", "")
+    consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
+    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
     if not (mw_uri and consumer_key and consumer_secret):
         return None
 
@@ -237,7 +237,7 @@ def get_settings() -> Settings:
         RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
         RuntimeError: If the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
     """
-    secret_key = os.getenv("FLASK_SECRET_KEY")
+    secret_key = os.getenv("FLASK_SECRET_KEY", "")
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
@@ -249,7 +249,7 @@ def get_settings() -> Settings:
 
     oauth_config = _load_oauth_config()
 
-    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY")
+    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
     if not oauth_encryption_key:
         raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
 
