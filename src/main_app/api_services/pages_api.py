@@ -18,10 +18,14 @@ class MwClientPage:
         self.title = title
         self.site = site
         self.load_page_error = ""
+        self.page = None
 
     def load_page(self):
+        if self.page:
+            return self.page
+
         try:
-            page = self.site.Pages[self.title]
+            self.page = self.site.Pages[self.title]
         except mwclient.errors.InvalidPageTitle:
             logger.warning(f"Title {self.title} is invalid")
             self.load_page_error = "invalidpagetitle"
@@ -32,7 +36,7 @@ class MwClientPage:
             logger.exception(f"Failed to load page {self.title}", exc_info=exc)
             return False
 
-        return page
+        return self.page
 
     def check_exists(self) -> bool:
         page = self.load_page()
@@ -44,6 +48,19 @@ class MwClientPage:
         logger.warning(f"Title {self.title} exists")
         return True
 
+    def _edit(self, text, summary, page):
+        try:
+            page.edit(text, summary=summary)
+        except mwclient.errors.APIError as exc:
+            code = exc.code
+            _info = exc.info
+            if code == "ratelimited":
+                raise RateLimitedError("You've exceeded your rate limit. Please wait some time and try again.") from exc
+
+            raise
+        except Exception:
+            raise
+
     def edit_page(self, text, summary) -> dict[str, any]:
         page = self.load_page()
 
@@ -51,7 +68,7 @@ class MwClientPage:
             return {"success": False, "error": self.load_page_error}
 
         try:
-            page.edit(text, summary=summary)
+            self._edit(text, summary, page)
             return {"success": True}
 
         except mwclient.errors.EditError:
@@ -60,13 +77,11 @@ class MwClientPage:
         except mwclient.errors.ProtectedPageError:
             return {"success": False, "error": "protectedpageerror"}
 
+        except RateLimitedError:
+            return {"success": False, "error": "ratelimited"}
+
         except Exception as exc:
             error_msg = str(exc)
-            if "ratelimited" in error_msg:
-                logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
-                return {"success": False, "error": "ratelimited"}
-
-            logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             return {"success": False, "error": error_msg}
 
 
