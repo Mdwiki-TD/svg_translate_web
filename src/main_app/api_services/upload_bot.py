@@ -60,15 +60,19 @@ def upload_file(
 
         logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
         return {"result": response.get("result", ""), **response}
+
     except requests.exceptions.HTTPError:
         logger.error("HTTP error occurred while uploading file")
         error_details = "HTTP error"
+
     except mwclient.errors.FileExists:
         logger.error("File already exists on Wikimedia Commons")
         error_details = "File already exists"
+
     except mwclient.errors.InsufficientPermission:
         logger.error("User does not have sufficient permissions to perform an action")
         error_details = "User does not have sufficient permissions to perform an action"
+
     except Exception as e:
         # ---
         if "fileexists-no-change" in str(e):
