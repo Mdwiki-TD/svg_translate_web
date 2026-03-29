@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 import mwclient
 
@@ -11,6 +12,8 @@ from ..utils.wikitext import ensure_file_prefix
 from .errors import RateLimitedError
 
 logger = logging.getLogger(__name__)
+
+_RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
 class MwClientPage:
@@ -42,10 +45,10 @@ class MwClientPage:
         page = self.load_page()
 
         if not page or not page.exists:
-            logger.warning(f"Title {self.title} not exists")
+            logger.warning(f"Title {self.title} does not exist")
             return False
 
-        logger.warning(f"Title {self.title} exists")
+        logger.info(f"Title {self.title} exists")
         return True
 
     def _edit(self, text, summary, page):
@@ -62,7 +65,37 @@ class MwClientPage:
             logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             raise
 
-    def edit_page(self, text, summary) -> dict[str, any]:
+    def _edit_with_retry(self, text: str, summary: str, page) -> None:
+        """
+        Attempt to edit a page with retry logic on rate limiting.
+        Uses increasing delays between each attempt.
+        """
+        last_exc: Exception | None = None
+
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+            try:
+                page.edit(text, summary=summary)
+                return  # edit succeeded
+            except mwclient.errors.APIError as exc:
+                if exc.code != "ratelimited":
+                    raise  # different error, no need to retry
+
+                last_exc = exc
+                logger.warning(
+                    f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
+                    f"for page '{self.title}'. "
+                    f"Retrying in {delay}s..."
+                )
+                time.sleep(delay)
+
+        # all retry attempts exhausted
+        raise mwclient.errors.APIError(
+            "ratelimited",
+            "Exceeded rate limit after all retry attempts.",
+            {},
+        ) from last_exc
+
+    def edit_page(self, text: str, summary: str) -> dict[str, any]:
         page = self.load_page()
 
         if not page:
@@ -90,17 +123,12 @@ class MwClientPage:
             return {"success": False, "error": error_msg}
 
 
-def is_page_exists(
-    page_title: str,
-    site: mwclient.Site,
-) -> bool:
-    page_obj = MwClientPage(page_title, site)
-    return page_obj.check_exists()
+def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
+    return MwClientPage(page_title, site).check_exists()
 
 
 def edit_page(site, title, text, summary) -> dict[str, any]:
-    page_obj = MwClientPage(title, site)
-    return page_obj.edit_page(text, summary)
+    return MwClientPage(title, site).edit_page(text, summary)
 
 
 def create_page(
