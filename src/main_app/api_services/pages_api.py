@@ -8,48 +8,79 @@ import mwclient
 
 from ..utils.verify import verify_required_fields
 from ..utils.wikitext import ensure_file_prefix
+from .errors import RateLimitedError
 
 logger = logging.getLogger(__name__)
 
 
-def is_pages_exists(
-    titles: list[str],
-    site: mwclient.Site,
-) -> dict[str, bool]:
-    result = {}
+class MwClientPage:
+    def __init__(self, title: str, site: mwclient.Site) -> None:
+        self.title = title
+        self.site = site
+        self.load_page_error = ""
 
-    for i in range(0, len(titles), 50):
-        group = titles[i : i + 50]
+    def load_page(self):
+        try:
+            page = self.site.Pages[self.title]
+        except mwclient.errors.InvalidPageTitle:
+            logger.warning(f"Title {self.title} is invalid")
+            self.load_page_error = "invalidpagetitle"
+            return False
 
-        group = [f"File:{file.removeprefix('File:')}" for file in group]
+        except Exception as exc:
+            self.load_page_error = str(exc)
+            logger.exception(f"Failed to load page {self.title}", exc_info=exc)
+            return False
 
-        json1 = site.get("query", titles="|".join(group))
+        return page
 
-        query = json1.get("query", {})
+    def check_exists(self) -> bool:
+        page = self.load_page()
 
-        normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
+        if not page or not page.exists:
+            logger.warning(f"Title {self.title} not exists")
+            return False
 
-        query_pages = query.get("pages", {})
-        for _, kk in query_pages.items():
-            title = kk.get("title", "")
-            if title:
-                original_title = normalized.get(title, title)
-                result[original_title] = "missing" not in kk
+        logger.warning(f"Title {self.title} exists")
+        return True
 
-    return result
+    def edit_page(self, text, summary) -> dict[str, any]:
+        page = self.load_page()
+
+        if not page:
+            return {"success": False, "error": self.load_page_error}
+
+        try:
+            page.edit(text, summary=summary)
+            return {"success": True}
+
+        except mwclient.errors.EditError:
+            return {"success": False, "error": "editerror"}
+
+        except mwclient.errors.ProtectedPageError:
+            return {"success": False, "error": "protectedpageerror"}
+
+        except Exception as exc:
+            error_msg = str(exc)
+            if "ratelimited" in error_msg:
+                logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
+                return {"success": False, "error": "ratelimited"}
+
+            logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
+            return {"success": False, "error": error_msg}
 
 
 def is_page_exists(
     page_title: str,
     site: mwclient.Site,
 ) -> bool:
+    page_obj = MwClientPage(page_title, site)
+    return page_obj.check_exists()
 
-    page = site.Pages[page_title]
 
-    if page.exists:
-        logger.warning(f"File {page_title} already exists on Commons")
-        return True
-    return False
+def edit_page(site, title, text, summary) -> dict[str, any]:
+    page_obj = MwClientPage(title, site)
+    return page_obj.edit_page(text, summary)
 
 
 def create_page(
@@ -82,20 +113,7 @@ def create_page(
         logger.error(f"Missing required fields for create_page: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    try:
-        page = site.pages[page_name]
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to load page {page_name}", exc_info=exc)
-        return {"success": False, "error": error_msg}
-
-    try:
-        page.edit(wikitext, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to create page {page_name}", exc_info=exc)
-        return {"success": False, "error": error_msg}
+    return edit_page(site, page_name, wikitext, summary)
 
 
 def update_file_text(
@@ -130,14 +148,7 @@ def update_file_text(
 
     summary = "Adding/updating {{Image extracted}}"
 
-    try:
-        page = site.pages[original_file]
-        page.edit(updated_file_text, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to update wikitext for {original_file}", exc_info=exc)
-        return {"success": False, "error": error_msg}
+    return edit_page(site, original_file, updated_file_text, summary)
 
 
 def update_page_text(
@@ -170,14 +181,34 @@ def update_page_text(
         logger.error(f"Missing required fields for update_page_text: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    try:
-        page = site.pages[page_name]
-        page.edit(updated_text, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to update wikitext for {page_name}", exc_info=exc)
-        return {"success": False, "error": error_msg}
+    return edit_page(site, page_name, updated_text, summary)
+
+
+def is_pages_exists(
+    titles: list[str],
+    site: mwclient.Site,
+) -> dict[str, bool]:
+    result = {}
+
+    for i in range(0, len(titles), 50):
+        group = titles[i : i + 50]
+
+        group = [f"File:{file.removeprefix('File:')}" for file in group]
+
+        json1 = site.get("query", titles="|".join(group))
+
+        query = json1.get("query", {})
+
+        normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
+
+        query_pages = query.get("pages", {})
+        for _, kk in query_pages.items():
+            title = kk.get("title", "")
+            if title:
+                original_title = normalized.get(title, title)
+                result[original_title] = "missing" not in kk
+
+    return result
 
 
 __all__ = [

@@ -59,7 +59,7 @@ class TestIsPageExists:
             result = is_page_exists("File:Existing.svg", mock_site)
 
         assert result is True
-        assert "File:Existing.svg already exists on Commons" in caplog.text
+        assert "Title File:Existing.svg exists" in caplog.text
 
 
 class TestCreatePage:
@@ -174,7 +174,7 @@ class TestCreatePage:
 
         assert result["success"] is False
         assert "Edit failed" in result["error"]
-        assert "Failed to create page File:Test.svg" in caplog.text
+        assert "Failed to edit page File:Test.svg" in caplog.text
 
 
 class TestUpdateFileText:
