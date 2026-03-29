@@ -222,7 +222,7 @@ class TestIsCroppedFileExisting:
         mock_site = MagicMock()
         mock_page = MagicMock()
         mock_page.exists = True
-        mock_site.Pages = {"File:test (cropped).svg": mock_page}
+        mock_site.pages = {"File:test (cropped).svg": mock_page}
 
         result = is_cropped_file_existing("File:test (cropped).svg", mock_site)
 
@@ -233,7 +233,7 @@ class TestIsCroppedFileExisting:
         mock_site = MagicMock()
         mock_page = MagicMock()
         mock_page.exists = False
-        mock_site.Pages = {"File:test (cropped).svg": mock_page}
+        mock_site.pages = {"File:test (cropped).svg": mock_page}
 
         result = is_cropped_file_existing("File:test (cropped).svg", mock_site)
 
@@ -1074,7 +1074,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         # Use a MagicMock for Pages to handle any key access
         mock_pages = MagicMock()
         mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.Pages = mock_pages
+        mock_site.pages = mock_pages
 
         mock_services["get_user_site"].return_value = mock_site
         mock_services["get_file_text"].return_value = "Original file text"
@@ -1115,7 +1115,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         # Use a MagicMock for Pages to handle any key access
         mock_pages = MagicMock()
         mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.Pages = mock_pages
+        mock_site.pages = mock_pages
 
         mock_services["get_user_site"].return_value = mock_site
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
@@ -1162,7 +1162,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         # Use a MagicMock for Pages to handle any key access
         mock_pages = MagicMock()
         mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.Pages = mock_pages
+        mock_site.pages = mock_pages
 
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
@@ -1205,7 +1205,7 @@ class TestCropMainFilesProcessorRun:
         # Use a MagicMock for Pages to handle any key access
         mock_pages = MagicMock()
         mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.Pages = mock_pages
+        mock_site.pages = mock_pages
 
         mock_services["get_user_site"].return_value = mock_site
         mock_services["create_commons_session"].return_value = MagicMock()
@@ -1275,7 +1275,7 @@ class TestProcessCrops:
         mock_site = MagicMock()
         mock_page = MagicMock()
         mock_page.exists = False
-        mock_site.Pages = {"File:test (cropped).svg": mock_page}
+        mock_site.pages = {"File:test (cropped).svg": mock_page}
 
         mock_services["get_user_site"].return_value = mock_site
         mock_services["create_commons_session"].return_value = MagicMock()

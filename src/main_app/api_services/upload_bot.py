@@ -28,7 +28,7 @@ def upload_file(
     if file_name.lower().startswith("file:"):
         file_name = file_name[5:].lstrip()
 
-    page = site.Pages[f"File:{file_name}"]
+    page = site.pages[f"File:{file_name}"]
     if not new_file:
         # Check if file exists
         if not page.exists:

@@ -75,7 +75,7 @@ def is_cropped_file_existing(
     site: mwclient.Site | None,
 ) -> bool:
 
-    page = site.Pages[cropped_filename]
+    page = site.pages[cropped_filename]
 
     if page.exists:
         logger.warning(f"File {cropped_filename} already exists on Commons")

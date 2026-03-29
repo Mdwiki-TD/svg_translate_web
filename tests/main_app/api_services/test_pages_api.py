@@ -26,34 +26,34 @@ class TestIsPageExists:
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = True
-        mock_site.Pages = MagicMock()
-        mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
+        mock_site.pages = MagicMock()
+        mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = is_page_exists("File:Test.svg", mock_site)
 
         assert result is True
-        mock_site.Pages.__getitem__.assert_called_once_with("File:Test.svg")
+        mock_site.pages.__getitem__.assert_called_once_with("File:Test.svg")
 
     def test_page_not_exists_returns_false(self) -> None:
         """Test that is_page_exists returns False when page does not exist."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = False
-        mock_site.Pages = MagicMock()
-        mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
+        mock_site.pages = MagicMock()
+        mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
         result = is_page_exists("File:NonExistent.svg", mock_site)
 
         assert result is False
-        mock_site.Pages.__getitem__.assert_called_once_with("File:NonExistent.svg")
+        mock_site.pages.__getitem__.assert_called_once_with("File:NonExistent.svg")
 
     def test_page_exists_logs_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test that is_page_exists logs a warning when page exists."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.exists = True
-        mock_site.Pages = MagicMock()
-        mock_site.Pages.__getitem__ = MagicMock(return_value=mock_page)
+        mock_site.pages = MagicMock()
+        mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
         with caplog.at_level(logging.WARNING):
             result = is_page_exists("File:Existing.svg", mock_site)
