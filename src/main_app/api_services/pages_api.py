@@ -80,6 +80,9 @@ class MwClientPage:
         except RateLimitedError:
             return {"success": False, "error": "ratelimited"}
 
+        except mwclient.errors.APIError as exc:
+            return {"success": False, "error": exc.code}
+
         except Exception as exc:
             error_msg = str(exc)
             return {"success": False, "error": error_msg}
