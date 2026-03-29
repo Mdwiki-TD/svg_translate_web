@@ -58,7 +58,8 @@ class MwClientPage:
                 raise RateLimitedError("You've exceeded your rate limit. Please wait some time and try again.") from exc
 
             raise
-        except Exception:
+        except Exception as exc:
+            logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             raise
 
     def edit_page(self, text, summary) -> dict[str, any]:
@@ -71,11 +72,12 @@ class MwClientPage:
             self._edit(text, summary, page)
             return {"success": True}
 
-        except mwclient.errors.EditError:
-            return {"success": False, "error": "editerror"}
+        except mwclient.errors.EditError as exc:
+            return {"success": False, "error": "editerror", "details": str(exc)}
 
-        except mwclient.errors.ProtectedPageError:
-            return {"success": False, "error": "protectedpageerror"}
+        except mwclient.errors.ProtectedPageError as exc:
+            details = {"code": exc.code, "info": exc.info}
+            return {"success": False, "error": "protectedpageerror", "details": str(details)}
 
         except RateLimitedError:
             return {"success": False, "error": "ratelimited"}
