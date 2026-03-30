@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class OwidChartRecord:
     """Representation of an OWID chart record."""
 
-    id: int
+    chart_id: int
     slug: str
     title: str
     has_map_tab: bool
@@ -54,7 +54,7 @@ class OwidChartsDB:
 
     def _row_to_record(self, row: dict[str, Any]) -> OwidChartRecord:
         return OwidChartRecord(
-            id=int(row["id"]),
+            chart_id=int(row["chart_id"]),
             slug=row["slug"],
             title=row["title"],
             has_map_tab=bool(row.get("has_map_tab", 0)),
@@ -79,8 +79,9 @@ class OwidChartsDB:
     def _fetch_by_id(self, chart_id: int) -> OwidChartRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT * FROM owid_charts_with_templates
-            WHERE id = %s
+            SELECT * FROM owid_charts_templates oct, owid_charts oc
+            WHERE oct.chart_id = %s
+            and oct.chart_id = oc.chart_id
             """,
             (chart_id,),
         )
@@ -92,8 +93,9 @@ class OwidChartsDB:
         """Fetch a single chart by its slug from the view."""
         rows = self.db.fetch_query_safe(
             """
-            SELECT * FROM owid_charts_with_templates
-            WHERE slug = %s
+            SELECT * FROM owid_charts_templates oct, owid_charts oc
+            WHERE oct.slug = %s
+            and oct.chart_id = oc.chart_id
             """,
             (slug,),
         )
@@ -105,8 +107,9 @@ class OwidChartsDB:
         """List all charts from the view."""
         rows = self.db.fetch_query_safe(
             """
-            SELECT * FROM owid_charts_with_templates
-            ORDER BY id ASC
+            SELECT * FROM owid_charts_templates oct, owid_charts oc
+            WHERE oct.chart_id = oc.chart_id
+            ORDER BY oc.chart_id ASC
             """
         )
         return [self._row_to_record(row) for row in rows]
@@ -115,9 +118,10 @@ class OwidChartsDB:
         """List all published charts from the view."""
         rows = self.db.fetch_query_safe(
             """
-            SELECT * FROM owid_charts_with_templates
-            WHERE is_published = 1
-            ORDER BY id ASC
+            SELECT * FROM owid_charts_templates oct, owid_charts oc
+            WHERE oct.chart_id = oc.chart_id
+            AND oc.is_published = 1
+            ORDER BY oc.chart_id ASC
             """
         )
         return [self._row_to_record(row) for row in rows]
@@ -204,7 +208,7 @@ class OwidChartsDB:
                 update_values.append(value)
 
         if update_fields:
-            query = f"UPDATE owid_charts SET {', '.join(update_fields)} WHERE id = %s"
+            query = f"UPDATE owid_charts SET {', '.join(update_fields)} WHERE chart_id = %s"
             update_values.append(chart_id)
             self.db.execute_query_safe(query, tuple(update_values))
 
@@ -237,7 +241,7 @@ class OwidChartsDB:
                 has_map_tab = %s, max_time = %s, min_time = %s,
                 default_tab = %s, is_published = %s,
                 single_year_data = %s, len_years = %s, has_timeline = %s
-            WHERE id = %s
+            WHERE chart_id = %s
             """,
             (
                 slug,
@@ -259,7 +263,7 @@ class OwidChartsDB:
         """Delete a chart."""
         record = self._fetch_by_id(chart_id)
         self.db.execute_query_safe(
-            "DELETE FROM owid_charts WHERE id = %s",
+            "DELETE FROM owid_charts WHERE chart_id = %s",
             (chart_id,),
         )
         return record

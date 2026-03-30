@@ -14,7 +14,7 @@
     <div class="card-body">
         <form method="post" action="{{ url_for('admin.update_chart') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="id" value="{{ chart.id }}" />
+            <input type="hidden" name="chart_id" value="{{ chart.chart_id }}" />
             <input type="hidden" name="from_popup" value="1" />
 
             <div class="mb-3">

@@ -122,14 +122,12 @@
             <table class="table table-hover align-middle mb-0 DataTable">
                 <thead>
                     <tr>
-                        <th scope="col" style="width: 5%">#</th>
+                        <th scope="col">#</th>
                         <th scope="col">Slug</th>
                         <th scope="col">Title</th>
-                        <th scope="col" class="text-center">has_map_tab</th>
-                        <th scope="col" class="text-center">has_timeline</th>
-                        <th scope="col" class="text-center">min_time</th>
-                        <th scope="col" class="text-center">max_time</th>
-                        <th scope="col">len_years</th>
+                        <th scope="col" class="text-center">map</th>
+                        <th scope="col" class="text-center">timeline</th>
+                        <th scope="col" class="text-center">Years</th>
                         <th scope="col">Published</th>
                         <th scope="col">Template</th>
                         <th scope="col">Edit</th>
@@ -160,13 +158,12 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {{ chart.min_time }}
-                        </td>
-                        <td class="text-center">
-                            {{ chart.max_time }}
-                        </td>
-                        <td class="text-center">
-                            {{ chart.len_years }}
+                            {{ chart.min_time }} - {{ chart.max_time }}
+                            {% if chart.len_years %}
+                            <small class="text-muted">({{ chart.len_years }})</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </td>
                         <td class="text-center">
                             {% if chart.is_published %}
@@ -187,7 +184,7 @@
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('admin.edit_chart', chart_id=chart.id) }}"
+                                pup-target="{{ url_for('admin.edit_chart', chart_id=chart.chart_id) }}"
                                 onclick="pup_window_new(this)">
                                 <i class="bi bi-pencil"></i> Edit
                             </button>

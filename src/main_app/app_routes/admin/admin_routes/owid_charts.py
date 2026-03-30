@@ -41,7 +41,7 @@ def create_json_file() -> Tuple[Any, int]:
 
         charts_data = [
             {
-                "id": chart.id,
+                "chart_id": chart.chart_id,
                 "slug": chart.slug,
                 "title": chart.title,
                 "has_map_tab": chart.has_map_tab,
@@ -141,7 +141,7 @@ def _add_chart() -> ResponseReturnValue:
 
 def _update_chart() -> ResponseReturnValue:
     """Update a chart from the submitted form data."""
-    chart_id = request.form.get("id", default=0, type=int)
+    chart_id = request.form.get("chart_id", default=0, type=int)
     from_popup = request.form.get("from_popup") == "1"
 
     if not chart_id:
