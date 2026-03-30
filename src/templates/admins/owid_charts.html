@@ -119,9 +119,6 @@
                         <th scope="col" style="width: 5%">#</th>
                         <th scope="col">Slug</th>
                         <th scope="col">Title</th>
-                        <th scope="col" class="text-center">Map</th>
-                        <th scope="col" class="text-center">Timeline</th>
-                        <th scope="col" class="text-center">Years</th>
                         <th scope="col" class="text-center">Published</th>
                         <th scope="col" class="text-center">Template</th>
                         <th scope="col" class="text-center" style="width: 10%">Actions</th>
@@ -135,9 +132,7 @@
                             <code>{{ chart.slug }}</code>
                         </td>
                         <td>
-                            <a href="{{ chart.url }}" target="_blank" rel="noopener noreferrer">
-                                {{ chart.title }}
-                            </a>
+                            {{ chart.title }}
                         </td>
                         <td class="text-center">
                             {% if chart.has_map_tab %}
