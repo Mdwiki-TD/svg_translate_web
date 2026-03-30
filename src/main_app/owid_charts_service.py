@@ -69,7 +69,6 @@ def get_chart_by_slug(slug: str) -> OwidChartRecord:
 def add_chart(
     slug: str,
     title: str,
-    url: str,
     has_map_tab: bool = False,
     max_time: int | None = None,
     min_time: int | None = None,
@@ -84,7 +83,6 @@ def add_chart(
     return store.add(
         slug=slug,
         title=title,
-        url=url,
         has_map_tab=has_map_tab,
         max_time=max_time,
         min_time=min_time,
@@ -100,7 +98,6 @@ def update_chart(
     chart_id: int,
     slug: str,
     title: str,
-    url: str,
     has_map_tab: bool = False,
     max_time: int | None = None,
     min_time: int | None = None,
@@ -116,7 +113,6 @@ def update_chart(
         chart_id=chart_id,
         slug=slug,
         title=title,
-        url=url,
         has_map_tab=has_map_tab,
         max_time=max_time,
         min_time=min_time,
