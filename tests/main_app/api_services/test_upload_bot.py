@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import mwclient
 import pytest
 
 from src.main_app.api_services.upload_bot import upload_file
@@ -59,7 +60,7 @@ def test_upload_file_fileexists_no_change(mock_path_cls, mock_open, mock_site):
     mock_path_instance.exists.return_value = True
     mock_path_cls.return_value = mock_path_instance
 
-    mock_site.upload.side_effect = Exception("fileexists-no-change")
+    mock_site.upload.side_effect = mwclient.errors.APIError("fileexists-no-change", "The upload is an exact duplicate of the current version of [[:File:svg.png]].", {})
 
-    res = upload_file("file.svg", "/path/to/file", site=mock_site)
-    assert res == {"error": "fileexists-no-change"}
+    res = upload_file("File.svg", "/path/to/file", site=mock_site)
+    assert res == {"error": "fileexists-no-change", "error_details": ""}
