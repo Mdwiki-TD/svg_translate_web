@@ -100,10 +100,9 @@ def _add_chart() -> ResponseReturnValue:
     """Create a new chart from the submitted form data."""
     slug = request.form.get("slug", "").strip()
     title = request.form.get("title", "").strip()
-    url = request.form.get("url", "").strip()
 
-    if not slug or not title or not url:
-        flash("Slug, Title, and URL are required.", "danger")
+    if not slug or not title:
+        flash("Slug and Title are required.", "danger")
         return redirect(url_for("admin.owid_charts_dashboard"))
 
     has_map_tab = request.form.get("has_map_tab") == "on"
@@ -119,7 +118,6 @@ def _add_chart() -> ResponseReturnValue:
         record = owid_charts_service.add_chart(
             slug=slug,
             title=title,
-            url=url,
             has_map_tab=has_map_tab,
             max_time=max_time,
             min_time=min_time,
@@ -154,10 +152,9 @@ def _update_chart() -> ResponseReturnValue:
 
     slug = request.form.get("slug", "").strip()
     title = request.form.get("title", "").strip()
-    url = request.form.get("url", "").strip()
 
-    if not slug or not title or not url:
-        flash("Slug, Title, and URL are required.", "danger")
+    if not slug or not title:
+        flash("Slug and Title are required.", "danger")
         if from_popup:
             return render_template("admins/popup_action.html")
         return redirect(url_for("admin.owid_charts_dashboard"))
@@ -176,7 +173,6 @@ def _update_chart() -> ResponseReturnValue:
             chart_id=chart_id,
             slug=slug,
             title=title,
-            url=url,
             has_map_tab=has_map_tab,
             max_time=max_time,
             min_time=min_time,
