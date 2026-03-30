@@ -9,15 +9,14 @@ from unittest.mock import MagicMock, patch, call
 import pytest
 import mwclient.errors
 
-from src.main_app.api_services.mwclient_page import MwClientPage
+from src.main_app.api_services.mwclient_page import MwClientPage, _RETRY_DELAYS
+
 
 # ── fixtures ───────────────────────────────────────────────────────────────────
 
-
 @pytest.fixture
 def mock_site():
-    site = MagicMock()
-    return site
+    return MagicMock()
 
 
 @pytest.fixture
@@ -32,7 +31,20 @@ def mw_client(mock_site):
     return MwClientPage("Test Page", mock_site)
 
 
-# ── load_page ──────────────────────────────────────────────────────────────────
+# ── helpers ────────────────────────────────────────────────────────────────────
+
+def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
+    return mwclient.errors.APIError(code, info, {})
+
+
+def make_protected_page_error(code="protectedpage", info="Protected"):
+    page = MagicMock()
+    return mwclient.errors.ProtectedPageError(page, code, info)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# load_page
+# ══════════════════════════════════════════════════════════════════════════════
 
 class TestLoadPage:
     def test_returns_page_on_success(self, mw_client, mock_site, mock_page):
