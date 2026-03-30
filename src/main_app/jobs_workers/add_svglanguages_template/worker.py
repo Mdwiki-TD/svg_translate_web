@@ -20,7 +20,7 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 
-from .utils import load_link, RE_SVG_LANG, add_template_to_text
+from .utils import load_link_file_name, RE_SVG_LANG, add_template_to_text
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
@@ -159,7 +159,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def _step_generate_template_text(self, info: TemplateInfo) -> bool:
         """
         """
-        translate_link_file_name = load_link(info._text)
+        translate_link_file_name = load_link_file_name(info._text)
 
         if not translate_link_file_name:
             self._fail(info, "generate_template_text", f"Could not load Translate link for {info.template_title}")

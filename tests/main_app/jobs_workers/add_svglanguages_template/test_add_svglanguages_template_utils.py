@@ -1,8 +1,8 @@
 
-from src.main_app.jobs_workers.add_svglanguages_template.utils import load_link, add_template_to_text
+from src.main_app.jobs_workers.add_svglanguages_template.utils import load_link_file_name, add_template_to_text
 
 
-def test_load_link():
+def test_load_link_file_name():
     wikitext = """
 *[[Commons:List of interactive graphs|Return to list]]
 
@@ -33,6 +33,6 @@ def test_load_link():
 {{-}}
     """
 
-    file_name = load_link(wikitext)
+    file_name = load_link_file_name(wikitext)
     expected = "share_with_mental_and_substance_disorders,_World,_1990.svg"
     assert file_name == expected

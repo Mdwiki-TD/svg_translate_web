@@ -6,7 +6,7 @@ RE_SVG_LANG = re.compile(r"\{\{\s*SVGLanguages\s*\|\s*([^}|]+)", re.I)
 RE_TRANSLATE = re.compile(r"\*\s*'''Translat\w+'''\s*:\s*https://svgtranslate\.toolforge\.org/File:([^ \n]+)", re.I)
 
 
-def load_link(text) -> str | None:
+def load_link_file_name(text) -> str | None:
     trans_match = RE_TRANSLATE.search(text)
     if trans_match:
         link = trans_match.group(1).strip()
