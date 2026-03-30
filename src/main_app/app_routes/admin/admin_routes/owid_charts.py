@@ -88,7 +88,7 @@ def _charts_dashboard():
         "has_timeline": len([c for c in charts if c.has_timeline]),
     }
     return render_template(
-        "admins/owid_charts.html",
+        "admins/owid_charts/list.html",
         current_user=user,
         charts=charts,
         total_charts=total,
@@ -222,13 +222,13 @@ def _edit_chart(chart_id: int) -> ResponseReturnValue:
         chart = owid_charts_service.get_chart(chart_id)
     except LookupError:
         return render_template(
-            "admins/owid_chart_edit.html",
+            "admins/owid_charts/edit.html",
             error="Chart not found",
             chart=None,
         )
 
     return render_template(
-        "admins/owid_chart_edit.html",
+        "admins/owid_charts/edit.html",
         chart=chart,
         error=None,
     )

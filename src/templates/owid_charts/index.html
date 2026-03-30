@@ -19,10 +19,7 @@
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <a href="{{ chart.url }}" target="_blank" rel="noopener noreferrer"
-                            class="text-decoration-none">
-                            {{ chart.title }}
-                        </a>
+                        {{ chart.title }}
                     </h5>
                     <h6 class="card-subtitle mb-2 text-muted">
                         <code>{{ chart.slug }}</code>
@@ -57,10 +54,12 @@
                     {% endif %}
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a href="{{ chart.url }}" target="_blank" rel="noopener noreferrer"
-                        class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-box-arrow-up-right"></i> View Chart
+                    {% if chart.template_title %}
+                    <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}" target="_blank"
+                        rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-box-arrow-up-right"></i> View Template
                     </a>
+                    {% endif %}
                     {% if chart.default_tab %}
                     <span class="text-muted ms-2">
                         <small>Default: {{ chart.default_tab }}</small>
