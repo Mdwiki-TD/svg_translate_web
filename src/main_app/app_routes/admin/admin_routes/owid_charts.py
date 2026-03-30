@@ -79,28 +79,30 @@ def _charts_dashboard():
     """Render the charts management dashboard."""
     user = current_user()
     template_filter = request.args.get("template", "").strip()
-    charts: List[OwidChartRecord] = owid_charts_service.list_charts()
-
-    total = len(charts)
-    summary = {
-        "total": total,
-        "published": len([c for c in charts if c.is_published]),
-        "with_template": len([c for c in charts if c.template_id]),
-        "has_map_tab": len([c for c in charts if c.has_map_tab]),
-        "has_timeline": len([c for c in charts if c.has_timeline]),
-    }
+    all_charts: List[OwidChartRecord] = owid_charts_service.list_charts()
 
     if template_filter == "has_template":
-        charts = [c for c in charts if c.template_title]
+        charts = [c for c in all_charts if c.template_title]
     elif template_filter == "no_template":
-        charts = [c for c in charts if not c.template_title]
+        charts = [c for c in all_charts if not c.template_title]
+    else:
+        charts = all_charts
+
+    total = len(all_charts)
+    all_charts_summary = {
+        "total": total,
+        "published": len([c for c in all_charts if c.is_published]),
+        "with_template": len([c for c in all_charts if c.template_id]),
+        "has_map_tab": len([c for c in all_charts if c.has_map_tab]),
+        "has_timeline": len([c for c in all_charts if c.has_timeline]),
+    }
 
     return render_template(
         "admins/owid_charts/list.html",
         current_user=user,
         charts=charts,
         total_charts=total,
-        summary=summary,
+        all_charts_summary=all_charts_summary,
         selected_template=template_filter,
     )
 

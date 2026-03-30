@@ -10,13 +10,13 @@
         </a>
     </div>
     <div class="card-body">
-        {% if summary %}
+        {% if all_charts_summary %}
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Charts</h2>
-                        <p class="display-6 mb-0">{{ summary.total }}</p>
+                        <p class="display-6 mb-0">{{ all_charts_summary.total }}</p>
                     </div>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Published</h2>
-                        <p class="display-6 mb-0">{{ summary.published }}</p>
+                        <p class="display-6 mb-0">{{ all_charts_summary.published }}</p>
                     </div>
                 </div>
             </div>
@@ -32,7 +32,7 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Template</h2>
-                        <p class="display-6 mb-0">{{ summary.with_template }}</p>
+                        <p class="display-6 mb-0">{{ all_charts_summary.with_template }}</p>
                     </div>
                 </div>
             </div>
@@ -40,7 +40,7 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Has Map Tab</h2>
-                        <p class="display-6 mb-0">{{ summary.has_map_tab }}</p>
+                        <p class="display-6 mb-0">{{ all_charts_summary.has_map_tab }}</p>
                     </div>
                 </div>
             </div>
@@ -120,28 +120,26 @@
 
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
-                <form method="get" action="{{ url_for('admin.owid_charts_dashboard') }}" class="row g-2 align-items-end">
-                    <div class="col-md-3 col-sm-12">
-                        <div class="input-group">
-                            <span class="input-group-text">Filter by Template</span>
-                            <select class="form-select" id="template_filter" name="template">
-                                <option value="">All</option>
-                                <option value="has_template" {% if selected_template == 'has_template' %}selected{% endif %}>Has Template</option>
-                                <option value="no_template" {% if selected_template == 'no_template' %}selected{% endif %}>No Template</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-sm-12">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-funnel"></i> Filter
-                        </button>
-                    </div>
-                    <div class="col-md-2 col-sm-12">
-                        <a href="{{ url_for('admin.owid_charts_dashboard') }}" class="btn btn-secondary w-100">
-                            <i class="bi bi-x-circle"></i> Clear
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_template == '' %}active{% endif %}"
+                            href="{{ url_for('admin.owid_charts_dashboard') }}">
+                            All ({{ total_charts }})
                         </a>
-                    </div>
-                </form>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
+                            href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
+                            With Templates ({{ all_charts_summary.with_template }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
+                            href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
+                            Without Templates ({{ total_charts - all_charts_summary.with_template }})
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
 
