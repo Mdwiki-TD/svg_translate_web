@@ -44,7 +44,6 @@ def create_json_file() -> Tuple[Any, int]:
                 "id": chart.id,
                 "slug": chart.slug,
                 "title": chart.title,
-                "url": chart.url,
                 "has_map_tab": chart.has_map_tab,
                 "max_time": chart.max_time,
                 "min_time": chart.min_time,
@@ -55,8 +54,6 @@ def create_json_file() -> Tuple[Any, int]:
                 "has_timeline": chart.has_timeline,
                 "template_id": chart.template_id,
                 "template_title": chart.template_title,
-                "main_file": chart.main_file,
-                "last_world_file": chart.last_world_file,
                 "template_source": chart.template_source,
             }
             for chart in charts
