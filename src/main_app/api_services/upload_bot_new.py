@@ -121,10 +121,13 @@ class UploadFile:
 
         Returns:
             JSON result from the API.
+
         Returns Examples:
             - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
-            - {"result": "Warning", "warnings": {"duplicate": ["...jpg"]}, "filekey": "x", "sessionkey": "x"}
-            - {"result":"Warning", "warnings": {"exists": "..png", "nochange": {"timestamp": "..."}}, "filekey": "x.", "sessionkey": "x"}
+            - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
+            warnings Examples:
+                - {"duplicate": ["...jpg"]}
+                - {"exists": "..png", "nochange": {"timestamp": "..."}}
 
         Raises:
             TypeError
