@@ -73,7 +73,9 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.user == user
         assert worker.cancel_event == cancel_event
         assert worker.site is None
-        assert worker.result == {}
+        # result is initialized by parent class with initial structure
+        assert "status" in worker.result
+        assert worker.result["status"] == "pending"
 
     def test_get_job_type(self, mock_jobs_service):
         """Test get_job_type returns correct job type."""
