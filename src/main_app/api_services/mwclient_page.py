@@ -53,6 +53,10 @@ class MwClientPage:
             page.edit(text, summary=summary)
             return {"success": True}
 
+        except mwclient.errors.ProtectedPageError as exc:
+            details = {"code": exc.code, "info": exc.info}
+            return {"success": False, "error": "protectedpageerror", "details": str(details)}
+
         except mwclient.errors.EditError as exc:
             return {"success": False, "error": "editerror", "details": str(exc)}
 
@@ -61,10 +65,6 @@ class MwClientPage:
 
         except mwclient.errors.UserBlocked:
             return {"success": False, "error": "userblocked"}
-
-        except mwclient.errors.ProtectedPageError as exc:
-            details = {"code": exc.code, "info": exc.info}
-            return {"success": False, "error": "protectedpageerror", "details": str(details)}
 
         except mwclient.errors.APIError as exc:
             if exc.code == "ratelimited":
