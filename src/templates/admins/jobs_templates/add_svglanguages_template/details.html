@@ -81,7 +81,6 @@
                     <tr>
                         <th>#</th>
                         <th>Template</th>
-                        <th>New Page</th>
                         <th>Load Text</th>
                         <th>Generate Text</th>
                         <th>Create Page</th>
@@ -97,15 +96,7 @@
                                 {{ item.template_title }}
                             </a>
                         </td>
-                        <td>
-                            {% if item.new_page_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_page_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                OWID Page
-                            </a>
-                            {% else %} - {% endif %}
-                        </td>
-                        {% set step_keys = [ 'load_template_text', 'create_new_text', 'create_new_page' ] %}
+                        {% set step_keys = [ 'load_template_text', 'generate_template_text', 'add_template_text', 'save_new_text' ] %}
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}

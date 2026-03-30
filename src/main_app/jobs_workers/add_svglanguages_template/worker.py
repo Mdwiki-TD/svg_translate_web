@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 import threading
-import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict
@@ -21,11 +20,10 @@ from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
 
+from .utils import load_link, RE_SVG_LANG, add_template_to_text
+
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
-
-RE_SVG_LANG = re.compile(r"\{\{\s*SVGLanguages\s*\|\s*([^}|]+)", re.I)
-RE_TRANSLATE = re.compile(r"\*'''Translat\w+''':\s*https://svgtranslate\.toolforge\.org/File:([^ \n]+)", re.I)
 
 
 @dataclass
@@ -98,7 +96,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
+        _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
@@ -158,19 +156,10 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         info._text = text
         return True
 
-    def load_link(self, info) -> str | None:
-        trans_match = RE_TRANSLATE.search(info._text)
-        if trans_match:
-            link = trans_match.group(1).strip()
-            if link.startswith("https://svgtranslate.toolforge.org/File:"):
-                return link.replace("https://svgtranslate.toolforge.org/File:", "")
-
-        return None
-
     def _step_generate_template_text(self, info: TemplateInfo) -> bool:
         """
         """
-        translate_link_file_name = self.load_link(info)
+        translate_link_file_name = load_link(info._text)
 
         if not translate_link_file_name:
             self._fail(info, "generate_template_text", f"Could not load Translate link for {info.template_title}")
@@ -186,7 +175,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         """
 
         """
-        info._new_text = re.sub(RE_TRANSLATE, lambda m: m.group(0) + "\n" + info._template_text, info._text, count=1)
+        info._new_text = add_template_to_text(info._text, info._template_text)
 
         if info._text.strip() == info._new_text.strip():
             self._skip_step(info, "add_template_text", "Skipped - page content is already identical")
