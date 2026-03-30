@@ -68,6 +68,13 @@ def create_side(active_route):
                 title="Templates",
                 icon="bi-list-columns",
             ),
+            SidebarItem(
+                id="owid_charts",
+                admin=1,
+                href="owid-charts",
+                title="OWID Charts",
+                icon="bi-graph-up",
+            ),
         ],
         "Jobs": [
             SidebarItem(
@@ -161,13 +168,13 @@ def create_side(active_route):
                         <div class="d-none d-md-inline">
                             <!-- desktop -->
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                {''.join(lis)}
+                                {"".join(lis)}
                             </ul>
                         </div>
                         <div class="d-inline d-md-none">
                             <!-- mobile -->
                             <ul class="navbar-nav flex-row flex-wrap btn-toggle-nav-mobile list-unstyled fw-normal pb-1 small">
-                                {''.join(lis)}
+                                {"".join(lis)}
                             </ul>
                         </div>
                     </div>

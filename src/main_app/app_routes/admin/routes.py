@@ -15,6 +15,7 @@ from ...admins.admins_required import admin_required
 from .admin_routes import (
     Coordinators,
     Jobs,
+    OwidCharts,
     Recent,
     SettingsRoutes,
     Templates,
@@ -46,6 +47,8 @@ Coordinators(bp_admin)
 Recent(bp_admin)
 
 Templates(bp_admin)
+
+OwidCharts(bp_admin)
 
 Jobs(bp_admin)
 

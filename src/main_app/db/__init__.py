@@ -1,6 +1,7 @@
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
 from .db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from .db_OwidCharts import OwidChartRecord, OwidChartsDB
 from .db_Settings import SettingsDB
 from .db_StageStore import StageStore
 from .db_TasksListDB import TasksListDB
@@ -17,6 +18,8 @@ __all__ = [
     "CreateUpdateTask",
     "CoordinatorRecord",
     "CoordinatorsDB",
+    "OwidChartRecord",
+    "OwidChartsDB",
     "TemplateRecord",
     "TemplatesDB",
     "TasksListDB",

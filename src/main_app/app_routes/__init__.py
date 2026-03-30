@@ -6,6 +6,7 @@ from .explorer.routes import bp_explorer
 from .extract import bp_extract
 from .fix_nested import bp_fix_nested, bp_fix_nested_explorer
 from .main.routes import bp_main
+from .owid_charts_routes import bp_owid_charts
 from .tasks.routes import bp_tasks, close_task_store
 from .templates.routes import bp_templates
 
@@ -20,5 +21,6 @@ __all__ = [
     "bp_fix_nested",
     "bp_fix_nested_explorer",
     "bp_extract",
+    "bp_owid_charts",
     "close_task_store",
 ]

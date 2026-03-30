@@ -128,3 +128,50 @@ CREATE TABLE IF NOT EXISTS settings (
     PRIMARY KEY (`id`),
     UNIQUE KEY unique_key (`key`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS owid_charts (
+    id INT NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(255) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    url VARCHAR(1024) NOT NULL,
+    has_map_tab TINYINT(1) DEFAULT 0,
+    max_time INT DEFAULT NULL,
+    min_time INT DEFAULT NULL,
+    default_tab VARCHAR(50) DEFAULT NULL,
+    is_published TINYINT(1) DEFAULT 0,
+    single_year_data TINYINT(1) DEFAULT 0,
+    len_years INT DEFAULT NULL,
+    has_timeline TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_slug (slug),
+    KEY idx_slug (slug),
+    KEY idx_published (is_published)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+CREATE OR REPLACE VIEW owid_charts_with_templates AS
+SELECT 
+    c.id,
+    c.slug,
+    c.title,
+    c.url,
+    c.has_map_tab,
+    c.max_time,
+    c.min_time,
+    c.default_tab,
+    c.is_published,
+    c.single_year_data,
+    c.len_years,
+    c.has_timeline,
+    c.created_at,
+    c.updated_at,
+    t.id AS template_id,
+    t.title AS template_title,
+    t.main_file,
+    t.last_world_file,
+    t.source AS template_source
+FROM owid_charts c
+LEFT JOIN templates t 
+    ON SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug
+WHERE t.source IS NULL OR t.source LIKE '%/grapher/%';
