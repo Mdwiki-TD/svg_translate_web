@@ -20,7 +20,6 @@ class OwidChartRecord:
     id: int
     slug: str
     title: str
-    url: str
     has_map_tab: bool
     max_time: int | None
     min_time: int | None
@@ -33,8 +32,6 @@ class OwidChartRecord:
     updated_at: Any | None = None
     template_id: int | None = None
     template_title: str | None = None
-    main_file: str | None = None
-    last_world_file: str | None = None
     template_source: str | None = None
 
 
@@ -60,7 +57,6 @@ class OwidChartsDB:
             id=int(row["id"]),
             slug=row["slug"],
             title=row["title"],
-            url=row["url"],
             has_map_tab=bool(row.get("has_map_tab", 0)),
             max_time=row.get("max_time"),
             min_time=row.get("min_time"),
@@ -73,8 +69,6 @@ class OwidChartsDB:
             updated_at=row.get("updated_at"),
             template_id=row.get("template_id"),
             template_title=row.get("template_title"),
-            main_file=row.get("main_file"),
-            last_world_file=row.get("last_world_file"),
             template_source=row.get("template_source"),
         )
 
@@ -132,7 +126,6 @@ class OwidChartsDB:
         self,
         slug: str,
         title: str,
-        url: str,
         has_map_tab: bool = False,
         max_time: int | None = None,
         min_time: int | None = None,
@@ -145,28 +138,24 @@ class OwidChartsDB:
         """Add a new chart."""
         slug = slug.strip()
         title = title.strip()
-        url = url.strip()
 
         if not slug:
             raise ValueError("Slug is required")
         if not title:
             raise ValueError("Title is required")
-        if not url:
-            raise ValueError("URL is required")
 
         try:
             self.db.execute_query(
                 """
                 INSERT INTO owid_charts (
-                    slug, title, url, has_map_tab, max_time, min_time,
+                    slug, title, has_map_tab, max_time, min_time,
                     default_tab, is_published, single_year_data, len_years, has_timeline
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     slug,
                     title,
-                    url,
                     1 if has_map_tab else 0,
                     max_time,
                     min_time,
@@ -196,7 +185,6 @@ class OwidChartsDB:
         chart_fields = {
             "slug",
             "title",
-            "url",
             "has_map_tab",
             "max_time",
             "min_time",
@@ -227,7 +215,6 @@ class OwidChartsDB:
         chart_id: int,
         slug: str,
         title: str,
-        url: str,
         has_map_tab: bool = False,
         max_time: int | None = None,
         min_time: int | None = None,
@@ -242,12 +229,11 @@ class OwidChartsDB:
 
         slug = slug.strip()
         title = title.strip()
-        url = url.strip()
 
         self.db.execute_query_safe(
             """
             UPDATE owid_charts
-            SET slug = %s, title = %s, url = %s,
+            SET slug = %s, title = %s,
                 has_map_tab = %s, max_time = %s, min_time = %s,
                 default_tab = %s, is_published = %s,
                 single_year_data = %s, len_years = %s, has_timeline = %s
@@ -256,7 +242,6 @@ class OwidChartsDB:
             (
                 slug,
                 title,
-                url,
                 1 if has_map_tab else 0,
                 max_time,
                 min_time,

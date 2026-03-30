@@ -133,7 +133,6 @@ CREATE TABLE IF NOT EXISTS owid_charts (
     id INT NOT NULL AUTO_INCREMENT,
     slug VARCHAR(255) NOT NULL,
     title VARCHAR(500) NOT NULL,
-    url VARCHAR(1024) NOT NULL,
     has_map_tab TINYINT(1) DEFAULT 0,
     max_time INT DEFAULT NULL,
     min_time INT DEFAULT NULL,
@@ -155,7 +154,6 @@ SELECT
     c.id,
     c.slug,
     c.title,
-    c.url,
     c.has_map_tab,
     c.max_time,
     c.min_time,
@@ -168,10 +166,8 @@ SELECT
     c.updated_at,
     t.id AS template_id,
     t.title AS template_title,
-    t.main_file,
-    t.last_world_file,
     t.source AS template_source
 FROM owid_charts c
 LEFT JOIN templates t 
-    ON SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug
-WHERE t.source IS NULL OR t.source LIKE '%/grapher/%';
+    ON t.source LIKE '%/grapher/%'
+    AND SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug;

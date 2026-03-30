@@ -152,7 +152,6 @@ owid_charts = """
         id INT NOT NULL AUTO_INCREMENT,
         slug VARCHAR(255) NOT NULL,
         title VARCHAR(500) NOT NULL,
-        url VARCHAR(1024) NOT NULL,
         has_map_tab TINYINT(1) DEFAULT 0,
         max_time INT DEFAULT NULL,
         min_time INT DEFAULT NULL,
