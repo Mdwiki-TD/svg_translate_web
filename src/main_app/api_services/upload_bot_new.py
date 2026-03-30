@@ -52,11 +52,16 @@ class UploadFile:
         if not self.site:
             return self._err("No site provided")
 
-        if self.file_name is None:
-            return self._err("File name is None")
+        if not self.file_name:
+            return self._err("File name is required")
 
         if self.file_path is None:
             return self._err("File path is None")
+
+        file_path = Path(self.file_path)
+        if not file_path.is_file():
+            logger.error(f"File not found on server: {self.file_path}")
+            return self._err("File not found on server")
 
         page = self.site.pages[f"File:{self.file_name}"]
         if not self.new_file:
@@ -67,10 +72,6 @@ class UploadFile:
             if page.exists:
                 logger.error(f"File {self.file_name} already exists on Commons")
                 return self._err("File already exists on Commons")
-
-        if not Path(str(self.file_path)).exists():
-            logger.error(f"File not found on server: {self.file_path}")
-            return self._err("File not found on server")
 
         return self._err(None)
 

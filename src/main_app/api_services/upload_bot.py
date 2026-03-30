@@ -114,7 +114,7 @@ def _upload_file(
         return {"error": exc.code, "error_details": exc.info}
 
     except Exception as e:
-        logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
+        logger.exception(f"Unexpected error uploading {file_name} to Wikimedia Commons")
         return {"error": "Unknown error occurred", "error_details": str(e)}
 
 
@@ -128,8 +128,8 @@ def _check_kwargs(
     if not site:
         return {"error": "No site provided"}
 
-    if file_name is None:
-        return {"error": "File name is None"}
+    if not file_name:
+        return {"error": "File name is required"}
 
     if file_path is None:
         return {"error": "file path is None"}

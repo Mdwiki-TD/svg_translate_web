@@ -92,7 +92,7 @@ class TestCheckKwargs:
 
     def test_no_file_name(self, site, tmp_file):
         u = UploadFile(None, tmp_file, site)
-        assert u._check_kwargs() == _err("File name is None")
+        assert u._check_kwargs() == _err("File name is required")
 
     def test_no_file_path(self, site):
         u = UploadFile("Test.jpg", None, site)
