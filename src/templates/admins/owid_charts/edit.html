@@ -1,6 +1,6 @@
 {% extends "admins/popup_action.html" %}
 {% block title %}Edit Chart · Copy SVG Translation{% endblock %}
-{% block popup_contents %}
+{% block content %}
 
 {% if error %}
 <div class="alert alert-danger">
@@ -29,28 +29,33 @@
 
             <div class="mb-3">
                 <label for="default_tab" class="form-label">Default Tab</label>
-                <input type="text" class="form-control" id="default_tab" name="default_tab" value="{{ chart.default_tab or '' }}" placeholder="map, chart, or table">
+                <input type="text" class="form-control" id="default_tab" name="default_tab"
+                    value="{{ chart.default_tab or '' }}" placeholder="map, chart, or table">
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="min_time" class="form-label">Min Time (Year)</label>
-                    <input type="number" class="form-control" id="min_time" name="min_time" value="{{ chart.min_time or '' }}">
+                    <input type="number" class="form-control" id="min_time" name="min_time"
+                        value="{{ chart.min_time or '' }}">
                 </div>
                 <div class="col-md-6">
                     <label for="max_time" class="form-label">Max Time (Year)</label>
-                    <input type="number" class="form-control" id="max_time" name="max_time" value="{{ chart.max_time or '' }}">
+                    <input type="number" class="form-control" id="max_time" name="max_time"
+                        value="{{ chart.max_time or '' }}">
                 </div>
             </div>
 
             <div class="mb-3">
                 <label for="len_years" class="form-label">Length (Years)</label>
-                <input type="number" class="form-control" id="len_years" name="len_years" value="{{ chart.len_years or '' }}">
+                <input type="number" class="form-control" id="len_years" name="len_years"
+                    value="{{ chart.len_years or '' }}">
             </div>
 
             <div class="mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab" {% if chart.has_map_tab %}checked{% endif %}>
+                    <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab"
+                        {% if chart.has_map_tab %}checked{% endif %}>
                     <label class="form-check-label" for="has_map_tab">
                         Has Map Tab
                     </label>
@@ -59,7 +64,8 @@
 
             <div class="mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published" {% if chart.is_published %}checked{% endif %}>
+                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
+                        {% if chart.is_published %}checked{% endif %}>
                     <label class="form-check-label" for="is_published">
                         Published
                     </label>
@@ -68,7 +74,8 @@
 
             <div class="mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="single_year_data" name="single_year_data" {% if chart.single_year_data %}checked{% endif %}>
+                    <input class="form-check-input" type="checkbox" id="single_year_data" name="single_year_data"
+                        {% if chart.single_year_data %}checked{% endif %}>
                     <label class="form-check-label" for="single_year_data">
                         Single Year Data
                     </label>
@@ -77,7 +84,8 @@
 
             <div class="mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline" {% if chart.has_timeline %}checked{% endif %}>
+                    <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline"
+                        {% if chart.has_timeline %}checked{% endif %}>
                     <label class="form-check-label" for="has_timeline">
                         Has Timeline
                     </label>
@@ -87,7 +95,8 @@
             {% if chart.template_title %}
             <div class="alert alert-info">
                 <strong>Linked Template:</strong>
-                <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}" target="_blank" rel="noopener noreferrer">
+                <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}" target="_blank"
+                    rel="noopener noreferrer">
                     {{ chart.template_title }}
                 </a>
                 <br>
