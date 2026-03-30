@@ -63,9 +63,6 @@ class MwClientPage:
             details = {"code": exc.code, "info": exc.info}
             return {"success": False, "error": "protectedpageerror", "details": str(details)}
 
-        except RateLimitedError:
-            return {"success": False, "error": "ratelimited"}
-
         except mwclient.errors.APIError as exc:
             if exc.code == "ratelimited":
                 return {"success": False, "error": "ratelimited"}
@@ -83,14 +80,29 @@ class MwClientPage:
         if not page:
             return {"success": False, "error": self.load_page_error}
 
-        edit_result = self._edit_page(text, summary=summary)
+        edit_result = self._edit_page(page, text, summary=summary)
 
         if edit_result.get("error") != "ratelimited":
             return edit_result
 
         # handle retry
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+
+            logger.warning(
+                f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
+                f"for page '{self.title}'. Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+
+            edit_result = self._edit_page(page, text, summary=summary)
+
+            if edit_result.get("error") != "ratelimited":
+                return edit_result
+
+        return {"success": False, "error": "ratelimited"}
 
 # ── helper functions ───────────────────────────────────────────────────────────
+
 
 def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).check_exists()
