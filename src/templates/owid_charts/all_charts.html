@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}All OWID Charts (Test) · Copy SVG Translation{% endblock %}
+{% block contents %}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">All OWID Charts (Test Page)</h1>
+            <p class="lead text-muted">
+                This page shows ALL charts including unpublished ones.
+            </p>
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Test Page Only:</strong> This is for debugging. Use <a
+                    href="{{ url_for('owid_charts.index') }}">/owid-charts/</a> for the public view.
+            </div>
+        </div>
+    </div>
+
+    {% if charts %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <strong>Total Charts:</strong> {{ charts|length }}
+                (Published: {{ charts|selectattr('is_published')|list|length }})
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Slug</th>
+                    <th>Title</th>
+                    <th>Published</th>
+                    <th>Map Tab</th>
+                    <th>Timeline</th>
+                    <th>Years</th>
+                    <th>Template</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chart in charts %}
+                <tr>
+                    <td>{{ chart.id }}</td>
+                    <td>
+                        <code>{{ chart.slug }}</code>
+                    </td>
+                    <td>
+                        <a href="{{ chart.url }}" target="_blank" rel="noopener noreferrer">
+                            {{ chart.title }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if chart.is_published %}
+                        <span class="badge bg-success">Yes</span>
+                        {% else %}
+                        <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if chart.has_map_tab %}
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle-fill text-muted"></i>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if chart.has_timeline %}
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle-fill text-muted"></i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if chart.min_time and chart.max_time %}
+                        {{ chart.min_time }} - {{ chart.max_time }}
+                        {% if chart.len_years %}
+                        <small class="text-muted">({{ chart.len_years }})</small>
+                        {% endif %}
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if chart.template_title %}
+                        <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}" target="_blank"
+                            rel="noopener noreferrer">
+                            {{ chart.template_title | replace('Template:', '') }}
+                        </a>
+                        {% else %}
+                        <span class="text-muted">No template</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-danger">
+        <i class="bi bi-x-circle-fill"></i>
+        <strong>No charts found in database!</strong>
+        <p class="mb-0 mt-2">Please add charts from the admin panel or import from CSV.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
