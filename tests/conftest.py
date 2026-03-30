@@ -8,17 +8,18 @@ from unittest.mock import MagicMock
 
 import pytest
 from cryptography.fernet import Fernet
-from src.main_app.api_services.mwclient_page import MwClientPage
-
-CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
-if CopySVGTranslation_PATH and Path(CopySVGTranslation_PATH).is_dir():
-    sys.path.insert(0, str(Path(CopySVGTranslation_PATH).parent))
 
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
+
+_CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
+if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
+    sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
+
+from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 
 
 @pytest.fixture
