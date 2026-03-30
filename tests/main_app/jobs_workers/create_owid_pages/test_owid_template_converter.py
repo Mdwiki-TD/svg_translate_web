@@ -70,6 +70,7 @@ You can use this interactive visualization in Wikipedia articles as well with th
 </syntaxhighlight>
 *'''Source''': https://ourworldindata.org/grapher/daily-meat-consumption-per-person
 *'''Translate''': https://svgtranslate.toolforge.org/File:daily_meat_consumption_per_person,_World,_1961.svg
+*{{SVGLanguages|daily_meat_consumption_per_person,_World,_1961.svg}}
 *'''Template''': [[Template:OWID/daily meat consumption per person]]
 
 [[Category:Meat consumption maps of the world]]

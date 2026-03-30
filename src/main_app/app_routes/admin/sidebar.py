@@ -92,6 +92,13 @@ def create_side(active_route):
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
+                id="add_svglanguages_template",
+                admin=1,
+                href="add_svglanguages_template/list",
+                title="Add {{SVGLanguages}}",
+                icon="bi-file-earmark-text",
+            ),
+            SidebarItem(
                 id="fix_nested_main_files",
                 admin=1,
                 href="fix_nested_main_files/list",
