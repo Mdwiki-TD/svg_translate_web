@@ -1,4 +1,3 @@
-
 class RateLimitedError(Exception):
     """
     Raised when API requests are rate limited or throttled by the server.

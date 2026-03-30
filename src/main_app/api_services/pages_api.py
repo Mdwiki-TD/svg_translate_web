@@ -39,9 +39,7 @@ def create_page(
     Returns:
         A dictionary with 'success' (bool) and optionally 'error' (str) on failure.
     """
-    missing_fields = verify_required_fields(
-        {"page_name": page_name, "wikitext": wikitext, "site": site}
-    )
+    missing_fields = verify_required_fields({"page_name": page_name, "wikitext": wikitext, "site": site})
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for create_page: {list_str}")
@@ -103,9 +101,7 @@ def update_page_text(
     Returns:
         A dictionary with 'success' (bool) and optionally 'error' (str) on failure.
     """
-    missing_fields = verify_required_fields(
-        {"page_name": page_name, "updated_text": updated_text, "site": site}
-    )
+    missing_fields = verify_required_fields({"page_name": page_name, "updated_text": updated_text, "site": site})
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for update_page_text: {list_str}")

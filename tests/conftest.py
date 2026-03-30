@@ -2,14 +2,14 @@
 import os
 import secrets
 import sys
-from typing import Any
 from pathlib import Path
-
+from typing import Any
 from unittest.mock import MagicMock
+
 import pytest
+from cryptography.fernet import Fernet
 
 from src.main_app.api_services.mwclient_page import MwClientPage
-from cryptography.fernet import Fernet
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -155,6 +155,7 @@ def sample_multiple_owidslidersrcs() -> str:
 
 
 # ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_site() -> MagicMock:

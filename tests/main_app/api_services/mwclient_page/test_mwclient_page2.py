@@ -4,10 +4,11 @@ src/main_app/api_services/mwclient_page.py
 """
 
 from __future__ import annotations
-import pytest
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import mwclient.errors
+import pytest
 
 
 def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:

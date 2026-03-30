@@ -5,7 +5,8 @@ src/main_app/api_services/mwclient_page.py
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
+
 import mwclient.errors
 
 from src.main_app.api_services.mwclient_page import _RETRY_DELAYS
@@ -13,6 +14,7 @@ from src.main_app.api_services.mwclient_page import _RETRY_DELAYS
 
 def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
     return mwclient.errors.APIError(code, info, {})
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # load_page
@@ -49,6 +51,7 @@ class TestLoadPage:
 # check_exists
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class TestCheckExists:
     def test_page_exists(self, mw_client, mock_site, mock_exists_page):
         mock_exists_page.exists = True
@@ -68,6 +71,7 @@ class TestCheckExists:
 # ══════════════════════════════════════════════════════════════════════════════
 # _edit_page
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestEditPageInternal:
 
@@ -92,6 +96,7 @@ class TestEditPageInternal:
 # ══════════════════════════════════════════════════════════════════════════════
 # edit_page
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestEditPage:
     def test_load_page_fails_invalid_title(self, mw_client, mock_site):
@@ -170,6 +175,7 @@ class TestEditPageRateLimit:
         mw_client.edit_page("text", "summary")
         delays = [c.args[0] for c in mock_sleep.call_args_list]
         assert delays == list(_RETRY_DELAYS)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # edit_with_retry (direct)

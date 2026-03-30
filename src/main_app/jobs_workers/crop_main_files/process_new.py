@@ -154,7 +154,7 @@ class CropMainFilesProcessor:
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
         for file in exists_files:
-            self.exists[file.removeprefix('File:')] = exists_files[file]
+            self.exists[file.removeprefix("File:")] = exists_files[file]
 
         logger.info(f"self.exists: {len(self.exists)}")
 
@@ -225,9 +225,7 @@ class CropMainFilesProcessor:
 
         dev_limit = settings.download.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
-            logger.info(
-                f"Job {self.job_id}: Development mode – limiting from {len(templates)} to {dev_limit} files"
-            )
+            logger.info(f"Job {self.job_id}: Development mode – limiting from {len(templates)} to {dev_limit} files")
             return templates[:dev_limit]
 
         return templates
@@ -245,7 +243,9 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
-        file_exists = (self.exists and self.exists.get(cropped_filename.removeprefix("File:"))) or is_cropped_file_existing(cropped_filename, self.site)
+        file_exists = (
+            self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
+        ) or is_cropped_file_existing(cropped_filename, self.site)
 
         # pre steps if the file already in commons, skip download/upload files.
         if file_exists:

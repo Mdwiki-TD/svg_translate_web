@@ -126,8 +126,7 @@ def merge_categories(old_text: str, new_text: str) -> str:
 
 
 def sort_categories(wikitext: str) -> list[CategoryLink]:
-    """
-    """
+    """ """
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
 
