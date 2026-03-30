@@ -9,9 +9,7 @@ RE_TRANSLATE = re.compile(r"\*\s*'''Translat\w+'''\s*:\s*https://svgtranslate\.t
 def load_link_file_name(text) -> str | None:
     trans_match = RE_TRANSLATE.search(text)
     if trans_match:
-        link = trans_match.group(1).strip()
-        if link.startswith("https://svgtranslate.toolforge.org/File:"):
-            return link.replace("https://svgtranslate.toolforge.org/File:", "")
+        return trans_match.group(1).strip()
 
     return None
 
