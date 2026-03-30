@@ -20,41 +20,68 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Published</h2>
-                        <p class="h4 mb-1 text-success">{{ all_charts_summary.published.with }} <small class="text-muted">with</small></p>
-                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.published.without }} <small class="text-muted">without</small></p>
+            <div class="col-md-9">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted">Published</h2>
+                                <p class="h5 mb-1 text-success">
+                                    {{ all_charts_summary.published.with }}
+                                    <small class="text-muted">with</small>
+                                </p>
+                                <p class="h5 mb-0 text-secondary">
+                                    {{ all_charts_summary.published.without }}
+                                    <small class="text-muted">without</small>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Template</h2>
-                        <p class="h4 mb-1 text-success">{{ all_charts_summary.template.with }} <small class="text-muted">with</small></p>
-                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.template.without }} <small class="text-muted">without</small></p>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted">Template</h2>
+                                <p class="h5 mb-1 text-success">
+                                    {{ all_charts_summary.template.with }}
+                                    <small class="text-muted">with</small>
+                                </p>
+                                <p class="h5 mb-0 text-secondary">
+                                    {{ all_charts_summary.template.without }}
+                                    <small class="text-muted">without</small>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
-                        <p class="h4 mb-1 text-success">{{ all_charts_summary.map_tab.with }} <small class="text-muted">with</small></p>
-                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.map_tab.without }} <small class="text-muted">without</small></p>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
+                                <p class="h5 mb-1 text-success">
+                                    {{ all_charts_summary.map_tab.with }}
+                                    <small class="text-muted">with</small>
+                                </p>
+                                <p class="h5 mb-0 text-secondary">
+                                    {{ all_charts_summary.map_tab.without }}
+                                    <small class="text-muted">without</small>
+                                </p>
+
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Timeline</h2>
-                        <p class="h4 mb-1 text-success">{{ all_charts_summary.timeline.with }} <small class="text-muted">with</small></p>
-                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.timeline.without }} <small class="text-muted">without</small></p>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted">Timeline</h2>
+                                <p class="h5 mb-1 text-success">
+                                    {{ all_charts_summary.timeline.with }}
+                                    <small class="text-muted">with</small>
+                                </p>
+                                <p class="h5 mb-0 text-secondary">
+                                    {{ all_charts_summary.timeline.without }}
+                                    <small class="text-muted">without</small>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
