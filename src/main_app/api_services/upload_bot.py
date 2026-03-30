@@ -27,11 +27,11 @@ def site_upload(
     API doc: https://www.mediawiki.org/wiki/API:Upload
 
     Args:
-        file_name: Destination file_name, don't include namespace prefix like 'File:'
-        file_path: Path
-        site: mwclient client Site
-        summary: Upload comment summary.
-        description: Wikitext for the file description page.
+        self.file_name: Destination file_name, don't include namespace prefix like 'File:'
+        self.file_path: Path
+        self.site: mwclient client Site
+        self.summary: Upload comment summary.
+        self.description: Wikitext for the file description page.
 
     Returns:
         JSON result from the API.
@@ -39,15 +39,21 @@ def site_upload(
     Returns Examples:
         - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
         - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
+
         warnings Examples:
-            - {"duplicate": ["...jpg"]}
-            - {"exists": "..png", "nochange": {"timestamp": "..."}}
+        - {"duplicate": ["...jpg"]}
+        - {"badfilename": "..png", "exists": "..png", "nochange": { "timestamp": "..." }}
+
+    Returns Examples with ignore=True:
+    - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
 
     Raises:
         TypeError
         mwclient.errors.InsufficientPermission
         requests.exceptions.HTTPError
         mwclient.errors.FileExists: The file already exists and `ignore` is `False`.
+        mwclient.errors.APIError: { "error": { "code": "fileexists-no-change", "info": "The upload is an exact duplicate of the current version of [[:File:CampaignEvents edits registration.png]]."}}.
+
     """
     with open(file_path, "rb") as f:
         # Perform the upload
@@ -97,17 +103,15 @@ def _upload_file(
         }
 
     except Exception as e:
-        # ---
         if "fileexists-no-change" in str(e):
             logger.debug("Upload result: fileexists-no-change")
             return {"error": "fileexists-no-change"}
-        # ---
+
         if "ratelimited" in str(e):
             logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
             return {"error": "ratelimited"}
-        # ---
-        logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
 
+        logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
         return {"error": "Unknown error occurred", "error_details": str(e)}
 
 

@@ -93,17 +93,15 @@ class UploadFile:
             return {"error": "InsufficientPermission", "error_details": msg}
 
         except Exception as e:
-            # ---
             if "fileexists-no-change" in str(e):
                 logger.debug("Upload result: fileexists-no-change")
                 return {"error": "fileexists-no-change"}
-            # ---
+
             if "ratelimited" in str(e):
                 logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
                 return {"error": "ratelimited"}
-            # ---
-            logger.error(f"Unexpected error uploading {self.file_name} to Wikimedia Commons:")
 
+            logger.error(f"Unexpected error uploading {self.file_name} to Wikimedia Commons:")
             return {"error": "Unknown error occurred", "error_details": str(e)}
 
     def site_upload(self):
@@ -125,15 +123,21 @@ class UploadFile:
         Returns Examples:
             - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
             - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
+
             warnings Examples:
-                - {"duplicate": ["...jpg"]}
-                - {"exists": "..png", "nochange": {"timestamp": "..."}}
+            - {"duplicate": ["...jpg"]}
+            - {"badfilename": "..png", "exists": "..png", "nochange": { "timestamp": "..." }}
+
+        Returns Examples with ignore=True:
+        - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
 
         Raises:
             TypeError
             mwclient.errors.InsufficientPermission
             requests.exceptions.HTTPError
             mwclient.errors.FileExists: The file already exists and `ignore` is `False`.
+            mwclient.errors.APIError: { "error": { "code": "fileexists-no-change", "info": "The upload is an exact duplicate of the current version of [[:File:CampaignEvents edits registration.png]]."}}.
+
         """
         with open(self.file_path, "rb") as f:
             # Perform the upload
