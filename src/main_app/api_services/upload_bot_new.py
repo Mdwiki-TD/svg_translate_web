@@ -50,90 +50,90 @@ class UploadFile:
 
     def _check_kwargs(self) -> dict:
         if not self.site:
-            return {"error": "No site provided"}
+            return self._err("No site provided")
 
         if self.file_name is None:
-            return {"error": "File name is None"}
+            return self._err("File name is None")
 
         if self.file_path is None:
-            return {"error": "File path is None"}
+            return self._err("File path is None")
 
         page = self.site.pages[f"File:{self.file_name}"]
         if not self.new_file:
             if not page.exists:
                 logger.error(f"File {self.file_name} does not exist on Commons")
-                return {"error": "File not found on Commons"}
+                return self._err("File not found on Commons")
         else:
             if page.exists:
                 logger.error(f"File {self.file_name} already exists on Commons")
-                return {"error": "File already exists on Commons"}
+                return self._err("File already exists on Commons")
 
         if not Path(str(self.file_path)).exists():
             logger.error(f"File not found on server: {self.file_path}")
-            return {"error": "File not found on server"}
+            return self._err("File not found on server")
 
-        return {"error": None}
+        return self._err(None)
 
     def _upload_file(self) -> dict:
         """Single upload attempt — returns a result dict, never raises."""
         try:
             response = self._site_upload()
             logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
-            return {"result": response.get("result", ""), **response}
+            return self._ok(result=response.get("result", ""), response=response)
 
         except mwclient.errors.AssertUserFailedError:
             # Session expired or user assertion failed — no point retrying
             msg = "User assertion failed; session may have expired"
             logger.error(msg)
-            return {"error": "assertuserfailed", "error_details": msg}
+            return self._err("assertuserfailed", msg)
 
         except mwclient.errors.UserBlocked:
             # User is blocked — no point retrying
             msg = "User is blocked from editing"
             logger.error(msg)
-            return {"error": "userblocked", "error_details": msg}
+            return self._err("userblocked", msg)
 
         except mwclient.errors.InsufficientPermission:
             msg = "User does not have sufficient permissions to upload"
             logger.error(msg)
-            return {"error": "insufficientpermission", "error_details": msg}
+            return self._err("insufficientpermission", msg)
 
         except mwclient.errors.FileExists:
             logger.error("File already exists on Wikimedia Commons")
-            return {"error": "fileexists", "error_details": "File already exists"}
+            return self._err("fileexists", "File already exists")
 
         except mwclient.errors.MaximumRetriesExceeded:
             # mwclient's internal network retry budget exhausted
             msg = "Maximum network retries exceeded"
             logger.error(msg)
-            return {"error": "maxretriesexceeded", "error_details": msg}
+            return self._err("maxretriesexceeded", msg)
 
         except requests.exceptions.Timeout as exc:
             logger.error("Request timed out while uploading file")
-            return {"error": "timeout", "error_details": str(exc)}
+            return self._err("timeout", str(exc))
 
         except requests.exceptions.ConnectionError as exc:
             logger.error("Connection error while uploading file")
-            return {"error": "connectionerror", "error_details": str(exc)}
+            return self._err("connectionerror", str(exc))
 
         except requests.exceptions.HTTPError as exc:
             logger.error("HTTP error occurred while uploading file")
-            return {"error": "httperror", "error_details": str(exc)}
+            return self._err("httperror", str(exc))
 
         except mwclient.errors.APIError as exc:
             if exc.code == "ratelimited":
                 logger.debug("Rate limited during upload")
-                return {"error": "ratelimited", "error_details": ""}
+                return self._err("ratelimited")
 
             if exc.code == "fileexists-no-change":
                 logger.debug("Upload result: fileexists-no-change")
-                return {"error": "fileexists-no-change", "error_details": ""}
+                return self._err("fileexists-no-change")
 
-            return {"error": exc.code, "error_details": exc.info}
+            return self._err(exc.code, exc.info)
 
         except Exception as exc:
             logger.exception(f"Unexpected error uploading {self.file_name}")
-            return {"error": "unexpected", "error_details": str(exc)}
+            return self._err("unexpected", str(exc))
 
     def _site_upload(self) -> dict:
         """
@@ -204,7 +204,7 @@ class UploadFile:
             if upload_result.get("error") != "ratelimited":
                 return upload_result
 
-        return {"error": "ratelimited", "error_details": "Exceeded rate limit after all retry attempts"}
+        return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
 
 def upload_file(

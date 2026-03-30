@@ -14,6 +14,10 @@ from src.main_app.api_services.upload_bot_new import UploadFile, _RETRY_DELAYS
 # fixtures & helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _err(message: str, error_details: str = "") -> dict[str, object]:
+    return {"success": False, "error": message, "error_details": error_details}
+
+
 @pytest.fixture
 def site():
     return MagicMock()
@@ -84,15 +88,15 @@ class TestFixFileName:
 class TestCheckKwargs:
     def test_no_site(self, tmp_file):
         u = UploadFile("Test.jpg", tmp_file, site=None)
-        assert u._check_kwargs() == {"error": "No site provided"}
+        assert u._check_kwargs() == _err("No site provided")
 
     def test_no_file_name(self, site, tmp_file):
         u = UploadFile(None, tmp_file, site)
-        assert u._check_kwargs() == {"error": "File name is None"}
+        assert u._check_kwargs() == _err("File name is None")
 
     def test_no_file_path(self, site):
         u = UploadFile("Test.jpg", None, site)
-        assert u._check_kwargs() == {"error": "File path is None"}
+        assert u._check_kwargs() == _err("File path is None")
 
     def test_existing_file_mode_file_not_on_commons(self, site, tmp_file):
         """new_file=False but page does not exist on Commons."""
@@ -100,7 +104,7 @@ class TestCheckKwargs:
         mock_page.exists = False
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, site, new_file=False)
-        assert u._check_kwargs() == {"error": "File not found on Commons"}
+        assert u._check_kwargs() == _err("File not found on Commons")
 
     def test_new_file_mode_file_already_on_commons(self, site, tmp_file):
         """new_file=True but page already exists on Commons."""
@@ -108,7 +112,7 @@ class TestCheckKwargs:
         mock_page.exists = True
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, site, new_file=True)
-        assert u._check_kwargs() == {"error": "File already exists on Commons"}
+        assert u._check_kwargs() == _err("File already exists on Commons")
 
     def test_file_not_on_server(self, site):
         """Local file path does not exist."""
@@ -116,21 +120,21 @@ class TestCheckKwargs:
         mock_page.exists = True
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", Path("/nonexistent/path.jpg"), site, new_file=False)
-        assert u._check_kwargs() == {"error": "File not found on server"}
+        assert u._check_kwargs() == _err("File not found on server")
 
     def test_all_valid_existing_file(self, site, tmp_file):
         mock_page = MagicMock()
         mock_page.exists = True
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, site, new_file=False)
-        assert u._check_kwargs() == {"error": None}
+        assert u._check_kwargs() == _err(None)
 
     def test_all_valid_new_file(self, site, tmp_file):
         mock_page = MagicMock()
         mock_page.exists = False
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, site, new_file=True)
-        assert u._check_kwargs() == {"error": None}
+        assert u._check_kwargs() == _err(None)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -219,14 +223,14 @@ class TestUploadWithRetry:
         assert result["result"] == "Success"
 
     def test_exhausts_all_retries(self, uploader):
-        uploader._upload_file = MagicMock(return_value={"error": "ratelimited", "error_details": ""})
+        uploader._upload_file = MagicMock(return_value=_err("ratelimited", ""))
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = uploader._upload_with_retry()
         assert result["error"] == "ratelimited"
         assert uploader._upload_file.call_count == len(_RETRY_DELAYS)
 
     def test_sleeps_correct_delays(self, uploader):
-        uploader._upload_file = MagicMock(return_value={"error": "ratelimited", "error_details": ""})
+        uploader._upload_file = MagicMock(return_value=_err("ratelimited", ""))
         with patch("src.main_app.api_services.upload_bot_new.time.sleep") as mock_sleep:
             uploader._upload_with_retry()
         sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
@@ -235,8 +239,8 @@ class TestUploadWithRetry:
     def test_stops_early_on_non_ratelimited_error(self, uploader):
         """If a non-ratelimited error occurs during retry, return it immediately."""
         uploader._upload_file = MagicMock(side_effect=[
-            {"error": "ratelimited", "error_details": ""},
-            {"error": "userblocked", "error_details": "User is blocked"},
+            _err("ratelimited", ""),
+            _err("userblocked", "User is blocked"),
         ])
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = uploader._upload_with_retry()
@@ -245,8 +249,8 @@ class TestUploadWithRetry:
 
     def test_succeeds_on_second_retry(self, uploader):
         uploader._upload_file = MagicMock(side_effect=[
-            {"error": "ratelimited", "error_details": ""},
-            {"error": "ratelimited", "error_details": ""},
+            _err("ratelimited", ""),
+            _err("ratelimited", ""),
             make_upload_response(),
         ])
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
@@ -277,12 +281,12 @@ class TestUpload:
         """upload() returns error immediately if _check_kwargs fails."""
         u = UploadFile("Test.jpg", tmp_file, site=None)
         result = u.upload()
-        assert result == {"error": "No site provided"}
+        assert result == _err("No site provided")
 
     def test_rate_limited_then_success(self, site, tmp_file):
         u = self._make_uploader(site, tmp_file)
         u._upload_file = MagicMock(side_effect=[
-            {"error": "ratelimited", "error_details": ""},
+            _err("ratelimited", ""),
             make_upload_response(),
         ])
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
@@ -291,7 +295,7 @@ class TestUpload:
 
     def test_rate_limited_exhausts_all_retries(self, site, tmp_file):
         u = self._make_uploader(site, tmp_file)
-        u._upload_file = MagicMock(return_value={"error": "ratelimited", "error_details": ""})
+        u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = u.upload()
         assert result["error"] == "ratelimited"
@@ -300,7 +304,7 @@ class TestUpload:
 
     def test_rate_limited_sleeps_correct_delays(self, site, tmp_file):
         u = self._make_uploader(site, tmp_file)
-        u._upload_file = MagicMock(return_value={"error": "ratelimited", "error_details": ""})
+        u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
         with patch("src.main_app.api_services.upload_bot_new.time.sleep") as mock_sleep:
             u.upload()
         sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
@@ -309,7 +313,7 @@ class TestUpload:
     def test_non_ratelimited_error_no_retry(self, site, tmp_file):
         """Errors other than ratelimited should not trigger retry."""
         u = self._make_uploader(site, tmp_file)
-        u._upload_file = MagicMock(return_value={"error": "userblocked", "error_details": ""})
+        u._upload_file = MagicMock(return_value=_err("userblocked", ""))
         with patch("src.main_app.api_services.upload_bot_new.time.sleep") as mock_sleep:
             result = u.upload()
         assert result["error"] == "userblocked"
