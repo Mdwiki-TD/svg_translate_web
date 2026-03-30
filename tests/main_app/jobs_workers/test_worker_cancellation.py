@@ -53,6 +53,20 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     ]
     mock_common_services["list_templates"].return_value = templates
 
+    # Mock get_category_members to return empty list (no new templates to add)
+    mock_get_category_members = MagicMock(return_value=[])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.get_category_members",
+        mock_get_category_members,
+    )
+
+    # Mock add_template to avoid database calls
+    mock_add_template = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template",
+        mock_add_template,
+    )
+
     # Mock update_template_data to set the cancel event
     cancel_event = threading.Event()
     mock_update_template = MagicMock()

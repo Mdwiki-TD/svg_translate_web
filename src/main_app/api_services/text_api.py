@@ -49,48 +49,6 @@ def get_file_text(
         return ""
 
 
-def update_file_text(
-    original_file: str,
-    updated_file_text: str,
-    site: mwclient.Site | None,
-) -> dict:
-    """
-    Update the wikitext of the original file to link to the cropped version.
-
-    Args:
-        original_file: The name of the original file on Commons.
-        updated_file_text: The new wikitext for the original file.
-        site: Authenticated mwclient.Site object for Commons.
-
-    Returns:
-        A dictionary with 'success' (bool) and optionally 'error' (str).
-    """
-    missing_fields = verify_required_fields(
-        {
-            "original_file": original_file,
-            "updated_file_text": updated_file_text,
-            "site": site,
-        }
-    )
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for update_file_text: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    original_file = ensure_file_prefix(original_file)
-
-    summary = "Adding/updating {{Image extracted}}"
-
-    try:
-        page = site.pages[original_file]
-        page.edit(updated_file_text, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to update wikitext for {original_file}", exc_info=exc)
-        return {"success": False, "error": error_msg}
-
-
 def get_page_text(
     page_name: str,
     site: mwclient.Site | None,
@@ -124,49 +82,7 @@ def get_page_text(
         return ""
 
 
-def update_page_text(
-    page_name: str,
-    updated_text: str,
-    site: mwclient.Site | None,
-    summary: str = "",
-) -> dict:
-    """
-    Update the wikitext of any page on Wikimedia Commons.
-
-    Args:
-        page_name: The name of the page to update.
-        updated_text: The new wikitext for the page.
-        site: Authenticated mwclient.Site object for Commons.
-        summary: Edit summary.
-
-    Returns:
-        A dictionary with 'success' (bool) and optionally 'error' (str).
-    """
-    missing_fields = verify_required_fields(
-        {
-            "page_name": page_name,
-            "updated_text": updated_text,
-            "site": site,
-        }
-    )
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for update_page_text: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    try:
-        page = site.pages[page_name]
-        page.edit(updated_text, summary=summary)
-        return {"success": True}
-    except Exception as exc:
-        error_msg = str(exc)
-        logger.exception(f"Failed to update wikitext for {page_name}", exc_info=exc)
-        return {"success": False, "error": error_msg}
-
-
 __all__ = [
     "get_file_text",
-    "update_file_text",
     "get_page_text",
-    "update_page_text",
 ]

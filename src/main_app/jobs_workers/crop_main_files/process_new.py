@@ -16,8 +16,8 @@ import requests
 
 from ... import template_service
 from ...api_services.clients import create_commons_session, get_user_site
-from ...api_services.pages_api import is_pages_exists
-from ...api_services.text_api import get_file_text, get_page_text, update_file_text, update_page_text
+from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
+from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
@@ -75,7 +75,7 @@ def is_cropped_file_existing(
     site: mwclient.Site | None,
 ) -> bool:
 
-    page = site.Pages[cropped_filename]
+    page = site.pages[cropped_filename]
 
     if page.exists:
         logger.warning(f"File {cropped_filename} already exists on Commons")
@@ -154,7 +154,7 @@ class CropMainFilesProcessor:
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
         for file in exists_files:
-            self.exists[file.removeprefix('File:')] = exists_files[file]
+            self.exists[file.removeprefix("File:")] = exists_files[file]
 
         logger.info(f"self.exists: {len(self.exists)}")
 
@@ -194,7 +194,7 @@ class CropMainFilesProcessor:
             jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
         except LookupError:
             logger.warning(
-                f"Job {self.job_id}: Could not update status to running – " "job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running – job record might have been deleted."
             )
             return False
 
@@ -225,9 +225,7 @@ class CropMainFilesProcessor:
 
         dev_limit = settings.download.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
-            logger.info(
-                f"Job {self.job_id}: Development mode – " f"limiting from {len(templates)} to {dev_limit} files"
-            )
+            logger.info(f"Job {self.job_id}: Development mode – limiting from {len(templates)} to {dev_limit} files")
             return templates[:dev_limit]
 
         return templates
@@ -245,7 +243,9 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
-        file_exists = (self.exists and self.exists.get(cropped_filename.removeprefix("File:"))) or is_cropped_file_existing(cropped_filename, self.site)
+        file_exists = (
+            self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
+        ) or is_cropped_file_existing(cropped_filename, self.site)
 
         # pre steps if the file already in commons, skip download/upload files.
         if file_exists:
@@ -432,7 +432,7 @@ class CropMainFilesProcessor:
 
         if not update_result["success"]:
             error = update_result.get("error", "Unknown error")
-            logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} " f"(reason: {error})")
+            logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} (reason: {error})")
             # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
             file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
         else:

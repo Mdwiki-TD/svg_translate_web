@@ -1,0 +1,224 @@
+from __future__ import annotations
+
+import logging
+import time
+from pathlib import Path
+
+import mwclient
+import mwclient.errors
+import requests
+
+logger = logging.getLogger(__name__)
+
+_RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
+
+
+def fix_file_name(file_name: str) -> str:
+    file_name = file_name.strip()
+    if file_name.lower().startswith("file:"):
+        file_name = file_name[5:].lstrip()
+    return file_name
+
+
+class UploadFile:
+    def __init__(
+        self,
+        file_name: str,
+        file_path: Path,
+        site: mwclient.client.Site = None,
+        summary: str = None,
+        description: str = None,
+        new_file: bool = False,
+    ) -> None:
+        self.file_name = file_name
+        self.site = site
+        self.file_path = file_path
+        self.summary = summary
+        self.description = description
+        self.new_file = new_file
+
+        if self.file_name:
+            self.file_name = fix_file_name(self.file_name)
+
+    def _check_kwargs(self) -> dict:
+        if not self.site:
+            return {"error": "No site provided"}
+
+        if self.file_name is None:
+            return {"error": "File name is None"}
+
+        if self.file_path is None:
+            return {"error": "File path is None"}
+
+        page = self.site.pages[f"File:{self.file_name}"]
+        if not self.new_file:
+            if not page.exists:
+                logger.error(f"File {self.file_name} does not exist on Commons")
+                return {"error": "File not found on Commons"}
+        else:
+            if page.exists:
+                logger.error(f"File {self.file_name} already exists on Commons")
+                return {"error": "File already exists on Commons"}
+
+        if not Path(str(self.file_path)).exists():
+            logger.error(f"File not found on server: {self.file_path}")
+            return {"error": "File not found on server"}
+
+        return {"error": None}
+
+    def _upload_file(self) -> dict:
+        """Single upload attempt — returns a result dict, never raises."""
+        try:
+            response = self._site_upload()
+            logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
+            return {"result": response.get("result", ""), **response}
+
+        except mwclient.errors.AssertUserFailedError:
+            # Session expired or user assertion failed — no point retrying
+            msg = "User assertion failed; session may have expired"
+            logger.error(msg)
+            return {"error": "assertuserfailed", "error_details": msg}
+
+        except mwclient.errors.UserBlocked:
+            # User is blocked — no point retrying
+            msg = "User is blocked from editing"
+            logger.error(msg)
+            return {"error": "userblocked", "error_details": msg}
+
+        except mwclient.errors.InsufficientPermission:
+            msg = "User does not have sufficient permissions to upload"
+            logger.error(msg)
+            return {"error": "insufficientpermission", "error_details": msg}
+
+        except mwclient.errors.FileExists:
+            logger.error("File already exists on Wikimedia Commons")
+            return {"error": "fileexists", "error_details": "File already exists"}
+
+        except mwclient.errors.MaximumRetriesExceeded:
+            # mwclient's internal network retry budget exhausted
+            msg = "Maximum network retries exceeded"
+            logger.error(msg)
+            return {"error": "maxretriesexceeded", "error_details": msg}
+
+        except requests.exceptions.Timeout as exc:
+            logger.error("Request timed out while uploading file")
+            return {"error": "timeout", "error_details": str(exc)}
+
+        except requests.exceptions.ConnectionError as exc:
+            logger.error("Connection error while uploading file")
+            return {"error": "connectionerror", "error_details": str(exc)}
+
+        except requests.exceptions.HTTPError as exc:
+            logger.error("HTTP error occurred while uploading file")
+            return {"error": "httperror", "error_details": str(exc)}
+
+        except mwclient.errors.APIError as exc:
+            if exc.code == "ratelimited":
+                logger.debug("Rate limited during upload")
+                return {"error": "ratelimited", "error_details": ""}
+
+            if exc.code == "fileexists-no-change":
+                logger.debug("Upload result: fileexists-no-change")
+                return {"error": "fileexists-no-change", "error_details": ""}
+
+            return {"error": exc.code, "error_details": exc.info}
+
+        except Exception as exc:
+            logger.exception(f"Unexpected error uploading {self.file_name}")
+            return {"error": "unexpected", "error_details": str(exc)}
+
+    def _site_upload(self) -> dict:
+        """
+        Upload a file to the site.
+
+        API doc: https://www.mediawiki.org/wiki/API:Upload
+
+
+        Returns:
+            JSON result from the API.
+
+        Returns Examples:
+            - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
+            - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
+
+            warnings Examples:
+            - {"duplicate": ["...jpg"]}
+            - {"badfilename": "..png", "exists": "..png", "nochange": { "timestamp": "..." }}
+
+        Returns Examples with ignore=True:
+        - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
+
+        Raises:
+            mwclient.errors.AssertUserFailedError
+            mwclient.errors.UserBlocked
+            mwclient.errors.InsufficientPermission
+            mwclient.errors.FileExists
+            mwclient.errors.MaximumRetriesExceeded
+            mwclient.errors.APIError
+            requests.exceptions.HTTPError
+            requests.exceptions.ConnectionError
+            requests.exceptions.Timeout
+        """
+        with open(self.file_path, "rb") as f:
+            response = self.site.upload(
+                file=f,
+                description=self.description,
+                filename=self.file_name,
+                comment=self.summary or "",
+                ignore=True,  # skip warnings like "file exists"
+            )
+
+        return response
+
+    def upload(self) -> dict:
+        check = self._check_kwargs()
+        if check["error"]:
+            return check
+
+        upload_result = self._upload_file()
+
+        if upload_result.get("error") != "ratelimited":
+            return upload_result
+
+        # handle retry
+        return self._upload_with_retry()
+
+    def _upload_with_retry(self) -> dict:
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+            logger.warning(
+                f"Rate limited on upload attempt {attempt}/{len(_RETRY_DELAYS)} "
+                f"for file '{self.file_name}'. Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+
+            upload_result = self._upload_file()
+
+            if upload_result.get("error") != "ratelimited":
+                return upload_result
+
+        return {"error": "ratelimited", "error_details": "Exceeded rate limit after all retry attempts"}
+
+
+def upload_file(
+    file_name: str,
+    file_path: Path,
+    site: mwclient.client.Site = None,
+    summary: str = None,
+    description: str = None,
+    new_file: bool = False,
+) -> dict:
+    """
+    Upload a file to Wikimedia Commons using mwclient.
+
+    Returns:
+        dict with keys:
+            - result (str): 'Success' on success
+            - error (str | None): error code on failure
+            - error_details (str): additional error info
+    """
+    return UploadFile(file_name, file_path, site, summary, description, new_file).upload()
+
+
+__all__ = [
+    "upload_file",
+]
