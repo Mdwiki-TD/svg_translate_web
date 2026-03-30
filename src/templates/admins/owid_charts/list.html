@@ -118,6 +118,33 @@
             </div>
         </div>
 
+        <div class="card mb-2 shadow-sm">
+            <div class="card-body">
+                <form method="get" action="{{ url_for('admin.owid_charts_dashboard') }}" class="row g-2 align-items-end">
+                    <div class="col-md-3 col-sm-12">
+                        <div class="input-group">
+                            <span class="input-group-text">Filter by Template</span>
+                            <select class="form-select" id="template_filter" name="template">
+                                <option value="">All</option>
+                                <option value="has_template" {% if selected_template == 'has_template' %}selected{% endif %}>Has Template</option>
+                                <option value="no_template" {% if selected_template == 'no_template' %}selected{% endif %}>No Template</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-12">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
+                    </div>
+                    <div class="col-md-2 col-sm-12">
+                        <a href="{{ url_for('admin.owid_charts_dashboard') }}" class="btn btn-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="table-responsive shadow-sm">
             <table class="table table-hover align-middle mb-0 DataTable">
                 <thead>

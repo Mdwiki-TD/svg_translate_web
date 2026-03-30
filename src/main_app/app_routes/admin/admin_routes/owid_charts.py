@@ -78,7 +78,14 @@ def create_json_file() -> Tuple[Any, int]:
 def _charts_dashboard():
     """Render the charts management dashboard."""
     user = current_user()
+    template_filter = request.args.get("template", "").strip()
     charts: List[OwidChartRecord] = owid_charts_service.list_charts()
+
+    if template_filter:
+        charts = [c for c in charts if c.template_title == template_filter]
+
+    templates = sorted(set(c.template_title for c in owid_charts_service.list_charts() if c.template_title))
+
     total = len(charts)
     summary = {
         "total": total,
@@ -93,6 +100,8 @@ def _charts_dashboard():
         charts=charts,
         total_charts=total,
         summary=summary,
+        templates=templates,
+        selected_template=template_filter,
     )
 
 
