@@ -42,7 +42,11 @@ def download_file_from_commons(
         session: Optional requests session to use
 
     Returns:
-        dict with keys: success (bool), path (str|None), size_bytes (int|None), error (str|None)
+        dict with keys:
+            - success (bool)
+            - path (str|None)
+            - size_bytes (int|None)
+            - error (str|None)
     """
     result = {
         "success": False,

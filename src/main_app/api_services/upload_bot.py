@@ -7,27 +7,84 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def upload_file(
+def fix_file_name(file_name) -> str:
+    file_name = file_name.strip()
+    if file_name.lower().startswith("file:"):
+        file_name = file_name[5:].lstrip()
+    return file_name
+
+
+def _upload_file(
     file_name: str,
     file_path: Path,
     site: mwclient.client.Site = None,
     summary: str = None,
     description: str = None,
-    new_file: bool = False,
 ) -> dict[str, str] | dict:
     """
     Upload an SVG file to Wikimedia Commons using mwclient.
     """
-    error_details = ""
+    file_name = fix_file_name(file_name)
+
+    try:
+        with open(file_path, "rb") as f:
+            # Perform the upload
+            response = site.upload(
+                # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
+                file=f,
+                description=description,
+                filename=file_name,
+                comment=summary or "",
+                ignore=True,  # skip warnings like "file exists"
+            )
+
+        logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
+        return {"result": response.get("result", ""), **response}
+
+    except requests.exceptions.HTTPError as exc:
+        logger.error("HTTP error occurred while uploading file")
+        return {"error": "HTTPError", "error_details": str(exc)}
+
+    except mwclient.errors.FileExists:
+        logger.error("File already exists on Wikimedia Commons")
+        return {"error": "FileExists", "error_details": "File already exists"}
+
+    except mwclient.errors.InsufficientPermission:
+        logger.error("User does not have sufficient permissions to perform an action")
+        return {"error": "InsufficientPermission", "error_details": "User does not have sufficient permissions to perform an action"}
+
+    except Exception as e:
+        # ---
+        if "fileexists-no-change" in str(e):
+            logger.debug("Upload result: fileexists-no-change")
+            return {"error": "fileexists-no-change"}
+        # ---
+        if "ratelimited" in str(e):
+            logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
+            return {"error": "ratelimited"}
+        # ---
+        logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
+
+        return {"error": "Unknown error occurred", "error_details": str(e)}
+
+
+def _check_kwargs(
+    file_name: str,
+    file_path: Path,
+    site: mwclient.client.Site = None,
+    new_file: bool = False,
+):
+
     if not site:
         return {"error": "No site provided"}
-    if file_name is None or file_path is None:
-        return {"error": "File name or file path is None"}
 
-    file_name = file_name.strip()
-    if file_name.lower().startswith("file:"):
-        file_name = file_name[5:].lstrip()
+    if file_name is None:
+        return {"error": "File name is None"}
 
+    if file_path is None:
+        return {"error": "file path is None"}
+
+    file_name = fix_file_name(file_name)
     page = site.pages[f"File:{file_name}"]
     if not new_file:
         # Check if file exists
@@ -46,45 +103,40 @@ def upload_file(
         logger.error(f"File not found: {file_path}")
         return {"error": "File not found on server"}
 
-    try:
-        with open(file_path, "rb") as f:
-            # Perform the upload
-            response = site.upload(
-                # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
-                file=f,
-                description=description,
-                filename=file_name,
-                comment=summary or "",
-                ignore=True,  # skip warnings like "file exists"
-            )
+    return {"error": None}
 
-        logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
-        return {"result": response.get("result", ""), **response}
 
-    except requests.exceptions.HTTPError:
-        logger.error("HTTP error occurred while uploading file")
-        error_details = "HTTP error"
+def upload_file(
+    file_name: str,
+    file_path: Path,
+    site: mwclient.client.Site = None,
+    summary: str = None,
+    description: str = None,
+    new_file: bool = False,
+) -> dict[str, str] | dict:
+    """
+    Upload an SVG file to Wikimedia Commons using mwclient.
 
-    except mwclient.errors.FileExists:
-        logger.error("File already exists on Wikimedia Commons")
-        error_details = "File already exists"
+    Returns:
+        dict with keys:
+            - result (str) `Success` or ``
+            - error (str|None) on failure
+    """
+    _check = _check_kwargs(file_name, file_path, site, new_file)
 
-    except mwclient.errors.InsufficientPermission:
-        logger.error("User does not have sufficient permissions to perform an action")
-        error_details = "User does not have sufficient permissions to perform an action"
+    if _check["error"]:
+        return _check
 
-    except Exception as e:
-        # ---
-        if "fileexists-no-change" in str(e):
-            logger.debug("Upload result: fileexists-no-change")
-            return {"error": "fileexists-no-change"}
-        # ---
-        if "ratelimited" in str(e):
-            logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
-            return {"error": "ratelimited"}
-        # ---
-        logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
-        logger.error(f"{e}")
-        error_details = str(e)
+    upload_result = _upload_file(
+        file_name,
+        file_path,
+        site,
+        summary,
+        description,
+    )
+    return upload_result
 
-    return {"error": "Unknown error occurred", "error_details": error_details}
+
+__all__ = [
+    "upload_file",
+]

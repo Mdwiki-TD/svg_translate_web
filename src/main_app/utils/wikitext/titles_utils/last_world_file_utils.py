@@ -17,7 +17,7 @@ def match_last_world_file_with_full_date(text) -> str:
         File:youth mortality rate, World, 1952.svg!year=1952
         File:youth mortality rate, World, Apr 15, 1953.svg!year=Apr 15, 1953
         }}
-    Return:
+    Returns:
         "File:youth mortality rate, World, Apr 15, 1953.svg"
     """
     MONTH_MAP = {
@@ -85,7 +85,7 @@ def match_last_world_file(text) -> str:
         File:youth mortality rate, World, 1952.svg!year=1952
         File:youth mortality rate, World, 1953.svg!year=1953
         }}
-    Return:
+    Returns:
         "File:youth mortality rate, World, 1953.svg"
     """
 
