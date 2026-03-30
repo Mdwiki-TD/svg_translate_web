@@ -95,11 +95,11 @@ class TestUpdate_original_file_text_extensive:
     """
 
     # ------------------------------------------------------------------
-    # Path 1 – filename already present in the text → no-op
+    # Path 1 - filename already present in the text → no-op
     # ------------------------------------------------------------------
 
     def test_returns_unchanged_when_filename_already_present(self):
-        """Text already contains the exact filename – must not be modified."""
+        """Text already contains the exact filename - must not be modified."""
         text = """{{Information
 |other_versions={{Image extracted|1=My cropped file.jpg}}
 }}"""
@@ -123,7 +123,7 @@ class TestUpdate_original_file_text_extensive:
         assert result == text
 
     def test_no_duplicate_insert_when_already_in_other_versions(self):
-        """Regression: cropped filename already inside |other versions| – no duplication."""
+        """Regression: cropped filename already inside |other versions| - no duplication."""
         old_text = """
         == {{int:filedesc}} ==
 
@@ -137,7 +137,7 @@ class TestUpdate_original_file_text_extensive:
         assert result == old_text
 
     # ------------------------------------------------------------------
-    # Path 2 – {{Image extracted|...}} already present → append to it
+    # Path 2 - {{Image extracted|...}} already present → append to it
     # ------------------------------------------------------------------
 
     def test_appends_to_existing_image_extracted_with_one_arg(self):
@@ -177,7 +177,7 @@ class TestUpdate_original_file_text_extensive:
         assert "File:New crop.jpg" not in result
 
     # ------------------------------------------------------------------
-    # Path 3a – {{Information}} has an existing |other_versions| param
+    # Path 3a - {{Information}} has an existing |other_versions| param
     #           (but no Image extracted template inside) → update param value
     # ------------------------------------------------------------------
 
@@ -216,7 +216,7 @@ class TestUpdate_original_file_text_extensive:
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
-    # Path 3b – {{Information}} exists but has NO |other_versions| param
+    # Path 3b - {{Information}} exists but has NO |other_versions| param
     # ------------------------------------------------------------------
 
     def test_creates_other_versions_param_when_information_has_none(self):
@@ -233,7 +233,7 @@ class TestUpdate_original_file_text_extensive:
         assert result != old_text
 
     # ------------------------------------------------------------------
-    # Path 4 – no {{Information}}, but license header present
+    # Path 4 - no {{Information}}, but license header present
     # ------------------------------------------------------------------
 
     def test_inserts_before_license_header_when_no_information_template(self):
@@ -259,7 +259,7 @@ class TestUpdate_original_file_text_extensive:
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
-    # Path 5 – no {{Information}}, no license header, but [[Category:…]]
+    # Path 5 - no {{Information}}, no license header, but [[Category:…]]
     # ------------------------------------------------------------------
 
     def test_inserts_before_category_when_no_information_and_no_license_header(self):
@@ -283,7 +283,7 @@ class TestUpdate_original_file_text_extensive:
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
-    # Path 6 – nothing matches → return unchanged
+    # Path 6 - nothing matches → return unchanged
     # ------------------------------------------------------------------
 
     def test_returns_unchanged_when_no_anchor_found(self):

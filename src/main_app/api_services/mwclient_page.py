@@ -90,7 +90,7 @@ class MwClientPage:
         # handle retry
         return self.edit_with_retry(page, text, summary)
 
-    def edit_with_retry(self, page: mwclient.page.Page, text, summary):
+    def edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str) -> dict[str, any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
 
             logger.warning(

@@ -17,7 +17,7 @@ def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).check_exists()
 
 
-def edit_page(site, title, text, summary) -> dict[str, any]:
+def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, any]:
     return MwClientPage(title, site).edit_page(text, summary)
 
 
@@ -140,6 +140,7 @@ def is_pages_exists(
 __all__ = [
     "create_page",
     "is_page_exists",
+    "is_pages_exists",
     "update_file_text",
     "update_page_text",
 ]

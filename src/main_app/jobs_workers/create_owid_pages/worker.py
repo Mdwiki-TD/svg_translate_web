@@ -121,12 +121,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
             template_title=template.title,
         )
 
-        # Step 1 – load_template_text
+        # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
             self._append(file_info)
             return
 
-        # Step 2 – create_new_text
+        # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
             self._append(file_info)
             return
@@ -134,13 +134,13 @@ class CreateOwidPagesWorker(BaseJobWorker):
         if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
-        # Step 3 – check if new page already exists then compare if text need to be updated
+        # Step 3 - check if new page already exists then compare if text need to be updated
         # if page text == new text then summary.skipped++ else summary.updated++
         if not self._step_check_exists_and_update(file_info):
             self._append(file_info)
             return
 
-        # Step 4 – create_new_page
+        # Step 4 - create_new_page
         if not self._step_create_new_page(file_info):
             self._append(file_info)
             return
@@ -189,7 +189,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Page exists, check if update is needed
         current_text = get_page_text(new_title, self.site)
         if current_text.strip() == info._new_text.strip():
-            self._skip_step(info, "create_new_page", "Skipped – page content is already identical")
+            self._skip_step(info, "create_new_page", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1

@@ -88,11 +88,11 @@ class CropMainFilesProcessor:
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 
     Pipeline steps per file:
-        1. Download  – fetch the original file from Commons
-        2. Crop      – crop the SVG to its bounding-box
-        3. Upload    – upload the cropped version under a new filename
-        4. Update original  – add a link to the cropped file in the original file's wikitext
-        5. Update template  – point the template page at the cropped file
+        1. Download  - fetch the original file from Commons
+        2. Crop      - crop the SVG to its bounding-box
+        3. Upload    - upload the cropped version under a new filename
+        4. Update original  - add a link to the cropped file in the original file's wikitext
+        5. Update template  - point the template page at the cropped file
     """
 
     def __init__(
@@ -194,7 +194,7 @@ class CropMainFilesProcessor:
             jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
         except LookupError:
             logger.warning(
-                f"Job {self.job_id}: Could not update status to running – job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running - job record might have been deleted."
             )
             return False
 
@@ -218,14 +218,14 @@ class CropMainFilesProcessor:
         upload_limit = int(settings.dynamic.get("crop_newest_upload_limit", 0))
         if upload_limit > 0 and len(templates) > upload_limit:
             logger.info(
-                f"Job {self.job_id}: Upload cropped files limit – "
+                f"Job {self.job_id}: Upload cropped files limit - "
                 f"limiting from {len(templates)} to {upload_limit} files"
             )
             return templates[:upload_limit]
 
         dev_limit = settings.download.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
-            logger.info(f"Job {self.job_id}: Development mode – limiting from {len(templates)} to {dev_limit} files")
+            logger.info(f"Job {self.job_id}: Development mode - limiting from {len(templates)} to {dev_limit} files")
             return templates[:dev_limit]
 
         return templates
@@ -249,11 +249,11 @@ class CropMainFilesProcessor:
 
         # pre steps if the file already in commons, skip download/upload files.
         if file_exists:
-            self._skip_step(file_info, "download", "Skipped – file already exists on Commons")
-            self._skip_step(file_info, "crop", "Skipped – file already exists on Commons")
-            self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")
+            self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
+            self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
+            self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
 
-            # Step 4 & 5 – Update wikitext references
+            # Step 4 & 5 - Update wikitext references
             self.update_file_references(file_info)
 
             # if all file_info.steps "result" is None do:
@@ -264,12 +264,12 @@ class CropMainFilesProcessor:
             self._append(file_info)
             return
 
-        # Step 1 – Download
+        # Step 1 - Download
         if not self._step_download(file_info, template):
             self._append(file_info)
             return
 
-        # Step 2 – Crop
+        # Step 2 - Crop
         cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
         if not self._step_crop(file_info, template, cropped_output_path):
             self._append(file_info)
@@ -281,22 +281,22 @@ class CropMainFilesProcessor:
             self._append(file_info)
             return
 
-        # Step 3 – Upload cropped file
+        # Step 3 - Upload cropped file
         if not self._step_upload(file_info):
             self._append(file_info)
             return
 
-        # Step 4 & 5 – Update wikitext references
+        # Step 4 & 5 - Update wikitext references
         self.update_file_references(file_info)
 
         self._append(file_info)
 
     def update_file_references(self, file_info):
 
-        # Step 4 – Update original file wikitext
+        # Step 4 - Update original file wikitext
         self._step_update_original(file_info)
 
-        # Step 5 – Update template page reference
+        # Step 5 - Update template page reference
         self._step_update_template(file_info)
 
     # ------------------------------------------------------------------
@@ -366,7 +366,7 @@ class CropMainFilesProcessor:
                 f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} "
                 "(file already exists on Commons)"
             )
-            self._skip_step(file_info, "upload_cropped", "Skipped – file already exists on Commons")
+            self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
             file_info.status = "skipped"
             self.result["summary"]["skipped"] += 1
             # Still continue to wikitext updates even if file existed
@@ -376,8 +376,8 @@ class CropMainFilesProcessor:
             error = upload_result.get("error", "Unknown upload error")
             logger.warning(f"Job {self.job_id}: Failed to upload {file_info.cropped_filename}")
 
-            self._skip_step(file_info, "update_original", "Skipped – upload failed")
-            self._skip_step(file_info, "update_template", "Skipped – upload was not successful")
+            self._skip_step(file_info, "update_original", "Skipped - upload failed")
+            self._skip_step(file_info, "update_template", "Skipped - upload was not successful")
 
             self._fail(file_info, "upload_cropped", error)
             file_info.cropped_filename = None
@@ -455,7 +455,7 @@ class CropMainFilesProcessor:
 
     def _skip_upload_steps(self, file_info: FileProcessingInfo) -> None:
         for step in ("upload_cropped", "update_original", "update_template"):
-            self._skip_step(file_info, step, "Skipped – upload disabled")
+            self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result["summary"]["skipped"] += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")

@@ -195,16 +195,18 @@ class TestUpdateFileText:
     """Tests for update_file_text function."""
 
     def test_valid_inputs(self):
-        """Test with valid inputs - currently returns incomplete dict (TODO implementation)."""
+        """Test with valid inputs returns success."""
         mock_site = MagicMock()
-        _result = update_file_text("Example.svg", "new wikitext", mock_site)
-        # Function doesn't return anything when successful (TODO)
+        result = update_file_text("Example.svg", "new wikitext", mock_site)
+        assert result["success"] is True
+        mock_site.pages.__getitem__.assert_called_once_with("File:Example.svg")
 
     def test_adds_file_prefix(self):
         """Test that File: prefix is added to original_file."""
         mock_site = MagicMock()
-        # Should process without error
         update_file_text("Example.svg", "new wikitext", mock_site)
+        # Verify the File: prefix was added
+        mock_site.pages.__getitem__.assert_called_once_with("File:Example.svg")
 
     def test_missing_original_file_returns_error(self, caplog):
         """Test that missing original_file returns error dict."""
