@@ -14,6 +14,52 @@ def fix_file_name(file_name) -> str:
     return file_name
 
 
+def site_upload(
+    file_name: str,
+    file_path: Path,
+    site: mwclient.client.Site = None,
+    summary: str = None,
+    description: str = None,
+):
+    """
+    Upload a file to the site.
+
+    API doc: https://www.mediawiki.org/wiki/API:Upload
+
+    Args:
+        file_name: Destination file_name, don't include namespace prefix like 'File:'
+        file_path: Path
+        site: mwclient client Site
+        summary: Upload comment summary.
+        description: Wikitext for the file description page.
+
+    Returns:
+        JSON result from the API.
+    Returns Examples:
+        - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
+        - {"result": "Warning", "warnings": {"duplicate": ["...jpg"]}, "filekey": "x", "sessionkey": "x"}
+        - {"result": "Warning", "warnings": {"exists": "..png", "nochange": {"timestamp": "..."}}, "filekey": "x.", "sessionkey": "x"}
+
+    Raises:
+        TypeError
+        mwclient.errors.InsufficientPermission
+        requests.exceptions.HTTPError
+        mwclient.errors.FileExists: The file already exists and `ignore` is `False`.
+    """
+    with open(file_path, "rb") as f:
+        # Perform the upload
+        response = site.upload(
+            # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
+            file=f,
+            description=description,
+            filename=file_name,
+            comment=summary or "",
+            ignore=True,  # skip warnings like "file exists"
+        )
+
+    return response
+
+
 def _upload_file(
     file_name: str,
     file_path: Path,
@@ -27,16 +73,7 @@ def _upload_file(
     file_name = fix_file_name(file_name)
 
     try:
-        with open(file_path, "rb") as f:
-            # Perform the upload
-            response = site.upload(
-                # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
-                file=f,
-                description=description,
-                filename=file_name,
-                comment=summary or "",
-                ignore=True,  # skip warnings like "file exists"
-            )
+        response = site_upload(file_name, file_path, site, summary, description)
 
         logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
         return {"result": response.get("result", ""), **response}

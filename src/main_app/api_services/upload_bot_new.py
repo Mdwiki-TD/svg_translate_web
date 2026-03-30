@@ -74,16 +74,7 @@ class UploadFile:
         """
 
         try:
-            with open(self.file_path, "rb") as f:
-                # Perform the upload
-                response = self.site.upload(
-                    # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
-                    file=f,
-                    description=self.description,
-                    filename=self.file_name,
-                    comment=self.summary or "",
-                    ignore=True,  # skip warnings like "file exists"
-                )
+            response = self.site_upload()
 
             logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
             return {"result": response.get("result", ""), **response}
@@ -114,6 +105,45 @@ class UploadFile:
             logger.error(f"Unexpected error uploading {self.file_name} to Wikimedia Commons:")
 
             return {"error": "Unknown error occurred", "error_details": str(e)}
+
+    def site_upload(self):
+        """
+        Upload a file to the site.
+
+        API doc: https://www.mediawiki.org/wiki/API:Upload
+
+        Args:
+            self.file_name: Destination file_name, don't include namespace prefix like 'File:'
+            self.file_path: Path
+            self.site: mwclient client Site
+            self.summary: Upload comment summary.
+            self.description: Wikitext for the file description page.
+
+        Returns:
+            JSON result from the API.
+        Returns Examples:
+            - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
+            - {"result": "Warning", "warnings": {"duplicate": ["...jpg"]}, "filekey": "x", "sessionkey": "x"}
+            - {"result":"Warning", "warnings": {"exists": "..png", "nochange": {"timestamp": "..."}}, "filekey": "x.", "sessionkey": "x"}
+
+        Raises:
+            TypeError
+            mwclient.errors.InsufficientPermission
+            requests.exceptions.HTTPError
+            mwclient.errors.FileExists: The file already exists and `ignore` is `False`.
+        """
+        with open(self.file_path, "rb") as f:
+            # Perform the upload
+            response = self.site.upload(
+                # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
+                file=f,
+                description=self.description,
+                filename=self.file_name,
+                comment=self.summary or "",
+                ignore=True,  # skip warnings like "file exists"
+            )
+
+        return response
 
     def upload(self):
 
