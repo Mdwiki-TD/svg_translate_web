@@ -91,7 +91,10 @@ def _upload_file(
 
     except mwclient.errors.InsufficientPermission:
         logger.error("User does not have sufficient permissions to perform an action")
-        return {"error": "InsufficientPermission", "error_details": "User does not have sufficient permissions to perform an action"}
+        return {
+            "error": "InsufficientPermission",
+            "error_details": "User does not have sufficient permissions to perform an action",
+        }
 
     except Exception as e:
         # ---

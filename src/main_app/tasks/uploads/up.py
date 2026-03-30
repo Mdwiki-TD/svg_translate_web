@@ -86,7 +86,12 @@ def start_upload(
 
         if index % 10 == 0:
             if check_cancel and check_cancel("upload"):
-                upload_result = {"done": done, "not_done": not_done, "no_changes": no_changes, "errors": errors, }
+                upload_result = {
+                    "done": done,
+                    "not_done": not_done,
+                    "no_changes": no_changes,
+                    "errors": errors,
+                }
                 return upload_result, stages
 
     stages["message"] = (
@@ -94,7 +99,12 @@ def start_upload(
     )
     stages["status"] = "Failed" if not_done >= 10 else "Completed"
 
-    upload_result = {"done": done, "not_done": not_done, "no_changes": no_changes, "errors": errors, }
+    upload_result = {
+        "done": done,
+        "not_done": not_done,
+        "no_changes": no_changes,
+        "errors": errors,
+    }
 
     return upload_result, stages
 
