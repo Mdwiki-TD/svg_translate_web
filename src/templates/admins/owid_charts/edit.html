@@ -7,7 +7,7 @@
     {{ error }}
 </div>
 {% elif chart %}
-<div class="card">
+<div class="card m-2">
     <div class="card-header">
         <h5 class="mb-0">Edit Chart</h5>
     </div>
@@ -34,44 +34,52 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab"
+                            {% if chart.has_map_tab %}checked{% endif %}>
+                        <label class="form-check-label" for="has_map_tab">
+                            Has Map Tab
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
+                            {% if chart.is_published %}checked{% endif %}>
+                        <label class="form-check-label" for="is_published">
+                            Published
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline"
+                        {% if chart.has_timeline %}checked{% endif %}>
+                    <label class="form-check-label" for="has_timeline">
+                        Has Timeline?
+                    </label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4">
                     <label for="min_time" class="form-label">Min Time (Year)</label>
                     <input type="number" class="form-control" id="min_time" name="min_time"
                         value="{{ chart.min_time or '' }}">
                 </div>
-                <div class="col-md-6">
+                <div class="col-sm-4">
                     <label for="max_time" class="form-label">Max Time (Year)</label>
                     <input type="number" class="form-control" id="max_time" name="max_time"
                         value="{{ chart.max_time or '' }}">
                 </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="len_years" class="form-label">Length (Years)</label>
-                <input type="number" class="form-control" id="len_years" name="len_years"
-                    value="{{ chart.len_years or '' }}">
-            </div>
-
-            <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab"
-                        {% if chart.has_map_tab %}checked{% endif %}>
-                    <label class="form-check-label" for="has_map_tab">
-                        Has Map Tab
-                    </label>
+                <div class="col-sm-4">
+                    <label for="len_years" class="form-label">Length (Years)</label>
+                    <input type="number" class="form-control" id="len_years" name="len_years"
+                        value="{{ chart.len_years or '' }}">
                 </div>
             </div>
-
-            <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
-                        {% if chart.is_published %}checked{% endif %}>
-                    <label class="form-check-label" for="is_published">
-                        Published
-                    </label>
-                </div>
-            </div>
-
             <div class="mb-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="single_year_data" name="single_year_data"
@@ -82,15 +90,6 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline"
-                        {% if chart.has_timeline %}checked{% endif %}>
-                    <label class="form-check-label" for="has_timeline">
-                        Has Timeline
-                    </label>
-                </div>
-            </div>
 
             {% if chart.template_title %}
             <div class="alert alert-info">
@@ -106,13 +105,18 @@
             </div>
             {% endif %}
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> Save Changes
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="window.close()">
-                    <i class="bi bi-x-lg"></i> Cancel
-                </button>
+
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn-secondary w-100" onclick="window.close()">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                </div>
             </div>
         </form>
     </div>
