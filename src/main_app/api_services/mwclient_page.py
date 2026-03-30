@@ -56,15 +56,15 @@ class MwClientPage:
         except mwclient.errors.EditError as exc:
             return {"success": False, "error": "editerror", "details": str(exc)}
 
-        except mwclient.errors.ProtectedPageError as exc:
-            details = {"code": exc.code, "info": exc.info}
-            return {"success": False, "error": "protectedpageerror", "details": str(details)}
-
         except mwclient.errors.AssertUserFailedError:
             return {"success": False, "error": "assertuserfailed"}
 
         except mwclient.errors.UserBlocked:
             return {"success": False, "error": "userblocked"}
+
+        except mwclient.errors.ProtectedPageError as exc:
+            details = {"code": exc.code, "info": exc.info}
+            return {"success": False, "error": "protectedpageerror", "details": str(details)}
 
         except mwclient.errors.APIError as exc:
             if exc.code == "ratelimited":
