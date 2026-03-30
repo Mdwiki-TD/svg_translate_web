@@ -102,15 +102,18 @@ def _upload_file(
             "error_details": "User does not have sufficient permissions to perform an action",
         }
 
-    except Exception as e:
-        if "fileexists-no-change" in str(e):
-            logger.debug("Upload result: fileexists-no-change")
-            return {"error": "fileexists-no-change"}
-
-        if "ratelimited" in str(e):
+    except mwclient.errors.APIError as exc:
+        if exc.code == "ratelimited":
             logger.debug("You've exceeded your rate limit. Please wait some time and try again.")
-            return {"error": "ratelimited"}
+            return {"error": "ratelimited", "error_details": ""}
 
+        if exc.code == "fileexists-no-change":
+            logger.debug("Upload result: fileexists-no-change")
+            return {"error": "fileexists-no-change", "error_details": ""}
+
+        return {"error": exc.code, "error_details": exc.info}
+
+    except Exception as e:
         logger.error(f"Unexpected error uploading {file_name} to Wikimedia Commons:")
         return {"error": "Unknown error occurred", "error_details": str(e)}
 
