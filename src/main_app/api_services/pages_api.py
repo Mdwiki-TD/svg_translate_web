@@ -71,8 +71,7 @@ class MwClientPage:
 
         except Exception as exc:
             logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
-            error_msg = str(exc)
-            return {"success": False, "error": error_msg}
+            return {"success": False, "error": str(exc)}
 
     def edit_page(self, text: str, summary: str) -> dict[str, any]:
         page = self.load_page()
@@ -86,6 +85,9 @@ class MwClientPage:
             return edit_result
 
         # handle retry
+        return self.edit_with_retry(page, text, summary)
+
+    def edit_with_retry(self, page, text, summary):
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
 
             logger.warning(
