@@ -290,7 +290,7 @@ def undo_task(task_id: str):
         summary=f"Restoring original file (undo fix_nested task {task_id[:8]})",
     )
 
-    if not upload_result.get("result") == "Success":
+    if upload_result.get("result") != "Success":
         flash("Failed to upload original file", "danger")
         return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
 

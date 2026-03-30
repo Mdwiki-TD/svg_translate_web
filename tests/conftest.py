@@ -3,31 +3,23 @@ import os
 import secrets
 import sys
 from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock
 
+import pytest
 from cryptography.fernet import Fernet
 
-ROOT = Path(__file__).resolve().parents[1]
-
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT / "src"))
-    sys.path.insert(0, str(ROOT))
-# ---
-CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
-# ---
-if CopySVGTranslation_PATH and Path(CopySVGTranslation_PATH).is_dir():
-    sys.path.insert(0, str(Path(CopySVGTranslation_PATH).parent))
-# ---
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
 
-from typing import Any
+_CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
+if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
+    sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
-import pytest
-
-from src import svg_config  # load_dotenv()
+from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 
 
 @pytest.fixture
@@ -135,7 +127,7 @@ def sample_without_titles() -> str:
 @pytest.fixture
 def sample_with_svglanguages_only() -> str:
     """Wikitext with only SVGLanguages main title."""
-    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n" "Some other text...\n"
+    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\nSome other text...\n"
 
 
 @pytest.fixture
@@ -151,3 +143,23 @@ def sample_multiple_owidslidersrcs() -> str:
         "File:Gamma, 2002 to 2003, CCC.svg!country=CCC\n"
         "}}\n"
     )
+
+
+# ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_site() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_exists_page() -> MagicMock:
+    page = MagicMock()
+    page.exists = True
+    return page
+
+
+@pytest.fixture
+def mw_client(mock_site: MagicMock) -> MwClientPage:
+    return MwClientPage("Test Page", mock_site)

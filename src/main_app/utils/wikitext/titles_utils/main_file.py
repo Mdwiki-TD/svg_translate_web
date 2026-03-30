@@ -70,7 +70,7 @@ def find_main_title_from_owidslidersrcs(text):
         File:youth mortality rate, World, 1952.svg!year=1952
         File:youth mortality rate, World, 1953.svg!year=1953
         }}
-    Return:
+    Returns:
         "File:youth mortality rate, World, 1950.svg"
     """
     # Parse the text using wikitextparser
