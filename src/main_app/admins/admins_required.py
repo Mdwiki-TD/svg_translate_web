@@ -18,7 +18,7 @@ from .admin_service import active_coordinators
 F = TypeVar("F", bound=Callable[..., ResponseReturnValue])
 
 
-def admin_required(view: F) -> F:
+def admin_required[F: Callable[..., ResponseReturnValue]](view: F) -> F:
     """Decorator enforcing that the current user is an administrator."""
 
     @wraps(view)
