@@ -19,7 +19,7 @@ class MwClientPage:
         self.load_page_error = ""
         self.page = None
 
-    def load_page(self):
+    def load_page(self) -> mwclient.page.Page | bool:
         if self.page:
             return self.page
 
@@ -47,7 +47,7 @@ class MwClientPage:
         logger.info(f"Title {self.title} exists")
         return True
 
-    def _edit_page(self, page, text: str, summary: str) -> dict[str, any]:
+    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str) -> dict[str, any]:
 
         try:
             page.edit(text, summary=summary)
@@ -90,7 +90,7 @@ class MwClientPage:
         # handle retry
         return self.edit_with_retry(page, text, summary)
 
-    def edit_with_retry(self, page, text, summary):
+    def edit_with_retry(self, page: mwclient.page.Page, text, summary):
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
 
             logger.warning(

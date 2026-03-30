@@ -31,7 +31,7 @@ from .utils.jinja_filters import format_stage_timestamp, short_url
 logger = logging.getLogger(__name__)
 
 
-def register_blueprints(app) -> None:
+def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_tasks)
     app.register_blueprint(bp_explorer)
@@ -44,7 +44,7 @@ def register_blueprints(app) -> None:
     app.register_blueprint(bp_extract)
 
 
-def register_error_pages(app):
+def register_error_pages(app: Flask):
 
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:
@@ -89,7 +89,7 @@ def register_error_pages(app):
         return render_template("index.html", title="Session Expired"), 400
 
 
-def update_app_config(app) -> None:
+def update_app_config(app: Flask) -> None:
     app.config.update(
         SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
         SESSION_COOKIE_SECURE=settings.cookie.secure,
