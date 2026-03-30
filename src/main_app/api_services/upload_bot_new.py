@@ -25,9 +25,9 @@ class UploadFile:
         self,
         file_name: str,
         file_path: Path,
-        site: mwclient.client.Site = None,
-        summary: str = None,
-        description: str = None,
+        site: mwclient.client.Site | None = None,
+        summary: str | None = None,
+        description: str | None = None,
         new_file: bool = False,
     ) -> None:
         self.file_name = file_name
@@ -39,6 +39,14 @@ class UploadFile:
 
         if self.file_name:
             self.file_name = fix_file_name(self.file_name)
+
+    @staticmethod
+    def _ok(**extra: object) -> dict[str, object]:
+        return {"success": True, **extra}
+
+    @staticmethod
+    def _err(message: str, error_details: str = "") -> dict[str, object]:
+        return {"success": False, "error": message, "error_details": error_details}
 
     def _check_kwargs(self) -> dict:
         if not self.site:
@@ -202,9 +210,9 @@ class UploadFile:
 def upload_file(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site = None,
-    summary: str = None,
-    description: str = None,
+    site: mwclient.client.Site | None = None,
+    summary: str | None = None,
+    description: str | None = None,
     new_file: bool = False,
 ) -> dict:
     """
