@@ -55,15 +55,23 @@
             </div>
             <hr />
             <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline"
+                <label class="form-label d-block">Data Type</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="data_type" id="data_type_timeline" value="timeline"
                         {% if chart.has_timeline %}checked{% endif %}>
-                    <label class="form-check-label" for="has_timeline">
-                        Has Timeline?
+                    <label class="form-check-label" for="data_type_timeline">
+                        Has Timeline
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="data_type" id="data_type_single_year" value="single_year"
+                        {% if chart.single_year_data %}checked{% endif %}>
+                    <label class="form-check-label" for="data_type_single_year">
+                        Single Year Data
                     </label>
                 </div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-3" id="timeline_fields">
                 <div class="col-sm-4">
                     <label for="min_time" class="form-label">Min Time (Year)</label>
                     <input type="number" class="form-control" id="min_time" name="min_time"
@@ -80,15 +88,8 @@
                         value="{{ chart.len_years or '' }}">
                 </div>
             </div>
-            <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="single_year_data" name="single_year_data"
-                        {% if chart.single_year_data %}checked{% endif %}>
-                    <label class="form-check-label" for="single_year_data">
-                        Single Year Data
-                    </label>
-                </div>
-            </div>
+            <input type="hidden" name="has_timeline" id="has_timeline_hidden" value="{{ '1' if chart.has_timeline else '0' }}">
+            <input type="hidden" name="single_year_data" id="single_year_data_hidden" value="{{ '1' if chart.single_year_data else '0' }}">
 
 
             {% if chart.template_title %}
@@ -122,5 +123,27 @@
     </div>
 </div>
 {% endif %}
+
+{% endblock %}
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    function toggleTimelineFields() {
+        var isTimeline = $('#data_type_timeline').is(':checked');
+        if (isTimeline) {
+            $('#timeline_fields').find('input').prop('disabled', false);
+            $('#has_timeline_hidden').val('1');
+            $('#single_year_data_hidden').val('0');
+        } else {
+            $('#timeline_fields').find('input').prop('disabled', true);
+            $('#has_timeline_hidden').val('0');
+            $('#single_year_data_hidden').val('1');
+        }
+    }
+
+    $('input[name="data_type"]').on('change', toggleTimelineFields);
+    toggleTimelineFields();
+});
+</script>
 
 {% endblock %}

@@ -133,9 +133,9 @@ def _add_chart() -> ResponseReturnValue:
     min_time = request.form.get("min_time", type=int)
     default_tab = request.form.get("default_tab", "").strip()
     is_published = request.form.get("is_published") == "on"
-    single_year_data = request.form.get("single_year_data") == "on"
+    single_year_data = request.form.get("single_year_data") == "1"
     len_years = request.form.get("len_years", type=int)
-    has_timeline = request.form.get("has_timeline") == "on"
+    has_timeline = request.form.get("has_timeline") == "1"
 
     try:
         record = owid_charts_service.add_chart(
@@ -187,9 +187,9 @@ def _update_chart() -> ResponseReturnValue:
     min_time = request.form.get("min_time", type=int)
     default_tab = request.form.get("default_tab", "").strip()
     is_published = request.form.get("is_published") == "on"
-    single_year_data = request.form.get("single_year_data") == "on"
+    single_year_data = request.form.get("single_year_data") == "1"
     len_years = request.form.get("len_years", type=int)
-    has_timeline = request.form.get("has_timeline") == "on"
+    has_timeline = request.form.get("has_timeline") == "1"
 
     try:
         record = owid_charts_service.update_chart(

@@ -127,34 +127,42 @@
                             </div>
                         </div>
                         <div class="col-md-2 col-sm-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="single_year_data"
-                                    name="single_year_data">
-                                <label class="form-check-label" for="single_year_data">Single Year Data</label>
+                            <label class="form-label d-block mb-1">Data Type</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="data_type" id="data_type_timeline"
+                                    value="timeline" checked>
+                                <label class="form-check-label" for="data_type_timeline">Timeline</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="data_type" id="data_type_single_year"
+                                    value="single_year">
+                                <label class="form-check-label" for="data_type_single_year">Single Year</label>
                             </div>
                         </div>
-                        <div class="col-md-2 col-sm-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="has_timeline" name="has_timeline"
-                                    checked>
-                                <label class="form-check-label" for="has_timeline">Has Timeline</label>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6">
+                        <div class="col-md-2 col-sm-6" id="timeline_fields">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">Min</span>
                                 <input type="number" class="form-control" id="min_time" name="min_time"
                                     placeholder="Year" />
                             </div>
                         </div>
-                        <div class="col-md-2 col-sm-6">
+                        <div class="col-md-2 col-sm-6" id="max_time_field">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">Max</span>
                                 <input type="number" class="form-control" id="max_time" name="max_time"
                                     placeholder="Year" />
                             </div>
                         </div>
+                        <div class="col-md-2 col-sm-6" id="len_years_field">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">Length</span>
+                                <input type="number" class="form-control" id="len_years" name="len_years"
+                                    placeholder="Years" />
+                            </div>
+                        </div>
                     </div>
+                    <input type="hidden" name="has_timeline" id="has_timeline_hidden" value="1">
+                    <input type="hidden" name="single_year_data" id="single_year_data_hidden" value="0">
                 </form>
             </div>
         </div>
@@ -263,6 +271,8 @@
     </div>
 </div>
 
+{% endblock %}
+{% block extra_js %}
 <script>
     function pup_window_new(element) {
         var target = $(element).attr("pup-target");
