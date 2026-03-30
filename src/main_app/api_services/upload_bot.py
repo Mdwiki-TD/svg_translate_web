@@ -17,9 +17,9 @@ def fix_file_name(file_name) -> str:
 def site_upload(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site = None,
-    summary: str = None,
-    description: str = None,
+    site: mwclient.client.Site | None = None,
+    summary: str | None = None,
+    description: str | None = None,
 ):
     """
     Upload a file to the site.
@@ -72,9 +72,9 @@ def site_upload(
 def _upload_file(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site = None,
-    summary: str = None,
-    description: str = None,
+    site: mwclient.client.Site | None = None,
+    summary: str | None = None,
+    description: str | None = None,
 ) -> dict[str, str] | dict:
     """
     Upload an SVG file to Wikimedia Commons using mwclient.
@@ -121,7 +121,7 @@ def _upload_file(
 def _check_kwargs(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site = None,
+    site: mwclient.client.Site | None = None,
     new_file: bool = False,
 ):
 
@@ -159,9 +159,9 @@ def _check_kwargs(
 def upload_file(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site = None,
-    summary: str = None,
-    description: str = None,
+    site: mwclient.client.Site | None = None,
+    summary: str | None = None,
+    description: str | None = None,
     new_file: bool = False,
 ) -> dict[str, str] | dict:
     """
