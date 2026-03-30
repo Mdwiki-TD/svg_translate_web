@@ -184,6 +184,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             self.result["summary"]["processed"] += 1
             return False
 
+        info.steps["add_template_text"] = {"result": True, "msg": "Wikitext updated"}
         return True
 
     def _step_save_new_text(self, info: TemplateInfo) -> bool:
