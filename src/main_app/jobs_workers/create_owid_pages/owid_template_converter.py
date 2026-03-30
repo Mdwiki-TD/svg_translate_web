@@ -11,6 +11,10 @@ import re
 import wikitextparser as wtp
 
 
+def create_SVGLanguages_template(file_name) -> str:
+    return f"*{{{{SVGLanguages|{file_name}}}}}"
+
+
 def _extract_bullet_url(wikitext: str, label: str) -> str | None:
     """
     Extract the URL from a bullet like:
@@ -125,7 +129,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     # 4. Extract *Source* and *Translate* links from the template text     #
     # ------------------------------------------------------------------ #
     source_link = _extract_bullet_url(wikitext, "Source")
-    translate_link = _extract_bullet_url(wikitext, "Translate")
+    translate_link = _extract_bullet_url(wikitext, "Translate") or _extract_bullet_url(wikitext, "Translation")
 
     # ------------------------------------------------------------------ #
     # 5. Extract categories (skip meta-categories like "List of …")       #
@@ -148,8 +152,14 @@ def create_new_text(wikitext: str, template_title: str) -> str:
     # Bullet list
     if source_link:
         parts.append(f"*'''Source''': {source_link}")
+
     if translate_link:
         parts.append(f"*'''Translate''': {translate_link}")
+
+    if translate_link and translate_link.startswith("https://svgtranslate.toolforge.org/File:"):
+        file_name = translate_link.replace("https://svgtranslate.toolforge.org/File:", "")
+        parts.append(create_SVGLanguages_template(file_name))
+
     parts.append(f"*'''Template''': [[{template_title}]]")
 
     # Categories
