@@ -2,8 +2,13 @@
 import os
 import secrets
 import sys
+from typing import Any
 from pathlib import Path
 
+from unittest.mock import MagicMock
+import pytest
+
+from src.main_app.api_services.mwclient_page import MwClientPage
 from cryptography.fernet import Fernet
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,11 +28,7 @@ os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
 
-from typing import Any
-
-import pytest
-
-from src import svg_config  # load_dotenv()
+from src import svg_config  # load_dotenv()  # noqa: E402, F401
 
 
 @pytest.fixture
@@ -135,7 +136,7 @@ def sample_without_titles() -> str:
 @pytest.fixture
 def sample_with_svglanguages_only() -> str:
     """Wikitext with only SVGLanguages main title."""
-    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\n" "Some other text...\n"
+    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\nSome other text...\n"
 
 
 @pytest.fixture
@@ -151,3 +152,22 @@ def sample_multiple_owidslidersrcs() -> str:
         "File:Gamma, 2002 to 2003, CCC.svg!country=CCC\n"
         "}}\n"
     )
+
+
+# ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
+
+@pytest.fixture
+def mock_site() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_exists_page() -> MagicMock:
+    page = MagicMock()
+    page.exists = True
+    return page
+
+
+@pytest.fixture
+def mw_client(mock_site: MagicMock) -> MwClientPage:
+    return MwClientPage("Test Page", mock_site)

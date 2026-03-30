@@ -67,7 +67,7 @@ class TestEditPageProtectedErrors:
         mock_exists_page.edit.assert_called_once()  # no retry on ProtectedPageError
 
     @patch("src.main_app.api_services.mwclient_page.time.sleep")
-    def test_ratelimited_then_protected(self, mock_protected_page, mw_client, mock_site, mock_exists_page):
+    def test_ratelimited_then_protected(self, mock_sleep, mock_protected_page, mw_client, mock_site, mock_exists_page):
         """Non-ratelimited error during retry should be returned immediately."""
         mock_site.pages.__getitem__.return_value = mock_exists_page
         mock_exists_page.edit.side_effect = [
