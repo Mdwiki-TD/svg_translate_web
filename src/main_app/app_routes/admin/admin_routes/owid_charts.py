@@ -81,11 +81,6 @@ def _charts_dashboard():
     template_filter = request.args.get("template", "").strip()
     charts: List[OwidChartRecord] = owid_charts_service.list_charts()
 
-    if template_filter:
-        charts = [c for c in charts if c.template_title == template_filter]
-
-    templates = sorted(set(c.template_title for c in owid_charts_service.list_charts() if c.template_title))
-
     total = len(charts)
     summary = {
         "total": total,
@@ -94,13 +89,18 @@ def _charts_dashboard():
         "has_map_tab": len([c for c in charts if c.has_map_tab]),
         "has_timeline": len([c for c in charts if c.has_timeline]),
     }
+
+    if template_filter == "has_template":
+        charts = [c for c in charts if c.template_title]
+    elif template_filter == "no_template":
+        charts = [c for c in charts if not c.template_title]
+
     return render_template(
         "admins/owid_charts/list.html",
         current_user=user,
         charts=charts,
         total_charts=total,
         summary=summary,
-        templates=templates,
         selected_template=template_filter,
     )
 
