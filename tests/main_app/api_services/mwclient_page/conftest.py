@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 import pytest
+import mwclient
 
 from src.main_app.api_services.mwclient_page import MwClientPage
 
@@ -24,3 +25,9 @@ def mock_exists_page() -> MagicMock:
 @pytest.fixture
 def mw_client(mock_site: MagicMock) -> MwClientPage:
     return MwClientPage("Test Page", mock_site)
+
+
+@pytest.fixture
+def mock_protected_page_error(code="protectedpage", info="Protected"):
+    page = MagicMock()
+    return mwclient.errors.ProtectedPageError(page, code, info)
