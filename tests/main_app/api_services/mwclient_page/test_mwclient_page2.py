@@ -4,13 +4,20 @@ src/main_app/api_services/mwclient_page.py
 """
 
 from __future__ import annotations
+import pytest
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import mwclient.errors
 
 
 def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
     return mwclient.errors.APIError(code, info, {})
+
+
+@pytest.fixture
+def mock_protected_page(code="protectedpage", info="Protected"):
+    page = MagicMock()
+    return mwclient.errors.ProtectedPageError(page, code, info)
 
 
 class TestEditPageErrors:

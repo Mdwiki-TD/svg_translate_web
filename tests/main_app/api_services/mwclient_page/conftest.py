@@ -25,9 +25,3 @@ def mock_exists_page() -> MagicMock:
 @pytest.fixture
 def mw_client(mock_site: MagicMock) -> MwClientPage:
     return MwClientPage("Test Page", mock_site)
-
-
-@pytest.fixture
-def mock_protected_page(code="protectedpage", info="Protected"):
-    page = MagicMock()
-    return mwclient.errors.ProtectedPageError(page, code, info)
