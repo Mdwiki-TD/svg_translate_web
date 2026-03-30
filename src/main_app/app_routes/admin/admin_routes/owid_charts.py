@@ -91,10 +91,22 @@ def _charts_dashboard():
     total = len(all_charts)
     all_charts_summary = {
         "total": total,
-        "published": len([c for c in all_charts if c.is_published]),
-        "with_template": len([c for c in all_charts if c.template_id]),
-        "has_map_tab": len([c for c in all_charts if c.has_map_tab]),
-        "has_timeline": len([c for c in all_charts if c.has_timeline]),
+        "published": {
+            "with": len([c for c in all_charts if c.is_published]),
+            "without": len([c for c in all_charts if not c.is_published]),
+        },
+        "template": {
+            "with": len([c for c in all_charts if c.template_id]),
+            "without": len([c for c in all_charts if not c.template_id]),
+        },
+        "map_tab": {
+            "with": len([c for c in all_charts if c.has_map_tab]),
+            "without": len([c for c in all_charts if not c.has_map_tab]),
+        },
+        "timeline": {
+            "with": len([c for c in all_charts if c.has_timeline]),
+            "without": len([c for c in all_charts if not c.has_timeline]),
+        },
     }
 
     return render_template(

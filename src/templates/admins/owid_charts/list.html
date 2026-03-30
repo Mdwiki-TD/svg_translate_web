@@ -24,23 +24,37 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Published</h2>
-                        <p class="display-6 mb-0">{{ all_charts_summary.published }}</p>
+                        <p class="h4 mb-1 text-success">{{ all_charts_summary.published.with }} <small class="text-muted">with</small></p>
+                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.published.without }} <small class="text-muted">without</small></p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Template</h2>
-                        <p class="display-6 mb-0">{{ all_charts_summary.with_template }}</p>
+                        <h2 class="h6 text-uppercase text-muted">Template</h2>
+                        <p class="h4 mb-1 text-success">{{ all_charts_summary.template.with }} <small class="text-muted">with</small></p>
+                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.template.without }} <small class="text-muted">without</small></p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Has Map Tab</h2>
-                        <p class="display-6 mb-0">{{ all_charts_summary.has_map_tab }}</p>
+                        <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
+                        <p class="h4 mb-1 text-success">{{ all_charts_summary.map_tab.with }} <small class="text-muted">with</small></p>
+                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.map_tab.without }} <small class="text-muted">without</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Timeline</h2>
+                        <p class="h4 mb-1 text-success">{{ all_charts_summary.timeline.with }} <small class="text-muted">with</small></p>
+                        <p class="h4 mb-0 text-secondary">{{ all_charts_summary.timeline.without }} <small class="text-muted">without</small></p>
                     </div>
                 </div>
             </div>
@@ -130,13 +144,13 @@
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
                             href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
-                            With Templates ({{ all_charts_summary.with_template }})
+                            With Templates ({{ all_charts_summary.template.with }})
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
                             href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
-                            Without Templates ({{ total_charts - all_charts_summary.with_template }})
+                            Without Templates ({{ all_charts_summary.template.without }})
                         </a>
                     </li>
                 </ul>
