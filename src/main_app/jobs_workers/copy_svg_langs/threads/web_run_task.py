@@ -6,14 +6,14 @@ from typing import Any, Dict
 
 from ....config import DbConfig, settings
 from ....db.task_store_pymysql import TaskStorePyMysql
-from ..tasks.downloads import download_task
-from ..tasks.extract import translations_task
-from ..tasks.fix_nested import fix_nested_task
-from ..tasks.injects import inject_task
-from ..tasks.texts import text_task
-from ..tasks.titles import titles_task
-from ..tasks.uploads import upload_task
-from ..tasks.utils import make_results_summary, save_files_stats
+from ..steps.downloads import download_task
+from ..steps.extract import translations_task
+from ..steps.fix_nested import fix_nested_task
+from ..steps.injects import inject_task
+from ..steps.texts import text_task
+from ..steps.titles import titles_task
+from ..steps.uploads import upload_task
+from ..steps.utils import make_results_summary, save_files_stats
 
 logger = logging.getLogger(__name__)
 

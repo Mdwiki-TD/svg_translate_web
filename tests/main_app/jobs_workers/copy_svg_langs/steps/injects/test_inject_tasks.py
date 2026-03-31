@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.tasks.injects.inject_tasks import inject_task
+from src.main_app.jobs_workers.copy_svg_langs.steps.injects.inject_tasks import inject_task
 
 
-@patch("src.main_app.tasks.injects.inject_tasks.start_injects")
+@patch("src.main_app.jobs_workers.copy_svg_langs.steps.injects.inject_tasks.start_injects")
 def test_inject_task_success(mock_start, tmp_path):
     mock_start.return_value = {"success": 2, "failed": 0, "no_changes": 1, "nested_files": 0}
     stages = {}

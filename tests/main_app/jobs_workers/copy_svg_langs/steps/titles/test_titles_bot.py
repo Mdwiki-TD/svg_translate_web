@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.tasks.titles.titles_tasks import titles_task
+from src.main_app.jobs_workers.copy_svg_langs.steps.titles.titles_tasks import titles_task
 
 
-@patch("src.main_app.tasks.titles.titles_tasks.get_files_list")
+@patch("src.main_app.jobs_workers.copy_svg_langs.steps.titles.titles_tasks.get_files_list")
 def test_titles_task_success(mock_get_files):
     mock_get_files.return_value = ("Main.svg", ["f1.svg", "f2.svg"])
     stages = {}
@@ -17,7 +17,7 @@ def test_titles_task_success(mock_get_files):
     assert final_stages["status"] == "Completed"
 
 
-@patch("src.main_app.tasks.titles.titles_tasks.get_files_list")
+@patch("src.main_app.jobs_workers.copy_svg_langs.steps.titles.titles_tasks.get_files_list")
 def test_titles_task_fail(mock_get_files):
     mock_get_files.return_value = (None, [])
     stages = {}

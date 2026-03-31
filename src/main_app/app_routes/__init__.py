@@ -6,8 +6,9 @@ from .extract import bp_extract
 from .fix_nested import bp_fix_nested, bp_fix_nested_explorer
 from .main.routes import bp_main
 from .owid_charts_routes import bp_owid_charts
-from .tasks.routes import bp_tasks
 from .templates.routes import bp_templates
+
+from .tasks.routes import bp_tasks
 
 __all__ = [
     "bp_auth",

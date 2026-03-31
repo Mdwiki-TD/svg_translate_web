@@ -35,12 +35,12 @@ class InMemoryTaskStore:
 
     def get_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
-            task = self.tasks.get(task_id)
+            task = self.steps.get(task_id)
             return dict(task) if task else None
 
     def get_active_task_by_title(self, title: str) -> Optional[Dict[str, Any]]:
         with self._lock:
-            for task in self.tasks.values():
+            for task in self.steps.values():
                 if task["title"] == title and task["status"] not in {"Completed", "Failed", "Cancelled"}:
                     return dict(task)
         return None
@@ -89,7 +89,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.app_routes.steps.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
     routes.TASK_STORE_LOCK = threading.Lock()
@@ -102,7 +102,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.current_user",
+        "src.main_app.app_routes.steps.routes.current_user",
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
 
@@ -152,15 +152,15 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         task_finished.set()
 
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.get_store_task",
+        "src.main_app.app_routes.steps.routes.get_store_task",
         lambda tid: store.get_task(tid),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.create_new_task",
+        "src.main_app.app_routes.steps.routes.create_new_task",
         lambda tid, title, username, form=None: store.create_task(tid, title, username=username, form=form),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.launch_task_thread",
+        "src.main_app.app_routes.steps.routes.launch_task_thread",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
 
