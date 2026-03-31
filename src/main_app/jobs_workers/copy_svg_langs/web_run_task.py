@@ -4,16 +4,20 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ....config import DbConfig, settings
-from ....db.task_store_pymysql import TaskStorePyMysql
-from ..steps.downloads import download_task
-from ..steps.extract import translations_task
-from ..steps.fix_nested import fix_nested_task
-from ..steps.injects import inject_task
-from ..steps.texts import text_task
-from ..steps.titles import titles_task
-from ..steps.uploads import upload_task
-from ..steps.utils import make_results_summary, save_files_stats
+from ...config import DbConfig, settings
+from ...db.task_store_pymysql import TaskStorePyMysql
+
+from .steps import (
+    download_task,
+    translations_task,
+    fix_nested_task,
+    inject_task,
+    text_task,
+    titles_task,
+    upload_task,
+    make_results_summary,
+    save_files_stats,
+)
 
 logger = logging.getLogger(__name__)
 

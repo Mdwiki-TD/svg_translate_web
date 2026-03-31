@@ -6,7 +6,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.app_routes.copy_svg_langs_job import routes
 from src.main_app.db import TaskAlreadyExistsError
-from src.main_app.jobs_workers.copy_svg_langs.threads import task_threads
+from src.main_app.jobs_workers.copy_svg_langs import task_threads
 
 
 class InMemoryTaskStore:

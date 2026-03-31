@@ -44,7 +44,6 @@ def download_file_for_cropping(
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = filename.removeprefix("File:")
 
-    # Use download_one_file from tasks.downloads
     try:
         download_result = download_one_file(
             title=clean_filename,
