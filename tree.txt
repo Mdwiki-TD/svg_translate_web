@@ -13,6 +13,9 @@ src/
 │   │   └── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
+│   │   ├── api_services_utils/
+│   │   │   ├── __init__.py
+│   │   │   └── download_file_utils.py
 │   │   ├── category.py
 │   │   ├── clients/
 │   │   │   ├── __init__.py
@@ -142,14 +145,15 @@ src/
 │   │   ├── injects/
 │   │   │   ├── __init__.py
 │   │   │   └── inject_tasks.py
-│   │   ├── tasks_utils.py
+│   │   ├── tasks_utils/
+│   │   │   ├── __init__.py
+│   │   │   └── _utils.py
 │   │   ├── texts/
 │   │   │   ├── __init__.py
 │   │   │   └── start_bot.py
 │   │   ├── titles/
 │   │   │   ├── __init__.py
-│   │   │   ├── titles_tasks.py
-│   │   │   └── utils/
+│   │   │   └── titles_tasks.py
 │   │   └── uploads/
 │   │       ├── __init__.py
 │   │       └── up.py
@@ -164,9 +168,6 @@ src/
 │   │   └── store.py
 │   └── utils/
 │       ├── __init__.py
-│       ├── api_services_utils/
-│       │   ├── __init__.py
-│       │   └── download_file_utils.py
 │       ├── jinja_filters.py
 │       ├── verify.py
 │       └── wikitext/

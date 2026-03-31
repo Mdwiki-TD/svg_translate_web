@@ -1,8 +1,5 @@
 import json
-import os
-from unittest.mock import mock_open, patch
-
-import pytest
+from unittest.mock import patch
 
 from src.main_app.tasks.tasks_utils import commons_link, json_save, make_results_summary, save_files_stats
 
