@@ -213,6 +213,9 @@ def _update_chart() -> ResponseReturnValue:
     except LookupError as exc:
         logger.exception("Unable to update chart.")
         flash(str(exc), "warning")
+    except ValueError as exc:
+        logger.exception("Unable to update chart.")
+        flash(str(exc), "warning")
     except Exception:
         logger.exception("Unable to update chart.")
         flash("Unable to update chart. Please try again.", "danger")
