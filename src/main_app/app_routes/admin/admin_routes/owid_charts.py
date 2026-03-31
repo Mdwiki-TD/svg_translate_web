@@ -126,11 +126,15 @@ def _add_chart_popup():
 
 def _add_chart() -> ResponseReturnValue:
     """Create a new chart from the submitted form data."""
+    from_popup = request.form.get("from_popup") == "1"
+
     slug = request.form.get("slug", "").strip()
     title = request.form.get("title", "").strip()
 
     if not slug or not title:
         flash("Slug and Title are required.", "danger")
+        if from_popup:
+            return redirect(url_for("admin.add_chart"))
         return redirect(url_for("admin.owid_charts_dashboard"))
 
     has_map_tab = request.form.get("has_map_tab") == "on"
@@ -142,6 +146,7 @@ def _add_chart() -> ResponseReturnValue:
     len_years = request.form.get("len_years", type=int)
     has_timeline = request.form.get("has_timeline") == "1"
 
+    save_error = None
     try:
         record = owid_charts_service.add_chart(
             slug=slug,
@@ -158,24 +163,31 @@ def _add_chart() -> ResponseReturnValue:
     except ValueError as exc:
         logger.exception("Unable to add chart.")
         flash(str(exc), "warning")
+        save_error = True
     except Exception:
         logger.exception("Unable to add chart.")
         flash("Unable to add chart. Please try again.", "danger")
+        save_error = True
     else:
         flash(f"Chart '{record.title}' added.", "success")
 
+    if from_popup and save_error:
+        return redirect(url_for("admin.add_chart"))
+
+    if from_popup:
+        return render_template("admins/popup_action.html")
     return redirect(url_for("admin.owid_charts_dashboard"))
 
 
 def _update_chart() -> ResponseReturnValue:
     """Update a chart from the submitted form data."""
-    chart_id = request.form.get("chart_id", default=0, type=int)
     from_popup = request.form.get("from_popup") == "1"
 
+    chart_id = request.form.get("chart_id", default=0, type=int)
     if not chart_id:
         flash("Chart ID is required.", "danger")
         if from_popup:
-            return render_template("admins/popup_action.html")
+            return redirect(url_for("admin.edit_chart", chart_id=chart_id))
         return redirect(url_for("admin.owid_charts_dashboard"))
 
     slug = request.form.get("slug", "").strip()
@@ -184,7 +196,7 @@ def _update_chart() -> ResponseReturnValue:
     if not slug or not title:
         flash("Slug and Title are required.", "danger")
         if from_popup:
-            return render_template("admins/popup_action.html")
+            return redirect(url_for("admin.edit_chart", chart_id=chart_id))
         return redirect(url_for("admin.owid_charts_dashboard"))
 
     has_map_tab = request.form.get("has_map_tab") == "on"
@@ -196,6 +208,7 @@ def _update_chart() -> ResponseReturnValue:
     len_years = request.form.get("len_years", type=int)
     has_timeline = request.form.get("has_timeline") == "1"
 
+    save_error = None
     try:
         record = owid_charts_service.update_chart(
             chart_id=chart_id,
@@ -213,14 +226,20 @@ def _update_chart() -> ResponseReturnValue:
     except LookupError as exc:
         logger.exception("Unable to update chart.")
         flash(str(exc), "warning")
+        save_error = True
     except ValueError as exc:
         logger.exception("Unable to update chart.")
         flash(str(exc), "warning")
+        save_error = True
     except Exception:
         logger.exception("Unable to update chart.")
         flash("Unable to update chart. Please try again.", "danger")
+        save_error = True
     else:
         flash(f"Chart '{record.title}' updated.", "success")
+
+    if from_popup and save_error:
+        return redirect(url_for("admin.edit_chart", chart_id=chart_id))
 
     if from_popup:
         return render_template("admins/popup_action.html")
