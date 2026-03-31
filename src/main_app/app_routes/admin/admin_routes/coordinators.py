@@ -14,7 +14,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ....admins import admin_service
+from ....services import admin_service
 from ....admins.admins_required import admin_required
 from ....users.current import current_user
 

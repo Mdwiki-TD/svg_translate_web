@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional, TypeVar, cast
 
 from flask import g, redirect, request, session, url_for
 
-from ..admins.admin_service import active_coordinators
+from ..services.admin_service import active_coordinators
 from ..app_routes.auth.cookie import extract_user_id
 from ..config import settings
 from .store import UserTokenRecord, get_user_token

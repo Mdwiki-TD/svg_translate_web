@@ -7,7 +7,7 @@ from typing import Any, Callable, TypeVar, cast
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from ...admins.admin_service import active_coordinators
+from ...services.admin_service import active_coordinators
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore

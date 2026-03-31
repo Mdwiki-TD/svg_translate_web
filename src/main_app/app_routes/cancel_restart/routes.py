@@ -15,7 +15,7 @@ from flask import (
 )
 from werkzeug.datastructures import MultiDict
 
-from ...admins.admin_service import active_coordinators
+from ...services.admin_service import active_coordinators
 from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...db.task_store_pymysql import TaskStorePyMysql
