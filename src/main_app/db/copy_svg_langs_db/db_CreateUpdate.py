@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from ..errors import TaskAlreadyExistsError
 from ..db_class import Database
 from ..utils import DbUtils
 
@@ -19,20 +20,6 @@ ALLOWED_TASK_UPDATE_COLUMNS: list = [
     "data_json",
     "results_json",
 ]
-
-
-class TaskAlreadyExistsError(Exception):
-    """Raised when attempting to create a duplicate active task."""
-
-    def __init__(self, task: Dict[str, Any]):
-        """
-        Initialize the exception with the conflicting task.
-
-        Parameters:
-            task (Dict[str, Any]): The existing active task that caused the conflict; stored on the exception as the `task` attribute.
-        """
-        super().__init__("Task with this title is already in progress")
-        self.task = task
 
 
 class CreateUpdateTask(DbUtils):

@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 
 from ..admin.admins_required import admin_required
 from ...config import settings
-from ...db import TaskAlreadyExistsError
+from ...db.errors import TaskAlreadyExistsError
 from ...public_jobs_workers.copy_svg_langs.task_threads import get_cancel_event, launch_task_thread
 from ...services.admin_service import active_coordinators
 from ...services.copy_svg_langs_service import (
