@@ -1,7 +1,5 @@
-
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
 
 from src.main_app.app_routes.fix_nested.worker import (
     detect_nested_tags,

@@ -9,9 +9,9 @@ from typing import Any, Callable, Dict, Iterable
 from tqdm import tqdm
 
 from ...api_services.clients import create_commons_session
-from ...utils.api_services_utils import download_one_file
 from ...config import settings
 from ...db.task_store_pymysql import TaskStorePyMysql
+from ...utils.api_services_utils import download_one_file
 
 logger = logging.getLogger(__name__)
 

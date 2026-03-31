@@ -6,7 +6,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def create_task_folder(task_id: str, path: Path|str) -> Path:
+def create_task_folder(task_id: str, path: Path | str) -> Path:
     """Create folder structure for a fix_nested task."""
     task_dir = Path(path) / task_id
     task_dir.mkdir(parents=True, exist_ok=True)
