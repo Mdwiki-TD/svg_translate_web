@@ -216,7 +216,7 @@ def start():
 
 @bp_tasks.post("/task/<task_id>/delete")
 @admin_required
-def delete_task(task_id: int):
+def delete_task(task_id: str):
     """Delete task."""
     try:
         _task_store().delete_task(task_id)

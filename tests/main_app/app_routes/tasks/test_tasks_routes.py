@@ -89,7 +89,7 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", store_factory)
     monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.TASK_STORE_LOCK", threading.Lock())
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
 
     yield app, app.test_client(), store
 
