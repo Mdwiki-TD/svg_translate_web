@@ -1,3 +1,4 @@
+```
 PS I:\SVG\svg_repo\src> python -m directory_tree --ignore-list __pycache__
 src/
 ├── __init__.py
@@ -258,4 +259,4 @@ src/
 │   └── templates/
 │       └── index.html
 └── uwsgi.ini
-PS I:\SVG\svg_repo\src>
+```
