@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest.mock as mock
 
-from src.main_app.utils.wikitext.template_source import (
+from src.main_app.utils.wikitext.temp_source import (
     _find_template_source,
     _find_template_source_2,
     check_url,
