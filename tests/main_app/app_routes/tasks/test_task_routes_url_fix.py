@@ -2,65 +2,93 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock, patch
+import threading
+import types
+from typing import Any
 
+import pytest
 from flask import Flask
 
+from src.main_app import create_app
 from src.main_app.app_routes.tasks import routes
 
 
-def test_start_redirects_to_correct_task_endpoint(monkeypatch):
-    """Test that start() redirects to 'tasks.task'."""
-    app = Flask(__name__)
-    app.secret_key = "test"
+class DummyTaskStore:
+    """Lightweight in-memory task store used by the tests."""
 
-    mock_task_store = Mock()
-    mock_task_store.get_active_task_by_title = Mock(return_value={"id": "existing-task-123", "status": "Pending"})
+    def __init__(self) -> None:
+        self.tasks: dict[str, dict[str, Any]] = {}
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: mock_task_store)
-    monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.get_active_task_by_title", mock_task_store.get_active_task_by_title
+    def create_task(
+        self,
+        task_id: str,
+        title: str,
+        *,
+        username: str = "",
+        form: dict[str, Any] | None = None,
+    ) -> None:
+        if task_id in self.tasks:
+            raise ValueError(f"Task {task_id} already exists")
+        self.tasks[task_id] = {
+            "id": task_id,
+            "title": title,
+            "username": username,
+            "status": "Pending",
+            "form": dict(form or {}),
+        }
+
+    def get_task(self, task_id: str) -> dict[str, Any] | None:
+        task = self.tasks.get(task_id)
+        return dict(task) if task else None
+
+    def get_active_task_by_title(self, title: str) -> dict[str, Any] | None:
+        for task in self.tasks.values():
+            if task["title"] == title and task.get("status") not in {"Completed", "Failed", "Cancelled"}:
+                return dict(task)
+        return None
+
+    def close(self) -> None:
+        pass
+
+
+@pytest.fixture
+def app_client(monkeypatch: pytest.MonkeyPatch):
+    """Provide a Flask test client wired with an in-memory task store."""
+
+    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
+    app = create_app()
+    app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
+
+    store = DummyTaskStore()
+
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
+
+    yield app, app.test_client(), store
+
+
+def test_start_redirects_to_correct_task_endpoint(
+    app_client: tuple[Flask, Any, DummyTaskStore], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test that start() redirects to the existing task when a duplicate is found."""
+    app, client, store = app_client
+
+    user = types.SimpleNamespace(
+        username="tester",
+        access_token="token",
+        access_secret="secret",
+        user_id=1,
     )
 
-    mock_args = Mock()
-    mock_args.ignore_existing_task = False
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", Mock(return_value=mock_args))
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", Mock())
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", Mock())
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
 
-    with app.test_request_context(method="POST", data={"title": "Test Title"}):
-        with patch("src.main_app.users.current.current_user") as mock_user:
-            mock_user.return_value = Mock(username="testuser", user_id=1, access_token="tok", access_secret="sec")
+    existing_id = "existing-task-123"
+    store.create_task(existing_id, "Test Title", username="tester", form={"title": "Test Title"})
 
-            with patch("src.main_app.app_routes.tasks.routes.flash"):
-                with patch("src.main_app.app_routes.tasks.routes.redirect"):
-                    with patch("src.main_app.app_routes.tasks.routes.url_for") as mock_url_for:
-                        mock_url_for.return_value = "/task/existing-task-123"
+    response = client.post("/", data={"title": "Test Title"})
 
-                        routes.start()
-
-                        mock_url_for.assert_any_call(
-                            "tasks.task",
-                            task_id="existing-task-123",
-                            title="Test Title",
-                        )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", Mock())
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", Mock())
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", Mock())
-
-    with app.test_request_context(method="POST", data={"title": "Test Title"}):
-        with patch("src.main_app.users.current.current_user") as mock_user:
-            mock_user.return_value = Mock(username="testuser", user_id=1, access_token="tok", access_secret="sec")
-
-            with patch("src.main_app.app_routes.tasks.routes.flash"):
-                with patch("src.main_app.app_routes.tasks.routes.redirect"):
-                    with patch("src.main_app.app_routes.tasks.routes.url_for") as mock_url_for:
-                        mock_url_for.return_value = "/task/existing-task-123"
-
-                        routes.start()
-
-                        mock_url_for.assert_any_call(
-                            "tasks.task",
-                            task_id="existing-task-123",
-                            title="Test Title",
-                        )
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith(f"/task/{existing_id}?title=Test+Title")
