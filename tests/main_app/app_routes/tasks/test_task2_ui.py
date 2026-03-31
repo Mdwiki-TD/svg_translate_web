@@ -20,7 +20,7 @@ def app_factory(monkeypatch):
         import importlib
 
         app_module = importlib.import_module("src.main_app.__init__")
-        admin_service = importlib.import_module("src.main_app.admins.admin_service")
+        admin_service = importlib.import_module("src.main_app.services.admin_service")
 
         # Mock current_user
         monkeypatch.setattr(
@@ -39,7 +39,7 @@ def app_factory(monkeypatch):
             def list(self):  # pragma: no cover - trivial stub
                 return []
 
-        monkeypatch.setattr("src.main_app.admins.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
+        monkeypatch.setattr("src.main_app.services.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
 
         app = create_app()
         app.config["TESTING"] = True

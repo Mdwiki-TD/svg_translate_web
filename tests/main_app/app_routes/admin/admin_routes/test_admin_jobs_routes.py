@@ -114,18 +114,18 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.jobs.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admins.admins_required.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.admins.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.users.current.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.admins.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeJobsDB({})
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.main_app.services.jobs_service.JobsDB", fake_jobs_factory)
 
     jobs_service._JOBS_STORE = fake_store
 
@@ -883,7 +883,7 @@ def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
     def mock_delete_job(job_id, job_type):
         raise Exception("Database error")
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.delete_job", mock_delete_job)
+    monkeypatch.setattr("src.main_app.services.jobs_service.delete_job", mock_delete_job)
 
     response = client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200

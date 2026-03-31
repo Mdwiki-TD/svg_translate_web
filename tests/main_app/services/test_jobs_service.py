@@ -68,12 +68,12 @@ def jobs_db_fixture(monkeypatch: pytest.MonkeyPatch):
     """Set up a fake jobs database."""
     fake_store = FakeJobsDB({})
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.main_app.services.jobs_service.JobsDB", fake_jobs_factory)
 
     jobs_service._JOBS_STORE = None  # Reset global state
 
@@ -166,7 +166,7 @@ def test_update_job_status_with_result_file(jobs_db_fixture):
 def test_save_job_result(jobs_db_fixture, tmp_path, monkeypatch):
     """Test saving a job result to a JSON file."""
     # Mock get_jobs_data_dir to use tmp_path
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = jobs_service.create_job("collect_main_files")
 
@@ -311,7 +311,7 @@ def test_list_jobs_filtered_with_limit(jobs_db_fixture):
 
 def test_get_jobs_db_no_config(monkeypatch: pytest.MonkeyPatch):
     """Test get_jobs_db raises error when DB config is missing."""
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.has_db_config", lambda: False)
+    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: False)
     jobs_service._JOBS_STORE = None
 
     with pytest.raises(RuntimeError, match="Jobs administration requires database configuration"):
@@ -334,7 +334,7 @@ def test_get_jobs_data_dir_not_configured(monkeypatch: pytest.MonkeyPatch):
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace())
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.settings", mock_settings)
+    monkeypatch.setattr("src.main_app.services.jobs_service.settings", mock_settings)
     jobs_service.get_jobs_data_dir.cache_clear()
 
     with pytest.raises(RuntimeError, match="MAIN_DIR/svg_jobs environment variable is required"):
@@ -351,7 +351,7 @@ def test_get_jobs_data_dir_creates_directory(tmp_path, monkeypatch: pytest.Monke
     assert not jobs_dir.exists()
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace(svg_jobs_path=str(jobs_dir)))
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.settings", mock_settings)
+    monkeypatch.setattr("src.main_app.services.jobs_service.settings", mock_settings)
     jobs_service.get_jobs_data_dir.cache_clear()
 
     result = jobs_service.get_jobs_data_dir()
@@ -365,7 +365,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
     """Test saving a job result with datetime objects (default serialization)."""
     from datetime import datetime
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = jobs_service.create_job("test_job")
 
@@ -379,7 +379,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
 
 def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.MonkeyPatch):
     """Test save_job_result without by_name variant."""
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = jobs_service.create_job("test_job")
 

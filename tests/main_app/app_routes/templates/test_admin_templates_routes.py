@@ -109,9 +109,9 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.templates.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admins.admins_required.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.admins.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.users.current.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.admins.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeTemplatesDB({})
     fake_store.add("Existing Template", "existing.svg")
