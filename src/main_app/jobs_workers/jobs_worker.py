@@ -17,23 +17,23 @@ from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 logger = logging.getLogger(__name__)
 
 
-CANCEL_EVENTS: dict[int, threading.Event] = {}
-CANCEL_EVENTS_LOCK = threading.Lock()
+JOBS_CANCEL_EVENTS: dict[int, threading.Event] = {}
+JOBS_CANCEL_EVENTS_LOCK = threading.Lock()
 
 
 def _register_cancel_event(job_id: int, cancel_event: threading.Event) -> None:
-    with CANCEL_EVENTS_LOCK:
-        CANCEL_EVENTS[job_id] = cancel_event
+    with JOBS_CANCEL_EVENTS_LOCK:
+        JOBS_CANCEL_EVENTS[job_id] = cancel_event
 
 
 def _pop_cancel_event(job_id: int) -> threading.Event | None:
-    with CANCEL_EVENTS_LOCK:
-        return CANCEL_EVENTS.pop(job_id, None)
+    with JOBS_CANCEL_EVENTS_LOCK:
+        return JOBS_CANCEL_EVENTS.pop(job_id, None)
 
 
 def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
-    with CANCEL_EVENTS_LOCK:
-        return CANCEL_EVENTS.get(job_id)
+    with JOBS_CANCEL_EVENTS_LOCK:
+        return JOBS_CANCEL_EVENTS.get(job_id)
 
 
 def _runner(job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Event, target_func: Any) -> None:

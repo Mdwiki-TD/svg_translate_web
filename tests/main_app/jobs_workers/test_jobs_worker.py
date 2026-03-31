@@ -30,11 +30,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def clean_cancel_events():
     """Clear CANCEL_EVENTS before and after each test."""
-    with jobs_worker.CANCEL_EVENTS_LOCK:
-        jobs_worker.CANCEL_EVENTS.clear()
+    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
+        jobs_worker.JOBS_CANCEL_EVENTS.clear()
     yield
-    with jobs_worker.CANCEL_EVENTS_LOCK:
-        jobs_worker.CANCEL_EVENTS.clear()
+    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
+        jobs_worker.JOBS_CANCEL_EVENTS.clear()
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
