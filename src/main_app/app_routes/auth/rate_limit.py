@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from threading import Lock
 from typing import Deque, Dict
 
@@ -20,7 +20,7 @@ class RateLimiter:
     def allow(self, key: str) -> bool:
         """Return True if the key is allowed to proceed, False when throttled."""
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._lock:
             hits = self._hits.setdefault(key, deque())
             while hits and now - hits[0] > self._period:
@@ -33,7 +33,7 @@ class RateLimiter:
     def try_after(self, key: str) -> timedelta:
         """Return the time until the key is allowed to proceed."""
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._lock:
             hits = self._hits.setdefault(key, deque())
             while hits and now - hits[0] > self._period:

@@ -147,7 +147,7 @@ class DbUtils:
         Returns:
             A string of the current UTC time in the format "YYYY-MM-DD HH:MM:SS".
         """
-        return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
 
     def _normalize_title(self, title: str) -> str:
         """
