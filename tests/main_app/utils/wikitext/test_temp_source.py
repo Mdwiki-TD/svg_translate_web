@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import unittest.mock as mock
 
-import pytest
-
 from src.main_app.utils.wikitext.template_source import (
     _find_template_source,
     _find_template_source_2,

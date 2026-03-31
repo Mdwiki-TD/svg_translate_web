@@ -34,6 +34,9 @@ class OwidChartRecord:
     template_title: str | None = None
     template_source: str | None = None
 
+    def __post_init__(self):
+        self.template_source = f"https://ourworldindata.org/grapher/{self.slug}"
+
 
 class OwidChartsDB:
     """MySQL-backed storage for OWID charts."""
@@ -94,7 +97,7 @@ class OwidChartsDB:
         rows = self.db.fetch_query_safe(
             """
             SELECT * FROM owid_charts_templates oct, owid_charts oc
-            WHERE oct.slug = %s
+            WHERE oc.slug = %s
             and oct.chart_id = oc.chart_id
             """,
             (slug,),
@@ -173,7 +176,7 @@ class OwidChartsDB:
         except pymysql.err.IntegrityError:
             raise ValueError(f"Chart with slug '{slug}' already exists") from None
 
-        return self._fetch_by_slug(slug)
+        return self.fetch_by_slug(slug)
 
     def update_chart_data(
         self,

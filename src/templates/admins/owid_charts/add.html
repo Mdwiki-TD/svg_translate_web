@@ -1,0 +1,124 @@
+{% extends "admins/popup_action.html" %}
+{% block title %}Add Chart · Copy SVG Translation{% endblock %}
+{% block content %}
+
+<div class="card m-2">
+    <div class="card-header">
+        <h5 class="mb-0">Add Chart</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('admin.add_chart') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="from_popup" value="1" />
+
+            <div class="mb-3">
+                <label for="slug" class="form-label">Slug</label>
+                <input type="text" class="form-control" id="slug" name="slug" required
+                    placeholder="life-expectancy-at-age-15">
+            </div>
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="default_tab" class="form-label">Default Tab</label>
+                <input type="text" class="form-control" id="default_tab" name="default_tab" value=""
+                    placeholder="map, chart, or table">
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab">
+                        <label class="form-check-label" for="has_map_tab">
+                            Has Map Tab
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_published" name="is_published" checked>
+                        <label class="form-check-label" for="is_published">
+                            Published
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="mb-3">
+                <label class="form-label d-block">Data Type</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="data_type" id="data_type_timeline"
+                        value="timeline" checked>
+                    <label class="form-check-label" for="data_type_timeline">
+                        Has Timeline
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="data_type" id="data_type_single_year"
+                        value="single_year">
+                    <label class="form-check-label" for="data_type_single_year">
+                        Single Year Data
+                    </label>
+                </div>
+            </div>
+            <div class="row mb-3" id="timeline_fields">
+                <div class="col-sm-4">
+                    <label for="min_time" class="form-label">Min Time (Year)</label>
+                    <input type="number" class="form-control" id="min_time" name="min_time" value="">
+                </div>
+                <div class="col-sm-4">
+                    <label for="max_time" class="form-label">Max Time (Year)</label>
+                    <input type="number" class="form-control" id="max_time" name="max_time" value="">
+                </div>
+                <div class="col-sm-4">
+                    <label for="len_years" class="form-label">Length (Years)</label>
+                    <input type="number" class="form-control" id="len_years" name="len_years" value="">
+                </div>
+            </div>
+            <input type="hidden" name="has_timeline" id="has_timeline_hidden" value="1">
+            <input type="hidden" name="single_year_data" id="single_year_data_hidden" value="0">
+
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Add Chart
+                    </button>
+                </div>
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn-secondary w-100" onclick="window.close()">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        function toggleTimelineFields() {
+            var isTimeline = $('#data_type_timeline').is(':checked');
+            if (isTimeline) {
+                // $('#timeline_fields').find('input').prop('disabled', false);
+                $('#max_time, #len_years').prop('disabled', false);
+                $('#has_timeline_hidden').val('1');
+                $('#single_year_data_hidden').val('0');
+            } else {
+                // $('#timeline_fields').find('input').prop('disabled', true);
+                $('#max_time, #len_years').prop('disabled', true);
+                $('#has_timeline_hidden').val('0');
+                $('#single_year_data_hidden').val('1');
+            }
+        }
+
+        $('input[name="data_type"]').on('change', toggleTimelineFields);
+        toggleTimelineFields();
+    });
+</script>
+
+{% endblock %}

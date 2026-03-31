@@ -5,9 +5,15 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">OWID Charts</h3>
-        <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-success">
-            <i class="bi bi-download"></i> Download Json
-        </a>
+        <div>
+            <button type="button" class="btn btn-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
+                onclick="pup_window_new(this)">
+                <i class="bi bi-plus-lg"></i> Add Chart
+            </button>
+            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-success">
+                <i class="bi bi-download"></i> Download Json
+            </a>
+        </div>
     </div>
     <div class="card-body">
         {% if all_charts_summary %}
@@ -88,84 +94,6 @@
         </div>
         {% endif %}
 
-        <div class="card mb-2 shadow-sm">
-            <div class="card-body">
-                <form method="post" action="{{ url_for('admin.add_chart') }}" class="row g-2 align-items-end">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <div class="row">
-                        <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Slug</span>
-                                <input type="text" class="form-control" id="slug" name="slug" required
-                                    placeholder="life-expectancy-at-age-15" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Title</span>
-                                <input type="text" class="form-control" id="title" name="title" required />
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-12">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-plus-lg"></i> Add Chart
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2 col-sm-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="has_map_tab" name="has_map_tab">
-                                <label class="form-check-label" for="has_map_tab">Has Map Tab</label>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
-                                    checked>
-                                <label class="form-check-label" for="is_published">Published</label>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6">
-                            <label class="form-label d-block mb-1">Data Type</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="data_type" id="data_type_timeline"
-                                    value="timeline" checked>
-                                <label class="form-check-label" for="data_type_timeline">Timeline</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="data_type" id="data_type_single_year"
-                                    value="single_year">
-                                <label class="form-check-label" for="data_type_single_year">Single Year</label>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6" id="timeline_fields">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">Min</span>
-                                <input type="number" class="form-control" id="min_time" name="min_time"
-                                    placeholder="Year" />
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6" id="max_time_field">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">Max</span>
-                                <input type="number" class="form-control" id="max_time" name="max_time"
-                                    placeholder="Year" />
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-6" id="len_years_field">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">Length</span>
-                                <input type="number" class="form-control" id="len_years" name="len_years"
-                                    placeholder="Years" />
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" name="has_timeline" id="has_timeline_hidden" value="1">
-                    <input type="hidden" name="single_year_data" id="single_year_data_hidden" value="0">
-                </form>
-            </div>
-        </div>
 
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
@@ -189,84 +117,90 @@
                         </a>
                     </li>
                 </ul>
-            </div>
-        </div>
 
-        <div class="table-responsive shadow-sm">
-            <table class="table table-hover align-middle mb-0 DataTable">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Slug</th>
-                        <th scope="col">Title</th>
-                        <th scope="col" class="text-center">map</th>
-                        <th scope="col" class="text-center">timeline</th>
-                        <th scope="col" class="text-center">Years</th>
-                        <th scope="col">Published</th>
-                        <th scope="col">Template</th>
-                        <th scope="col">Edit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for chart in charts %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <code>{{ chart.slug }}</code>
-                        </td>
-                        <td>
-                            {{ chart.title }}
-                        </td>
-                        <td class="text-center">
-                            {% if chart.has_map_tab %}
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill text-muted"></i>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if chart.has_timeline %}
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill text-muted"></i>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {{ chart.min_time }} - {{ chart.max_time }}
-                            {% if chart.len_years %}
-                            <small class="text-muted">({{ chart.len_years }})</small>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if chart.is_published %}
-                            <span class="badge bg-success">Yes</span>
-                            {% else %}
-                            <span class="badge bg-secondary">No</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if chart.template_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ chart.template_title | replace('Template:', '') }}
-                            </a>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('admin.edit_chart', chart_id=chart.chart_id) }}"
-                                onclick="pup_window_new(this)">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                <div class="table-responsive shadow-sm">
+                    <table class="table table-hover align-middle mb-0 DataTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Slug</th>
+                                <th scope="col">Title</th>
+                                <th scope="col" class="text-center">map</th>
+                                <th scope="col" class="text-center">timeline</th>
+                                <th scope="col" class="text-center">Years</th>
+                                <th scope="col">Published</th>
+                                <th scope="col">Template</th>
+                                <th scope="col">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for chart in charts %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <!-- <code> {{ chart.slug }} </code> -->
+                                    <a href="https://ourworldindata.org/grapher/{{ chart.slug }}" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <code> {{ chart.slug }} </code>
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ chart.title }}
+                                </td>
+                                <td class="text-center">
+                                    {% if chart.has_map_tab %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if chart.has_timeline %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if chart.has_timeline %}
+                                    {{ chart.min_time }} - {{ chart.max_time }}
+                                    {% if chart.len_years %}
+                                    <small class="text-muted">({{ chart.len_years }})</small>
+                                    {% endif %}
+                                    {% else %}
+                                    {{ chart.min_time }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if chart.is_published %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if chart.template_title %}
+                                    <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}"
+                                        target="_blank" rel="noopener noreferrer">
+                                        {{ chart.template_title | replace('Template:', '') }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                        pup-target="{{ url_for('admin.edit_chart', chart_id=chart.chart_id) }}"
+                                        onclick="pup_window_new(this)">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

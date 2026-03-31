@@ -119,6 +119,11 @@ def _charts_dashboard():
     )
 
 
+def _add_chart_popup():
+    """Render the add chart popup form."""
+    return render_template("admins/owid_charts/add.html")
+
+
 def _add_chart() -> ResponseReturnValue:
     """Create a new chart from the submitted form data."""
     slug = request.form.get("slug", "").strip()
@@ -263,6 +268,11 @@ class OwidCharts:
         @admin_required
         def owid_charts_dashboard():
             return _charts_dashboard()
+
+        @bp_admin.get("/owid-charts/add")
+        @admin_required
+        def add_chart_popup() -> ResponseReturnValue:
+            return _add_chart_popup()
 
         @bp_admin.post("/owid-charts/add")
         @admin_required
