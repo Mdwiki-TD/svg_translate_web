@@ -11,7 +11,7 @@ from flask import (
 )
 
 from .compare import analyze_file
-from ..utils.explorer_utils.thumbnail_utils import save_thumb
+from ..utils.thumbnail_utils import save_thumb
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
