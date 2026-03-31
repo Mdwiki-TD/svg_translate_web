@@ -96,8 +96,8 @@ class FakeDatabase:
             return 1
 
         if normalized.startswith("update templates"):
-            # UPDATE has: title, main_file, last_world_file, source, template_id
-            title, main_file, last_world_file, source, template_id, slug = params
+            # UPDATE has: title, main_file, last_world_file, source, slug, template_id
+            title, main_file, last_world_file, source, slug, template_id = params
             for row in self._rows:
                 if row["id"] == template_id:
                     row["title"] = title
