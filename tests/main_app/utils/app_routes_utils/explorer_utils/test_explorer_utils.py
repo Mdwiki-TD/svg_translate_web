@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.app_routes.explorer import utils
+from src.main_app.app_routes.explorer import explorer_utils
 
 
 @pytest.fixture(autouse=True)
@@ -17,8 +17,8 @@ def patch_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     svg_dir.mkdir()
     thumb_dir.mkdir()
 
-    monkeypatch.setattr(utils, "svg_data_path", svg_dir)
-    monkeypatch.setattr(utils, "svg_data_thumb_path", thumb_dir)
+    monkeypatch.setattr(explorer_utils, "svg_data_path", svg_dir)
+    monkeypatch.setattr(explorer_utils, "svg_data_thumb_path", thumb_dir)
 
     return svg_dir
 
@@ -29,7 +29,7 @@ def test_get_main_data_reads_json(tmp_path: Path) -> None:
     stats = {"main_title": "Main", "values": 1}
     (title_dir / "files_stats.json").write_text(json.dumps(stats), encoding="utf-8")
 
-    data = utils.get_main_data("topic")
+    data = explorer_utils.get_main_data("topic")
 
     assert data == stats
 
@@ -40,7 +40,7 @@ def test_get_files_full_path_returns_all_files(tmp_path: Path) -> None:
     (title_dir / "one.svg").write_text("<svg/>", encoding="utf-8")
     (title_dir / "two.txt").write_text("x", encoding="utf-8")
 
-    files, path = utils.get_files_full_path("folder", "files")
+    files, path = explorer_utils.get_files_full_path("folder", "files")
 
     assert sorted(files) == ["one.svg", "two.txt"]
     assert path == title_dir
@@ -52,7 +52,7 @@ def test_get_files_filters_svg(tmp_path: Path) -> None:
     (title_dir / "one.svg").write_text("<svg/>", encoding="utf-8")
     (title_dir / "two.png").write_text("binary", encoding="utf-8")
 
-    files, _ = utils.get_files("folder", "translated")
+    files, _ = explorer_utils.get_files("folder", "translated")
 
     assert files == ["one.svg"]
 
@@ -66,7 +66,7 @@ def test_get_languages_extracts_codes() -> None:
         }
     }
 
-    langs = utils.get_languages("title", translations)
+    langs = explorer_utils.get_languages("title", translations)
 
     assert langs == ["de", "es", "fr"]
 
@@ -76,8 +76,8 @@ def test_get_temp_title_prefers_file(tmp_path: Path) -> None:
     title_dir.mkdir(parents=True)
     (title_dir / "title.txt").write_text(" Display Title ", encoding="utf-8")
 
-    assert utils.get_temp_title("topic") == "Display Title"
-    assert utils.get_temp_title("missing") == "missing"
+    assert explorer_utils.get_temp_title("topic") == "Display Title"
+    assert explorer_utils.get_temp_title("missing") == "missing"
 
 
 def test_get_informations_compiles_summary(tmp_path: Path) -> None:
@@ -102,7 +102,7 @@ def test_get_informations_compiles_summary(tmp_path: Path) -> None:
     (base / "files_stats.json").write_text(json.dumps(stats), encoding="utf-8")
     (base / "title.txt").write_text("Subject", encoding="utf-8")
 
-    info = utils.get_informations("subject")
+    info = explorer_utils.get_informations("subject")
 
     assert info["title"] == "Subject"
     assert info["len_files"]["downloaded"] == 2

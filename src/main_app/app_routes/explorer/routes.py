@@ -12,7 +12,7 @@ from flask import (
 
 from .compare import analyze_file
 from .thumbnail_utils import save_thumb
-from .utils import (
+from .explorer_utils import (
     get_files,
     get_informations,
     get_temp_title,
