@@ -63,6 +63,7 @@ class FakeDatabase:
                 "main_file": row_data.get("main_file"),
                 "last_world_file": row_data.get("last_world_file"),
                 "source": row_data.get("source"),
+                "slug": row_data.get("slug"),
                 "created_at": None,
                 "updated_at": None,
             }
@@ -71,8 +72,8 @@ class FakeDatabase:
             return 1
 
         if "on duplicate key update" in normalized:
-            # ON DUPLICATE KEY UPDATE always has all 4 fields
-            title, main_file, last_world_file, source = params
+            # ON DUPLICATE KEY UPDATE always has all 5 fields
+            title, main_file, last_world_file, source, slug = params
             for row in self._rows:
                 if row["title"] == title:
                     row["main_file"] = main_file
@@ -86,6 +87,7 @@ class FakeDatabase:
                 "main_file": main_file,
                 "last_world_file": last_world_file,
                 "source": source,
+                "slug": slug,
                 "created_at": None,
                 "updated_at": None,
             }
@@ -94,14 +96,15 @@ class FakeDatabase:
             return 1
 
         if normalized.startswith("update templates"):
-            # UPDATE has: title, main_file, last_world_file, source, template_id
-            title, main_file, last_world_file, source, template_id = params
+            # UPDATE has: title, main_file, last_world_file, source, slug, template_id
+            title, main_file, last_world_file, source, slug, template_id = params
             for row in self._rows:
                 if row["id"] == template_id:
                     row["title"] = title
                     row["main_file"] = main_file
                     row["last_world_file"] = last_world_file
                     row["source"] = source
+                    row["slug"] = slug
                     return 1
             return 0
 

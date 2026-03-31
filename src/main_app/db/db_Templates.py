@@ -39,8 +39,14 @@ class TemplateRecord:
     main_file: str | None
     last_world_file: str | None
     source: str | None = None
+    slug: str | None = None
     created_at: Any | None = None
     updated_at: Any | None = None
+
+    def __post_init__(self):
+        if not self.slug and self.source and "/grapher/" in self.source:
+            slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+            self.slug = slug or None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -49,6 +55,7 @@ class TemplateRecord:
             "main_file": self.main_file,
             "last_world_file": self.last_world_file,
             "source": self.source,
+            "slug": self.slug,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -76,9 +83,10 @@ class TemplatesDB:
         - `title`: unique non-null string (up to 255 chars)
         - `main_file`: nullable string (up to 255 chars)
         - `last_world_file`: nullable string (up to 255 chars)
+        - `source`: non-null string (up to 255 chars), defaults to empty string
+        - `slug`: non-null string (up to 255 chars), defaults to empty string
         - `created_at`: timestamp defaulting to the current time
         - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
-        - `source`: non-null string (up to 255 chars), defaults to empty string
         """
         self.db.execute_query_safe(sql_tables.templates)
 
@@ -88,9 +96,10 @@ class TemplatesDB:
             title=row["title"],
             main_file=row.get("main_file") or "",
             last_world_file=row.get("last_world_file") or "",
+            source=row.get("source") or "",
+            slug=row.get("slug") or "",
             created_at=row.get("created_at"),
             updated_at=row.get("updated_at"),
-            source=row.get("source") or "",
         )
 
     def fetch_by_id(self, template_id: int) -> TemplateRecord:
@@ -100,7 +109,7 @@ class TemplatesDB:
     def _fetch_by_id(self, template_id: int) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source
+            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
             FROM templates
             WHERE id = %s
             """,
@@ -113,7 +122,7 @@ class TemplatesDB:
     def _fetch_by_title(self, title: str) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source
+            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
             FROM templates
             WHERE title = %s
             """,
@@ -126,7 +135,7 @@ class TemplatesDB:
     def list(self) -> List[TemplateRecord]:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source
+            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
             FROM templates
             ORDER BY id ASC
             """
@@ -139,6 +148,7 @@ class TemplatesDB:
         main_file: str,
         last_world_file: str | None = None,
         source: str | None = None,
+        slug: str | None = None,
     ) -> TemplateRecord:
         title = title.strip()
         main_file = _strip_file_prefix(main_file) or ""
@@ -154,6 +164,7 @@ class TemplatesDB:
             "main_file": main_file,
             "last_world_file": last_world_file,
             "source": source,
+            "slug": slug,
         }
         for field, value in template_fields.items():
             if value is not None:
@@ -193,6 +204,7 @@ class TemplatesDB:
             "main_file",
             "last_world_file",
             "source",
+            "slug",
         }
         for field in template_fields_keys:
             value = template_data.get(field)
@@ -214,6 +226,7 @@ class TemplatesDB:
         main_file: str | None = None,
         last_world_file: str | None = None,
         source: str | None = None,
+        slug: str | None = None,
     ) -> TemplateRecord:
         """
         Update the template record if the new values are not None.
@@ -227,6 +240,7 @@ class TemplatesDB:
             "main_file": _strip_file_prefix(main_file),
             "last_world_file": _strip_file_prefix(last_world_file),
             "source": source,
+            "slug": slug,
         }
         for field, value in template_fields.items():
             if value is not None:
@@ -247,6 +261,7 @@ class TemplatesDB:
         main_file: str,
         last_world_file: str | None = None,
         source: str | None = None,
+        slug: str | None = None,
     ) -> TemplateRecord:
         _ = self._fetch_by_id(template_id)
         main_file = _strip_file_prefix(main_file) or ""
@@ -254,11 +269,11 @@ class TemplatesDB:
         self.db.execute_query_safe(
             """
             UPDATE templates
-                SET title = %s, main_file = %s, last_world_file = %s, source = %s
+                SET title = %s, main_file = %s, last_world_file = %s, source = %s, slug = %s
             WHERE
                 id = %s
             """,
-            (title, main_file, last_world_file, source, template_id),
+            (title, main_file, last_world_file, source, slug, template_id),
         )
         return self._fetch_by_id(template_id)
 
@@ -276,6 +291,7 @@ class TemplatesDB:
         main_file: str,
         last_world_file: str | None = None,
         source: str | None = None,
+        slug: str | None = None,
     ) -> TemplateRecord:
         title = title.strip()
         main_file = _strip_file_prefix(main_file) or ""
@@ -286,14 +302,15 @@ class TemplatesDB:
 
         self.db.execute_query_safe(
             """
-            INSERT INTO templates (title, main_file, last_world_file, source) VALUES (%s, %s, %s, %s)
+            INSERT INTO templates (title, main_file, last_world_file, source, slug) VALUES (%s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 title = COALESCE(VALUES(title), title),
                 main_file = COALESCE(VALUES(main_file), main_file),
                 last_world_file = COALESCE(VALUES(last_world_file), last_world_file),
-                source = COALESCE(VALUES(source), source)
+                source = COALESCE(VALUES(source), source),
+                slug = COALESCE(VALUES(slug), slug)
             """,
-            (title, main_file, last_world_file, source),
+            (title, main_file, last_world_file, source, slug),
         )
         return self._fetch_by_title(title)
 
