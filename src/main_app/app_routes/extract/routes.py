@@ -7,7 +7,7 @@ from pathlib import Path
 from CopySVGTranslation import extract  # type: ignore
 from flask import Blueprint, flash, render_template, request, session
 
-from ...api_services.api_services_utils import download_one_file
+from ...api_services.utils import download_one_file
 
 bp_extract = Blueprint("extract", __name__, url_prefix="/extract")
 logger = logging.getLogger(__name__)

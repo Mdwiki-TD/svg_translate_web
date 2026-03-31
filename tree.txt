@@ -13,14 +13,14 @@ src/
 │   │   └── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
-│   │   ├── api_services_utils/
-│   │   │   ├── __init__.py
-│   │   │   └── download_file_utils.py
 │   │   ├── category.py
 │   │   ├── clients/
 │   │   │   ├── __init__.py
 │   │   │   ├── commons_client.py
 │   │   │   └── wiki_client.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   └── download_file_utils.py
 │   │   ├── mwclient_page.py
 │   │   ├── pages_api.py
 │   │   ├── text_api.py

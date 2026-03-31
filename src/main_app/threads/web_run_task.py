@@ -10,7 +10,7 @@ from ..tasks.downloads import download_task
 from ..tasks.extract import translations_task
 from ..tasks.fix_nested import fix_nested_task
 from ..tasks.injects import inject_task
-from ..tasks.tasks_utils import make_results_summary, save_files_stats
+from ..tasks.utils import make_results_summary, save_files_stats
 from ..tasks.texts import text_task
 from ..tasks.titles import titles_task
 from ..tasks.uploads import upload_task
