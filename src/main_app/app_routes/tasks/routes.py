@@ -22,13 +22,12 @@ from flask import (
 from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db import TaskAlreadyExistsError
-from ...db.task_store_pymysql import TaskStorePyMysql
 from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 from ...threads.task_threads import launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..utils.args_utils import parse_args
+from ...services.tasks_service import _task_store
 
-TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
 
 bp_tasks = Blueprint("tasks", __name__)
@@ -43,26 +42,31 @@ def format_task_message(formatted):
     return formatted
 
 
-def _task_store() -> TaskStorePyMysql:
-    """
-    Get the singleton TaskStorePyMysql instance, creating and caching it on first use.
+def load_state_hash(
+    task: Optional[Dict[str, Any]],
+    stages: List[tuple[str, Dict[str, Any]]],
+) -> tuple[int, str]:
 
-    The store is initialized with settings.database_data and reused for subsequent calls.
-
-    Returns:
-        TaskStorePyMysql: The cached TaskStorePyMysql instance.
-    """
-    global TASK_STORE
-    if TASK_STORE is None:
-        TASK_STORE = TaskStorePyMysql(settings.database_data)
-    return TASK_STORE
-
-
-def close_task_store() -> None:
-    """Close the cached :class:`TaskStorePyMysql` instance if present."""
-    global TASK_STORE
-    if TASK_STORE is not None:
-        TASK_STORE.close()
+    # Auto-refresh tracking: get refresh count and previous state hash from query params
+    refresh_count = request.args.get("refresh_count", 0, type=int)
+    prev_state_hash = request.args.get("state_hash", "")
+    state_payload = {
+        "task_status": task.get("status", "") if isinstance(task, dict) else "",
+        "task_updated_at": task.get("updated_at", "") if isinstance(task, dict) else "",
+        "stages": [
+            {
+                "name": name,
+                "status": stage.get("status", ""),
+                "message": stage.get("message", ""),
+                "sub_name": stage.get("sub_name", ""),
+                "updated_at": stage.get("updated_at", ""),
+            }
+            for name, stage in stages
+        ],
+    }
+    current_state_hash = hashlib.sha256(json.dumps(state_payload, sort_keys=True, default=str).encode()).hexdigest()[:8]
+    refresh_count = 0 if current_state_hash != prev_state_hash else refresh_count + 1
+    return refresh_count, current_state_hash
 
 
 @bp_tasks.get("/task")
@@ -100,33 +104,6 @@ def task(task_id: str | None = None):
         refresh_count=refresh_count,
         state_hash=current_state_hash,
     )
-
-
-def load_state_hash(
-    task: Optional[Dict[str, Any]],
-    stages: List[tuple[str, Dict[str, Any]]],
-) -> tuple[int, str]:
-
-    # Auto-refresh tracking: get refresh count and previous state hash from query params
-    refresh_count = request.args.get("refresh_count", 0, type=int)
-    prev_state_hash = request.args.get("state_hash", "")
-    state_payload = {
-        "task_status": task.get("status", "") if isinstance(task, dict) else "",
-        "task_updated_at": task.get("updated_at", "") if isinstance(task, dict) else "",
-        "stages": [
-            {
-                "name": name,
-                "status": stage.get("status", ""),
-                "message": stage.get("message", ""),
-                "sub_name": stage.get("sub_name", ""),
-                "updated_at": stage.get("updated_at", ""),
-            }
-            for name, stage in stages
-        ],
-    }
-    current_state_hash = hashlib.sha256(json.dumps(state_payload, sort_keys=True, default=str).encode()).hexdigest()[:8]
-    refresh_count = 0 if current_state_hash != prev_state_hash else refresh_count + 1
-    return refresh_count, current_state_hash
 
 
 @bp_tasks.post("/")

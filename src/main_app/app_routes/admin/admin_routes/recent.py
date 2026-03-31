@@ -10,9 +10,10 @@ from flask import (
 )
 
 from ....admins.admins_required import admin_required
+from ....services.tasks_service import _task_store
+
 from ...tasks.routes import (
     TASKS_LOCK,
-    _task_store,
     format_task,
     format_task_message,
 )

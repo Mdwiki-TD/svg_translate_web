@@ -20,7 +20,6 @@ from .app_routes import (
     bp_tasks,
     bp_tasks_managers,
     bp_templates,
-    close_task_store,
 )
 from .config import settings
 from .cookies import CookieHeaderClient
@@ -28,6 +27,7 @@ from .db import close_cached_db
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 from .utils.jinja_filters import format_stage_timestamp, short_url
+from .services.tasks_service import close_task_store
 
 logger = logging.getLogger(__name__)
 

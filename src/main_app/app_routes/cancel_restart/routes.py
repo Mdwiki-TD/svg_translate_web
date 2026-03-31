@@ -18,31 +18,15 @@ from werkzeug.datastructures import MultiDict
 from ...services.admin_service import active_coordinators
 from ...config import settings
 from ...db import TaskAlreadyExistsError
-from ...db.task_store_pymysql import TaskStorePyMysql
 from ...threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..utils.args_utils import parse_args
+from ...services.tasks_service import _task_store
 
-TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
 
 bp_tasks_managers = Blueprint("tasks_managers", __name__)
 logger = logging.getLogger(__name__)
-
-
-def _task_store() -> TaskStorePyMysql:
-    """
-    Return the module-level TaskStorePyMysql singleton, creating it on first call.
-
-    Initializes TASK_STORE with a TaskStorePyMysql configured from settings.database_data if it has not been created yet.
-
-    Returns:
-        TaskStorePyMysql: The singleton task store instance used by the module.
-    """
-    global TASK_STORE
-    if TASK_STORE is None:
-        TASK_STORE = TaskStorePyMysql(settings.database_data)
-    return TASK_STORE
 
 
 @bp_tasks_managers.post("/tasks/<task_id>/cancel")
