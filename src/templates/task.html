@@ -120,7 +120,7 @@
             {% set show_restart = current_status in ['Completed', 'Failed', 'Cancelled'] %}
             <div class="btn-group gap-2" role="group" aria-label="Task actions">
                 {% if not hide_cancel or show_all %}
-                <form action="{{ url_for('tasks_managers.cancel', task_id=task_id) }}" method="post" class="d-inline">
+                <form action="{{ url_for('tasks.cancel', task_id=task_id) }}" method="post" class="d-inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-danger" id="cancel-task-btn">
                         Stop
@@ -128,7 +128,7 @@
                 </form>
                 {% endif %}
                 {% if show_restart or show_all %}
-                <form action="{{ url_for('tasks_managers.restart', task_id=task_id) }}" method="post" class="d-inline">
+                <form action="{{ url_for('tasks.restart', task_id=task_id) }}" method="post" class="d-inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-primary btn-rounded" id="restart-task-btn">
                         Restart

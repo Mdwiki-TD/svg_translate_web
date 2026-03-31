@@ -29,7 +29,6 @@ def test_create_app_registers_blueprints():
         "tasks",
         "explorer",
         "templates",
-        "tasks_managers",
         "admin",
         "auth",
         "fix_nested",
