@@ -67,12 +67,12 @@ def create_json_file() -> Tuple[Any, int]:
 
         return response, 200
 
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Charts not found.")
-        return f"Charts not found: {exc}", 404
-    except Exception as exc:
+        return "Charts not found.", 404
+    except Exception:
         logger.exception("Failed to create JSON file.")
-        return f"Failed to create JSON file: {exc}", 500
+        return "Failed to create JSON file.", 500
 
 
 def _charts_dashboard():
