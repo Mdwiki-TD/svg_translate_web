@@ -12,7 +12,7 @@ from flask import (
 )
 
 from .admins_required import admin_required
-from .admin_routes import (
+from ..admin_routes import (
     Coordinators,
     Jobs,
     OwidCharts,

@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 from flask import Flask
 
-from src.main_app.app_routes.admin.admin_routes import templates
+from src.main_app.app_routes.admin_routes import templates
 
 
 def test_update_template_uses_request_form_type_parameter():

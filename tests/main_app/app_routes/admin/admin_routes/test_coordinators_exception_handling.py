@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock
 
-from src.main_app.app_routes.admin.admin_routes import coordinators
+from src.main_app.app_routes.admin_routes import coordinators
 
 
 def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):

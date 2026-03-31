@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 
-from src.main_app.app_routes.admin.admin_routes.templates import (
+from src.main_app.app_routes.admin_routes.templates import (
     Templates,
     _add_template,
     _delete_template,
