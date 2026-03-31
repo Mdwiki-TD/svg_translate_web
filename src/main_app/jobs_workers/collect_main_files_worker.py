@@ -10,7 +10,7 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from .. import template_service
+from ..services import template_service
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..utils.wikitext import find_template_source

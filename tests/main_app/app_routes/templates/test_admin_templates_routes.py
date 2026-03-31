@@ -9,8 +9,9 @@ from typing import Any, Iterable
 
 import pytest
 
-from src.main_app import create_app, template_service
-from src.main_app.template_service import TemplateRecord
+from src.main_app import create_app
+from src.main_app.services import template_service
+from src.main_app.services.template_service import TemplateRecord
 
 
 class FakeTemplatesDB:

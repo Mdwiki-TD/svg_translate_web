@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.owid_charts_service import (
+from src.main_app.services.owid_charts_service import (
     add_chart,
     delete_chart,
     get_chart,

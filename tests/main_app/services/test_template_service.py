@@ -7,7 +7,7 @@ from typing import Any, Iterable
 import pymysql
 import pytest
 
-from src.main_app import template_service
+from src.main_app.services import template_service
 
 
 class FakeDatabase:

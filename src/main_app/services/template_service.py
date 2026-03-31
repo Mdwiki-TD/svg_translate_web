@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from .config import settings
-from .db import has_db_config
-from .db.db_Templates import TemplateRecord, TemplatesDB
+from ..config import settings
+from ..db import has_db_config
+from ..db.db_Templates import TemplateRecord, TemplatesDB
 
 logger = logging.getLogger(__name__)
 

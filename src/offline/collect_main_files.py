@@ -20,7 +20,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
-from src.main_app import template_service
+from src.main_app.services import template_service
 from src.main_app.api_services import get_category_members, get_wikitext
 from src.main_app.jobs_workers import jobs_service
 from src.main_app.jobs_workers.base_worker import BaseJobWorker

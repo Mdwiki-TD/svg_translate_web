@@ -11,7 +11,7 @@ import pytest
 import requests
 
 from src.main_app.jobs_workers import download_main_files_worker
-from src.main_app.template_service import TemplateRecord
+from src.main_app.services.template_service import TemplateRecord
 
 
 @pytest.fixture

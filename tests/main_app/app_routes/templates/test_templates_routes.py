@@ -89,7 +89,7 @@ def test_temp_data_special_characters(tmp_path: Path) -> None:
 
 def test_temps_main_files_uses_database_main_file(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test temps_main_files uses main_file from database when available."""
-    from src.main_app.template_service import TemplateRecord
+    from src.main_app.services.template_service import TemplateRecord
 
     template_entry = {"Template:Test": {"title_dir": "test"}}
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="dbfile.svg", last_world_file=None)
@@ -106,7 +106,7 @@ def test_temps_main_files_uses_database_main_file(monkeypatch: pytest.MonkeyPatc
 
 def test_temps_main_files_prefixes_file_correctly(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test temps_main_files adds File: prefix when not present."""
-    from src.main_app.template_service import TemplateRecord
+    from src.main_app.services.template_service import TemplateRecord
 
     template_entry = {"Template:Test": {"title_dir": "test"}}
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="example.svg", last_world_file=None)
@@ -125,7 +125,7 @@ def test_temps_main_files_prefixes_file_correctly(monkeypatch: pytest.MonkeyPatc
 
 def test_temps_main_files_no_duplicate_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test temps_main_files doesn't add File: prefix when already present."""
-    from src.main_app.template_service import TemplateRecord
+    from src.main_app.services.template_service import TemplateRecord
 
     template_entry = {"Template:Test": {"title_dir": "test"}}
     mock_template = TemplateRecord(id=1, title="Template:Test", main_file="File:example.svg", last_world_file=None)
@@ -144,7 +144,7 @@ def test_temps_main_files_no_duplicate_prefix(monkeypatch: pytest.MonkeyPatch) -
 
 def test_main_route_integration(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the main route endpoint with full integration."""
-    from src.main_app.template_service import TemplateRecord
+    from src.main_app.services.template_service import TemplateRecord
 
     # Mock get_category_members to return test templates
     def mock_get_category_members(category):
@@ -179,7 +179,7 @@ def test_main_route_integration(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_main_route_sorting_by_main_file(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that main route sorts templates by main_file presence."""
-    from src.main_app.template_service import TemplateRecord
+    from src.main_app.services.template_service import TemplateRecord
 
     def mock_get_category_members(category):
         return ["Template:WithFile", "Template:WithoutFile"]

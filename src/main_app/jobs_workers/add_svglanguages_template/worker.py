@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ... import template_service
+from ...services import template_service
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
