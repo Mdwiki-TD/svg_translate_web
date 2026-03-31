@@ -4,8 +4,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from ...config import settings
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,10 +16,10 @@ class Args:
     manual_main_title: str | None
 
 
-def parse_args(request_form) -> Args:
+def parse_args(request_form, disable_uploads) -> Args:
     upload = False
 
-    if settings.disable_uploads != "1":
+    if disable_uploads != "1":
         upload = bool(request_form.get("upload"))
 
     manual_main_title = request_form.get("manual_main_title", "").strip()

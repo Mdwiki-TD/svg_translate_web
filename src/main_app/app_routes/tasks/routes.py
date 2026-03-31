@@ -26,7 +26,7 @@ from ...db.task_store_pymysql import TaskStorePyMysql
 from ...routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 from ...threads.task_threads import launch_task_thread
 from ...users.current import current_user, oauth_required
-from .args_utils import parse_args
+from ..utils.args_utils import parse_args
 
 TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
@@ -141,7 +141,7 @@ def start():
 
     store = _task_store()
 
-    args = parse_args(request.form)
+    args = parse_args(request.form, settings.disable_uploads)
 
     with TASKS_LOCK:
         logger.info(f"ignore_existing_task: {args.ignore_existing_task}")

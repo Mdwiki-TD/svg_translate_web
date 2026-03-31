@@ -10,10 +10,7 @@ from typing import Any, Dict
 from flask import (
     Blueprint,
     flash,
-    jsonify,
     redirect,
-    render_template,
-    request,
     url_for,
 )
 from werkzeug.datastructures import MultiDict
@@ -24,7 +21,7 @@ from ...db import TaskAlreadyExistsError
 from ...db.task_store_pymysql import TaskStorePyMysql
 from ...threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
-from ..tasks.args_utils import parse_args
+from ..utils.args_utils import parse_args
 
 TASK_STORE: TaskStorePyMysql | None = None
 TASKS_LOCK = threading.Lock()
@@ -129,7 +126,7 @@ def restart(task_id: str):
 
     stored_form = dict(task.get("form") or {})
     request_form = MultiDict(stored_form.items()) if stored_form else MultiDict()
-    args = parse_args(request_form)
+    args = parse_args(request_form, settings.disable_uploads)
 
     new_task_id = uuid.uuid4().hex
 
