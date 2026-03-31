@@ -24,7 +24,7 @@ from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...public_jobs_workers.copy_svg_langs.task_threads import get_cancel_event, launch_task_thread
 from ...services.admin_service import active_coordinators
-from ...services.tasks_service import (
+from ...services.copy_svg_langs_service import (
     _task_store,
     create_new_task,
     get_active_task_by_title,

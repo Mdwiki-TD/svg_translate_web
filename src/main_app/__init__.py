@@ -22,7 +22,7 @@ from .app_routes import (
 from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
-from .services.tasks_service import close_task_store
+from .services.copy_svg_langs_service import close_task_store
 from .services.users_service import context_user
 from .db.user_tokens import ensure_user_token_table
 from .utils.jinja_filters import format_stage_timestamp, short_url

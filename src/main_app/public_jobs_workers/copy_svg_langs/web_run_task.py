@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from ...config import DbConfig, settings
-from ...db.task_store_pymysql import TaskStorePyMysql
+from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 
 from .steps import (
     download_task,

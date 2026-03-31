@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import src.main_app.services.tasks_service as tasks_service_module
-from src.main_app.services.tasks_service import _task_store, close_task_store
+import src.main_app.services.copy_svg_langs_service as tasks_service_module
+from src.main_app.services.copy_svg_langs_service import _task_store, close_task_store
 
 
 @pytest.fixture(autouse=True)

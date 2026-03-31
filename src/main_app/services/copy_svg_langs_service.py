@@ -6,7 +6,7 @@ import logging
 import threading
 
 from ..config import settings
-from ..db.task_store_pymysql import TaskStorePyMysql
+from ..db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 
 TASK_STORE: TaskStorePyMysql | None = None
 TASK_STORE_LOCK = threading.Lock()

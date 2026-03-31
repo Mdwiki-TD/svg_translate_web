@@ -11,7 +11,7 @@ from tqdm import tqdm
 from .....api_services.clients import create_commons_session
 from .....api_services.utils import download_one_file
 from .....config import settings
-from .....db.task_store_pymysql import TaskStorePyMysql
+from .....db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 
 logger = logging.getLogger(__name__)
 

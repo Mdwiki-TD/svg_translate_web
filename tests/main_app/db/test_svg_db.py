@@ -5,7 +5,6 @@ import pytest
 from src.main_app.config import DbConfig
 from src.main_app.db.db_class import Database
 from src.main_app.db.svg_db import (
-    _db,
     close_cached_db,
     execute_query,
     execute_query_safe,
