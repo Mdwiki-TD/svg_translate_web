@@ -37,7 +37,7 @@ def app_factory(monkeypatch):
         # Patch _task_store BEFORE create_app so routes use the dummy store
         monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
         monkeypatch.setattr(
-            "src.main_app.app_routes.steps.routes._task_store",
+            "src.main_app.app_routes.tasks.routes._task_store",
             lambda: DummyStore(task),
         )
 
