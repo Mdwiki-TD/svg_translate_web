@@ -49,7 +49,6 @@ src/
 │   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
-│   │   │   ├── explorer_routes.py
 │   │   │   ├── routes.py
 │   │   │   └── worker.py
 │   │   ├── main_routes/

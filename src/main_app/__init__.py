@@ -14,7 +14,6 @@ from .app_routes import (
     bp_explorer,
     bp_extract,
     bp_fix_nested,
-    bp_fix_nested_explorer,
     bp_main,
     bp_owid_charts,
     bp_tasks,
@@ -39,7 +38,6 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)
-    app.register_blueprint(bp_fix_nested_explorer)
     app.register_blueprint(bp_extract)
     app.register_blueprint(bp_owid_charts)
 
