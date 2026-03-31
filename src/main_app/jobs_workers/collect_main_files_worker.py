@@ -162,8 +162,6 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 template_data = {}
 
-                template_data = {}
-
                 # Extract main file using find_main_title
                 main_file = find_main_title(wikitext)
                 if main_file and main_file != template.main_file:
@@ -179,6 +177,9 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if source and source != template.source:
                     template_info["source"] = source
                     template_data["source"] = source
+                    if "/grapher/" in source:
+                        slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                        template_data["slug"] = slug or None
 
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"

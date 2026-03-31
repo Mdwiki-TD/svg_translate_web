@@ -103,11 +103,11 @@ def test_update_success(templates_db, mock_db_instance):
     mock_db_instance.execute_query_safe.assert_called_with(
         """
             UPDATE templates
-                SET title = %s, main_file = %s, last_world_file = %s, source = %s
+                SET title = %s, main_file = %s, last_world_file = %s, source = %s, slug = %s
             WHERE
                 id = %s
             """,
-        ("new", "new.svg", None, None, 1),
+        ("new", "new.svg", None, None, None, 1),
     )
     assert rec.title == "new"
 
