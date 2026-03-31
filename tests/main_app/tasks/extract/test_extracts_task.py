@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.tasks.extract import extract_task
+from src.main_app.jobs_workers.copy_svg_langs.tasks.extract.extract_task import extract_task
 
 
 @pytest.mark.parametrize(

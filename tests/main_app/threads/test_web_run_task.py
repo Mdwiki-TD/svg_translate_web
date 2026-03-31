@@ -3,7 +3,12 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.threads.web_run_task import _compute_output_dir, fail_task, make_stages, run_task
+from src.main_app.jobs_workers.copy_svg_langs.threads.web_run_task import (
+    _compute_output_dir,
+    fail_task,
+    make_stages,
+    run_task,
+)
 
 
 @patch("src.main_app.threads.web_run_task.settings")

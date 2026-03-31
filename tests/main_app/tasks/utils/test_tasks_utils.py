@@ -1,7 +1,12 @@
 import json
 from unittest.mock import patch
 
-from src.main_app.jobs_workers.copy_svg_langs.tasks.utils.tasks_utils import commons_link, json_save, make_results_summary, save_files_stats
+from src.main_app.jobs_workers.copy_svg_langs.tasks.utils.tasks_utils import (
+    commons_link,
+    json_save,
+    make_results_summary,
+    save_files_stats,
+)
 
 
 def test_json_save(tmp_path):
