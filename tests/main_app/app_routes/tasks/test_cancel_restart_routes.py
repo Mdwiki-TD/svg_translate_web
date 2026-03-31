@@ -199,7 +199,7 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
         "current_user",
         lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", lambda f: types.SimpleNamespace())
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", lambda f, d: types.SimpleNamespace())
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("1")

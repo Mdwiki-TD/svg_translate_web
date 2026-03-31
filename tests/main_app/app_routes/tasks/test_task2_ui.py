@@ -28,23 +28,21 @@ def app_factory(monkeypatch):
             lambda: type("User", (), {"username": "testuser", "user_id": 1, "is_admin": False}),
         )
 
-        # We don't need to patch initialize_coordinators as it's likely removed
-        # monkeypatch.setattr(app_module, "initialize_coordinators", lambda: None)
-
-        # _ensure_store might also be gone or renamed. Let's check admin_service logic if it needs patching.
-        # admin_service.get_admins_db() is called.
-        # We can just patch get_admins_db to return a dummy
-
         class _DummyCoordinatorStore:
             def list(self):  # pragma: no cover - trivial stub
                 return []
 
         monkeypatch.setattr("src.main_app.services.admin_service.get_admins_db", lambda: _DummyCoordinatorStore())
 
+        # Patch _task_store BEFORE create_app so routes use the dummy store
+        monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
+        monkeypatch.setattr(
+            "src.main_app.app_routes.tasks.routes._task_store",
+            lambda: DummyStore(task),
+        )
+
         app = create_app()
         app.config["TESTING"] = True
-        monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
-        monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore(task))
         return app
 
     return _factory
