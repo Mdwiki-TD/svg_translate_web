@@ -21,7 +21,7 @@ from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
-from .. import jobs_service
+from ...services import jobs_service
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file

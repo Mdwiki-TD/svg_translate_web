@@ -11,8 +11,8 @@ from typing import Any
 
 import pytest
 
-from src.main_app.jobs_workers import jobs_service
-from src.main_app.jobs_workers.jobs_service import JobRecord
+from src.main_app.services import jobs_service
+from src.main_app.services.jobs_service import JobRecord
 from src.main_app.jobs_workers.utils import generate_result_file_name
 
 

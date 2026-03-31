@@ -6,7 +6,7 @@ import logging
 import threading
 from typing import Any, Dict
 
-from . import jobs_service
+from ..services import jobs_service
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
 from .create_owid_pages import create_owid_pages_for_templates
