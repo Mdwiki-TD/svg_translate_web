@@ -12,7 +12,6 @@
 plan-ar.md
 plan.md
 start_bot copy.py
-web_sh/new_update.sh
 .claude/settings.local.json
 .coverage
 docs/plans/*.md
