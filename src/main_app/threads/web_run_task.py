@@ -6,14 +6,7 @@ from typing import Any, Dict
 
 from ..config import DbConfig, settings
 from ..db.task_store_pymysql import TaskStorePyMysql
-from ..tasks.downloads import download_task
-from ..tasks.extract import translations_task
-from ..tasks.fix_nested import fix_nested_task
-from ..tasks.injects import inject_task
-from ..tasks.texts import text_task
-from ..tasks.titles import titles_task
-from ..tasks.uploads import upload_task
-from ..tasks.utils import make_results_summary, save_files_stats
+from ..jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +104,7 @@ def run_task(
     *,
     cancel_event: threading.Event | None = None,
 ) -> None:
-    """Execute the full SVG translation pipeline for a queued task.
+    """Execute the full SVG translation pipeline for a queued task using the refactored job system.
 
     Parameters:
         database_data (DbConfig): Database connection details for task state management.
@@ -124,192 +117,87 @@ def run_task(
         Updates task records, writes files under ``svg_data_dir``, and interacts
         with external services for downloading and uploading files.
     """
-    output_dir = _compute_output_dir(title)
-    task_snapshot: Dict[str, Any] = {
-        "title": title,
-    }
-
-    # store = TaskStorePyMysql(database_data)
     with TaskStorePyMysql(database_data) as store:
         stages_list = make_stages()
 
-        def push_stage(stage_name: str, stage_state: Dict[str, Any] | None = None) -> None:
-            """
-            Persist the current state of a workflow stage to the task store.
-
-            If `stage_state` is omitted, the function uses the stage state from the surrounding `stages_list`.
-            Parameters:
-                stage_name (str): Name of the stage to persist.
-                stage_state (dict | None): Explicit stage state to persist; when `None`, use the current state from `stages_list`.
-            """
-            state = stage_state if stage_state is not None else stages_list[stage_name]
-            store.update_stage(task_id, stage_name, state)
-
-        store.update_data(task_id, task_snapshot)
-
-        def check_cancel(stage_name: str | None = None) -> bool:
-            if cancel_event is None or not cancel_event.is_set():
-                return False
-
-            if stage_name:
-                stage_state = stages_list.get(stage_name)
-                if stage_state and stage_state.get("status") == "Running":
-                    stage_state["status"] = "Cancelled"
-                    push_stage(stage_name, stage_state)
-
-            stages_list["initialize"]["status"] = "Completed"
-            push_stage("initialize")
-            store.update_status(task_id, "Cancelled")
-            logger.debug(f"Task: {task_id} Cancelled.")
-            return True
-
-        if cancel_event is not None and cancel_event.is_set():
-            if check_cancel("initialize"):
+        def sync_stages_to_db(result: dict[str, Any]):
+            """Sync stages from Processor result back to the legacy task store."""
+            if "stages" not in result:
                 return
+
+            for stage_name, stage_data in result["stages"].items():
+                if stage_name in stages_list:
+                    # Sync common fields
+                    stages_list[stage_name]["status"] = stage_data.get("status", "Pending")
+                    if "message" in stage_data:
+                        stages_list[stage_name]["message"] = stage_data["message"]
+                    store.update_stage(task_id, stage_name, stages_list[stage_name])
+
+            # Special handling for main_file column
+            if "stages" in result and "titles" in result["stages"]:
+                titles_data = result["stages"]["titles"].get("data")
+                if titles_data and titles_data.get("main_title"):
+                    main_title = titles_data["main_title"]
+                    value = f"File:{main_title}" if not main_title.lower().startswith("file:") else main_title
+                    store.update_task_one_column(task_id, "main_file", value)
 
         store.update_status(task_id, "Running")
 
-        # ----------------------------------------------
-        # Stage 1: extract text
-        text, stages_list["text"] = text_task(stages_list["text"], title)
-        push_stage("text")
-        if check_cancel("text"):
-            return
-        if not text:
-            return fail_task(store, task_id, stages_list, "No text extracted")
+        # Initial data update
+        task_snapshot = {"title": title}
+        store.update_data(task_id, task_snapshot)
 
-        # ----------------------------------------------
-        # Stage 2: extract titles
-        titles_result, stages_list["titles"] = titles_task(
-            stages_list["titles"],
-            text,
-            args.manual_main_title,
-            titles_limit=args.titles_limit,
-        )
-
-        push_stage("titles")
-        if check_cancel("titles"):
-            return
-
-        main_title, titles = titles_result["main_title"], titles_result["titles"]
-
-        if not main_title:
-            return fail_task(store, task_id, stages_list, "No main title found")
-
-        value = f"File:{main_title}" if not main_title.lower().startswith("file:") else main_title
-        store.update_task_one_column(task_id, "main_file", value)
-
-        if not titles:
-            return fail_task(store, task_id, stages_list, "No titles found")
-
-        # ----------------------------------------------
-        # Stage 3: get translations
-        output_dir_main = output_dir / "files"
-        output_dir_main.mkdir(parents=True, exist_ok=True)
-
-        translations, stages_list["translations"] = translations_task(
-            stages_list["translations"], main_title, output_dir_main
-        )
-        push_stage("translations")
-        if check_cancel("translations"):
-            return
-
-        if not translations:
-            return fail_task(store, task_id, stages_list, "No translations available")
-
-        # ----------------------------------------------
-        # Stage 4: download SVG files
-        files, stages_list["download"], not_done_list = download_task(
-            task_id,
-            stages=stages_list["download"],
-            output_dir_main=output_dir_main,
-            titles=titles,
-            store=store,
-            check_cancel=check_cancel,
-        )
-        if not_done_list:
-            task_snapshot["not_done_list"] = not_done_list
-            store.update_data(task_id, task_snapshot)
-
-        push_stage("download")
-        if check_cancel("download"):
-            return
-
-        if not files:
-            return fail_task(store, task_id, stages_list, "No files downloaded")
-
-        # ----------------------------------------------
-        # Stage 5: analyze nested files
-        nested_task_result, stages_list["nested"] = fix_nested_task(
-            stages_list["nested"],
-            files,
-        )
-        push_stage("nested")
-        if check_cancel("nested"):
-            return
-
-        # ----------------------------------------------
-        # Stage 6: inject translations
-        injects_result, stages_list["inject"] = inject_task(
-            stages_list["inject"], files, translations, output_dir=output_dir, overwrite=args.overwrite
-        )
-        push_stage("inject")
-        if check_cancel("inject"):
-            return
-
-        if not injects_result:
-            return fail_task(store, task_id, stages_list, "Injection result error")
-
-        if injects_result.get("success", 0) == 0 and injects_result.get("saved_done", 0) == 0:
-            return fail_task(store, task_id, stages_list, "Injection saved 0 files")
-
-        inject_files = {x: v for x, v in injects_result.get("files", {}).items() if x != main_title}
-
-        # ----------------------------------------------
-        # Stage 7: upload results
-        files_to_upload = {x: v for x, v in inject_files.items() if v.get("file_path")}
-
-        no_file_path = len(inject_files) - len(files_to_upload)
-
-        upload_result, stages_list["upload"] = upload_task(
-            stages_list["upload"],
-            files_to_upload,
-            main_title,
-            do_upload=args.upload,
-            user=user_data,
-            store=store,
-            task_id=task_id,
-            check_cancel=check_cancel,
-        )
-
-        push_stage("upload")
-        if check_cancel("upload"):
-            return
-
-        # ----------------------------------------------
-        # Stage 8: save stats and mark done
-        data = {
-            "main_title": main_title,
-            "translations": translations or {},
-            "titles": titles,
-            "files": files,
-            "nested_task_result": nested_task_result,
-            "injects_result": injects_result,
+        # Initialize result object for Processor
+        processor_result = {
+            "status": "running",
+            "stages": stages_list,
         }
 
-        save_files_stats(data, output_dir)
-
-        results = make_results_summary(
-            len(files), len(files_to_upload), no_file_path, injects_result, translations, main_title, upload_result
+        # Create the processor
+        processor = CopySvgLangsProcessor(
+            job_id=task_id,  # Using task_id as job_id for the processor
+            title=title,
+            args=args,
+            user=user_data,
+            result=processor_result,
+            result_file=f"task_{task_id}.json",
+            cancel_event=cancel_event,
         )
 
-        store.update_results(task_id, results)
+        # Override _save_progress to sync with legacy task store
+        original_save_progress = processor._save_progress
 
-        final_status = "Failed" if any(s.get("status") == "Failed" for s in stages_list.values()) else "Completed"
-        stages_list["initialize"]["status"] = "Completed"
-        push_stage("initialize")
+        def wrapped_save_progress():
+            original_save_progress()
+            sync_stages_to_db(processor.result)
 
-        if check_cancel("initialize"):
-            return
+        processor._save_progress = wrapped_save_progress
 
-        store.update_status(task_id, final_status)
+        # Execute
+        try:
+            final_result = processor.run()
+
+            # Final sync and result summary
+            sync_stages_to_db(final_result)
+
+            if final_result.get("results_summary"):
+                store.update_results(task_id, final_result["results_summary"])
+
+            final_status = (
+                "Failed" if any(s.get("status") == "Failed" for s in stages_list.values()) else final_result["status"]
+            )
+            # Standardize status for legacy store
+            if final_status == "completed":
+                final_status = "Completed"
+            elif final_status == "failed":
+                final_status = "Failed"
+            elif final_status == "cancelled":
+                final_status = "Cancelled"
+
+            stages_list["initialize"]["status"] = "Completed"
+            store.update_stage(task_id, "initialize", stages_list["initialize"])
+            store.update_status(task_id, final_status)
+
+        except Exception as e:
+            logger.exception(f"Fatal error in run_task for task {task_id}")
+            fail_task(store, task_id, stages_list, str(e))

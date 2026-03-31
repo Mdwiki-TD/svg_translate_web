@@ -1,0 +1,47 @@
+"""Service for copying SVG languages (translations)."""
+
+from __future__ import annotations
+
+import logging
+import threading
+from typing import Any
+
+from ...services import jobs_service
+from ..jobs_worker import _runner, _register_cancel_event
+from .worker import copy_svg_langs_worker_entry
+
+logger = logging.getLogger(__name__)
+
+
+def start_copy_svg_langs_job(
+    title: str,
+    args: Any,
+    user: dict[str, Any] | None = None,
+) -> int:
+    """
+    Start a background job to copy SVG translations.
+
+    Args:
+        title: Main file title.
+        args: Job arguments.
+        user: User authentication data.
+
+    Returns:
+        Job ID.
+    """
+    username = user.get("username") if user else None
+    job = jobs_service.create_job("copy_svg_langs", username)
+
+    cancel_event = threading.Event()
+    _register_cancel_event(job.id, cancel_event)
+
+    thread = threading.Thread(
+        target=_runner,
+        args=(job.id, user, cancel_event, copy_svg_langs_worker_entry),
+        kwargs={"title": title, "args": args},
+        daemon=True,
+    )
+    thread.start()
+
+    logger.info(f"Started copy_svg_langs job {job.id} for {title}")
+    return job.id
