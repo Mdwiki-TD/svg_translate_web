@@ -8,7 +8,7 @@ from .main.routes import bp_main
 from .owid_charts_routes import bp_owid_charts
 from .templates.routes import bp_templates
 
-from .tasks.routes import bp_tasks
+from .copy_svg_langs_job.routes import bp_tasks
 
 __all__ = [
     "bp_auth",
