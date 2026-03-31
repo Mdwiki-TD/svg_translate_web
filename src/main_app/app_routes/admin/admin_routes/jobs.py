@@ -22,7 +22,7 @@ from ....admins.admins_required import admin_required
 from ....config import settings
 from ....jobs_workers import jobs_service, jobs_worker
 from ....jobs_workers.download_main_files_worker import create_main_files_zip
-from ....routes_utils import load_auth_payload
+from ...routes_utils import load_auth_payload
 from ....users.current import current_user
 
 logger = logging.getLogger(__name__)

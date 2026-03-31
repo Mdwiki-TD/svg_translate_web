@@ -21,7 +21,7 @@ from ...api_services.upload_bot import upload_file
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...routes_utils import load_auth_payload
+from ..routes_utils import load_auth_payload
 from ...users.current import current_user
 from ..explorer.compare import analyze_file
 from ..utils.fix_nested_utils import log_to_task
