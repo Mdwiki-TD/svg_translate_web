@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.app_routes.templates import routes
+from src.main_app.app_routes.main_routes import templates_routes
 
 
 @pytest.fixture(autouse=True)
@@ -28,14 +28,14 @@ def test_get_main_data_reads_file(tmp_path: Path) -> None:
     payload = {"value": 1}
     (title_dir / "files_stats.json").write_text(json.dumps(payload), encoding="utf-8")
 
-    assert routes.get_main_data("topic") == payload
+    assert templates_routes.get_main_data("topic") == payload
 
 
 def test_temp_data_sanitizes_name(tmp_path: Path) -> None:
     sanitized = "template_clean_name"
     (tmp_path / "svg" / sanitized).mkdir(parents=True)
 
-    result = routes.temp_data("Template:Clean Name!")
+    result = templates_routes.temp_data("Template:Clean Name!")
 
     assert result["title_dir"] == sanitized
 
@@ -49,14 +49,14 @@ def test_temps_main_files_falls_back_to_main_data(monkeypatch: pytest.MonkeyPatc
         "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "Example.svg"}
     )
 
-    data = routes.temps_main_files(template_entry)
+    data = templates_routes.temps_main_files(template_entry)
 
     assert data["Sample"]["main_file"] == "File:Example.svg"
 
 
 def test_get_main_data_missing_file(tmp_path: Path) -> None:
     """Test get_main_data returns empty dict when file doesn't exist."""
-    result = routes.get_main_data("nonexistent")
+    result = templates_routes.get_main_data("nonexistent")
     assert result == {}
 
 
@@ -66,13 +66,13 @@ def test_get_main_data_invalid_json(tmp_path: Path) -> None:
     title_dir.mkdir(parents=True)
     (title_dir / "files_stats.json").write_text("not valid json", encoding="utf-8")
 
-    result = routes.get_main_data("invalid")
+    result = templates_routes.get_main_data("invalid")
     assert result == {}
 
 
 def test_temp_data_no_directory(tmp_path: Path) -> None:
     """Test temp_data when directory doesn't exist."""
-    result = routes.temp_data("Template:Nonexistent")
+    result = templates_routes.temp_data("Template:Nonexistent")
     assert result["title_dir"] == ""
     assert result["main_file"] == ""
 
@@ -82,7 +82,7 @@ def test_temp_data_special_characters(tmp_path: Path) -> None:
     sanitized = "template_test__name"
     (tmp_path / "svg" / sanitized).mkdir(parents=True)
 
-    result = routes.temp_data("Template:Test!@#$ Name")
+    result = templates_routes.temp_data("Template:Test!@#$ Name")
 
     assert result["title_dir"] == sanitized
 
@@ -98,7 +98,7 @@ def test_temps_main_files_uses_database_main_file(monkeypatch: pytest.MonkeyPatc
         lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
 
-    data = routes.temps_main_files(template_entry)
+    data = templates_routes.temps_main_files(template_entry)
 
     # The function adds File: prefix to filenames without it
     assert data["Template:Test"]["main_file"] == "File:dbfile.svg"
@@ -118,7 +118,7 @@ def test_temps_main_files_prefixes_file_correctly(monkeypatch: pytest.MonkeyPatc
         "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "example.svg"}
     )
 
-    data = routes.temps_main_files(template_entry)
+    data = templates_routes.temps_main_files(template_entry)
 
     assert data["Template:Test"]["main_file"] == "File:example.svg"
 
@@ -137,7 +137,7 @@ def test_temps_main_files_no_duplicate_prefix(monkeypatch: pytest.MonkeyPatch) -
         "src.main_app.app_routes.templates.routes.get_main_data", lambda title: {"main_title": "File:example.svg"}
     )
 
-    data = routes.temps_main_files(template_entry)
+    data = templates_routes.temps_main_files(template_entry)
 
     assert data["Template:Test"]["main_file"] == "File:example.svg"
 
@@ -168,7 +168,7 @@ def test_main_route_integration(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("src.main_app.app_routes.templates.routes.render_template", mock_render_template)
 
-    result = routes.main()
+    result = templates_routes.main()
 
     assert result == "rendered"
     assert rendered["template"] == "templates/index.html"
@@ -203,7 +203,7 @@ def test_main_route_sorting_by_main_file(monkeypatch: pytest.MonkeyPatch) -> Non
 
     monkeypatch.setattr("src.main_app.app_routes.templates.routes.render_template", mock_render_template)
 
-    routes.main()
+    templates_routes.main()
 
     # Templates with main_file should come first (reverse=True in sort)
     data = rendered["context"]["data"]
@@ -235,7 +235,7 @@ def test_main_route_filters_templates_correctly(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr("src.main_app.app_routes.templates.routes.render_template", mock_render_template)
 
-    routes.main()
+    templates_routes.main()
 
     data = rendered["context"]["data"]
     # get_category_members already filters, but the route does additional filtering
