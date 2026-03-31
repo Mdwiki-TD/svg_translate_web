@@ -9,7 +9,6 @@ src/
 │   ├── __init__.py
 │   ├── admins/
 │   │   ├── __init__.py
-│   │   ├── admin_service.py
 │   │   └── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
@@ -46,9 +45,6 @@ src/
 │   │   │   ├── cookie.py
 │   │   │   ├── oauth.py
 │   │   │   ├── rate_limit.py
-│   │   │   └── routes.py
-│   │   ├── cancel_restart/
-│   │   │   ├── __init__.py
 │   │   │   └── routes.py
 │   │   ├── explorer/
 │   │   │   ├── __init__.py
@@ -124,7 +120,6 @@ src/
 │   │   │   └── worker.py
 │   │   ├── download_main_files_worker.py
 │   │   ├── fix_nested_main_files_worker.py
-│   │   ├── jobs_service.py
 │   │   ├── jobs_worker.py
 │   │   └── utils/
 │   │       ├── __init__.py
@@ -132,7 +127,10 @@ src/
 │   │       └── crop_main_files_utils.py
 │   ├── services/
 │   │   ├── __init__.py
+│   │   ├── admin_service.py
+│   │   ├── jobs_service.py
 │   │   ├── owid_charts_service.py
+│   │   ├── tasks_service.py
 │   │   └── template_service.py
 │   ├── tasks/
 │   │   ├── __init__.py

@@ -18,7 +18,6 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
     bp_tasks,
-    bp_tasks_managers,
     bp_templates,
 )
 from .config import settings
@@ -37,7 +36,6 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_tasks)
     app.register_blueprint(bp_explorer)
     app.register_blueprint(bp_templates)
-    app.register_blueprint(bp_tasks_managers)
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)

@@ -6,7 +6,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.app_routes.tasks import routes
 from src.main_app.db import TaskAlreadyExistsError
-from src.main_app.threads import task_threads, web_run_task
+from src.main_app.threads import task_threads
 
 
 class InMemoryTaskStore:
@@ -205,7 +205,7 @@ def test_no_mysql_connection_attempted_with_default_settings(monkeypatch: pytest
 
     monkeypatch.setattr("src.main_app.db.db_class.Database", fake_database)
 
-    app = create_app()
+    app = create_app()  # noqa: F841
 
     # Assert that the fake_database was not initialized, meaning no MySQL connection was attempted.
     assert not database_init.is_set()
