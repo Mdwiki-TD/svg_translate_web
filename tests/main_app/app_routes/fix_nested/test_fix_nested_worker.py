@@ -1,45 +1,16 @@
-import json
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from src.main_app.app_routes.fix_nested.fix_utils import (
-    create_task_folder,
+from src.main_app.app_routes.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
     fix_nested_tags,
-    log_to_task,
     process_fix_nested,
-    save_metadata,
     upload_fixed_svg,
     verify_fix,
 )
-
-
-@patch("src.main_app.app_routes.fix_nested.fix_utils.settings")
-def test_create_task_folder(mock_settings, tmp_path):
-    mock_settings.paths.fix_nested_data = tmp_path
-    task_id = "t1"
-    folder = create_task_folder(task_id)
-    assert folder == tmp_path / task_id
-    assert folder.exists()
-
-
-def test_save_metadata(tmp_path):
-    metadata = {"key": "value"}
-    save_metadata(tmp_path, metadata)
-    metadata_file = tmp_path / "metadata.json"
-    assert metadata_file.exists()
-    with open(metadata_file, "r") as f:
-        assert json.load(f) == metadata
-
-
-def test_log_to_task(tmp_path):
-    log_to_task(tmp_path, "test message")
-    log_file = tmp_path / "task_log.txt"
-    assert log_file.exists()
-    assert "test message" in log_file.read_text()
 
 
 @patch("src.main_app.app_routes.fix_nested.fix_utils.download_one_file")

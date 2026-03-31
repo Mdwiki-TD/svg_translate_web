@@ -24,7 +24,7 @@ from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...routes_utils import load_auth_payload
 from ...users.current import current_user
 from ..explorer.compare import analyze_file
-from ..fix_nested.fix_utils import log_to_task
+from ..utils.fix_nested_utils import log_to_task
 
 bp_fix_nested_explorer = Blueprint("fix_nested_explorer", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger(__name__)

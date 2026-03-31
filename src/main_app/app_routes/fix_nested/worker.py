@@ -1,10 +1,11 @@
-import json
+
 import logging
 import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from ...config import settings
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
 from werkzeug.utils import secure_filename
@@ -12,32 +13,10 @@ from werkzeug.utils import secure_filename
 from ...api_services.clients import get_user_site
 from ...utils.api_services_utils import download_one_file
 from ...api_services.upload_bot import upload_file
-from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore
+from ..utils.fix_nested_utils import create_task_folder, save_metadata, log_to_task
 
 logger = logging.getLogger(__name__)
-
-
-def create_task_folder(task_id: str) -> Path:
-    """Create folder structure for a fix_nested task."""
-    task_dir = Path(settings.paths.fix_nested_data) / task_id
-    task_dir.mkdir(parents=True, exist_ok=True)
-    return task_dir
-
-
-def save_metadata(task_dir: Path, metadata: dict) -> None:
-    """Save task metadata to JSON file."""
-    metadata_file = task_dir / "metadata.json"
-    with open(metadata_file, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2, default=str)
-
-
-def log_to_task(task_dir: Path, message: str) -> None:
-    """Append log message to task log file."""
-    log_file = task_dir / "task_log.txt"
-    timestamp = datetime.now().isoformat()
-    with open(log_file, "a", encoding="utf-8") as f:
-        f.write(f"[{timestamp}] {message}\n")
 
 
 def download_svg_file(filename: str, temp_dir: Path) -> dict:
@@ -157,7 +136,7 @@ def process_fix_nested(
         # Create task folder if task_id is provided
         task_dir = None
         if task_id:
-            task_dir = create_task_folder(task_id)
+            task_dir = create_task_folder(task_id, settings.paths.fix_nested_data)
             log_to_task(task_dir, f"Starting fix_nested task for file: {filename}")
 
             # Create database record if store is provided

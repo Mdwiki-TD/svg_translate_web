@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from .. import template_service
-from ..app_routes.fix_nested.fix_utils import (
+from ..app_routes.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
     fix_nested_tags,

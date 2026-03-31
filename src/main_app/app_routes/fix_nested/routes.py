@@ -13,7 +13,7 @@ from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...routes_utils import load_auth_payload
 from ...users.current import current_user
-from .fix_utils import process_fix_nested, process_fix_nested_file_simple
+from .worker import process_fix_nested, process_fix_nested_file_simple
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger(__name__)

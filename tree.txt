@@ -1,3 +1,4 @@
+PS I:\SVG\svg_repo\src> python -m directory_tree --ignore-list __pycache__
 src/
 ├── __init__.py
 ├── app.py
@@ -17,7 +18,6 @@ src/
 │   │   │   ├── __init__.py
 │   │   │   ├── commons_client.py
 │   │   │   └── wiki_client.py
-│   │   ├── download_file_utils.py
 │   │   ├── mwclient_page.py
 │   │   ├── pages_api.py
 │   │   ├── text_api.py
@@ -50,17 +50,15 @@ src/
 │   │   ├── explorer/
 │   │   │   ├── __init__.py
 │   │   │   ├── compare.py
-│   │   │   ├── routes.py
-│   │   │   ├── thumbnail_utils.py
-│   │   │   └── utils.py
+│   │   │   └── routes.py
 │   │   ├── extract/
 │   │   │   ├── __init__.py
 │   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
 │   │   │   ├── explorer_routes.py
-│   │   │   ├── fix_utils.py
-│   │   │   └── routes.py
+│   │   │   ├── routes.py
+│   │   │   └── worker.py
 │   │   ├── main/
 │   │   │   ├── __init__.py
 │   │   │   └── routes.py
@@ -69,15 +67,25 @@ src/
 │   │   │   ├── __init__.py
 │   │   │   ├── args_utils.py
 │   │   │   └── routes.py
-│   │   └── templates/
+│   │   ├── templates/
+│   │   │   ├── __init__.py
+│   │   │   └── routes.py
+│   │   └── utils/
 │   │       ├── __init__.py
-│   │       └── routes.py
+│   │       ├── explorer_utils/
+│   │       │   ├── __init__.py
+│   │       │   ├── explorer_utils.py
+│   │       │   └── thumbnail_utils.py
+│   │       └── fix_nested_utils.py
 │   ├── config.py
 │   ├── cookies/
 │   │   └── __init__.py
 │   ├── crypto.py
 │   ├── data/
 │   │   ├── __init__.py
+│   │   ├── owid_charts.csv
+│   │   ├── templates_slugs_topics.json
+│   │   └── topics_categories.json
 │   ├── db/
 │   │   ├── __init__.py
 │   │   ├── db_class.py
@@ -157,6 +165,9 @@ src/
 │   │   └── store.py
 │   └── utils/
 │       ├── __init__.py
+│       ├── api_services_utils/
+│       │   ├── __init__.py
+│       │   └── download_file_utils.py
 │       ├── jinja_filters.py
 │       ├── verify.py
 │       └── wikitext/
@@ -172,12 +183,84 @@ src/
 │               ├── __init__.py
 │               ├── last_world_file_utils.py
 │               └── main_file.py
+├── offline/
+│   ├── __init__.py
+│   └── collect_main_files.py
 ├── static/
 │   ├── css/
+│   │   ├── navbar.css
+│   │   ├── sidebar-desktop.css
+│   │   ├── sidebar-mobile.css
+│   │   └── style.css
 │   ├── images/
-│   └── js/
+│   ├── js/
+│   │   ├── autocomplete.js
+│   │   ├── card-tools.js
+│   │   ├── dark-mode.js
+│   │   ├── sidebar.js
+│   │   └── SVGLanguages.js
+│   └── translate.svg
 ├── svg_config.py
 ├── templates/
 │   ├── _navbar.html
-│   ├── ...
+│   ├── admins/
+│   │   ├── _sidebar.html
+│   │   ├── admin.html
+│   │   ├── base.html
+│   │   ├── compare_crop_files.html
+│   │   ├── coordinators.html
+│   │   ├── jobs_templates/
+│   │   │   ├── add_svglanguages_template/
+│   │   │   │   ├── details.html
+│   │   │   │   └── list.html
+│   │   │   ├── base_details.html
+│   │   │   ├── base_list.html
+│   │   │   ├── collect_main_files/
+│   │   │   │   ├── details.html
+│   │   │   │   └── list.html
+│   │   │   ├── create_owid_pages/
+│   │   │   │   ├── details.html
+│   │   │   │   └── list.html
+│   │   │   ├── crop_main_files/
+│   │   │   │   ├── details.html
+│   │   │   │   └── list.html
+│   │   │   ├── download_main_files/
+│   │   │   │   ├── details.html
+│   │   │   │   └── list.html
+│   │   │   └── fix_nested_main_files/
+│   │   │       ├── details.html
+│   │   │       └── list.html
+│   │   ├── owid_charts/
+│   │   │   ├── add.html
+│   │   │   ├── edit.html
+│   │   │   └── list.html
+│   │   ├── popup_action.html
+│   │   ├── settings.html
+│   │   ├── template_edit.html
+│   │   └── templates.html
+│   ├── admins.html
+│   ├── base.html
+│   ├── explorer/
+│   │   ├── compare.html
+│   │   ├── explore_files.html
+│   │   ├── folder.html
+│   │   └── index.html
+│   ├── extract/
+│   │   ├── form.html
+│   │   └── result.html
+│   ├── fix_nested/
+│   │   ├── compare.html
+│   │   ├── form.html
+│   │   ├── task_detail.html
+│   │   ├── tasks_list.html
+│   │   └── upload_form.html
+│   ├── index.html
+│   ├── owid_charts/
+│   │   ├── all_charts.html
+│   │   └── index.html
+│   ├── task.html
+│   ├── tasks.html
+│   └── templates/
+│       └── index.html
 └── uwsgi.ini
+PS I:\SVG\svg_repo\src>
