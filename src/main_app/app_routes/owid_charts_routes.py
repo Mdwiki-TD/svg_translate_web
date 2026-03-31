@@ -9,7 +9,7 @@ from flask import (
     render_template,
 )
 
-from ..owid_charts_service import list_charts, list_published_charts
+from ..services.owid_charts_service import list_charts, list_published_charts
 
 bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owid-charts")
 logger = logging.getLogger(__name__)

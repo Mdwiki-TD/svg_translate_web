@@ -6,12 +6,11 @@ from flask import Blueprint
 from src.main_app.app_routes.admin.admin_routes.recent import Recent, _recent_routes
 
 
-@patch("src.main_app.app_routes.admin.admin_routes.recent.TASKS_LOCK")
 @patch("src.main_app.app_routes.admin.admin_routes.recent._task_store")
 @patch("src.main_app.app_routes.admin.admin_routes.recent.format_task")
 @patch("src.main_app.app_routes.admin.admin_routes.recent.format_task_message")
 @patch("src.main_app.app_routes.admin.admin_routes.recent.render_template")
-def test_recent_routes(mock_render_template, mock_format_task_message, mock_format_task, mock_task_store, mock_lock):
+def test_recent_routes(mock_render_template, mock_format_task_message, mock_format_task, mock_task_store):
     """Test _recent_routes function."""
     # Mock the task store return value
     mock_store_instance = MagicMock()

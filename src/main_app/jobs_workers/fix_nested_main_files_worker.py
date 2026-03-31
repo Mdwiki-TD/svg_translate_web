@@ -11,14 +11,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from .. import template_service
-from ..app_routes.fix_nested.fix_utils import (
+from ..app_routes.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
     fix_nested_tags,
     upload_fixed_svg,
     verify_fix,
 )
+from ..services import template_service
 from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
@@ -222,9 +222,8 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
             else:
                 self._log_failed_fix(template_info, fix_result)
-                logger.warning(
-                    f"Job {self.job_id}: Failed to process {template.main_file}: " f"{fix_result.get('message')}"
-                )
+                message = fix_result.get("message")
+                logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
 
         # Update summary skipped count
         self.result["summary"]["skipped"] = len(self.result["templates_skipped"])

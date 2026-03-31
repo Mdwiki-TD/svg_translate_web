@@ -111,7 +111,7 @@ def mock_jobs_service(monkeypatch: pytest.MonkeyPatch):
 
     mock_is_cancelled = MagicMock(return_value=False)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_service.is_job_cancelled",
+        "src.main_app.services.jobs_service.is_job_cancelled",
         mock_is_cancelled,
     )
 

@@ -18,13 +18,12 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
     bp_tasks,
-    bp_tasks_managers,
     bp_templates,
-    close_task_store,
 )
 from .config import settings
 from .cookies import CookieHeaderClient
 from .db import close_cached_db
+from .services.tasks_service import close_task_store
 from .users.current import context_user
 from .users.store import ensure_user_token_table
 from .utils.jinja_filters import format_stage_timestamp, short_url
@@ -37,7 +36,6 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_tasks)
     app.register_blueprint(bp_explorer)
     app.register_blueprint(bp_templates)
-    app.register_blueprint(bp_tasks_managers)
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)

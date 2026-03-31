@@ -315,7 +315,7 @@ def handle_csrf_error(e: Exception) -> Tuple[str, int]:
 
 ```python
 TASK_STORE: TaskStorePyMysql | None = None
-TASKS_LOCK = threading.Lock()
+TASK_STORE_LOCK = threading.Lock()
 
 def _task_store() -> TaskStorePyMysql:
     global TASK_STORE

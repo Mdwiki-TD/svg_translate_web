@@ -14,8 +14,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ....admins import admin_service
 from ....admins.admins_required import admin_required
+from ....services import admin_service
 from ....users.current import current_user
 
 logger = logging.getLogger(__name__)

@@ -10,15 +10,15 @@ from flask import (
     send_from_directory,
 )
 
-from .compare import analyze_file
-from .thumbnail_utils import save_thumb
-from .utils import (
+from ..utils.explorer_utils import (
     get_files,
     get_informations,
     get_temp_title,
     svg_data_path,
     svg_data_thumb_path,
 )
+from ..utils.thumbnail_utils import save_thumb
+from .compare import analyze_file
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)

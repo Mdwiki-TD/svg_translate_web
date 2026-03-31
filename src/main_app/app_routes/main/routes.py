@@ -14,8 +14,8 @@ from flask import (
     send_from_directory,
 )
 
-from ...routes_utils import get_error_message
 from ...users.current import current_user
+from ..utils.routes_utils import get_error_message
 
 bp_main = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)

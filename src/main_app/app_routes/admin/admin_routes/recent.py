@@ -10,9 +10,8 @@ from flask import (
 )
 
 from ....admins.admins_required import admin_required
+from ....services.tasks_service import _task_store
 from ...tasks.routes import (
-    TASKS_LOCK,
-    _task_store,
     format_task,
     format_task_message,
 )
@@ -21,11 +20,10 @@ from ...tasks.routes import (
 def _recent_routes():
     """Render the admin dashboard with summarized task information."""
 
-    with TASKS_LOCK:
-        db_tasks = _task_store().list_tasks(
-            order_by="created_at",
-            descending=True,
-        )
+    db_tasks = _task_store().list_tasks(
+        order_by="created_at",
+        descending=True,
+    )
 
     formatted = [format_task(task) for task in db_tasks]
     formatted = format_task_message(formatted)

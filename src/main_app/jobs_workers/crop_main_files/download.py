@@ -10,7 +10,7 @@ from typing import Any
 
 import requests
 
-from ...api_services.download_file_utils import download_one_file
+from ...api_services.utils import download_one_file
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def download_file_for_cropping(
         return result
 
     # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename[5:] if filename.startswith("File:") else filename
+    clean_filename = filename.removeprefix("File:")
 
     # Use download_one_file from tasks.downloads
     try:

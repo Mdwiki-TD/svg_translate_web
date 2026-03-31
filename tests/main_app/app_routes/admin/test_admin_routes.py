@@ -6,10 +6,11 @@ import pymysql
 import pytest
 
 from src.main_app import create_app
-from src.main_app.admins import admin_service
-from src.main_app.app_routes.admin.admin_routes import coordinators
+
+# from src.main_app.app_routes.admin.admin_routes import coordinators
 from src.main_app.config import settings
-from src.main_app.db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB  # , CoordinatorRecord
+from src.main_app.services import admin_service
 
 
 class FakeDatabase:
@@ -152,7 +153,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     # Patch Database used by CoordinatorsDB
     monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", FakeDatabase)
-    monkeypatch.setattr("src.main_app.admins.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
     store = CoordinatorsDB(settings.database_data)
@@ -160,7 +161,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
-    monkeypatch.setattr("src.main_app.admins.admin_service.get_admins_db", lambda: store)
+    monkeypatch.setattr("src.main_app.services.admin_service.get_admins_db", lambda: store)
 
     app = create_app()
     app.config["TESTING"] = True

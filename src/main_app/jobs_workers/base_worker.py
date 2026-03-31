@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from . import jobs_service
+from ..services import jobs_service
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)

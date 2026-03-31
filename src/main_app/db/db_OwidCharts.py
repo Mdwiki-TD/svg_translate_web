@@ -35,7 +35,8 @@ class OwidChartRecord:
     template_source: str | None = None
 
     def __post_init__(self):
-        self.template_source = f"https://ourworldindata.org/grapher/{self.slug}"
+        if not self.template_source and self.slug:
+            self.template_source = f"https://ourworldindata.org/grapher/{self.slug}"
 
 
 class OwidChartsDB:

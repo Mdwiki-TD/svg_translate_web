@@ -38,9 +38,20 @@ class TemplateRecord:
     title: str
     main_file: str | None
     last_world_file: str | None
+    source: str | None = None
     created_at: Any | None = None
     updated_at: Any | None = None
-    source: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "main_file": self.main_file,
+            "last_world_file": self.last_world_file,
+            "source": self.source,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
 
 
 class TemplatesDB:

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.jobs_workers import jobs_worker
-from src.main_app.jobs_workers.jobs_service import JobRecord
+from src.main_app.services.jobs_service import JobRecord
 
 
 @pytest.fixture(autouse=True)
@@ -17,11 +17,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
     mock_is_cancelled = MagicMock(return_value=False)
     mock_cancel_job = MagicMock(return_value=False)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_service.is_job_cancelled",
+        "src.main_app.services.jobs_service.is_job_cancelled",
         mock_is_cancelled,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_service.cancel_job",
+        "src.main_app.services.jobs_service.cancel_job",
         mock_cancel_job,
     )
     return {"is_job_cancelled": mock_is_cancelled, "cancel_job": mock_cancel_job}
@@ -30,11 +30,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def clean_cancel_events():
     """Clear CANCEL_EVENTS before and after each test."""
-    with jobs_worker.CANCEL_EVENTS_LOCK:
-        jobs_worker.CANCEL_EVENTS.clear()
+    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
+        jobs_worker.JOBS_CANCEL_EVENTS.clear()
     yield
-    with jobs_worker.CANCEL_EVENTS_LOCK:
-        jobs_worker.CANCEL_EVENTS.clear()
+    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
+        jobs_worker.JOBS_CANCEL_EVENTS.clear()
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")

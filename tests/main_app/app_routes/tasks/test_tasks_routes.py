@@ -12,6 +12,7 @@ from flask import Flask
 
 from src.main_app import create_app
 from src.main_app.app_routes.tasks import routes
+from src.main_app.services import tasks_service
 
 
 class DummyTaskStore:
@@ -87,12 +88,12 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
         return store
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", store_factory)
-    routes.TASK_STORE = store
-    routes.TASKS_LOCK = threading.Lock()
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
 
     yield app, app.test_client(), store
 
-    routes.TASK_STORE = None
+    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
 
 
 def test_format_task_message() -> None:
@@ -114,13 +115,13 @@ def test_format_task_message() -> None:
 
 def test_close_task_store(monkeypatch: pytest.MonkeyPatch) -> None:
     store = DummyTaskStore()
-    routes.TASK_STORE = store
-    routes.close_task_store()
+    tasks_service.TASK_STORE = store
+    tasks_service.close_task_store()
     assert store.closed is True
 
-    routes.TASK_STORE = None
+    tasks_service.TASK_STORE = None
     # Should be a no-op when the store is already cleared.
-    routes.close_task_store()
+    tasks_service.close_task_store()
 
 
 def test_task_redirects_without_identifier(app_client: tuple[Flask, Any, DummyTaskStore]) -> None:
