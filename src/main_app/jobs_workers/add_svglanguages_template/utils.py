@@ -1,6 +1,5 @@
 import re
 
-
 RE_SVG_LANG = re.compile(r"\{\{\s*SVGLanguages\s*\|\s*([^}|]+)", re.I)
 # *'''Translate''': https://svgtranslate.toolforge.org/File:share_with_mental_and_substance_disorders,_World,_1990.svg
 RE_TRANSLATE = re.compile(r"\*\s*'''Translat\w+'''\s*:\s*https://svgtranslate\.toolforge\.org/File:([^ \n]+)", re.I)

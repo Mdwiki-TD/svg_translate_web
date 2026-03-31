@@ -7,8 +7,10 @@ import csv
 import logging
 import os
 import sys
-from dotenv import load_dotenv
 from typing import Any, Dict, List
+
+from dotenv import load_dotenv
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 

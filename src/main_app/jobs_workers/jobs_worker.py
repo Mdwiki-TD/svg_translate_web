@@ -7,9 +7,9 @@ import threading
 from typing import Any, Dict
 
 from . import jobs_service
+from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
 from .create_owid_pages import create_owid_pages_for_templates
-from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates

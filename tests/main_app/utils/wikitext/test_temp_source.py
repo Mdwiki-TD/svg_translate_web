@@ -155,7 +155,7 @@ class TestCheckUrl:
         assert result is True
 
 
-class TestFindTemplateSource:
+class TestFindTemplateSource3:
     """Tests for the find_template_source function (integration)."""
 
     def test_fallback_to_second_method(self):
