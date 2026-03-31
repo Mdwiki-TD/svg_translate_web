@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 @bp_fix_nested_explorer.route("/tasks")
-def list_tasks():
+def list_fix_nested_tasks():
     """List all fix_nested tasks."""
     # Get query parameters
     status = request.args.get("status")
@@ -188,7 +188,7 @@ def compare(task_id: str):
         # return to HTTP_REFERER with flash message
 
         flash("Task not found", "danger")
-        return redirect(request.referrer or url_for("fix_nested_explorer.list_tasks"))
+        return redirect(request.referrer or url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     original_file = task_dir / "original.svg"
@@ -197,7 +197,7 @@ def compare(task_id: str):
     if not original_file.exists() or not fixed_file.exists():
         # abort(404, description="Original or fixed file not found")
         flash("Original or fixed file not found", "danger")
-        return redirect(request.referrer or url_for("fix_nested_explorer.list_tasks"))
+        return redirect(request.referrer or url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
         # Analyze both files
     original_result = analyze_file(original_file)
@@ -268,7 +268,7 @@ def undo_task(task_id: str):
 
     if not task:
         flash("Task not found", "danger")
-        return redirect(url_for("fix_nested_explorer.list_tasks"))
+        return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
     if task["status"] != "completed":
         flash("Can only undo completed tasks", "warning")
@@ -332,7 +332,7 @@ def delete_task(task_id: str):
     if not str(task_dir.resolve()).startswith(str(base_path)):
         logger.error(f"Path traversal attempt detected for task_id: {task_id}")
         flash("Invalid task ID", "danger")
-        return redirect(url_for("fix_nested_explorer.list_tasks"))
+        return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
     with Database(settings.database_data) as db:
         db_store = FixNestedTaskStore(db)
@@ -340,12 +340,12 @@ def delete_task(task_id: str):
 
         if not task:
             flash("Task not found", "danger")
-            return redirect(url_for("fix_nested_explorer.list_tasks"))
+            return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
         # Delete from database first to ensure data consistency
         if not db_store.delete_task(task_id):
             flash("Failed to delete task from database", "danger")
-            return redirect(url_for("fix_nested_explorer.list_tasks"))
+            return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
     # If we are here, DB deletion was successful.
     flash(f"Task {task_id[:8]} deleted successfully", "success")
@@ -360,7 +360,7 @@ def delete_task(task_id: str):
             logger.error(f"Failed to delete task directory {task_dir}: {e}")
             flash(f"Failed to delete task files (manual cleanup may be required): {e}", "warning")
 
-    return redirect(url_for("fix_nested_explorer.list_tasks"))
+    return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
 
 
 __all__ = ["bp_fix_nested_explorer"]
