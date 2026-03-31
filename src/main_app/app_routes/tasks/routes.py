@@ -23,7 +23,13 @@ from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...services.admin_service import active_coordinators
-from ...services.tasks_service import _task_store, get_db_tasks, get_store_task, create_new_task, get_active_task_by_title
+from ...services.tasks_service import (
+    _task_store,
+    create_new_task,
+    get_active_task_by_title,
+    get_db_tasks,
+    get_store_task,
+)
 from ...threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..utils.args_utils import parse_args
@@ -190,12 +196,7 @@ def start():
             return redirect(url_for("tasks.task", task_id=existing_task["id"], title=title))
 
     try:
-        create_new_task(
-            task_id,
-            title,
-            username=(user.username if user else ""),
-            form=request.form.to_dict(flat=True)
-        )
+        create_new_task(task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True))
     except TaskAlreadyExistsError as exc:
         existing = exc.task
         logger.debug("Task creation for %s blocked by existing task %s", task_id, existing.get("id"))
