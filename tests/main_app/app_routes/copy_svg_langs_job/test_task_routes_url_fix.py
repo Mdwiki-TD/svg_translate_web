@@ -63,8 +63,8 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     store = DummyTaskStore()
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: store)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE", store)
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE_LOCK", threading.Lock())
 
     yield app, app.test_client(), store
 

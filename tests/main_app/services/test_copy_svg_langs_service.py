@@ -1,4 +1,4 @@
-"""Tests for src.main_app.services.tasks_service."""
+"""Tests for src.main_app.services.copy_svg_langs_service."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class TestTaskStore:
         """_task_store() returns a TaskStorePyMysql instance."""
         mock_store = MagicMock()
         mock_cls = MagicMock(return_value=mock_store)
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
 
         result = _task_store()
 
@@ -36,7 +36,7 @@ class TestTaskStore:
         """_task_store() creates the instance on first call."""
         mock_store = MagicMock()
         mock_cls = MagicMock(return_value=mock_store)
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
 
         _task_store()
 
@@ -46,7 +46,7 @@ class TestTaskStore:
         """_task_store() returns the same singleton instance on repeated calls."""
         mock_store = MagicMock()
         mock_cls = MagicMock(return_value=mock_store)
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
 
         first = _task_store()
         second = _task_store()
@@ -65,8 +65,8 @@ class TestTaskStore:
         fake_settings = MagicMock()
         fake_settings.database_data = fake_db_data
 
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
-        monkeypatch.setattr("src.main_app.services.tasks_service.settings", fake_settings)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.settings", fake_settings)
 
         _task_store()
 
@@ -76,7 +76,7 @@ class TestTaskStore:
         """_task_store() sets the TASK_STORE module variable."""
         mock_store = MagicMock()
         mock_cls = MagicMock(return_value=mock_store)
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
 
         _task_store()
 
@@ -106,7 +106,7 @@ class TestCloseTaskStore:
         mock_store1 = MagicMock()
         mock_store2 = MagicMock()
         mock_cls = MagicMock(side_effect=[mock_store1, mock_store2])
-        monkeypatch.setattr("src.main_app.services.tasks_service.TaskStorePyMysql", mock_cls)
+        monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TaskStorePyMysql", mock_cls)
 
         first = _task_store()
         assert first is mock_store1
