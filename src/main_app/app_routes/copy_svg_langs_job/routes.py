@@ -19,7 +19,7 @@ from flask import (
 )
 from werkzeug.datastructures import MultiDict
 
-from ...admins_required import admin_required
+from ..admin.admins_required import admin_required
 from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...jobs_workers.copy_svg_langs.task_threads import get_cancel_event, launch_task_thread

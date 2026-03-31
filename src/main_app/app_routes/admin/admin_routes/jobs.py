@@ -18,7 +18,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ....admins_required import admin_required
+from ..admins_required import admin_required
 from ....config import settings
 from ....jobs_workers import jobs_worker
 from ....jobs_workers.download_main_files_worker import create_main_files_zip

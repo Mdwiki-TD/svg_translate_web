@@ -15,7 +15,7 @@ from flask import (
     url_for,
 )
 
-from ...admins_required import admin_required
+from ..admin.admins_required import admin_required
 from ...api_services.clients import get_user_site
 from ...api_services.upload_bot import upload_file
 from ...config import settings

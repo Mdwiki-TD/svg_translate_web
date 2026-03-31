@@ -1,4 +1,3 @@
-```
 PS I:\SVG\svg_repo\src> python -m directory_tree --ignore-list __pycache__
 src/
 ├── __init__.py
@@ -8,9 +7,6 @@ src/
 ├── logger_config.py
 ├── main_app/
 │   ├── __init__.py
-│   ├── admins/
-│   │   └── __init__.py
-│   ├── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
 │   │   ├── category.py
@@ -39,6 +35,7 @@ src/
 │   │   │   │   ├── recent.py
 │   │   │   │   ├── settings.py
 │   │   │   │   └── templates.py
+│   │   │   ├── admins_required.py
 │   │   │   ├── routes.py
 │   │   │   └── sidebar.py
 │   │   ├── auth/
@@ -259,4 +256,4 @@ src/
 │   └── templates/
 │       └── index.html
 └── uwsgi.ini
-```
+PS I:\SVG\svg_repo\src>
