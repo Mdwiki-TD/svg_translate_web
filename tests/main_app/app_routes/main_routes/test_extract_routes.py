@@ -11,7 +11,7 @@ from flask import Flask
 from pytest_mock import MockerFixture
 
 from src.main_app import create_app
-from src.main_app.app_routes.extract import routes
+from src.main_app.app_routes.main_routes import extract_routes
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
         captured["context"] = context
         return f"rendered:{template}"
 
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.render_template", fake_render)
     return captured
 
 
@@ -52,7 +52,7 @@ def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any
     app, client = app_client
 
     with client.session_transaction() as sess:
-        sess[routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
+        sess[extract_routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
 
     response = client.get("/extract/")
     assert response.status_code == 200
@@ -73,10 +73,10 @@ def test_extract_post_empty_filename_shows_error(
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.flash", fake_flash)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": ""}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert ("Please provide a file name", "danger") in flashed
@@ -92,19 +92,19 @@ def test_extract_post_strips_file_prefix(
     app, _ = app_client
 
     # 1. Use mocker.patch for stronger assertions
-    mock_download = mocker.patch("src.main_app.app_routes.extract.routes.download_one_file")
+    mock_download = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.download_one_file")
     mock_download.return_value = {"result": "success", "path": "/tmp/test.svg"}
 
-    mock_extract = mocker.patch("src.main_app.app_routes.extract.routes.extract")
+    mock_extract = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.extract")
     mock_extract.return_value = {"new": {}, "title": {}}
 
     # 2. Use mocker.patch for tempfile to avoid manual mocking
-    mocker.patch("src.main_app.app_routes.extract.routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
-    mocker.patch("src.main_app.app_routes.extract.routes.shutil.rmtree")
-    mocker.patch("src.main_app.app_routes.extract.routes.flash")
+    mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
+    mocker.patch("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree")
+    mocker.patch("src.main_app.app_routes.main_routes.extract_routes.flash")
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
-        routes.extract_translations_post()
+        extract_routes.extract_translations_post()
 
     # Assert that download was called with the stripped filename
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
@@ -135,13 +135,13 @@ def test_extract_post_download_failure(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.flash", fake_flash)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("Failed to download file" in msg for msg, cat in flashed)
@@ -171,14 +171,14 @@ def test_extract_post_extraction_error(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.extract", mock_extract)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.flash", fake_flash)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.extract", mock_extract)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("Error extracting translations" in msg for msg, cat in flashed)
@@ -213,14 +213,14 @@ def test_extract_post_successful_extraction(
     def mock_mkdtemp():
         return "/tmp/test_dir"
 
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.download_one_file", mock_download)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.extract", mock_extract)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.flash", fake_flash)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.tempfile.mkdtemp", mock_mkdtemp)
-    monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.extract", mock_extract)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed

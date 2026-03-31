@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 
-from src.main_app.app_routes.main.routes import bp_main
+from src.main_app.app_routes.main_routes.routes import bp_main
 
 
 @pytest.fixture

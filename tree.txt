@@ -8,8 +8,8 @@ src/
 ├── main_app/
 │   ├── __init__.py
 │   ├── admins/
-│   │   ├── __init__.py
-│   │   └── admins_required.py
+│   │   └── __init__.py
+│   ├── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
 │   │   ├── category.py
@@ -49,29 +49,24 @@ src/
 │   │   ├── copy_svg_langs_job/
 │   │   │   ├── __init__.py
 │   │   │   └── routes.py
-│   │   ├── explorer/
-│   │   │   ├── __init__.py
-│   │   │   ├── compare.py
-│   │   │   └── routes.py
-│   │   ├── extract/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
 │   │   │   ├── explorer_routes.py
 │   │   │   ├── routes.py
 │   │   │   └── worker.py
-│   │   ├── main/
+│   │   ├── main_routes/
 │   │   │   ├── __init__.py
+│   │   │   ├── explorer_routes.py
+│   │   │   ├── extract_routes.py
+│   │   │   ├── owid_charts_routes.py
 │   │   │   └── routes.py
-│   │   ├── owid_charts_routes.py
-│   │   ├── tasks/
 │   │   ├── templates/
 │   │   │   ├── __init__.py
 │   │   │   └── routes.py
 │   │   └── utils/
 │   │       ├── __init__.py
 │   │       ├── args_utils.py
+│   │       ├── compare.py
 │   │       ├── explorer_utils.py
 │   │       ├── fix_nested_utils.py
 │   │       ├── routes_utils.py

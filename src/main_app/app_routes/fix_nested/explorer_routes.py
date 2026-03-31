@@ -22,7 +22,7 @@ from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
 from ...services.users_service import current_user
-from ..explorer.compare import analyze_file
+from ..utils.compare import analyze_file
 from ..utils.fix_nested_utils import log_to_task
 from ..utils.routes_utils import load_auth_payload
 
