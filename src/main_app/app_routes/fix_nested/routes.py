@@ -355,7 +355,7 @@ def compare(task_id: str):
         # return to HTTP_REFERER with flash message
 
         flash("Task not found", "danger")
-        return redirect(request.referrer or url_for("fix_nested_explorer.list_fix_nested_tasks"))
+        return redirect(request.referrer or url_for("fix_nested.list_fix_nested_tasks"))
 
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     original_file = task_dir / "original.svg"
@@ -364,7 +364,7 @@ def compare(task_id: str):
     if not original_file.exists() or not fixed_file.exists():
         # abort(404, description="Original or fixed file not found")
         flash("Original or fixed file not found", "danger")
-        return redirect(request.referrer or url_for("fix_nested_explorer.list_fix_nested_tasks"))
+        return redirect(request.referrer or url_for("fix_nested.list_fix_nested_tasks"))
 
         # Analyze both files
     original_result = analyze_file(original_file)
@@ -414,7 +414,7 @@ def undo_task(task_id: str):
     site = get_user_site(auth_payload)
     if not site:
         flash("Failed to authenticate with Wikimedia Commons", "danger")
-        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
     # ------------------------------------------------------------------
     # 2. Filesystem validation
@@ -424,7 +424,7 @@ def undo_task(task_id: str):
 
     if not original_file.exists():
         flash("Original file not found", "danger")
-        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
     # ------------------------------------------------------------------
     # 3. Load & validate task (DB scope is minimal)
@@ -435,15 +435,15 @@ def undo_task(task_id: str):
 
     if not task:
         flash("Task not found", "danger")
-        return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
+        return redirect(url_for("fix_nested.list_fix_nested_tasks"))
 
     if task["status"] != "completed":
         flash("Can only undo completed tasks", "warning")
-        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
     if task.get("upload_result", {}).get("result") != "Success":
         flash("Can only undo tasks with successful uploads", "warning")
-        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
     # ------------------------------------------------------------------
     # 4. External side effect (Commons upload)
@@ -459,7 +459,7 @@ def undo_task(task_id: str):
 
     if upload_result.get("result") != "Success":
         flash("Failed to upload original file", "danger")
-        return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
     # ------------------------------------------------------------------
     # 5. Persist undo result
@@ -475,7 +475,7 @@ def undo_task(task_id: str):
     flash(f"Successfully restored original file: {task['filename']}", "success")
     logger.info(f"Task {task_id} undone successfully")
 
-    return redirect(url_for("fix_nested_explorer.task_detail", task_id=task_id))
+    return redirect(url_for("fix_nested.task_detail", task_id=task_id))
 
 
 @bp_fix_nested.route("/tasks/<task_id>/delete", methods=["POST"])
@@ -499,7 +499,7 @@ def delete_task(task_id: str):
     if not str(task_dir.resolve()).startswith(str(base_path)):
         logger.error(f"Path traversal attempt detected for task_id: {task_id}")
         flash("Invalid task ID", "danger")
-        return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
+        return redirect(url_for("fix_nested.list_fix_nested_tasks"))
 
     with Database(settings.database_data) as db:
         db_store = FixNestedTaskStore(db)
@@ -507,12 +507,12 @@ def delete_task(task_id: str):
 
         if not task:
             flash("Task not found", "danger")
-            return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
+            return redirect(url_for("fix_nested.list_fix_nested_tasks"))
 
         # Delete from database first to ensure data consistency
         if not db_store.delete_task(task_id):
             flash("Failed to delete task from database", "danger")
-            return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
+            return redirect(url_for("fix_nested.list_fix_nested_tasks"))
 
     # If we are here, DB deletion was successful.
     flash(f"Task {task_id[:8]} deleted successfully", "success")
@@ -527,4 +527,4 @@ def delete_task(task_id: str):
             logger.error(f"Failed to delete task directory {task_dir}: {e}")
             flash(f"Failed to delete task files (manual cleanup may be required): {e}", "warning")
 
-    return redirect(url_for("fix_nested_explorer.list_fix_nested_tasks"))
+    return redirect(url_for("fix_nested.list_fix_nested_tasks"))
