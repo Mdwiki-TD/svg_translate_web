@@ -17,7 +17,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ....admins.admins_required import admin_required
+from ....admins_required import admin_required
 from ....db import OwidChartRecord
 from ....services import owid_charts_service
 from ....services.users_service import current_user

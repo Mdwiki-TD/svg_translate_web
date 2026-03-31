@@ -11,7 +11,7 @@ from flask import (
     url_for,
 )
 
-from ...admins.admins_required import admin_required
+from ...admins_required import admin_required
 from .admin_routes import (
     Coordinators,
     Jobs,

@@ -12,8 +12,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ..services.admin_service import active_coordinators
-from ..services.users_service import current_user
+from .services.admin_service import active_coordinators
+from .services.users_service import current_user
 
 F = TypeVar("F", bound=Callable[..., ResponseReturnValue])
 

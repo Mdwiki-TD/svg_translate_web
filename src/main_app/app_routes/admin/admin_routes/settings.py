@@ -7,7 +7,7 @@ import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from ....admins.admins_required import admin_required
+from ....admins_required import admin_required
 from ....config import settings
 
 
