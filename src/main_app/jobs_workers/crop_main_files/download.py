@@ -10,7 +10,7 @@ from typing import Any
 
 import requests
 
-from ...api_services.download_file_utils import download_one_file
+from ...utils.api_services_utils.download_file_utils import download_one_file
 
 logger = logging.getLogger(__name__)
 

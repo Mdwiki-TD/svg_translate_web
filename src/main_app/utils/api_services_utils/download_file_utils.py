@@ -8,8 +8,8 @@ from typing import Dict
 
 import requests
 
-from ..config import settings
-from .clients import create_commons_session, download_commons_file_core
+from ...config import settings
+from ...api_services.clients import create_commons_session, download_commons_file_core
 
 logger = logging.getLogger(__name__)
 
@@ -87,3 +87,9 @@ def download_commons_svgs(titles, files_dir):
         if file.get("path"):
             files.append(file["path"])
     return files
+
+
+__all__ = [
+    "download_one_file",
+    "download_commons_svgs",
+]

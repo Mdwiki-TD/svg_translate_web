@@ -10,7 +10,7 @@ from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignor
 from werkzeug.utils import secure_filename
 
 from ...api_services.clients import get_user_site
-from ...api_services.download_file_utils import download_one_file
+from ...utils.api_services_utils.download_file_utils import download_one_file
 from ...api_services.upload_bot import upload_file
 from ...config import settings
 from ...db.fix_nested_task_store import FixNestedTaskStore

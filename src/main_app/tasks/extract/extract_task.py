@@ -3,7 +3,7 @@ import logging
 
 from CopySVGTranslation import extract  # type: ignore
 
-from ...api_services.download_file_utils import download_one_file
+from ...utils.api_services_utils.download_file_utils import download_one_file
 from ..tasks_utils import json_save
 
 logger = logging.getLogger(__name__)
