@@ -1,0 +1,183 @@
+src/
+├── __init__.py
+├── app.py
+├── example.env
+├── import_owid_charts.py
+├── logger_config.py
+├── main_app/
+│   ├── __init__.py
+│   ├── admins/
+│   │   ├── __init__.py
+│   │   ├── admin_service.py
+│   │   └── admins_required.py
+│   ├── api_services/
+│   │   ├── __init__.py
+│   │   ├── category.py
+│   │   ├── clients/
+│   │   │   ├── __init__.py
+│   │   │   ├── commons_client.py
+│   │   │   └── wiki_client.py
+│   │   ├── download_file_utils.py
+│   │   ├── mwclient_page.py
+│   │   ├── pages_api.py
+│   │   ├── text_api.py
+│   │   ├── text_bot.py
+│   │   ├── upload_bot.py
+│   │   └── upload_bot_new.py
+│   ├── app_routes/
+│   │   ├── __init__.py
+│   │   ├── admin/
+│   │   │   ├── __init__.py
+│   │   │   ├── admin_routes/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── coordinators.py
+│   │   │   │   ├── jobs.py
+│   │   │   │   ├── owid_charts.py
+│   │   │   │   ├── recent.py
+│   │   │   │   ├── settings.py
+│   │   │   │   └── templates.py
+│   │   │   ├── routes.py
+│   │   │   └── sidebar.py
+│   │   ├── auth/
+│   │   │   ├── __init__.py
+│   │   │   ├── cookie.py
+│   │   │   ├── oauth.py
+│   │   │   ├── rate_limit.py
+│   │   │   └── routes.py
+│   │   ├── cancel_restart/
+│   │   │   ├── __init__.py
+│   │   │   └── routes.py
+│   │   ├── explorer/
+│   │   │   ├── __init__.py
+│   │   │   ├── compare.py
+│   │   │   ├── routes.py
+│   │   │   ├── thumbnail_utils.py
+│   │   │   └── utils.py
+│   │   ├── extract/
+│   │   │   ├── __init__.py
+│   │   │   └── routes.py
+│   │   ├── fix_nested/
+│   │   │   ├── __init__.py
+│   │   │   ├── explorer_routes.py
+│   │   │   ├── fix_utils.py
+│   │   │   └── routes.py
+│   │   ├── main/
+│   │   │   ├── __init__.py
+│   │   │   └── routes.py
+│   │   ├── owid_charts_routes.py
+│   │   ├── tasks/
+│   │   │   ├── __init__.py
+│   │   │   ├── args_utils.py
+│   │   │   └── routes.py
+│   │   └── templates/
+│   │       ├── __init__.py
+│   │       └── routes.py
+│   ├── config.py
+│   ├── cookies/
+│   │   └── __init__.py
+│   ├── crypto.py
+│   ├── data/
+│   │   ├── __init__.py
+│   ├── db/
+│   │   ├── __init__.py
+│   │   ├── db_class.py
+│   │   ├── db_CoordinatorsDB.py
+│   │   ├── db_CreateUpdate.py
+│   │   ├── db_Jobs.py
+│   │   ├── db_OwidCharts.py
+│   │   ├── db_Settings.py
+│   │   ├── db_StageStore.py
+│   │   ├── db_TasksListDB.py
+│   │   ├── db_Templates.py
+│   │   ├── fix_nested_task_store.py
+│   │   ├── sql_schema_tables.py
+│   │   ├── svg_db.py
+│   │   ├── task_store_pymysql.py
+│   │   └── utils.py
+│   ├── jobs_workers/
+│   │   ├── __init__.py
+│   │   ├── add_svglanguages_template/
+│   │   │   ├── __init__.py
+│   │   │   ├── utils.py
+│   │   │   └── worker.py
+│   │   ├── base_worker.py
+│   │   ├── collect_main_files_worker.py
+│   │   ├── create_owid_pages/
+│   │   │   ├── __init__.py
+│   │   │   ├── owid_template_converter.py
+│   │   │   └── worker.py
+│   │   ├── crop_main_files/
+│   │   │   ├── __init__.py
+│   │   │   ├── crop_file.py
+│   │   │   ├── download.py
+│   │   │   ├── process_new.py
+│   │   │   ├── upload.py
+│   │   │   ├── utils.py
+│   │   │   └── worker.py
+│   │   ├── download_main_files_worker.py
+│   │   ├── fix_nested_main_files_worker.py
+│   │   ├── jobs_service.py
+│   │   ├── jobs_worker.py
+│   │   └── utils.py
+│   ├── owid_charts_service.py
+│   ├── routes_utils.py
+│   ├── tasks/
+│   │   ├── __init__.py
+│   │   ├── downloads/
+│   │   │   ├── __init__.py
+│   │   │   └── download.py
+│   │   ├── extract/
+│   │   │   ├── __init__.py
+│   │   │   └── extract_task.py
+│   │   ├── fix_nested/
+│   │   │   ├── __init__.py
+│   │   │   └── fix_nested_tasks.py
+│   │   ├── injects/
+│   │   │   ├── __init__.py
+│   │   │   └── inject_tasks.py
+│   │   ├── tasks_utils.py
+│   │   ├── texts/
+│   │   │   ├── __init__.py
+│   │   │   └── start_bot.py
+│   │   ├── titles/
+│   │   │   ├── __init__.py
+│   │   │   ├── titles_tasks.py
+│   │   │   └── utils/
+│   │   └── uploads/
+│   │       ├── __init__.py
+│   │       └── up.py
+│   ├── template_service.py
+│   ├── threads/
+│   │   ├── __init__.py
+│   │   ├── task_threads.py
+│   │   └── web_run_task.py
+│   ├── users/
+│   │   ├── __init__.py
+│   │   ├── current.py
+│   │   └── store.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── jinja_filters.py
+│       ├── verify.py
+│       └── wikitext/
+│           ├── __init__.py
+│           ├── before_methods.py
+│           ├── categories_utils.py
+│           ├── files_text.py
+│           ├── other_versions.py
+│           ├── temp_source.py
+│           ├── template_page.py
+│           ├── temps_bot.py
+│           └── titles_utils/
+│               ├── __init__.py
+│               ├── last_world_file_utils.py
+│               └── main_file.py
+├── static/
+│   ├── css/
+│   ├── images/
+│   └── js/
+├── svg_config.py
+├── templates/
+│   ├── _navbar.html
+│   ├── ...
+└── uwsgi.ini
