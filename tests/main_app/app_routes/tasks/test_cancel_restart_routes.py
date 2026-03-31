@@ -88,17 +88,16 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     created_tasks: list[tuple[str, dict[str, str]]] = []
     launched: list[tuple[str, str]] = []
 
-    class DummyStore:
-        def get_task(self, task_id: str) -> dict[str, object]:
-            return {
-                "id": task_id,
-                "title": "Sample",
-                "username": "user",
-                "form": {"param": "value"},
-            }
+    def fake_get_store_task(task_id: str) -> dict[str, object]:
+        return {
+            "id": task_id,
+            "title": "Sample",
+            "username": "user",
+            "form": {"param": "value"},
+        }
 
-        def create_task(self, task_id: str, title: str, *, username: str, form: dict | None = None) -> None:
-            created_tasks.append((task_id, {"title": title, "username": username, "form": form}))
+    def fake_create_new_task(task_id: str, title: str, *, username: str, form: dict | None = None) -> None:
+        created_tasks.append((task_id, {"title": title, "username": username, "form": form}))
 
     def fake_parse_args(form, disable_uploads):
         return types.SimpleNamespace(parsed="ok")
@@ -106,7 +105,8 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     def fake_launch(task_id: str, title: str, args, user_payload: dict) -> None:
         launched.append((task_id, user_payload["username"]))
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.get_store_task", fake_get_store_task)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", fake_create_new_task)
     monkeypatch.setattr(
         routes,
         "current_user",
@@ -186,14 +186,14 @@ def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
 def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     from src.main_app.db import TaskAlreadyExistsError
 
-    class DummyStore:
-        def get_task(self, task_id: str) -> dict[str, object]:
-            return {"id": task_id, "title": "Sample", "username": "user", "form": {}}
+    def fake_get_store_task(task_id: str) -> dict[str, object]:
+        return {"id": task_id, "title": "Sample", "username": "user", "form": {}}
 
-        def create_task(self, *args, **kwargs) -> None:
-            raise TaskAlreadyExistsError({"id": "existing_id"})
+    def fake_create_new_task(*args, **kwargs) -> None:
+        raise TaskAlreadyExistsError({"id": "existing_id"})
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.get_store_task", fake_get_store_task)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", fake_create_new_task)
     monkeypatch.setattr(
         routes,
         "current_user",

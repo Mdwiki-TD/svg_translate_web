@@ -72,12 +72,12 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     return charts
 
 
-def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int]:
+def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
     """
     Import charts into the database.
 
     Returns:
-        tuple: (number of inserted charts, number of updated charts)
+        tuple: (number of inserted charts, number of updated charts, number of failed charts)
     """
     db_name = os.getenv("DB_NAME", "")
 
@@ -131,7 +131,7 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int]:
     for i, chart_data in enumerate(charts, 1):
         try:
             # Check if chart exists
-            cursor.execute("SELECT id FROM owid_charts WHERE slug = %s", (chart_data["slug"],))
+            cursor.execute("SELECT chart_id FROM owid_charts WHERE slug = %s", (chart_data["slug"],))
             exists = cursor.fetchone()
 
             if exists:
