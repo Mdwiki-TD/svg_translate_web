@@ -116,12 +116,12 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     fake_store = FakeTemplatesDB({})
     fake_store.add("Existing Template", "existing.svg")
 
-    monkeypatch.setattr("src.main_app.template_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: True)
 
     def fake_templates_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.main_app.template_service.TemplatesDB", fake_templates_factory)
+    monkeypatch.setattr("src.main_app.services.template_service.TemplatesDB", fake_templates_factory)
 
     template_service._TEMPLATE_STORE = fake_store
 

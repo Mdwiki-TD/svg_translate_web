@@ -36,6 +36,10 @@ bp_tasks = Blueprint("tasks", __name__)
 logger = logging.getLogger(__name__)
 
 
+def get_disable_uploads() -> str:
+    return settings.disable_uploads
+
+
 def format_task_message(formatted):
     for v in formatted:
         if v.get("stages"):
@@ -185,7 +189,7 @@ def start():
 
     store = _task_store()
 
-    args = parse_args(request.form, settings.disable_uploads)
+    args = parse_args(request.form, get_disable_uploads())
 
     with TASKS_LOCK:
         logger.info(f"ignore_existing_task: {args.ignore_existing_task}")
@@ -316,7 +320,7 @@ def restart(task_id: str):
 
     stored_form = dict(task.get("form") or {})
     request_form = MultiDict(stored_form.items()) if stored_form else MultiDict()
-    args = parse_args(request_form, settings.disable_uploads)
+    args = parse_args(request_form, get_disable_uploads())
 
     new_task_id = uuid.uuid4().hex
 

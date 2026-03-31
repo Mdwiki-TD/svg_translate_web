@@ -6,7 +6,6 @@ from flask import Blueprint
 from src.main_app.app_routes.admin.admin_routes.recent import Recent, _recent_routes
 
 
-@patch("src.main_app.app_routes.admin.admin_routes.recent.TASKS_LOCK")
 @patch("src.main_app.app_routes.admin.admin_routes.recent._task_store")
 @patch("src.main_app.app_routes.admin.admin_routes.recent.format_task")
 @patch("src.main_app.app_routes.admin.admin_routes.recent.format_task_message")

@@ -89,7 +89,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
-    monkeypatch.setattr("src.main_app.app_routes.cancel_restart.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
     routes.TASKS_LOCK = threading.Lock()
@@ -102,7 +102,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.cancel_restart.routes.current_user",
+        "src.main_app.app_routes.tasks.routes.current_user",
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
 
@@ -166,7 +166,7 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         task_finished.set()
 
     monkeypatch.setattr(
-        "src.main_app.app_routes.cancel_restart.routes.launch_task_thread",
+        "src.main_app.app_routes.tasks.routes.launch_task_thread",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
 
