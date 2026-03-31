@@ -184,7 +184,7 @@ class TestAddChart:
 
     def test_add_chart_missing_slug(self, owid_charts_admin_client):
         """Test adding a chart without slug redirects with flash."""
-        flask_client, _ = owid_charts_admin_client
+        flask_client, mock_service = owid_charts_admin_client
 
         response = flask_client.post(
             "/admin/owid-charts/add",
@@ -196,6 +196,7 @@ class TestAddChart:
         )
 
         assert response.status_code == 200
+        mock_service.add_chart.assert_not_called()
 
     def test_add_chart_missing_title(self, owid_charts_admin_client):
         """Test adding a chart without title redirects with flash."""
