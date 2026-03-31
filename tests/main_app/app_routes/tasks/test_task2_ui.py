@@ -43,8 +43,8 @@ def app_factory(monkeypatch):
 
         app = create_app()
         app.config["TESTING"] = True
-        monkeypatch.setattr(task_routes, "TASK_STORE", None)
-        monkeypatch.setattr(task_routes, "_task_store", lambda: DummyStore(task))
+        monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
+        monkeypatch.setattr("src.main_app.services.tasks_service._task_store", lambda: DummyStore(task))
         return app
 
     return _factory

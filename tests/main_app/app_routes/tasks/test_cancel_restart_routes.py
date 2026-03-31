@@ -30,7 +30,8 @@ def app(monkeypatch: pytest.MonkeyPatch):
             db_host="",
             db_user=None,
             db_password=None,
-        )
+        ),
+        disable_uploads="",
     )
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.settings", settings)
 
@@ -99,7 +100,7 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
         def create_task(self, task_id: str, title: str, *, username: str, form: dict | None = None) -> None:
             created_tasks.append((task_id, {"title": title, "username": username, "form": form}))
 
-    def fake_parse_args(form):
+    def fake_parse_args(form, disable_uploads):
         return types.SimpleNamespace(parsed="ok")
 
     def fake_launch(task_id: str, title: str, args, user_payload: dict) -> None:
