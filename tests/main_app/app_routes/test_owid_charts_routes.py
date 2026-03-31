@@ -69,7 +69,7 @@ class TestIndexRoute:
 
     def test_index_renders_with_published_charts(self, owid_charts_client):
         """Test index page renders with published charts."""
-        flask_client, mock_published, mock_all = owid_charts_client
+        flask_client, mock_published, _ = owid_charts_client
 
         response = flask_client.get("/owid-charts/")
 
@@ -78,7 +78,7 @@ class TestIndexRoute:
 
     def test_index_calls_list_charts(self, owid_charts_client):
         """Test index page also calls list_charts for total count."""
-        flask_client, mock_published, mock_all = owid_charts_client
+        flask_client, _, mock_all = owid_charts_client
 
         flask_client.get("/owid-charts/")
 
@@ -90,7 +90,7 @@ class TestAllChartsRoute:
 
     def test_all_charts_renders(self, owid_charts_client):
         """Test all charts page renders."""
-        flask_client, mock_published, mock_all = owid_charts_client
+        flask_client, _, mock_all = owid_charts_client
 
         response = flask_client.get("/owid-charts/all")
 
@@ -99,7 +99,7 @@ class TestAllChartsRoute:
 
     def test_all_charts_includes_unpublished(self, owid_charts_client, sample_unpublished_chart):
         """Test all charts page includes unpublished charts."""
-        flask_client, mock_published, mock_all = owid_charts_client
+        flask_client, _, mock_all = owid_charts_client
         mock_all.return_value = [sample_unpublished_chart]
 
         response = flask_client.get("/owid-charts/all")
@@ -108,7 +108,7 @@ class TestAllChartsRoute:
 
     def test_all_charts_empty_list(self, owid_charts_client):
         """Test all charts page with no charts."""
-        flask_client, mock_published, mock_all = owid_charts_client
+        flask_client, _, mock_all = owid_charts_client
         mock_all.return_value = []
 
         response = flask_client.get("/owid-charts/all")

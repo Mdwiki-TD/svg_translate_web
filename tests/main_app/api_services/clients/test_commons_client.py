@@ -109,6 +109,5 @@ class TestDownloadCommonsFileCore:
 
         download_commons_file_core("File (with parens).svg", session)
 
-        call_args = session.get.call_args[0][0]
-        assert "%28" in call_args
-        assert "%29" in call_args
+        expected_url = f"{BASE_COMMONS_URL}File_%28with_parens%29.svg"
+        session.get.assert_called_once_with(expected_url, timeout=60, allow_redirects=True)

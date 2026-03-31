@@ -92,7 +92,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
-    routes.TASKS_LOCK = threading.Lock()
+    routes.TASK_STORE_LOCK = threading.Lock()
     with task_threads.CANCEL_EVENTS_LOCK:
         task_threads.CANCEL_EVENTS.clear()
 
