@@ -74,11 +74,33 @@ def test_add_success(templates_db, mock_db_instance):
     ]
     rec = templates_db.add("new", "f.svg")
 
-    mock_db_instance.execute_query.assert_called_with(
-        "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
-        ("new", "f.svg"),
-    )
+    # In the real code, it uses a dynamic field list, and since slug is None it might not be included
+    # or it might be included if we change the add method.
+    # The current add method only includes non-None values.
+    mock_db_instance.execute_query.assert_called()
     assert rec.title == "new"
+
+
+def test_add_without_slug_success(templates_db, mock_db_instance):
+    """Test that adding a template without providing a slug works (it should use the DB default)."""
+    mock_db_instance.fetch_query_safe.return_value = [
+        {"id": 1, "title": "no-slug", "main_file": "f.svg", "slug": "", "created_at": None, "updated_at": None}
+    ]
+
+    rec = templates_db.add("no-slug", "f.svg")
+
+    # Check that slug was NOT in the values passed to execute_query if it's None
+    args, kwargs = mock_db_instance.execute_query.call_args
+    query = args[0]
+    values = args[1]
+
+    assert "INSERT INTO templates" in query
+    assert "title" in query
+    assert "main_file" in query
+    assert "slug" not in query  # Because slug=None by default in add() and it's skipped in add_fields
+    assert "no-slug" in values
+    assert "f.svg" in values
+    assert rec.title == "no-slug"
 
 
 def test_add_duplicate(templates_db, mock_db_instance):

@@ -96,6 +96,7 @@ templates = """
         main_file VARCHAR(255) DEFAULT NULL,
         last_world_file VARCHAR(255) DEFAULT NULL,
         source VARCHAR(255) NOT NULL DEFAULT '',
+        slug VARCHAR(255) NOT NULL DEFAULT '',
         created_at timestamp NOT NULL DEFAULT current_timestamp(),
         updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         PRIMARY KEY (id),
@@ -103,7 +104,8 @@ templates = """
         KEY title_index (title),
         KEY main_file (main_file),
         KEY last_world_file (last_world_file),
-        KEY source (source)
+        KEY source (source),
+        KEY idx_slug (slug)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 """
 
@@ -150,7 +152,7 @@ settings = """
 owid_charts = """
     CREATE TABLE IF NOT EXISTS owid_charts (
         id INT NOT NULL AUTO_INCREMENT,
-        slug VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL DEFAULT '',
         title VARCHAR(500) NOT NULL,
         has_map_tab TINYINT(1) DEFAULT 0,
         max_time INT DEFAULT NULL,
