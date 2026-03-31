@@ -83,7 +83,7 @@ class StageStore(DbUtils):
 
         now = self._current_ts()
         try:
-            sql = "UPDATE task_stages " f"SET {column_name} = %s, updated_at = %s " "WHERE stage_id = %s"
+            sql = "UPDATE task_stages SET {column_name} = %s, updated_at = %s WHERE stage_id = %s"
             self.db.execute_query(
                 sql,
                 [column_value, now, f"{task_id}:{stage_name}"],

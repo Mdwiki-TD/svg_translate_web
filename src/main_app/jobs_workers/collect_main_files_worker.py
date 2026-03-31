@@ -142,7 +142,6 @@ class CollectMainFilesWorker(BaseJobWorker):
             template_info = {
                 "id": template.id,
                 "title": template.title,
-                "original_main_file": template.main_file,
                 "timestamp": datetime.now().isoformat(),
                 "new_main_file": "",
                 "last_world_file": "",
