@@ -30,7 +30,7 @@ from ...services.tasks_service import (
     get_db_tasks,
     get_store_task,
 )
-from ...threads.task_threads import get_cancel_event, launch_task_thread
+from ...jobs_workers.copy_svg_langs.threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..utils.args_utils import parse_args
 from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages

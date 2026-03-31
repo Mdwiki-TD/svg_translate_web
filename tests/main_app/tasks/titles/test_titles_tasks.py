@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.tasks.titles.titles_tasks import titles_task
+from src.main_app.jobs_workers.copy_svg_langs.tasks.titles.titles_tasks import titles_task
 
 
 @patch("src.main_app.tasks.titles.titles_tasks.get_files_list")

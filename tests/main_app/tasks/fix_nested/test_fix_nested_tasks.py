@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.tasks.fix_nested.fix_nested_tasks import fix_nested_task
+from src.main_app.jobs_workers.copy_svg_langs.tasks.fix_nested.fix_nested_tasks import fix_nested_task
 
 
 @patch("src.main_app.tasks.fix_nested.fix_nested_tasks.match_nested_tags")

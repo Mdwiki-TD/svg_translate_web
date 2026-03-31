@@ -4,8 +4,8 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ..config import DbConfig, settings
-from ..db.task_store_pymysql import TaskStorePyMysql
+from ....config import DbConfig, settings
+from ....db.task_store_pymysql import TaskStorePyMysql
 from ..tasks.downloads import download_task
 from ..tasks.extract import translations_task
 from ..tasks.fix_nested import fix_nested_task

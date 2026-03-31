@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.tasks.texts.start_bot import text_task
+from src.main_app.jobs_workers.copy_svg_langs.tasks.texts.start_bot import text_task
 
 
 @patch("src.main_app.tasks.texts.start_bot.get_wikitext")
