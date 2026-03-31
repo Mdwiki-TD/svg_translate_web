@@ -12,12 +12,12 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...services import template_service
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
+from ...services import template_service
 from ..base_worker import BaseJobWorker
 from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 

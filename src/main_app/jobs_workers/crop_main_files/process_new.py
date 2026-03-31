@@ -14,18 +14,17 @@ from typing import Any
 import mwclient
 import requests
 
-from ...services import template_service
 from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
+from ...services import jobs_service, template_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
-from ...services import jobs_service
+from ..utils.crop_main_files_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
-from ..utils.crop_main_files_utils import generate_cropped_filename
 
 logger = logging.getLogger(__name__)
 

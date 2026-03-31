@@ -18,21 +18,17 @@ from flask import (
     request,
     url_for,
 )
-
 from werkzeug.datastructures import MultiDict
 
 from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db import TaskAlreadyExistsError
-from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
-from ...threads.task_threads import launch_task_thread
+from ...services.admin_service import active_coordinators
+from ...services.tasks_service import _task_store
+from ...threads.task_threads import get_cancel_event, launch_task_thread
 from ...users.current import current_user, oauth_required
 from ..utils.args_utils import parse_args
-from ...services.tasks_service import _task_store
-
-
-from ...services.admin_service import active_coordinators
-from ...threads.task_threads import get_cancel_event
+from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 
 TASKS_LOCK = threading.Lock()
 

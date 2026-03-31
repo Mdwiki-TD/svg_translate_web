@@ -10,9 +10,9 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ..services import template_service
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
+from ..services import template_service
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
 from .base_worker import BaseJobWorker

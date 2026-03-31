@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.config import DbConfig
 from src.main_app.services.admin_service import (
     _ADMINS_STORE,
     active_coordinators,
@@ -11,7 +12,6 @@ from src.main_app.services.admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
-from src.main_app.config import DbConfig
 
 
 @patch("src.main_app.admins.admin_service.CoordinatorsDB")

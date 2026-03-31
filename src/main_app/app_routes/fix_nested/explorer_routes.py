@@ -21,10 +21,10 @@ from ...api_services.upload_bot import upload_file
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
-from ..utils.routes_utils import load_auth_payload
 from ...users.current import current_user
 from ..explorer.compare import analyze_file
 from ..utils.fix_nested_utils import log_to_task
+from ..utils.routes_utils import load_auth_payload
 
 bp_fix_nested_explorer = Blueprint("fix_nested_explorer", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger(__name__)

@@ -97,7 +97,7 @@ def make_results_summary(
     }
 
 
-__all__= [
+__all__ = [
     "json_save",
     "commons_link",
     "save_files_stats",

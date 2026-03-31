@@ -14,9 +14,9 @@ from typing import Any, Dict
 import requests
 from flask import send_file
 
-from ..services import template_service
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
+from ..services import template_service
 from .base_worker import BaseJobWorker
 
 # Zip file name constant

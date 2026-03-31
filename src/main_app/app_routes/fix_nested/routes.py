@@ -7,12 +7,12 @@ from typing import Any, Callable, TypeVar, cast
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from ...services.admin_service import active_coordinators
 from ...config import settings
 from ...db.db_class import Database
 from ...db.fix_nested_task_store import FixNestedTaskStore
-from ..utils.routes_utils import load_auth_payload
+from ...services.admin_service import active_coordinators
 from ...users.current import current_user
+from ..utils.routes_utils import load_auth_payload
 from .worker import process_fix_nested, process_fix_nested_file_simple
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")

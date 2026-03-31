@@ -6,10 +6,10 @@ import pymysql
 import pytest
 
 from src.main_app import create_app
-from src.main_app.services import admin_service
 from src.main_app.app_routes.admin.admin_routes import coordinators
 from src.main_app.config import settings
 from src.main_app.db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from src.main_app.services import admin_service
 
 
 class FakeDatabase:
