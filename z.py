@@ -151,7 +151,7 @@ for x in tqdm(list_files):
                 file_functions_str = ",\n".join([f"    {x}" for x in file_functions])
                 file_text = (
                     '"""\n'
-                    f"TODO: write tests for {srcpath_str}\n"
+                    f"TODO:write tests for {srcpath_str}\n"
                     '"""\n'
                     "\n\n"
                     f"from {srcpath_str.replace(".py", "").replace("/", ".")} import (\n"
