@@ -132,9 +132,8 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
 
 
 def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: pytest.MonkeyPatch):
-    store: InMemoryTaskStore = routes._task_store()  # type: ignore[assignment]
-
     existing_id = "existing"
+    store: InMemoryTaskStore = routes._task_store()  # type: ignore[assignment]
     store.create_task(
         existing_id, "Title", form={"title": "Title", "titles_limit": "5", "upload": "on"}, username="testuser"
     )
@@ -145,19 +144,6 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     task_finished = threading.Event()
 
     def fake_run_task(db_data, task_id, title, args, user_payload, *, cancel_event=None):
-        """
-        Record the provided task invocation inputs into the test capture and signal completion.
-
-        This test helper stores the received values into the surrounding `captured` mapping and sets the `task_finished` event to indicate the fake task has run.
-
-        Parameters:
-            db_data: Database context or placeholder passed by the caller (not used by the helper).
-            task_id: Identifier of the task being "run".
-            title: Task title.
-            args: Arguments object passed to the task runner.
-            user_payload: Payload supplied by the user when launching the task.
-            cancel_event (threading.Event | None): Optional event that would be used to signal cancellation; recorded for inspection.
-        """
         captured["task_id"] = task_id
         captured["title"] = title
         captured["args"] = args
@@ -166,18 +152,22 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         task_finished.set()
 
     monkeypatch.setattr(
+        "src.main_app.app_routes.tasks.routes.get_store_task",
+        lambda tid: store.get_task(tid),
+    )
+    monkeypatch.setattr(
+        "src.main_app.app_routes.tasks.routes.create_new_task",
+        lambda tid, title, username, form=None: store.create_task(tid, title, username=username, form=form),
+    )
+    monkeypatch.setattr(
         "src.main_app.app_routes.tasks.routes.launch_task_thread",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
-
-    # Mock uuid to return a predictable ID for the new task is hard if uuid is used inside routes.
-    # But we can capture the ID from the run_task call or the response location.
 
     client = app.test_client()
     restart_response = client.post(f"/tasks/{existing_id}/restart")
     assert restart_response.status_code == 302
 
-    # Wait for the thread/fake runner
     assert task_finished.wait(timeout=1), "The fake_run_task did not run in time."
 
     new_task_id = captured["task_id"]
