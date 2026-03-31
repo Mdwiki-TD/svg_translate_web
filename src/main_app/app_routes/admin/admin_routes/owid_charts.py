@@ -184,11 +184,6 @@ def _update_chart() -> ResponseReturnValue:
     from_popup = request.form.get("from_popup") == "1"
 
     chart_id = request.form.get("chart_id", default=0, type=int)
-    if not chart_id:
-        flash("Chart ID is required.", "danger")
-        if from_popup:
-            return redirect(url_for("admin.edit_chart", chart_id=chart_id))
-        return redirect(url_for("admin.owid_charts_dashboard"))
 
     slug = request.form.get("slug", "").strip()
     title = request.form.get("title", "").strip()
@@ -304,6 +299,15 @@ class OwidCharts:
         @bp_admin.post("/owid-charts/update")
         @admin_required
         def update_chart() -> ResponseReturnValue:
+            chart_id = request.form.get("chart_id", default=0, type=int)
+            from_popup = request.form.get("from_popup") == "1"
+
+            if not chart_id:
+                flash("Chart ID is required.", "danger")
+                if from_popup:
+                    return redirect(url_for("admin.edit_chart", chart_id=chart_id))
+                return redirect(url_for("admin.owid_charts_dashboard"))
+
             return _update_chart()
 
         @bp_admin.post("/owid-charts/<int:chart_id>/delete")
