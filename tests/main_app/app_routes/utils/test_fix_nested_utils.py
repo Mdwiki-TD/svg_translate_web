@@ -1,5 +1,4 @@
 import json
-from unittest.mock import patch
 
 from src.main_app.app_routes.utils.fix_nested_utils import (
     create_task_folder,
@@ -8,9 +7,7 @@ from src.main_app.app_routes.utils.fix_nested_utils import (
 )
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.settings")
-def test_create_task_folder(mock_settings, tmp_path):
-    mock_settings.paths.fix_nested_data = tmp_path
+def test_create_task_folder(tmp_path):
     task_id = "t1"
     folder = create_task_folder(task_id, tmp_path)
     assert folder == tmp_path / task_id

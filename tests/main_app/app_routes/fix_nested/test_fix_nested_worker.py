@@ -13,7 +13,7 @@ from src.main_app.app_routes.fix_nested.worker import (
 )
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.download_one_file")
+@patch("src.main_app.app_routes.fix_nested.worker.download_one_file")
 def test_download_svg_file_success(mock_download, tmp_path):
     mock_download.return_value = {"result": "success", "path": str(tmp_path / "file.svg")}
     res = download_svg_file("file.svg", tmp_path)
@@ -21,7 +21,7 @@ def test_download_svg_file_success(mock_download, tmp_path):
     assert res["path"] == tmp_path / "file.svg"
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.match_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.match_nested_tags")
 def test_detect_nested_tags(mock_match):
     mock_match.return_value = ["tag1", "tag2"]
     res = detect_nested_tags(Path("file.svg"))
@@ -29,13 +29,13 @@ def test_detect_nested_tags(mock_match):
     assert res["tags"] == ["tag1", "tag2"]
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.fix_nested_file")
+@patch("src.main_app.app_routes.fix_nested.worker.fix_nested_file")
 def test_fix_nested_tags(mock_fix):
     mock_fix.return_value = True
     assert fix_nested_tags(Path("file.svg")) is True
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.match_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.match_nested_tags")
 def test_verify_fix(mock_match):
     mock_match.return_value = ["remaining"]
     res = verify_fix(Path("file.svg"), 5)
@@ -44,8 +44,8 @@ def test_verify_fix(mock_match):
     assert res["fixed"] == 4
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.get_user_site")
-@patch("src.main_app.app_routes.fix_nested.fix_utils.upload_file")
+@patch("src.main_app.app_routes.fix_nested.worker.get_user_site")
+@patch("src.main_app.app_routes.fix_nested.worker.upload_file")
 def test_upload_fixed_svg_success(mock_upload, mock_get_site):
     mock_get_site.return_value = MagicMock()
     mock_upload.return_value = {"result": "Success"}
@@ -54,11 +54,11 @@ def test_upload_fixed_svg_success(mock_upload, mock_get_site):
     assert res["ok"] is True
 
 
-@patch("src.main_app.app_routes.fix_nested.fix_utils.download_svg_file")
-@patch("src.main_app.app_routes.fix_nested.fix_utils.detect_nested_tags")
-@patch("src.main_app.app_routes.fix_nested.fix_utils.fix_nested_tags")
-@patch("src.main_app.app_routes.fix_nested.fix_utils.verify_fix")
-@patch("src.main_app.app_routes.fix_nested.fix_utils.upload_fixed_svg")
+@patch("src.main_app.app_routes.fix_nested.worker.download_svg_file")
+@patch("src.main_app.app_routes.fix_nested.worker.detect_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.fix_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.verify_fix")
+@patch("src.main_app.app_routes.fix_nested.worker.upload_fixed_svg")
 def test_process_fix_nested_success(mock_upload, mock_verify, mock_fix, mock_detect, mock_download, tmp_path):
     mock_download.return_value = {"ok": True, "path": Path("dummy.svg")}
     mock_detect.return_value = {"count": 5}
