@@ -21,7 +21,7 @@ from .app_routes import (
     bp_templates,
 )
 from .config import settings
-from .cookies import CookieHeaderClient
+from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
 from .services.tasks_service import close_task_store
 from .services.users_service import context_user

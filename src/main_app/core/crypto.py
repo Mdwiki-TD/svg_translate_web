@@ -1,16 +1,11 @@
 """Symmetric encryption helpers for storing OAuth secrets."""
 
 from __future__ import annotations
-
-import os
-import threading
-
 from cryptography.fernet import Fernet, InvalidToken
 
-from .config import settings
+from ..config import settings
 
 _fernet: Fernet | None = None
-# _fernet_lock = threading.Lock()
 
 
 def _require_fernet() -> Fernet:
