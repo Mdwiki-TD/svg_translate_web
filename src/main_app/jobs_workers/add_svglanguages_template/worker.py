@@ -19,7 +19,7 @@ from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ..base_worker import BaseJobWorker
-from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
+from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
-from src.main_app.jobs_workers.add_svglanguages_template.utils import (
+from src.main_app.jobs_workers.utils.add_svglanguages_template_utils import (
     RE_SVG_LANG,
     RE_TRANSLATE,
     add_template_to_text,
@@ -156,7 +154,7 @@ Some content without translate link
         assert template_line_found
 
 
-class TestRE_SVG_LANG:
+class TestReSvgLang:
     """Tests for RE_SVG_LANG regex pattern."""
 
     def test_matches_standard_svglanguages_template(self):
@@ -206,7 +204,7 @@ Some other content
         assert "complex-file-name,_World,_2020.svg" in match.group(1)
 
 
-class TestRE_TRANSLATE:
+class TestReTranslate:
     """Tests for RE_TRANSLATE regex pattern."""
 
     def test_matches_standard_translate_link(self):

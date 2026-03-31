@@ -25,7 +25,7 @@ from .. import jobs_service
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
-from .utils import generate_cropped_filename
+from ..utils.crop_main_files_utils import generate_cropped_filename
 
 logger = logging.getLogger(__name__)
 
