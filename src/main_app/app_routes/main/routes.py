@@ -14,7 +14,7 @@ from flask import (
     send_from_directory,
 )
 
-from ...users.current import current_user
+from ...services.users_service import current_user
 from ..utils.routes_utils import get_error_message
 
 bp_main = Blueprint("main", __name__)

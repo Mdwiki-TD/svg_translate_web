@@ -31,7 +31,7 @@ from ...services.tasks_service import (
     get_db_tasks,
     get_store_task,
 )
-from ...users.current import current_user, oauth_required
+from ...services.users_service import current_user, oauth_required
 from ..utils.args_utils import parse_args
 from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 
