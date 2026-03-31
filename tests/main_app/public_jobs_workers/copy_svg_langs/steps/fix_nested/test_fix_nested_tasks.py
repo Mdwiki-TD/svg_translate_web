@@ -2,11 +2,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks import fix_nested_task
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks import fix_nested_task
 
 
-@patch("src.main_app.jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.match_nested_tags")
-@patch("src.main_app.jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.fix_nested_file")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.match_nested_tags")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.fix_nested_file")
 def test_fix_nested_task_success(mock_fix, mock_match):
     # Setup mocks
     # First call to match returns 1 tag, second call returns [] (fixed)
@@ -23,7 +23,7 @@ def test_fix_nested_task_success(mock_fix, mock_match):
     assert final_stages["status"] == "Completed"
 
 
-@patch("src.main_app.jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.match_nested_tags")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.match_nested_tags")
 def test_fix_nested_task_no_nested(mock_match):
     mock_match.return_value = []
 

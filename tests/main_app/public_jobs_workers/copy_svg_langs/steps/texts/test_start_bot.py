@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.steps.texts.start_bot import text_task
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.texts.start_bot import text_task
 
 
-@patch("src.main_app.jobs_workers.copy_svg_langs.steps.texts.start_bot.get_wikitext")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.texts.start_bot.get_wikitext")
 def test_text_task_success(mock_get):
     mock_get.return_value = "content"
     stages = {}
@@ -16,7 +16,7 @@ def test_text_task_success(mock_get):
     assert final_stages["status"] == "Completed"
 
 
-@patch("src.main_app.jobs_workers.copy_svg_langs.steps.texts.start_bot.get_wikitext")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.texts.start_bot.get_wikitext")
 def test_text_task_fail(mock_get):
     mock_get.return_value = None
     stages = {}
