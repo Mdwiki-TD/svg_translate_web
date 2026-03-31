@@ -130,7 +130,10 @@ src/
 │   │       ├── __init__.py
 │   │       ├── add_svglanguages_template_utils.py
 │   │       └── crop_main_files_utils.py
-│   ├── owid_charts_service.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── owid_charts_service.py
+│   │   └── template_service.py
 │   ├── tasks/
 │   │   ├── __init__.py
 │   │   ├── downloads/
@@ -157,7 +160,6 @@ src/
 │   │   └── utils/
 │   │       ├── __init__.py
 │   │       └── tasks_utils.py
-│   ├── template_service.py
 │   ├── threads/
 │   │   ├── __init__.py
 │   │   ├── task_threads.py
