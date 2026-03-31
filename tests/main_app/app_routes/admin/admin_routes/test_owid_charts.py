@@ -1,4 +1,4 @@
-"""Tests for src.main_app.app_routes.admin.admin_routes.owid_charts.py"""
+"""Tests for src.main_app.app_routes.admin_routes.owid_charts.py"""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.owid_charts.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.owid_charts.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
@@ -58,7 +58,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
 
     mock_service = MagicMock()
     mock_service.list_charts.return_value = []
-    monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.owid_charts.owid_charts_service", mock_service)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.owid_charts.owid_charts_service", mock_service)
 
     flask_app = create_app()
     flask_app.config["TESTING"] = True
