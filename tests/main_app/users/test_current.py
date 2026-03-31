@@ -33,9 +33,9 @@ def test_resolve_user_id(app):
         assert _resolve_user_id() is None
 
 
-@patch("src.main_app.users.current.get_user_token")
-@patch("src.main_app.users.current.extract_user_id")
-@patch("src.main_app.users.current.settings")
+@patch("src.main_app.services.users_service.get_user_token")
+@patch("src.main_app.services.users_service.extract_user_id")
+@patch("src.main_app.services.users_service.settings")
 def test_current_user(mock_settings, mock_extract, mock_get_token, app):
     mock_settings.cookie.name = "test_cookie"
 
@@ -86,8 +86,8 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
         assert session["username"] == "testuser"
 
 
-@patch("src.main_app.users.current.active_coordinators")
-@patch("src.main_app.users.current.current_user")
+@patch("src.main_app.services.users_service.active_coordinators")
+@patch("src.main_app.services.users_service.current_user")
 def test_context_user(mock_current_user, mock_active_coordinators):
     # Case 1: User is admin
     user = MagicMock(username="admin")

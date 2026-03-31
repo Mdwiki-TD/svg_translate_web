@@ -83,7 +83,7 @@ def test_start_redirects_to_correct_task_endpoint(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     existing_id = "existing-task-123"
     store.create_task(existing_id, "Test Title", username="tester", form={"title": "Test Title"})

@@ -24,7 +24,7 @@ def app_factory(monkeypatch):
 
         # Mock current_user
         monkeypatch.setattr(
-            "src.main_app.users.current.current_user",
+            "src.main_app.services.users_service.current_user",
             lambda: type("User", (), {"username": "testuser", "user_id": 1, "is_admin": False}),
         )
 

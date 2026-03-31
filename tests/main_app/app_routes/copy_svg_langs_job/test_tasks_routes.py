@@ -213,7 +213,7 @@ def test_start_creates_task_and_launches_thread(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     generated_id = "abc123"
     monkeypatch.setattr(uuid, "uuid4", lambda: types.SimpleNamespace(hex=generated_id))
@@ -249,7 +249,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     existing_id = "existing"
     store.create_task(existing_id, "Duplicate Title", username="tester", form={"title": "Duplicate Title"})
