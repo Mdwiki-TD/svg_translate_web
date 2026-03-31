@@ -6,8 +6,8 @@ from .before_methods import insert_before_methods
 from .categories_utils import merge_categories
 from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
+from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
-from .template_source import find_template_source
 from .temps_bot import get_files_list, get_titles, get_titles_from_wikilinks
 
 

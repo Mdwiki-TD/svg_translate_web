@@ -7,12 +7,12 @@ import mwclient.errors
 import pytest
 import requests
 
-from src.main_app.api_services.upload_bot_new import UploadFile, _RETRY_DELAYS
-
+from src.main_app.api_services.upload_bot_new import _RETRY_DELAYS, UploadFile
 
 # ══════════════════════════════════════════════════════════════════════════════
 # fixtures & helpers
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def _err(message: str, error_details: str = "") -> dict[str, object]:
     return {"success": False, "error": message, "error_details": error_details}
@@ -55,6 +55,7 @@ def make_upload_response(result: str = "Success") -> dict:
 # fix_file_name
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class TestFixFileName:
     def test_strips_file_prefix_lowercase(self, site, tmp_file):
         u = UploadFile("file:Test.jpg", tmp_file, site)
@@ -84,6 +85,7 @@ class TestFixFileName:
 # ══════════════════════════════════════════════════════════════════════════════
 # _check_kwargs
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCheckKwargs:
     def test_no_site(self, tmp_file):
@@ -140,6 +142,7 @@ class TestCheckKwargs:
 # ══════════════════════════════════════════════════════════════════════════════
 # _upload_file  (single attempt)
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestUploadFileInternal:
     def test_success(self, uploader):
@@ -215,6 +218,7 @@ class TestUploadFileInternal:
 # _upload_with_retry
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 class TestUploadWithRetry:
     def test_succeeds_on_first_retry(self, uploader):
         uploader._upload_file = MagicMock(return_value=make_upload_response())
@@ -238,21 +242,25 @@ class TestUploadWithRetry:
 
     def test_stops_early_on_non_ratelimited_error(self, uploader):
         """If a non-ratelimited error occurs during retry, return it immediately."""
-        uploader._upload_file = MagicMock(side_effect=[
-            _err("ratelimited", ""),
-            _err("userblocked", "User is blocked"),
-        ])
+        uploader._upload_file = MagicMock(
+            side_effect=[
+                _err("ratelimited", ""),
+                _err("userblocked", "User is blocked"),
+            ]
+        )
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = uploader._upload_with_retry()
         assert result["error"] == "userblocked"
         assert uploader._upload_file.call_count == 2
 
     def test_succeeds_on_second_retry(self, uploader):
-        uploader._upload_file = MagicMock(side_effect=[
-            _err("ratelimited", ""),
-            _err("ratelimited", ""),
-            make_upload_response(),
-        ])
+        uploader._upload_file = MagicMock(
+            side_effect=[
+                _err("ratelimited", ""),
+                _err("ratelimited", ""),
+                make_upload_response(),
+            ]
+        )
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = uploader._upload_with_retry()
         assert result["result"] == "Success"
@@ -262,6 +270,7 @@ class TestUploadWithRetry:
 # ══════════════════════════════════════════════════════════════════════════════
 # upload  (full flow)
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestUpload:
     def _make_uploader(self, site, tmp_file, new_file=False):
@@ -285,10 +294,12 @@ class TestUpload:
 
     def test_rate_limited_then_success(self, site, tmp_file):
         u = self._make_uploader(site, tmp_file)
-        u._upload_file = MagicMock(side_effect=[
-            _err("ratelimited", ""),
-            make_upload_response(),
-        ])
+        u._upload_file = MagicMock(
+            side_effect=[
+                _err("ratelimited", ""),
+                make_upload_response(),
+            ]
+        )
         with patch("src.main_app.api_services.upload_bot_new.time.sleep"):
             result = u.upload()
         assert result["result"] == "Success"

@@ -9,12 +9,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.config import settings
 from src.main_app.jobs_workers.add_svglanguages_template.worker import (
     AddSvgSVGLanguagesTemplate,
     TemplateInfo,
     add_svglanguages_template_to_templates,
 )
-from src.main_app.config import settings
 
 
 class TestTemplateInfo:
@@ -475,9 +475,7 @@ class TestProcessMethod:
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.get_user_site")
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_process_handles_cancellation(
-        self, mock_template_service, mock_get_user_site, mock_jobs_service
-    ):
+    def test_process_handles_cancellation(self, mock_template_service, mock_get_user_site, mock_jobs_service):
         """Test that process stops when cancelled."""
         mock_site = MagicMock()
         mock_get_user_site.return_value = mock_site

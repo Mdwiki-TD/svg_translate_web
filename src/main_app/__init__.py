@@ -16,6 +16,7 @@ from .app_routes import (
     bp_fix_nested,
     bp_fix_nested_explorer,
     bp_main,
+    bp_owid_charts,
     bp_tasks,
     bp_tasks_managers,
     bp_templates,
@@ -42,10 +43,10 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_fix_nested)
     app.register_blueprint(bp_fix_nested_explorer)
     app.register_blueprint(bp_extract)
+    app.register_blueprint(bp_owid_charts)
 
 
 def register_error_pages(app: Flask):
-
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:
         """Handle 400 errors"""

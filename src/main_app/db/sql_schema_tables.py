@@ -13,6 +13,7 @@ class TablesCreatesSql:
     admin_users: str
     jobs: str
     settings: str
+    owid_charts: str
 
 
 user_tokens = """
@@ -146,6 +147,28 @@ settings = """
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 """
 
+owid_charts = """
+    CREATE TABLE IF NOT EXISTS owid_charts (
+        id INT NOT NULL AUTO_INCREMENT,
+        slug VARCHAR(255) NOT NULL,
+        title VARCHAR(500) NOT NULL,
+        has_map_tab TINYINT(1) DEFAULT 0,
+        max_time INT DEFAULT NULL,
+        min_time INT DEFAULT NULL,
+        default_tab VARCHAR(50) DEFAULT NULL,
+        is_published TINYINT(1) DEFAULT 0,
+        single_year_data TINYINT(1) DEFAULT 0,
+        len_years INT DEFAULT NULL,
+        has_timeline TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_slug (slug),
+        KEY idx_slug (slug),
+        KEY idx_published (is_published)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+"""
+
 # sql_tables
 sql_tables = TablesCreatesSql(
     user_tokens=user_tokens,
@@ -156,4 +179,5 @@ sql_tables = TablesCreatesSql(
     admin_users=admin_users,
     jobs=jobs,
     settings=settings,
+    owid_charts=owid_charts,
 )
