@@ -183,7 +183,7 @@ class TestFindTemplateSource3:
         """Test when check_url returns False in _find_template_source (line 73)."""
         # Mock check_url to return False to test the guard clause
         wikitext = "*'''Source''': https://ourworldindata.org/grapher/test"
-        with mock.patch("src.main_app.utils.wikitext.template_source.check_url", return_value=False):
+        with mock.patch("src.main_app.utils.wikitext.temp_source.check_url", return_value=False):
             result = _find_template_source(wikitext)
             assert result == ""
 
@@ -191,7 +191,7 @@ class TestFindTemplateSource3:
         """Test when check_url returns False in _find_template_source_2 (line 42)."""
         # Mock check_url to return False to test the guard clause
         wikitext = "* https://ourworldindata.org/grapher/test"
-        with mock.patch("src.main_app.utils.wikitext.template_source.check_url", return_value=False):
+        with mock.patch("src.main_app.utils.wikitext.temp_source.check_url", return_value=False):
             result = _find_template_source_2(wikitext)
             assert result == ""
 
