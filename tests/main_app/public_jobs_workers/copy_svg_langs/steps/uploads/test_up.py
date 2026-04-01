@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.upload import start_upload, upload_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.upload import upload_step
 
 
 @pytest.fixture
@@ -13,24 +13,6 @@ def mock_site():
 @pytest.fixture
 def mock_store():
     return MagicMock()
-
-
-def test_start_upload_success(mock_site, mock_store):
-    files = {
-        "file1.svg": {"file_path": "/p1", "new_languages": 2},
-        "file2.svg": {"file_path": "/p2", "new_languages": 0},  # No new languages
-    }
-    stages = {}
-
-    with patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
-
-        res, final_stages = start_upload(files, "[[File:Main]]", mock_site, stages, "t1", mock_store, lambda x: False)
-
-        assert res["done"] == 1
-        assert res["no_changes"] == 1
-        assert final_stages["status"] == "Completed"
-        mock_upload.assert_called_once()
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.build_upload_site")
@@ -50,7 +32,6 @@ def test_upload_task_no_files(mock_build, mock_store):
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.build_upload_site")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.start_upload")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.mark_token_used")
 def test_upload_task_success(mock_mark, mock_start, mock_build, mock_store):
     mock_build.return_value = MagicMock()
