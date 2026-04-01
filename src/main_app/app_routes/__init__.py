@@ -7,13 +7,11 @@ from .main_routes.explorer_routes import bp_explorer
 from .main_routes.extract_routes import bp_extract
 from .main_routes.owid_charts_routes import bp_owid_charts
 from .main_routes.routes import bp_main
-from .main_routes.templates_routes import bp_templates
 
 __all__ = [
     "bp_auth",
     "bp_main",
     "bp_explorer",
-    "bp_templates",
     "bp_tasks",
     "bp_admin",
     "bp_fix_nested",
