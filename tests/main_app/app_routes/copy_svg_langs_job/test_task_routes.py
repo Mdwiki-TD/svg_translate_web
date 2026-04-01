@@ -88,7 +88,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
-    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
     routes.TASK_STORE_LOCK = threading.Lock()
@@ -101,7 +101,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.current_user",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user",
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
 
@@ -151,15 +151,15 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         task_finished.set()
 
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.get_store_task",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task",
         lambda tid: store.get_task(tid),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.create_new_task",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task",
         lambda tid, title, username, form=None: store.create_task(tid, title, username=username, form=form),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.start_copy_svg_langs_job",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
 
