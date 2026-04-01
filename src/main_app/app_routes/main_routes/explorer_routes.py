@@ -10,6 +10,7 @@ from flask import (
     send_from_directory,
 )
 
+from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
@@ -18,7 +19,6 @@ from ..utils.explorer_utils import (
     svg_data_thumb_path,
 )
 from ..utils.thumbnail_utils import save_thumb
-from ..utils.compare import analyze_file
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)

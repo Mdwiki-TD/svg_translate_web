@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from threading import Lock
 from typing import Deque, Dict
 

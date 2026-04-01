@@ -24,7 +24,8 @@ def patch_templates(monkeypatch: pytest.MonkeyPatch) -> dict:
 
 def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.explorer_routes.get_files", lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}"))
+        "src.main_app.app_routes.main_routes.explorer_routes.get_files",
+        lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}")),
     )
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_temp_title", lambda title: "Title")
 
@@ -39,7 +40,8 @@ def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch
 
 def test_by_title_translated_sets_compare_link(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.explorer_routes.get_files", lambda title, subdir: (["b.svg"], Path("/data"))
+        "src.main_app.app_routes.main_routes.explorer_routes.get_files",
+        lambda title, subdir: (["b.svg"], Path("/data")),
     )
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_temp_title", lambda title: "Sample")
 
@@ -67,7 +69,9 @@ def test_by_title_not_translated_filters(monkeypatch: pytest.MonkeyPatch, patch_
 
 
 def test_by_title_renders_information(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_informations", lambda title: {"title": "Topic"})
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.explorer_routes.get_informations", lambda title: {"title": "Topic"}
+    )
 
     explorer_routes.by_title("topic")
 
@@ -146,7 +150,9 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
 
 def test_compare_renders_template(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", Path("/data"))
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.analyze_file", lambda path: {"file": path.name})
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.explorer_routes.analyze_file", lambda path: {"file": path.name}
+    )
 
     explorer_routes.compare("title", "file.svg")
 

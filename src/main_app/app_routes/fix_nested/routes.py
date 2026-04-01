@@ -1,17 +1,10 @@
 import base64
 import logging
-from pathlib import Path
 import shutil
 import uuid
 from functools import wraps
+from pathlib import Path
 from typing import Any, Callable, TypeVar, cast
-from ...config import settings
-from ...db.db_class import Database
-from ...db.fix_nested_task_store import FixNestedTaskStore
-from ...services.admin_service import active_coordinators
-from ...services.users_service import current_user
-from ..utils.routes_utils import load_auth_payload
-from .worker import process_fix_nested, process_fix_nested_file_simple
 
 from flask import (
     Blueprint,
@@ -25,11 +18,18 @@ from flask import (
     url_for,
 )
 
-from ..admin.admins_required import admin_required
 from ...api_services.clients import get_user_site
 from ...api_services.upload_bot import upload_file
+from ...config import settings
+from ...db.db_class import Database
+from ...db.fix_nested_task_store import FixNestedTaskStore
+from ...services.admin_service import active_coordinators
+from ...services.users_service import current_user
+from ..admin.admins_required import admin_required
 from ..utils.compare import analyze_file
 from ..utils.fix_nested_utils import log_to_task
+from ..utils.routes_utils import load_auth_payload
+from .worker import process_fix_nested, process_fix_nested_file_simple
 
 bp_fix_nested = Blueprint("fix_nested", __name__, url_prefix="/fix_nested")
 logger = logging.getLogger(__name__)

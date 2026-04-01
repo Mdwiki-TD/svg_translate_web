@@ -263,7 +263,8 @@ def test_start_redirects_to_existing_task_when_duplicate(
 
     launch_calls: list[tuple[Any, ...]] = []
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread", lambda *args, **kwargs: launch_calls.append(args)
+        "src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread",
+        lambda *args, **kwargs: launch_calls.append(args),
     )
 
     response = client.post("/", data={"title": "Duplicate Title"})

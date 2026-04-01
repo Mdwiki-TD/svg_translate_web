@@ -43,10 +43,12 @@ def test_temp_data_sanitizes_name(tmp_path: Path) -> None:
 def test_temps_main_files_falls_back_to_main_data(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     template_entry = {"Sample": {"title_dir": "sample"}}
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.templates_routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: [])
+        "src.main_app.app_routes.main_routes.templates_routes.get_templates_db",
+        lambda: types.SimpleNamespace(list=lambda: []),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.templates_routes.get_main_data", lambda title: {"main_title": "Example.svg"}
+        "src.main_app.app_routes.main_routes.templates_routes.get_main_data",
+        lambda title: {"main_title": "Example.svg"},
     )
 
     data = templates_routes.temps_main_files(template_entry)
@@ -115,7 +117,8 @@ def test_temps_main_files_prefixes_file_correctly(monkeypatch: pytest.MonkeyPatc
         lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.templates_routes.get_main_data", lambda title: {"main_title": "example.svg"}
+        "src.main_app.app_routes.main_routes.templates_routes.get_main_data",
+        lambda title: {"main_title": "example.svg"},
     )
 
     data = templates_routes.temps_main_files(template_entry)
@@ -134,7 +137,8 @@ def test_temps_main_files_no_duplicate_prefix(monkeypatch: pytest.MonkeyPatch) -
         lambda: types.SimpleNamespace(list=lambda: [mock_template]),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.templates_routes.get_main_data", lambda title: {"main_title": "File:example.svg"}
+        "src.main_app.app_routes.main_routes.templates_routes.get_main_data",
+        lambda title: {"main_title": "File:example.svg"},
     )
 
     data = templates_routes.temps_main_files(template_entry)
@@ -152,7 +156,9 @@ def test_main_route_integration(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # Mock get_templates_db
     mock_template = TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None)
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members)
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members
+    )
     monkeypatch.setattr(
         "src.main_app.app_routes.main_routes.templates_routes.get_templates_db",
         lambda: types.SimpleNamespace(list=lambda: [mock_template]),
@@ -188,7 +194,9 @@ def test_main_route_sorting_by_main_file(monkeypatch: pytest.MonkeyPatch) -> Non
         TemplateRecord(id=1, title="Template:WithFile", main_file="file.svg", last_world_file=None),
     ]
 
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members)
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members
+    )
     monkeypatch.setattr(
         "src.main_app.app_routes.main_routes.templates_routes.get_templates_db",
         lambda: types.SimpleNamespace(list=lambda: mock_templates),
@@ -221,9 +229,12 @@ def test_main_route_filters_templates_correctly(monkeypatch: pytest.MonkeyPatch)
             "File:NotATemplate.svg",  # This should be filtered by get_category_members
         ]
 
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members)
     monkeypatch.setattr(
-        "src.main_app.app_routes.main_routes.templates_routes.get_templates_db", lambda: types.SimpleNamespace(list=lambda: [])
+        "src.main_app.app_routes.main_routes.templates_routes.get_category_members", mock_get_category_members
+    )
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.templates_routes.get_templates_db",
+        lambda: types.SimpleNamespace(list=lambda: []),
     )
 
     rendered = {}

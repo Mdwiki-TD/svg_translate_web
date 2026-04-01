@@ -18,12 +18,12 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ..admin.admins_required import admin_required
 from ...config import settings
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
 from ...services import jobs_service
 from ...services.users_service import current_user
+from ..admin.admins_required import admin_required
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)

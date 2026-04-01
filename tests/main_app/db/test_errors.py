@@ -1,4 +1,3 @@
-
 from src.main_app.db.db_class import MaxUserConnectionsError
 
 

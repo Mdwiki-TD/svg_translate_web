@@ -6,17 +6,16 @@ from typing import Any, Dict
 
 from ...config import DbConfig, settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
-
 from .steps import (
     download_task,
-    translations_task,
     fix_nested_task,
     inject_task,
-    text_task,
-    titles_task,
-    upload_task,
     make_results_summary,
     save_files_stats,
+    text_task,
+    titles_task,
+    translations_task,
+    upload_task,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,3 @@
-
 from .downloads import download_task
 from .extract import translations_task
 from .fix_nested import fix_nested_task

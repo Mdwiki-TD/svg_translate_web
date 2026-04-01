@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db import TaskAlreadyExistsError
-from src.main_app.db.db_class import Database
 from src.main_app.db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
+from src.main_app.db.db_class import Database
 from src.main_app.db.utils import DbUtils
 
 utils = DbUtils()
@@ -322,7 +322,13 @@ class TestTasksListDB:
 
     def test_create_base_sql_simple(self, tasks_db):
         query_parts, params = tasks_db.create_base_sql(
-            order_column="created_at", statuses=None, status=None, username=None, direction="DESC", limit=None, offset=None
+            order_column="created_at",
+            statuses=None,
+            status=None,
+            username=None,
+            direction="DESC",
+            limit=None,
+            offset=None,
         )
         sql = " ".join(query_parts)
         assert "SELECT * FROM tasks" in sql

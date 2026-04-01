@@ -46,7 +46,9 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Mock current_user in the module where oauth_required is defined
     import src.main_app.services.users_service
 
-    monkeypatch.setattr(src.main_app.services.users_service, "current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(
+        src.main_app.services.users_service, "current_user", lambda: types.SimpleNamespace(username="user")
+    )
 
     yield app
 
@@ -199,7 +201,9 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
         "current_user",
         lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
     )
-    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.parse_args", lambda f, d: types.SimpleNamespace())
+    monkeypatch.setattr(
+        "src.main_app.app_routes.copy_svg_langs_job.routes.parse_args", lambda f, d: types.SimpleNamespace()
+    )
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("1")

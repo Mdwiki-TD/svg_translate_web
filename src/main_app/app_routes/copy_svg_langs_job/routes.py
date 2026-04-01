@@ -19,7 +19,6 @@ from flask import (
 )
 from werkzeug.datastructures import MultiDict
 
-from ..admin.admins_required import admin_required
 from ...config import settings
 from ...db.exceptions import TaskAlreadyExistsError
 from ...public_jobs_workers.copy_svg_langs.task_threads import get_cancel_event, launch_task_thread
@@ -32,6 +31,7 @@ from ...services.copy_svg_langs_service import (
     get_store_task,
 )
 from ...services.users_service import current_user, oauth_required
+from ..admin.admins_required import admin_required
 from ..utils.args_utils import parse_args
 from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 

@@ -2,8 +2,8 @@
 import logging
 
 from CopySVGTranslation import extract  # type: ignore
-from .....api_services.utils.download_file_utils import download_one_file
 
+from .....api_services.utils.download_file_utils import download_one_file
 from ..utils import json_save
 
 logger = logging.getLogger(__name__)

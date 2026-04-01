@@ -5,10 +5,10 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from ...config import DbConfig
 from ..db_class import Database
-from .db_CreateUpdate import CreateUpdateTask
-from .db_StageStore import StageStore
 from ..sql_schema_tables import sql_tables
 from ..utils import DbUtils
+from .db_CreateUpdate import CreateUpdateTask
+from .db_StageStore import StageStore
 
 logger = logging.getLogger(__name__)
 

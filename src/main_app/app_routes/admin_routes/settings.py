@@ -7,8 +7,8 @@ import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from ..admin.admins_required import admin_required
 from ...config import settings
+from ..admin.admins_required import admin_required
 
 
 class SettingsRoutes:
