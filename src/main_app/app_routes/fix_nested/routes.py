@@ -133,10 +133,12 @@ def fix_nested_post():
             flash(error_details, "danger")
 
         flash(result["message"], "danger")
-        return render_template("fix_nested/form.html", filename=original_filename)
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
+        # return render_template("fix_nested/form.html", filename=original_filename)
 
     # Preserve filename in input field regardless of result
-    return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
+    return redirect(url_for("fix_nested.task_detail", task_id=task_id))
+    # return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
 
 
 @bp_fix_nested.route("/upload", methods=["POST", "GET"])
@@ -311,7 +313,11 @@ def serve_file(task_id: str, file_type: str):
     if not str(file_path).startswith(str(task_dir.resolve())):
         abort(403, description="Access denied")
 
-    return send_from_directory(str(task_dir.absolute()), filename)
+    # return send_from_directory(str(task_dir.absolute()), filename)
+    response = send_from_directory(str(task_dir.absolute()), filename)
+    response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @bp_fix_nested.route("/tasks/<task_id>/log")
