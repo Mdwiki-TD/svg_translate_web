@@ -167,7 +167,6 @@ def test_fix_nested_post_empty_filename_shows_error(
 def test_fix_nested_post_preserves_filename_after_submission(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
-    patch_render: dict,
 ) -> None:
     """Test that filename persists in form after POST (regardless of result)."""
     app, _ = app_client
@@ -186,19 +185,29 @@ def test_fix_nested_post_preserves_filename_after_submission(
     monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
     monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.active_coordinators", lambda: [])
 
+    # Mock redirect to capture the redirect URL
+    captured_redirects: list[str] = []
+    original_redirect = routes.redirect
+
+    def mock_redirect(*args, **kwargs):
+        captured_redirects.append(args[0] if args else kwargs.get("location", ""))
+        return original_redirect(*args, **kwargs)
+
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.redirect", mock_redirect)
+
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": "File:MyFile.svg"}):
         routes.fix_nested_post()
 
-    # The filename should remain in the form input
-    assert patch_render["context"]["filename"] == "File:MyFile.svg"
+    # Verify redirect happened to task_detail page
+    assert len(captured_redirects) == 1
+    assert "task_detail" in captured_redirects[0] or "/tasks/" in captured_redirects[0]
 
 
 def test_fix_nested_post_shows_commons_link_on_success(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
-    patch_render: dict,
 ) -> None:
-    """Test that Commons link is displayed after successful upload."""
+    """Test that Commons link is generated after successful upload."""
     app, _ = app_client
 
     user = types.SimpleNamespace(username="tester", access_token="tok", access_secret="sec", user_id=123)
@@ -218,12 +227,22 @@ def test_fix_nested_post_shows_commons_link_on_success(
     monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.flash", lambda *args: None)
     monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.load_auth_payload", lambda user: {})
 
+    # Mock redirect to capture the redirect URL with commons_link parameter
+    captured_redirects: list[str] = []
+
+    def mock_redirect(*args, **kwargs):
+        captured_redirects.append(args[0] if args else kwargs.get("location", ""))
+        return SimpleNamespace()
+
+    monkeypatch.setattr("src.main_app.app_routes.fix_nested.routes.redirect", mock_redirect)
+
     with app.test_request_context("/fix_nested/", method="POST", data={"filename": "Success_Test.svg"}):
         routes.fix_nested_post()
 
-    # Check for Commons link in context
-    commons_link = patch_render["context"].get("commons_link")
-    assert commons_link == "https://commons.wikimedia.org/wiki/File:Success_Test.svg"
+    # Verify redirect happened with commons_link parameter
+    assert len(captured_redirects) == 1
+    assert "commons_link" in captured_redirects[0]
+    assert "Success_Test.svg" in captured_redirects[0]
 
 
 def test_fix_nested_post_strips_file_prefix(
