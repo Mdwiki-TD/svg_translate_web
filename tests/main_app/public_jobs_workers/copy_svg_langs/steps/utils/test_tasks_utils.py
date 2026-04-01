@@ -66,7 +66,7 @@ def test_save_files_stats(tmp_path):
 
 def test_make_results_summary():
     res = make_results_summary(
-        len_files=10,
+        total_files=10,
         files_to_upload_count=5,
         no_file_path=2,
         injects_result={"nested_files": 1, "success": 8, "failed": 1},
