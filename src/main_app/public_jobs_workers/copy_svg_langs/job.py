@@ -18,14 +18,16 @@ import requests
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
-from .steps import download_step
-from .steps import extract_text_step
-from .steps import extract_titles_step
-from .steps import extract_translations_step
-from .steps import fix_nested_step
-from .steps import inject_step
-from .steps import upload_step
 from ..utils import json_save, make_results_summary
+from .steps import (
+    download_step,
+    extract_text_step,
+    extract_titles_step,
+    extract_translations_step,
+    fix_nested_step,
+    inject_step,
+    upload_step,
+)
 
 logger = logging.getLogger(__name__)
 
