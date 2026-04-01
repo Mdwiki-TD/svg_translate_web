@@ -222,7 +222,7 @@ def test_start_creates_task_and_launches_thread(
     response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/tasks/{generated_id}?title=Sample+Title")
+    assert response.headers["Location"].endswith(f"/tasks/{generated_id}/info?title=Sample+Title")
     assert generated_id in store.tasks
     assert store.tasks[generated_id]["title"] == "Sample Title"
     assert launch_calls and launch_calls[0][0] == generated_id
@@ -264,7 +264,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
     response = client.post("/start", data={"title": "Duplicate Title"})
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/tasks/{existing_id}?title=Duplicate+Title")
+    assert response.headers["Location"].endswith(f"/tasks/{existing_id}/info?title=Duplicate+Title")
     assert flashed == [("Task for title 'Duplicate Title' already exists: existing.", "warning")]
     assert not launch_calls
 
