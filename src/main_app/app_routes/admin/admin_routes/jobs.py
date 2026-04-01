@@ -209,7 +209,7 @@ class Jobs:
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in JOB_TYPE_TEMPLATES:
                 abort(404)
-            args = request.args
+            args = request.form
             job_id = _start_job_with_args(job_type, args)
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))
