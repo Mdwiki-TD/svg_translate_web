@@ -21,7 +21,7 @@ def test_json_save(tmp_path):
     assert loaded == data
 
     # Test empty data
-    log_mock = patch("src.main_app.public_jobs_workers.copy_svg_langs.utils.logger")
+    log_mock = patch("src.main_app.public_jobs_workers.utils.logger")
     with log_mock as mock_logger:
         json_save(file_path, {})
         mock_logger.error.assert_called()
