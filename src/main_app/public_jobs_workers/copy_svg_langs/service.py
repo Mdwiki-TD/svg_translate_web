@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from ...services import jobs_service
+from ...config import settings
 from .worker import copy_svg_langs_worker_entry
-
-if TYPE_CHECKING:
-    from flask import Flask
 
 CANCEL_EVENTS: dict[str, threading.Event] = {}
 CANCEL_EVENTS_LOCK = threading.Lock()
@@ -30,6 +27,8 @@ def _pop_cancel_event(task_id: str) -> threading.Event | None:
 
 def _runner(
     task_id: int,
+    title: str,
+    args,
     user: dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
@@ -38,7 +37,10 @@ def _runner(
     """
     try:
         target_func(
+            settings.database_data,
             task_id,
+            title,
+            args,
             user,
             cancel_event=cancel_event,
         )
@@ -90,6 +92,7 @@ def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event 
 
 
 def start_copy_svg_langs_job(
+    task_id: str,
     title: str,
     args: Any,
     user: dict[str, Any] | None = None,
@@ -105,10 +108,6 @@ def start_copy_svg_langs_job(
     Returns:
         Job ID.
     """
-    username = user.get("username") if user else None
-    job = jobs_service.create_job("copy_svg_langs", username)
-    task_id = job.id
-
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
 
@@ -116,6 +115,7 @@ def start_copy_svg_langs_job(
         target=_runner,
         args=(task_id, user, cancel_event, copy_svg_langs_worker_entry),
         kwargs={"title": title, "args": args},
+        name=f"task-runner-{task_id[:8]}",
         daemon=True,
     )
     thread.start()
@@ -125,5 +125,6 @@ def start_copy_svg_langs_job(
 
 
 __all__ = [
+    "get_cancel_event",
     "start_copy_svg_langs_job",
 ]

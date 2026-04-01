@@ -7,7 +7,9 @@ from __future__ import annotations
 import logging
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
+
+from ...config import DbConfig
 
 from ...jobs_workers.base_worker import BaseJobWorker
 from .job import CopySvgLangsProcessor
@@ -22,7 +24,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
     def __init__(
         self,
-        job_id: int,
+        task_id: int,
         title: str,
         args: Any,
         user: dict[str, Any] | None = None,
@@ -30,7 +32,7 @@ class CopySvgLangsWorker(BaseJobWorker):
     ) -> None:
         self.title = title
         self.args = args
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(task_id, user, cancel_event)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -45,20 +47,21 @@ class CopySvgLangsWorker(BaseJobWorker):
             "cancelled_at": None,
             "title": self.title,
             "stages": {
-                "text": {"number": 1, "status": "Pending", "message": "Getting text"},
-                "titles": {"number": 2, "status": "Pending", "message": "Getting titles"},
-                "translations": {"number": 3, "status": "Pending", "message": "Getting translations"},
-                "download": {"number": 4, "status": "Pending", "message": "Downloading files"},
-                "nested": {"number": 5, "status": "Pending", "message": "Analyze nested files"},
-                "inject": {"number": 6, "status": "Pending", "message": "Injecting translations"},
-                "upload": {"number": 7, "status": "Pending", "message": "Uploading files"},
+                "initialize": {"number": 1, "sub_name": "", "status": "Running", "message": "Starting workflow"},
+                "text": {"sub_name": "", "number": 2, "status": "Pending", "message": "Getting text"},
+                "titles": {"sub_name": "", "number": 3, "status": "Pending", "message": "Getting titles"},
+                "translations": {"sub_name": "", "number": 4, "status": "Pending", "message": "Getting translations"},
+                "download": {"sub_name": "", "number": 5, "status": "Pending", "message": "Downloading files"},
+                "nested": {"sub_name": "", "number": 6, "status": "Pending", "message": "Analyze nested files"},
+                "inject": {"sub_name": "", "number": 7, "status": "Pending", "message": "Injecting translations"},
+                "upload": {"sub_name": "", "number": 8, "status": "Pending", "message": "Uploading files"},
             },
             "summary": {},
         }
 
     def process(self) -> dict[str, Any]:
         processor = CopySvgLangsProcessor(
-            job_id=self.job_id,
+            task_id=self.task_id,
             title=self.title,
             args=self.args,
             user=self.user,
@@ -69,21 +72,23 @@ class CopySvgLangsWorker(BaseJobWorker):
         return processor.run()
 
 
+# --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
-    job_id: int,
-    user: dict[str, Any] | None = None,
+    database_data: DbConfig,
+    task_id: str,
+    title: str,
+    args: Any,
+    user: Dict[str, str] | None,
+    *,
     cancel_event: threading.Event | None = None,
-    **kwargs: Any,
 ) -> None:
     """Entry point for the background job."""
-    title = kwargs.get("title")
-    args = kwargs.get("args")
     if not title or not args:
-        logger.error(f"Job {job_id}: Missing title or args")
+        logger.error(f"Job {task_id}: Missing title or args")
         return
 
     worker = CopySvgLangsWorker(
-        job_id=job_id,
+        task_id=task_id,
         title=title,
         args=args,
         user=user,

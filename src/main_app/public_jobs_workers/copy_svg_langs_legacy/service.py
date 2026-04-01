@@ -1,18 +1,13 @@
-"""Main Flask views for the SVG Translate web application."""
+"""Service for copying SVG languages (translations)."""
 
 from __future__ import annotations
 
 import logging
 import threading
-from typing import TYPE_CHECKING, Any
-
-from flask import current_app
+from typing import Any
 
 from ...config import settings
 from .worker import copy_svg_langs_worker_entry
-
-if TYPE_CHECKING:
-    from flask import Flask
 
 CANCEL_EVENTS: dict[str, threading.Event] = {}
 CANCEL_EVENTS_LOCK = threading.Lock()
@@ -32,6 +27,8 @@ def _pop_cancel_event(task_id: str) -> threading.Event | None:
 
 def _runner(
     task_id: int,
+    title: str,
+    args,
     user: dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
@@ -39,7 +36,7 @@ def _runner(
     """
     """
     try:
-        copy_svg_langs_worker_entry(
+        target_func(
             settings.database_data,
             task_id,
             title,
@@ -114,18 +111,10 @@ def start_copy_svg_langs_job(
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
 
-    # Capture the app context for use in the background thread
-    # Unwrap the proxy to get the real app object
-    try:
-        app = current_app._get_current_object()
-    except RuntimeError:
-        # No active app context (shouldn't happen in normal operation)
-        logger.error("No Flask application context available for task %s", task_id)
-        raise
-
     thread = threading.Thread(
         target=_runner,
-        args=(app,),  # Pass app to the thread
+        args=(task_id, user, cancel_event, copy_svg_langs_worker_entry),
+        kwargs={"title": title, "args": args},
         name=f"task-runner-{task_id[:8]}",
         daemon=True,
     )
