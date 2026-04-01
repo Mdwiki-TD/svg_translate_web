@@ -8,13 +8,13 @@ from ...config import DbConfig, settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 from .steps import (
     download_step,
+    extract_text_step,
+    extract_titles_step,
+    extract_translations_step,
     fix_nested_step,
     inject_step,
     make_results_summary,
     save_files_stats,
-    extract_text_step,
-    extract_titles_step,
-    extract_translations_step,
     upload_step,
 )
 

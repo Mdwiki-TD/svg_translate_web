@@ -40,9 +40,7 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
         "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract", fake_extract
     )
 
-    translations, updated_stages = extract_translations_step(
-        stages, "Example.svg", dummy_main_path
-    )
+    translations, updated_stages = extract_translations_step(stages, "Example.svg", dummy_main_path)
 
     assert translations == {}
     assert updated_stages["status"] == "Failed"
