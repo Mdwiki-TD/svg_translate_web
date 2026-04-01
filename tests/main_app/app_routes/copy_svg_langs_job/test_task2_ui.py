@@ -3,7 +3,7 @@ import re
 import pytest
 
 from src.main_app import create_app
-from src.main_app.app_routes.copy_svg_langs_job import routes as task_routes
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes as task_routes
 
 
 class DummyStore:

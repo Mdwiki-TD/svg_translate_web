@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 
 from ...config import settings
 from ...db.exceptions import TaskAlreadyExistsError
-from ...public_jobs_workers.copy_svg_langs_legacy.legacy_threads import get_cancel_event, launch_task_thread
+from .service import get_cancel_event, launch_task_thread
 from ...services.admin_service import active_coordinators
 from ...services.copy_svg_langs_service import (
     _task_store,
@@ -31,9 +31,9 @@ from ...services.copy_svg_langs_service import (
     get_store_task,
 )
 from ...services.users_service import current_user, oauth_required
-from ..admin.admins_required import admin_required
-from ..utils.args_utils import parse_args
-from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
+from ...app_routes.admin.admins_required import admin_required
+from ...app_routes.utils.args_utils import parse_args
+from ...app_routes.utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 
 bp_tasks = Blueprint("tasks", __name__)
 logger = logging.getLogger(__name__)

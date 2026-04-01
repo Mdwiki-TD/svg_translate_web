@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict
 from flask import current_app
 
 from ...config import settings
-from .legacy_worker import run_task
+from .worker import run_task
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -18,18 +18,6 @@ CANCEL_EVENTS: Dict[str, threading.Event] = {}
 CANCEL_EVENTS_LOCK = threading.Lock()
 
 logger = logging.getLogger(__name__)
-
-# Multi-process deployment note:
-# CANCEL_EVENTS is stored in process-local memory. In multi-process deployments (e.g., Gunicorn
-# with multiple workers), each worker has its own independent CANCEL_EVENTS dictionary.
-#
-# To handle cross-process cancellation, the code falls back to checking the database status.
-# When a task is marked as "Cancelled" in the database, get_cancel_event() will return an
-# already-set Event, allowing the worker to detect cancellation even if it wasn't the one
-# that received the cancel request.
-#
-# For high-traffic deployments, consider using Redis or another shared store for cancellation
-# signals instead of database polling.
 
 
 def _register_cancel_event(task_id: str, cancel_event: threading.Event) -> None:
@@ -58,8 +46,6 @@ def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event 
     Returns:
         threading.Event | None: The cancellation Event if the task is being cancelled,
         or None if no cancellation is in progress.
-
-    NOTE: The cross-process cancellation logic implemented here is currently ineffective because the worker threads do not utilize it. While get_cancel_event now checks the database, it is only called by the cancellation route to retrieve an event to signal. If the task is running in a different process, this function returns a new already-set event, but setting it has no impact on the actual worker thread in the other process. For cross-process cancellation to work, the worker's check_cancel helper (in legacy_worker.py) must also poll the database or use this updated get_cancel_event function to detect the signal.
 
     """
     # First, try to get the cancellation event from the in-memory dictionary

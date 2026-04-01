@@ -6,7 +6,7 @@ import time
 import pytest
 
 from src.main_app import create_app
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_threads import (
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy.service import (
     get_cancel_event,
     launch_task_thread,
 )
@@ -23,8 +23,8 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
         started.set()
         release.wait(timeout=0.2)
 
-    # Patch the run_task imported in legacy_threads
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_threads.run_task", fake_run_task)
+    # Patch the run_task imported in service
+    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.service.run_task", fake_run_task)
 
     # Create app and push context for thread launch
     app = create_app()

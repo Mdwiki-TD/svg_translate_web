@@ -11,7 +11,7 @@ import pytest
 from flask import Flask
 
 from src.main_app import create_app
-from src.main_app.app_routes.copy_svg_langs_job import routes
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 from src.main_app.services import copy_svg_langs_service
 
 
