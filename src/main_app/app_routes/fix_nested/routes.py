@@ -308,7 +308,8 @@ def serve_file(task_id: str, file_type: str):
 
     # Security check: ensure the path is within the expected directory
     file_path = (task_dir / filename).resolve()
-    if not str(file_path).startswith(str(task_dir.resolve())):
+    # if not str(file_path).startswith(str(task_dir.resolve())):
+    if not file_path.is_relative_to(task_dir.resolve()):
         abort(403, description="Access denied")
 
     # return send_from_directory(str(task_dir.absolute()), filename)
@@ -473,7 +474,8 @@ def undo_task(task_id: str):
         db_store.update_status(task_id, "undone")
 
     # Log the undo operation
-    log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
+    log_to_task(task_dir, f"Task undone: Original file restored by {getattr(current_user_obj, 'username', 'unknown')}")
+
     log_to_task(task_dir, f"Undo upload result: {upload_result}")
 
     flash(f"Successfully restored original file: {task['filename']}", "success")
@@ -500,7 +502,8 @@ def delete_task(task_id: str):
     # Security: Prevent path traversal attacks
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     base_path = Path(settings.paths.fix_nested_data).resolve()
-    if not str(task_dir.resolve()).startswith(str(base_path)):
+    # if not str(task_dir.resolve()).startswith(str(base_path)):
+    if not task_dir.resolve().is_relative_to(base_path):
         logger.error(f"Path traversal attempt detected for task_id: {task_id}")
         flash("Invalid task ID", "danger")
         return redirect(url_for("fix_nested.list_fix_nested_tasks"))

@@ -15,11 +15,6 @@ utils = DbUtils()
 _normalize_title = utils._normalize_title
 
 
-class MockTasksListDB(DbUtils):
-    def fetch_stages(self, task_id):
-        return {}
-
-
 def _task_row(
     task_id: str,
     *,
