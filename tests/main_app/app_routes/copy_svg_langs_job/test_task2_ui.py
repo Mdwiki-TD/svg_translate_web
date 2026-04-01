@@ -3,7 +3,7 @@ import re
 import pytest
 
 from src.main_app import create_app
-from src.main_app.app_routes.copy_svg_langs_job import routes as task_routes
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes as task_routes
 
 
 class DummyStore:
@@ -37,7 +37,7 @@ def app_factory(monkeypatch):
         # Patch _task_store BEFORE create_app so routes use the dummy store
         monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE", None)
         monkeypatch.setattr(
-            "src.main_app.app_routes.copy_svg_langs_job.routes._task_store",
+            "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store",
             lambda: DummyStore(task),
         )
 

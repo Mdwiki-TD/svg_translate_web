@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from ...config import DbConfig, settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
-from .steps import (
+from ..copy_svg_langs.steps import (
     download_step,
     extract_text_step,
     extract_titles_step,

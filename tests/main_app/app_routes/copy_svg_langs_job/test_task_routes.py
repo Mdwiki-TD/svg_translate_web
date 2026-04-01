@@ -4,9 +4,8 @@ from typing import Any, Dict, Optional
 import pytest
 
 from src.main_app import create_app
-from src.main_app.app_routes.copy_svg_langs_job import routes
 from src.main_app.db import TaskAlreadyExistsError
-from src.main_app.public_jobs_workers.copy_svg_langs import legacy_threads
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes, service
 
 
 class InMemoryTaskStore:
@@ -89,12 +88,12 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Patch task store in tasks routes
     monkeypatch.setattr(routes, "_task_store", lambda: store)
     # Patch task store in cancel_restart routes
-    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: store)
 
     routes.TASK_STORE = store
     routes.TASK_STORE_LOCK = threading.Lock()
-    with legacy_threads.CANCEL_EVENTS_LOCK:
-        legacy_threads.CANCEL_EVENTS.clear()
+    with service.CANCEL_EVENTS_LOCK:
+        service.CANCEL_EVENTS.clear()
 
     # Mock current user for auth checks
     monkeypatch.setattr(
@@ -102,7 +101,7 @@ def app(monkeypatch: pytest.MonkeyPatch):
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.current_user",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user",
         lambda: type("User", (), {"username": "testuser", "user_id": 1, "access_token": "tok", "access_secret": "sec"}),
     )
 
@@ -119,8 +118,8 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
 
     # Register cancel event
     cancel_event = threading.Event()
-    with legacy_threads.CANCEL_EVENTS_LOCK:
-        legacy_threads.CANCEL_EVENTS[task_id] = cancel_event
+    with service.CANCEL_EVENTS_LOCK:
+        service.CANCEL_EVENTS[task_id] = cancel_event
 
     client = app.test_client()
 
@@ -152,15 +151,15 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         task_finished.set()
 
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.get_store_task",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task",
         lambda tid: store.get_task(tid),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.create_new_task",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task",
         lambda tid, title, username, form=None: store.create_task(tid, title, username=username, form=form),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread",
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
 
