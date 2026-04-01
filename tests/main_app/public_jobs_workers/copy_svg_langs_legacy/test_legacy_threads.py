@@ -8,7 +8,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.public_jobs_workers.copy_svg_langs_legacy.service import (
     get_cancel_event,
-    launch_task_thread,
+    start_copy_svg_langs_job,
 )
 
 
@@ -31,7 +31,7 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
     task_id = "t-abc123"
 
     with app.app_context():
-        launch_task_thread(task_id, "Title", args=SimpleNamespace(), user_payload={})
+        start_copy_svg_langs_job(task_id, "Title", args=SimpleNamespace(), user_payload={})
 
     # ensure registered
     assert started.wait(timeout=0.2), "Thread did not start in time"

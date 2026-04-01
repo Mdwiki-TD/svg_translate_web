@@ -217,7 +217,7 @@ def test_start_creates_task_and_launches_thread(
     def fake_launch(task_id: str, title: str, args: Any, auth_payload: dict[str, Any]) -> None:
         launch_calls.append((task_id, title, args, auth_payload))
 
-    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread", fake_launch)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.start_copy_svg_langs_job", fake_launch)
 
     response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 
@@ -257,7 +257,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
 
     launch_calls: list[tuple[Any, ...]] = []
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread",
+        "src.main_app.app_routes.copy_svg_langs_job.routes.start_copy_svg_langs_job",
         lambda *args, **kwargs: launch_calls.append(args),
     )
 

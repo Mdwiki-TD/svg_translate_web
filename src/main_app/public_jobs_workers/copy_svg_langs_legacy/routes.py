@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 
 from ...config import settings
 from ...db.exceptions import TaskAlreadyExistsError
-from .service import get_cancel_event, launch_task_thread
+from .service import get_cancel_event, start_copy_svg_langs_job
 from ...services.admin_service import active_coordinators
 from ...services.copy_svg_langs_service import (
     _task_store,
@@ -210,7 +210,7 @@ def start():
 
     auth_payload = load_auth_payload(user)
 
-    launch_task_thread(task_id, title, args, auth_payload)
+    start_copy_svg_langs_job(task_id, title, args, auth_payload)
 
     return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
 
@@ -334,6 +334,6 @@ def restart(task_id: str):
         flash("Failed to restart task.", "danger")
         return redirect(url_for("tasks.task_infos", task_id=task_id))
 
-    launch_task_thread(new_task_id, title, args, user_payload)
+    start_copy_svg_langs_job(new_task_id, title, args, user_payload)
 
     return redirect(url_for("tasks.task_infos", task_id=new_task_id))

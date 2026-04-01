@@ -73,7 +73,7 @@ def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event 
     return None
 
 
-def launch_task_thread(
+def start_copy_svg_langs_job(
     task_id: str,
     title: str,
     args: Any,
@@ -135,5 +135,5 @@ def launch_task_thread(
 
 __all__ = [
     "get_cancel_event",
-    "launch_task_thread",
+    "start_copy_svg_langs_job",
 ]

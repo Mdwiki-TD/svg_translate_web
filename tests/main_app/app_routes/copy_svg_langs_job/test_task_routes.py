@@ -160,7 +160,7 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
         lambda tid, title, username, form=None: store.create_task(tid, title, username=username, form=form),
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread",
+        "src.main_app.app_routes.copy_svg_langs_job.routes.start_copy_svg_langs_job",
         lambda tid, t, a, p: fake_run_task(None, tid, t, a, p, cancel_event=threading.Event()),
     )
 
