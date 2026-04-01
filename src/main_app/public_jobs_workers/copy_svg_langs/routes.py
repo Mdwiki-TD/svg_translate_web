@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+import uuid
+from typing import Any, Dict, List, Optional
 
 from flask import (
     Blueprint,
     flash,
     jsonify,
     redirect,
+    render_template,
     request,
     url_for,
 )
@@ -16,9 +21,8 @@ from flask import (
 from ...services.users_service import current_user, oauth_required
 from .service import start_copy_svg_langs_job
 
-logger = logging.getLogger(__name__)
-
 bp_copy_svg_langs = Blueprint("copy_svg_langs", __name__)
+logger = logging.getLogger(__name__)
 
 
 @bp_copy_svg_langs.post("/start")

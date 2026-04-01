@@ -1,4 +1,4 @@
-"""Main Flask views for the SVG Translate web application."""
+"""Routes for copying SVG languages (translations)."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ from ...services.copy_svg_langs_service import (
 from ...services.users_service import current_user, oauth_required
 from .service import get_cancel_event, start_copy_svg_langs_job
 
-bp_tasks = Blueprint("tasks", __name__)
+bp_copy_svg_langs = Blueprint("tasks", __name__)
 logger = logging.getLogger(__name__)
 
 
@@ -78,8 +78,8 @@ def load_state_hash(
     return refresh_count, current_state_hash
 
 
-@bp_tasks.get("/tasks")
-@bp_tasks.get("/tasks/user/<user>")
+@bp_copy_svg_langs.get("/tasks")
+@bp_copy_svg_langs.get("/tasks/user/<user>")
 def tasks(user: str | None = None):
     """
     Render the task listing page with formatted task metadata and available status filters.
@@ -115,8 +115,8 @@ def tasks(user: str | None = None):
     )
 
 
-@bp_tasks.get("/tasks/<task_id>")
-@bp_tasks.get("/tasks/<task_id>/info")
+@bp_copy_svg_langs.get("/tasks/<task_id>")
+@bp_copy_svg_langs.get("/tasks/<task_id>/info")
 def task_infos(task_id: str | None = None):
     if not task_id:
         flash("No task id provided", "warning")
@@ -152,7 +152,7 @@ def task_infos(task_id: str | None = None):
     )
 
 
-@bp_tasks.get("/status/<task_id>")
+@bp_copy_svg_langs.get("/status/<task_id>")
 def status(task_id: str):
     """
     Return the JSON representation of the task identified by `task_id`.
@@ -175,7 +175,7 @@ def status(task_id: str):
     return jsonify(task)
 
 
-@bp_tasks.post("/start")
+@bp_copy_svg_langs.post("/start")
 @oauth_required
 def start():
     """Start a copy SVG languages job."""
@@ -215,7 +215,7 @@ def start():
     return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
 
 
-@bp_tasks.post("/tasks/<task_id>/delete")
+@bp_copy_svg_langs.post("/tasks/<task_id>/delete")
 @admin_required
 def delete_task(task_id: str):
     """Delete task."""
@@ -233,7 +233,7 @@ def delete_task(task_id: str):
     return redirect(url_for("tasks.tasks"))
 
 
-@bp_tasks.post("/tasks/<task_id>/cancel")
+@bp_copy_svg_langs.post("/tasks/<task_id>/cancel")
 @oauth_required
 def cancel(task_id: str):
     if not task_id:
@@ -279,7 +279,7 @@ def cancel(task_id: str):
     return redirect(url_for("tasks.task_infos", task_id=task_id))
 
 
-@bp_tasks.post("/tasks/<task_id>/restart")
+@bp_copy_svg_langs.post("/tasks/<task_id>/restart")
 @oauth_required
 def restart(task_id: str):
     if not task_id:
@@ -337,3 +337,6 @@ def restart(task_id: str):
     start_copy_svg_langs_job(new_task_id, title, args, user_payload)
 
     return redirect(url_for("tasks.task_infos", task_id=new_task_id))
+
+
+bp_tasks = bp_copy_svg_langs
