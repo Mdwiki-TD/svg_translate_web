@@ -3,7 +3,7 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task import (
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task import (
     _compute_output_dir,
     fail_task,
     make_stages,
