@@ -24,8 +24,8 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
         started.set()
         release.wait(timeout=0.2)
 
-    # Patch the run_task imported in task_threads
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs.task_threads.run_task", fake_run_task)
+    # Patch the run_task imported in legacy_threads
+    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs.legacy_threads.run_task", fake_run_task)
 
     # Create app and push context for thread launch
     app = create_app()
