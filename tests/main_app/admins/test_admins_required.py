@@ -20,7 +20,9 @@ class MockUser:
 
 def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", lambda: None)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.redirect", lambda location: f"redirect:{location}")
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin.admins_required.redirect", lambda location: f"redirect:{location}"
+    )
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.url_for", lambda endpoint: f"/{endpoint}")
 
     @admin_required

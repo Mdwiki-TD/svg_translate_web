@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import types
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,15 +19,16 @@ def patch_templates(monkeypatch: pytest.MonkeyPatch) -> dict:
         captured["context"] = context
         return template
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.render_template", fake_render)
     return captured
 
 
 def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}"))
+        "src.main_app.app_routes.main_routes.explorer_routes.get_files",
+        lambda title, subdir: (["a.svg"], Path(f"/data/{subdir}")),
     )
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_temp_title", lambda title: "Title")
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_temp_title", lambda title: "Title")
 
     result = explorer_routes.by_title_downloaded("topic")
 
@@ -40,9 +41,10 @@ def test_by_title_downloaded_renders_list(monkeypatch: pytest.MonkeyPatch, patch
 
 def test_by_title_translated_sets_compare_link(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.explorer.routes.get_files", lambda title, subdir: (["b.svg"], Path("/data"))
+        "src.main_app.app_routes.main_routes.explorer_routes.get_files",
+        lambda title, subdir: (["b.svg"], Path("/data")),
     )
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_temp_title", lambda title: "Sample")
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_temp_title", lambda title: "Sample")
 
     explorer_routes.by_title_translated("topic")
 
@@ -57,8 +59,8 @@ def test_by_title_not_translated_filters(monkeypatch: pytest.MonkeyPatch, patch_
             return (["one.svg", "two.svg"], Path("/files"))
         return (["one.svg"], Path("/translated"))
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_files", fake_get_files)
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_temp_title", lambda title: "Topic")
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_files", fake_get_files)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_temp_title", lambda title: "Topic")
 
     explorer_routes.by_title_not_translated("topic")
 
@@ -68,7 +70,9 @@ def test_by_title_not_translated_filters(monkeypatch: pytest.MonkeyPatch, patch_
 
 
 def test_by_title_renders_information(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_informations", lambda title: {"title": "Topic"})
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.explorer_routes.get_informations", lambda title: {"title": "Topic"}
+    )
 
     explorer_routes.by_title("topic")
 
@@ -80,7 +84,7 @@ def test_main_lists_titles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, patc
     root = tmp_path / "data"
     (root / "alpha").mkdir(parents=True)
     (root / "beta").mkdir()
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.svg_data_path", root)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", root)
 
     def fake_get_files(title: str, subdir: str):
         if title == "alpha" and subdir == "files":
@@ -89,7 +93,7 @@ def test_main_lists_titles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, patc
             return (["a.svg"] if title == "alpha" else [], Path("t"))
         return ([], Path("empty"))
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.get_files", fake_get_files)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.get_files", fake_get_files)
 
     explorer_routes.main()
 
@@ -103,15 +107,14 @@ def test_serve_media_returns_directory(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake_send(directory: str, filename: str):
         called.append((directory, filename))
-        return directory
+        return SimpleNamespace(headers={})
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.svg_data_path", Path("/base"))
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.send_from_directory", fake_send)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", Path("/base"))
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
     result = explorer_routes.serve_media("title", "files", "file.svg")
 
-    assert result in ["/base/title/files", r"I:\base\title\files"]
-    # assert called == [("/base/title/files", "file.svg")]
+    assert called[0][0].replace("\\", "/").endswith("base/title/files")
     assert called[0][1] == "file.svg"
 
 
@@ -122,8 +125,8 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
     (thumbs / "topic" / "files").mkdir(parents=True)
     (base / "topic" / "files" / "file.svg").write_text("<svg/>", encoding="utf-8")
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.svg_data_path", base)
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.svg_data_thumb_path", thumbs)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", base)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_thumb_path", thumbs)
 
     def fake_save(src: Path, dest: Path) -> None:
         dest.write_text("thumb", encoding="utf-8")
@@ -133,21 +136,22 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
 
     def fake_send(directory: str, filename: str):
         responses.append((directory, filename))
-        return directory
+        return SimpleNamespace(headers={})
 
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.save_thumb", fake_save)
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.send_from_directory", fake_send)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.save_thumb", fake_save)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
-    result = explorer_routes.serve_thumb("topic", "files", "file.svg")
+    explorer_routes.serve_thumb("topic", "files", "file.svg")
 
-    assert result.endswith("files")
     path = responses[0][0].replace("\\", "/")
     assert path.endswith("thumbs/topic/files")
 
 
 def test_compare_renders_template(monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.svg_data_path", Path("/data"))
-    monkeypatch.setattr("src.main_app.app_routes.explorer.routes.analyze_file", lambda path: {"file": path.name})
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", Path("/data"))
+    monkeypatch.setattr(
+        "src.main_app.app_routes.main_routes.explorer_routes.analyze_file", lambda path: {"file": path.name}
+    )
 
     explorer_routes.compare("title", "file.svg")
 
