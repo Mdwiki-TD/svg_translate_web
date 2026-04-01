@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 import pytest
 
 from src.main_app import create_app
-from src.main_app.app_routes.tasks import routes
+from src.main_app.app_routes.copy_svg_langs_job import routes
 from src.main_app.db import TaskAlreadyExistsError
 from src.main_app.public_jobs_workers.copy_svg_langs import legacy_threads
 

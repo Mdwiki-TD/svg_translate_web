@@ -9,9 +9,9 @@ from flask import (
     render_template,
 )
 
-from ....admins.admins_required import admin_required
-from ....services.tasks_service import _task_store
-from ...tasks.routes import (
+from ..admin.admins_required import admin_required
+from ...services.copy_svg_langs_service import _task_store
+from ..copy_svg_langs_job.routes import (
     format_task,
     format_task_message,
 )

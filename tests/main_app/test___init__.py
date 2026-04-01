@@ -32,7 +32,7 @@ def test_create_app_registers_blueprints():
         "admin",
         "auth",
         "fix_nested",
-        "fix_nested_explorer",
+        "fix_nested",
         "extract",
     ]
 

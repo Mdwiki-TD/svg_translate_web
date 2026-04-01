@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.users.store import (
+from src.main_app.db.user_tokens import (
     UserTokenRecord,
     _coerce_bytes,
     _current_ts,

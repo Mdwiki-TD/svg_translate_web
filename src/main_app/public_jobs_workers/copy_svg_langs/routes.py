@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from flask import Blueprint, jsonify, request, url_for, redirect, flash
 
-from ...users.current import current_user, oauth_required
+from ...services.users_service import current_user, oauth_required
 
 logger = logging.getLogger(__name__)
 

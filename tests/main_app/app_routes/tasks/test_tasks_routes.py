@@ -11,8 +11,8 @@ import pytest
 from flask import Flask
 
 from src.main_app import create_app
-from src.main_app.app_routes.tasks import routes
-from src.main_app.services import tasks_service
+from src.main_app.app_routes.copy_svg_langs_job import routes
+from src.main_app.services import copy_svg_langs_service
 
 
 class DummyTaskStore:
@@ -115,13 +115,13 @@ def test_format_task_message() -> None:
 
 def test_close_task_store(monkeypatch: pytest.MonkeyPatch) -> None:
     store = DummyTaskStore()
-    tasks_service.TASK_STORE = store
-    tasks_service.close_task_store()
+    copy_svg_langs_service.TASK_STORE = store
+    copy_svg_langs_service.close_task_store()
     assert store.closed is True
 
-    tasks_service.TASK_STORE = None
+    copy_svg_langs_service.TASK_STORE = None
     # Should be a no-op when the store is already cleared.
-    tasks_service.close_task_store()
+    copy_svg_langs_service.close_task_store()
 
 
 def test_task_redirects_without_identifier(app_client: tuple[Flask, Any, DummyTaskStore]) -> None:

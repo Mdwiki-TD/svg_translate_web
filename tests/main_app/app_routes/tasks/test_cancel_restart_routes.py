@@ -7,7 +7,7 @@ import types
 import pytest
 from flask import Flask
 
-from src.main_app.app_routes.tasks import routes
+from src.main_app.app_routes.copy_svg_langs_job import routes
 from src.main_app.config import DbConfig
 
 
@@ -44,9 +44,9 @@ def app(monkeypatch: pytest.MonkeyPatch):
     )
 
     # Mock current_user in the module where oauth_required is defined
-    import src.main_app.users.current
+    import src.main_app.services.users_service
 
-    monkeypatch.setattr(src.main_app.users.current, "current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(src.main_app.services.users_service, "current_user", lambda: types.SimpleNamespace(username="user"))
 
     yield app
 

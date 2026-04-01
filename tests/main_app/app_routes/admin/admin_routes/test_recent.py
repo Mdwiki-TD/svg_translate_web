@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Blueprint
 
-from src.main_app.app_routes.admin.admin_routes.recent import Recent, _recent_routes
+from src.main_app.app_routes.admin_routes.recent import Recent, _recent_routes
 
 
 @patch("src.main_app.app_routes.admin.admin_routes.recent._task_store")

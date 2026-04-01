@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from ..crypto import decrypt_value, encrypt_value
-from ..db import get_db, has_db_config
-from ..db.sql_schema_tables import sql_tables
+from . import get_db, has_db_config
+from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

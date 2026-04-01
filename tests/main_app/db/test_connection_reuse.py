@@ -1,6 +1,6 @@
 from src.main_app import create_app
-from src.main_app.app_routes.tasks import routes as task_routes
-from src.main_app.users import store as user_store
+from src.main_app.app_routes.copy_svg_langs_job import routes as task_routes
+from src.main_app.db import user_tokens as user_store
 
 
 class FakeCursor:

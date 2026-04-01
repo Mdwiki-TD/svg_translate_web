@@ -113,19 +113,20 @@ def create_side(active_route):
                 icon="bi-tools",
             ),
             SidebarItem(
-                id="copy_svg_translation",
-                admin=1,
-                href="copy_svg_translation/list",
-                title="Copy Svg Langs",
-                icon="bi-tools",
-            ),
-            SidebarItem(
                 id="download_main_files",
                 admin=1,
                 href="download_main_files/list",
                 title="Download Main Files",
                 icon="bi-download",
                 disabled=True,
+            ),
+            SidebarItem(
+                id="copy_svg_translation",
+                admin=1,
+                href="copy_svg_translation/list",
+                title="Copy SVG Translation",
+                icon="bi-copy",
+                disabled=False,
             ),
         ],
         "Settings": [
@@ -141,7 +142,7 @@ def create_side(active_route):
 
     sidebar = ["<ul class='list-unstyled'>"]
 
-    # logger.debug(f"Generating sidebar for active_route='{active_route}'")
+    logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
         lis = []

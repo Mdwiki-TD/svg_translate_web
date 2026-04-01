@@ -11,7 +11,7 @@ from flask import Flask
 from pytest_mock import MockerFixture
 
 from src.main_app import create_app
-from src.main_app.app_routes.extract import routes
+from src.main_app.app_routes.main_routes import extract_routes
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any
     app, client = app_client
 
     with client.session_transaction() as sess:
-        sess[routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
+        sess[extract_routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
 
     response = client.get("/extract/")
     assert response.status_code == 200
@@ -76,7 +76,7 @@ def test_extract_post_empty_filename_shows_error(
     monkeypatch.setattr("src.main_app.app_routes.extract.routes.flash", fake_flash)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": ""}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert ("Please provide a file name", "danger") in flashed
@@ -104,7 +104,7 @@ def test_extract_post_strips_file_prefix(
     mocker.patch("src.main_app.app_routes.extract.routes.flash")
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
-        routes.extract_translations_post()
+        extract_routes.extract_translations_post()
 
     # Assert that download was called with the stripped filename
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
@@ -141,7 +141,7 @@ def test_extract_post_download_failure(
     monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("Failed to download file" in msg for msg, cat in flashed)
@@ -178,7 +178,7 @@ def test_extract_post_extraction_error(
     monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("Error extracting translations" in msg for msg, cat in flashed)
@@ -220,7 +220,7 @@ def test_extract_post_successful_extraction(
     monkeypatch.setattr("src.main_app.app_routes.extract.routes.shutil.rmtree", lambda *args: None)
 
     with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = routes.extract_translations_post()
+        result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed

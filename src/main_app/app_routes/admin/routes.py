@@ -11,8 +11,7 @@ from flask import (
     url_for,
 )
 
-from ...admins.admins_required import admin_required
-from .admin_routes import (
+from ..admin_routes import (
     Coordinators,
     Jobs,
     OwidCharts,
@@ -20,6 +19,7 @@ from .admin_routes import (
     SettingsRoutes,
     Templates,
 )
+from .admins_required import admin_required
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)
@@ -42,14 +42,13 @@ def admin_dashboard():
     return redirect(url_for("admin.recent_routes"))
 
 
-Coordinators(bp_admin)
+def register_blueprints(bp_admin) -> None:
+    Coordinators(bp_admin)
+    Recent(bp_admin)
+    Templates(bp_admin)
+    SettingsRoutes(bp_admin)
+    Jobs(bp_admin)
+    OwidCharts(bp_admin)
 
-Recent(bp_admin)
 
-Templates(bp_admin)
-
-OwidCharts(bp_admin)
-
-Jobs(bp_admin)
-
-SettingsRoutes(bp_admin)
+register_blueprints(bp_admin)

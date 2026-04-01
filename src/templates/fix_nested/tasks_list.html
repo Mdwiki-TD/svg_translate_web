@@ -41,7 +41,7 @@
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-filter"></i> Filter
                     </button>
-                    <a href="{{ url_for('fix_nested_explorer.list_fix_nested_tasks') }}" class="btn btn-secondary">
+                    <a href="{{ url_for('fix_nested.list_fix_nested_tasks') }}" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Clear
                     </a>
                 </div>
@@ -65,7 +65,7 @@
                         {% for task in tasks %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}">
+                                <a href="{{ url_for('fix_nested.task_detail', task_id=task.id) }}">
                                     {{ task.filename }}
                                 </a>
                             </td>
@@ -95,7 +95,7 @@
                             <td>{{ task.username or '-' }}</td>
                             <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') if task.created_at else '-' }}</td>
                             <td>
-                                <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task.id) }}"
+                                <a href="{{ url_for('fix_nested.task_detail', task_id=task.id) }}"
                                     class="btn btn-sm btn-primary">
                                     <i class="bi bi-eye"></i> View
                                 </a>

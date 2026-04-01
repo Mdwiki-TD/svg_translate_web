@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db import svg_db
-from src.main_app.users import store
+from src.main_app.db import user_tokens
 
 
 @pytest.fixture(autouse=True)
@@ -17,9 +17,9 @@ def reset_db(monkeypatch: pytest.MonkeyPatch):
 
 def test_mark_token_used_updates_last_used(monkeypatch):
     fake_db = MagicMock()
-    monkeypatch.setattr(store, "get_db", lambda: fake_db)
+    monkeypatch.setattr(user_tokens, "get_db", lambda: fake_db)
 
-    store.mark_token_used(12)
+    user_tokens.mark_token_used(12)
 
     fake_db.execute_query.assert_called_once()
     executed_sql = fake_db.execute_query.call_args[0][0]
@@ -27,11 +27,11 @@ def test_mark_token_used_updates_last_used(monkeypatch):
 
 
 def test_user_token_record_decrypted_marks_usage(monkeypatch):
-    monkeypatch.setattr(store, "decrypt_value", lambda value: value.decode("utf-8"))
+    monkeypatch.setattr(user_tokens, "decrypt_value", lambda value: value.decode("utf-8"))
     calls: list[int] = []
-    monkeypatch.setattr(store, "mark_token_used", lambda user_id: calls.append(user_id))
+    monkeypatch.setattr(user_tokens, "mark_token_used", lambda user_id: calls.append(user_id))
 
-    record = store.UserTokenRecord(
+    record = user_tokens.UserTokenRecord(
         user_id=3,
         username="Tester",
         access_token=b"token",

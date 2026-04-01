@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ...users.store import UserTokenRecord
+from ...db.user_tokens import UserTokenRecord
 
 logger = logging.getLogger(__name__)
 

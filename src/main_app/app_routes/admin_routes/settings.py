@@ -7,13 +7,13 @@ import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from ....admins.admins_required import admin_required
-from ....config import settings
+from ..admin.admins_required import admin_required
+from ...config import settings
 
 
 class SettingsRoutes:
     def __init__(self, bp_admin: Blueprint):
-        from ....db.db_Settings import SettingsDB
+        from ...db.db_Settings import SettingsDB
 
         @bp_admin.get("/settings")
         @admin_required

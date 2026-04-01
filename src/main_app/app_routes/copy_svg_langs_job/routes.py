@@ -19,19 +19,19 @@ from flask import (
 )
 from werkzeug.datastructures import MultiDict
 
-from ...admins.admins_required import admin_required
 from ...config import settings
-from ...db import TaskAlreadyExistsError
-from ...services.admin_service import active_coordinators
+from ...db.exceptions import TaskAlreadyExistsError
 from ...public_jobs_workers.copy_svg_langs.legacy_threads import get_cancel_event, launch_task_thread
-from ...services.tasks_service import (
+from ...services.admin_service import active_coordinators
+from ...services.copy_svg_langs_service import (
     _task_store,
     create_new_task,
     get_active_task_by_title,
     get_db_tasks,
     get_store_task,
 )
-from ...users.current import current_user, oauth_required
+from ...services.users_service import current_user, oauth_required
+from ..admin.admins_required import admin_required
 from ..utils.args_utils import parse_args
 from ..utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 
