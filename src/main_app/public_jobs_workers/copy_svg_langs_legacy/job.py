@@ -14,9 +14,8 @@ from typing import Any, Dict
 import mwclient
 import requests
 
-from ...db.copy_svg_langs_db import TaskStorePyMysql
-
 from ...config import settings
+from ...db.copy_svg_langs_db import TaskStorePyMysql
 from ..utils import json_save, make_results_summary
 from .steps import (
     download_step,
@@ -222,7 +221,11 @@ class CopySvgLangsProcessor:
         # ----------------------------------------------
         # Stage 6: inject translations
         inject_data, self.result["stages"]["inject"] = inject_step(
-            self.result["stages"]["inject"], files, translations, output_dir=self.output_dir, overwrite=self.args.overwrite
+            self.result["stages"]["inject"],
+            files,
+            translations,
+            output_dir=self.output_dir,
+            overwrite=self.args.overwrite,
         )
         self.push_stage("inject")
         if self._is_cancelled("inject"):
@@ -275,7 +278,9 @@ class CopySvgLangsProcessor:
 
         self.store.update_results(self.task_id, results)
 
-        final_status = "Failed" if any(s.get("status") == "Failed" for s in self.result["stages"].values()) else "Completed"
+        final_status = (
+            "Failed" if any(s.get("status") == "Failed" for s in self.result["stages"].values()) else "Completed"
+        )
         self.result["stages"]["initialize"]["status"] = "Completed"
         self.push_stage("initialize")
 

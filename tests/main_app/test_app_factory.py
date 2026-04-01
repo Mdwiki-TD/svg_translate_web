@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
 from importlib import reload
+from unittest.mock import patch
 
 from src.main_app.db import svg_db
 

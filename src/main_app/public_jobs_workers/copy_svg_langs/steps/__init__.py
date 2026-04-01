@@ -1,5 +1,3 @@
-from ...utils import make_results_summary, save_files_stats
-
 from ...copy_svg_langs_legacy.steps import (
     download_step,
     extract_text_step,
@@ -9,6 +7,7 @@ from ...copy_svg_langs_legacy.steps import (
     inject_step,
     upload_step,
 )
+from ...utils import make_results_summary, save_files_stats
 
 __all__ = [
     "download_step",

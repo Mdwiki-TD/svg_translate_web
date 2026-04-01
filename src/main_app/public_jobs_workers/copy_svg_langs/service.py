@@ -33,8 +33,7 @@ def _runner(
     cancel_event: threading.Event,
     target_func: Any,
 ) -> None:
-    """
-    """
+    """ """
     try:
         target_func(
             task_id,
