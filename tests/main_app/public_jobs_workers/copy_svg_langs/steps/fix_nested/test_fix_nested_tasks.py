@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested import fix_nested_task
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested import fix_nested_step
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_tasks.match_nested_tags")
@@ -16,7 +16,7 @@ def test_fix_nested_task_success(mock_fix, mock_match):
     stages = {}
     files = ["file1.svg"]
 
-    data, final_stages = fix_nested_task(stages, files)
+    data, final_stages = fix_nested_step(stages, files)
 
     assert data["status"]["fixed"] == 1
     assert data["status"]["len_nested_files"] == 1
@@ -30,7 +30,7 @@ def test_fix_nested_task_no_nested(mock_match):
     stages = {}
     files = ["file1.svg"]
 
-    data, final_stages = fix_nested_task(stages, files)
+    data, final_stages = fix_nested_step(stages, files)
 
     assert data["status"]["len_nested_files"] == 0
     assert data["status"]["fixed"] == 0

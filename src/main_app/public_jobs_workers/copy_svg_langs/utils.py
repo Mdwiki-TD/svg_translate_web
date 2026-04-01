@@ -55,3 +55,7 @@ def make_results_summary(
         "upload_result": upload_result,
         "main_title": main_title,
     }
+
+
+def save_files_stats():
+    ...

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.inject import inject_task
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.inject import inject_step
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.injects.inject_tasks.start_injects")
@@ -13,7 +13,7 @@ def test_inject_task_success(mock_start, tmp_path):
     files = ["f1.svg", "f2.svg"]
     translations = {}
 
-    res, final_stages = inject_task(stages, files, translations, output_dir=tmp_path)
+    res, final_stages = inject_step(stages, files, translations, output_dir=tmp_path)
 
     assert res["success"] == 2
     assert final_stages["status"] == "Completed"
@@ -22,6 +22,6 @@ def test_inject_task_success(mock_start, tmp_path):
 
 def test_inject_task_no_dir():
     stages = {}
-    res, final_stages = inject_task(stages, [], {}, output_dir=None)
+    res, final_stages = inject_step(stages, [], {}, output_dir=None)
     assert final_stages["status"] == "Failed"
     assert res == {}
