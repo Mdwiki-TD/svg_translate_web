@@ -78,9 +78,45 @@ def load_state_hash(
     return refresh_count, current_state_hash
 
 
-@bp_tasks.get("/task")
-@bp_tasks.get("/task/<task_id>")
-def task(task_id: str | None = None):
+@bp_tasks.get("/tasks")
+@bp_tasks.get("/tasks/<user>")
+def tasks(user: str | None = None):
+    """
+    Render the task listing page with formatted task metadata and available status filters.
+
+    Retrieve tasks from the global task store, optionally filter by status, and produce a list of task dictionaries with selected fields and display/sortable timestamp values. Also collect the distinct task statuses found and pass the tasks, the current status filter, and the sorted available statuses to the "tasks.html" template.
+
+    Returns:
+        A Flask response object rendering "tasks.html" with the context keys `tasks`, and `available_statuses`.
+    """
+
+    # Get username from query parameter, default to current user
+    # user = request.args.get("user", "")
+    current_user_obj = current_user()
+
+    db_tasks = get_db_tasks(user)
+
+    formatted = [format_task(task) for task in db_tasks]
+    formatted = format_task_message(formatted)
+
+    available_statuses = sorted({task.get("status", "") for task in db_tasks if task.get("status")})
+
+    # Determine if viewing own tasks or another user's tasks
+    is_own_tasks = current_user_obj and user == current_user_obj.username
+
+    return render_template(
+        "tasks.html",
+        tasks=formatted,
+        available_statuses=available_statuses,
+        current_user=current_user_obj,
+        tasks_user=user,
+        is_own_tasks=is_own_tasks,
+        user_specific=True,
+    )
+
+
+@bp_tasks.get("/tasks/<task_id>")
+def task_infos(task_id: str | None = None):
     if not task_id:
         flash("No task id provided", "warning")
         return redirect(url_for("main.index"))
@@ -138,46 +174,10 @@ def status(task_id: str):
     return jsonify(task)
 
 
-@bp_tasks.get("/tasks")
-@bp_tasks.get("/tasks/<user>")
-def tasks(user: str | None = None):
-    """
-    Render the task listing page with formatted task metadata and available status filters.
-
-    Retrieve tasks from the global task store, optionally filter by status, and produce a list of task dictionaries with selected fields and display/sortable timestamp values. Also collect the distinct task statuses found and pass the tasks, the current status filter, and the sorted available statuses to the "tasks.html" template.
-
-    Returns:
-        A Flask response object rendering "tasks.html" with the context keys `tasks`, and `available_statuses`.
-    """
-
-    # Get username from query parameter, default to current user
-    # user = request.args.get("user", "")
-    current_user_obj = current_user()
-
-    db_tasks = get_db_tasks(user)
-
-    formatted = [format_task(task) for task in db_tasks]
-    formatted = format_task_message(formatted)
-
-    available_statuses = sorted({task.get("status", "") for task in db_tasks if task.get("status")})
-
-    # Determine if viewing own tasks or another user's tasks
-    is_own_tasks = current_user_obj and user == current_user_obj.username
-
-    return render_template(
-        "tasks.html",
-        tasks=formatted,
-        available_statuses=available_statuses,
-        current_user=current_user_obj,
-        tasks_user=user,
-        is_own_tasks=is_own_tasks,
-        user_specific=True,
-    )
-
-
 @bp_tasks.post("/start")
 @oauth_required
 def start():
+    """Start a copy SVG languages job."""
     user = current_user()
     title = request.form.get("title", "").strip()
     if not title:
@@ -193,7 +193,7 @@ def start():
         if existing_task:
             logger.debug(f"Task for title '{title}' already exists: {existing_task['id']}.")
             flash(f"Task for title '{title}' already exists: {existing_task['id']}.", "warning")
-            return redirect(url_for("tasks.task", task_id=existing_task["id"], title=title))
+            return redirect(url_for("tasks.task_infos", task_id=existing_task["id"], title=title))
 
     try:
         create_new_task(task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True))
@@ -201,7 +201,7 @@ def start():
         existing = exc.task
         logger.debug("Task creation for %s blocked by existing task %s", task_id, existing.get("id"))
         flash(f"Task for title '{title}' already exists: {existing['id']}.", "warning")
-        return redirect(url_for("tasks.task", task_id=existing["id"], title=title))
+        return redirect(url_for("tasks.task_infos", task_id=existing["id"], title=title))
     except Exception:
         logger.exception("Failed to create task")
         flash("Failed to create task.", "danger")
@@ -211,10 +211,10 @@ def start():
 
     launch_task_thread(task_id, title, args, auth_payload)
 
-    return redirect(url_for("tasks.task", title=title, task_id=task_id))
+    return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
 
 
-@bp_tasks.post("/task/<task_id>/delete")
+@bp_tasks.post("/tasks/<task_id>/delete")
 @admin_required
 def delete_task(task_id: str):
     """Delete task."""
@@ -248,7 +248,7 @@ def cancel(task_id: str):
 
     if task.get("status") in ("Completed", "Failed", "Cancelled"):
         flash(f"Task is already {task.get('status')}", "info")
-        return redirect(url_for("tasks.task", task_id=task_id))
+        return redirect(url_for("tasks.task_infos", task_id=task_id))
 
     user = current_user()
     if not user:
@@ -266,7 +266,7 @@ def cancel(task_id: str):
             task_username,
         )
         flash("You don't own this task", "danger")
-        return redirect(url_for("tasks.task", task_id=task_id))
+        return redirect(url_for("tasks.task_infos", task_id=task_id))
 
     cancel_event = get_cancel_event(task_id, store=store)
     if cancel_event:
@@ -275,7 +275,7 @@ def cancel(task_id: str):
     store.update_status(task_id, "Cancelled")
 
     flash("Task cancelled successfully.", "success")
-    return redirect(url_for("tasks.task", task_id=task_id))
+    return redirect(url_for("tasks.task_infos", task_id=task_id))
 
 
 @bp_tasks.post("/tasks/<task_id>/restart")
@@ -295,7 +295,7 @@ def restart(task_id: str):
     if not title:
         logger.error("Task %s has no title to restart", task_id)
         flash("Task has no title to restart", "danger")
-        return redirect(url_for("tasks.task", task_id=task_id))
+        return redirect(url_for("tasks.task_infos", task_id=task_id))
 
     user = current_user()
     if not user:
@@ -327,12 +327,12 @@ def restart(task_id: str):
         existing = exc.task
         logger.debug("Restart for %s blocked by existing task %s", task_id, existing.get("id"))
         flash(f"Task for title '{title}' already exists: {existing.get('id')}.", "warning")
-        return redirect(url_for("tasks.task", task_id=existing.get("id")))
+        return redirect(url_for("tasks.task_infos", task_id=existing.get("id")))
     except Exception:
         logger.exception("Failed to restart task %s", task_id)
         flash("Failed to restart task.", "danger")
-        return redirect(url_for("tasks.task", task_id=task_id))
+        return redirect(url_for("tasks.task_infos", task_id=task_id))
 
     launch_task_thread(new_task_id, title, args, user_payload)
 
-    return redirect(url_for("tasks.task", task_id=new_task_id))
+    return redirect(url_for("tasks.task_infos", task_id=new_task_id))

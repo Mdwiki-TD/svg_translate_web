@@ -39,7 +39,7 @@
 ) %}
 {% if should_refresh %}
 <meta http-equiv="refresh"
-    content="3; url={{ url_for('tasks.task', task_id=task_id, state_hash=state_hash, refresh_count=refresh_count) }}">
+    content="3; url={{ url_for('tasks.task_infos', task_id=task_id, state_hash=state_hash, refresh_count=refresh_count) }}">
 {% endif %}
 {% endblock %}
 {% block content %}

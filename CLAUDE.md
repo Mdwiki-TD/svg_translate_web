@@ -78,16 +78,16 @@ Tasks run in background threads with cancellation support via `threading.Event`.
 
 ### Key Route Blueprints
 
-| Blueprint       | Prefix            | Location                 |
-| --------------- | ----------------- | ------------------------ |
-| `bp_main`       | `/`               | `app_routes/main/`       |
-| `bp_auth`       | `/auth`           | `app_routes/auth/`       |
-| `bp_tasks`      | `/task`, `/tasks` | `app_routes/tasks/`      |
-| `bp_explorer`   | `/explorer`       | `app_routes/explorer/`   |
-| `bp_admin`      | `/admin`          | `app_routes/admin/`      |
-| `bp_templates`  | `/templates`      | `app_routes/templates/`  |
-| `bp_fix_nested` | `/fix-nested`     | `app_routes/fix_nested/` |
-| `bp_extract`    | `/extract`        | `app_routes/extract/`    |
+| Blueprint       | Prefix        | Location                 |
+| --------------- | ------------- | ------------------------ |
+| `bp_main`       | `/`           | `app_routes/main/`       |
+| `bp_auth`       | `/auth`       | `app_routes/auth/`       |
+| `bp_tasks`      | `/tasks`      | `app_routes/tasks/`      |
+| `bp_explorer`   | `/explorer`   | `app_routes/explorer/`   |
+| `bp_admin`      | `/admin`      | `app_routes/admin/`      |
+| `bp_templates`  | `/templates`  | `app_routes/templates/`  |
+| `bp_fix_nested` | `/fix-nested` | `app_routes/fix_nested/` |
+| `bp_extract`    | `/extract`    | `app_routes/extract/`    |
 
 ### Configuration
 
