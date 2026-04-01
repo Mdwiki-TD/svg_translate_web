@@ -15,6 +15,11 @@ logger = logging.getLogger(__name__)
 
 class TasksListDB(DbUtils):
     def __init__(self, db: Database | None = None) -> None:
+        """
+        Initialize the TasksListDB instance.
+        Args:
+            db: Optional Database instance to use for database operations
+        """
         self.db = db
 
     def create_base_sql(self, order_column, statuses, status, username, direction, limit, offset):
