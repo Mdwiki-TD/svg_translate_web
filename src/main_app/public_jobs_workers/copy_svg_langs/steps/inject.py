@@ -6,7 +6,7 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-def inject_task(stages: dict, files: list[str], translations, output_dir=None, overwrite=False) -> tuple[dict, dict]:
+def inject_step(stages: dict, files: list[str], translations, output_dir=None, overwrite=False) -> tuple[dict, dict]:
     # ---
     """
     Perform translation injection on a list of files and write translated outputs under output_dir/translated.

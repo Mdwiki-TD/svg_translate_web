@@ -6,7 +6,7 @@ from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignor
 logger = logging.getLogger(__name__)
 
 
-def fix_nested_task(stages: dict, files: list[str]) -> tuple[dict, dict]:
+def fix_nested_step(stages: dict, files: list[str]) -> tuple[dict, dict]:
     # ---
     stages["message"] = f"Analyze 0/{len(files):,}"
     stages["status"] = "Running"
@@ -69,7 +69,7 @@ def fix_nested_task(stages: dict, files: list[str]) -> tuple[dict, dict]:
     # ---
     message = f"Files: ({len(files):,}), Nested: {nested_files:,}, Fixed: {fixed:,}, Not fixed: {not_fixed:,}."
     # ---
-    logger.debug(f"fix_nested_task {message}")
+    logger.debug(f"fix_nested_step {message}")
     # ---
     data["status"]["len_nested_files"] = nested_files
     data["status"]["fixed"] = fixed

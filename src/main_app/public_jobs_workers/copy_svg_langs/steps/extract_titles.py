@@ -1,12 +1,12 @@
 #
 import logging
 
-from .....utils.wikitext import get_files_list
+from ....utils.wikitext import get_files_list
 
 logger = logging.getLogger(__name__)
 
 
-def titles_task(stages, text, manual_main_title, titles_limit=None):
+def extract_titles_step(stages, text, manual_main_title, titles_limit=None):
     """Extract SVG titles from wikitext and update stage metadata.
 
     Parameters:

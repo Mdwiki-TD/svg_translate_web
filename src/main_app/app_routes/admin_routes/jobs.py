@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -12,6 +13,7 @@ from flask import (
     jsonify,
     redirect,
     render_template,
+    request,
     send_from_directory,
     url_for,
 )
@@ -76,6 +78,27 @@ def _start_job(job_type: str) -> int | None:
         flash("Failed to start job. Please try again.", "danger")
 
     return False
+
+
+def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
+    """Start a job."""
+    user = current_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return None
+
+    try:
+        # Get auth payload for OAuth uploads
+        auth_payload = load_auth_payload(user)
+        job_id = jobs_worker.start_job_with_args(auth_payload, job_type, args)
+        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
+        return job_id
+    except Exception:
+        logger.exception("Failed to start job")
+        flash("Failed to start job. Please try again.", "danger")
+
+    return None
 
 
 # ================================
@@ -177,6 +200,18 @@ class Jobs:
             if job_type not in JOB_TYPE_TEMPLATES:
                 abort(404)
             job_id = _start_job(job_type)
+            if not job_id:
+                return redirect(url_for("admin.jobs_list", job_type=job_type))
+            return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
+
+        @bp_admin.post("/<string:job_type>/start_args")
+        @admin_required
+        def start_job_with_args(job_type: str) -> ResponseReturnValue:
+            if job_type not in JOB_TYPE_TEMPLATES:
+                abort(404)
+
+            args = request.form.to_dict()
+            job_id = _start_job_with_args(job_type, args)
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))
             return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))

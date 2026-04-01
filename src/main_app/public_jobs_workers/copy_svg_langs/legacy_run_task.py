@@ -7,15 +7,15 @@ from typing import Any, Dict
 from ...config import DbConfig, settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 from .steps import (
-    download_task,
-    fix_nested_task,
-    inject_task,
+    download_step,
+    extract_text_step,
+    extract_titles_step,
+    extract_translations_step,
+    fix_nested_step,
+    inject_step,
     make_results_summary,
     save_files_stats,
-    text_task,
-    titles_task,
-    translations_task,
-    upload_task,
+    upload_step,
 )
 
 logger = logging.getLogger(__name__)
@@ -174,7 +174,7 @@ def run_task(
 
         # ----------------------------------------------
         # Stage 1: extract text
-        text, stages_list["text"] = text_task(stages_list["text"], title)
+        text, stages_list["text"] = extract_text_step(stages_list["text"], title)
         push_stage("text")
         if check_cancel("text"):
             return
@@ -183,7 +183,7 @@ def run_task(
 
         # ----------------------------------------------
         # Stage 2: extract titles
-        titles_result, stages_list["titles"] = titles_task(
+        titles_result, stages_list["titles"] = extract_titles_step(
             stages_list["titles"],
             text,
             args.manual_main_title,
@@ -210,7 +210,7 @@ def run_task(
         output_dir_main = output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
 
-        translations, stages_list["translations"] = translations_task(
+        translations, stages_list["translations"] = extract_translations_step(
             stages_list["translations"], main_title, output_dir_main
         )
         push_stage("translations")
@@ -222,7 +222,7 @@ def run_task(
 
         # ----------------------------------------------
         # Stage 4: download SVG files
-        files, stages_list["download"], not_done_list = download_task(
+        files, stages_list["download"], not_done_list = download_step(
             task_id,
             stages=stages_list["download"],
             output_dir_main=output_dir_main,
@@ -243,7 +243,7 @@ def run_task(
 
         # ----------------------------------------------
         # Stage 5: analyze nested files
-        nested_task_result, stages_list["nested"] = fix_nested_task(
+        nested_task_result, stages_list["nested"] = fix_nested_step(
             stages_list["nested"],
             files,
         )
@@ -253,7 +253,7 @@ def run_task(
 
         # ----------------------------------------------
         # Stage 6: inject translations
-        injects_result, stages_list["inject"] = inject_task(
+        injects_result, stages_list["inject"] = inject_step(
             stages_list["inject"], files, translations, output_dir=output_dir, overwrite=args.overwrite
         )
         push_stage("inject")
@@ -274,7 +274,7 @@ def run_task(
 
         no_file_path = len(inject_files) - len(files_to_upload)
 
-        upload_result, stages_list["upload"] = upload_task(
+        upload_result, stages_list["upload"] = upload_step(
             stages_list["upload"],
             files_to_upload,
             main_title,

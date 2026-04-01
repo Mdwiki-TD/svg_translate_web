@@ -1,6 +1,5 @@
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
-# from .copy_svg_translation import copy_svg_translation_worker
 from .create_owid_pages import create_owid_pages_for_templates
 from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
@@ -13,7 +12,6 @@ jobs_targets = {
     "create_owid_pages": create_owid_pages_for_templates,
     "add_svglanguages_template": add_svglanguages_template_to_templates,
     "download_main_files": download_main_files_for_templates,
-    # "copy_svg_translation": copy_svg_translation_worker,
 }
 
 
@@ -24,7 +22,6 @@ JOB_TYPE_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
     "download_main_files": "admins/jobs_templates/download_main_files/details.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/details.html",
-    "copy_svg_translation": "admins/jobs_templates/copy_svg_translation/details.html",
 }
 
 
@@ -35,7 +32,6 @@ JOB_TYPE_LIST_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
     "download_main_files": "admins/jobs_templates/download_main_files/list.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/list.html",
-    "copy_svg_translation": "admins/jobs_templates/copy_svg_translation/list.html",
 }
 
 __all__ = [

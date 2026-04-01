@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract import extract_task
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_translations import extract_translations_step
 
 
 @pytest.mark.parametrize(
@@ -33,14 +33,14 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
         return extract_return
 
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract.extract_task.download_one_file",
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_translations.download_one_file",
         fake_download_one_file,
     )
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract.extract_task.extract", fake_extract
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract", fake_extract
     )
 
-    translations, updated_stages = extract_task.translations_task(stages, "Example.svg", dummy_main_path)
+    translations, updated_stages = extract_translations_step(stages, "Example.svg", dummy_main_path)
 
     assert translations == {}
     assert updated_stages["status"] == "Failed"
