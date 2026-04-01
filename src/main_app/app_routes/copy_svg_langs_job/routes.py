@@ -175,7 +175,7 @@ def tasks(user: str | None = None):
     )
 
 
-@bp_tasks.post("/")
+@bp_tasks.post("/start")
 @oauth_required
 def start():
     user = current_user()
