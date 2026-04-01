@@ -74,7 +74,6 @@ class CopySvgLangsWorker(BaseJobWorker):
 
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
-    database_data: DbConfig,
     task_id: str,
     title: str,
     args: Any,

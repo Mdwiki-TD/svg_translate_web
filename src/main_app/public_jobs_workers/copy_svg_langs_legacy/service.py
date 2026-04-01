@@ -37,7 +37,6 @@ def _runner(
     """
     try:
         target_func(
-            settings.database_data,
             task_id,
             title,
             args,
