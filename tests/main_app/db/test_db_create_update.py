@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from src.main_app.db.copy_svg_langs_db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
 
 
 def test_delete_task_success(caplog):

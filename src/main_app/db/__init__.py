@@ -1,7 +1,7 @@
 
-from .db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
-from .db_StageStore import StageStore
-from .db_TasksListDB import TasksListDB
+from .copy_svg_langs_db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from .copy_svg_langs_db.db_StageStore import StageStore
+from .copy_svg_langs_db.db_TasksListDB import TasksListDB
 
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB

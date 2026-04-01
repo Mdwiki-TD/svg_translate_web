@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from src.main_app.db.copy_svg_langs_db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
 from src.main_app.db.utils import DbUtils
 
 
