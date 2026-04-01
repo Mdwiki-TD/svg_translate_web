@@ -1,5 +1,5 @@
 """
-Worker module for copy_svg_translation.
+Worker module for copy_svg_langs.
 """
 
 from __future__ import annotations

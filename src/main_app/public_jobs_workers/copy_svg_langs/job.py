@@ -1,5 +1,5 @@
 """
-Processor for copy_svg_translation
+Processor for copy_svg_langs
 """
 
 from __future__ import annotations
