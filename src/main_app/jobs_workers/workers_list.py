@@ -22,7 +22,6 @@ JOB_TYPE_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
     "download_main_files": "admins/jobs_templates/download_main_files/details.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/details.html",
-    "copy_svg_translation": "admins/jobs_templates/copy_svg_translation/details.html",
 }
 
 
@@ -33,7 +32,6 @@ JOB_TYPE_LIST_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
     "download_main_files": "admins/jobs_templates/download_main_files/list.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/list.html",
-    "copy_svg_translation": "admins/jobs_templates/copy_svg_translation/list.html",
 }
 
 __all__ = [
