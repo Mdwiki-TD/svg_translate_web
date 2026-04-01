@@ -105,12 +105,12 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.main_app.users.current.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admin_routes.templates.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.users.current.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.services.users_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeTemplatesDB({})

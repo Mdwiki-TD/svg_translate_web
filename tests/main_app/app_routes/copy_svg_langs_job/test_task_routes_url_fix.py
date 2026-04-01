@@ -63,8 +63,8 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     store = DummyTaskStore()
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: store)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE", store)
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE_LOCK", threading.Lock())
 
     yield app, app.test_client(), store
 
@@ -83,7 +83,7 @@ def test_start_redirects_to_correct_task_endpoint(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     existing_id = "existing-task-123"
     store.create_task(existing_id, "Test Title", username="tester", form={"title": "Test Title"})

@@ -88,12 +88,12 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
         return store
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", store_factory)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE", store)
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE_LOCK", threading.Lock())
 
     yield app, app.test_client(), store
 
-    monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", None)
+    monkeypatch.setattr("src.main_app.services.copy_svg_langs_service.TASK_STORE", None)
 
 
 def test_format_task_message() -> None:
@@ -213,7 +213,7 @@ def test_start_creates_task_and_launches_thread(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     generated_id = "abc123"
     monkeypatch.setattr(uuid, "uuid4", lambda: types.SimpleNamespace(hex=generated_id))
@@ -249,7 +249,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
     )
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.services.users_service.current_user", lambda: user)
 
     existing_id = "existing"
     store.create_task(existing_id, "Duplicate Title", username="tester", form={"title": "Duplicate Title"})
@@ -339,8 +339,8 @@ def test_delete_task_success(app_client: tuple[Flask, Any, DummyTaskStore], monk
     store.tasks["deadbeef"] = {"id": "deadbeef", "title": "Delete me"}
 
     user = types.SimpleNamespace(username="admin")
-    monkeypatch.setattr("src.main_app.admins.admins_required.current_user", lambda: user)
-    monkeypatch.setattr("src.main_app.admins.admins_required.active_coordinators", lambda: ["admin"])
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: ["admin"])
 
     flashed: list[tuple[str, str]] = []
 
