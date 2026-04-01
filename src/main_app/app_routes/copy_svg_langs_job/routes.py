@@ -79,7 +79,7 @@ def load_state_hash(
 
 
 @bp_tasks.get("/tasks")
-@bp_tasks.get("/tasks/<user>")
+@bp_tasks.get("/tasks/user/<user>")
 def tasks(user: str | None = None):
     """
     Render the task listing page with formatted task metadata and available status filters.
@@ -115,6 +115,7 @@ def tasks(user: str | None = None):
     )
 
 
+@bp_tasks.get("/tasks/<task_id>")
 @bp_tasks.get("/tasks/<task_id>/info")
 def task_infos(task_id: str | None = None):
     if not task_id:
