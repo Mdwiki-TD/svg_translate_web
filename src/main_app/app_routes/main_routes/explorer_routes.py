@@ -9,6 +9,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from flask.wrappers import Response
 
 from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
@@ -105,7 +106,7 @@ def main():
 
 
 @bp_explorer.route("/media/<title_dir>/<subdir>/<path:filename>")
-def serve_media(title_dir: str, subdir: str, filename: str):
+def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
     """
     Serve SVG files
     """
@@ -120,7 +121,7 @@ def serve_media(title_dir: str, subdir: str, filename: str):
 
 
 @bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<path:filename>")
-def serve_thumb(title_dir: str, subdir: str, filename: str):
+def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     # ---
     dir_path = svg_data_path / title_dir / subdir
     thumb_path = svg_data_thumb_path / title_dir / subdir

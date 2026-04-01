@@ -17,6 +17,7 @@ from flask import (
     session,
     url_for,
 )
+from flask.wrappers import Response
 
 from ...api_services.clients import get_user_site
 from ...api_services.upload_bot import upload_file
@@ -292,7 +293,7 @@ def task_detail(task_id: str):
 
 
 @bp_fix_nested.route("/tasks/<task_id>/files/<file_type>")
-def serve_file(task_id: str, file_type: str):
+def serve_file(task_id: str, file_type: str) -> Response:
     """
     Serve original or fixed file.
     """
