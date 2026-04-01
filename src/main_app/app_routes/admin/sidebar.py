@@ -113,9 +113,9 @@ def create_side(active_route):
                 icon="bi-tools",
             ),
             SidebarItem(
-                id="copy_svg_langs",
+                id="copy_svg_translation",
                 admin=1,
-                href="copy_svg_langs/list",
+                href="copy_svg_translation/list",
                 title="Copy Svg Langs",
                 icon="bi-tools",
             ),

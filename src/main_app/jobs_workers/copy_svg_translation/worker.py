@@ -1,5 +1,5 @@
 """
-Worker module for add_svglanguages_template.
+Worker module for copy_svg_translation.
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ class TemplateInfo:
 
 class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     """
-    Worker for add_svglanguages_template.
+    Worker for copy_svg_translation.
     Steps:
         1. load template wikitext
         2. generate SVGLanguages template text
@@ -226,7 +226,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "add_svglanguages_template"
+        return "copy_svg_translation"
 
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
