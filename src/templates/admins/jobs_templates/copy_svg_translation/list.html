@@ -1,17 +1,50 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
 {% set job_type = 'copy_svg_translation' %}
+{% set hide_start_button = '1' %}
 
-{% block list_title %}Add Template:SVGLanguages{% endblock %}
-{% block list_headline %}Add Template:SVGLanguages{% endblock %}
-
-{% block start_confirm_message %}This will start a background job to add Template:SVGLanguages to OWID templates.
-Continue?{% endblock %}
-{% block start_icon %}bi-plus-circle{% endblock %}
+{% block list_title %}Copy Svg Translation{% endblock %}
+{% block list_headline %}Copy Svg Translation{% endblock %}
 
 {% block list_info %}
-<!-- <div class="alert alert-info mb-3">
-    <i class="bi bi-info-circle"></i>
-    This job
-</div> -->
+<form method="post" action="{{ url_for('admin.start_job', job_type=job_type) }}"
+    class="row gy-2 gx-3 align-items-center mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="col-sm-12 col-md-4">
+        <label for="title" class="form-label">Template Title</label>
+        <input type="text" class="form-control" id="title" name="title"
+            value="{{ form.title if form and form.title else 'Template:OWID/death rate from obesity'}}" required>
+    </div>
+    <div class="col-sm-12 col-md-3">
+        <label for="manual_main_title" class="form-label">Manual Main File Title (optional)</label>
+        <input type="text" class="form-control" id="manual_main_title" name="manual_main_title"
+            value="{{ form.manual_main_title if form and form.manual_main_title else '' }}"
+            placeholder="File:Example.svg">
+    </div>
+    <div class="col-6 col-md-3 col-sm-12">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="z" id="overwrite" name="overwrite"
+                        {{ 'checked' if not form or form.overwrite == "z" else '' }}>
+                    <label class="form-check-label" for="overwrite">
+                        Overwrite translations
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="z" id="upload" name="upload"
+                        {{ 'checked' if not form or form.upload == "z" else '' }}>
+                    <label class="form-check-label" for="upload">
+                        Upload Files
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Start</button>
+    </div>
+</form>
 {% endblock %}

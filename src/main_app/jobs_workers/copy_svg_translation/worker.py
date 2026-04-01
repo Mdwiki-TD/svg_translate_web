@@ -279,6 +279,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 def copy_svg_translation_worker(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    args: Dict[str, Any] | None = None,
     cancel_event: threading.Event | None = None,
 ) -> None:
     """

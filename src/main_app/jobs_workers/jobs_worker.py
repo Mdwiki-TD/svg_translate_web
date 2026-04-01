@@ -32,9 +32,27 @@ def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
         return JOBS_CANCEL_EVENTS.get(job_id)
 
 
-def _runner(job_id: int, user: Dict[str, Any] | None, cancel_event: threading.Event, target_func: Any) -> None:
+def _runner(
+    job_id: int,
+    user: Dict[str, Any] | None,
+    cancel_event: threading.Event,
+    target_func: Any,
+) -> None:
     try:
         target_func(job_id, user, cancel_event=cancel_event)
+    finally:
+        _pop_cancel_event(job_id)
+
+
+def _runner_with_args(
+    job_id: int,
+    user: Dict[str, Any] | None,
+    args: Dict[str, Any] | None,
+    cancel_event: threading.Event,
+    target_func: Any,
+) -> None:
+    try:
+        target_func(job_id, user, args, cancel_event=cancel_event)
     finally:
         _pop_cancel_event(job_id)
 
@@ -93,7 +111,40 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     return job.id
 
 
+def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any]) -> int:
+    """
+    Start a background job to fix nested tags in all template main files.
+    Returns the job ID.
+
+    Args:
+        user: User authentication data for OAuth uploads
+    """
+    if job_type not in jobs_targets:
+        raise ValueError(f"Unknown job type: {job_type}")
+
+    username = user.get("username") if user else None
+
+    # Create job record
+    job = jobs_service.create_job(job_type, username)
+
+    cancel_event = threading.Event()
+    _register_cancel_event(job.id, cancel_event)
+
+    # Start background thread
+    thread = threading.Thread(
+        target=_runner_with_args,
+        args=(job.id, user, args, cancel_event, jobs_targets[job_type]),
+        daemon=True,
+    )
+    thread.start()
+
+    logger.info(f"Started background job {job.id} for {job_type}")
+
+    return job.id
+
+
 __all__ = [
     "start_job",
+    "start_job_with_args",
     "cancel_job",
 ]
