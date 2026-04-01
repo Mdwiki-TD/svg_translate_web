@@ -63,7 +63,6 @@ def store_and_db() -> Tuple[TaskStorePyMysql, MagicMock]:
 
 
 class TestTaskStorePyMysql:
-
     def test_row_to_task_uses_provided_stages(self, store_and_db):
         store, _db = store_and_db
         row = _task_row(
@@ -313,7 +312,6 @@ class TestTaskStorePyMysql:
 
 
 class TestTasksListDB:
-
     def test_create_base_sql_simple(self, store_and_db):
         _store, db = store_and_db
         query_parts, params = _store.create_base_sql(
@@ -393,7 +391,7 @@ class TestTasksListDB:
             }
         ]
 
-        tasks = db.list_tasks(limit=10)
+        tasks = _store.list_tasks(limit=10)
 
         assert len(tasks) == 1
         assert tasks[0]["id"] == "t1"
@@ -409,12 +407,12 @@ class TestTasksListDB:
     def test_list_tasks_no_results(self, store_and_db):
         _store, db = store_and_db
         db.fetch_query_safe.return_value = []
-        tasks = db.list_tasks()
+        tasks = _store.list_tasks()
         assert tasks == []
 
     def test_list_tasks_db_failure(self, store_and_db):
         _store, db = store_and_db
         db.fetch_query_safe.return_value = []
         # Technically fetch_query_safe returns [] on error too, but handled same way
-        tasks = db.list_tasks()
+        tasks = _store.list_tasks()
         assert tasks == []
