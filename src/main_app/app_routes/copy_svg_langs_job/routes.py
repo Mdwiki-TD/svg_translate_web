@@ -115,7 +115,7 @@ def tasks(user: str | None = None):
     )
 
 
-@bp_tasks.get("/tasks/<task_id>")
+@bp_tasks.get("/tasks/<task_id>/info")
 def task_infos(task_id: str | None = None):
     if not task_id:
         flash("No task id provided", "warning")
