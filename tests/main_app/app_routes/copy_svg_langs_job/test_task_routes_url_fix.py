@@ -88,7 +88,7 @@ def test_start_redirects_to_correct_task_endpoint(
     existing_id = "existing-task-123"
     store.create_task(existing_id, "Test Title", username="tester", form={"title": "Test Title"})
 
-    response = client.post("/", data={"title": "Test Title"})
+    response = client.post("/start", data={"title": "Test Title"})
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith(f"/task/{existing_id}?title=Test+Title")
