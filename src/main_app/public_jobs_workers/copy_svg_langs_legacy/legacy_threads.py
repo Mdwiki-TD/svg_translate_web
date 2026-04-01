@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict
 from flask import current_app
 
 from ...config import settings
-from .legacy_run_task import run_task
+from .legacy_worker import run_task
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -59,11 +59,16 @@ def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event 
         threading.Event | None: The cancellation Event if the task is being cancelled,
         or None if no cancellation is in progress.
 
-    NOTE: The cross-process cancellation logic implemented here is currently ineffective because the worker threads do not utilize it. While get_cancel_event now checks the database, it is only called by the cancellation route to retrieve an event to signal. If the task is running in a different process, this function returns a new already-set event, but setting it has no impact on the actual worker thread in the other process. For cross-process cancellation to work, the worker's check_cancel helper (in legacy_run_task.py) must also poll the database or use this updated get_cancel_event function to detect the signal.
+    NOTE: The cross-process cancellation logic implemented here is currently ineffective because the worker threads do not utilize it. While get_cancel_event now checks the database, it is only called by the cancellation route to retrieve an event to signal. If the task is running in a different process, this function returns a new already-set event, but setting it has no impact on the actual worker thread in the other process. For cross-process cancellation to work, the worker's check_cancel helper (in legacy_worker.py) must also poll the database or use this updated get_cancel_event function to detect the signal.
 
     """
+    # First, try to get the cancellation event from the in-memory dictionary
+    # This is fast and works for single-process deployments
+    # Lock the CANCEL_EVENTS dictionary to ensure thread-safe access
+        # Check if the event exists in the local dictionary
     with CANCEL_EVENTS_LOCK:
         local_event = CANCEL_EVENTS.get(task_id)
+            # Return the event if found
         if local_event is not None:
             return local_event
 

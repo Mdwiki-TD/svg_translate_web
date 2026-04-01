@@ -14,6 +14,7 @@ from flask import (
 )
 
 from ...services.users_service import current_user, oauth_required
+from .service import start_copy_svg_langs_job
 
 logger = logging.getLogger(__name__)
 
