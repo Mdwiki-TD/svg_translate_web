@@ -91,4 +91,4 @@ def test_start_redirects_to_correct_task_endpoint(
     response = client.post("/start", data={"title": "Test Title"})
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/task/{existing_id}?title=Test+Title")
+    assert response.headers["Location"].endswith(f"/tasks/{existing_id}?title=Test+Title")

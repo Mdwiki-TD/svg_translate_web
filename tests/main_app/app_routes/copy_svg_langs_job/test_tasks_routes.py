@@ -126,14 +126,6 @@ def test_close_task_store(monkeypatch: pytest.MonkeyPatch) -> None:
     copy_svg_langs_service.close_task_store()
 
 
-def test_task_redirects_without_identifier(app_client: tuple[Flask, Any, DummyTaskStore]) -> None:
-    app, client, _ = app_client
-
-    response = client.get("/task")
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/")
-
-
 def test_task_renders_context_with_missing_task(
     app_client: tuple[Flask, Any, DummyTaskStore], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -156,7 +148,7 @@ def test_task_renders_context_with_missing_task(
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.render_template", fake_render)
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.flash", fake_flash)
 
-    with app.test_request_context("/task/missing?title=Sample&error=task-active"):
+    with app.test_request_context("/tasks/missing?title=Sample&error=task-active"):
         result = routes.task("missing")
 
     assert result == "rendered"
@@ -193,7 +185,7 @@ def test_task2_includes_ordered_stages(
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.render_template", fake_render)
 
-    with app.test_request_context("/task/task42"):
+    with app.test_request_context("/tasks/task42"):
         result = routes.task("task42")
 
     assert result == "rendered"
@@ -230,7 +222,7 @@ def test_start_creates_task_and_launches_thread(
     response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/task/{generated_id}?title=Sample+Title")
+    assert response.headers["Location"].endswith(f"/tasks/{generated_id}?title=Sample+Title")
     assert generated_id in store.tasks
     assert store.tasks[generated_id]["title"] == "Sample Title"
     assert launch_calls and launch_calls[0][0] == generated_id
@@ -272,7 +264,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
     response = client.post("/start", data={"title": "Duplicate Title"})
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/task/{existing_id}?title=Duplicate+Title")
+    assert response.headers["Location"].endswith(f"/tasks/{existing_id}?title=Duplicate+Title")
     assert flashed == [("Task for title 'Duplicate Title' already exists: existing.", "warning")]
     assert not launch_calls
 
