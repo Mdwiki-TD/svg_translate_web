@@ -87,19 +87,22 @@ def test_extract_post_strips_file_prefix(
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     mocker: MockerFixture,  # Add mocker
+    tmp_path,
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
     app, _ = app_client
 
     # 1. Use mocker.patch for stronger assertions
     mock_download = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.download_one_file")
-    mock_download.return_value = {"result": "success", "path": "/tmp/test.svg"}
+    # mock_download.return_value = {"result": "success", "path": "/tmp/test.svg"}
+    mock_download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
 
     mock_extract = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.extract")
     mock_extract.return_value = {"new": {}, "title": {}}
 
     # 2. Use mocker.patch for tempfile to avoid manual mocking
-    mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
+    # mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
+    mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value=str(tmp_path))
     mocker.patch("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree")
     mocker.patch("src.main_app.app_routes.main_routes.extract_routes.flash")
 

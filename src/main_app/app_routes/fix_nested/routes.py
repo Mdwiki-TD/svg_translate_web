@@ -17,6 +17,7 @@ from flask import (
     session,
     url_for,
 )
+from flask.wrappers import Response
 
 from ...api_services.clients import get_user_site
 from ...api_services.upload_bot import upload_file
@@ -133,10 +134,12 @@ def fix_nested_post():
             flash(error_details, "danger")
 
         flash(result["message"], "danger")
-        return render_template("fix_nested/form.html", filename=original_filename)
+        return redirect(url_for("fix_nested.task_detail", task_id=task_id))
+        # return render_template("fix_nested/form.html", filename=original_filename)
 
     # Preserve filename in input field regardless of result
-    return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
+    return redirect(url_for("fix_nested.task_detail", task_id=task_id, commons_link=commons_link))
+    # return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
 
 
 @bp_fix_nested.route("/upload", methods=["POST", "GET"])
@@ -290,11 +293,9 @@ def task_detail(task_id: str):
 
 
 @bp_fix_nested.route("/tasks/<task_id>/files/<file_type>")
-def serve_file(task_id: str, file_type: str):
+def serve_file(task_id: str, file_type: str) -> Response:
     """
     Serve original or fixed file.
-
-    TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
     """
     if file_type not in ["original", "fixed"]:
         abort(400, description="Invalid file type")
@@ -308,10 +309,14 @@ def serve_file(task_id: str, file_type: str):
 
     # Security check: ensure the path is within the expected directory
     file_path = (task_dir / filename).resolve()
-    if not str(file_path).startswith(str(task_dir.resolve())):
+    if not file_path.is_relative_to(task_dir.resolve()):
         abort(403, description="Access denied")
 
-    return send_from_directory(str(task_dir.absolute()), filename)
+    # return send_from_directory(str(task_dir.absolute()), filename)
+    response = send_from_directory(str(task_dir.absolute()), filename)
+    response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @bp_fix_nested.route("/tasks/<task_id>/log")
@@ -469,7 +474,8 @@ def undo_task(task_id: str):
         db_store.update_status(task_id, "undone")
 
     # Log the undo operation
-    log_to_task(task_dir, f"Task undone: Original file restored by {current_user_obj.get('username', 'unknown')}")
+    log_to_task(task_dir, f"Task undone: Original file restored by {getattr(current_user_obj, 'username', 'unknown')}")
+
     log_to_task(task_dir, f"Undo upload result: {upload_result}")
 
     flash(f"Successfully restored original file: {task['filename']}", "success")
@@ -496,7 +502,7 @@ def delete_task(task_id: str):
     # Security: Prevent path traversal attacks
     task_dir = Path(settings.paths.fix_nested_data) / task_id
     base_path = Path(settings.paths.fix_nested_data).resolve()
-    if not str(task_dir.resolve()).startswith(str(base_path)):
+    if not task_dir.resolve().is_relative_to(base_path):
         logger.error(f"Path traversal attempt detected for task_id: {task_id}")
         flash("Invalid task ID", "danger")
         return redirect(url_for("fix_nested.list_fix_nested_tasks"))

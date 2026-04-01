@@ -206,8 +206,7 @@ src/
 │   │   ├── autocomplete.js
 │   │   ├── card-tools.js
 │   │   ├── dark-mode.js
-│   │   ├── sidebar.js
-│   │   └── SVGLanguages.js
+│   │   └── sidebar.js
 │   └── translate.svg
 ├── svg_config.py
 ├── templates/

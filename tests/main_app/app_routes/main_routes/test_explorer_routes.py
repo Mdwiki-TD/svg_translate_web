@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -106,15 +107,14 @@ def test_serve_media_returns_directory(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake_send(directory: str, filename: str):
         called.append((directory, filename))
-        return directory
+        return SimpleNamespace(headers={})
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.svg_data_path", Path("/base"))
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
     result = explorer_routes.serve_media("title", "files", "file.svg")
 
-    assert result in ["/base/title/files", r"I:\base\title\files"]
-    # assert called == [("/base/title/files", "file.svg")]
+    assert called[0][0].replace("\\", "/").endswith("base/title/files")
     assert called[0][1] == "file.svg"
 
 
@@ -136,14 +136,13 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
 
     def fake_send(directory: str, filename: str):
         responses.append((directory, filename))
-        return directory
+        return SimpleNamespace(headers={})
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.save_thumb", fake_save)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
-    result = explorer_routes.serve_thumb("topic", "files", "file.svg")
+    explorer_routes.serve_thumb("topic", "files", "file.svg")
 
-    assert result.endswith("files")
     path = responses[0][0].replace("\\", "/")
     assert path.endswith("thumbs/topic/files")
 

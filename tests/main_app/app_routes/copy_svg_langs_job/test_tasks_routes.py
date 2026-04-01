@@ -115,11 +115,13 @@ def test_format_task_message() -> None:
 
 def test_close_task_store(monkeypatch: pytest.MonkeyPatch) -> None:
     store = DummyTaskStore()
-    copy_svg_langs_service.TASK_STORE = store
+    # copy_svg_langs_service.TASK_STORE = store
+    monkeypatch.setattr(copy_svg_langs_service, "TASK_STORE", store)
     copy_svg_langs_service.close_task_store()
     assert store.closed is True
 
-    copy_svg_langs_service.TASK_STORE = None
+    # copy_svg_langs_service.TASK_STORE = None
+    monkeypatch.setattr(copy_svg_langs_service, "TASK_STORE", None)
     # Should be a no-op when the store is already cleared.
     copy_svg_langs_service.close_task_store()
 
