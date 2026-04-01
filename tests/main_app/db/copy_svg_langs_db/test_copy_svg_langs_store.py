@@ -53,14 +53,16 @@ def _task_row(
     }
 
 
+@pytest.fixture
+def store_and_db() -> Tuple[TaskStorePyMysql, MagicMock]:
+    store = TaskStorePyMysql.__new__(TaskStorePyMysql)
+    db_mock = MagicMock()
+    store.db = db_mock
+    store.fetch_stages = MagicMock(return_value={})
+    return store, db_mock
+
+
 class TestTaskStorePyMysql:
-    @pytest.fixture
-    def store_and_db(self) -> Tuple[TaskStorePyMysql, MagicMock]:
-        store = TaskStorePyMysql.__new__(TaskStorePyMysql)
-        db_mock = MagicMock()
-        store.db = db_mock
-        store.fetch_stages = MagicMock(return_value={})
-        return store, db_mock
 
     def test_row_to_task_uses_provided_stages(self, store_and_db):
         store, _db = store_and_db
@@ -312,16 +314,9 @@ class TestTaskStorePyMysql:
 
 class TestTasksListDB:
 
-    @pytest.fixture
-    def mock_db(self):
-        return MagicMock()
-
-    @pytest.fixture
-    def tasks_db(self, mock_db):
-        return MockTasksListDB(db=mock_db)
-
-    def test_create_base_sql_simple(self, tasks_db):
-        query_parts, params = tasks_db.create_base_sql(
+    def test_create_base_sql_simple(self, store_and_db):
+        _store, db = store_and_db
+        query_parts, params = _store.create_base_sql(
             order_column="created_at",
             statuses=None,
             status=None,
@@ -337,8 +332,9 @@ class TestTasksListDB:
         assert "LIMIT" not in sql
         assert params == []
 
-    def test_create_base_sql_filtered(self, tasks_db):
-        query_parts, params = tasks_db.create_base_sql(
+    def test_create_base_sql_filtered(self, store_and_db):
+        _store, db = store_and_db
+        query_parts, params = _store.create_base_sql(
             order_column="title",
             statuses=["pending"],
             status="failed",
@@ -362,10 +358,21 @@ class TestTasksListDB:
         assert params[3] == 10
         assert params[4] == 5
 
-    def test_list_tasks_success(self, tasks_db, mock_db):
+    def test_offset_without_limit(self, store_and_db):
+        _store, db = store_and_db
+        # Special case where offset requires a limit
+        query_parts, params = _store.create_base_sql("created_at", None, None, None, "DESC", None, 5)
+        sql = " ".join(query_parts)
+        # Check for large limit constant
+        assert "LIMIT 18446744073709551615" in sql
+        assert "OFFSET %s" in sql
+        assert params[-1] == 5
+
+    def test_list_tasks_success(self, store_and_db):
+        _store, db = store_and_db
         # Mock return from fetch_query_safe
         # It should return joined rows (task + stage)
-        mock_db.fetch_query_safe.return_value = [
+        db.fetch_query_safe.return_value = [
             {
                 "id": "t1",
                 "title": "Task 1",
@@ -386,35 +393,28 @@ class TestTasksListDB:
             }
         ]
 
-        tasks = tasks_db.list_tasks(limit=10)
+        tasks = db.list_tasks(limit=10)
 
         assert len(tasks) == 1
         assert tasks[0]["id"] == "t1"
         assert tasks[0]["stages"]["s1"]["status"] == "done"
 
         # Verify SQL query structure
-        args = mock_db.fetch_query_safe.call_args[0]
+        args = db.fetch_query_safe.call_args[0]
         sql = args[0]
         assert "SELECT * FROM tasks" in sql
         assert "LEFT JOIN task_stages" in sql
         assert "ORDER BY t.created_at DESC" in sql
 
-    def test_list_tasks_no_results(self, tasks_db, mock_db):
-        mock_db.fetch_query_safe.return_value = []
-        tasks = tasks_db.list_tasks()
+    def test_list_tasks_no_results(self, store_and_db):
+        _store, db = store_and_db
+        db.fetch_query_safe.return_value = []
+        tasks = db.list_tasks()
         assert tasks == []
 
-    def test_list_tasks_db_failure(self, tasks_db, mock_db):
-        mock_db.fetch_query_safe.return_value = []
+    def test_list_tasks_db_failure(self, store_and_db):
+        _store, db = store_and_db
+        db.fetch_query_safe.return_value = []
         # Technically fetch_query_safe returns [] on error too, but handled same way
-        tasks = tasks_db.list_tasks()
+        tasks = db.list_tasks()
         assert tasks == []
-
-    def test_offset_without_limit(self, tasks_db):
-        # Special case where offset requires a limit
-        query_parts, params = tasks_db.create_base_sql("created_at", None, None, None, "DESC", None, 5)
-        sql = " ".join(query_parts)
-        # Check for large limit constant
-        assert "LIMIT 18446744073709551615" in sql
-        assert "OFFSET %s" in sql
-        assert params[-1] == 5
