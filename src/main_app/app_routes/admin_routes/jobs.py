@@ -11,23 +11,22 @@ from flask import (
     abort,
     flash,
     jsonify,
-    request,
     redirect,
     render_template,
+    request,
     send_from_directory,
     url_for,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
-
-from ..admin.admins_required import admin_required
 from ...config import settings
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
+from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
 from ...services import jobs_service
 from ...services.users_service import current_user
+from ..admin.admins_required import admin_required
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -100,6 +99,7 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
         flash("Failed to start job. Please try again.", "danger")
 
     return False
+
 
 # ================================
 # Jobs handlers

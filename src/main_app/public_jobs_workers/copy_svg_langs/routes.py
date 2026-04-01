@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from flask import Blueprint, jsonify, request, url_for, redirect, flash
+
+from flask import Blueprint, flash, jsonify, redirect, request, url_for
 
 from ...services.users_service import current_user, oauth_required
 

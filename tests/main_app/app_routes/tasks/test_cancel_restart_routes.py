@@ -46,7 +46,9 @@ def app(monkeypatch: pytest.MonkeyPatch):
     # Mock current_user in the module where oauth_required is defined
     import src.main_app.services.users_service
 
-    monkeypatch.setattr(src.main_app.services.users_service, "current_user", lambda: types.SimpleNamespace(username="user"))
+    monkeypatch.setattr(
+        src.main_app.services.users_service, "current_user", lambda: types.SimpleNamespace(username="user")
+    )
 
     yield app
 

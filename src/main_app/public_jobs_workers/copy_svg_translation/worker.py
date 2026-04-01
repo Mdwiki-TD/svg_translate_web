@@ -8,6 +8,7 @@ import logging
 import threading
 from datetime import datetime
 from typing import Any
+
 from ...jobs_workers.base_worker import BaseJobWorker
 from .job import CopySvgTranslationProcessor
 

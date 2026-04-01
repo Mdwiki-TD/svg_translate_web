@@ -6,8 +6,8 @@ import logging
 import threading
 from typing import Any
 
+from ...jobs_workers.jobs_worker import _register_cancel_event, _runner
 from ...services import jobs_service
-from ...jobs_workers.jobs_worker import _runner, _register_cancel_event
 from .worker import copy_svg_langs_worker_entry
 
 logger = logging.getLogger(__name__)

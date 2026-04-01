@@ -3,7 +3,12 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task import _compute_output_dir, fail_task, make_stages, run_task
+from src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task import (
+    _compute_output_dir,
+    fail_task,
+    make_stages,
+    run_task,
+)
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.settings")
@@ -65,7 +70,7 @@ def test_run_task_success(
             "inject": {"status": "Completed"},
             "upload": {"status": "Completed"},
         },
-        "results_summary": {"total": 1}
+        "results_summary": {"total": 1},
     }
     mock_processor.result = mock_processor.run.return_value
 
@@ -94,7 +99,7 @@ def test_run_task_fail_text(mock_processor_cls, mock_store_cls):
         "status": "failed",
         "stages": {
             "text": {"status": "Failed", "message": "Error"},
-        }
+        },
     }
     mock_processor.result = mock_processor.run.return_value
 
@@ -116,7 +121,7 @@ def test_run_task_fail_titles(mock_processor_cls, mock_store_cls):
         "stages": {
             "text": {"status": "Completed"},
             "titles": {"status": "Failed", "message": "No titles"},
-        }
+        },
     }
     mock_processor.result = mock_processor.run.return_value
 
