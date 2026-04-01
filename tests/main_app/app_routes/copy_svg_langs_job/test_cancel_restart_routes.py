@@ -7,7 +7,7 @@ import types
 import pytest
 from flask import Flask
 
-from src.main_app.app_routes.copy_svg_langs_job import routes
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 from src.main_app.config import DbConfig
 
 
@@ -119,7 +119,7 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
         "src.main_app.app_routes.copy_svg_langs_job.routes.uuid",
         types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")),
     )
-    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread", fake_launch)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.start_copy_svg_langs_job", fake_launch)
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("task")

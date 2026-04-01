@@ -1,7 +1,7 @@
 #
 from .admin.routes import bp_admin
 from .auth.routes import bp_auth
-from .copy_svg_langs_job.routes import bp_tasks
+from ..public_jobs_workers.copy_svg_langs_legacy.routes import bp_tasks
 from .fix_nested import bp_fix_nested
 from .main_routes.explorer_routes import bp_explorer
 from .main_routes.extract_routes import bp_extract

@@ -11,7 +11,7 @@ from flask import (
 
 from ...services.copy_svg_langs_service import _task_store
 from ..admin.admins_required import admin_required
-from ..copy_svg_langs_job.routes import (
+from ...public_jobs_workers.copy_svg_langs_legacy.routes import (
     format_task,
     format_task_message,
 )
