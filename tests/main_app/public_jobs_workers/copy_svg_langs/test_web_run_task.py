@@ -3,7 +3,7 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.web_run_task import (
+from src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task import (
     _compute_output_dir,
     fail_task,
     make_stages,
@@ -65,13 +65,13 @@ def test_fail_task():
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.text_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.titles_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.translations_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.download_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.fix_nested_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.inject_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.upload_task")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_text_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_titles_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_translations_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.download_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.fix_nested_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.inject_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.upload_step")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.save_files_stats")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.make_results_summary")
 def test_run_task_success(
@@ -134,7 +134,7 @@ def test_run_task_success(
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.text_task")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_text_step")
 def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_compute_dir.return_value = Path("/tmp/out")
@@ -150,8 +150,8 @@ def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.TaskStorePyMysql")
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.text_task")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.titles_task")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_text_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.web_run_task.extract_titles_step")
 def test_run_task_fail_titles(mock_titles, mock_text, mock_compute_dir, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_compute_dir.return_value = Path("/tmp/out")

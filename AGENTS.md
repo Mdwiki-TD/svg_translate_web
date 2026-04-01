@@ -33,10 +33,10 @@ isort .                         # Sort imports
 
 ### Python Style
 
-- **Line length**: 120 characters (configured in pyproject.toml)
-- **Target version**: Python 3.11+
-- **Formatter**: Black
-- **Import sorter**: isort (profile: black)
+-   **Line length**: 120 characters (configured in pyproject.toml)
+-   **Target version**: Python 3.11+
+-   **Formatter**: Black
+-   **Import sorter**: isort (profile: black)
 
 ### Imports
 
@@ -48,6 +48,7 @@ Use `from __future__ import annotations` at the top of all Python files. Follow 
 4. Local application imports
 
 Example:
+
 ```python
 from __future__ import annotations
 
@@ -64,11 +65,11 @@ from .utils.verify import verify_required_fields
 
 ### Naming Conventions
 
-- **Classes**: `PascalCase` (e.g., `TaskStorePyMysql`, `DbConfig`)
-- **Functions/Methods**: `snake_case` (e.g., `get_settings`, `format_task`)
-- **Variables**: `snake_case` (e.g., `task_id`, `file_name`)
-- **Constants**: `UPPER_SNAKE_CASE` (e.g., `TASK_STORE`, `MAX_RETRIES`)
-- **Private**: prefix with `_` (e.g., `_load_db_data`, `_cleanup_connections`)
+-   **Classes**: `PascalCase` (e.g., `TaskStorePyMysql`, `DbConfig`)
+-   **Functions/Methods**: `snake_case` (e.g., `get_settings`, `format_task`)
+-   **Variables**: `snake_case` (e.g., `task_id`, `file_name`)
+-   **Constants**: `UPPER_SNAKE_CASE` (e.g., `TASK_STORE`, `MAX_RETRIES`)
+-   **Private**: prefix with `_` (e.g., `_load_db_data`, `_cleanup_connections`)
 
 ### Type Hints
 
@@ -97,12 +98,13 @@ def format_stage_timestamp(value: str) -> str:
 
 ### Error Handling
 
-- Use specific exceptions and log with `logger.exception()` for stack traces
-- Return meaningful error dictionaries: `{"success": False, "error": "message"}`
-- Use validation helpers like `verify_required_fields()`
-- Handle exceptions gracefully, never expose sensitive info
+-   Use specific exceptions and log with `logger.exception()` for stack traces
+-   Return meaningful error dictionaries: `{"success": False, "error": "message"}`
+-   Use validation helpers like `verify_required_fields()`
+-   Handle exceptions gracefully, never expose sensitive info
 
 Example:
+
 ```python
 try:
     page = site.pages[file_name]
@@ -114,23 +116,23 @@ except Exception as exc:
 
 ### Flask Patterns
 
-- Use Blueprints for route organization
-- Use application factory pattern (`create_app()`)
-- Register error handlers for 400, 403, 404, 405, 500, CSRFError
-- Use `@lru_cache` for expensive configuration loading
+-   Use Blueprints for route organization
+-   Use application factory pattern (`create_app()`)
+-   Register error handlers for 400, 403, 404, 405, 500, CSRFError
+-   Use `@lru_cache` for expensive configuration loading
 
 ### Database
 
-- Use parameterized queries with `%s` placeholders
-- Always close connections in teardown handlers
-- Use retry logic for transient failures
-- Lazy import DB modules to avoid circular dependencies
+-   Use parameterized queries with `%s` placeholders
+-   Always close connections in teardown handlers
+-   Use retry logic for transient failures
+-   Lazy import DB modules to avoid circular dependencies
 
 ### Logging
 
-- Use module-level loggers: `logger = logging.getLogger(__name__)`
-- Use f-strings for dynamic content
-- Use appropriate levels: debug, info, warning, error, exception
+-   Use module-level loggers: `logger = logging.getLogger(__name__)`
+-   Use f-strings for dynamic content
+-   Use appropriate levels: debug, info, warning, error, exception
 
 ## Project Structure
 
@@ -151,24 +153,25 @@ tests/                   # Test files (mirror src structure)
 
 ## Testing
 
-- Use pytest with fixtures defined in `conftest.py`
-- Mock external services (mwclient, network calls)
-- Use `pytest-mock` for mocking
-- Use `pytest-cov` for coverage
-- Mark network-dependent tests with `@pytest.mark.network`
+-   Use pytest with fixtures defined in `conftest.py`
+-   Mock external services (mwclient, network calls)
+-   Use `pytest-mock` for mocking
+-   Use `pytest-cov` for coverage
+-   Mark network-dependent tests with `@pytest.mark.network`
 
 ## Environment Variables
 
 Key variables (see CLAUDE.md for full list):
-- `FLASK_SECRET_KEY` - Required for sessions
-- `OAUTH_ENCRYPTION_KEY` - Required for OAuth
-- `OAUTH_CONSUMER_KEY/SECRET` - MediaWiki OAuth credentials
-- `DB_NAME/DB_HOST` - Database configuration
-- `MAIN_DIR` - Data storage path
+
+-   `FLASK_SECRET_KEY` - Required for sessions
+-   `OAUTH_ENCRYPTION_KEY` - Required for OAuth
+-   `OAUTH_CONSUMER_KEY/SECRET` - MediaWiki OAuth credentials
+-   `DB_NAME/DB_HOST` - Database configuration
+-   `MAIN_DIR` - Data storage path
 
 ## Important Notes
 
-- Never commit secrets or .env files
-- Use `DEV_DOWNLOAD_LIMIT=10` in development to limit downloads
-- Always run tests before committing changes
-- Maintain test coverage for new code
+-   Never commit secrets or .env files
+-   Use `DEV_DOWNLOAD_LIMIT=10` in development to limit downloads
+-   Always run tests before committing changes
+-   Maintain test coverage for new code

@@ -1,12 +1,18 @@
+"""Utilities for the copy SVG languages job."""
+
+from __future__ import annotations
+
 import html
 import json
 import logging
+from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
 
-def json_save(path, data):
+def json_save(path: Path | str, data: Any) -> None:
     """
     Save Python data to a file as pretty-printed UTF-8 JSON.
 
@@ -21,11 +27,8 @@ def json_save(path, data):
     if not data:
         logger.error(f"Empty data to save to: {path}")
         return
-    # ---
+
     try:
-        # p = Path(path)
-        # p.parent.mkdir(parents=True, exist_ok=True)
-        # with p.open("w", encoding="utf-8") as f:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
@@ -35,7 +38,7 @@ def json_save(path, data):
         logger.exception(f"Unexpected error saving json, path: {str(path)}")
 
 
-def commons_link(title, name=None):
+def commons_link(title: str, name: str | None = None) -> str:
     """Return an HTML anchor pointing to a Commons file page.
 
     Parameters:
@@ -65,12 +68,18 @@ def save_files_stats(data, output_dir):
 
 
 def make_results_summary(
-    len_files, files_to_upload_count, no_file_path, injects_result, translations, main_title, upload_result
-):
+    total_files: int,
+    files_to_upload_count: int,
+    no_file_path: int,
+    injects_result: dict[str, Any],
+    translations: dict[str, Any],
+    main_title: str,
+    upload_result: dict[str, Any],
+) -> dict[str, Any]:
     """Compile the final task result payload consumed by the UI and API.
 
     Parameters:
-        len_files (int): Total number of files processed during the workflow.
+        total_files (int): Total number of files processed during the workflow.
         files_to_upload_count (int): Number of files with paths suitable for
             upload.
         no_file_path (int): Count of files lacking translated output paths.
@@ -83,7 +92,7 @@ def make_results_summary(
         dict: Summary dictionary persisted to the database for task results.
     """
     return {
-        "total_files": len_files,
+        "total_files": total_files,
         "files_to_upload_count": files_to_upload_count,
         "no_file_path": no_file_path,
         "injects_result": {

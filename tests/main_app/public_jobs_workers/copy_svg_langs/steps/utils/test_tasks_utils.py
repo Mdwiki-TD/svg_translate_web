@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.utils.tasks_utils import (
+from src.main_app.public_jobs_workers.copy_svg_langs.utils import (
     commons_link,
     json_save,
     make_results_summary,
@@ -21,7 +21,7 @@ def test_json_save(tmp_path):
     assert loaded == data
 
     # Test empty data
-    log_mock = patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.utils.tasks_utils.logger")
+    log_mock = patch("src.main_app.public_jobs_workers.copy_svg_langs.utils.logger")
     with log_mock as mock_logger:
         json_save(file_path, {})
         mock_logger.error.assert_called()
@@ -66,7 +66,7 @@ def test_save_files_stats(tmp_path):
 
 def test_make_results_summary():
     res = make_results_summary(
-        len_files=10,
+        total_files=10,
         files_to_upload_count=5,
         no_file_path=2,
         injects_result={"nested_files": 1, "success": 8, "failed": 1},
