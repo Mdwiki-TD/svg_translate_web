@@ -178,6 +178,7 @@ def tasks(user: str | None = None):
 @bp_tasks.post("/start")
 @oauth_required
 def start():
+    """Start a copy SVG languages job."""
     user = current_user()
     title = request.form.get("title", "").strip()
     if not title:
