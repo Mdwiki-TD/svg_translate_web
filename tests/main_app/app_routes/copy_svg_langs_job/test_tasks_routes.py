@@ -173,7 +173,8 @@ def test_task2_includes_ordered_stages(
     }
 
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user", lambda: types.SimpleNamespace(username="demo")
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user",
+        lambda: types.SimpleNamespace(username="demo"),
     )
 
     captured: dict[str, Any] = {}
@@ -217,7 +218,9 @@ def test_start_creates_task_and_launches_thread(
     def fake_launch(task_id: str, title: str, args: Any, auth_payload: dict[str, Any]) -> None:
         launch_calls.append((task_id, title, args, auth_payload))
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job", fake_launch)
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job", fake_launch
+    )
 
     response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 
@@ -311,7 +314,9 @@ def test_tasks_renders_formatted_tasks(
         return "rendered"
 
     monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.format_task", fake_format_task)
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.format_task_message", fake_format_message)
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.format_task_message", fake_format_message
+    )
     monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.render_template", fake_render)
 
     response = client.get("/tasks/user/alice")
