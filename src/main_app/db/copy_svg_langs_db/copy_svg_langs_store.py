@@ -3,12 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
-from ....config import DbConfig
-from ....db.db_class import Database
+from ...config import DbConfig
+from ..db_class import Database
 from .db_CreateUpdate import CreateUpdateTask
 from .db_StageStore import StageStore
-from ....db.sql_schema_tables import sql_tables
-from ....db.utils import DbUtils
+from ..sql_schema_tables import sql_tables
+from ..utils import DbUtils
 
 logger = logging.getLogger(__name__)
 

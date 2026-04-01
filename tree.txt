@@ -46,9 +46,15 @@ src/
 │   │   │   └── routes.py
 │   │   ├── copy_svg_langs_job/
 │   │   │   ├── __init__.py
+│   │   │   ├── copy_svg_langs_db/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── copy_svg_langs_store.py
+│   │   │   │   ├── db_CreateUpdate.py
+│   │   │   │   └── db_StageStore.py
 │   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
+│   │   │   ├── fix_nested_task_store.py
 │   │   │   ├── routes.py
 │   │   │   └── worker.py
 │   │   ├── main_routes/
@@ -79,18 +85,13 @@ src/
 │   ├── db/
 │   │   ├── __init__.py
 │   │   ├── copy_svg_langs_db/
-│   │   │   ├── __init__.py
-│   │   │   ├── copy_svg_langs_store.py
-│   │   │   ├── db_CreateUpdate.py
-│   │   │   ├── db_StageStore.py
-│   │   │   └── db_TasksListDB.py
 │   │   ├── db_class.py
 │   │   ├── db_CoordinatorsDB.py
 │   │   ├── db_Jobs.py
 │   │   ├── db_OwidCharts.py
 │   │   ├── db_Settings.py
 │   │   ├── db_Templates.py
-│   │   ├── fix_nested_task_store.py
+│   │   ├── errors.py
 │   │   ├── sql_schema_tables.py
 │   │   ├── svg_db.py
 │   │   ├── user_tokens.py

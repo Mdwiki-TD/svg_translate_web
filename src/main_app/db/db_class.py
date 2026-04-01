@@ -9,7 +9,7 @@ from typing import Any, Iterable, Sequence
 import pymysql
 
 from ..config import DbConfig
-from .errors import MaxUserConnectionsError
+from .exceptions import MaxUserConnectionsError
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,8 @@ import json
 import logging
 from typing import Dict, List, Optional
 
-from ...db.db_class import Database
-from ...db.sql_schema_tables import sql_tables
+from .db_class import Database
+from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

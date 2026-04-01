@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from ....db.errors import TaskAlreadyExistsError
-from ....db.db_class import Database
-from ....db.utils import DbUtils
+from ..exceptions import TaskAlreadyExistsError
+from ..db_class import Database
+from ..utils import DbUtils
 
 logger = logging.getLogger(__name__)
 TERMINAL_STATUSES = ("Completed", "Failed", "Cancelled")
