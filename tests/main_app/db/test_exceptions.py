@@ -1,4 +1,3 @@
-
 from src.main_app.db.exceptions import MaxUserConnectionsError, TaskAlreadyExistsError
 
 

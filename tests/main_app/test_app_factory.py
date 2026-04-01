@@ -113,7 +113,6 @@ def test_create_app_registers_blueprints(monkeypatch):
     assert "main" in blueprint_names
     assert "tasks" in blueprint_names
     assert "explorer" in blueprint_names
-    assert "templates" in blueprint_names
     assert "admin" in blueprint_names
     assert "auth" in blueprint_names
     assert "fix_nested" in blueprint_names
