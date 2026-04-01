@@ -35,7 +35,7 @@ from ...services.copy_svg_langs_service import (
 from ...services.users_service import current_user, oauth_required
 from .service import get_cancel_event, start_copy_svg_langs_job
 
-bp_copy_svg_langs = Blueprint("tasks", __name__)
+bp_copy_svg_langs = Blueprint("copy_svg_langs", __name__)
 logger = logging.getLogger(__name__)
 
 

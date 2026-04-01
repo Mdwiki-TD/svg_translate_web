@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
 from importlib import reload
 
 from src.main_app.db import svg_db
@@ -99,10 +100,9 @@ def test_format_stage_timestamp_midnight():
     assert "12:00 AM" in result
 
 
-def test_create_app_registers_blueprints(monkeypatch):
-    """Test create_app registers all required blueprints."""
-    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-
+@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
+def test_create_app_registers_blueprints():
+    """Test create_app registers all blueprints."""
     from src.main_app import create_app
 
     app = create_app()
@@ -110,13 +110,18 @@ def test_create_app_registers_blueprints(monkeypatch):
     # Check that blueprints are registered
     blueprint_names = [bp.name for bp in app.blueprints.values()]
 
-    assert "main" in blueprint_names
-    assert "tasks" in blueprint_names
-    assert "explorer" in blueprint_names
-    assert "admin" in blueprint_names
-    assert "auth" in blueprint_names
-    assert "fix_nested" in blueprint_names
-    assert "extract" in blueprint_names
+    expected_blueprints = [
+        "main",
+        "copy_svg_langs",
+        "explorer",
+        "admin",
+        "auth",
+        "fix_nested",
+        "extract",
+    ]
+
+    for bp_name in expected_blueprints:
+        assert bp_name in blueprint_names, f"Blueprint {bp_name} not registered"
 
 
 def test_create_app_sets_secret_key(monkeypatch):
