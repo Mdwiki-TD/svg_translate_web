@@ -1,6 +1,194 @@
-from .up import start_upload, upload_step
+"""Upload task helpers with progress callbacks."""
 
-__all__ = [
-    "upload_step",
-    "start_upload",
-]
+from __future__ import annotations
+
+import logging
+from typing import Any, Callable, Dict, Optional
+
+import mwclient
+from tqdm import tqdm
+
+from .....api_services.clients.wiki_client import build_upload_site, coerce_encrypted
+from .....api_services.upload_bot import upload_file
+from .....db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
+from .....db.user_tokens import mark_token_used
+
+logger = logging.getLogger(__name__)
+
+
+def start_upload(
+    files_to_upload: Dict[str, Dict[str, object]],
+    main_title_link: str,
+    site: mwclient.Site,
+    stages: Dict[str, Any],
+    task_id: str,
+    store: TaskStorePyMysql,
+    check_cancel: Callable[[str | None], bool],
+):
+    """Upload files to Wikimedia Commons using an authenticated mwclient site."""
+
+    done = 0
+    not_done = 0
+    no_changes = 0
+    errors = []
+
+    def message_updater(value: str) -> None:
+        store.update_stage_column(task_id, "upload", "stage_message", value)
+
+    total = len(files_to_upload)
+    to_work = {x: v for x, v in files_to_upload.items() if v.get("new_languages")}
+
+    no_changes += total - len(to_work)
+
+    for index, (file_name, file_data) in enumerate(
+        tqdm(to_work.items(), desc="uploading files", total=len(to_work)),
+        start=1,
+    ):
+        file_path = file_data.get("file_path", None) if isinstance(file_data, dict) else None
+        logger.debug(f"start uploading file: {file_name}.")
+        summary = (
+            f"Adding {file_data.get('new_languages')} languages translations from {main_title_link}"
+            if isinstance(file_data, dict) and "new_languages" in file_data
+            else f"Adding translations from {main_title_link}"
+        )
+        upload = (
+            upload_file(
+                file_name,
+                file_path,
+                site=site,
+                summary=summary,
+            )
+            or {}
+        )
+
+        result = upload.get("result", "")
+
+        logger.debug(f"upload result: {result}")
+
+        if result == "Success":
+            done += 1
+        elif result == "fileexists-no-change":
+            no_changes += 1
+        else:
+            not_done += 1
+            if "error" in upload:
+                errors.append(upload.get("error"))
+
+        stages["message"] = (
+            f"Total Files: {total:,}, "
+            f"uploaded {done:,}, "
+            f"no changes: {no_changes:,}, "
+            f"not uploaded: {not_done:,}"
+        )
+
+        if message_updater:
+            message_updater(stages["message"])
+
+        if index % 10 == 0:
+            if check_cancel and check_cancel("upload"):
+                upload_result = {
+                    "done": done,
+                    "not_done": not_done,
+                    "no_changes": no_changes,
+                    "errors": errors,
+                }
+                return upload_result, stages
+
+    stages["message"] = (
+        f"Total Files: {total:,}, uploaded {done:,}, no changes: {no_changes:,}, not uploaded: {not_done:,}"
+    )
+    stages["status"] = "Failed" if not_done >= 10 else "Completed"
+
+    upload_result = {
+        "done": done,
+        "not_done": not_done,
+        "no_changes": no_changes,
+        "errors": errors,
+    }
+
+    return upload_result, stages
+
+
+def upload_step(
+    stages: Dict[str, Any],
+    files_to_upload: Dict[str, Dict[str, object]],
+    main_title: str,
+    do_upload: Optional[bool] = None,
+    user: Dict[str, str] = None,
+    store: TaskStorePyMysql = None,
+    task_id: str = "",
+    check_cancel: Callable | None = None,
+):
+    """
+    Coordinate and run the file upload process, updating stage status and progress as files are processed.
+    """
+
+    def progress_updater(stage_state: Dict[str, Any]) -> None:
+        """Forward upload progress updates to the task store."""
+        store.update_stage(task_id, "upload", stage_state or stages)
+
+    total = len(files_to_upload)
+    stages["status"] = "Running"
+    stages["message"] = f"Uploading files 0/{total:,}"
+
+    progress_updater(stages)
+
+    if not do_upload:
+        stages["status"] = "Skipped"
+        stages["message"] += " (Upload disabled)"
+        progress_updater(stages)
+        return {"done": 0, "not_done": total, "skipped": True, "reason": "disabled"}, stages
+
+    if not files_to_upload:
+        stages["status"] = "Skipped"
+        stages["message"] += " (No files to upload)"
+        progress_updater(stages)
+        return {"done": 0, "not_done": 0, "skipped": True, "reason": "no-input"}, stages
+
+    user = user or {}
+    access_token = coerce_encrypted(user.get("access_token"))
+    access_secret = coerce_encrypted(user.get("access_secret"))
+
+    if not access_token or not access_secret:
+        stages["status"] = "Failed"
+        stages["message"] += " (Missing OAuth credentials)"
+        # ---
+        progress_updater(stages)
+        # ---
+        return {
+            "done": 0,
+            "not_done": total,
+            "skipped": True,
+            "reason": "missing-token",
+        }, stages
+
+    try:
+        site = build_upload_site(access_token, access_secret)
+    except Exception as exc:  # pragma: no cover - network interaction
+        logger.exception("Failed to build OAuth site", exc_info=exc)
+        stages["status"] = "Failed"
+        stages["message"] += " (OAuth authentication failed)"
+        progress_updater(stages)
+        return {
+            "done": 0,
+            "not_done": total,
+            "skipped": True,
+            "reason": "oauth-auth-failed",
+        }, stages
+
+    user_id = user.get("id") if isinstance(user, dict) else None
+
+    if isinstance(user_id, int):
+        try:
+            mark_token_used(user_id)
+        except Exception:  # pragma: no cover - defensive logging
+            logger.exception("Failed to record token usage", extra={"user_id": user_id})
+
+    main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
+
+    if check_cancel("upload"):
+        return {"done": 0, "not_done": total, "no_changes": 0, "errors": 0}, stages
+
+    upload_result, stages = start_upload(files_to_upload, main_title_link, site, stages, task_id, store, check_cancel)
+
+    return upload_result, stages

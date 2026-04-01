@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up import start_upload, upload_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads import start_upload, upload_step
 
 
 @pytest.fixture

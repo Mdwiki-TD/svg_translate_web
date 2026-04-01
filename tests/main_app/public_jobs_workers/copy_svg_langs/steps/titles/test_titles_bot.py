@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.titles.titles_tasks import extract_titles_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.titles.titles_tasks.get_files_list")
