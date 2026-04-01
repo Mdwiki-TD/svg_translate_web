@@ -82,7 +82,7 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("task")
 
-    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'task'})"}
+    assert response == {"redirect_to": "url_for(tasks.task_infos, {'task_id': 'task'})"}
     assert cancel_called == ["set"]
 
 
@@ -124,7 +124,7 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("task")
 
-    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'newtask'})"}
+    assert response == {"redirect_to": "url_for(tasks.task_infos, {'task_id': 'newtask'})"}
     assert created_tasks[0][0] == "newtask"
     assert launched == [("newtask", "user")]
 
@@ -152,7 +152,7 @@ def test_cancel_task_already_completed(app: Flask, monkeypatch: pytest.MonkeyPat
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("1")
 
-    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': '1'})"}
+    assert response == {"redirect_to": "url_for(tasks.task_infos, {'task_id': '1'})"}
 
 
 def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -169,7 +169,7 @@ def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) ->
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("1")
 
-    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': '1'})"}
+    assert response == {"redirect_to": "url_for(tasks.task_infos, {'task_id': '1'})"}
 
 
 def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -208,4 +208,4 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("1")
 
-    assert response == {"redirect_to": "url_for(tasks.task, {'task_id': 'existing_id'})"}
+    assert response == {"redirect_to": "url_for(tasks.task_infos, {'task_id': 'existing_id'})"}

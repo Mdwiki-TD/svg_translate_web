@@ -352,7 +352,7 @@ def test_delete_task_success(app_client: tuple[Flask, Any, DummyTaskStore], monk
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.flash", fake_flash)
 
-    response = client.post("/task/deadbeef/delete")
+    response = client.post("/tasks/deadbeef/delete")
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/tasks")
