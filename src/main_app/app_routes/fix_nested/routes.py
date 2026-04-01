@@ -137,7 +137,7 @@ def fix_nested_post():
         # return render_template("fix_nested/form.html", filename=original_filename)
 
     # Preserve filename in input field regardless of result
-    return redirect(url_for("fix_nested.task_detail", task_id=task_id))
+    return redirect(url_for("fix_nested.task_detail", task_id=task_id, commons_link=commons_link))
     # return render_template("fix_nested/form.html", filename=original_filename, commons_link=commons_link)
 
 
@@ -295,8 +295,6 @@ def task_detail(task_id: str):
 def serve_file(task_id: str, file_type: str):
     """
     Serve original or fixed file.
-
-    TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
     """
     if file_type not in ["original", "fixed"]:
         abort(400, description="Invalid file type")

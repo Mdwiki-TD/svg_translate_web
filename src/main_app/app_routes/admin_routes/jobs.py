@@ -220,10 +220,11 @@ class Jobs:
         def serve_download_main_file(filename: str) -> Response:
             """
             Serve a downloaded main file from the main_files_path directory.
-
-            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
             """
-            return send_from_directory(settings.paths.main_files_path, filename)
+            response = send_from_directory(settings.paths.main_files_path, filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
 
         @bp_admin.get("/download-main-files/download-all")
         @admin_required
@@ -248,22 +249,24 @@ class Jobs:
         def serve_crop_original_file(filename: str) -> Response:
             """
             Serve an original file from the crop_main_files_path/original directory.
-
-            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
             """
             filename = filename.removeprefix("File:")
-            return send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
+            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
 
         @bp_admin.get("/crop-main-files/cropped/<path:filename>")
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
             Serve a cropped file from the crop_main_files_path/cropped directory.
-
-            TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
             """
             filename = filename.removeprefix("File:")
-            return send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
+            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
 
         @bp_admin.get("/crop-main-files/compare/<path:original>/<path:cropped>")
         @admin_required
