@@ -105,7 +105,7 @@ def fail_task(
 
 
 # --- main pipeline --------------------------------------------
-def run_task(
+def copy_svg_langs_worker_entry(
     database_data: DbConfig,
     task_id: str,
     title: str,

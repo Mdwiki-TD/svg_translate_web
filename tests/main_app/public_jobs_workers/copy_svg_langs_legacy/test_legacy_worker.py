@@ -7,7 +7,7 @@ from src.main_app.public_jobs_workers.copy_svg_langs_legacy.worker import (
     _compute_output_dir,
     fail_task,
     make_stages,
-    run_task,
+    copy_svg_langs_worker_entry,
 )
 
 
@@ -106,7 +106,7 @@ def test_run_task_success(
     args.overwrite = False
     args.upload = False
 
-    run_task({}, "t1", "Title", args, None)
+    copy_svg_langs_worker_entry({}, "t1", "Title", args, None)
 
     # Verification
     mock_store.update_status.assert_any_call("t1", "Running")
@@ -128,7 +128,7 @@ def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
     mock_text.return_value = (None, {"status": "Failed"})
 
     args = MagicMock()
-    run_task({}, "t1", "Title", args, None)
+    copy_svg_langs_worker_entry({}, "t1", "Title", args, None)
 
     mock_store.update_status.assert_any_call("t1", "Failed")
 
@@ -148,6 +148,6 @@ def test_run_task_fail_titles(mock_titles, mock_text, mock_compute_dir, mock_sto
     args = MagicMock()
     args.manual_main_title = None
 
-    run_task({}, "t1", "Title", args, None)
+    copy_svg_langs_worker_entry({}, "t1", "Title", args, None)
 
     mock_store.update_status.assert_any_call("t1", "Failed")

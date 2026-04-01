@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 from flask import current_app
 
 from ...config import settings
-from .worker import run_task
+from .worker import copy_svg_langs_worker_entry
 
 if TYPE_CHECKING:
     from flask import Flask
 
-CANCEL_EVENTS: Dict[str, threading.Event] = {}
+CANCEL_EVENTS: dict[str, threading.Event] = {}
 CANCEL_EVENTS_LOCK = threading.Lock()
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,27 @@ def _register_cancel_event(task_id: str, cancel_event: threading.Event) -> None:
 def _pop_cancel_event(task_id: str) -> threading.Event | None:
     with CANCEL_EVENTS_LOCK:
         return CANCEL_EVENTS.pop(task_id, None)
+
+
+def _runner(
+    task_id: int,
+    user: dict[str, Any] | None,
+    cancel_event: threading.Event,
+    target_func: Any,
+) -> None:
+    """
+    """
+    try:
+        copy_svg_langs_worker_entry(
+            settings.database_data,
+            task_id,
+            title,
+            args,
+            user,
+            cancel_event=cancel_event,
+        )
+    finally:
+        _pop_cancel_event(task_id)
 
 
 def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event | None:
@@ -101,25 +122,6 @@ def start_copy_svg_langs_job(
         # No active app context (shouldn't happen in normal operation)
         logger.error("No Flask application context available for task %s", task_id)
         raise
-
-    def _runner(app: Flask) -> None:
-        """
-        Execute the task runner within the Flask app context.
-
-        Calls run_task with the captured settings.database_data, task_id, title, args, user_payload, and cancel_event; after run_task returns or raises, removes the task's cancel event from the global registry to avoid leaking state.
-        """
-        with app.app_context():
-            try:
-                run_task(
-                    settings.database_data,
-                    task_id,
-                    title,
-                    args,
-                    user,
-                    cancel_event=cancel_event,
-                )
-            finally:
-                _pop_cancel_event(task_id)
 
     thread = threading.Thread(
         target=_runner,
