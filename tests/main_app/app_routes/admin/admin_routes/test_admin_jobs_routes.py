@@ -10,6 +10,7 @@ from typing import Any, List
 from unittest.mock import patch
 
 import pytest
+from werkzeug.wrappers import Response
 
 from src.main_app import create_app
 from src.main_app.services import jobs_service
@@ -790,7 +791,7 @@ def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
     # Mock the settings
     mock_settings.paths.main_files_path = "/tmp/main_files"
 
-    mock_response = SimpleNamespace(headers={})
+    mock_response = Response("file_content")
     mock_send.return_value = mock_response
 
     response = client.get("/admin/download-main-files/file/test.svg")
@@ -956,7 +957,7 @@ def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client)
 
     # send_from_directory should handle path traversal attempts
     with patch("src.main_app.app_routes.admin_routes.jobs.send_from_directory") as mock_send:
-        mock_send.return_value = SimpleNamespace(headers={})
+        mock_send.return_value = Response("safe response")
         _response = client.get("/admin/download-main-files/file/../../../etc/passwd")
         # send_from_directory will be called with the attempted path
         mock_send.assert_called_once()

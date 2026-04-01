@@ -114,7 +114,8 @@ def test_serve_media_returns_directory(monkeypatch: pytest.MonkeyPatch) -> None:
 
     result = explorer_routes.serve_media("title", "files", "file.svg")
 
-    assert called[0] == ("/base/title/files", "file.svg")
+    assert called[0][0].replace("\\", "/").endswith("base/title/files")
+    assert called[0][1] == "file.svg"
 
 
 def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
