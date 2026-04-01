@@ -314,7 +314,7 @@ def test_tasks_renders_formatted_tasks(
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.format_task_message", fake_format_message)
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.render_template", fake_render)
 
-    response = client.get("/tasks/alice")
+    response = client.get("/tasks/user/alice")
 
     assert response.status_code == 200
     assert response.data == b"rendered"
