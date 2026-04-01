@@ -31,9 +31,9 @@ bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
 def inject_sidebar():
     path_parts = request.path.strip("/").split("/")
     active_route = path_parts[1] if len(path_parts) > 1 else ""
-    logger.debug(f"Injecting sidebar for path='{request.path}'")
+    # logger.debug(f"Injecting sidebar for path='{request.path}'")
     sidebar_html = create_side(active_route=active_route)
-    return dict(sidebar=sidebar_html)
+    return {"sidebar": sidebar_html}
 
 
 @bp_admin.get("/")
