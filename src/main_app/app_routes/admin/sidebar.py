@@ -134,7 +134,7 @@ def create_side(active_route):
 
     sidebar = ["<ul class='list-unstyled'>"]
 
-    logger.debug(f"Generating sidebar for active_route='{active_route}'")
+    # logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
         lis = []
