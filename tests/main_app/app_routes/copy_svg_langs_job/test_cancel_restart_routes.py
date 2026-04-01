@@ -7,8 +7,8 @@ import types
 import pytest
 from flask import Flask
 
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 from src.main_app.config import DbConfig
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 
 
 @pytest.fixture
