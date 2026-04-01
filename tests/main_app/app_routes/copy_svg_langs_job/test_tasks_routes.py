@@ -149,7 +149,7 @@ def test_task_renders_context_with_missing_task(
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.flash", fake_flash)
 
     with app.test_request_context("/tasks/missing?title=Sample&error=task-active"):
-        result = routes.task("missing")
+        result = routes.task_infos("missing")
 
     assert result == "rendered"
     assert captured["template"] == "task.html"
@@ -186,7 +186,7 @@ def test_task2_includes_ordered_stages(
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.render_template", fake_render)
 
     with app.test_request_context("/tasks/task42"):
-        result = routes.task("task42")
+        result = routes.task_infos("task42")
 
     assert result == "rendered"
     assert captured["template"] == "task.html"
