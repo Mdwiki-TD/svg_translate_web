@@ -33,7 +33,7 @@ def inject_sidebar():
     active_route = path_parts[1] if len(path_parts) > 1 else ""
     logger.debug(f"Injecting sidebar for path='{request.path}'")
     sidebar_html = create_side(active_route=active_route)
-    return dict(sidebar=sidebar_html)
+    return {"sidebar": sidebar_html}
 
 
 @bp_admin.get("/")
@@ -42,14 +42,13 @@ def admin_dashboard():
     return redirect(url_for("admin.recent_routes"))
 
 
-Coordinators(bp_admin)
+def register_blueprints(bp_admin) -> None:
+    Coordinators(bp_admin)
+    Recent(bp_admin)
+    Templates(bp_admin)
+    SettingsRoutes(bp_admin)
+    Jobs(bp_admin)
+    OwidCharts(bp_admin)
 
-Recent(bp_admin)
 
-Templates(bp_admin)
-
-OwidCharts(bp_admin)
-
-Jobs(bp_admin)
-
-SettingsRoutes(bp_admin)
+register_blueprints(bp_admin)
