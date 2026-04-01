@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
-import pytest
-
 from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
 from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
@@ -67,29 +63,3 @@ def test_extract_titles_step_limit(mocker):
     assert result[1]["status"] == "Completed"
     assert len(result[0]["titles"]) == 2
     assert result[0]["titles"] == ["File1.svg", "File2.svg"]
-
-
-@pytest.fixture
-def processor_args():
-    args = MagicMock()
-    args.manual_main_title = None
-    args.titles_limit = None
-    args.overwrite = False
-    args.upload = False
-    return args
-
-
-@pytest.fixture
-def initial_result():
-    return {
-        "status": "pending",
-        "stages": {
-            "text": {"status": "Pending"},
-            "titles": {"status": "Pending"},
-            "translations": {"status": "Pending"},
-            "download": {"status": "Pending"},
-            "nested": {"status": "Pending"},
-            "inject": {"status": "Pending"},
-            "upload": {"status": "Pending"},
-        },
-    }
