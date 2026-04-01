@@ -63,4 +63,3 @@ def test_extract_titles_step_limit(mocker):
     assert result[1]["status"] == "Completed"
     assert len(result[0]["titles"]) == 2
     assert result[0]["titles"] == ["File1.svg", "File2.svg"]
-
