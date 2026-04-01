@@ -4,7 +4,37 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from unittest.mock import MagicMock
+
+import pytest
+
 from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
+
+
+@pytest.fixture
+def processor_args():
+    args = MagicMock()
+    args.manual_main_title = None
+    args.titles_limit = None
+    args.overwrite = False
+    args.upload = False
+    return args
+
+
+@pytest.fixture
+def initial_result():
+    return {
+        "status": "pending",
+        "stages": {
+            "text": {"status": "Pending"},
+            "titles": {"status": "Pending"},
+            "translations": {"status": "Pending"},
+            "download": {"status": "Pending"},
+            "nested": {"status": "Pending"},
+            "inject": {"status": "Pending"},
+            "upload": {"status": "Pending"},
+        },
+    }
 
 
 def test_processor_compute_output_dir(processor_args, initial_result, mocker):
