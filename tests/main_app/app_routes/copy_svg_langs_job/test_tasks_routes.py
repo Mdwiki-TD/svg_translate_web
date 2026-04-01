@@ -227,7 +227,7 @@ def test_start_creates_task_and_launches_thread(
 
     monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread", fake_launch)
 
-    response = client.post("/", data={"title": "Sample Title", "upload": "on"})
+    response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith(f"/task/{generated_id}?title=Sample+Title")
@@ -269,7 +269,7 @@ def test_start_redirects_to_existing_task_when_duplicate(
         lambda *args, **kwargs: launch_calls.append(args),
     )
 
-    response = client.post("/", data={"title": "Duplicate Title"})
+    response = client.post("/start", data={"title": "Duplicate Title"})
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith(f"/task/{existing_id}?title=Duplicate+Title")
