@@ -25,7 +25,7 @@ from .db import close_cached_db
 from .services.copy_svg_langs_service import close_task_store
 from .services.users_service import context_user
 from .db.user_tokens import ensure_user_token_table
-from .utils.jinja_filters import format_stage_timestamp, short_url
+from .utils import format_stage_timestamp, short_url
 
 logger = logging.getLogger(__name__)
 

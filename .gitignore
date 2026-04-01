@@ -20,3 +20,4 @@ docs/plans/*.md
 .claude/settings.json
 /.claude/skills/mwclient
 coverage.xml
+/src/new_app
