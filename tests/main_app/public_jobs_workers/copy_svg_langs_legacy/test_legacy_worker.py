@@ -1,13 +1,11 @@
 from pathlib import Path
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.worker import (
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy.worker import copy_svg_langs_worker_entry
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy.job import (
     _compute_output_dir,
     fail_task,
     make_stages,
-    copy_svg_langs_worker_entry,
 )
 
 
