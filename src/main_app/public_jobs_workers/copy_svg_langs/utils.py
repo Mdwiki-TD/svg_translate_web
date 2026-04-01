@@ -25,7 +25,7 @@ def json_save(path: Path | str, data: Any) -> None:
     logger.debug(f"Saving json to: {path}")
 
     if not data:
-        logger.error(f"Empty data to save to: {path}")
+        logger.error(f"No data provided to save to: {path}")
         return
 
     try:
