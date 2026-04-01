@@ -6,9 +6,8 @@ import logging
 import threading
 from typing import Any, Dict
 
-from .workers_list import jobs_targets
-
 from ..services import jobs_service
+from .workers_list import jobs_targets
 
 logger = logging.getLogger(__name__)
 

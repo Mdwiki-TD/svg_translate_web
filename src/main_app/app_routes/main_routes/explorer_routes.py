@@ -9,7 +9,9 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from flask.wrappers import Response
 
+from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
@@ -18,7 +20,6 @@ from ..utils.explorer_utils import (
     svg_data_thumb_path,
 )
 from ..utils.thumbnail_utils import save_thumb
-from ..explorer.compare import analyze_file
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)
@@ -105,21 +106,22 @@ def main():
 
 
 @bp_explorer.route("/media/<title_dir>/<subdir>/<path:filename>")
-def serve_media(title_dir: str, subdir: str, filename: str):
+def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
     """
     Serve SVG files
-
-    TODO: this should serve SVG files with a Content-Security-Policy: script-src 'none' header or sanitize the SVG content to remove executable scripts and event handlers.
     """
     dir_path = svg_data_path / title_dir / subdir
     dir_path = str(dir_path.absolute())
 
     # dir_path = "I:/SVG_EXPLORER/svg_data/Parkinsons prevalence/translated"
-    return send_from_directory(dir_path, filename)
+    response = send_from_directory(dir_path, filename)
+    response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<path:filename>")
-def serve_thumb(title_dir: str, subdir: str, filename: str):
+def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     # ---
     dir_path = svg_data_path / title_dir / subdir
     thumb_path = svg_data_thumb_path / title_dir / subdir
@@ -129,11 +131,15 @@ def serve_thumb(title_dir: str, subdir: str, filename: str):
     # ---
     if not file_thumb_path.exists():
         save_thumb(file_path, file_thumb_path)
-    # ---
+
     if file_thumb_path.exists():
-        return send_from_directory(str(thumb_path.absolute()), filename)
-    # ---
-    return send_from_directory(str(dir_path.absolute()), filename)
+        response = send_from_directory(str(thumb_path.absolute()), filename)
+    else:
+        response = send_from_directory(str(dir_path.absolute()), filename)
+
+    response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @bp_explorer.route("/compare/<title_dir>/<path:filename>")
