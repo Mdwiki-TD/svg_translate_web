@@ -79,7 +79,7 @@ def load_state_hash(
 
 
 @bp_tasks.get("/tasks")
-@bp_tasks.get("/tasks/<user>")
+@bp_tasks.get("/tasks/user/<user>")
 def tasks(user: str | None = None):
     """
     Render the task listing page with formatted task metadata and available status filters.
@@ -115,47 +115,8 @@ def tasks(user: str | None = None):
     )
 
 
-@bp_tasks.post("/start")
-@oauth_required
-def start():
-    """Start a copy SVG languages job."""
-    user = current_user()
-    title = request.form.get("title", "").strip()
-    if not title:
-        return redirect(url_for("main.index"))
-
-    task_id = uuid.uuid4().hex
-
-    args = parse_args(request.form, get_disable_uploads())
-
-    logger.info(f"ignore_existing_task: {args.ignore_existing_task}")
-    if not args.ignore_existing_task:
-        existing_task = get_active_task_by_title(title)
-        if existing_task:
-            logger.debug(f"Task for title '{title}' already exists: {existing_task['id']}.")
-            flash(f"Task for title '{title}' already exists: {existing_task['id']}.", "warning")
-            return redirect(url_for("tasks.task_infos", task_id=existing_task["id"], title=title))
-
-    try:
-        create_new_task(task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True))
-    except TaskAlreadyExistsError as exc:
-        existing = exc.task
-        logger.debug("Task creation for %s blocked by existing task %s", task_id, existing.get("id"))
-        flash(f"Task for title '{title}' already exists: {existing['id']}.", "warning")
-        return redirect(url_for("tasks.task_infos", task_id=existing["id"], title=title))
-    except Exception:
-        logger.exception("Failed to create task")
-        flash("Failed to create task.", "danger")
-        return redirect(url_for("main.index", title=title))
-
-    auth_payload = load_auth_payload(user)
-
-    launch_task_thread(task_id, title, args, auth_payload)
-
-    return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
-
-
 @bp_tasks.get("/tasks/<task_id>")
+@bp_tasks.get("/tasks/<task_id>/info")
 def task_infos(task_id: str | None = None):
     if not task_id:
         flash("No task id provided", "warning")
@@ -212,6 +173,46 @@ def status(task_id: str):
         return jsonify({"error": "not-found"}), 404
 
     return jsonify(task)
+
+
+@bp_tasks.post("/start")
+@oauth_required
+def start():
+    """Start a copy SVG languages job."""
+    user = current_user()
+    title = request.form.get("title", "").strip()
+    if not title:
+        return redirect(url_for("main.index"))
+
+    task_id = uuid.uuid4().hex
+
+    args = parse_args(request.form, get_disable_uploads())
+
+    logger.info(f"ignore_existing_task: {args.ignore_existing_task}")
+    if not args.ignore_existing_task:
+        existing_task = get_active_task_by_title(title)
+        if existing_task:
+            logger.debug(f"Task for title '{title}' already exists: {existing_task['id']}.")
+            flash(f"Task for title '{title}' already exists: {existing_task['id']}.", "warning")
+            return redirect(url_for("tasks.task_infos", task_id=existing_task["id"], title=title))
+
+    try:
+        create_new_task(task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True))
+    except TaskAlreadyExistsError as exc:
+        existing = exc.task
+        logger.debug("Task creation for %s blocked by existing task %s", task_id, existing.get("id"))
+        flash(f"Task for title '{title}' already exists: {existing['id']}.", "warning")
+        return redirect(url_for("tasks.task_infos", task_id=existing["id"], title=title))
+    except Exception:
+        logger.exception("Failed to create task")
+        flash("Failed to create task.", "danger")
+        return redirect(url_for("main.index", title=title))
+
+    auth_payload = load_auth_payload(user)
+
+    launch_task_thread(task_id, title, args, auth_payload)
+
+    return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
 
 
 @bp_tasks.post("/tasks/<task_id>/delete")
