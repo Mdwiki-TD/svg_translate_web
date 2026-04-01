@@ -86,7 +86,7 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return False
+        return None
 
     try:
         # Get auth payload for OAuth uploads
@@ -98,7 +98,7 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return False
+    return None
 
 
 # ================================
@@ -209,7 +209,8 @@ class Jobs:
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in JOB_TYPE_TEMPLATES:
                 abort(404)
-            args = request.form
+
+            args = request.form.to_dict()
             job_id = _start_job_with_args(job_type, args)
             if not job_id:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))

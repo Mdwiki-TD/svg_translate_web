@@ -112,7 +112,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
 
 def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any]) -> int:
     """
-    Start a background job to fix nested tags in all template main files.
+    Start a background job with the provided arguments.
     Returns the job ID.
 
     Args:
