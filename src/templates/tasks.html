@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if user_specific %}My Tasks{% else %}All Tasks{% endif %} · Copy SVG Translation{% endblock %}
+{% block title %}{% if user_specific %}My Tasks{% else %}All Copy Tasks{% endif %} · Copy SVG Translation{% endblock %}
 
 {% block extra_css %}
 {% endblock %}
@@ -17,11 +17,11 @@
                 {{ tasks_user }}'s Tasks
                 {% endif %}
                 {% else %}
-                All Tasks
+                All Copy Tasks
                 {% endif %}
             </h1>
             {% if user_specific %}
-            <a href="{{ url_for('tasks.tasks') }}" class="btn btn-sm btn-outline-secondary">View All Tasks</a>
+            <a href="{{ url_for('tasks.tasks') }}" class="btn btn-sm btn-outline-secondary">View All Copy Tasks</a>
             {% endif %}
         </div>
         <div class="row g-2 align-items-center">
