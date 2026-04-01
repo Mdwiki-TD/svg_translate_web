@@ -23,7 +23,7 @@ from ...admins.admins_required import admin_required
 from ...config import settings
 from ...db import TaskAlreadyExistsError
 from ...services.admin_service import active_coordinators
-from ...jobs_workers.copy_svg_langs.legacy_threads import get_cancel_event, launch_task_thread
+from ...public_jobs_workers.copy_svg_langs.legacy_threads import get_cancel_event, launch_task_thread
 from ...services.tasks_service import (
     _task_store,
     create_new_task,

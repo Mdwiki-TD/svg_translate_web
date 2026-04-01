@@ -8,7 +8,7 @@ import logging
 import threading
 from datetime import datetime
 from typing import Any
-from ..base_worker import BaseJobWorker
+from ...jobs_workers.base_worker import BaseJobWorker
 from .job import CopySvgLangsProcessor
 
 logger = logging.getLogger(__name__)

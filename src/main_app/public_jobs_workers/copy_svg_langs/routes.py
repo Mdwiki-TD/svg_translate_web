@@ -6,8 +6,6 @@ import logging
 from flask import Blueprint, jsonify, request, url_for, redirect, flash
 
 from ...users.current import current_user, oauth_required
-from ..utils import load_auth_payload
-from .service import start_copy_svg_langs_job
 
 logger = logging.getLogger(__name__)
 

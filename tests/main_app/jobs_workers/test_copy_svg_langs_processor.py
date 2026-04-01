@@ -7,13 +7,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
-from src.main_app.jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
-from src.main_app.jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
+from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
 
 def test_extract_text_step_success(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
+    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
     mock_get_wikitext.return_value = "some wikitext"
 
     result = extract_text_step("File:Example.svg")
@@ -25,7 +25,7 @@ def test_extract_text_step_success(mocker):
 
 
 def test_extract_text_step_fail(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
+    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
     mock_get_wikitext.return_value = ""
 
     result = extract_text_step("File:Example.svg")
@@ -36,7 +36,7 @@ def test_extract_text_step_fail(mocker):
 
 
 def test_extract_titles_step_success(mocker):
-    mock_get_files_list = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
+    mock_get_files_list = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
     result = extract_titles_step("some text")
@@ -48,7 +48,7 @@ def test_extract_titles_step_success(mocker):
 
 
 def test_extract_titles_step_manual_title(mocker):
-    mock_get_files_list = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
+    mock_get_files_list = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
     result = extract_titles_step("some text", manual_main_title="Manual.svg")
@@ -58,7 +58,7 @@ def test_extract_titles_step_manual_title(mocker):
 
 
 def test_extract_titles_step_limit(mocker):
-    mock_get_files_list = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
+    mock_get_files_list = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list")
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg", "File3.svg"])
 
     result = extract_titles_step("some text", titles_limit=2)
@@ -95,7 +95,7 @@ def initial_result():
 
 
 def test_processor_compute_output_dir(processor_args, initial_result, mocker):
-    mock_settings = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.job.settings")
+    mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
     mock_settings.paths.svg_data = "/tmp/svg_data"
     processor = CopySvgLangsProcessor(
         job_id=1,
@@ -109,14 +109,14 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     assert "example_svg" in str(processor.output_dir) or "example.svg" in str(processor.output_dir)
 
 
-@patch("src.main_app.jobs_workers.copy_svg_langs.job.jobs_service")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.jobs_service")
 def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initial_result, mocker):
-    mocker.patch("src.main_app.jobs_workers.copy_svg_langs.job.settings")
-    mocker.patch("src.main_app.jobs_workers.copy_svg_langs.job.create_commons_session")
-    mocker.patch("src.main_app.jobs_workers.copy_svg_langs.job.get_user_site")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
     mock_jobs_service.is_job_cancelled.return_value = False
 
-    mock_extract_text = mocker.patch("src.main_app.jobs_workers.copy_svg_langs.job.extract_text_step")
+    mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step")
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
 
     processor = CopySvgLangsProcessor(
