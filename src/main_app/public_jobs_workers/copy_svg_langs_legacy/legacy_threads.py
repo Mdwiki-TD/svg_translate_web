@@ -65,10 +65,10 @@ def get_cancel_event(task_id: str, store: Any | None = None) -> threading.Event 
     # First, try to get the cancellation event from the in-memory dictionary
     # This is fast and works for single-process deployments
     # Lock the CANCEL_EVENTS dictionary to ensure thread-safe access
-        # Check if the event exists in the local dictionary
+    # Check if the event exists in the local dictionary
     with CANCEL_EVENTS_LOCK:
         local_event = CANCEL_EVENTS.get(task_id)
-            # Return the event if found
+        # Return the event if found
         if local_event is not None:
             return local_event
 
