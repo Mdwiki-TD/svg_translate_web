@@ -25,7 +25,7 @@
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('tasks.', 'bi-list-task', 'All Copy Tasks', url_for('tasks.tasks')) }}
+                        {{ nav_link('tasks.', 'bi-list-task', 'All Copy Tasks', url_for('copy_svg_langs.tasks')) }}
                     </li>
                     <li class="{{ nav_item_class }} dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button"
@@ -68,7 +68,7 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     {% if current_user or is_authenticated %}
-                    <a href="{{ url_for('tasks.tasks', user=current_user.username) }}"
+                    <a href="{{ url_for('copy_svg_langs.tasks', user=current_user.username) }}"
                         class="navbar-text me-3 text-decoration-none">
                         {{ current_user.username }}
                     </a>
