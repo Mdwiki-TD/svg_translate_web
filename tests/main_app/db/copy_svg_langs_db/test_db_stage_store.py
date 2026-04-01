@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import pytest
 
+
+@pytest.mark.skip(reason="db_StageStore.py file no longer exists")
 def test_no_unused_imports():
     """Test that unused import 're' has been removed."""
     import ast

@@ -15,36 +15,28 @@ def mock_store():
     return MagicMock()
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.build_upload_site")
-def test_upload_task_disabled(mock_build, mock_store):
+def test_upload_task_disabled(mock_site):
     stages = {}
-    res, final_stages = upload_step(stages, {}, "Main", do_upload=False, store=mock_store)
-    assert res["skipped"] is True
-    assert final_stages["status"] == "Skipped"
+    res = upload_step({}, "Main", site=mock_site)
+    assert res["success"] is True
+    assert res["summary"]["total"] == 0
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.build_upload_site")
-def test_upload_task_no_files(mock_build, mock_store):
+def test_upload_task_no_files(mock_site):
     stages = {}
-    res, final_stages = upload_step(stages, {}, "Main", do_upload=True, store=mock_store)
-    assert res["skipped"] is True
-    assert res["reason"] == "no-input"
+    res = upload_step({}, "Main", site=mock_site)
+    assert res["success"] is True
+    assert res["summary"]["total"] == 0
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.build_upload_site")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.uploads.up.mark_token_used")
-def test_upload_task_success(mock_mark, mock_start, mock_build, mock_store):
-    mock_build.return_value = MagicMock()
-    mock_start.return_value = ({"done": 1}, {"status": "Completed"})
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
+def test_upload_task_success(mock_upload, mock_site):
+    mock_upload.return_value = {"result": "Success"}
 
     stages = {}
-    user = {"access_token": "token", "access_secret": "secret", "id": 123}
-    files = {"f1": {"new_languages": 1}}
+    files = {"f1": {"file_path": "/path/to/f1.svg", "new_languages": 1}}
 
-    res, final_stages = upload_step(
-        stages, files, "Main", do_upload=True, user=user, store=mock_store, task_id="t1", check_cancel=lambda x: False
-    )
+    res = upload_step(files, "Main", site=mock_site)
 
-    assert res["done"] == 1
-    mock_mark.assert_called_with(123)
-    mock_start.assert_called()
+    assert res["summary"]["uploaded"] == 1
+    mock_upload.assert_called_once()
