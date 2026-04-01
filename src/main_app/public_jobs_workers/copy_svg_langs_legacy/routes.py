@@ -19,9 +19,11 @@ from flask import (
 )
 from werkzeug.datastructures import MultiDict
 
+from ...app_routes.admin.admins_required import admin_required
+from ...app_routes.utils.args_utils import parse_args
+from ...app_routes.utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
 from ...config import settings
 from ...db.exceptions import TaskAlreadyExistsError
-from .service import get_cancel_event, start_copy_svg_langs_job
 from ...services.admin_service import active_coordinators
 from ...services.copy_svg_langs_service import (
     _task_store,
@@ -31,9 +33,7 @@ from ...services.copy_svg_langs_service import (
     get_store_task,
 )
 from ...services.users_service import current_user, oauth_required
-from ...app_routes.admin.admins_required import admin_required
-from ...app_routes.utils.args_utils import parse_args
-from ...app_routes.utils.routes_utils import format_task, get_error_message, load_auth_payload, order_stages
+from .service import get_cancel_event, start_copy_svg_langs_job
 
 bp_tasks = Blueprint("tasks", __name__)
 logger = logging.getLogger(__name__)

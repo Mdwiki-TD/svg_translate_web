@@ -7,8 +7,8 @@ import types
 import pytest
 from flask import Flask
 
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 from src.main_app.config import DbConfig
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes
 
 
 @pytest.fixture
@@ -35,9 +35,15 @@ def app(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.settings", settings)
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.flash", lambda *args, **kwargs: None)
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.jsonify", lambda payload: payload)
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.redirect", lambda url: {"redirect_to": url})
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.flash", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.jsonify", lambda payload: payload
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.redirect", lambda url: {"redirect_to": url}
+    )
     monkeypatch.setattr(
         "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.url_for",
         lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})",
@@ -70,13 +76,19 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         def update_status(self, task_id: str, status: str) -> None:
             self.updated.append((task_id, status))
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore())
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user", lambda: types.SimpleNamespace(username="user")
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore()
     )
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.active_coordinators", lambda: ["user"])
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_cancel_event", lambda task_id, store=None: DummyEvent()
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user",
+        lambda: types.SimpleNamespace(username="user"),
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.active_coordinators", lambda: ["user"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_cancel_event",
+        lambda task_id, store=None: DummyEvent(),
     )
 
     with app.test_request_context("/tasks/1/cancel"):
@@ -107,8 +119,12 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     def fake_launch(task_id: str, title: str, args, user_payload: dict) -> None:
         launched.append((task_id, user_payload["username"]))
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task", fake_get_store_task)
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task", fake_create_new_task)
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task", fake_get_store_task
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task", fake_create_new_task
+    )
     monkeypatch.setattr(
         routes,
         "current_user",
@@ -119,7 +135,9 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
         "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.uuid",
         types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")),
     )
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job", fake_launch)
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.start_copy_svg_langs_job", fake_launch
+    )
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("task")
@@ -134,7 +152,9 @@ def test_cancel_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         def get_task(self, task_id: str) -> None:
             return None
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore()
+    )
 
     with app.test_request_context("/tasks/missing/cancel"):
         response = routes.cancel("missing")
@@ -147,7 +167,9 @@ def test_cancel_task_already_completed(app: Flask, monkeypatch: pytest.MonkeyPat
         def get_task(self, task_id: str) -> dict[str, str]:
             return {"id": task_id, "status": "Completed"}
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore()
+    )
 
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("1")
@@ -160,9 +182,12 @@ def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) ->
         def get_task(self, task_id: str) -> dict[str, str]:
             return {"id": task_id, "status": "Running", "username": "other_user"}
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore())
     monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user", lambda: types.SimpleNamespace(username="user")
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore()
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.current_user",
+        lambda: types.SimpleNamespace(username="user"),
     )
     monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.active_coordinators", list)
 
@@ -177,7 +202,9 @@ def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
         def get_task(self, task_id: str) -> None:
             return None
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes._task_store", lambda: DummyStore()
+    )
 
     with app.test_request_context("/tasks/missing/restart"):
         response = routes.restart("missing")
@@ -194,8 +221,12 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
     def fake_create_new_task(*args, **kwargs) -> None:
         raise TaskAlreadyExistsError({"id": "existing_id"})
 
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task", fake_get_store_task)
-    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task", fake_create_new_task)
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.get_store_task", fake_get_store_task
+    )
+    monkeypatch.setattr(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.routes.create_new_task", fake_create_new_task
+    )
     monkeypatch.setattr(
         routes,
         "current_user",
