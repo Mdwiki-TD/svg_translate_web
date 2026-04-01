@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.injects.inject_tasks import inject_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.inject_tasks import inject_step
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.injects.inject_tasks.start_injects")

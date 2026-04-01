@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable
 
 from tqdm import tqdm
 
-from .....api_services.clients import create_commons_session
-from .....api_services.utils import download_one_file
-from .....config import settings
+from ....api_services.clients import create_commons_session
+from ....api_services.utils import download_one_file
+from ....config import settings
 
 if TYPE_CHECKING:
-    from .....db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
+    from ....db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 
 logger = logging.getLogger(__name__)
 
