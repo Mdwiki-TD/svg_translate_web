@@ -109,7 +109,7 @@ def start_upload(
     return upload_result, stages
 
 
-def upload_task(
+def upload_step(
     stages: Dict[str, Any],
     files_to_upload: Dict[str, Dict[str, object]],
     main_title: str,

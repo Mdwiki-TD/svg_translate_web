@@ -1,5 +1,5 @@
-from .extract_task import translations_task
+from .extract_task import extract_translations_step
 
 __all__ = [
-    "translations_task",
+    "extract_translations_step",
 ]

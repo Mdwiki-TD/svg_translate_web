@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def download_task(
+def download_step(
     task_id: str,
     stages: Dict[str, Any],
     output_dir_main: Path,

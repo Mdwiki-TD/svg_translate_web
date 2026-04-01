@@ -6,7 +6,7 @@ from .....api_services.text_bot import get_wikitext
 logger = logging.getLogger(__name__)
 
 
-def text_task(stages, title):
+def extract_text_step(stages, title):
     """Fetch wikitext for a Commons file and update stage metadata.
 
     Parameters:

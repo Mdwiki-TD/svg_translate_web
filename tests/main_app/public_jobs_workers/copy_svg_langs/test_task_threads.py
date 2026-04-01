@@ -6,8 +6,8 @@ import time
 import pytest
 
 from src.main_app import create_app
-from src.main_app.public_jobs_workers.copy_svg_langs import web_run_task
-from src.main_app.public_jobs_workers.copy_svg_langs.task_threads import (
+from src.main_app.public_jobs_workers.copy_svg_langs import legacy_run_task
+from src.main_app.public_jobs_workers.copy_svg_langs.legacy_threads import (
     get_cancel_event,
     launch_task_thread,
 )

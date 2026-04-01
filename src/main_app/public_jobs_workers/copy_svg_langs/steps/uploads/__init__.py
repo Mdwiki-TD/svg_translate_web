@@ -1,6 +1,6 @@
-from .up import start_upload, upload_task
+from .up import start_upload, upload_step
 
 __all__ = [
-    "upload_task",
+    "upload_step",
     "start_upload",
 ]

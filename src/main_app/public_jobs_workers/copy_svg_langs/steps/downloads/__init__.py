@@ -1,5 +1,5 @@
-from .download import download_task
+from .download import download_step
 
 __all__ = [
-    "download_task",
+    "download_step",
 ]

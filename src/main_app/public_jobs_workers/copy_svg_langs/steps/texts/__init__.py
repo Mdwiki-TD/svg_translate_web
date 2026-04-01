@@ -1,5 +1,5 @@
-from .start_bot import text_task
+from .start_bot import extract_text_step
 
 __all__ = [
-    "text_task",
+    "extract_text_step",
 ]

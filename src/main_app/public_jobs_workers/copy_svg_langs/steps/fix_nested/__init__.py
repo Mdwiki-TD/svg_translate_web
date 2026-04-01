@@ -1,5 +1,5 @@
-from .fix_nested_tasks import fix_nested_task
+from .fix_nested_tasks import fix_nested_step
 
 __all__ = [
-    "fix_nested_task",
+    "fix_nested_step",
 ]

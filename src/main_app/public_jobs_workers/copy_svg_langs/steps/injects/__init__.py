@@ -1,5 +1,5 @@
-from .inject_tasks import inject_task
+from .inject_tasks import inject_step
 
 __all__ = [
-    "inject_task",
+    "inject_step",
 ]

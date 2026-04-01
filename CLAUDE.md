@@ -57,7 +57,7 @@ The app uses the factory pattern via `create_app()` in `src/main_app/__init__.py
 
 ### Task Pipeline (8 stages)
 
-Translation tasks run through a sequential pipeline defined in `src/main_app/threads/web_run_task.py`:
+Translation tasks run through a sequential pipeline defined in `src/main_app/jobs_workers/copy_svg_langs/legacy_run_task.py`:
 
 1. **initialize** - Starting workflow
 2. **text** - Fetch wiki text from template

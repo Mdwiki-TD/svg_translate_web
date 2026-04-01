@@ -9,7 +9,7 @@ from ..utils import json_save
 logger = logging.getLogger(__name__)
 
 
-def translations_task(stages, main_title, output_dir_main):
+def extract_translations_step(stages, main_title, output_dir_main):
     """
     Load SVG translations from a Wikimedia Commons main file, save them as translations.json next to the provided output path, and update the given stages status mapping.
 
