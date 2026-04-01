@@ -7,21 +7,12 @@ import pytest
 
 from src.main_app.db import TaskAlreadyExistsError
 from src.main_app.db.db_class import Database
-from src.main_app.db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
+from src.main_app.db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql, TasksListDB
 from src.main_app.db.utils import DbUtils
 
 utils = DbUtils()
 
 _normalize_title = utils._normalize_title
-
-
-@pytest.fixture
-def store_and_db() -> Tuple[TaskStorePyMysql, MagicMock]:
-    store = TaskStorePyMysql.__new__(TaskStorePyMysql)
-    db_mock = MagicMock()
-    store.db = db_mock
-    store.fetch_stages = MagicMock(return_value={})
-    return store, db_mock
 
 
 def _task_row(
@@ -57,259 +48,367 @@ def _task_row(
     }
 
 
-def test_row_to_task_uses_provided_stages(store_and_db):
-    store, _db = store_and_db
-    row = _task_row(
-        "task-1",
-        title="Task 1",
-        normalized_title="task 1",
-        stage_name=None,
-    )
-    stages = {
-        "download": {
-            "number": 1,
-            "status": "Running",
-            "sub_name": None,
-            "message": None,
-            "updated_at": "2024-01-01T12:00:00",
+class TestTaskStorePyMysql:
+    @pytest.fixture
+    def store_and_db(self) -> Tuple[TaskStorePyMysql, MagicMock]:
+        store = TaskStorePyMysql.__new__(TaskStorePyMysql)
+        db_mock = MagicMock()
+        store.db = db_mock
+        store.fetch_stages = MagicMock(return_value={})
+        return store, db_mock
+
+    def test_row_to_task_uses_provided_stages(self, store_and_db):
+        store, _db = store_and_db
+        row = _task_row(
+            "task-1",
+            title="Task 1",
+            normalized_title="task 1",
+            stage_name=None,
+        )
+        stages = {
+            "download": {
+                "number": 1,
+                "status": "Running",
+                "sub_name": None,
+                "message": None,
+                "updated_at": "2024-01-01T12:00:00",
+            }
         }
-    }
 
-    result = store._row_to_task(row, stages=stages)
+        result = store._row_to_task(row, stages=stages)
 
-    assert result["stages"] == stages
-    store.fetch_stages.assert_not_called()
+        assert result["stages"] == stages
+        store.fetch_stages.assert_not_called()
+
+    def test_rows_to_tasks_with_stages_groups_by_task(self, store_and_db):
+        store, _db = store_and_db
+        rows = [
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="download",
+                stage_number=1,
+                stage_status="Running",
+                stage_message="starting",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+            ),
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="process",
+                stage_number=2,
+                stage_status="Pending",
+                stage_message=None,
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 5, 0),
+            ),
+            _task_row(
+                "task-2",
+                title="Task 2",
+                normalized_title="task 2",
+                stage_name=None,
+            ),
+        ]
+
+        task_rows, stage_map = store._rows_to_tasks_with_stages(rows)
+
+        assert len(task_rows) == 2
+        assert set(stage_map.keys()) == {"task-1"}
+        assert set(stage_map["task-1"].keys()) == {"download", "process"}
+        assert stage_map["task-1"]["download"]["updated_at"] == "2024-01-01T12:00:00"
+
+    def test_list_tasks_joins_stages_and_returns_stage_data(self, store_and_db):
+        store, db = store_and_db
+        rows = [
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="download",
+                stage_number=1,
+                stage_status="Running",
+                stage_sub_name="step-1",
+                stage_message="starting",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+            ),
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="process",
+                stage_number=2,
+                stage_status="Pending",
+                stage_sub_name=None,
+                stage_message=None,
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 10, 0),
+            ),
+            _task_row(
+                "task-2",
+                title="Task 2",
+                normalized_title="task 2",
+                status="Pending",
+                stage_name=None,
+            ),
+        ]
+        db.fetch_query_safe.return_value = rows
+
+        tasks = store.list_tasks()
+
+        sql = db.fetch_query_safe.call_args[0][0]
+        assert "FROM (SELECT * FROM tasks" in sql
+        assert "LEFT JOIN task_stages" in sql
+        assert "ORDER BY t.created_at DESC" in sql
+
+        assert len(tasks) == 2
+        assert tasks[0]["stages"]["download"]["status"] == "Running"
+        assert tasks[0]["stages"]["process"]["number"] == 2
+        assert tasks[1]["stages"] == {}
+
+        # TODO: FAILED tests/test_task_store_pymysql.py::test_list_tasks_joins_stages_and_returns_stage_data - AssertionError: Expected 'mock' to not have been called. Called 1 times.
+        # store.fetch_stages.assert_not_called()
+
+    def test_get_task_joins_and_groups_stages(self, store_and_db):
+        store, db = store_and_db
+        rows = [
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="download",
+                stage_number=1,
+                stage_status="Running",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+            ),
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title="task 1",
+                stage_name="process",
+                stage_number=2,
+                stage_status="Pending",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 5, 0),
+            ),
+        ]
+        db.fetch_query_safe.return_value = rows
+
+        task = store.get_task("task-1")
+
+        sql = db.fetch_query_safe.call_args[0][0]
+        assert "LEFT JOIN task_stages" in sql
+        assert "WHERE t.id = %s" in sql
+
+        assert task is not None
+        assert set(task["stages"].keys()) == {"download", "process"}
+        store.fetch_stages.assert_not_called()
+
+    def test_get_active_task_by_title_uses_join(self, store_and_db):
+        store, db = store_and_db
+        rows = [
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title=_normalize_title("Task 1"),
+                stage_name="download",
+                stage_number=1,
+                stage_status="Running",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+            )
+        ]
+        db.fetch_query_safe.return_value = rows
+
+        task = store.get_active_task_by_title("Task 1")
+
+        sql = db.fetch_query_safe.call_args[0][0]
+        assert "FROM (" in sql and "LEFT JOIN task_stages" in sql
+        assert "LIMIT 1" in sql
+        assert "status NOT IN" in sql
+
+        assert task is not None
+        assert task["stages"]["download"]["number"] == 1
+        store.fetch_stages.assert_not_called()
+
+    def test_create_task_duplicate_detection_uses_join(self, store_and_db):
+        store, db = store_and_db
+        normalized_title = _normalize_title("Task 1")
+        rows = [
+            _task_row(
+                "task-1",
+                title="Task 1",
+                normalized_title=normalized_title,
+                stage_name="download",
+                stage_number=1,
+                stage_status="Running",
+                stage_message="starting",
+                stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+            )
+        ]
+        db.fetch_query.return_value = rows
+
+        with pytest.raises(TaskAlreadyExistsError) as exc:
+            store.create_task("task-2", "Task 1")
+
+        sql = db.fetch_query.call_args[0][0]
+        assert "LEFT JOIN task_stages" in sql
+        assert "LIMIT 1" in sql
+
+        assert exc.value.task["stages"]["download"]["message"] == "starting"
+        db.execute_query.assert_not_called()
+        store.fetch_stages.assert_not_called()
+
+    def test_task_store_close_delegates_to_database(self, store_and_db):
+        store, db = store_and_db
+
+        store.close()
+
+        db.close.assert_called_once()
+
+    def test_task_store_context_manager_closes_database(self):
+        store = TaskStorePyMysql.__new__(TaskStorePyMysql)
+        db_mock = MagicMock()
+        store.db = db_mock
+
+        with store as ctx:
+            assert ctx is store
+
+        db_mock.close.assert_called_once()
+
+    def test_database_close_calls_internal_close(self):
+        db = Database.__new__(Database)
+        close_mock = MagicMock()
+        db._close_connection = close_mock  # type: ignore[method-assign]
+
+        db.close()
+
+        close_mock.assert_called_once()
+
+    def test_database_close_closes_connection_object(self):
+        db = Database.__new__(Database)
+        db._lock = threading.RLock()
+        connection_mock = MagicMock()
+        db.connection = connection_mock
+
+        db.close()
+
+        connection_mock.close.assert_called_once()
+        assert db.connection is None
+
+    def test_database_context_manager_closes_on_exit(self):
+        db = Database.__new__(Database)
+        db._lock = threading.RLock()
+        connection_mock = MagicMock()
+        db.connection = connection_mock
+
+        with db as ctx:
+            assert ctx is db
+
+        connection_mock.close.assert_called_once()
 
 
-def test_rows_to_tasks_with_stages_groups_by_task(store_and_db):
-    store, _db = store_and_db
-    rows = [
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="download",
-            stage_number=1,
-            stage_status="Running",
-            stage_message="starting",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
-        ),
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="process",
-            stage_number=2,
-            stage_status="Pending",
-            stage_message=None,
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 5, 0),
-        ),
-        _task_row(
-            "task-2",
-            title="Task 2",
-            normalized_title="task 2",
-            stage_name=None,
-        ),
-    ]
-
-    task_rows, stage_map = store._rows_to_tasks_with_stages(rows)
-
-    assert len(task_rows) == 2
-    assert set(stage_map.keys()) == {"task-1"}
-    assert set(stage_map["task-1"].keys()) == {"download", "process"}
-    assert stage_map["task-1"]["download"]["updated_at"] == "2024-01-01T12:00:00"
+class MockTasksListDB(TasksListDB, DbUtils):
+    def fetch_stages(self, task_id):
+        return {}
 
 
-def test_list_tasks_joins_stages_and_returns_stage_data(store_and_db):
-    store, db = store_and_db
-    rows = [
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="download",
-            stage_number=1,
-            stage_status="Running",
-            stage_sub_name="step-1",
-            stage_message="starting",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
-        ),
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="process",
-            stage_number=2,
-            stage_status="Pending",
-            stage_sub_name=None,
-            stage_message=None,
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 10, 0),
-        ),
-        _task_row(
-            "task-2",
-            title="Task 2",
-            normalized_title="task 2",
-            status="Pending",
-            stage_name=None,
-        ),
-    ]
-    db.fetch_query_safe.return_value = rows
+class TestTasksListDB:
 
-    tasks = store.list_tasks()
+    @pytest.fixture
+    def mock_db(self):
+        return MagicMock()
 
-    sql = db.fetch_query_safe.call_args[0][0]
-    assert "FROM (SELECT * FROM tasks" in sql
-    assert "LEFT JOIN task_stages" in sql
-    assert "ORDER BY t.created_at DESC" in sql
+    @pytest.fixture
+    def tasks_db(self, mock_db):
+        return MockTasksListDB(db=mock_db)
 
-    assert len(tasks) == 2
-    assert tasks[0]["stages"]["download"]["status"] == "Running"
-    assert tasks[0]["stages"]["process"]["number"] == 2
-    assert tasks[1]["stages"] == {}
-
-    # TODO: FAILED tests/test_task_store_pymysql.py::test_list_tasks_joins_stages_and_returns_stage_data - AssertionError: Expected 'mock' to not have been called. Called 1 times.
-    # store.fetch_stages.assert_not_called()
-
-
-def test_get_task_joins_and_groups_stages(store_and_db):
-    store, db = store_and_db
-    rows = [
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="download",
-            stage_number=1,
-            stage_status="Running",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
-        ),
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title="task 1",
-            stage_name="process",
-            stage_number=2,
-            stage_status="Pending",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 5, 0),
-        ),
-    ]
-    db.fetch_query_safe.return_value = rows
-
-    task = store.get_task("task-1")
-
-    sql = db.fetch_query_safe.call_args[0][0]
-    assert "LEFT JOIN task_stages" in sql
-    assert "WHERE t.id = %s" in sql
-
-    assert task is not None
-    assert set(task["stages"].keys()) == {"download", "process"}
-    store.fetch_stages.assert_not_called()
-
-
-def test_get_active_task_by_title_uses_join(store_and_db):
-    store, db = store_and_db
-    rows = [
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title=_normalize_title("Task 1"),
-            stage_name="download",
-            stage_number=1,
-            stage_status="Running",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+    def test_create_base_sql_simple(self, tasks_db):
+        query_parts, params = tasks_db.create_base_sql(
+            order_column="created_at", statuses=None, status=None, username=None, direction="DESC", limit=None, offset=None
         )
-    ]
-    db.fetch_query_safe.return_value = rows
+        sql = " ".join(query_parts)
+        assert "SELECT * FROM tasks" in sql
+        assert "ORDER BY created_at DESC" in sql
+        assert "WHERE" not in sql
+        assert "LIMIT" not in sql
+        assert params == []
 
-    task = store.get_active_task_by_title("Task 1")
-
-    sql = db.fetch_query_safe.call_args[0][0]
-    assert "FROM (" in sql and "LEFT JOIN task_stages" in sql
-    assert "LIMIT 1" in sql
-    assert "status NOT IN" in sql
-
-    assert task is not None
-    assert task["stages"]["download"]["number"] == 1
-    store.fetch_stages.assert_not_called()
-
-
-def test_create_task_duplicate_detection_uses_join(store_and_db):
-    store, db = store_and_db
-    normalized_title = _normalize_title("Task 1")
-    rows = [
-        _task_row(
-            "task-1",
-            title="Task 1",
-            normalized_title=normalized_title,
-            stage_name="download",
-            stage_number=1,
-            stage_status="Running",
-            stage_message="starting",
-            stage_updated_at=datetime.datetime(2024, 1, 1, 12, 0, 0),
+    def test_create_base_sql_filtered(self, tasks_db):
+        query_parts, params = tasks_db.create_base_sql(
+            order_column="title",
+            statuses=["pending"],
+            status="failed",
+            username="user1",
+            direction="ASC",
+            limit=10,
+            offset=5,
         )
-    ]
-    db.fetch_query.return_value = rows
+        sql = " ".join(query_parts)
+        assert "status IN (%s, %s)" in sql
+        assert "username = %s" in sql
+        assert "ORDER BY title ASC" in sql
+        assert "LIMIT %s" in sql
+        assert "OFFSET %s" in sql
 
-    with pytest.raises(TaskAlreadyExistsError) as exc:
-        store.create_task("task-2", "Task 1")
+        # Check params order
+        # statuses + status first, then username, then limit, then offset
+        assert params[0] == "pending"
+        assert params[1] == "failed"
+        assert params[2] == "user1"
+        assert params[3] == 10
+        assert params[4] == 5
 
-    sql = db.fetch_query.call_args[0][0]
-    assert "LEFT JOIN task_stages" in sql
-    assert "LIMIT 1" in sql
+    def test_list_tasks_success(self, tasks_db, mock_db):
+        # Mock return from fetch_query_safe
+        # It should return joined rows (task + stage)
+        mock_db.fetch_query_safe.return_value = [
+            {
+                "id": "t1",
+                "title": "Task 1",
+                "status": "done",
+                "created_at": "2023-01-01",
+                "updated_at": "2023-01-01",
+                "normalized_title": "task 1",
+                "form_json": None,
+                "data_json": None,
+                "results_json": None,
+                "stage_name": "s1",
+                "stage_number": 1,
+                "stage_status": "done",
+                "stage_sub_name": None,
+                "stage_message": None,
+                "stage_updated_at": None,
+                "main_file": "f.svg",  # Added to match _row_to_task expectations if strictly typed or accessed
+            }
+        ]
 
-    assert exc.value.task["stages"]["download"]["message"] == "starting"
-    db.execute_query.assert_not_called()
-    store.fetch_stages.assert_not_called()
+        tasks = tasks_db.list_tasks(limit=10)
 
+        assert len(tasks) == 1
+        assert tasks[0]["id"] == "t1"
+        assert tasks[0]["stages"]["s1"]["status"] == "done"
 
-def test_task_store_close_delegates_to_database(store_and_db):
-    store, db = store_and_db
+        # Verify SQL query structure
+        args = mock_db.fetch_query_safe.call_args[0]
+        sql = args[0]
+        assert "SELECT * FROM tasks" in sql
+        assert "LEFT JOIN task_stages" in sql
+        assert "ORDER BY t.created_at DESC" in sql
 
-    store.close()
+    def test_list_tasks_no_results(self, tasks_db, mock_db):
+        mock_db.fetch_query_safe.return_value = []
+        tasks = tasks_db.list_tasks()
+        assert tasks == []
 
-    db.close.assert_called_once()
+    def test_list_tasks_db_failure(self, tasks_db, mock_db):
+        mock_db.fetch_query_safe.return_value = []
+        # Technically fetch_query_safe returns [] on error too, but handled same way
+        tasks = tasks_db.list_tasks()
+        assert tasks == []
 
-
-def test_task_store_context_manager_closes_database():
-    store = TaskStorePyMysql.__new__(TaskStorePyMysql)
-    db_mock = MagicMock()
-    store.db = db_mock
-
-    with store as ctx:
-        assert ctx is store
-
-    db_mock.close.assert_called_once()
-
-
-def test_database_close_calls_internal_close():
-    db = Database.__new__(Database)
-    close_mock = MagicMock()
-    db._close_connection = close_mock  # type: ignore[method-assign]
-
-    db.close()
-
-    close_mock.assert_called_once()
-
-
-def test_database_close_closes_connection_object():
-    db = Database.__new__(Database)
-    db._lock = threading.RLock()
-    connection_mock = MagicMock()
-    db.connection = connection_mock
-
-    db.close()
-
-    connection_mock.close.assert_called_once()
-    assert db.connection is None
-
-
-def test_database_context_manager_closes_on_exit():
-    db = Database.__new__(Database)
-    db._lock = threading.RLock()
-    connection_mock = MagicMock()
-    db.connection = connection_mock
-
-    with db as ctx:
-        assert ctx is db
-
-    connection_mock.close.assert_called_once()
+    def test_offset_without_limit(self, tasks_db):
+        # Special case where offset requires a limit
+        query_parts, params = tasks_db.create_base_sql("created_at", None, None, None, "DESC", None, 5)
+        sql = " ".join(query_parts)
+        # Check for large limit constant
+        assert "LIMIT 18446744073709551615" in sql
+        assert "OFFSET %s" in sql
+        assert params[-1] == 5

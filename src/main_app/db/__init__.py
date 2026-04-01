@@ -5,7 +5,6 @@ from .db_Settings import SettingsDB
 
 from .copy_svg_langs_db import (
     StageStore,
-    TasksListDB,
     CreateUpdateTask,
     TaskAlreadyExistsError,
 )
@@ -27,7 +26,6 @@ __all__ = [
     "OwidChartsDB",
     "TemplateRecord",
     "TemplatesDB",
-    "TasksListDB",
     "StageStore",
     "SettingsDB",
 ]
