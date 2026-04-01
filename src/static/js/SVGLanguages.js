@@ -112,14 +112,20 @@ async function oneFile(item) {
 
 // Initialize: process all .get_languages elements concurrently but wait for all
 async function initGetLanguages() {
-    const divs = $('.get_languages');
+    let divs = $('.get_languages');
     console.log('start initGetLanguages, get_languages divs: ', divs.length);
 
     if (!divs.length) return;
 
+    divs = divs.toArray().slice(0, 10);
+
+    divs.forEach(element => {
+        oneFile($(element))
+    });
+
     // convert to array of promises and run them concurrently
-    const promises = divs.toArray().map(el => oneFile($(el)));
-    await Promise.allSettled(promises);
+    // const promises = divs.map(el => oneFile($(el)));
+    // await Promise.allSettled(promises);
 }
 
 // Document ready and load MediaWiki modules, then init

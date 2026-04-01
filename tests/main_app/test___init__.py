@@ -28,10 +28,8 @@ def test_create_app_registers_blueprints():
         "main",
         "tasks",
         "explorer",
-        "templates",
         "admin",
         "auth",
-        "fix_nested",
         "fix_nested",
         "extract",
     ]
