@@ -1,4 +1,4 @@
-from ..utils import make_results_summary, save_files_stats
+from ...utils import make_results_summary, save_files_stats
 from ...copy_svg_langs_legacy.steps import download_step
 from ...copy_svg_langs_legacy.steps import extract_text_step
 from ...copy_svg_langs_legacy.steps import extract_titles_step

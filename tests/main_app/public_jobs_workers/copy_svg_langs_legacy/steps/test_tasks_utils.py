@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs.utils import (
+from src.main_app.public_jobs_workers.utils import (
     commons_link,
     json_save,
     make_results_summary,

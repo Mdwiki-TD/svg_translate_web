@@ -1,4 +1,4 @@
-from ..utils import make_results_summary, save_files_stats
+from ...utils import make_results_summary, save_files_stats
 from .download import download_step
 from .extract_text import extract_text_step
 from .extract_titles import extract_titles_step
