@@ -1,4 +1,6 @@
-"""Processor for copying SVG languages (translations) between versions."""
+"""
+Processor for copy_svg_translation
+"""
 
 from __future__ import annotations
 

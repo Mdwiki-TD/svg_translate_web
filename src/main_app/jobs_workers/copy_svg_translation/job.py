@@ -1,5 +1,5 @@
 """
-Worker module for copy_svg_translation.
+Processor for copy_svg_translation
 """
 
 from __future__ import annotations
@@ -18,48 +18,13 @@ from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...db.db_Templates import TemplateRecord
 from ...services import template_service
-from ..base_worker import BaseJobWorker
 from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
 
 
-@dataclass
-class TemplateInfo:
-    """Holds all state for a single template being processed."""
-
-    template_id: int
-    template_title: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
-    error: str | None = None
-    steps: dict[str, StepResult] = field(
-        default_factory=lambda: {
-            "load_template_text": {"result": None, "msg": ""},
-            "generate_template_text": {"result": None, "msg": ""},
-            "add_template_text": {"result": None, "msg": ""},
-            "save_new_text": {"result": None, "msg": ""},
-        }
-    )
-
-    # Internal temporary state
-    _text: str | None = None
-    _template_text: str | None = None
-    _new_text: str | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": self.steps,
-        }
-
-
-class CopySvgTranslationProcessor(BaseJobWorker):
+class CopySvgTranslationProcessor:
     """
     Worker for copy_svg_translation.
     Steps:
@@ -76,6 +41,8 @@ class CopySvgTranslationProcessor(BaseJobWorker):
         user: dict[str, Any] | None,
         title: str | None,
         args: dict[str, Any] | None,
+        result: dict[str, Any],
+        result_file: str | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
         self.job_id = job_id
@@ -93,19 +60,6 @@ class CopySvgTranslationProcessor(BaseJobWorker):
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
-
-    def _load_templates(self) -> list[TemplateRecord]:
-        templates = template_service.list_templates()
-        templates = [t for t in templates if t.title.startswith("Template:OWID/")]
-        return self._apply_limits(templates)
-
-    def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
-        if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
-            return templates[:_limit]
-
-        return templates
 
     # ------------------------------------------------------------------
     # Per-template orchestration
@@ -250,7 +204,7 @@ class CopySvgTranslationProcessor(BaseJobWorker):
             "templates_processed": [],
         }
 
-    def process(self):
+    def run(self):
 
         self.site = get_user_site(self.user)
         if not self.site:
