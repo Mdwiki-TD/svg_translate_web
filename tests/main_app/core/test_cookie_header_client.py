@@ -2,7 +2,7 @@
 
 from flask import Flask, request
 
-from src.main_app.cookies import CookieHeaderClient
+from src.main_app.core.cookies import CookieHeaderClient
 
 
 def test_cookie_header_client_sets_cookie_from_header():

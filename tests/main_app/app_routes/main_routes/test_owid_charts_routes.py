@@ -1,4 +1,4 @@
-"""Tests for src.main_app.app_routes.owid_charts_routes.py"""
+"""Tests for src.main_app.app_routes.main_routes.owid_charts_routes.py"""
 
 from __future__ import annotations
 
@@ -49,8 +49,8 @@ def sample_unpublished_chart():
 def owid_charts_client(sample_chart, sample_unpublished_chart):
     """Create Flask test client with mocked owid_charts_service."""
     with (
-        patch("src.main_app.app_routes.owid_charts_routes.list_published_charts") as mock_published,
-        patch("src.main_app.app_routes.owid_charts_routes.list_charts") as mock_all,
+        patch("src.main_app.app_routes.main_routes.owid_charts_routes.list_published_charts") as mock_published,
+        patch("src.main_app.app_routes.main_routes.owid_charts_routes.list_charts") as mock_all,
     ):
         mock_published.return_value = [sample_chart]
         mock_all.return_value = [sample_chart, sample_unpublished_chart]
