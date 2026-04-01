@@ -113,6 +113,13 @@ def create_side(active_route):
                 icon="bi-tools",
             ),
             SidebarItem(
+                id="copy_svg_langs",
+                admin=1,
+                href="copy_svg_langs/list",
+                title="Copy Svg Langs",
+                icon="bi-tools",
+            ),
+            SidebarItem(
                 id="download_main_files",
                 admin=1,
                 href="download_main_files/list",
