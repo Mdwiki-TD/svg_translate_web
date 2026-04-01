@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Any, Dict
 
 from flask import current_app
 
-from ..config import settings
-from .web_run_task import run_task
+from ...config import settings
+from .legacy_run_task import run_task
 
 if TYPE_CHECKING:
     from flask import Flask

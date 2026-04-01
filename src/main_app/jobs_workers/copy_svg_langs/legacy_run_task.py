@@ -4,9 +4,9 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ..config import DbConfig, settings
-from ..db.task_store_pymysql import TaskStorePyMysql
-from ..jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
+from ...config import DbConfig, settings
+from ...db.task_store_pymysql import TaskStorePyMysql
+from .job import CopySvgLangsProcessor
 
 logger = logging.getLogger(__name__)
 

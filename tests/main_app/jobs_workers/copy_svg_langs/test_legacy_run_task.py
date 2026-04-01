@@ -3,10 +3,10 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from src.main_app.threads.web_run_task import _compute_output_dir, fail_task, make_stages, run_task
+from src.main_app.jobs_workers.copy_svg_langs.legacy_run_task import _compute_output_dir, fail_task, make_stages, run_task
 
 
-@patch("src.main_app.threads.web_run_task.settings")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.settings")
 def test_compute_output_dir(mock_settings, tmp_path):
     mock_settings.paths.svg_data = tmp_path
 
@@ -43,8 +43,8 @@ def test_fail_task():
     store.update_status.assert_called_with("t1", "Failed")
 
 
-@patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
-@patch("src.main_app.threads.web_run_task.CopySvgLangsProcessor")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.CopySvgLangsProcessor")
 def test_run_task_success(
     mock_processor_cls,
     mock_store_cls,
@@ -83,8 +83,8 @@ def test_run_task_success(
     mock_store.update_results.assert_called()
 
 
-@patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
-@patch("src.main_app.threads.web_run_task.CopySvgLangsProcessor")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.CopySvgLangsProcessor")
 def test_run_task_fail_text(mock_processor_cls, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_processor = mock_processor_cls.return_value
@@ -104,8 +104,8 @@ def test_run_task_fail_text(mock_processor_cls, mock_store_cls):
     mock_store.update_status.assert_any_call("t1", "Failed")
 
 
-@patch("src.main_app.threads.web_run_task.TaskStorePyMysql")
-@patch("src.main_app.threads.web_run_task.CopySvgLangsProcessor")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.jobs_workers.copy_svg_langs.legacy_run_task.CopySvgLangsProcessor")
 def test_run_task_fail_titles(mock_processor_cls, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_processor = mock_processor_cls.return_value

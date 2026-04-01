@@ -6,7 +6,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.app_routes.tasks import routes
 from src.main_app.db import TaskAlreadyExistsError
-from src.main_app.threads import task_threads
+from src.main_app.jobs_workers.copy_svg_langs import legacy_threads
 
 
 class InMemoryTaskStore:
@@ -93,8 +93,8 @@ def app(monkeypatch: pytest.MonkeyPatch):
 
     routes.TASK_STORE = store
     routes.TASK_STORE_LOCK = threading.Lock()
-    with task_threads.CANCEL_EVENTS_LOCK:
-        task_threads.CANCEL_EVENTS.clear()
+    with legacy_threads.CANCEL_EVENTS_LOCK:
+        legacy_threads.CANCEL_EVENTS.clear()
 
     # Mock current user for auth checks
     monkeypatch.setattr(
@@ -119,8 +119,8 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
 
     # Register cancel event
     cancel_event = threading.Event()
-    with task_threads.CANCEL_EVENTS_LOCK:
-        task_threads.CANCEL_EVENTS[task_id] = cancel_event
+    with legacy_threads.CANCEL_EVENTS_LOCK:
+        legacy_threads.CANCEL_EVENTS[task_id] = cancel_event
 
     client = app.test_client()
 
