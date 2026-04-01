@@ -7,7 +7,9 @@ from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles
 
 
 def test_extract_text_step_success(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext")
+    mock_get_wikitext = mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext"
+    )
     mock_get_wikitext.return_value = "some wikitext"
 
     result = extract_text_step({}, "File:Example.svg")
@@ -18,7 +20,9 @@ def test_extract_text_step_success(mocker):
 
 
 def test_extract_text_step_fail(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext")
+    mock_get_wikitext = mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext"
+    )
     mock_get_wikitext.return_value = ""
 
     result = extract_text_step({}, "File:Example.svg")
