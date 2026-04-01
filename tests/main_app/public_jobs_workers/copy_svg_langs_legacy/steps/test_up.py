@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.upload import start_upload, upload_step
+from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload import start_upload, upload_step
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def test_start_upload_success(mock_site, mock_store):
     }
     stages = {}
 
-    with patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.upload_file") as mock_upload:
+    with patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.upload_file") as mock_upload:
         mock_upload.return_value = {"result": "Success"}
 
         res, final_stages = start_upload(files, "[[File:Main]]", mock_site, stages, "t1", mock_store, lambda x: False)
@@ -33,7 +33,7 @@ def test_start_upload_success(mock_site, mock_store):
         mock_upload.assert_called_once()
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.build_upload_site")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.build_upload_site")
 def test_upload_task_disabled(mock_build, mock_store):
     stages = {}
     res, final_stages = upload_step(stages, {}, "Main", do_upload=False, store=mock_store)
@@ -41,7 +41,7 @@ def test_upload_task_disabled(mock_build, mock_store):
     assert final_stages["status"] == "Skipped"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.build_upload_site")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.build_upload_site")
 def test_upload_task_no_files(mock_build, mock_store):
     stages = {}
     res, final_stages = upload_step(stages, {}, "Main", do_upload=True, store=mock_store)
@@ -49,9 +49,9 @@ def test_upload_task_no_files(mock_build, mock_store):
     assert res["reason"] == "no-input"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.build_upload_site")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.start_upload")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.mark_token_used")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.build_upload_site")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.start_upload")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.mark_token_used")
 def test_upload_task_success(mock_mark, mock_start, mock_build, mock_store):
     mock_build.return_value = MagicMock()
     mock_start.return_value = ({"done": 1}, {"status": "Completed"})

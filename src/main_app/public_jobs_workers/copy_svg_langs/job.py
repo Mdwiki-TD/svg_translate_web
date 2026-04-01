@@ -25,7 +25,7 @@ from .steps import extract_translations_step
 from .steps import fix_nested_step
 from .steps import inject_step
 from .steps import upload_step
-from .utils import json_save, make_results_summary
+from ..utils import json_save, make_results_summary
 
 logger = logging.getLogger(__name__)
 
