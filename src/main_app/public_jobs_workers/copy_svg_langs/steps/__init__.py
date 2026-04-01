@@ -4,7 +4,7 @@ from .fix_nested import fix_nested_step
 from .injects import inject_step
 from .texts import extract_text_step
 from .titles import extract_titles_step
-from .uploads import upload_step
+from .upload import upload_step
 from .utils import make_results_summary, save_files_stats
 
 __all__ = [
