@@ -31,17 +31,23 @@ def start_copy_svg_langs_job(
     """
     username = user.get("username") if user else None
     job = jobs_service.create_job("copy_svg_langs", username)
+    task_id = job.id
 
     cancel_event = threading.Event()
-    _register_cancel_event(job.id, cancel_event)
+    _register_cancel_event(task_id, cancel_event)
 
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, copy_svg_langs_worker_entry),
+        args=(task_id, user, cancel_event, copy_svg_langs_worker_entry),
         kwargs={"title": title, "args": args},
         daemon=True,
     )
     thread.start()
 
-    logger.info(f"Started copy_svg_langs job {job.id} for {title}")
-    return job.id
+    logger.info(f"Started copy_svg_langs job {task_id} for {title}")
+    return task_id
+
+
+__all__ = [
+    "start_copy_svg_langs_job",
+]

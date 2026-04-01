@@ -77,21 +77,18 @@ def start_copy_svg_langs_job(
     task_id: str,
     title: str,
     args: Any,
-    user_payload: Dict[str, Any],
-) -> None:
+    user: dict[str, Any] | None = None,
+) -> int:
     """
-    Start and manage a background thread that runs a task and exposes a cancellation event for that task.
+    Start a background job to copy SVG translations.
 
-    Registers a cancellation Event for the given task_id in the module-level cancel registry, launches a daemon thread named "task-runner-<first8_of_task_id>" to execute the task, and ensures the cancellation Event is removed from the registry once the task completes.
+    Args:
+        title: Main file title.
+        args: Job arguments.
+        user: User authentication data.
 
-    This function captures the current Flask application context and pushes it within the background thread, allowing access to Flask globals (current_app, g, etc.) during task execution.
-
-    Parameters:
-        task_id (str): Unique identifier for the task; used to register and later remove the task's cancellation event.
-        title (str): Human-readable title for the task.
-        args (Any): Task-specific arguments passed through to the task runner.
-        user_payload (Dict[str, Any]): Additional user-provided metadata passed to the task.
-
+    Returns:
+        Job ID.
     """
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
@@ -118,19 +115,22 @@ def start_copy_svg_langs_job(
                     task_id,
                     title,
                     args,
-                    user_payload,
+                    user,
                     cancel_event=cancel_event,
                 )
             finally:
                 _pop_cancel_event(task_id)
 
-    t = threading.Thread(
+    thread = threading.Thread(
         target=_runner,
         args=(app,),  # Pass app to the thread
         name=f"task-runner-{task_id[:8]}",
         daemon=True,
     )
-    t.start()
+    thread.start()
+
+    logger.info(f"Started copy_svg_langs job {task_id} for {title}")
+    return task_id
 
 
 __all__ = [

@@ -31,7 +31,7 @@ def test_launch_thread_registers_and_cleans_cancel_event(monkeypatch):
     task_id = "t-abc123"
 
     with app.app_context():
-        start_copy_svg_langs_job(task_id, "Title", args=SimpleNamespace(), user_payload={})
+        start_copy_svg_langs_job(task_id, "Title", args=SimpleNamespace(), user={})
 
     # ensure registered
     assert started.wait(timeout=0.2), "Thread did not start in time"
