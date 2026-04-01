@@ -1,9 +1,8 @@
-import json
 from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.fix_nested_task_store import FixNestedTaskStore
+from src.main_app.app_routes.fix_nested.fix_nested_task_store import FixNestedTaskStore
 
 
 @pytest.fixture

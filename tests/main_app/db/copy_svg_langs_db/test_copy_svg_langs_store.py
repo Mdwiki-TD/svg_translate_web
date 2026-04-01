@@ -7,12 +7,17 @@ import pytest
 
 from src.main_app.db import TaskAlreadyExistsError
 from src.main_app.db.db_class import Database
-from src.main_app.db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql, TasksListDB
+from src.main_app.app_routes.copy_svg_langs_job.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 from src.main_app.db.utils import DbUtils
 
 utils = DbUtils()
 
 _normalize_title = utils._normalize_title
+
+
+class MockTasksListDB(DbUtils):
+    def fetch_stages(self, task_id):
+        return {}
 
 
 def _task_row(
@@ -303,11 +308,6 @@ class TestTaskStorePyMysql:
             assert ctx is db
 
         connection_mock.close.assert_called_once()
-
-
-class MockTasksListDB(TasksListDB, DbUtils):
-    def fetch_stages(self, task_id):
-        return {}
 
 
 class TestTasksListDB:

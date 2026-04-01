@@ -4,7 +4,7 @@ import pytest
 import logging
 from unittest.mock import Mock
 
-from src.main_app.db.copy_svg_langs_db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
+from src.main_app.app_routes.copy_svg_langs_job.copy_svg_langs_db.db_CreateUpdate import CreateUpdateTask, TaskAlreadyExistsError
 from src.main_app.db.utils import DbUtils
 
 

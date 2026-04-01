@@ -3,7 +3,7 @@ from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
 from .db_OwidCharts import OwidChartRecord, OwidChartsDB
 from .db_Settings import SettingsDB
 
-from .copy_svg_langs_db import (
+from ..app_routes.copy_svg_langs_job.copy_svg_langs_db import (
     StageStore,
     CreateUpdateTask,
     TaskAlreadyExistsError,

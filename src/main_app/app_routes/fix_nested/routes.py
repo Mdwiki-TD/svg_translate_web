@@ -7,7 +7,7 @@ from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 from ...config import settings
 from ...db.db_class import Database
-from ...db.fix_nested_task_store import FixNestedTaskStore
+from .fix_nested_task_store import FixNestedTaskStore
 from ...services.admin_service import active_coordinators
 from ...services.users_service import current_user
 from ..utils.routes_utils import load_auth_payload
