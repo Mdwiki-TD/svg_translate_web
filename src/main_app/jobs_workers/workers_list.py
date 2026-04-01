@@ -1,6 +1,6 @@
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
-from .copy_svg_translation import copy_svg_translation_worker
+# from .copy_svg_translation import copy_svg_translation_worker
 from .create_owid_pages import create_owid_pages_for_templates
 from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
@@ -13,7 +13,7 @@ jobs_targets = {
     "create_owid_pages": create_owid_pages_for_templates,
     "add_svglanguages_template": add_svglanguages_template_to_templates,
     "download_main_files": download_main_files_for_templates,
-    "copy_svg_translation": copy_svg_translation_worker,
+    # "copy_svg_translation": copy_svg_translation_worker,
 }
 
 
