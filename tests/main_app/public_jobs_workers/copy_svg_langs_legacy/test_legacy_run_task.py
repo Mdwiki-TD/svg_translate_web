@@ -11,7 +11,7 @@ from src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task impo
 )
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.settings")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.settings")
 def test_compute_output_dir(mock_settings, tmp_path):
     mock_settings.paths.svg_data = tmp_path
 
@@ -48,17 +48,17 @@ def test_fail_task():
     store.update_status.assert_called_with("t1", "Failed")
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_text_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_titles_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_translations_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.download_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.fix_nested_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.inject_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.upload_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.save_files_stats")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.make_results_summary")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task._compute_output_dir")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_text_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_titles_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_translations_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.download_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.fix_nested_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.inject_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.upload_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.save_files_stats")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.make_results_summary")
 def test_run_task_success(
     mock_summary,
     mock_stats,
@@ -117,9 +117,9 @@ def test_run_task_success(
     assert mock_store.update_stage.call_count >= 8  # 7 stages + initialize updates
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_text_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task._compute_output_dir")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_text_step")
 def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_compute_dir.return_value = Path("/tmp/out")
@@ -133,10 +133,10 @@ def test_run_task_fail_text(mock_text, mock_compute_dir, mock_store_cls):
     mock_store.update_status.assert_any_call("t1", "Failed")
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.TaskStorePyMysql")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task._compute_output_dir")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_text_step")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.legacy_run_task.extract_titles_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.TaskStorePyMysql")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task._compute_output_dir")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_text_step")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.legacy_run_task.extract_titles_step")
 def test_run_task_fail_titles(mock_titles, mock_text, mock_compute_dir, mock_store_cls):
     mock_store = mock_store_cls.return_value.__enter__.return_value
     mock_compute_dir.return_value = Path("/tmp/out")
