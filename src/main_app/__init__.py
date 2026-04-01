@@ -14,19 +14,18 @@ from .app_routes import (
     bp_explorer,
     bp_extract,
     bp_fix_nested,
-    bp_fix_nested_explorer,
     bp_main,
     bp_owid_charts,
     bp_tasks,
     bp_templates,
 )
 from .config import settings
-from .cookies import CookieHeaderClient
+from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
-from .services.tasks_service import close_task_store
-from .users.current import context_user
-from .users.store import ensure_user_token_table
-from .utils.jinja_filters import format_stage_timestamp, short_url
+from .db.user_tokens import ensure_user_token_table
+from .services.copy_svg_langs_service import close_task_store
+from .services.users_service import context_user
+from .utils import format_stage_timestamp, short_url
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,6 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)
-    app.register_blueprint(bp_fix_nested_explorer)
     app.register_blueprint(bp_extract)
     app.register_blueprint(bp_owid_charts)
 

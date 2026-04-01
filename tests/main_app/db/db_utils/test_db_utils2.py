@@ -364,12 +364,12 @@ class TestDbUtilsCurrentTs:
     def test_current_ts_is_recent(self, db_utils: DbUtils) -> None:
         """Test _current_ts returns a recent timestamp."""
         # Add a small buffer to account for the fact that _current_ts has no microseconds
-        before = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) - datetime.timedelta(seconds=1)
+        before = datetime.datetime.now(datetime.UTC).replace(microsecond=0) - datetime.timedelta(seconds=1)
         result = db_utils._current_ts()
-        after = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) + datetime.timedelta(seconds=1)
+        after = datetime.datetime.now(datetime.UTC).replace(microsecond=0) + datetime.timedelta(seconds=1)
 
         ts = datetime.datetime.strptime(result, "%Y-%m-%d %H:%M:%S")
-        ts = ts.replace(tzinfo=datetime.timezone.utc)
+        ts = ts.replace(tzinfo=datetime.UTC)
 
         assert before <= ts <= after
 

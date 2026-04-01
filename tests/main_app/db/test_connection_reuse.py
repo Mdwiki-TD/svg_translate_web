@@ -1,6 +1,6 @@
 from src.main_app import create_app
-from src.main_app.app_routes.tasks import routes as task_routes
-from src.main_app.users import store as user_store
+from src.main_app.app_routes.copy_svg_langs_job import routes as task_routes
+from src.main_app.db import user_tokens as user_store
 
 
 class FakeCursor:
@@ -57,11 +57,11 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
 
     monkeypatch.setattr("src.main_app.db.db_class.pymysql.connect", fake_connect)
     monkeypatch.setattr(
-        "src.main_app.db.task_store_pymysql.TaskStorePyMysql._init_schema",
+        "src.main_app.db.copy_svg_langs_db.copy_svg_langs_store.TaskStorePyMysql._init_schema",
         lambda self: None,
     )
     monkeypatch.setattr(
-        "src.main_app.db.task_store_pymysql.TaskStorePyMysql.list_tasks",
+        "src.main_app.db.copy_svg_langs_db.copy_svg_langs_store.TaskStorePyMysql.list_tasks",
         lambda self, **kwargs: [],
     )
 

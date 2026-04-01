@@ -7,9 +7,6 @@ src/
 ├── logger_config.py
 ├── main_app/
 │   ├── __init__.py
-│   ├── admins/
-│   │   ├── __init__.py
-│   │   └── admins_required.py
 │   ├── api_services/
 │   │   ├── __init__.py
 │   │   ├── category.py
@@ -30,55 +27,50 @@ src/
 │   │   ├── __init__.py
 │   │   ├── admin/
 │   │   │   ├── __init__.py
-│   │   │   ├── admin_routes/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── coordinators.py
-│   │   │   │   ├── jobs.py
-│   │   │   │   ├── owid_charts.py
-│   │   │   │   ├── recent.py
-│   │   │   │   ├── settings.py
-│   │   │   │   └── templates.py
+│   │   │   ├── admins_required.py
 │   │   │   ├── routes.py
 │   │   │   └── sidebar.py
+│   │   ├── admin_routes/
+│   │   │   ├── __init__.py
+│   │   │   ├── coordinators.py
+│   │   │   ├── jobs.py
+│   │   │   ├── owid_charts.py
+│   │   │   ├── recent.py
+│   │   │   ├── settings.py
+│   │   │   └── templates.py
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   ├── cookie.py
 │   │   │   ├── oauth.py
 │   │   │   ├── rate_limit.py
 │   │   │   └── routes.py
-│   │   ├── explorer/
-│   │   │   ├── __init__.py
-│   │   │   ├── compare.py
-│   │   │   └── routes.py
-│   │   ├── extract/
+│   │   ├── copy_svg_langs_job/
 │   │   │   ├── __init__.py
 │   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
-│   │   │   ├── explorer_routes.py
 │   │   │   ├── routes.py
 │   │   │   └── worker.py
-│   │   ├── main/
+│   │   ├── main_routes/
 │   │   │   ├── __init__.py
-│   │   │   └── routes.py
-│   │   ├── owid_charts_routes.py
-│   │   ├── tasks/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py
-│   │   ├── templates/
-│   │   │   ├── __init__.py
-│   │   │   └── routes.py
+│   │   │   ├── explorer_routes.py
+│   │   │   ├── extract_routes.py
+│   │   │   ├── owid_charts_routes.py
+│   │   │   ├── routes.py
+│   │   │   └── templates_routes.py
 │   │   └── utils/
 │   │       ├── __init__.py
 │   │       ├── args_utils.py
+│   │       ├── compare.py
 │   │       ├── explorer_utils.py
 │   │       ├── fix_nested_utils.py
 │   │       ├── routes_utils.py
 │   │       └── thumbnail_utils.py
 │   ├── config.py
-│   ├── cookies/
-│   │   └── __init__.py
-│   ├── crypto.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── cookies.py
+│   │   └── crypto.py
 │   ├── data/
 │   │   ├── __init__.py
 │   │   ├── owid_charts.csv
@@ -86,19 +78,22 @@ src/
 │   │   └── topics_categories.json
 │   ├── db/
 │   │   ├── __init__.py
+│   │   ├── copy_svg_langs_db/
+│   │   │   ├── __init__.py
+│   │   │   ├── copy_svg_langs_store.py
+│   │   │   ├── db_CreateUpdate.py
+│   │   │   └── db_StageStore.py
 │   │   ├── db_class.py
 │   │   ├── db_CoordinatorsDB.py
-│   │   ├── db_CreateUpdate.py
 │   │   ├── db_Jobs.py
 │   │   ├── db_OwidCharts.py
 │   │   ├── db_Settings.py
-│   │   ├── db_StageStore.py
-│   │   ├── db_TasksListDB.py
 │   │   ├── db_Templates.py
+│   │   ├── exceptions.py
 │   │   ├── fix_nested_task_store.py
 │   │   ├── sql_schema_tables.py
 │   │   ├── svg_db.py
-│   │   ├── task_store_pymysql.py
+│   │   ├── user_tokens.py
 │   │   └── utils.py
 │   ├── jobs_workers/
 │   │   ├── __init__.py
@@ -125,47 +120,46 @@ src/
 │   │       ├── __init__.py
 │   │       ├── add_svglanguages_template_utils.py
 │   │       └── crop_main_files_utils.py
+│   ├── public_jobs_workers/
+│   │   ├── __init__.py
+│   │   └── copy_svg_langs/
+│   │       ├── __init__.py
+│   │       ├── steps/
+│   │       │   ├── __init__.py
+│   │       │   ├── downloads/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── download.py
+│   │       │   ├── extract/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── extract_task.py
+│   │       │   ├── fix_nested/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── fix_nested_tasks.py
+│   │       │   ├── injects/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── inject_tasks.py
+│   │       │   ├── texts/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── start_bot.py
+│   │       │   ├── titles/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── titles_tasks.py
+│   │       │   ├── uploads/
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── up.py
+│   │       │   └── utils/
+│   │       │       ├── __init__.py
+│   │       │       └── tasks_utils.py
+│   │       ├── task_threads.py
+│   │       └── web_run_task.py
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── admin_service.py
+│   │   ├── copy_svg_langs_service.py
 │   │   ├── jobs_service.py
 │   │   ├── owid_charts_service.py
-│   │   ├── tasks_service.py
-│   │   └── template_service.py
-│   ├── tasks/
-│   │   ├── __init__.py
-│   │   ├── downloads/
-│   │   │   ├── __init__.py
-│   │   │   └── download.py
-│   │   ├── extract/
-│   │   │   ├── __init__.py
-│   │   │   └── extract_task.py
-│   │   ├── fix_nested/
-│   │   │   ├── __init__.py
-│   │   │   └── fix_nested_tasks.py
-│   │   ├── injects/
-│   │   │   ├── __init__.py
-│   │   │   └── inject_tasks.py
-│   │   ├── texts/
-│   │   │   ├── __init__.py
-│   │   │   └── start_bot.py
-│   │   ├── titles/
-│   │   │   ├── __init__.py
-│   │   │   └── titles_tasks.py
-│   │   ├── uploads/
-│   │   │   ├── __init__.py
-│   │   │   └── up.py
-│   │   └── utils/
-│   │       ├── __init__.py
-│   │       └── tasks_utils.py
-│   ├── threads/
-│   │   ├── __init__.py
-│   │   ├── task_threads.py
-│   │   └── web_run_task.py
-│   ├── users/
-│   │   ├── __init__.py
-│   │   ├── current.py
-│   │   └── store.py
+│   │   ├── template_service.py
+│   │   └── users_service.py
 │   └── utils/
 │       ├── __init__.py
 │       ├── jinja_filters.py
@@ -183,6 +177,21 @@ src/
 │               ├── __init__.py
 │               ├── last_world_file_utils.py
 │               └── main_file.py
+├── new_app/
+│   ├── __init__.py
+│   ├── admin/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── config.py
+│   ├── public/
+│   │   ├── routes/
+│   │   └── services/
+│   └── shared/
+│       ├── db/
+│       │   └── __init__.py
+│       ├── utils/
+│       │   └── __init__.py
+│       └── workers/
 ├── offline/
 │   ├── __init__.py
 │   └── collect_main_files.py

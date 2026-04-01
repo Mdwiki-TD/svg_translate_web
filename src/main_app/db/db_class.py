@@ -9,12 +9,9 @@ from typing import Any, Iterable, Sequence
 import pymysql
 
 from ..config import DbConfig
+from .exceptions import MaxUserConnectionsError
 
 logger = logging.getLogger(__name__)
-
-
-class MaxUserConnectionsError(Exception):
-    pass
 
 
 class Database:

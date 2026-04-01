@@ -72,7 +72,7 @@ from .utils.verify import verify_required_fields
 
 ### Type Hints
 
-Use type hints throughout. Use `|` for union types (Python 3.10+):
+Use type hints throughout. Use `|` for union types (Python 3.11+):
 
 ```python
 def get_file_text(file_name: str, site: mwclient.Site | None) -> str:
@@ -86,10 +86,10 @@ Use Google-style docstrings with Args/Returns sections:
 ```python
 def format_stage_timestamp(value: str) -> str:
     """Format ISO8601 like '2025-10-27T04:41:07' to 'Oct 27, 2025, 4:41 AM'.
-    
+
     Args:
         value: ISO8601 timestamp string.
-    
+
     Returns:
         Formatted timestamp string or empty string if parsing fails.
     """

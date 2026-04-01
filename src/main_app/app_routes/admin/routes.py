@@ -11,8 +11,7 @@ from flask import (
     url_for,
 )
 
-from ...admins.admins_required import admin_required
-from .admin_routes import (
+from ..admin_routes import (
     Coordinators,
     Jobs,
     OwidCharts,
@@ -20,6 +19,7 @@ from .admin_routes import (
     SettingsRoutes,
     Templates,
 )
+from .admins_required import admin_required
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)

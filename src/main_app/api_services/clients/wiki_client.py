@@ -8,7 +8,7 @@ from typing import Any, Dict
 import mwclient
 
 from ...config import settings
-from ...crypto import decrypt_value
+from ...core.crypto import decrypt_value
 
 logger = logging.getLogger(__name__)
 

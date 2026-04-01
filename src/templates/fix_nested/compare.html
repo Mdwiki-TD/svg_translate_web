@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-2">
     <div class="mb-3">
-        <a href="{{ url_for('fix_nested_explorer.task_detail', task_id=task_id) }}" class="btn btn-secondary">
+        <a href="{{ url_for('fix_nested.task_detail', task_id=task_id) }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Task
         </a>
     </div>
@@ -42,7 +42,7 @@
                                 <dd class="col-sm-6">{{ "%.2f"|format(original_result.file_size / 1024) }} KB</dd>
                             </dl>
 
-                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='original') }}"
+                            <a href="{{ url_for('fix_nested.serve_file', task_id=task_id, file_type='original') }}"
                                class="btn btn-outline-danger" target="_blank">
                                 <i class="bi bi-download"></i> Download
                             </a>
@@ -74,7 +74,7 @@
                                 <dd class="col-sm-6">{{ "%.2f"|format(fixed_result.file_size / 1024) }} KB</dd>
                             </dl>
 
-                            <a href="{{ url_for('fix_nested_explorer.serve_file', task_id=task_id, file_type='fixed') }}"
+                            <a href="{{ url_for('fix_nested.serve_file', task_id=task_id, file_type='fixed') }}"
                                class="btn btn-outline-success" target="_blank">
                                 <i class="bi bi-download"></i> Download
                             </a>
