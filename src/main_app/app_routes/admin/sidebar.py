@@ -121,10 +121,10 @@ def create_side(active_route):
                 disabled=True,
             ),
             SidebarItem(
-                id="copy_svg_lang_file",
+                id="copy_svg_translation",
                 admin=1,
-                href="copy_svg_lang_file/list",
-                title="Copy Svg Lang File",
+                href="copy_svg_translation/list",
+                title="Copy SVG Translation",
                 icon="bi-copy",
                 disabled=False,
             ),

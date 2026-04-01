@@ -25,28 +25,9 @@ from ...services import jobs_service
 from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
 from ..utils.routes_utils import load_auth_payload
+from ...jobs_workers.workers_list import JOB_TYPE_TEMPLATES, JOB_TYPE_LIST_TEMPLATES
 
 logger = logging.getLogger(__name__)
-
-
-JOB_TYPE_TEMPLATES = {
-    "collect_main_files": "admins/jobs_templates/collect_main_files/details.html",
-    "crop_main_files": "admins/jobs_templates/crop_main_files/details.html",
-    "create_owid_pages": "admins/jobs_templates/create_owid_pages/details.html",
-    "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/details.html",
-    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
-    "download_main_files": "admins/jobs_templates/download_main_files/details.html",
-}
-
-
-JOB_TYPE_LIST_TEMPLATES = {
-    "collect_main_files": "admins/jobs_templates/collect_main_files/list.html",
-    "crop_main_files": "admins/jobs_templates/crop_main_files/list.html",
-    "create_owid_pages": "admins/jobs_templates/create_owid_pages/list.html",
-    "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/list.html",
-    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
-    "download_main_files": "admins/jobs_templates/download_main_files/list.html",
-}
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
