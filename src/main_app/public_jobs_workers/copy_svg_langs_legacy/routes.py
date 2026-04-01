@@ -194,7 +194,7 @@ def start():
         if existing_task:
             logger.debug(f"Task for title '{title}' already exists: {existing_task['id']}.")
             flash(f"Task for title '{title}' already exists: {existing_task['id']}.", "warning")
-            return redirect(url_for("tasks.task_infos", task_id=existing_task["id"], title=title))
+            return redirect(url_for("copy_svg_langs.task_infos", task_id=existing_task["id"], title=title))
 
     try:
         create_new_task(task_id, title, username=(user.username if user else ""), form=request.form.to_dict(flat=True))
@@ -202,7 +202,7 @@ def start():
         existing = exc.task
         logger.debug("Task creation for %s blocked by existing task %s", task_id, existing.get("id"))
         flash(f"Task for title '{title}' already exists: {existing['id']}.", "warning")
-        return redirect(url_for("tasks.task_infos", task_id=existing["id"], title=title))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=existing["id"], title=title))
     except Exception:
         logger.exception("Failed to create task")
         flash("Failed to create task.", "danger")
@@ -212,7 +212,7 @@ def start():
 
     start_copy_svg_langs_job(task_id, title, args, auth_payload)
 
-    return redirect(url_for("tasks.task_infos", title=title, task_id=task_id))
+    return redirect(url_for("copy_svg_langs.task_infos", title=title, task_id=task_id))
 
 
 @bp_copy_svg_langs.post("/tasks/<task_id>/delete")
@@ -230,7 +230,7 @@ def delete_task(task_id: str):
     else:
         flash(f"Task '{task_id}' removed.", "success")
 
-    return redirect(url_for("tasks.tasks"))
+    return redirect(url_for("copy_svg_langs.tasks"))
 
 
 @bp_copy_svg_langs.post("/tasks/<task_id>/cancel")
@@ -249,7 +249,7 @@ def cancel(task_id: str):
 
     if task.get("status") in ("Completed", "Failed", "Cancelled"):
         flash(f"Task is already {task.get('status')}", "info")
-        return redirect(url_for("tasks.task_infos", task_id=task_id))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
     user = current_user()
     if not user:
@@ -267,7 +267,7 @@ def cancel(task_id: str):
             task_username,
         )
         flash("You don't own this task", "danger")
-        return redirect(url_for("tasks.task_infos", task_id=task_id))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
     cancel_event = get_cancel_event(task_id, store=store)
     if cancel_event:
@@ -276,7 +276,7 @@ def cancel(task_id: str):
     store.update_status(task_id, "Cancelled")
 
     flash("Task cancelled successfully.", "success")
-    return redirect(url_for("tasks.task_infos", task_id=task_id))
+    return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
 
 @bp_copy_svg_langs.post("/tasks/<task_id>/restart")
@@ -296,7 +296,7 @@ def restart(task_id: str):
     if not title:
         logger.error("Task %s has no title to restart", task_id)
         flash("Task has no title to restart", "danger")
-        return redirect(url_for("tasks.task_infos", task_id=task_id))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
     user = current_user()
     if not user:
@@ -328,15 +328,15 @@ def restart(task_id: str):
         existing = exc.task
         logger.debug("Restart for %s blocked by existing task %s", task_id, existing.get("id"))
         flash(f"Task for title '{title}' already exists: {existing.get('id')}.", "warning")
-        return redirect(url_for("tasks.task_infos", task_id=existing.get("id")))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=existing.get("id")))
     except Exception:
         logger.exception("Failed to restart task %s", task_id)
         flash("Failed to restart task.", "danger")
-        return redirect(url_for("tasks.task_infos", task_id=task_id))
+        return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
     start_copy_svg_langs_job(new_task_id, title, args, user_payload)
 
-    return redirect(url_for("tasks.task_infos", task_id=new_task_id))
+    return redirect(url_for("copy_svg_langs.task_infos", task_id=new_task_id))
 
 
 bp_tasks = bp_copy_svg_langs
