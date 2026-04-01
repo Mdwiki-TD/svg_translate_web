@@ -33,13 +33,13 @@ def app(monkeypatch: pytest.MonkeyPatch):
         ),
         disable_uploads="",
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.settings", settings)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.settings", settings)
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.flash", lambda *args, **kwargs: None)
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.jsonify", lambda payload: payload)
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.redirect", lambda url: {"redirect_to": url})
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.flash", lambda *args, **kwargs: None)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.jsonify", lambda payload: payload)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.redirect", lambda url: {"redirect_to": url})
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.url_for",
+        "src.main_app.app_routes.copy_svg_langs_job.routes.url_for",
         lambda endpoint, **kwargs: f"url_for({endpoint}, {kwargs})",
     )
 
@@ -70,13 +70,13 @@ def test_cancel_happy_path(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         def update_status(self, task_id: str, status: str) -> None:
             self.updated.append((task_id, status))
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: DummyStore())
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="user")
+        "src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: types.SimpleNamespace(username="user")
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.active_coordinators", lambda: ["user"])
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.active_coordinators", lambda: ["user"])
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.get_cancel_event", lambda task_id, store=None: DummyEvent()
+        "src.main_app.app_routes.copy_svg_langs_job.routes.get_cancel_event", lambda task_id, store=None: DummyEvent()
     )
 
     with app.test_request_context("/tasks/1/cancel"):
@@ -107,19 +107,19 @@ def test_restart_creates_new_task(app: Flask, monkeypatch: pytest.MonkeyPatch) -
     def fake_launch(task_id: str, title: str, args, user_payload: dict) -> None:
         launched.append((task_id, user_payload["username"]))
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.get_store_task", fake_get_store_task)
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", fake_create_new_task)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.get_store_task", fake_get_store_task)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.create_new_task", fake_create_new_task)
     monkeypatch.setattr(
         routes,
         "current_user",
         lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", fake_parse_args)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.parse_args", fake_parse_args)
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.uuid",
+        "src.main_app.app_routes.copy_svg_langs_job.routes.uuid",
         types.SimpleNamespace(uuid4=lambda: types.SimpleNamespace(hex="newtask")),
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.launch_task_thread", fake_launch)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.launch_task_thread", fake_launch)
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("task")
@@ -134,7 +134,7 @@ def test_cancel_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         def get_task(self, task_id: str) -> None:
             return None
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: DummyStore())
 
     with app.test_request_context("/tasks/missing/cancel"):
         response = routes.cancel("missing")
@@ -147,7 +147,7 @@ def test_cancel_task_already_completed(app: Flask, monkeypatch: pytest.MonkeyPat
         def get_task(self, task_id: str) -> dict[str, str]:
             return {"id": task_id, "status": "Completed"}
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: DummyStore())
 
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("1")
@@ -160,11 +160,11 @@ def test_cancel_task_wrong_owner(app: Flask, monkeypatch: pytest.MonkeyPatch) ->
         def get_task(self, task_id: str) -> dict[str, str]:
             return {"id": task_id, "status": "Running", "username": "other_user"}
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: DummyStore())
     monkeypatch.setattr(
-        "src.main_app.app_routes.tasks.routes.current_user", lambda: types.SimpleNamespace(username="user")
+        "src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: types.SimpleNamespace(username="user")
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.active_coordinators", list)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.active_coordinators", list)
 
     with app.test_request_context("/tasks/1/cancel"):
         response = routes.cancel("1")
@@ -177,7 +177,7 @@ def test_restart_task_not_found(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
         def get_task(self, task_id: str) -> None:
             return None
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: DummyStore())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: DummyStore())
 
     with app.test_request_context("/tasks/missing/restart"):
         response = routes.restart("missing")
@@ -194,14 +194,14 @@ def test_restart_task_collision(app: Flask, monkeypatch: pytest.MonkeyPatch) -> 
     def fake_create_new_task(*args, **kwargs) -> None:
         raise TaskAlreadyExistsError({"id": "existing_id"})
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.get_store_task", fake_get_store_task)
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.create_new_task", fake_create_new_task)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.get_store_task", fake_get_store_task)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.create_new_task", fake_create_new_task)
     monkeypatch.setattr(
         routes,
         "current_user",
         lambda: types.SimpleNamespace(user_id=1, username="user", access_token="tok", access_secret="sec"),
     )
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.parse_args", lambda f, d: types.SimpleNamespace())
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.parse_args", lambda f, d: types.SimpleNamespace())
 
     with app.test_request_context("/tasks/1/restart"):
         response = routes.restart("1")

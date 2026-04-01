@@ -62,7 +62,7 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
 
     store = DummyTaskStore()
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes._task_store", lambda: store)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes._task_store", lambda: store)
     monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE", store)
     monkeypatch.setattr("src.main_app.services.tasks_service.TASK_STORE_LOCK", threading.Lock())
 
@@ -82,7 +82,7 @@ def test_start_redirects_to_correct_task_endpoint(
         user_id=1,
     )
 
-    monkeypatch.setattr("src.main_app.app_routes.tasks.routes.current_user", lambda: user)
+    monkeypatch.setattr("src.main_app.app_routes.copy_svg_langs_job.routes.current_user", lambda: user)
     monkeypatch.setattr("src.main_app.users.current.current_user", lambda: user)
 
     existing_id = "existing-task-123"
