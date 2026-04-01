@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 
 from ...config import settings
 from ...db.exceptions import TaskAlreadyExistsError
-from ...public_jobs_workers.copy_svg_langs.legacy_threads import get_cancel_event, launch_task_thread
+from ...public_jobs_workers.copy_svg_langs_legacy.legacy_threads import get_cancel_event, launch_task_thread
 from ...services.admin_service import active_coordinators
 from ...services.copy_svg_langs_service import (
     _task_store,
