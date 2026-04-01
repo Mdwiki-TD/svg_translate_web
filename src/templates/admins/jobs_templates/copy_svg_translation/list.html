@@ -1,0 +1,17 @@
+{% extends "admins/jobs_templates/base_list.html" %}
+
+{% set job_type = 'add_svglanguages_template' %}
+
+{% block list_title %}Add Template:SVGLanguages{% endblock %}
+{% block list_headline %}Add Template:SVGLanguages{% endblock %}
+
+{% block start_confirm_message %}This will start a background job to add Template:SVGLanguages to OWID templates.
+Continue?{% endblock %}
+{% block start_icon %}bi-plus-circle{% endblock %}
+
+{% block list_info %}
+<!-- <div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    This job
+</div> -->
+{% endblock %}
