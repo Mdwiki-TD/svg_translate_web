@@ -94,6 +94,8 @@ class CopySvgLangsProcessor:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
+        elif jobs_service.is_job_cancelled(self.job_id, job_type="copy_svg_langs"):
+            cancelled = True
 
         if cancelled:
             self.result["status"] = "cancelled"
@@ -195,6 +197,11 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 4: download SVG files
+        def download_progress(index: int, total: int, msg: str) -> None:
+            self.result["stages"]["download"]["message"] = f"Downloading {index}/{total}: {msg}"
+            if index % 10 == 0:
+                self._save_progress()
+
         files, self.result["stages"]["download"], not_done_list = download_step(
             self.task_id,
             stages=self.result["stages"]["download"],
@@ -216,6 +223,11 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 5: Analyze And Fix Nested Files
+        def fix_nested_progress(index: int, total: int, msg: str) -> None:
+            self.result["stages"]["nested"]["message"] = f"Analyzing {index}/{total}: {msg}"
+            if index % 10 == 0:
+                self._save_progress()
+
         nested_data, self.result["stages"]["nested"] = fix_nested_step(
             self.result["stages"]["nested"],
             files,
@@ -247,6 +259,11 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 7: Upload
+        def upload_progress(index: int, total: int, msg: str) -> None:
+            self.result["stages"]["upload"]["message"] = f"Uploading {index}/{total}: {msg}"
+            if index % 10 == 0:
+                self._save_progress()
+
         files_to_upload = {x: v for x, v in inject_files.items() if v.get("file_path")}
 
         upload_result, self.result["stages"]["upload"] = upload_step(

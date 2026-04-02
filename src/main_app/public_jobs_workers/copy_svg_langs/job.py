@@ -179,6 +179,11 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 7: Upload
+        def upload_progress(index: int, total: int, msg: str) -> None:
+            self.result["stages"]["upload"]["message"] = f"Uploading {index}/{total}: {msg}"
+            if index % 10 == 0:
+                self._save_progress()
+
         if not self.args.upload:
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
@@ -188,11 +193,6 @@ class CopySvgLangsProcessor:
             self.result["stages"]["upload"]["message"] = "Authentication failed"
             upload_result = {"done": 0, "not_done": len(files_to_upload), "failed": True}
         else:
-
-            def upload_progress(index: int, total: int, msg: str) -> None:
-                self.result["stages"]["upload"]["message"] = f"Uploading {index}/{total}: {msg}"
-                if index % 10 == 0:
-                    self._save_progress()
 
             if not self._run_stage(
                 "upload",
