@@ -31,6 +31,9 @@ from .utils.routes_utils import load_auth_payload
 logger = logging.getLogger(__name__)
 
 
+bp_jobs = Blueprint("public_jobs", __name__, url_prefix="/jobs")
+
+
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     if jobs_worker.cancel_job(job_id, job_type):
@@ -292,5 +295,4 @@ class JobsPublicRoutes:
             return jsonify(result_data)
 
 
-bp_jobs = Blueprint("public_jobs", __name__, url_prefix="/jobs")
 JobsPublicRoutes(bp_jobs)
