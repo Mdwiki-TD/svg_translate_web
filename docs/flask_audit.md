@@ -88,7 +88,7 @@ def start_copy_svg_langs_job(task_id, title, args, user_payload):
 
     def _runner() -> None:
         try:
-            run_task(
+            copy_svg_langs_worker_entry(
                 settings.database_data,  # Passes config, not app context
                 task_id,
                 title,
@@ -103,7 +103,7 @@ def start_copy_svg_langs_job(task_id, title, args, user_payload):
     t.start()
 ```
 
-**Risk**: Code within `run_task()` cannot access `current_app`, Flask extensions, or any Flask-bound resources. This limits future extensibility and could cause runtime errors.
+**Risk**: Code within `copy_svg_langs_worker_entry()` cannot access `current_app`, Flask extensions, or any Flask-bound resources. This limits future extensibility and could cause runtime errors.
 
 **Recommendation**:
 
@@ -120,7 +120,7 @@ def start_copy_svg_langs_job(task_id, title, args, user_payload):
     def _runner() -> None:
         with app.app_context():  # Push app context in thread
             try:
-                run_task(
+                copy_svg_langs_worker_entry(
                     app.config['settings'].database_data,
                     task_id,
                     title,
