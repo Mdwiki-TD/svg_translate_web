@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload import upload_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.upload import upload_step
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def test_upload_task_no_files(mock_site):
     assert res["summary"]["total"] == 0
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.upload.upload_file")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
 def test_upload_task_success(mock_upload, mock_site):
     mock_upload.return_value = {"result": "Success"}
 

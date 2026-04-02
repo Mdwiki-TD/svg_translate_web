@@ -1,5 +1,5 @@
 #
-from ..public_jobs_workers.copy_svg_langs_legacy.routes import bp_tasks
+from ..public_jobs_workers.copy_svg_langs.routes import bp_tasks
 from .admin.routes import bp_admin
 from .auth.routes import bp_auth
 from .fix_nested import bp_fix_nested

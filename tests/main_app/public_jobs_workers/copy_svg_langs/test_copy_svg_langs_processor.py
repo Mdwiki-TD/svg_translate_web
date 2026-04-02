@@ -8,13 +8,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text import extract_text_step
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles import extract_titles_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
 
 def test_extract_text_step_success(mocker):
     mock_get_wikitext = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext"
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext"
     )
     mock_get_wikitext.return_value = "some wikitext"
 
@@ -28,7 +28,7 @@ def test_extract_text_step_success(mocker):
 
 def test_extract_text_step_fail(mocker):
     mock_get_wikitext = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text.get_wikitext"
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext"
     )
     mock_get_wikitext.return_value = ""
 
@@ -41,7 +41,7 @@ def test_extract_text_step_fail(mocker):
 
 def test_extract_titles_step_success(mocker):
     mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list"
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
@@ -55,7 +55,7 @@ def test_extract_titles_step_success(mocker):
 
 def test_extract_titles_step_manual_title(mocker):
     mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list"
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
@@ -67,7 +67,7 @@ def test_extract_titles_step_manual_title(mocker):
 
 def test_extract_titles_step_limit(mocker):
     mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list"
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg", "File3.svg"])
 

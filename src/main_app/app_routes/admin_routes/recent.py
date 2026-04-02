@@ -9,7 +9,7 @@ from flask import (
     render_template,
 )
 
-from ...public_jobs_workers.copy_svg_langs_legacy.routes import (
+from ...public_jobs_workers.copy_svg_langs.routes import (
     format_task,
     format_task_message,
 )
