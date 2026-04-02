@@ -51,5 +51,6 @@ def get_cancel_event(job_id: int | str):
 
 
 __all__ = [
+    "get_cancel_event",
     "start_copy_svg_langs_job",
 ]

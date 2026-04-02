@@ -75,7 +75,7 @@ def _cleanup_connections(exception: Exception | None) -> None:
 
 #### Issue #2: Application Context Lost in Background Threads
 
-**Location**: `src/main_app/jobs_workers/copy_svg_langs/legacy_threads.py:34-78`
+**Location**: `src/main_app/jobs_workers/copy_svg_langs/service.py:34-78`
 
 **Problem**: Background threads are launched without properly pushing the Flask application context. The thread receives `settings.database_data` instead of the unwrapped app instance.
 
@@ -141,7 +141,7 @@ def start_copy_svg_langs_job(task_id, title, args, user_payload):
 
 #### Issue #3: Global State Won't Work in Multi-Process Environments
 
-**Location**: `src/main_app/jobs_workers/copy_svg_langs/legacy_threads.py:12-14`
+**Location**: `src/main_app/jobs_workers/copy_svg_langs/service.py:12-14`
 
 **Problem**: The `CANCEL_EVENTS` dictionary is stored in process memory, which won't work correctly in multi-process deployments (e.g., Gunicorn with multiple workers).
 

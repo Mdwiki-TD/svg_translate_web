@@ -22,7 +22,7 @@ def extract_text_step(stages, title):
 
     stages["sub_name"] = title  # commons_link(title)
     stages["message"] = "Load wikitext"
-    # ---
+
     text = get_wikitext(title)
 
     if not text:

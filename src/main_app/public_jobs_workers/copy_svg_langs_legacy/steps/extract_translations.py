@@ -22,13 +22,13 @@ def extract_translations_step(stages, main_title, output_dir_main):
         tuple: (translations, stages) where `translations` is a dict of extracted translations (empty if none were found or download failed) and `stages` is the same stages mapping updated to reflect the final status and messages.
     """
     stages["sub_name"] = f"File:{main_title}"  # commons_link(f'File:{main_title}')
-    # ---
+
     stages["message"] = "Load translations from main file"
-    # ---
+
     stages["status"] = "Running"
-    # ---
+
     files1 = download_one_file(title=main_title, out_dir=output_dir_main, i=0, overwrite=True)
-    # ---
+
     if not files1.get("path"):
         logger.error(f"when downloading main file: {main_title}")
         stages["message"] = "Error when downloading main file"
