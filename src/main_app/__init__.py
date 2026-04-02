@@ -12,6 +12,7 @@ from .app_routes import (
     bp_admin,
     bp_auth,
     bp_explorer,
+    bp_jobs,
     bp_extract,
     bp_fix_nested,
     bp_main,
@@ -33,6 +34,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_tasks)
     app.register_blueprint(bp_explorer)
+    app.register_blueprint(bp_jobs)
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_fix_nested)

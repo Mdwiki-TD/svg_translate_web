@@ -176,7 +176,7 @@ def edit_template(template_id: int) -> ResponseReturnValue:
 **New File:** `src/templates/admins/template_edit.html`
 
 ```html
-{% extends "admins/base.html" %} {% block title %}Edit Template · Copy SVG
+{% extends "admins/base1.html" %} {% block title %}Edit Template · Copy SVG
 Translation{% endblock %} {% block contents %}
 <div class="container mt-4">
     {% if error %}

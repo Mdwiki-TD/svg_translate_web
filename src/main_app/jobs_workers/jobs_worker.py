@@ -7,7 +7,7 @@ import threading
 from typing import Any, Dict
 
 from ..services import jobs_service
-from .workers_list import jobs_targets
+from .workers_list import jobs_targets, jobs_targets_public
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     Args:
         user: User authentication data for OAuth uploads
     """
-    if job_type not in jobs_targets:
+    if job_type not in jobs_targets and job_type not in jobs_targets_public:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
@@ -101,7 +101,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, jobs_targets[job_type]),
+        args=(job.id, user, cancel_event, jobs_targets[job_type] or jobs_targets_public[job_type]),
         daemon=True,
     )
     thread.start()
@@ -119,7 +119,7 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     Args:
         user: User authentication data for OAuth uploads
     """
-    if job_type not in jobs_targets:
+    if job_type not in jobs_targets and job_type not in jobs_targets_public:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
@@ -134,7 +134,7 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     # Start background thread
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, title, args, user, cancel_event, jobs_targets[job_type]),
+        args=(job.id, title, args, user, cancel_event, jobs_targets[job_type] or jobs_targets_public[job_type]),
         daemon=True,
     )
     thread.start()

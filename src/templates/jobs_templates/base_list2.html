@@ -1,8 +1,8 @@
-{% extends "admins/base1.html" %}
+{% extends "base.html" %}
 
 {% block title %}{% block list_title %}{% endblock %} · Copy SVG Translation{% endblock %}
 
-{% block contents %}
+{% block content %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -10,7 +10,7 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            <form method="post" action="{{ url_for('admin.start_job', job_type=job_type) }}" class="d-inline">
+            <form method="post" action="{{ url_for('jobs.start_job', job_type=job_type) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-primary"
                     data-confirm-message="{% block start_confirm_message %}{% endblock %}"
@@ -60,13 +60,13 @@
                         <td>{{ job.completed_at.strftime('%H:%M:%S') if job.completed_at else '-' }}</td>
                         <td class="text-center">
                             <div class="btn-group">
-                                <a href="{{ url_for('admin.job_detail', job_type=job_type, job_id=job.id) }}"
+                                <a href="{{ url_for('jobs.job_detail', job_type=job_type, job_id=job.id) }}"
                                     class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
                                 <form method="POST"
-                                    action="{{ url_for('admin.cancel_job', job_type=job_type, job_id=job.id) }}"
+                                    action="{{ url_for('jobs.cancel_job', job_type=job_type, job_id=job.id) }}"
                                     class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                                     <button type="submit" class="btn btn-outline-warning btn-sm"
