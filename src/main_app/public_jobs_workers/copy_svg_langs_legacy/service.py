@@ -7,9 +7,7 @@ import threading
 from typing import TYPE_CHECKING, Any, Dict
 
 from flask import current_app
-
-from ...config import settings
-from .worker import run_task
+from .worker import copy_svg_langs_worker_entry
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -109,12 +107,11 @@ def start_copy_svg_langs_job(
         """
         Execute the task runner within the Flask app context.
 
-        Calls run_task with the captured settings.database_data, task_id, title, args, user_payload, and cancel_event; after run_task returns or raises, removes the task's cancel event from the global registry to avoid leaking state.
+        Calls copy_svg_langs_worker_entry with the captured settings.database_data, task_id, title, args, user_payload, and cancel_event; after copy_svg_langs_worker_entry returns or raises, removes the task's cancel event from the global registry to avoid leaking state.
         """
         with app.app_context():
             try:
-                run_task(
-                    settings.database_data,
+                copy_svg_langs_worker_entry(
                     task_id,
                     title,
                     args,

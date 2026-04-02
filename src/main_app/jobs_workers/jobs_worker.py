@@ -16,64 +16,65 @@ JOBS_CANCEL_EVENTS: dict[int, threading.Event] = {}
 JOBS_CANCEL_EVENTS_LOCK = threading.Lock()
 
 
-def _register_cancel_event(job_id: int, cancel_event: threading.Event) -> None:
+def _register_cancel_event(task_id: int, cancel_event: threading.Event) -> None:
     with JOBS_CANCEL_EVENTS_LOCK:
-        JOBS_CANCEL_EVENTS[job_id] = cancel_event
+        JOBS_CANCEL_EVENTS[task_id] = cancel_event
 
 
-def _pop_cancel_event(job_id: int) -> threading.Event | None:
+def _pop_cancel_event(task_id: int) -> threading.Event | None:
     with JOBS_CANCEL_EVENTS_LOCK:
-        return JOBS_CANCEL_EVENTS.pop(job_id, None)
+        return JOBS_CANCEL_EVENTS.pop(task_id, None)
 
 
-def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
+def get_jobs_cancel_event(task_id: int) -> threading.Event | None:
     with JOBS_CANCEL_EVENTS_LOCK:
-        return JOBS_CANCEL_EVENTS.get(job_id)
+        return JOBS_CANCEL_EVENTS.get(task_id)
 
 
 def _runner(
-    job_id: int,
+    task_id: int,
     user: Dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
 ) -> None:
     try:
-        target_func(job_id, user, cancel_event=cancel_event)
+        target_func(task_id, user, cancel_event=cancel_event)
     finally:
-        _pop_cancel_event(job_id)
+        _pop_cancel_event(task_id)
 
 
 def _runner_with_args(
-    job_id: int,
-    user: Dict[str, Any] | None,
+    task_id: int,
+    title: str,
     args: Dict[str, Any] | None,
+    user: Dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
 ) -> None:
     try:
-        target_func(job_id, user, args, cancel_event=cancel_event)
+        target_func(task_id, title, args, user, cancel_event=cancel_event)
     finally:
-        _pop_cancel_event(job_id)
+        _pop_cancel_event(task_id)
 
 
-def cancel_job(job_id: int, job_type: str | None = None) -> bool:
+def cancel_job(task_id: int, job_type: str | None = None) -> bool:
     """
     Cancel a running job.
     Works across multiple processes by updating the database status.
     Returns True if the job was found and cancellation was requested.
     """
     # 1. Try local cancellation (if the job is in this process)
-    cancel_event = get_jobs_cancel_event(job_id)
+    cancel_event = get_jobs_cancel_event(task_id)
     local_cancelled = False
     if cancel_event:
         cancel_event.set()
-        logger.info(f"Local cancellation requested for job {job_id}")
+        logger.info(f"Local cancellation requested for job {task_id}")
         local_cancelled = True
 
     # 2. Persist cancellation to DB (for cross-process detection)
-    db_cancelled = jobs_service.cancel_job(job_id, job_type)
+    db_cancelled = jobs_service.cancel_job(task_id, job_type)
     if db_cancelled:
-        logger.info(f"Database cancellation requested for job {job_id}")
+        logger.info(f"Database cancellation requested for job {task_id}")
 
     return local_cancelled or db_cancelled
 

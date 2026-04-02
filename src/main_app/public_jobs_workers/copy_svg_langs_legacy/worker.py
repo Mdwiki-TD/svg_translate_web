@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ...config import DbConfig, settings
+from ...config import settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 from ..copy_svg_langs.steps import (
     download_step,
@@ -101,16 +101,15 @@ def fail_task(
     store.update_status(task_id, "Failed")
     if msg:
         logger.error(msg)
-    return None
+    return
 
 
 # --- main pipeline --------------------------------------------
-def run_task(
-    database_data: DbConfig,
+def copy_svg_langs_worker_entry(
     task_id: str,
     title: str,
     args: Any,
-    user_data: Dict[str, str] | None,
+    user: Dict[str, str] | None,
     *,
     cancel_event: threading.Event | None = None,
 ) -> None:
@@ -121,7 +120,7 @@ def run_task(
         task_id (str): Identifier of the task being processed.
         title (str): Commons title submitted by the user.
         args: Namespace-like object returned by :func:`parse_args`.
-        user_data (dict): Authentication payload used for upload operations.
+        user (dict): Authentication payload used for upload operations.
 
     Side Effects:
         Updates task records, writes files under ``svg_data_dir``, and interacts
@@ -133,7 +132,7 @@ def run_task(
     }
 
     # store = TaskStorePyMysql(database_data)
-    with TaskStorePyMysql(database_data) as store:
+    with TaskStorePyMysql(settings.database_data) as store:
         stages_list = make_stages()
 
         def push_stage(stage_name: str, stage_state: Dict[str, Any] | None = None) -> None:
@@ -282,7 +281,7 @@ def run_task(
             files_to_upload,
             main_title,
             do_upload=bool(args.get("upload")),
-            user=user_data,
+            user=user,
             store=store,
             task_id=task_id,
             check_cancel=check_cancel,

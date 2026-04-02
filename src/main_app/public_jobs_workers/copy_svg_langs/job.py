@@ -38,7 +38,7 @@ class CopySvgLangsProcessor:
     Orchestrates the pipeline for copying SVG translations.
     """
 
-    job_id: str | int
+    task_id: str | int
     title: str
     args: Any
     user: dict[str, Any] | None
@@ -73,13 +73,13 @@ class CopySvgLangsProcessor:
         try:
             jobs_service.save_job_result_by_name(self.result_file, self.result)
         except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save progress")
+            logger.exception(f"Job {self.task_id}: Failed to save progress")
 
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
-        elif jobs_service.is_job_cancelled(self.job_id, job_type="copy_svg_langs"):
+        elif jobs_service.is_job_cancelled(self.task_id, job_type="copy_svg_langs"):
             cancelled = True
 
         if cancelled:

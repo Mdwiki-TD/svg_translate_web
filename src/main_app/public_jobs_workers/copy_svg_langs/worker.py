@@ -28,6 +28,7 @@ class CopySvgLangsWorker(BaseJobWorker):
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
+        self.task_id = task_id
         self.title = title
         self.args = args
         super().__init__(task_id, user, cancel_event)
