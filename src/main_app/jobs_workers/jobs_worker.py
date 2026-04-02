@@ -87,7 +87,8 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     Args:
         user: User authentication data for OAuth uploads
     """
-    if job_type not in jobs_targets and job_type not in jobs_targets_public:
+    job_func = jobs_targets.get(job_type) or jobs_targets_public.get(job_type)
+    if not job_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
@@ -101,7 +102,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, jobs_targets[job_type] or jobs_targets_public[job_type]),
+        args=(job.id, user, cancel_event, job_func),
         daemon=True,
     )
     thread.start()
@@ -119,7 +120,8 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     Args:
         user: User authentication data for OAuth uploads
     """
-    if job_type not in jobs_targets and job_type not in jobs_targets_public:
+    job_func = jobs_targets.get(job_type) or jobs_targets_public.get(job_type)
+    if not job_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
@@ -134,7 +136,7 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     # Start background thread
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, title, args, user, cancel_event, jobs_targets[job_type] or jobs_targets_public[job_type]),
+        args=(job.id, title, args, user, cancel_event, job_func),
         daemon=True,
     )
     thread.start()
