@@ -42,7 +42,7 @@ class CopySvgLangsProcessor:
 
     job_id: str | int
     title: str
-    args: Args
+    args: Any
     user: dict[str, Any] | None
     result: dict[str, Any]
     result_file: str
@@ -54,7 +54,6 @@ class CopySvgLangsProcessor:
 
     def __post_init__(self) -> None:
         self.output_dir = self._compute_output_dir(self.title)
-        self.args = parse_args(self.args, settings.disable_uploads)  # Args
 
     def _compute_output_dir(self, title: str) -> Path:
         name = Path(title).name
@@ -114,8 +113,7 @@ class CopySvgLangsProcessor:
             "titles",
             extract_titles_step,
             text,
-            manual_main_title=self.args.manual_main_title,
-            titles_limit=self.args.titles_limit,
+            manual_main_title=self.args.get("manual_main_title"),
         ):
             return self.result
         titles_data = self.result["stages"]["titles"]["data"]
@@ -174,7 +172,7 @@ class CopySvgLangsProcessor:
             files,
             translations,
             self.output_dir,
-            overwrite=self.args.overwrite,
+            overwrite=bool(self.args.get("overwrite")),
         ):
             return self.result
         inject_data = self.result["stages"]["inject"]["data"]["data"]
@@ -187,7 +185,7 @@ class CopySvgLangsProcessor:
             if index % 10 == 0:
                 self._save_progress()
 
-        if not self.args.upload:
+        if not bool(self.args.get("upload")):
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
             upload_result = {"done": 0, "not_done": len(files_to_upload), "skipped": True}
