@@ -134,7 +134,7 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     existing_id = "existing"
     store: InMemoryTaskStore = routes._task_store()  # type: ignore[assignment]
     store.create_task(
-        existing_id, "Title", form={"title": "Title", "titles_limit": "5", "upload": "on"}, username="testuser"
+        existing_id, "Title", form={"title": "Title", "upload": "on"}, username="testuser"
     )
     store.update_status(existing_id, "Cancelled")
 
@@ -173,11 +173,9 @@ def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: 
     assert new_task_id != existing_id
     assert new_task_id in store.tasks
     assert store.tasks[new_task_id]["title"] == "Title"
-    assert store.tasks[new_task_id]["form"] == {"title": "Title", "titles_limit": "5", "upload": "on"}
+    assert store.tasks[new_task_id]["form"] == {"title": "Title", "upload": "on"}
 
     assert captured["title"] == "Title"
-    assert hasattr(captured["args"], "titles_limit")
-    assert captured["args"].titles_limit == 5
 
 
 def test_no_mysql_connection_attempted_with_default_settings(monkeypatch: pytest.MonkeyPatch):

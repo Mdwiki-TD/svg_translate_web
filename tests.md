@@ -150,7 +150,7 @@ tests/
 │   │   │
 │   │   ├── threads/
 │   │   │   ├── test_task_threads.py
-│   │   │   └── test_web_copy_svg_langs_worker_entry.py
+│   │   │   └── test_web_run_task.py
 │   │   │
 │   │   └── users/
 │   │       ├── test_current.py              # CurrentUser, current_user(), oauth_required()
