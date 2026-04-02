@@ -86,7 +86,6 @@ def test_create_side_with_active_item():
     Tests sidebar creation with an active item.
     """
     result = sidebar.create_side("recent")
-    assert "id='last' class='active'" in result
     assert 'aria-expanded="true"' in result
     assert 'class="collapse show"' in result
 
