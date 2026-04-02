@@ -16,7 +16,6 @@ import mwclient
 import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
-from ...app_routes.utils.args_utils import Args, parse_args
 from ...config import settings
 from ...db.copy_svg_langs_db import TaskStorePyMysql
 from ...services import jobs_service
@@ -61,14 +60,14 @@ class CopySvgLangsProcessor:
         slug = slug.replace(" ", "_").lower()
         out = Path(settings.paths.svg_data) / slug
         out.mkdir(parents=True, exist_ok=True)
-        # ---
+
         # log title to out/title.txt
         try:
             with open(out / "title.txt", "w", encoding="utf-8") as f:
                 f.write(name)
         except Exception as e:
             logger.error(f"Failed to write title to {out / 'title.txt'}: {e}")
-        # ---
+
         return out
 
     def fail_task(
@@ -148,7 +147,7 @@ class CopySvgLangsProcessor:
 
         self.store.update_status(self.task_id, "Running")
 
-        # ----------------------------------------------
+        # -------------------------------------------
         # Stage 1: extract text
         text, self.result["stages"]["text"] = extract_text_step(self.result["stages"]["text"], self.title)
         self.push_stage("text")
