@@ -82,7 +82,7 @@ def _cleanup_connections(exception: Exception | None) -> None:
 **Current Code**:
 
 ```python
-def launch_task_thread(task_id, title, args, user_payload):
+def start_copy_svg_langs_job(task_id, title, args, user_payload):
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
 
@@ -110,7 +110,7 @@ def launch_task_thread(task_id, title, args, user_payload):
 ```python
 from flask import current_app
 
-def launch_task_thread(task_id, title, args, user_payload):
+def start_copy_svg_langs_job(task_id, title, args, user_payload):
     cancel_event = threading.Event()
     _register_cancel_event(task_id, cancel_event)
 
