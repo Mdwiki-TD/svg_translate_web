@@ -204,7 +204,7 @@ class Jobs:
                 return redirect(url_for("admin.jobs_list", job_type=job_type))
             return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
 
-        @bp_admin.post("/<string:job_type>/start_args")
+        @bp_admin.post("/<string:job_type>/start_with_args")
         @admin_required
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in JOB_TYPE_TEMPLATES:

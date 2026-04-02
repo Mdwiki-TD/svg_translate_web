@@ -10,13 +10,10 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import mwclient
 import requests
-
-from ...app_routes.utils.args_utils import parse_args, Args
-
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
