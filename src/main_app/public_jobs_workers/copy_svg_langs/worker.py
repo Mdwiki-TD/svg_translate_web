@@ -8,11 +8,6 @@ import logging
 import threading
 from datetime import datetime
 from typing import Any, Dict
-
-from ...app_routes.utils.args_utils import parse_args, Args
-
-from ...config import settings
-
 from ...jobs_workers.base_worker import BaseJobWorker
 from .job import CopySvgLangsProcessor
 
@@ -28,12 +23,12 @@ class CopySvgLangsWorker(BaseJobWorker):
         self,
         task_id: int,
         title: str,
-        args: Args,
+        args: Any,
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
         self.title = title
-        self.args = parse_args(args, settings.disable_uploads)  # Args
+        self.args = args
         super().__init__(task_id, user, cancel_event)
 
     def get_job_type(self) -> str:
