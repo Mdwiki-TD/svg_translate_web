@@ -21,3 +21,4 @@ docs/plans/*.md
 /.claude/skills/mwclient
 coverage.xml
 /src/new_app
+/MagicMock

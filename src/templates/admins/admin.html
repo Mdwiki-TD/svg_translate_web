@@ -64,7 +64,7 @@
                     {% for task in tasks %}
                     <tr>
                         <td>
-                            <a href="{{ url_for('tasks.task_infos', task_id=task.id) }}" class="text-decoration-none"
+                            <a href="{{ url_for('copy_svg_langs.task_infos', task_id=task.id) }}" class="text-decoration-none"
                                 title="{{ task.id }}">
                                 {{ task.id[:10] }}...
                             </a>

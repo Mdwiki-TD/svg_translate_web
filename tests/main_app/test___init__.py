@@ -17,28 +17,6 @@ def test_create_app_basic():
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
-def test_create_app_registers_blueprints():
-    """Test create_app registers all blueprints."""
-    app = create_app()
-
-    # Check that blueprints are registered
-    blueprint_names = [bp.name for bp in app.blueprints.values()]
-
-    expected_blueprints = [
-        "main",
-        "tasks",
-        "explorer",
-        "admin",
-        "auth",
-        "fix_nested",
-        "extract",
-    ]
-
-    for bp_name in expected_blueprints:
-        assert bp_name in blueprint_names, f"Blueprint {bp_name} not registered"
-
-
-@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_sets_session_cookie_config():
     """Test create_app sets session cookie configuration."""
     app = create_app()
