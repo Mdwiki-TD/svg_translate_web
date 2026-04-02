@@ -8,13 +8,16 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
 import requests
 
+from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
+from ...services import jobs_service
 from ...db.copy_svg_langs_db import TaskStorePyMysql
 from ..utils import json_save, make_results_summary
 from .steps import (
@@ -28,29 +31,6 @@ from .steps import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def fail_task(
-    store: TaskStorePyMysql,
-    task_id: str,
-    stages: Dict[str, Dict[str, Any]],
-    msg: str | None = None,
-) -> None:
-    """
-    Mark the task as failed in the provided TaskStore and log an optional error message.
-
-    This sets the `"initialize"` stage status to `"Completed"`, persists the updated snapshot via the store, and marks the task status as `"Failed"`.
-
-    Parameters:
-        snapshot (Dict[str, Any]): Current task snapshot; must contain a `"stages"` mapping.
-        msg (str | None): Optional error message to log.
-    """
-    stages["initialize"]["status"] = "Completed"
-    store.update_stage(task_id, "initialize", stages["initialize"])
-    store.update_status(task_id, "Failed")
-    if msg:
-        logger.error(msg)
-    return
 
 
 @dataclass
@@ -90,6 +70,26 @@ class CopySvgLangsProcessor:
         # ---
         return out
 
+    def fail_task(
+        self,
+        stage_name: str,
+        msg: str,
+    ) -> None:
+        """
+        Mark the task as failed in the provided TaskStore and log an optional error message.
+        """
+        self.result["stages"]["initialize"]["status"] = "Completed"
+        self.store.update_stage(self.task_id, "initialize", self.result["stages"]["initialize"])
+        self.store.update_status(self.task_id, "Failed")
+        logger.error(msg)
+        return
+
+    def _save_progress(self) -> None:
+        try:
+            jobs_service.save_job_result_by_name(self.result_file, self.result)
+        except Exception:
+            logger.exception(f"Job {self.job_id}: Failed to save progress")
+
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
@@ -98,11 +98,12 @@ class CopySvgLangsProcessor:
         if cancelled:
             self.result["status"] = "cancelled"
             self.result["stages"]["initialize"]["status"] = "Completed"
-            if stage_name:
+
+            if stage_name and stage_name in self.result.get("stages", {}):
                 stage_state = self.result["stages"].get(stage_name)
-                if stage_state and stage_state.get("status") == "Running":
-                    stage_state["status"] = "Cancelled"
-                    self.push_stage(stage_name, stage_state)
+                # if stage_state and stage_state.get("status") == "Running":
+                stage_state["status"] = "Cancelled"
+                self.push_stage(stage_name, stage_state)
 
             self.push_stage("initialize")
             self.store.update_status(self.task_id, "Cancelled")
@@ -125,6 +126,11 @@ class CopySvgLangsProcessor:
     def run(self) -> dict[str, Any]:
         """Execute the full pipeline."""
         self.result["status"] = "running"
+        self._save_progress()
+
+        self.session = create_commons_session(settings.oauth.user_agent)
+        self.site = get_user_site(self.user)
+
         task_snapshot: Dict[str, Any] = {
             "title": self.title,
         }
@@ -146,14 +152,14 @@ class CopySvgLangsProcessor:
         if self._is_cancelled("text"):
             return None
         if not text:
-            return fail_task(self.store, self.task_id, self.result["stages"], "No text extracted")
+            return self.fail_task("text", "No text extracted")
 
         # ----------------------------------------------
-        # Stage 2: extract titles
+        # Stage 2: Extract Titles
         titles_result, self.result["stages"]["titles"] = extract_titles_step(
             self.result["stages"]["titles"],
             text,
-            self.args.manual_main_title,
+            manual_main_title=self.args.manual_main_title,
             titles_limit=self.args.titles_limit,
         )
 
@@ -164,16 +170,16 @@ class CopySvgLangsProcessor:
         main_title, titles = titles_result["main_title"], titles_result["titles"]
 
         if not main_title:
-            return fail_task(self.store, self.task_id, self.result["stages"], "No main title found")
+            return self.fail_task("titles", "No main title found")
 
         value = f"File:{main_title}" if not main_title.lower().startswith("file:") else main_title
         self.store.update_task_one_column(self.task_id, "main_file", value)
 
         if not titles:
-            return fail_task(self.store, self.task_id, self.result["stages"], "No titles found")
+            return self.fail_task("titles", "No titles found")
 
         # ----------------------------------------------
-        # Stage 3: get translations
+        # Stage 3: Extract Translations
         output_dir_main = self.output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
 
@@ -185,7 +191,7 @@ class CopySvgLangsProcessor:
             return None
 
         if not translations:
-            return fail_task(self.store, self.task_id, self.result["stages"], "No translations available")
+            return self.fail_task("translations", "No translations available")
 
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -206,10 +212,10 @@ class CopySvgLangsProcessor:
             return None
 
         if not files:
-            return fail_task(self.store, self.task_id, self.result["stages"], "No files downloaded")
+            return self.fail_task("download", "No files downloaded")
 
         # ----------------------------------------------
-        # Stage 5: analyze nested files
+        # Stage 5: Analyze And Fix Nested Files
         nested_data, self.result["stages"]["nested"] = fix_nested_step(
             self.result["stages"]["nested"],
             files,
@@ -219,12 +225,12 @@ class CopySvgLangsProcessor:
             return None
 
         # ----------------------------------------------
-        # Stage 6: inject translations
+        # Stage 6: Inject translations
         inject_data, self.result["stages"]["inject"] = inject_step(
             self.result["stages"]["inject"],
             files,
             translations,
-            output_dir=self.output_dir,
+            self.output_dir,
             overwrite=self.args.overwrite,
         )
         self.push_stage("inject")
@@ -232,18 +238,16 @@ class CopySvgLangsProcessor:
             return None
 
         if not inject_data:
-            return fail_task(self.store, self.task_id, self.result["stages"], "Injection result error")
+            return self.fail_task("inject", "Injection result error")
 
         if inject_data.get("success", 0) == 0 and inject_data.get("saved_done", 0) == 0:
-            return fail_task(self.store, self.task_id, self.result["stages"], "Injection saved 0 files")
+            return self.fail_task("inject", "Injection saved 0 files")
 
         inject_files = {x: v for x, v in inject_data.get("files", {}).items() if x != main_title}
 
         # ----------------------------------------------
-        # Stage 7: upload results
+        # Stage 7: Upload
         files_to_upload = {x: v for x, v in inject_files.items() if v.get("file_path")}
-
-        no_file_path = len(inject_files) - len(files_to_upload)
 
         upload_result, self.result["stages"]["upload"] = upload_step(
             self.result["stages"]["upload"],
@@ -272,11 +276,22 @@ class CopySvgLangsProcessor:
         }
         json_save(self.output_dir / "files_stats.json", stats_data)
 
-        results = make_results_summary(
-            len(files), len(files_to_upload), no_file_path, inject_data, translations, main_title, upload_result
+        # Finalize
+        self.result["status"] = "completed"
+        self.result["completed_at"] = datetime.now().isoformat()
+
+        # Compile final results for database
+        results_summary = make_results_summary(
+            len(files),
+            len(files_to_upload),
+            len(inject_files) - len(files_to_upload),
+            inject_data,
+            translations,
+            main_title,
+            upload_result,
         )
 
-        self.store.update_results(self.task_id, results)
+        self.store.update_results(self.task_id, results_summary)
 
         final_status = (
             "Failed" if any(s.get("status") == "Failed" for s in self.result["stages"].values()) else "Completed"
@@ -288,3 +303,15 @@ class CopySvgLangsProcessor:
             return None
 
         self.store.update_status(self.task_id, final_status)
+
+        self._save_progress()
+        return self.result
+
+    def _run_stage(self, stage_name: str, step_func: Any, *args: Any, **kwargs: Any) -> bool:
+        """Run a single stage and update result."""
+        if self._is_cancelled(stage_name):
+            return False
+
+        stage = self.result["stages"][stage_name]
+        stage["status"] = "Running"
+        self._save_progress()

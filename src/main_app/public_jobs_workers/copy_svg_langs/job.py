@@ -10,7 +10,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import mwclient
 import requests
@@ -99,12 +99,14 @@ class CopySvgLangsProcessor:
         self.session = create_commons_session(settings.oauth.user_agent)
         self.site = get_user_site(self.user)
 
-        # 1. Extract Text
+        # ----------------------------------------------
+        # Stage 1: Extract Text
         if not self._run_stage("text", extract_text_step, self.title):
             return self.result
         text = self.result["stages"]["text"]["data"]["text"]
 
-        # 2. Extract Titles
+        # ----------------------------------------------
+        # Stage 2: Extract Titles
         if not self._run_stage(
             "titles",
             extract_titles_step,
@@ -117,14 +119,16 @@ class CopySvgLangsProcessor:
         main_title = titles_data["main_title"]
         titles = titles_data["titles"]
 
-        # 3. Extract Translations
+        # ----------------------------------------------
+        # Stage 3: Extract Translations
         output_dir_main = self.output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
         if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
             return self.result
         translations = self.result["stages"]["translations"]["data"]["translations"]
 
-        # 4. Download
+        # ----------------------------------------------
+        # Stage 4: download SVG files
         def download_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["download"]["message"] = f"Downloading {index}/{total}: {msg}"
             if index % 10 == 0:
@@ -142,7 +146,8 @@ class CopySvgLangsProcessor:
             return self.result
         files = self.result["stages"]["download"]["data"]["files"]
 
-        # 5. Fix Nested
+        # ----------------------------------------------
+        # Stage 5: Analyze And Fix Nested Files
         def fix_nested_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["nested"]["message"] = f"Analyzing {index}/{total}: {msg}"
             if index % 10 == 0:
@@ -158,7 +163,8 @@ class CopySvgLangsProcessor:
             return self.result
         nested_data = self.result["stages"]["nested"]["data"]["data"]
 
-        # 6. Inject
+        # ----------------------------------------------
+        # Stage 6: Inject translations
         if not self._run_stage(
             "inject",
             inject_step,
@@ -171,7 +177,8 @@ class CopySvgLangsProcessor:
         inject_data = self.result["stages"]["inject"]["data"]["data"]
         files_to_upload = self.result["stages"]["inject"]["data"]["files_to_upload"]
 
-        # 7. Upload
+        # ----------------------------------------------
+        # Stage 7: Upload
         if not self.args.upload:
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
@@ -205,6 +212,18 @@ class CopySvgLangsProcessor:
                 "errors": upload_result_data["errors"],
             }
 
+        # ----------------------------------------------
+        # Stage 8: save stats and mark done
+        stats_data = {
+            "main_title": main_title,
+            "translations": translations,
+            "titles": titles,
+            "files": files,
+            "nested_task_result": nested_data,
+            "injects_result": inject_data,
+        }
+        json_save(self.output_dir / "files_stats.json", stats_data)
+
         # Finalize
         self.result["status"] = "completed"
         self.result["completed_at"] = datetime.now().isoformat()
@@ -220,17 +239,6 @@ class CopySvgLangsProcessor:
             upload_result,
         )
         self.result["results_summary"] = results_summary
-
-        # Save stats file
-        stats_data = {
-            "main_title": main_title,
-            "translations": translations,
-            "titles": titles,
-            "files": files,
-            "nested_task_result": nested_data,
-            "injects_result": inject_data,
-        }
-        json_save(self.output_dir / "files_stats.json", stats_data)
 
         self._save_progress()
         return self.result
