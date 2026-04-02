@@ -124,13 +124,3 @@ def test_list_tasks(store, mock_db_instance):
 def test_list_tasks_failure(store, mock_db_instance):
     mock_db_instance.fetch_query_safe.side_effect = Exception("err")
     assert store.list_tasks() == []
-
-
-def test_delete_task(store, mock_db_instance):
-    assert store.delete_task("t1") is True
-    mock_db_instance.execute_query_safe.assert_called_with(
-        """
-            DELETE FROM fix_nested_tasks WHERE id = %s
-        """,
-        ("t1",),
-    )

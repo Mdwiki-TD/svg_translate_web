@@ -64,10 +64,6 @@ class DummyTaskStore:
             tasks = [task for task in tasks if task.get("username") == username]
         return [dict(task) for task in tasks]
 
-    def delete_task(self, task_id: str) -> None:
-        if task_id not in self.tasks:
-            raise LookupError("Task not found")
-        del self.tasks[task_id]
 
     def close(self) -> None:
         self.closed = True

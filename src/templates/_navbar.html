@@ -25,7 +25,7 @@
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('tasks.', 'bi-list-task', 'All Copy Tasks', url_for('copy_svg_langs.tasks')) }}
+                        {{ nav_link('tasks.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type="copy_svg_langs") ) }}
                     </li>
                     <li class="{{ nav_item_class }} dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button"
