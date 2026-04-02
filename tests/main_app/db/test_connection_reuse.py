@@ -1,6 +1,5 @@
 from src.main_app import create_app
 from src.main_app.db import user_tokens as user_store
-from src.main_app.public_jobs_workers.copy_svg_langs import routes as task_routes
 
 
 class FakeCursor:
@@ -66,7 +65,6 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     )
 
     user_store._db = None
-    task_routes.TASK_STORE = None
 
     app = create_app()
     app.config.update(TESTING=True)
