@@ -1,5 +1,4 @@
 #
-from ..public_jobs_workers.copy_svg_langs.routes import bp_tasks
 from .admin.routes import bp_admin
 from .auth.routes import bp_auth
 from .fix_nested import bp_fix_nested
@@ -14,7 +13,6 @@ __all__ = [
     "bp_jobs",
     "bp_main",
     "bp_explorer",
-    "bp_tasks",
     "bp_admin",
     "bp_fix_nested",
     "bp_extract",

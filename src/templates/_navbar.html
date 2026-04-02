@@ -68,10 +68,7 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     {% if current_user or is_authenticated %}
-                    <a href="{{ url_for('copy_svg_langs.tasks', user=current_user.username) }}"
-                        class="navbar-text me-3 text-decoration-none">
-                        {{ current_user.username }}
-                    </a>
+                    {{ current_user.username }}
                     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
                     {% else %}
                     <a class="btn btn-success btn-sm" href="{{ url_for('auth.login') }}">Login</a>

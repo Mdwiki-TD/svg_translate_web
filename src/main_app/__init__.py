@@ -17,7 +17,6 @@ from .app_routes import (
     bp_jobs,
     bp_main,
     bp_owid_charts,
-    bp_tasks,
 )
 from .config import settings
 from .core.cookies import CookieHeaderClient
@@ -32,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_main)
-    app.register_blueprint(bp_tasks)
     app.register_blueprint(bp_explorer)
     app.register_blueprint(bp_jobs)
     app.register_blueprint(bp_admin)
