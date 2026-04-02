@@ -218,9 +218,7 @@ def test_start_creates_task_and_launches_thread(
     def fake_launch(task_id: str, title: str, args: Any, auth_payload: dict[str, Any]) -> None:
         launch_calls.append((task_id, title, args, auth_payload))
 
-    monkeypatch.setattr(
-        "src.main_app.public_jobs_workers.copy_svg_langs.routes.start_copy_svg_langs_job", fake_launch
-    )
+    monkeypatch.setattr("src.main_app.public_jobs_workers.copy_svg_langs.routes.start_copy_svg_langs_job", fake_launch)
 
     response = client.post("/start", data={"title": "Sample Title", "upload": "on"})
 

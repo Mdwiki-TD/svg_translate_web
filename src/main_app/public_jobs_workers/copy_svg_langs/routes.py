@@ -16,6 +16,7 @@ from flask import (
     request,
     url_for,
 )
+
 from ...app_routes.utils.routes_utils import format_task, get_error_message, order_stages
 from ...services.copy_svg_langs_service import (
     _task_store,
