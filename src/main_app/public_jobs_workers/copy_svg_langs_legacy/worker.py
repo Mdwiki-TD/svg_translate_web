@@ -1,5 +1,5 @@
 """
-Worker module for copy_svg_langs.
+Worker module for copy_svg_langs/copy_svg_translation.
 """
 
 from __future__ import annotations
@@ -9,7 +9,6 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ...config import settings
 from ...jobs_workers.base_worker import BaseJobWorker
 from .job import CopySvgLangsProcessor
 
