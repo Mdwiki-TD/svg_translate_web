@@ -120,6 +120,14 @@ def create_side(active_route):
                 icon="bi-download",
                 disabled=True,
             ),
+            SidebarItem(
+                id="copy_svg_langs",
+                admin=1,
+                href="copy_svg_langs/list",
+                title="Copy SVG Translation",
+                icon="bi-copy",
+                disabled=False,
+            ),
         ],
         "Settings": [
             SidebarItem(
