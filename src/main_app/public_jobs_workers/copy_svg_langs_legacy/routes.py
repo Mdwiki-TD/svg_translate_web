@@ -210,7 +210,7 @@ def start():
 
     auth_payload = load_auth_payload(user)
 
-    start_copy_svg_langs_job(task_id, title, args, auth_payload)
+    start_copy_svg_langs_job(task_id, title, args.to_dict(), auth_payload)
 
     return redirect(url_for("copy_svg_langs.task_infos", title=title, task_id=task_id))
 
@@ -334,7 +334,7 @@ def restart(task_id: str):
         flash("Failed to restart task.", "danger")
         return redirect(url_for("copy_svg_langs.task_infos", task_id=task_id))
 
-    start_copy_svg_langs_job(new_task_id, title, args, user_payload)
+    start_copy_svg_langs_job(new_task_id, title, args.to_dict(), user_payload)
 
     return redirect(url_for("copy_svg_langs.task_infos", task_id=new_task_id))
 

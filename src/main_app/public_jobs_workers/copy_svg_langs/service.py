@@ -37,8 +37,7 @@ def start_copy_svg_langs_job(
 
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, copy_svg_langs_worker_entry),
-        kwargs={"title": title, "args": args},
+        args=(job.id, title, args, user, cancel_event, copy_svg_langs_worker_entry),
         daemon=True,
     )
     thread.start()
