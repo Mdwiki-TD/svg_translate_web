@@ -161,7 +161,7 @@ def copy_svg_langs_worker_entry(
 
         # Create the processor
         processor = CopySvgLangsProcessor(
-            job_id=task_id,  # Using task_id as job_id for the processor
+            task_id=task_id,  # Using task_id as task_id for the processor
             title=title,
             args=args,
             user=user,

@@ -108,7 +108,7 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
     mock_settings.paths.svg_data = "/tmp/svg_data"
     processor = CopySvgLangsProcessor(
-        job_id=1,
+        task_id=1,
         title="File:Test Path/Example.svg",
         args=processor_args,
         user=None,
@@ -130,7 +130,7 @@ def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initia
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
 
     processor = CopySvgLangsProcessor(
-        job_id=1,
+        task_id=1,
         title="Test",
         args=processor_args,
         user=None,
