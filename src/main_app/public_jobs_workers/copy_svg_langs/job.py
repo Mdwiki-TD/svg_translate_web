@@ -15,6 +15,8 @@ from typing import Any, Dict
 import mwclient
 import requests
 
+from ...app_routes.utils.args_utils import parse_args, Args
+
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
@@ -40,7 +42,7 @@ class CopySvgLangsProcessor:
 
     job_id: str | int
     title: str
-    args: Any
+    args: Args
     user: dict[str, Any] | None
     result: dict[str, Any]
     result_file: str
@@ -52,6 +54,7 @@ class CopySvgLangsProcessor:
 
     def __post_init__(self) -> None:
         self.output_dir = self._compute_output_dir(self.title)
+        self.args = parse_args(self.args, settings.disable_uploads)  # Args
 
     def _compute_output_dir(self, title: str) -> Path:
         name = Path(title).name
