@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from ...jobs_workers.base_worker import BaseJobWorker
-from .job import CopySvgLangsProcessor
+from ..copy_svg_langs.job import CopySvgLangsProcessor
 
 logger = logging.getLogger(__name__)
 
