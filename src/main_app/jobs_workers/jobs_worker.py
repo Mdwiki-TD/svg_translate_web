@@ -128,11 +128,12 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
+    title = args.get("title", "")
 
     # Start background thread
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, user, args, cancel_event, jobs_targets[job_type]),
+        args=(job.id, title, args, user, cancel_event, jobs_targets[job_type]),
         daemon=True,
     )
     thread.start()

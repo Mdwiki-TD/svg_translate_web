@@ -186,8 +186,7 @@ def run_task(
         titles_result, stages_list["titles"] = extract_titles_step(
             stages_list["titles"],
             text,
-            args.manual_main_title,
-            titles_limit=args.titles_limit,
+            args.get("manual_main_title"),
         )
 
         push_stage("titles")
@@ -254,7 +253,11 @@ def run_task(
         # ----------------------------------------------
         # Stage 6: inject translations
         injects_result, stages_list["inject"] = inject_step(
-            stages_list["inject"], files, translations, output_dir=output_dir, overwrite=args.overwrite
+            stages_list["inject"],
+            files,
+            translations,
+            output_dir=output_dir,
+            overwrite=bool(args.get("overwrite"))
         )
         push_stage("inject")
         if check_cancel("inject"):
@@ -278,7 +281,7 @@ def run_task(
             stages_list["upload"],
             files_to_upload,
             main_title,
-            do_upload=args.upload,
+            do_upload=bool(args.get("upload")),
             user=user_data,
             store=store,
             task_id=task_id,
