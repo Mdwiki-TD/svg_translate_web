@@ -15,12 +15,11 @@ from typing import Any, Dict
 import mwclient
 import requests
 
-from ...app_routes.utils.args_utils import parse_args, Args
-
 from ...api_services.clients import create_commons_session, get_user_site
+from ...app_routes.utils.args_utils import Args, parse_args
 from ...config import settings
-from ...services import jobs_service
 from ...db.copy_svg_langs_db import TaskStorePyMysql
+from ...services import jobs_service
 from ..utils import json_save, make_results_summary
 from .steps import (
     download_step,
