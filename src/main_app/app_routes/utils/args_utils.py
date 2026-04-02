@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,15 @@ class Args:
     upload: bool
     ignore_existing_task: bool
     manual_main_title: str | None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "titles_limit": self.titles_limit,
+            "overwrite": self.overwrite,
+            "upload": self.upload,
+            "ignore_existing_task": self.ignore_existing_task,
+            "manual_main_title": self.manual_main_title,
+        }
 
 
 def parse_args(request_form, disable_uploads) -> Args:
