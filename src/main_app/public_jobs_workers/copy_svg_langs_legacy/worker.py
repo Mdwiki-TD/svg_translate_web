@@ -10,9 +10,9 @@ import threading
 from pathlib import Path
 from typing import Any, Dict
 
-from ..copy_svg_langs.job import CopySvgLangsProcessor
 from ...config import settings
 from ...db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
+from ..copy_svg_langs.job import CopySvgLangsProcessor
 
 logger = logging.getLogger(__name__)
 

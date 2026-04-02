@@ -133,9 +133,7 @@ def test_cancel_route_signals_event_and_updates_status(app: Any, monkeypatch: py
 def test_restart_route_creates_new_task_and_replays_form(app: Any, monkeypatch: pytest.MonkeyPatch):
     existing_id = "existing"
     store: InMemoryTaskStore = routes._task_store()  # type: ignore[assignment]
-    store.create_task(
-        existing_id, "Title", form={"title": "Title", "upload": "on"}, username="testuser"
-    )
+    store.create_task(existing_id, "Title", form={"title": "Title", "upload": "on"}, username="testuser")
     store.update_status(existing_id, "Cancelled")
 
     captured: Dict[str, Any] = {}
