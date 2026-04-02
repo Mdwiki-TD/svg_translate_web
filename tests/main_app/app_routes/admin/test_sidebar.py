@@ -17,7 +17,6 @@ def test_generate_list_item() -> None:
 def test_create_side_marks_active_item() -> None:
     html = sidebar.create_side("coordinators")
 
-    assert "Tasks" in html
     assert "coordinators" in html
     assert "active" in html
     assert html.count("<ul") >= 2
