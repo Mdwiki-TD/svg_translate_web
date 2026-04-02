@@ -31,16 +31,22 @@ def upload_step(
         progress_callback: Optional function to report progress.
 
     Returns:
-        dict with keys: success (bool), summary (dict), errors (list)
+        dict with keys: success (bool), summary (dict), errors (list), results (dict)
     """
     done = 0
     not_done = 0
     no_changes = 0
     errors = []
+    results: dict[str, Any] = {}
 
     total_files = len(files_to_upload)
     to_work = {name: data for name, data in files_to_upload.items() if data.get("new_languages")}
-    no_changes += total_files - len(to_work)
+
+    # Initialize results for those not needing work
+    for name in files_to_upload:
+        if name not in to_work:
+            results[name] = {"result": None, "msg": "No new languages to upload"}
+            no_changes += 1
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
@@ -62,15 +68,20 @@ def upload_step(
 
             if result_status == "Success":
                 done += 1
+                results[file_name] = {"result": True, "msg": "Uploaded successfully"}
             elif result_status == "fileexists-no-change":
                 no_changes += 1
+                results[file_name] = {"result": True, "msg": "File already exists with same content"}
             else:
                 not_done += 1
+                err_msg = upload_result.get("error", "Unknown upload error")
+                results[file_name] = {"result": False, "msg": err_msg}
                 if "error" in upload_result:
-                    errors.append(f"{file_name}: {upload_result.get('error')}")
+                    errors.append(f"{file_name}: {err_msg}")
         except Exception as e:
             logger.exception(f"Exception uploading {file_name}")
             not_done += 1
+            results[file_name] = {"result": False, "msg": str(e)}
             errors.append(f"{file_name}: {str(e)}")
 
         if progress_callback and (index == 1 or index % 10 == 0 or index == len(to_work)):
@@ -88,4 +99,5 @@ def upload_step(
         "success": not_done < 10 or total_files == 0,
         "summary": summary,
         "errors": errors,
+        "results": results,
     }

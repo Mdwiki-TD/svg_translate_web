@@ -31,12 +31,13 @@ def download_step(
         progress_callback: Optional function to report progress.
 
     Returns:
-        dict with keys: success (bool), files (list[str]), failed_titles (list[str]), summary (dict)
+        dict with keys: success (bool), files (list[str]), failed_titles (list[str]), summary (dict), results (dict)
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
     files: list[str] = []
     failed_titles: list[str] = []
+    results: dict[str, Any] = {}
     done = 0
     skipped_existing = 0
     total = len(titles)
@@ -52,11 +53,14 @@ def download_step(
         if status == "success":
             done += 1
             files.append(str(result["path"]))
+            results[title] = {"result": True, "msg": "Downloaded successfully"}
         elif status == "existing":
             skipped_existing += 1
             files.append(str(result["path"]))
+            results[title] = {"result": True, "msg": "File already exists, skipped download"}
         else:
             failed_titles.append(title)
+            results[title] = {"result": False, "msg": result.get("msg", "Download failed")}
 
         if progress_callback:
             msg = f"Downloaded {done:,}, skipped {skipped_existing:,}, failed {len(failed_titles):,}"
@@ -74,4 +78,5 @@ def download_step(
         "files": files,
         "failed_titles": failed_titles,
         "summary": summary,
+        "results": results,
     }
