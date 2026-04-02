@@ -17,15 +17,13 @@ from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_transl
     ],
 )
 def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_return, expected_message):
-    stages = {"status": None, "message": None, "sub_name": None}
-
     dummy_main_path = tmp_path / "downloads"
     dummy_main_path.mkdir()
 
     fake_svg_path = dummy_main_path / "Example.svg"
     fake_svg_path.write_text("<svg></svg>")
 
-    def fake_download_one_file(title: str, out_dir: Path, i: int, session=None, overwrite: bool = False):
+    def fake_download_one_file(title, out_dir, i, overwrite=False, session=None):
         return {"path": fake_svg_path}
 
     def fake_extract(path, case_insensitive):
@@ -40,8 +38,8 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
         "src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_translations.extract", fake_extract
     )
 
-    translations, updated_stages = extract_translations_step(stages, "Example.svg", dummy_main_path)
+    result = extract_translations_step("Example.svg", dummy_main_path)
 
-    assert translations == {}
-    assert updated_stages["status"] == "Failed"
-    assert updated_stages["message"] == expected_message
+    assert result["success"] is False
+    assert result["translations"] == {}
+    assert expected_message in result["error"]

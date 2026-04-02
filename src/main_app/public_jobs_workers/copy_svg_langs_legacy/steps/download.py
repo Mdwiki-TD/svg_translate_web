@@ -1,101 +1,77 @@
-"""Download task helper with progress callbacks."""
+"""Step for downloading files for copying translations."""
 
 from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable
+from typing import Any, Callable
 
-from tqdm import tqdm
+import requests
 
-from ....api_services.clients import create_commons_session
 from ....api_services.utils import download_one_file
-from ....config import settings
-
-if TYPE_CHECKING:
-    from ....db.copy_svg_langs_db.copy_svg_langs_store import TaskStorePyMysql
 
 logger = logging.getLogger(__name__)
 
 
 def download_step(
-    task_id: str,
-    stages: Dict[str, Any],
-    output_dir_main: Path,
-    titles: Iterable[str],
-    store: TaskStorePyMysql | None = None,
-    check_cancel: Callable[[str | None], bool] | None = None,
-):
+    titles: list[str],
+    output_dir: Path,
+    session: requests.Session | None = None,
+    cancel_check: Callable[[], bool] | None = None,
+    progress_callback: Callable[[int, int, str], None] | None = None,
+) -> dict[str, Any]:
     """
-    Orchestrates downloading a set of Wikimedia Commons SVGs while updating a mutable stages dict and an optional progress updater.
+    Download a set of SVG files from Wikimedia Commons.
 
-    Parameters:
-        stages (Dict[str, str]): Mutable mapping that will be updated with "message" and "status" to reflect current progress and final outcome.
-        output_dir_main (Path): Directory where downloaded files will be saved.
-        titles (Iterable[str]): Iterable of file titles to download.
+    Args:
+        titles: List of file titles to download.
+        output_dir: Directory where files should be saved.
+        session: Optional requests session to use.
+        cancel_check: Optional function to check for cancellation.
+        progress_callback: Optional function to report progress.
+
     Returns:
-        (files, stages) (Tuple[List[str], Dict[str, str]]): `files` is the list of downloaded file paths (as strings); `stages` is the same dict passed in, updated with a final "status" of "Completed" or "Failed" and a final "message" summarizing processed and failed counts.
+        dict with keys: success (bool), files (list[str]), failed_titles (list[str]), summary (dict)
     """
-    titles = list(titles)
-    total = len(titles)
-
-    stages["message"] = f"Downloading 0/{total:,}"
-    stages["status"] = "Running"
-    if store:
-        store.update_stage(task_id, "download", stages)
-
-    out_dir = Path(str(output_dir_main))
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    session = create_commons_session(settings.oauth.user_agent)
-
-    def message_updater(value: str) -> None:
-        if store:
-            store.update_stage_column(task_id, "download", "stage_message", value)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     files: list[str] = []
-
+    failed_titles: list[str] = []
     done = 0
-    not_done = 0
-    existing = 0
-    not_done_list = []
-    for index, title in enumerate(tqdm(titles, total=len(titles), desc="Downloading files"), 1):
-        result = download_one_file(title, out_dir, index, session)
-        status = result["result"] or "failed"
+    skipped_existing = 0
+    total = len(titles)
+
+    for index, title in enumerate(titles, 1):
+        if cancel_check and cancel_check():
+            logger.info("Download step cancelled")
+            break
+
+        result = download_one_file(title, output_dir, index, session)
+        status = result.get("result", "failed")
+
         if status == "success":
             done += 1
-        elif status == "existing":
-            existing += 1
-        else:
-            not_done += 1
-            not_done_list.append(title)
-
-        stages["message"] = f"Downloading {index:,}/{len(titles):,}"
-
-        if result["path"]:
             files.append(str(result["path"]))
+        elif status == "existing":
+            skipped_existing += 1
+            files.append(str(result["path"]))
+        else:
+            failed_titles.append(title)
 
-        stages["message"] = (
-            f"Total Files: {total:,}, "
-            f"Downloaded {done:,}, "
-            f"skip existing {existing:,}, "
-            f"failed to download: {not_done:,}"
-        )
-        message_updater(stages["message"])
+        if progress_callback:
+            msg = f"Downloaded {done:,}, skipped {skipped_existing:,}, failed {len(failed_titles):,}"
+            progress_callback(index, total, msg)
 
-        if index % 10 == 0:
-            if check_cancel and check_cancel("download"):
-                return files, stages, not_done_list
+    summary = {
+        "total": total,
+        "downloaded": done,
+        "skipped_existing": skipped_existing,
+        "failed": len(failed_titles),
+    }
 
-    logger.debug("files: %s", len(files))
-
-    stages["status"] = "Failed" if not_done >= 10 else "Completed"
-
-    logger.debug(
-        "Downloaded %s files, skipped %s existing files, failed to download %s files",
-        done,
-        existing,
-        not_done,
-    )
-
-    return files, stages, not_done_list
+    return {
+        "success": len(failed_titles) < 10 or total == 0,  # Arbitrary threshold from original code
+        "files": files,
+        "failed_titles": failed_titles,
+        "summary": summary,
+    }

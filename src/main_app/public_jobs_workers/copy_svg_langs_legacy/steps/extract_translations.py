@@ -1,39 +1,37 @@
-#
+"""Step for extracting translations from a main SVG file."""
+
+from __future__ import annotations
+
 import logging
+from pathlib import Path
+from typing import Any
 
 from CopySVGTranslation import extract  # type: ignore
 
-from ....api_services.utils.download_file_utils import download_one_file
-from ...utils import json_save
+from ....api_services.utils import download_one_file
 
 logger = logging.getLogger(__name__)
 
 
-def extract_translations_step(stages, main_title, output_dir_main):
+def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[str, Any]:
     """
-    Load SVG translations from a Wikimedia Commons main file, save them as translations.json next to the provided output path, and update the given stages status mapping.
+    Load SVG translations from a Wikimedia Commons main file.
 
-    Parameters:
-        stages (dict): Mutable mapping updated with progress keys such as "sub_name", "message", and "status".
-        main_title (str): Commons file title (e.g., "Example.svg") to download and extract translations from.
-        output_dir_main (pathlib.Path): Directory where the downloaded main file is placed; the function writes translations.json to output_dir_main.parent.
+    Args:
+        main_title: Commons file title (e.g., "Example.svg") to download and extract translations from.
+        output_dir_main: Directory where the downloaded main file is placed.
 
     Returns:
-        tuple: (translations, stages) where `translations` is a dict of extracted translations (empty if none were found or download failed) and `stages` is the same stages mapping updated to reflect the final status and messages.
+        dict with keys: success (bool), translations (dict), error (str|None)
     """
-    stages["sub_name"] = f"File:{main_title}"  # commons_link(f'File:{main_title}')
-
-    stages["message"] = "Load translations from main file"
-
-    stages["status"] = "Running"
+    logger.info(f"Extracting translations from main file: {main_title}")
 
     files1 = download_one_file(title=main_title, out_dir=output_dir_main, i=0, overwrite=True)
 
     if not files1.get("path"):
-        logger.error(f"when downloading main file: {main_title}")
-        stages["message"] = "Error when downloading main file"
-        stages["status"] = "Failed"
-        return {}, stages
+        error = f"Error when downloading main file: {main_title}"
+        logger.error(error)
+        return {"success": False, "translations": {}, "error": error}
 
     main_title_path = files1["path"]
     translations = extract(main_title_path, case_insensitive=True)
@@ -42,14 +40,8 @@ def extract_translations_step(stages, main_title, output_dir_main):
     new_translations_count = len(new_translations)
 
     if new_translations_count == 0:
-        logger.debug(f"No translations found in main file: {main_title}")
-        stages["status"] = "Failed"
-        stages["message"] = "No translations found in main file"
-        return {}, stages
+        error = f"No translations found in main file: {main_title}"
+        logger.debug(error)
+        return {"success": False, "translations": {}, "error": error}
 
-    stages["status"] = "Completed"
-    stages["message"] = f"Loaded {new_translations_count:,} translations from main file"
-
-    json_save(output_dir_main.parent / "translations.json", translations)
-
-    return translations, stages
+    return {"success": True, "translations": translations, "error": None}

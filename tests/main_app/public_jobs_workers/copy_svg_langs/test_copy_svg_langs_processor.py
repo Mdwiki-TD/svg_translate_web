@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
 from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_text import extract_text_step
 from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles import extract_titles_step
 
@@ -12,10 +18,11 @@ def test_extract_text_step_success(mocker):
     )
     mock_get_wikitext.return_value = "some wikitext"
 
-    result = extract_text_step({}, "File:Example.svg")
+    result = extract_text_step("File:Example.svg")
 
-    assert result[1]["status"] == "Completed"
-    assert result[0] == "some wikitext"
+    assert result["success"] is True
+    assert result["text"] == "some wikitext"
+    assert result["error"] is None
     mock_get_wikitext.assert_called_once_with("File:Example.svg")
 
 
@@ -25,10 +32,11 @@ def test_extract_text_step_fail(mocker):
     )
     mock_get_wikitext.return_value = ""
 
-    result = extract_text_step({}, "File:Example.svg")
+    result = extract_text_step("File:Example.svg")
 
-    assert result[1]["status"] == "Failed"
-    assert result[0] == ""
+    assert result["success"] is False
+    assert result["text"] == ""
+    assert result["error"] == "No wikitext found"
 
 
 def test_extract_titles_step_success(mocker):
@@ -37,11 +45,12 @@ def test_extract_titles_step_success(mocker):
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
-    result = extract_titles_step({}, "some text", None)
+    result = extract_titles_step("some text")
 
-    assert result[1]["status"] == "Completed"
-    assert result[0]["main_title"] == "Main.svg"
-    assert result[0]["titles"] == ["File1.svg", "File2.svg"]
+    assert result["success"] is True
+    assert result["main_title"] == "Main.svg"
+    assert result["titles"] == ["File1.svg", "File2.svg"]
+    assert result["error"] is None
 
 
 def test_extract_titles_step_manual_title(mocker):
@@ -50,10 +59,10 @@ def test_extract_titles_step_manual_title(mocker):
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
 
-    result = extract_titles_step({}, "some text", "Manual.svg")
+    result = extract_titles_step("some text", manual_main_title="Manual.svg")
 
-    assert result[1]["status"] == "Completed"
-    assert result[0]["main_title"] == "Manual.svg"
+    assert result["success"] is True
+    assert result["main_title"] == "Manual.svg"
 
 
 def test_extract_titles_step_limit(mocker):
@@ -62,8 +71,75 @@ def test_extract_titles_step_limit(mocker):
     )
     mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg", "File3.svg"])
 
-    result = extract_titles_step({}, "some text", None, titles_limit=2)
+    result = extract_titles_step("some text", titles_limit=2)
 
-    assert result[1]["status"] == "Completed"
-    assert len(result[0]["titles"]) == 2
-    assert result[0]["titles"] == ["File1.svg", "File2.svg"]
+    assert result["success"] is True
+    assert len(result["titles"]) == 2
+    assert result["titles"] == ["File1.svg", "File2.svg"]
+
+
+@pytest.fixture
+def processor_args():
+    args = MagicMock()
+    args.manual_main_title = None
+    args.titles_limit = None
+    args.overwrite = False
+    args.upload = False
+    return args
+
+
+@pytest.fixture
+def initial_result():
+    return {
+        "status": "pending",
+        "stages": {
+            "text": {"status": "Pending"},
+            "titles": {"status": "Pending"},
+            "translations": {"status": "Pending"},
+            "download": {"status": "Pending"},
+            "nested": {"status": "Pending"},
+            "inject": {"status": "Pending"},
+            "upload": {"status": "Pending"},
+        },
+    }
+
+
+def test_processor_compute_output_dir(processor_args, initial_result, mocker):
+    mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
+    mock_settings.paths.svg_data = "/tmp/svg_data"
+    processor = CopySvgLangsProcessor(
+        job_id=1,
+        title="File:Test Path/Example.svg",
+        args=processor_args,
+        user=None,
+        result=initial_result,
+        result_file="job_1.json",
+    )
+
+    assert "example_svg" in str(processor.output_dir) or "example.svg" in str(processor.output_dir)
+
+
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.jobs_service")
+def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initial_result, mocker):
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
+    mock_jobs_service.is_job_cancelled.return_value = False
+
+    mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step")
+    mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
+
+    processor = CopySvgLangsProcessor(
+        job_id=1,
+        title="Test",
+        args=processor_args,
+        user=None,
+        result=initial_result,
+        result_file="job_1.json",
+    )
+
+    result = processor.run()
+
+    assert result["status"] == "failed"
+    assert result["stages"]["text"]["status"] == "Failed"
+    assert result["stages"]["text"]["message"] == "Failed to get text"

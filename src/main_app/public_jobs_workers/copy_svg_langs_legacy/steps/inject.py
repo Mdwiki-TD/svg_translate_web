@@ -11,38 +11,53 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-def inject_step(stages: dict, files: list[str], translations, output_dir=None, overwrite=False) -> tuple[dict, dict]:
+def inject_step(
+    files: list[str],
+    translations: dict[str, Any],
+    output_dir: Path,
+    overwrite: bool = False,
+) -> dict[str, Any]:
     """
-    Perform translation injection on a list of files and write translated outputs under output_dir/translated.
+    Perform translation injection on a list of SVG files.
+
+    Args:
+        files: List of paths to SVG files.
+        translations: Dictionary of translations to inject.
+        output_dir: Directory where translated files should be saved.
+        overwrite: Whether to overwrite existing files.
+
+    Returns:
+        dict with keys: success (bool), summary (dict), data (dict), files_to_upload (dict)
     """
-    if output_dir is None:
-        stages["status"] = "Failed"
-        stages["message"] = "inject task requires output_dir"
-        return {}, stages
-
-    stages["message"] = f"inject 0/{len(files):,}"
-    stages["status"] = "Running"
-
     output_dir_translated = output_dir / "translated"
     output_dir_translated.mkdir(parents=True, exist_ok=True)
 
     injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
 
-    success = injects_result.get("success") or injects_result.get("saved_done", 0)
-    failed = injects_result.get("failed") or injects_result.get("no_save", 0)
+    success_count = injects_result.get("success") or injects_result.get("saved_done", 0)
+    failed_count = injects_result.get("failed") or injects_result.get("no_save", 0)
+    no_changes_count = injects_result.get("no_changes", 0)
+    nested_files_count = injects_result.get("nested_files", 0)
 
-    # expose normalized keys for downstream consumers
-    injects_result.setdefault("success", success)
-    injects_result.setdefault("failed", failed)
+    # Normalize keys
+    injects_result["success"] = success_count
+    injects_result["failed"] = failed_count
 
-    stages["message"] = (
-        f"Files: ({len(files):,}): "
-        f"Success {success:,}, "
-        f"Failed {failed:,}, "
-        f"No changes {injects_result.get('no_changes', 0):,}, "
-        f"Nested files: {injects_result.get('nested_files', 0):,}"
-    )
+    summary = {
+        "total": len(files),
+        "success": success_count,
+        "failed": failed_count,
+        "no_changes": no_changes_count,
+        "nested_files": nested_files_count,
+    }
 
-    stages["status"] = "Completed"
+    # Identify files that are ready for upload
+    inject_files = injects_result.get("files", {})
+    files_to_upload = {name: data for name, data in inject_files.items() if data.get("file_path")}
 
-    return injects_result, stages
+    return {
+        "success": success_count > 0 or len(files) == 0,
+        "summary": summary,
+        "data": injects_result,
+        "files_to_upload": files_to_upload,
+    }

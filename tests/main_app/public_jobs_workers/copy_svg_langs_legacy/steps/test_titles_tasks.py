@@ -10,11 +10,11 @@ def test_titles_task_success(mock_get_files):
     mock_get_files.return_value = ("Main.svg", ["f1.svg", "f2.svg"])
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", None)
+    data = extract_titles_step("wikitext")
 
+    assert data["success"] is True
     assert data["main_title"] == "Main.svg"
     assert len(data["titles"]) == 2
-    assert final_stages["status"] == "Completed"
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list")
@@ -22,7 +22,7 @@ def test_titles_task_manual_title(mock_get_files):
     mock_get_files.return_value = ("Main.svg", ["f1.svg"])
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", "Manual.svg")
+    data = extract_titles_step("wikitext", manual_main_title="Manual.svg")
 
     assert data["main_title"] == "Manual.svg"
 
@@ -32,10 +32,9 @@ def test_titles_task_limit(mock_get_files):
     mock_get_files.return_value = ("Main.svg", ["f1.svg", "f2.svg", "f3.svg"])
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", None, titles_limit=2)
+    data = extract_titles_step("wikitext", titles_limit=2)
 
     assert len(data["titles"]) == 2
-    assert "use only 2" in final_stages["message"]
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list")
@@ -43,6 +42,6 @@ def test_titles_task_fail(mock_get_files):
     mock_get_files.return_value = (None, [])
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", None)
+    data = extract_titles_step("wikitext")
 
-    assert final_stages["status"] == "Failed"
+    assert data["success"] is False

@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -13,25 +14,24 @@ def test_fix_nested_task_success(mock_fix, mock_match):
     mock_match.side_effect = [["tag1"], []]
     mock_fix.return_value = True
 
-    stages = {}
     files = ["file1.svg"]
 
-    data, final_stages = fix_nested_step(stages, files)
+    result = fix_nested_step(files)
 
-    assert data["status"]["fixed"] == 1
-    assert data["status"]["len_nested_files"] == 1
-    assert final_stages["status"] == "Completed"
+    assert result["success"] is True
+    assert result["data"]["status"]["fixed"] == 1
+    assert result["data"]["status"]["len_nested_files"] == 1
+    assert result["summary"]["total"] == 1
 
 
 @patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.fix_nested.match_nested_tags")
 def test_fix_nested_task_no_nested(mock_match):
     mock_match.return_value = []
 
-    stages = {}
     files = ["file1.svg"]
 
-    data, final_stages = fix_nested_step(stages, files)
+    result = fix_nested_step(files)
 
-    assert data["status"]["len_nested_files"] == 0
-    assert data["status"]["fixed"] == 0
-    assert final_stages["status"] == "Completed"
+    assert result["success"] is True
+    assert result["data"]["status"]["len_nested_files"] == 0
+    assert result["data"]["status"]["fixed"] == 0
