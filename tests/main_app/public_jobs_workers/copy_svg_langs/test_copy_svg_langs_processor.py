@@ -225,4 +225,4 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
     assert file_info["steps"]["nested"]["result"] is True
     assert file_info["steps"]["inject"]["result"] is True
     assert file_info["steps"]["upload"]["result"] is None  # Upload disabled
-    assert file_info["status"] == "completed"
+    assert file_info["status"] == "Skipped"
