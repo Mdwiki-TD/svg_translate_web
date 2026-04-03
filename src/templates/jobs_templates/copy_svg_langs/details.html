@@ -20,163 +20,54 @@
 {% endblock %}
 
 {% block job_summary %}
-{% if result_data.results_summary %}
-<div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
-    <div class="col">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.results_summary.total_files }}</h4>
-                <small class="text-muted">Total Files</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.results_summary.new_translations_count }}</h4>
-                <small class="text-success">New Translations</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-info">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.results_summary.files_to_upload_count }}</h4>
-                <small class="text-info">Files to Upload</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-warning">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.results_summary.no_file_path }}</h4>
-                <small class="text-warning">No File Path</small>
-            </div>
-        </div>
-    </div>
-</div>
 
-{% set inj = result_data.results_summary.injects_result %}
-{% if inj %}
-<div class="row row-cols-2 row-cols-md-3 g-2 text-center mb-3">
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ inj.success }}</h4>
-                <small class="text-success">Injects Success</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ inj.failed }}</h4>
-                <small class="text-danger">Injects Failed</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ inj.nested_files }}</h4>
-                <small class="text-muted">Nested Files</small>
-            </div>
-        </div>
-    </div>
+<!-- Pipeline Stages -->
+{% if result_data.stages %}
+<div class="table-responsive">
+    <table class="table table-striped table-sm mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set stage_order = ['initialize', 'text', 'titles', 'translations', 'download', 'nested', 'inject', 'upload'] %}
+            {% for stage_key in stage_order %}
+            {% set stage = result_data.stages.get(stage_key) %}
+            {% if stage %}
+            <tr>
+                <td>{{ stage.number }}</td>
+                <td>{{ stage_key|title }}</td>
+                <td>
+                    {% if stage.status == 'Completed' %}
+                    <span class="badge bg-success">{{ stage.status }}</span>
+                    {% elif stage.status == 'Failed' %}
+                    <span class="badge bg-danger">{{ stage.status }}</span>
+                    {% elif stage.status == 'Running' %}
+                    <span class="badge bg-primary">{{ stage.status }}</span>
+                    {% elif stage.status == 'Skipped' %}
+                    <span class="badge bg-secondary">{{ stage.status }}</span>
+                    {% elif stage.status == 'Cancelled' %}
+                    <span class="badge bg-warning">{{ stage.status }}</span>
+                    {% else %}
+                    <span class="badge bg-light text-dark">{{ stage.status }}</span>
+                    {% endif %}
+                </td>
+                <td><small>{{ stage.message }}</small></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endif %}
-
-{% set upl = result_data.results_summary.upload_result %}
-{% if upl %}
-<div class="row row-cols-2 row-cols-md-3 g-2 text-center mb-3">
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ upl.done }}</h4>
-                <small class="text-success">Uploaded</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ upl.not_done }}</h4>
-                <small class="text-danger">Not Done</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ upl.skipped if upl.skipped is defined else 0 }}</h4>
-                <small class="text-muted">Skipped</small>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endif %}
 {% endblock %}
 
 {% block job_details %}
 
-<!-- Pipeline Stages -->
-{% if result_data.stages %}
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Pipeline Stages</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Stage</th>
-                        <th>Status</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% set stage_order = ['initialize', 'text', 'titles', 'translations', 'download', 'nested', 'inject', 'upload'] %}
-                    {% for stage_key in stage_order %}
-                    {% set stage = result_data.stages.get(stage_key) %}
-                    {% if stage %}
-                    <tr>
-                        <td>{{ stage.number }}</td>
-                        <td>{{ stage_key|title }}</td>
-                        <td>
-                            {% if stage.status == 'Completed' %}
-                            <span class="badge bg-success">{{ stage.status }}</span>
-                            {% elif stage.status == 'Failed' %}
-                            <span class="badge bg-danger">{{ stage.status }}</span>
-                            {% elif stage.status == 'Running' %}
-                            <span class="badge bg-primary">{{ stage.status }}</span>
-                            {% elif stage.status == 'Skipped' %}
-                            <span class="badge bg-secondary">{{ stage.status }}</span>
-                            {% elif stage.status == 'Cancelled' %}
-                            <span class="badge bg-warning">{{ stage.status }}</span>
-                            {% else %}
-                            <span class="badge bg-light text-dark">{{ stage.status }}</span>
-                            {% endif %}
-                        </td>
-                        <td><small>{{ stage.message }}</small></td>
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <!-- Files Processed -->
 {% if result_data.files_processed %}
@@ -313,161 +204,4 @@
 {% endif %}
 {% endif %}
 
-<!-- Downloaded Files -->
-{% if result_data.stages and result_data.stages.download and result_data.stages.download.data %}
-{% set dl_data = result_data.stages.download.data %}
-{% set dl_summary = dl_data.summary %}
-{% if dl_summary and (dl_summary.downloaded or dl_summary.skipped_existing or dl_summary.failed) %}
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Download Summary</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
-            <div class="col">
-                <div class="card h-100 border">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ dl_summary.total }}</h4>
-                        <small class="text-muted">Total</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-success">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ dl_summary.downloaded }}</h4>
-                        <small class="text-success">Downloaded</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-warning">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ dl_summary.skipped_existing }}</h4>
-                        <small class="text-warning">Skipped</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-danger">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ dl_summary.failed }}</h4>
-                        <small class="text-danger">Failed</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-{% endif %}
-
-<!-- Inject Result -->
-{% if result_data.stages and result_data.stages.inject and result_data.stages.inject.data %}
-{% set inj_data = result_data.stages.inject.data.data %}
-{% if inj_data %}
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Inject Result</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
-            <div class="col">
-                <div class="card h-100 border">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ inj_data.success }}</h4>
-                        <small class="text-success">Success</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-danger">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ inj_data.failed }}</h4>
-                        <small class="text-danger">Failed</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-secondary">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ inj_data.no_changes }}</h4>
-                        <small class="text-muted">No Changes</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-info">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ inj_data.nested_files }}</h4>
-                        <small class="text-info">Nested Files</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-{% endif %}
-
-<!-- Nested Analysis -->
-{% if result_data.stages and result_data.stages.nested and result_data.stages.nested.data %}
-{% set nested_data = result_data.stages.nested.data.data %}
-{% if nested_data %}
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Nested File Analysis</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row row-cols-2 row-cols-md-3 g-2 text-center mb-3">
-            <div class="col">
-                <div class="card h-100 border">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ nested_data.all_files }}</h4>
-                        <small class="text-muted">All Files</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-success">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ nested_data.status.fixed }}</h4>
-                        <small class="text-success">Fixed</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-danger">
-                    <div class="card-body p-2">
-                        <h4 class="mb-0">{{ nested_data.status.not_fixed }}</h4>
-                        <small class="text-danger">Not Fixed</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-{% endif %}
 {% endblock %}

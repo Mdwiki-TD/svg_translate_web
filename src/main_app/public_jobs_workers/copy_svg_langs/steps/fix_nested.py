@@ -57,7 +57,7 @@ def fix_nested_step(
         data["len_nested_tags_before"][len_nested] += 1
 
         if not nested_tags:
-            results[file_path_str] = {"result": True, "msg": "No nested tags found"}
+            results[file_path_str] = {"result": None, "msg": "No nested tags found"}
             if progress_callback and index % 10 == 0:
                 msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, Nested: {nested_files_count}"
                 progress_callback(index, total, msg)

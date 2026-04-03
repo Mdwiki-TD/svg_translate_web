@@ -57,7 +57,7 @@ def download_step(
         elif status == "existing":
             skipped_existing += 1
             files.append(str(result["path"]))
-            results[title] = {"result": True, "msg": "File already exists, skipped download"}
+            results[title] = {"result": None, "msg": "File already exists, skipped download"}
         else:
             failed_titles.append(title)
             results[title] = {"result": False, "msg": result.get("msg", "Download failed")}
