@@ -357,7 +357,8 @@ class CopySvgLangsProcessor:
         try:
             step_result = step_func(*args, **kwargs)
             stage["data"] = step_result
-            self.result["stages"][stage_name]["message"] = step_result["message"]
+            if step_result.get("message"):
+                self.result["stages"][stage_name]["message"] = step_result["message"]
 
             if step_result.get("success"):
                 stage["status"] = "Completed"
