@@ -18,6 +18,7 @@ from ..utils.explorer_utils import (
     svg_data_path,
     svg_data_thumb_path,
 )
+
 from ..utils.thumbnail_utils import save_thumb
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")

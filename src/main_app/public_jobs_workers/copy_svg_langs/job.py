@@ -12,13 +12,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import json
 import mwclient
 import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
-from ..utils import json_save, make_results_summary
 from .steps import (
     download_step,
     extract_text_step,
@@ -343,23 +343,34 @@ class CopySvgLangsProcessor:
             "injects_result": self.inject_data,
         }
 
-        json_save(self.output_dir / "files_stats.json", stats_data)
+        files_stats_path = self.output_dir / "files_stats.json"
+        try:
+            with open(files_stats_path, "w", encoding="utf-8") as f:
+                json.dump(stats_data, f, indent=4, ensure_ascii=False)
+
+        except (OSError, TypeError, ValueError) as e:
+            logger.error(f"Error saving json: {e}, path: {str(files_stats_path)}")
+        except Exception:
+            logger.exception(f"Unexpected error saving json, path: {str(files_stats_path)}")
 
         # Finalize
         self.result["status"] = "completed"
         self.result["completed_at"] = datetime.now().isoformat()
 
         # Compile final results for database
-        results_summary = make_results_summary(
-            len(self.files),
-            len(self.files_to_upload),
-            len(self.files) - len(self.files_to_upload),
-            self.inject_data,
-            self.translations,
-            main_title,
-            upload_result,
-        )
-        self.result["results_summary"] = results_summary
+        self.result["results_summary"] = {
+            "total_files": len(self.files),
+            "files_to_upload_count": len(self.files_to_upload),
+            "no_file_path": len(self.files) - len(self.files_to_upload),
+            "injects_result": {
+                "nested_files": self.inject_data.get("nested_files", 0),
+                "success": self.inject_data.get("success", 0),
+                "failed": self.inject_data.get("failed", 0),
+            },
+            "new_translations_count": len(self.translations.get("new", {})),
+            "upload_result": upload_result,
+            "main_title": main_title,
+        }
 
         self._save_progress()
         return self.result
