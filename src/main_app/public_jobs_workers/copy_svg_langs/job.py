@@ -177,7 +177,7 @@ class CopySvgLangsProcessor:
             title = item["title"]
             if title in download_results:
                 item["steps"]["download"] = download_results[title]
-                if not download_results[title]["result"]:
+                if download_results[title]["result"] is False:
                     item["status"] = "failed"
                     item["error"] = download_results[title]["msg"]
 

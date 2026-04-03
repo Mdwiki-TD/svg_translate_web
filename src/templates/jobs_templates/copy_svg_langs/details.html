@@ -34,7 +34,7 @@
             </tr>
         </thead>
         <tbody>
-            {% set stage_order = ['initialize', 'text', 'titles', 'translations', 'download', 'nested', 'inject', 'upload'] %}
+            {% set stage_order = ['text', 'titles', 'translations', 'download', 'nested', 'inject', 'upload'] %}
             {% for stage_key in stage_order %}
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}

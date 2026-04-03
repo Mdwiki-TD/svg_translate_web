@@ -46,7 +46,6 @@ class CopySvgLangsWorker(BaseJobWorker):
             "cancelled_at": None,
             "title": self.title,
             "stages": {
-                "initialize": {"number": 1, "sub_name": "", "status": "Running", "message": "Starting workflow"},
                 "text": {"sub_name": "", "number": 2, "status": "Pending", "message": "Getting text"},
                 "titles": {"sub_name": "", "number": 3, "status": "Pending", "message": "Getting titles"},
                 "translations": {"sub_name": "", "number": 4, "status": "Pending", "message": "Getting translations"},
