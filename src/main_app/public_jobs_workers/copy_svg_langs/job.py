@@ -119,6 +119,7 @@ class CopySvgLangsProcessor:
         titles_data = self.result["stages"]["titles"]["data"]
         main_title = titles_data["main_title"]
         titles = list(titles_data["titles"])
+        self.result["stages"]["titles"]["message"] = f"Found {len(titles)} titles"
 
         self.result["stages"]["titles"]["data"]["titles"] = []
 
@@ -147,6 +148,8 @@ class CopySvgLangsProcessor:
         if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
             return self.result
         translations = self.result["stages"]["translations"]["data"]["translations"]
+
+        self.result["stages"]["translations"]["message"] = f"Loaded {len(translations['new'])} translations from main file"
 
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -225,6 +228,9 @@ class CopySvgLangsProcessor:
         files_to_upload = inject_stage_data["files_to_upload"]
         inject_results = inject_stage_data.get("results", {})
 
+        summary = inject_stage_data["summary"]
+        self.result["stages"]["inject"]["message"] = f"Success {summary['success']}/{summary['total']}, Failed {summary['failed']}, No Changes {summary['no_changes']}, Nested Files {summary['nested_files']}"
+
         # Update files_processed with inject results
         for item in self.result["files_processed"]:
             file_path = str(output_dir_main / item["title"])
@@ -237,7 +243,6 @@ class CopySvgLangsProcessor:
         # ----------------------------------------------
         # Stage 7: Upload
         def upload_progress(index: int, total: int, msg: str) -> None:
-            self.result["stages"]["upload"]["message"] = f"Uploading {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
@@ -249,6 +254,7 @@ class CopySvgLangsProcessor:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": None, "msg": "Upload disabled"}
                     item["status"] = "completed"
+
         elif not self.site:
             self.result["stages"]["upload"]["status"] = "Failed"
             self.result["stages"]["upload"]["message"] = "Authentication failed"
@@ -278,6 +284,9 @@ class CopySvgLangsProcessor:
                 "errors": upload_result_data["errors"],
             }
             upload_results = upload_result_data.get("results", {})
+
+            # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
+            self.result["stages"]["upload"]["message"] = f"Uploaded {len(upload_result["done"])}/{len(files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
 
             # Update files_processed with upload results
             for item in self.result["files_processed"]:
