@@ -62,13 +62,6 @@ class CopySvgLangsProcessor:
         out = Path(settings.paths.svg_data) / slug
         out.mkdir(parents=True, exist_ok=True)
 
-        # log title to out/title.txt
-        try:
-            with open(out / "title.txt", "w", encoding="utf-8") as f:
-                f.write(name)
-        except Exception as e:
-            logger.error(f"Failed to write title to {out / 'title.txt'}: {e}")
-
         return out
 
     def _save_progress(self) -> None:
@@ -149,13 +142,18 @@ class CopySvgLangsProcessor:
         # Stage 3: Extract Translations
         output_dir_main = self.output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
+
         if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
             return self.result
-        translations = self.result["stages"]["translations"]["data"]["translations"]
-        self.result["stages"]["translations"]["message"] = titles_data["message"]
 
+        def translations_run_after() -> None:
+            self.translations = self.result["stages"]["translations"]["data"]["translations"]
+            self.result["stages"]["translations"]["message"] = titles_data["message"]
+
+        translations_run_after()
         # ----------------------------------------------
         # Stage 4: download SVG files
+
         def download_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["download"]["message"] = f"Downloading {index}/{total}: {msg}"
             if index % 10 == 0:
@@ -255,7 +253,7 @@ class CopySvgLangsProcessor:
             "inject",
             inject_step,
             self.files,
-            translations,
+            self.translations,
             self.output_dir,
             overwrite=bool(self.args.get("overwrite")),
         ):
@@ -288,7 +286,6 @@ class CopySvgLangsProcessor:
                     item["status"] = "failed"
                     item["error"] = "Authentication failed"
         else:
-
             if not self._run_stage(
                 "upload",
                 upload_step,
@@ -339,12 +336,13 @@ class CopySvgLangsProcessor:
         # Stage 8: save stats and mark done
         stats_data = {
             "main_title": main_title,
-            "translations": translations,
+            "translations": self.translations,
             "titles": titles,
             "files": self.files,
             "nested_task_result": self.nested_data,
             "injects_result": self.inject_data,
         }
+
         json_save(self.output_dir / "files_stats.json", stats_data)
 
         # Finalize
@@ -357,7 +355,7 @@ class CopySvgLangsProcessor:
             len(self.files_to_upload),
             len(self.files) - len(self.files_to_upload),
             self.inject_data,
-            translations,
+            self.translations,
             main_title,
             upload_result,
         )
