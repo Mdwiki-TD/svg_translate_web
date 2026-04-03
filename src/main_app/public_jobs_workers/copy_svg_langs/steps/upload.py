@@ -6,8 +6,8 @@ import logging
 from typing import Any, Callable
 
 import mwclient
-from tqdm import tqdm
 
+from ....config import Settings
 from ....api_services.upload_bot import upload_file
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,8 @@ def upload_step(
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
+    _upload_limit = int(Settings.dynamic.get("copy_svg_langs_upload_limit", 0))
+
     for index, (file_name, file_data) in enumerate(to_work.items(), 1):
         if cancel_check and cancel_check():
             logger.info("Upload step cancelled")
@@ -61,6 +63,11 @@ def upload_step(
             if "new_languages" in file_data
             else f"Adding translations from {main_title_link}"
         )
+
+        if _upload_limit > 0 and index > _upload_limit:
+            logger.info(f"Reached upload limit of {_upload_limit}")
+            results[file_name] = {"result": None, "msg": "Reached upload limit"}
+            continue
 
         try:
             upload_result = upload_file(file_name, file_path, site=site, summary=summary) or {}
@@ -78,6 +85,7 @@ def upload_step(
                 results[file_name] = {"result": False, "msg": err_msg}
                 if "error" in upload_result:
                     errors.append(f"{file_name}: {err_msg}")
+
         except Exception as e:
             logger.exception(f"Exception uploading {file_name}")
             not_done += 1

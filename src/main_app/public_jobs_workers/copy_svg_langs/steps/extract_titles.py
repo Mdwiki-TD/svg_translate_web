@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def extract_titles_step(
-    text: str, manual_main_title: str | None = None, titles_limit: int | None = None
+    text: str,
+    manual_main_title: str | None = None,
+    titles_limit: int | None = None,
 ) -> dict[str, Any]:
     """Extract SVG titles from wikitext.
 
