@@ -55,6 +55,7 @@ class CopySvgLangsWorker(BaseJobWorker):
                 "upload": {"status": "Pending", "message": "Uploading files"},
             },
             "summary": {},
+            "results_summary": {},
             "files_processed": [],
         }
 

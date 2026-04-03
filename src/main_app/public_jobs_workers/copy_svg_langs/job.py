@@ -275,6 +275,7 @@ class CopySvgLangsProcessor:
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
             upload_result = {"done": 0, "not_done": len(self.files_to_upload), "skipped": True}
+            self.result["results_summary"]["upload_result"] = upload_result
             for item in self.result["files_processed"]:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": None, "msg": "Upload disabled"}
@@ -284,6 +285,7 @@ class CopySvgLangsProcessor:
             self.result["stages"]["upload"]["status"] = "Failed"
             self.result["stages"]["upload"]["message"] = "Authentication failed"
             upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
+            self.result["results_summary"]["upload_result"] = upload_result
             for item in self.result["files_processed"]:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": False, "msg": "Authentication failed"}
@@ -309,10 +311,12 @@ class CopySvgLangsProcessor:
                     "no_changes": upload_result_data["summary"]["no_changes"],
                     "errors": upload_result_data["errors"],
                 }
+                self.result["results_summary"]["upload_result"] = upload_result
+
                 upload_results = upload_result_data.get("results", {})
 
                 # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
-                self.result["stages"]["upload"]["message"] = f"Uploaded {upload_result["done"]}/{self.files_to_upload}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
+                self.result["stages"]["upload"]["message"] = f"Uploaded {upload_result["done"]}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
 
                 # Update files_processed with upload results
                 for item in self.result["files_processed"]:
@@ -372,7 +376,6 @@ class CopySvgLangsProcessor:
                 "failed": self.inject_data.get("failed", 0),
             },
             "new_translations_count": len(self.translations.get("new", {})),
-            "upload_result": upload_result,
             "main_title": main_title,
         }
 
