@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -77,11 +78,13 @@ def test_extract_titles_step_limit(mocker):
 @pytest.fixture
 def processor_args():
     args = MagicMock()
-    args.manual_main_title = None
-    args.titles_limit = None
-    args.overwrite = False
-    args.upload = False
-    return args
+    # It's a dict in job.py, accessed with .get()
+    return {
+        "manual_main_title": None,
+        "titles_limit": None,
+        "overwrite": False,
+        "upload": False
+    }
 
 
 @pytest.fixture
@@ -89,14 +92,15 @@ def initial_result():
     return {
         "status": "pending",
         "stages": {
-            "text": {"status": "Pending"},
-            "titles": {"status": "Pending"},
-            "translations": {"status": "Pending"},
-            "download": {"status": "Pending"},
-            "nested": {"status": "Pending"},
-            "inject": {"status": "Pending"},
-            "upload": {"status": "Pending"},
+            "text": {"status": "Pending", "number": 1},
+            "titles": {"status": "Pending", "number": 2},
+            "translations": {"status": "Pending", "number": 3},
+            "download": {"status": "Pending", "number": 4},
+            "nested": {"status": "Pending", "number": 5},
+            "inject": {"status": "Pending", "number": 6},
+            "upload": {"status": "Pending", "number": 7},
         },
+        "files_processed": []
     }
 
 
@@ -139,3 +143,67 @@ def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initia
     assert result["status"] == "failed"
     assert result["stages"]["text"]["status"] == "Failed"
     assert result["stages"]["text"]["message"] == "Failed to get text"
+
+
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.jobs_service")
+def test_processor_files_processed_tracking(mock_jobs_service, processor_args, initial_result, mocker, tmp_path):
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
+    mock_jobs_service.is_job_cancelled.return_value = False
+
+    # Mock stages
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step", return_value={"success": True, "text": "wikitext"})
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_titles_step", return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]})
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_translations_step", return_value={"success": True, "translations": {"new": {}}})
+
+    # Mock download step with results
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.download_step", return_value={
+        "success": True,
+        "files": [str(tmp_path / "files" / "File1.svg")],
+        "results": {"File1.svg": {"result": True, "msg": "Downloaded"}},
+        "summary": {}
+    })
+
+    # Mock nested step
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.fix_nested_step", return_value={
+        "success": True,
+        "data": {},
+        "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Fixed"}},
+        "summary": {}
+    })
+
+    # Mock inject step
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step", return_value={
+        "success": True,
+        "data": {},
+        "files_to_upload": {"File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}},
+        "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Injected"}},
+        "summary": {}
+    })
+
+    # Mock upload disabled
+    processor_args["upload"] = False
+
+    processor = CopySvgLangsProcessor(
+        task_id=1,
+        title="Test",
+        args=processor_args,
+        user=None,
+        result=initial_result,
+        result_file="job_1.json",
+    )
+
+    # Override output_dir to have a predictable path for matching
+    processor.output_dir = tmp_path
+
+    result = processor.run()
+
+    assert len(result["files_processed"]) == 1
+    file_info = result["files_processed"][0]
+    assert file_info["title"] == "File1.svg"
+    assert file_info["steps"]["download"]["result"] is True
+    assert file_info["steps"]["nested"]["result"] is True
+    assert file_info["steps"]["inject"]["result"] is True
+    assert file_info["steps"]["upload"]["result"] is None  # Upload disabled
+    assert file_info["status"] == "completed"

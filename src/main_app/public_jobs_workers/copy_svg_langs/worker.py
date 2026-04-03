@@ -56,6 +56,7 @@ class CopySvgLangsWorker(BaseJobWorker):
                 "upload": {"sub_name": "", "number": 8, "status": "Pending", "message": "Uploading files"},
             },
             "summary": {},
+            "files_processed": [],
         }
 
     def process(self) -> dict[str, Any]:

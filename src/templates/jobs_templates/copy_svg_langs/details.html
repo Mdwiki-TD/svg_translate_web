@@ -119,6 +119,88 @@
 {% endblock %}
 
 {% block job_details %}
+<!-- Files Processed -->
+{% if result_data.files_processed %}
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+            <h5 class="mb-0">Files Processed ({{ result_data.files_processed|length }})</h5>
+            <div class="card-tools">
+                <button type="button" class="btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                        <th>Nested</th>
+                        <th>Inject</th>
+                        <th>Upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in result_data.files_processed %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/File:{{ item.title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ item.title[:50] }}{% if item.title|length > 50 %}...{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.status == 'completed' %}
+                            <span class="badge bg-success">{{ item.status }}</span>
+                            {% elif item.status == 'failed' %}
+                            <span class="badge bg-danger" title="{{ item.error }}">{{ item.status }}</span>
+                            {% elif item.status == 'skipped' %}
+                            <span class="badge bg-secondary">{{ item.status }}</span>
+                            {% else %}
+                            <span class="badge bg-primary">{{ item.status }}</span>
+                            {% endif %}
+                        </td>
+                        {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
+                        {% for step_key in step_keys %}
+                        <td>
+                            {% set step = item.steps.get(step_key) if item.steps else None %}
+                            {% if step %}
+                            {% if step.result == true %}
+                            <span class="badge bg-success" title="{{ step.msg }}">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            {% elif step.result == false %}
+                            <span class="badge bg-danger" title="{{ step.msg }}">
+                                <i class="bi bi-x-lg"></i>
+                            </span>
+                            {% elif step.result is none and step.msg %}
+                            <span class="badge bg-secondary" title="{{ step.msg }}">
+                                <i class="bi bi-dash"></i>
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Pipeline Stages -->
 {% if result_data.stages %}
 <div class="card mb-3">
