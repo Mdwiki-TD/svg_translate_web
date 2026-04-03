@@ -119,6 +119,7 @@ class CopySvgLangsProcessor:
         titles_data = self.result["stages"]["titles"]["data"]
         main_title = titles_data["main_title"]
         titles = list(titles_data["titles"])
+        self.result["stages"]["titles"]["message"] = titles_data["message"]
 
         self.result["stages"]["titles"]["data"]["titles"] = []
 
@@ -147,6 +148,7 @@ class CopySvgLangsProcessor:
         if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
             return self.result
         translations = self.result["stages"]["translations"]["data"]["translations"]
+        self.result["stages"]["translations"]["message"] = titles_data["message"]
 
         # ----------------------------------------------
         # Stage 4: download SVG files
