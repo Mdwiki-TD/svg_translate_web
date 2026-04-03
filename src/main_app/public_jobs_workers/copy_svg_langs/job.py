@@ -147,8 +147,9 @@ class CopySvgLangsProcessor:
             return self.result
 
         def translations_run_after() -> None:
-            self.translations = self.result["stages"]["translations"]["data"]["translations"]
-            self.result["stages"]["translations"]["message"] = titles_data["message"]
+            data = self.result["stages"]["translations"]["data"]
+            self.translations = data["translations"]
+            self.result["stages"]["translations"]["message"] = data["message"]
 
         translations_run_after()
         # ----------------------------------------------
@@ -175,6 +176,7 @@ class CopySvgLangsProcessor:
 
             # clean up
             self.result["stages"]["download"]["data"]["results"] = {}
+            self.result["stages"]["download"]["data"]["files"] = []
 
         if not self._run_stage(
             "download",
@@ -231,8 +233,6 @@ class CopySvgLangsProcessor:
         # ----------------------------------------------
 
         def inject_run_after() -> None:
-            # clean up
-            self.result["stages"]["inject"]["data"]["data"] = {}
 
             inject_stage_data = self.result["stages"]["inject"]["data"]
             self.inject_data = inject_stage_data["data"]
@@ -247,6 +247,10 @@ class CopySvgLangsProcessor:
                     if inject_results[file_path]["result"] is False:
                         item["status"] = "failed"
                         item["error"] = inject_results[file_path]["msg"]
+
+            # clean up
+            self.result["stages"]["inject"]["data"]["data"] = {}
+            self.result["stages"]["inject"]["data"]["results"] = {}
 
         # Stage 6: Inject translations
         if not self._run_stage(
