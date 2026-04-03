@@ -98,8 +98,8 @@ class CopySvgLangsProcessor:
         # Stage 1: Extract Text
         if not self._run_stage("text", extract_text_step, self.title):
             return self.result
-        text = self.result["stages"]["text"]["data"]["text"]
 
+        text = self.result["stages"]["text"]["data"]["text"]
         # clean up
         self.result["stages"]["text"]["data"]["text"] = ""
         # ----------------------------------------------
@@ -271,6 +271,39 @@ class CopySvgLangsProcessor:
             if index % 10 == 0:
                 self._save_progress()
 
+        def upload_run_after() -> None:
+            upload_result_data = self.result["stages"]["upload"]["data"]
+            upload_result = {
+                "done": upload_result_data["summary"]["uploaded"],
+                "not_done": upload_result_data["summary"]["failed"],
+                "no_changes": upload_result_data["summary"]["no_changes"],
+                "errors": upload_result_data["errors"],
+            }
+            self.result["results_summary"]["upload_result"] = upload_result
+
+            upload_results = upload_result_data.get("results", {})
+
+            # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
+            self.result["stages"]["upload"]["message"] = f"Uploaded {upload_result["done"]}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
+
+            # Update files_processed with upload results
+            for item in self.result["files_processed"]:
+                # upload_step results are keyed by filename (title)
+                title = item["title"]
+                if title in upload_results:
+                    item["steps"]["upload"] = upload_results[title]
+                    if upload_results[title]["result"] is True:
+                        item["status"] = "completed"
+                    elif upload_results[title]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = upload_results[title]["msg"]
+                    elif upload_results[title]["result"] is None:
+                        # Skipped or no changes
+                        item["status"] = "completed"
+
+                if item["status"] == "pending":
+                    item["status"] = "completed"
+
         if not bool(self.args.get("upload")):
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
@@ -303,41 +336,6 @@ class CopySvgLangsProcessor:
             ):
                 return self.result
 
-            def upload_run_after() -> None:
-                upload_result_data = self.result["stages"]["upload"]["data"]
-                upload_result = {
-                    "done": upload_result_data["summary"]["uploaded"],
-                    "not_done": upload_result_data["summary"]["failed"],
-                    "no_changes": upload_result_data["summary"]["no_changes"],
-                    "errors": upload_result_data["errors"],
-                }
-                self.result["results_summary"]["upload_result"] = upload_result
-
-                upload_results = upload_result_data.get("results", {})
-
-                # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
-                self.result["stages"]["upload"]["message"] = f"Uploaded {upload_result["done"]}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
-
-                # Update files_processed with upload results
-                for item in self.result["files_processed"]:
-                    # upload_step results are keyed by filename (title)
-                    title = item["title"]
-                    if title in upload_results:
-                        item["steps"]["upload"] = upload_results[title]
-                        if upload_results[title]["result"] is True:
-                            item["status"] = "completed"
-                        elif upload_results[title]["result"] is False:
-                            item["status"] = "failed"
-                            item["error"] = upload_results[title]["msg"]
-                        elif upload_results[title]["result"] is None:
-                            # Skipped or no changes
-                            item["status"] = "completed"
-
-                # Final check for files that didn't reach upload but didn't fail
-                for item in self.result["files_processed"]:
-                    if item["status"] == "pending":
-                        item["status"] = "completed"
-
             upload_run_after()
 
         # ----------------------------------------------
@@ -351,15 +349,7 @@ class CopySvgLangsProcessor:
             "injects_result": self.inject_data,
         }
 
-        files_stats_path = self.output_dir / "files_stats.json"
-        try:
-            with open(files_stats_path, "w", encoding="utf-8") as f:
-                json.dump(stats_data, f, indent=4, ensure_ascii=False)
-
-        except (OSError, TypeError, ValueError) as e:
-            logger.error(f"Error saving json: {e}, path: {str(files_stats_path)}")
-        except Exception:
-            logger.exception(f"Unexpected error saving json, path: {str(files_stats_path)}")
+        self._save_files_stats(stats_data)
 
         # Finalize
         self.result["status"] = "completed"
@@ -381,6 +371,17 @@ class CopySvgLangsProcessor:
 
         self._save_progress()
         return self.result
+
+    def _save_files_stats(self, stats_data):
+        files_stats_path = self.output_dir / "files_stats.json"
+        try:
+            with open(files_stats_path, "w", encoding="utf-8") as f:
+                json.dump(stats_data, f, indent=4, ensure_ascii=False)
+
+        except (OSError, TypeError, ValueError) as e:
+            logger.error(f"Error saving json: {e}, path: {str(files_stats_path)}")
+        except Exception:
+            logger.exception(f"Unexpected error saving json, path: {str(files_stats_path)}")
 
     def _run_stage(
         self,
