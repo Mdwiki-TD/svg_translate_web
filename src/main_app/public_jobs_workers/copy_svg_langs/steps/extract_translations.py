@@ -31,7 +31,7 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
     if not files1.get("path"):
         error = f"Error when downloading main file: {main_title}"
         logger.error(error)
-        return {"success": False, "translations": {}, "error": error}
+        return {"success": False, "translations": {}, "error": error, "message": ""}
 
     main_title_path = files1["path"]
     translations = extract(main_title_path, case_insensitive=True)
@@ -42,6 +42,8 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
     if new_translations_count == 0:
         error = f"No translations found in main file: {main_title}"
         logger.debug(error)
-        return {"success": False, "translations": {}, "error": error}
+        return {"success": False, "translations": {}, "error": error, "message": ""}
 
-    return {"success": True, "translations": translations, "error": None}
+    message = f"Loaded {new_translations_count} translations from main file"
+
+    return {"success": True, "translations": translations, "error": None, "message": message}

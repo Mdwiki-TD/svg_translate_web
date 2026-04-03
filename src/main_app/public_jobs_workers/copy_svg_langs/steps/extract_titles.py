@@ -31,10 +31,11 @@ def extract_titles_step(
     if not titles or not main_title:
         error = f"No titles or main title found. Manual main title was: '{manual_main_title}'"
         logger.error(error)
-        return {"success": False, "main_title": main_title, "titles": titles or [], "error": error}
+        return {"success": False, "main_title": main_title, "titles": titles or [], "error": error, "message": "", }
 
+    message = f"Found {len(titles)} titles"
     if titles_limit and titles_limit > 0 and len(titles) > titles_limit:
         logger.info(f"Limiting titles from {len(titles)} to {titles_limit}")
         titles = titles[:titles_limit]
 
-    return {"success": True, "main_title": main_title, "titles": titles, "error": None}
+    return {"success": True, "main_title": main_title, "titles": titles, "error": None, "message": message, }

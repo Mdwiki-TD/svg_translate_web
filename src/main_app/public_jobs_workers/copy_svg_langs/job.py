@@ -119,7 +119,6 @@ class CopySvgLangsProcessor:
         titles_data = self.result["stages"]["titles"]["data"]
         main_title = titles_data["main_title"]
         titles = list(titles_data["titles"])
-        self.result["stages"]["titles"]["message"] = f"Found {len(titles)} titles"
 
         self.result["stages"]["titles"]["data"]["titles"] = []
 
@@ -148,8 +147,6 @@ class CopySvgLangsProcessor:
         if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
             return self.result
         translations = self.result["stages"]["translations"]["data"]["translations"]
-
-        self.result["stages"]["translations"]["message"] = f"Loaded {len(translations['new'])} translations from main file"
 
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -228,9 +225,6 @@ class CopySvgLangsProcessor:
         files_to_upload = inject_stage_data["files_to_upload"]
         inject_results = inject_stage_data.get("results", {})
 
-        summary = inject_stage_data["summary"]
-        self.result["stages"]["inject"]["message"] = f"Success {summary['success']}/{summary['total']}, Failed {summary['failed']}, No Changes {summary['no_changes']}, Nested Files {summary['nested_files']}"
-
         # Update files_processed with inject results
         for item in self.result["files_processed"]:
             file_path = str(output_dir_main / item["title"])
@@ -253,7 +247,7 @@ class CopySvgLangsProcessor:
             for item in self.result["files_processed"]:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": None, "msg": "Upload disabled"}
-                    item["status"] = "completed"
+                    item["status"] = "Skipped"
 
         elif not self.site:
             self.result["stages"]["upload"]["status"] = "Failed"

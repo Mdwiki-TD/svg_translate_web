@@ -51,6 +51,8 @@ def inject_step(
         "nested_files": nested_files_count,
     }
 
+    message = f"Success {success_count}/{len(files)}, Failed {failed_count}, No Changes {no_changes_count}, Nested Files {nested_files_count}"
+
     # Identify files that are ready for upload
     inject_files = injects_result.get("files", {})
     files_to_upload = {name: data for name, data in inject_files.items() if data.get("file_path")}
@@ -82,4 +84,5 @@ def inject_step(
         "data": injects_result,
         "files_to_upload": files_to_upload,
         "results": results,
+        "message": message,
     }
