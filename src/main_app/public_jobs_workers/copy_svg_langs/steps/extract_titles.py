@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....utils.wikitext import get_files_list
+from ....utils.wikitext import get_files_list_data
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,10 @@ def extract_titles_step(
     Returns:
         dict with keys: success (bool), main_title (str|None), titles (list[str]), error (str|None)
     """
-    main_title, titles = get_files_list(text)
+    data = get_files_list_data(text)
+
+    main_title = data["main_title"]
+    titles = data["titles"]
 
     if manual_main_title:
         main_title = manual_main_title

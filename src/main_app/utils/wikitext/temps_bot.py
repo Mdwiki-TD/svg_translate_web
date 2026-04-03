@@ -77,8 +77,29 @@ def get_files_list(text, filter_duplicates=True):
     return main_title, titles
 
 
+def get_files_list_data(text, filter_duplicates=True):
+    """
+    Returns (main_title, titles).
+    main_title:
+      - From SVGLanguages: filename (no 'File:'), underscores -> spaces.
+      - From Translate: 'File:...' string, underscores -> spaces.
+    titles:
+      - Filenames from all owidslidersrcs (no 'File:'), duplicates preserved.
+    """
+    titles = get_titles(text, filter_duplicates=filter_duplicates)
+    titles.extend(get_titles_from_wikilinks(text))
+
+    if filter_duplicates:
+        titles = list(set(titles))
+
+    main_title = find_main_title(text)
+
+    return {"main_title": main_title, "titles": titles}
+
+
 __all__ = [
     "get_titles",
     "get_titles_from_wikilinks",
     "get_files_list",
+    "get_files_list_data",
 ]
