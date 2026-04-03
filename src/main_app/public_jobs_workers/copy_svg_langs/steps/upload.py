@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import mwclient
 
-from ....config import Settings
+from ....config import settings
 from ....api_services.upload_bot import upload_file
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def upload_step(
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
-    _upload_limit = int(Settings.dynamic.get("copy_svg_langs_upload_limit", 0))
+    _upload_limit = int(settings.dynamic.get("copy_svg_langs_upload_limit", 0))
 
     for index, (file_name, file_data) in enumerate(to_work.items(), 1):
         if cancel_check and cancel_check():
