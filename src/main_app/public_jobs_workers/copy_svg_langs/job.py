@@ -199,6 +199,27 @@ class CopySvgLangsProcessor:
             if index % 10 == 0:
                 self._save_progress()
 
+        def nested_run_after() -> None:
+            nested_stage_data = self.result["stages"]["nested"]["data"]
+            self.nested_data = nested_stage_data["data"]
+            self.nested_results = nested_stage_data.get("results", {})
+
+            # clean up
+            self.result["stages"]["nested"]["data"]["data"] = {}
+            self.result["stages"]["nested"]["data"]["results"] = {}
+
+            # Update files_processed with nested results
+            for item in self.result["files_processed"]:
+                # Need to find the file path associated with this title
+                # download_one_file saves to output_dir_main / title
+                file_path = str(output_dir_main / item["title"])
+                if file_path in self.nested_results:
+                    item["steps"]["nested"] = self.nested_results[file_path]
+                    if self.nested_results[file_path]["result"] is False:
+                        # We don't necessarily mark the whole file as failed if nested fix fails
+                        # as it might still be injectable.
+                        pass
+
         if not self._run_stage(
             "nested",
             fix_nested_step,
@@ -208,28 +229,27 @@ class CopySvgLangsProcessor:
         ):
             return self.result
 
-        def nested_run_after() -> None:
-            nested_stage_data = self.result["stages"]["nested"]["data"]
-            nested_data = nested_stage_data["data"]
-            nested_results = nested_stage_data.get("results", {})
-
-            # clean up
-            self.result["stages"]["nested"]["data"]["data"] = {}
-            self.result["stages"]["nested"]["data"]["results"] = {}
-
-        # Update files_processed with nested results
-        for item in self.result["files_processed"]:
-            # Need to find the file path associated with this title
-            # download_one_file saves to output_dir_main / title
-            file_path = str(output_dir_main / item["title"])
-            if file_path in nested_results:
-                item["steps"]["nested"] = nested_results[file_path]
-                if nested_results[file_path]["result"] is False:
-                    # We don't necessarily mark the whole file as failed if nested fix fails
-                    # as it might still be injectable.
-                    pass
-
+        nested_run_after()
         # ----------------------------------------------
+
+        def inject_run_after() -> None:
+            # clean up
+            self.result["stages"]["inject"]["data"]["data"] = {}
+
+            inject_stage_data = self.result["stages"]["inject"]["data"]
+            self.inject_data = inject_stage_data["data"]
+            self.files_to_upload = inject_stage_data["files_to_upload"]
+
+            inject_results = inject_stage_data.get("results", {})
+            # Update files_processed with inject results
+            for item in self.result["files_processed"]:
+                file_path = str(output_dir_main / item["title"])
+                if file_path in inject_results:
+                    item["steps"]["inject"] = inject_results[file_path]
+                    if inject_results[file_path]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = inject_results[file_path]["msg"]
+
         # Stage 6: Inject translations
         if not self._run_stage(
             "inject",
@@ -241,25 +261,10 @@ class CopySvgLangsProcessor:
         ):
             return self.result
 
-        inject_stage_data = self.result["stages"]["inject"]["data"]
-        inject_data = inject_stage_data["data"]
-        files_to_upload = inject_stage_data["files_to_upload"]
-        inject_results = inject_stage_data.get("results", {})
-
-        # clean up
-        self.result["stages"]["inject"]["data"]["data"] = {}
-
-        # Update files_processed with inject results
-        for item in self.result["files_processed"]:
-            file_path = str(output_dir_main / item["title"])
-            if file_path in inject_results:
-                item["steps"]["inject"] = inject_results[file_path]
-                if inject_results[file_path]["result"] is False:
-                    item["status"] = "failed"
-                    item["error"] = inject_results[file_path]["msg"]
-
+        inject_run_after()
         # ----------------------------------------------
         # Stage 7: Upload
+
         def upload_progress(index: int, total: int, msg: str) -> None:
             if index % 10 == 0:
                 self._save_progress()
@@ -267,7 +272,7 @@ class CopySvgLangsProcessor:
         if not bool(self.args.get("upload")):
             self.result["stages"]["upload"]["status"] = "Skipped"
             self.result["stages"]["upload"]["message"] = "Upload disabled"
-            upload_result = {"done": 0, "not_done": len(files_to_upload), "skipped": True}
+            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "skipped": True}
             for item in self.result["files_processed"]:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": None, "msg": "Upload disabled"}
@@ -276,7 +281,7 @@ class CopySvgLangsProcessor:
         elif not self.site:
             self.result["stages"]["upload"]["status"] = "Failed"
             self.result["stages"]["upload"]["message"] = "Authentication failed"
-            upload_result = {"done": 0, "not_done": len(files_to_upload), "failed": True}
+            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
             for item in self.result["files_processed"]:
                 if item["status"] != "failed":
                     item["steps"]["upload"] = {"result": False, "msg": "Authentication failed"}
@@ -287,44 +292,48 @@ class CopySvgLangsProcessor:
             if not self._run_stage(
                 "upload",
                 upload_step,
-                files_to_upload,
+                self.files_to_upload,
                 main_title,
                 self.site,
                 cancel_check=lambda: self._is_cancelled("upload"),
                 progress_callback=upload_progress,
             ):
                 return self.result
-            upload_result_data = self.result["stages"]["upload"]["data"]
-            upload_result = {
-                "done": upload_result_data["summary"]["uploaded"],
-                "not_done": upload_result_data["summary"]["failed"],
-                "no_changes": upload_result_data["summary"]["no_changes"],
-                "errors": upload_result_data["errors"],
-            }
-            upload_results = upload_result_data.get("results", {})
 
-            # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
-            self.result["stages"]["upload"]["message"] = f"Uploaded {len(upload_result["done"])}/{len(files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
+            def upload_run_after() -> None:
+                upload_result_data = self.result["stages"]["upload"]["data"]
+                upload_result = {
+                    "done": upload_result_data["summary"]["uploaded"],
+                    "not_done": upload_result_data["summary"]["failed"],
+                    "no_changes": upload_result_data["summary"]["no_changes"],
+                    "errors": upload_result_data["errors"],
+                }
+                upload_results = upload_result_data.get("results", {})
 
-            # Update files_processed with upload results
-            for item in self.result["files_processed"]:
-                # upload_step results are keyed by filename (title)
-                title = item["title"]
-                if title in upload_results:
-                    item["steps"]["upload"] = upload_results[title]
-                    if upload_results[title]["result"] is True:
+                # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
+                self.result["stages"]["upload"]["message"] = f"Uploaded {len(upload_result["done"])}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
+
+                # Update files_processed with upload results
+                for item in self.result["files_processed"]:
+                    # upload_step results are keyed by filename (title)
+                    title = item["title"]
+                    if title in upload_results:
+                        item["steps"]["upload"] = upload_results[title]
+                        if upload_results[title]["result"] is True:
+                            item["status"] = "completed"
+                        elif upload_results[title]["result"] is False:
+                            item["status"] = "failed"
+                            item["error"] = upload_results[title]["msg"]
+                        elif upload_results[title]["result"] is None:
+                            # Skipped or no changes
+                            item["status"] = "completed"
+
+                # Final check for files that didn't reach upload but didn't fail
+                for item in self.result["files_processed"]:
+                    if item["status"] == "pending":
                         item["status"] = "completed"
-                    elif upload_results[title]["result"] is False:
-                        item["status"] = "failed"
-                        item["error"] = upload_results[title]["msg"]
-                    elif upload_results[title]["result"] is None:
-                        # Skipped or no changes
-                        item["status"] = "completed"
 
-            # Final check for files that didn't reach upload but didn't fail
-            for item in self.result["files_processed"]:
-                if item["status"] == "pending":
-                    item["status"] = "completed"
+            upload_run_after()
 
         # ----------------------------------------------
         # Stage 8: save stats and mark done
@@ -333,8 +342,8 @@ class CopySvgLangsProcessor:
             "translations": translations,
             "titles": titles,
             "files": self.files,
-            "nested_task_result": nested_data,
-            "injects_result": inject_data,
+            "nested_task_result": self.nested_data,
+            "injects_result": self.inject_data,
         }
         json_save(self.output_dir / "files_stats.json", stats_data)
 
@@ -345,9 +354,9 @@ class CopySvgLangsProcessor:
         # Compile final results for database
         results_summary = make_results_summary(
             len(self.files),
-            len(files_to_upload),
-            len(self.files) - len(files_to_upload),
-            inject_data,
+            len(self.files_to_upload),
+            len(self.files) - len(self.files_to_upload),
+            self.inject_data,
             translations,
             main_title,
             upload_result,
