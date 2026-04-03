@@ -105,6 +105,7 @@ class CopySvgLangsProcessor:
             return self.result
         text = self.result["stages"]["text"]["data"]["text"]
 
+        # clean up
         self.result["stages"]["text"]["data"]["text"] = ""
         # ----------------------------------------------
         # Stage 2: Extract Titles
@@ -121,6 +122,7 @@ class CopySvgLangsProcessor:
         titles = list(titles_data["titles"])
         self.result["stages"]["titles"]["message"] = titles_data["message"]
 
+        # clean up
         self.result["stages"]["titles"]["data"]["titles"] = []
 
         # Initialize files_processed
@@ -199,6 +201,10 @@ class CopySvgLangsProcessor:
         nested_data = nested_stage_data["data"]
         nested_results = nested_stage_data.get("results", {})
 
+        # clean up
+        self.result["stages"]["nested"]["data"]["data"] = {}
+        self.result["stages"]["nested"]["data"]["results"] = {}
+
         # Update files_processed with nested results
         for item in self.result["files_processed"]:
             # Need to find the file path associated with this title
@@ -222,10 +228,14 @@ class CopySvgLangsProcessor:
             overwrite=bool(self.args.get("overwrite")),
         ):
             return self.result
+
         inject_stage_data = self.result["stages"]["inject"]["data"]
         inject_data = inject_stage_data["data"]
         files_to_upload = inject_stage_data["files_to_upload"]
         inject_results = inject_stage_data.get("results", {})
+
+        # clean up
+        self.result["stages"]["inject"]["data"]["data"] = {}
 
         # Update files_processed with inject results
         for item in self.result["files_processed"]:
@@ -347,6 +357,8 @@ class CopySvgLangsProcessor:
         try:
             step_result = step_func(*args, **kwargs)
             stage["data"] = step_result
+            self.result["stages"][stage_name]["message"] = step_result["message"]
+
             if step_result.get("success"):
                 stage["status"] = "Completed"
                 if "summary" in step_result and "message" not in stage:
