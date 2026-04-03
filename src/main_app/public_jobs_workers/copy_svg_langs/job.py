@@ -50,6 +50,8 @@ class CopySvgLangsProcessor:
     session: requests.Session | None = field(init=False, default=None)
     output_dir: Path = field(init=False)
 
+    files: list[str] = field(init=False, default_factory=list)
+
     def __post_init__(self) -> None:
         self.output_dir = self._compute_output_dir(self.title)
 
@@ -159,6 +161,23 @@ class CopySvgLangsProcessor:
             if index % 10 == 0:
                 self._save_progress()
 
+        def download_run_after() -> None:
+            download_data = self.result["stages"]["download"]["data"]
+            self.files = download_data["files"]
+            download_results = download_data.get("results", {})
+
+            # Update files_processed with download results
+            for item in self.result["files_processed"]:
+                title = item["title"]
+                if title in download_results:
+                    item["steps"]["download"] = download_results[title]
+                    if download_results[title]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = download_results[title]["msg"]
+
+            # clean up
+            self.result["stages"]["download"]["data"]["results"] = {}
+
         if not self._run_stage(
             "download",
             download_step,
@@ -167,23 +186,14 @@ class CopySvgLangsProcessor:
             session=self.session,
             cancel_check=lambda: self._is_cancelled("download"),
             progress_callback=download_progress,
+            # run_after_func=download_run_after,
         ):
             return self.result
-        download_data = self.result["stages"]["download"]["data"]
-        files = download_data["files"]
-        download_results = download_data.get("results", {})
 
-        # Update files_processed with download results
-        for item in self.result["files_processed"]:
-            title = item["title"]
-            if title in download_results:
-                item["steps"]["download"] = download_results[title]
-                if download_results[title]["result"] is False:
-                    item["status"] = "failed"
-                    item["error"] = download_results[title]["msg"]
-
+        download_run_after()
         # ----------------------------------------------
         # Stage 5: Analyze And Fix Nested Files
+
         def fix_nested_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["nested"]["message"] = f"Analyzing {index}/{total}: {msg}"
             if index % 10 == 0:
@@ -192,18 +202,20 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "nested",
             fix_nested_step,
-            files,
+            self.files,
             cancel_check=lambda: self._is_cancelled("nested"),
             progress_callback=fix_nested_progress,
         ):
             return self.result
-        nested_stage_data = self.result["stages"]["nested"]["data"]
-        nested_data = nested_stage_data["data"]
-        nested_results = nested_stage_data.get("results", {})
 
-        # clean up
-        self.result["stages"]["nested"]["data"]["data"] = {}
-        self.result["stages"]["nested"]["data"]["results"] = {}
+        def nested_run_after() -> None:
+            nested_stage_data = self.result["stages"]["nested"]["data"]
+            nested_data = nested_stage_data["data"]
+            nested_results = nested_stage_data.get("results", {})
+
+            # clean up
+            self.result["stages"]["nested"]["data"]["data"] = {}
+            self.result["stages"]["nested"]["data"]["results"] = {}
 
         # Update files_processed with nested results
         for item in self.result["files_processed"]:
@@ -222,7 +234,7 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "inject",
             inject_step,
-            files,
+            self.files,
             translations,
             self.output_dir,
             overwrite=bool(self.args.get("overwrite")),
@@ -320,7 +332,7 @@ class CopySvgLangsProcessor:
             "main_title": main_title,
             "translations": translations,
             "titles": titles,
-            "files": files,
+            "files": self.files,
             "nested_task_result": nested_data,
             "injects_result": inject_data,
         }
@@ -332,9 +344,9 @@ class CopySvgLangsProcessor:
 
         # Compile final results for database
         results_summary = make_results_summary(
-            len(files),
+            len(self.files),
             len(files_to_upload),
-            len(files) - len(files_to_upload),
+            len(self.files) - len(files_to_upload),
             inject_data,
             translations,
             main_title,
@@ -345,7 +357,14 @@ class CopySvgLangsProcessor:
         self._save_progress()
         return self.result
 
-    def _run_stage(self, stage_name: str, step_func: Any, *args: Any, **kwargs: Any) -> bool:
+    def _run_stage(
+        self,
+        stage_name: str,
+        step_func: Any,
+        # run_after_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> bool:
         """Run a single stage and update result."""
         if self._is_cancelled(stage_name):
             return False
@@ -366,12 +385,15 @@ class CopySvgLangsProcessor:
                     s = step_result["summary"]
                     if isinstance(s, dict):
                         stage["message"] = ", ".join(f"{k}: {v}" for k, v in s.items())
+
+                # if run_after_func: run_after_func()
                 return True
             else:
                 stage["status"] = "Failed"
                 stage["message"] = step_result.get("error", "Unknown error")
                 self.result["status"] = "failed"
                 return False
+
         except Exception as e:
             logger.exception(f"Error in stage {stage_name}")
             stage["status"] = "Failed"
