@@ -312,7 +312,7 @@ class CopySvgLangsProcessor:
                 upload_results = upload_result_data.get("results", {})
 
                 # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
-                self.result["stages"]["upload"]["message"] = f"Uploaded {len(upload_result["done"])}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
+                self.result["stages"]["upload"]["message"] = f"Uploaded {upload_result["done"]}/{self.files_to_upload}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
 
                 # Update files_processed with upload results
                 for item in self.result["files_processed"]:
