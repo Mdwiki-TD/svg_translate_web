@@ -86,7 +86,10 @@ def fix_nested_step(
                 data["len_nested_tags_after"].setdefault(new_len_nested, 0)
                 data["len_nested_tags_after"][new_len_nested] += 1
                 not_fixed_count += 1
-                results[file_path_str] = {"result": False, "msg": f"Could not fix all nested tags ({new_len_nested} left)"}
+                results[file_path_str] = {
+                    "result": False,
+                    "msg": f"Could not fix all nested tags ({new_len_nested} left)",
+                }
         else:
             not_fixed_count += 1
             results[file_path_str] = {"result": False, "msg": "Failed to fix nested tags"}

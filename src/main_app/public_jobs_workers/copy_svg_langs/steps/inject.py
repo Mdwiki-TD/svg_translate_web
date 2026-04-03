@@ -66,14 +66,11 @@ def inject_step(
         file_data = inject_files.get(name, {})
 
         if file_data.get("file_path"):
-            results[file_path_str] = {
-                "result": True,
-                "msg": f"Injected {file_data.get('new_languages', 0)} languages"
-            }
+            results[file_path_str] = {"result": True, "msg": f"Injected {file_data.get('new_languages', 0)} languages"}
         elif name in inject_files:
             results[file_path_str] = {
                 "result": True if file_data.get("no_changes") else False,
-                "msg": file_data.get("error") or "No changes needed"
+                "msg": file_data.get("error") or "No changes needed",
             }
         else:
             results[file_path_str] = {"result": False, "msg": "Injection failed or skipped"}

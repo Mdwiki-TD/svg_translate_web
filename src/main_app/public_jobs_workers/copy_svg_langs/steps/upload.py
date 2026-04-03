@@ -7,8 +7,8 @@ from typing import Any, Callable
 
 import mwclient
 
-from ....config import settings
 from ....api_services.upload_bot import upload_file
+from ....config import settings
 
 logger = logging.getLogger(__name__)
 

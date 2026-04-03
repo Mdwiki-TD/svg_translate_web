@@ -79,12 +79,7 @@ def test_extract_titles_step_limit(mocker):
 def processor_args():
     args = MagicMock()
     # It's a dict in job.py, accessed with .get()
-    return {
-        "manual_main_title": None,
-        "titles_limit": None,
-        "overwrite": False,
-        "upload": False
-    }
+    return {"manual_main_title": None, "titles_limit": None, "overwrite": False, "upload": False}
 
 
 @pytest.fixture
@@ -100,7 +95,7 @@ def initial_result():
             "inject": {"status": "Pending"},
             "upload": {"status": "Pending"},
         },
-        "files_processed": []
+        "files_processed": [],
     }
 
 
@@ -153,34 +148,54 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
     mock_jobs_service.is_job_cancelled.return_value = False
 
     # Mock stages
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step", return_value={"success": True, "text": "wikitext"})
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_titles_step", return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]})
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_translations_step", return_value={"success": True, "translations": {"new": {}}})
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step",
+        return_value={"success": True, "text": "wikitext"},
+    )
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_titles_step",
+        return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]},
+    )
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_translations_step",
+        return_value={"success": True, "translations": {"new": {}}},
+    )
 
     # Mock download step with results
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.download_step", return_value={
-        "success": True,
-        "files": [str(tmp_path / "files" / "File1.svg")],
-        "results": {"File1.svg": {"result": True, "msg": "Downloaded"}},
-        "summary": {}
-    })
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.download_step",
+        return_value={
+            "success": True,
+            "files": [str(tmp_path / "files" / "File1.svg")],
+            "results": {"File1.svg": {"result": True, "msg": "Downloaded"}},
+            "summary": {},
+        },
+    )
 
     # Mock nested step
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.fix_nested_step", return_value={
-        "success": True,
-        "data": {},
-        "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Fixed"}},
-        "summary": {}
-    })
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.fix_nested_step",
+        return_value={
+            "success": True,
+            "data": {},
+            "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Fixed"}},
+            "summary": {},
+        },
+    )
 
     # Mock inject step
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step", return_value={
-        "success": True,
-        "data": {},
-        "files_to_upload": {"File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}},
-        "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Injected"}},
-        "summary": {}
-    })
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step",
+        return_value={
+            "success": True,
+            "data": {},
+            "files_to_upload": {
+                "File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}
+            },
+            "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Injected"}},
+            "summary": {},
+        },
+    )
 
     # Mock upload disabled
     processor_args["upload"] = False
