@@ -25,7 +25,7 @@ def fix_nested_step(
         progress_callback: Optional function to report progress.
 
     Returns:
-        dict with keys: success (bool), summary (dict), data (dict)
+        dict with keys: success (bool), summary (dict), data (dict), results (dict)
     """
     data = {
         "all_files": len(files),
@@ -41,6 +41,7 @@ def fix_nested_step(
     nested_files_count = 0
     fixed_count = 0
     not_fixed_count = 0
+    results: dict[str, Any] = {}
     total = len(files)
 
     for index, file_path_str in enumerate(files, 1):
@@ -56,6 +57,7 @@ def fix_nested_step(
         data["len_nested_tags_before"][len_nested] += 1
 
         if not nested_tags:
+            results[file_path_str] = {"result": True, "msg": "No nested tags found"}
             if progress_callback and index % 10 == 0:
                 msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, Nested: {nested_files_count}"
                 progress_callback(index, total, msg)
@@ -68,6 +70,7 @@ def fix_nested_step(
             data["len_nested_tags_after"].setdefault(len_nested, 0)
             data["len_nested_tags_after"][len_nested] += 1
             not_fixed_count += 1
+            results[file_path_str] = {"result": False, "msg": f"Too many nested tags ({len_nested})"}
             continue
 
         if fix_nested_file(file_path, file_path):
@@ -78,12 +81,15 @@ def fix_nested_step(
                 fixed_count += 1
                 data["len_nested_tags_after"].setdefault(0, 0)
                 data["len_nested_tags_after"][0] += 1
+                results[file_path_str] = {"result": True, "msg": "Fixed nested tags"}
             else:
                 data["len_nested_tags_after"].setdefault(new_len_nested, 0)
                 data["len_nested_tags_after"][new_len_nested] += 1
                 not_fixed_count += 1
+                results[file_path_str] = {"result": False, "msg": f"Could not fix all nested tags ({new_len_nested} left)"}
         else:
             not_fixed_count += 1
+            results[file_path_str] = {"result": False, "msg": "Failed to fix nested tags"}
 
         if progress_callback and (index == 1 or index % 10 == 0 or index == total):
             msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, Nested: {nested_files_count}"
@@ -104,4 +110,5 @@ def fix_nested_step(
         "success": True,
         "summary": summary,
         "data": data,
+        "results": results,
     }
