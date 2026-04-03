@@ -37,10 +37,10 @@ def test_extract_text_step_fail(mocker):
 
 
 def test_extract_titles_step_success(mocker):
-    mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
+    mock_get_files_list_data = mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
     )
-    mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
+    mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
 
     result = extract_titles_step("some text")
 
@@ -51,10 +51,10 @@ def test_extract_titles_step_success(mocker):
 
 
 def test_extract_titles_step_manual_title(mocker):
-    mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
+    mock_get_files_list_data = mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
     )
-    mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg"])
+    mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
 
     result = extract_titles_step("some text", manual_main_title="Manual.svg")
 
@@ -63,10 +63,13 @@ def test_extract_titles_step_manual_title(mocker):
 
 
 def test_extract_titles_step_limit(mocker):
-    mock_get_files_list = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list"
+    mock_get_files_list_data = mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
     )
-    mock_get_files_list.return_value = ("Main.svg", ["File1.svg", "File2.svg", "File3.svg"])
+    mock_get_files_list_data.return_value = {
+        "main_title": "Main.svg",
+        "titles": ["File1.svg", "File2.svg", "File3.svg"],
+    }
 
     result = extract_titles_step("some text", titles_limit=2)
 
@@ -96,6 +99,7 @@ def initial_result():
             "upload": {"status": "Pending"},
         },
         "files_processed": [],
+        "results_summary": {},
     }
 
 
@@ -154,11 +158,11 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
     )
     mocker.patch(
         "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_titles_step",
-        return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]},
+        return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"], "message": "Found 1 titles"},
     )
     mocker.patch(
         "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_translations_step",
-        return_value={"success": True, "translations": {"new": {}}},
+        return_value={"success": True, "translations": {"new": {}}, "message": "Extracted translations"},
     )
 
     # Mock download step with results
