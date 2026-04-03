@@ -39,7 +39,7 @@
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
             <tr>
-                <td>{{ stage.number }}</td>
+                <td>{{ loop.index }}</td>
                 <td>{{ stage_key|title }}</td>
                 <td>
                     {% if stage.status == 'Completed' %}

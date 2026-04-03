@@ -92,13 +92,13 @@ def initial_result():
     return {
         "status": "pending",
         "stages": {
-            "text": {"status": "Pending", "number": 1},
-            "titles": {"status": "Pending", "number": 2},
-            "translations": {"status": "Pending", "number": 3},
-            "download": {"status": "Pending", "number": 4},
-            "nested": {"status": "Pending", "number": 5},
-            "inject": {"status": "Pending", "number": 6},
-            "upload": {"status": "Pending", "number": 7},
+            "text": {"status": "Pending"},
+            "titles": {"status": "Pending"},
+            "translations": {"status": "Pending"},
+            "download": {"status": "Pending"},
+            "nested": {"status": "Pending"},
+            "inject": {"status": "Pending"},
+            "upload": {"status": "Pending"},
         },
         "files_processed": []
     }
