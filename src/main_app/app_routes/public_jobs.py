@@ -20,6 +20,8 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+from .admin.admins_required import admin_required
+
 from ..config import settings
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
@@ -134,11 +136,6 @@ def _jobs_list(job_type: str) -> str:
     if jobs:
         jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
 
-    # Determine if each job can be managed by the current user
-    jobs_with_manage = [
-        {**job.__dict__, "can_manage": _can_manage_job(job, user)} if hasattr(job, "__dict__") else job for job in jobs
-    ]
-
     template = JOB_TYPE_LIST_TEMPLATES_PUBLIC.get(job_type)
     if not template:
         abort(404)
@@ -147,7 +144,6 @@ def _jobs_list(job_type: str) -> str:
         template,
         current_user=user,
         jobs=jobs,
-        jobs_with_manage=[_can_manage_job(job, user) for job in jobs],
         job_type=job_type,
     )
 
@@ -178,7 +174,6 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
         job=job,
         job_type=job_type,
         result_data=result_data,
-        can_manage=_can_manage_job(job, user),
     )
 
 
@@ -253,21 +248,10 @@ class JobsPublicRoutes:
         # ================================
 
         @bp_jobs.post("/<string:job_type>/<int:job_id>/delete")
+        @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
-            user = current_user()
-            if not user:
-                flash("You must be logged in to delete jobs.", "danger")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-            try:
-                job = jobs_service.get_job(job_id, job_type)
-            except LookupError:
-                flash("Job not found.", "warning")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-            if not _can_manage_job(job, user):
-                flash("You don't have permission to delete this job.", "danger")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
             return _delete_job(job_id, job_type)
 
         # ================================
