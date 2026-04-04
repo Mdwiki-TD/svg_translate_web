@@ -171,6 +171,7 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
         return_value={
             "success": True,
             "files": [str(tmp_path / "files" / "File1.svg")],
+            "files_dict": {"File1.svg": str(tmp_path / "files" / "File1.svg")},
             "results": {"File1.svg": {"result": True, "msg": "Downloaded"}},
             "summary": {},
         },
@@ -198,6 +199,7 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
             "files_to_upload": {
                 "File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}
             },
+            "results": {"File1.svg": {"result": True, "msg": "Injected 1 languages"}},
             "summary": {},
         },
     )
