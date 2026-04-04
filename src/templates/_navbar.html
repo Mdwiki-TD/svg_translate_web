@@ -25,7 +25,7 @@
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('public_jobs.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type="copy_svg_langs") ) }}
+                        {{ nav_link('public_jobs.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type='copy_svg_langs') ) }}
                     </li>
                     {% set is_dropdown_active = request and request.endpoint and request.endpoint.startswith("fix_nested") %}
                     <li class="{{ nav_item_class }} dropdown {{ 'active fw-bold' if is_dropdown_active }}">

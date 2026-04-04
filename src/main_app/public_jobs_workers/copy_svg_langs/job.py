@@ -344,7 +344,7 @@ class CopySvgLangsProcessor:
         self.result["completed_at"] = datetime.now().isoformat()
 
         # Compile final results for database
-        self.result["results_summary"] = {
+        self.result["results_summary"].update({
             "total_files": len(self.files),
             "files_to_upload_count": len(self.files_to_upload),
             "no_file_path": len(self.files) - len(self.files_to_upload),
@@ -355,7 +355,7 @@ class CopySvgLangsProcessor:
             },
             "new_translations_count": len(self.translations.get("new", {})),
             "main_title": self.main_title,
-        }
+        })
 
         self._save_progress()
         return self.result

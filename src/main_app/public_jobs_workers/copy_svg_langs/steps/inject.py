@@ -32,7 +32,18 @@ def inject_step(
     output_dir_translated = output_dir / "translated"
     output_dir_translated.mkdir(parents=True, exist_ok=True)
 
-    injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+    try:
+        injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+    except Exception:
+        logger.exception("Failed during SVG translation injection")
+        return {
+            "success": False,
+            "summary": {"total": len(files), "success": 0, "failed": len(files), "no_changes": 0, "nested_files": 0},
+            "data": {},
+            "files_to_upload": {},
+            "results": {file_path: {"result": False, "msg": "Injection failed"} for file_path in files},
+            "message": "Injection failed",
+        }
 
     success_count = injects_result.get("success") or injects_result.get("saved_done", 0)
     failed_count = injects_result.get("failed") or injects_result.get("no_save", 0)
@@ -44,8 +55,8 @@ def inject_step(
     injects_result["failed"] = failed_count
 
     summary = {
-        "total": len(files),
         "success": success_count,
+        "total": len(files),
         "failed": failed_count,
         "no_changes": no_changes_count,
         "nested_files": nested_files_count,

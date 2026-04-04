@@ -6,7 +6,7 @@
 
 <div class="container">
     <h1 class="mb-3">Copy SVG Translation</h1>
-    <form method="post" action="{{ url_for('public_jobs.start_job_with_args', job_type="copy_svg_langs") }}"
+    <form method="post" action="{{ url_for('public_jobs.start_job_with_args', job_type='copy_svg_langs') }}"
         class="row gy-2 gx-3 align-items-center mb-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="col-sm-12 col-md-4">

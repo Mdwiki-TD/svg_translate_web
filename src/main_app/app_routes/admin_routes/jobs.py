@@ -65,7 +65,7 @@ def _start_job(job_type: str) -> int | None:
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
-        return False
+        return None
 
     try:
         # Get auth payload for OAuth uploads
@@ -77,7 +77,7 @@ def _start_job(job_type: str) -> int | None:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
 
-    return False
+    return None
 
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
@@ -286,7 +286,7 @@ class Jobs:
 
         @bp_admin.get("/crop-main-files/compare/<path:original>/<path:cropped>")
         @admin_required
-        def compare_crop_files(original: str, cropped: str) -> str:
+        def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
 
             original = original.removeprefix("File:")
@@ -299,7 +299,7 @@ class Jobs:
 
         @bp_admin.get("/read-job-result-file/<path:result_file>")
         @admin_required
-        def read_job_result_file(result_file: str) -> str:
+        def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
             result_data = jobs_service.load_job_result(result_file)
             return jsonify(result_data)

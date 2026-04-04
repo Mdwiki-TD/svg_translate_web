@@ -34,7 +34,12 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
         return {"success": False, "translations": {}, "error": error, "message": ""}
 
     main_title_path = files1["path"]
-    translations = extract(main_title_path, case_insensitive=True)
+
+    try:
+        translations = extract(main_title_path, case_insensitive=True)
+    except Exception:
+        logger.exception("Failed to extract translations from main SVG")
+        return {"success": False, "translations": {}, "error": "Failed to parse main SVG", "message": ""}
 
     new_translations = (translations.get("new") or {}) if isinstance(translations, dict) else {}
     new_translations_count = len(new_translations)

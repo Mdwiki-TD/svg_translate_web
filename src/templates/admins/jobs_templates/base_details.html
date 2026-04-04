@@ -61,11 +61,13 @@
                             </tr>
                             <tr>
                                 <th>Created:</th>
-                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>
+                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}
+                                </td>
                             </tr>
                             <tr>
                                 <th>Started:</th>
-                                <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}</td>
+                                <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -76,14 +78,14 @@
                                 <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
                                 </td>
                             </tr>
-                            {% if job.failed_at or result_data.failed_at %}
+                            {% if job.failed_at or (result_data and result_data.failed_at) %}
                             <tr>
                                 <th style="width: 40%">Failed At:</th>
                                 <td>{{ (job.failed_at or result_data.failed_at) }}
                                 </td>
                             </tr>
                             {% endif %}
-                            {% if job.cancelled_at or result_data.cancelled_at %}
+                            {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
                             <tr>
                                 <th style="width: 40%">Failed At:</th>
                                 <td>{{ (job.cancelled_at or result_data.cancelled_at) }}

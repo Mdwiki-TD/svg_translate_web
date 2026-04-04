@@ -107,7 +107,7 @@ def upload_step(
     message = f"Uploaded {done}/{total_files}, No Changes: {no_changes}, Errors: {not_done}"
 
     return {
-        "success": not_done < 10 or total_files == 0,
+        "success": not_done == 0 or total_files == 0,
         "summary": summary,
         "errors": errors,
         "results": results,

@@ -39,11 +39,13 @@ def download_step(
     failed_titles: list[str] = []
     results: dict[str, Any] = {}
     done = 0
+    cancelled = False
     skipped_existing = 0
     total = len(titles)
 
     for index, title in enumerate(titles, 1):
         if cancel_check and cancel_check():
+            cancelled = True
             logger.info("Download step cancelled")
             break
 
@@ -74,7 +76,8 @@ def download_step(
     }
 
     return {
-        "success": len(failed_titles) < 10 or total == 0,  # Arbitrary threshold from original code
+        # "success": len(failed_titles) < 10 or total == 0,  # Arbitrary threshold from original code
+        "success": (not cancelled) and (len(failed_titles) == 0),
         "files": files,
         "failed_titles": failed_titles,
         "summary": summary,
