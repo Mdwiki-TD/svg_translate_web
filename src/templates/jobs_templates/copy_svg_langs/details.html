@@ -91,7 +91,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in result_data.files_processed %}
+                    {% for item in result_data.files_processed.values() %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
