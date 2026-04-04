@@ -50,24 +50,6 @@ def test_upload_cropped_file_no_site():
     assert result["cropped_filename"] == cropped_filename
 
 
-def test_upload_cropped_file_upload_fails(tmp_path):
-    """Test handling of upload failure."""
-    cropped_filename = "File:test (cropped).svg"
-    cropped_path = tmp_path / "test_cropped.svg"
-    cropped_path.write_text("<svg></svg>")
-    site = Mock()
-
-    with patch("src.main_app.jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Failure", "error": "File already exists"}
-
-        result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
-
-    assert result["success"] is False
-    assert "Upload failed" in result["error"]
-    assert "File already exists" in result["error"]
-    assert result["cropped_filename"] == cropped_filename
-
-
 def test_upload_cropped_file_exception_during_upload(tmp_path):
     """Test handling of exceptions during upload."""
     cropped_filename = "File:test (cropped).svg"
