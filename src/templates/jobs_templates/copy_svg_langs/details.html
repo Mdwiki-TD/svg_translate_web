@@ -11,8 +11,7 @@
 <tr>
     <th>Main Title:</th>
     <td>
-        <a href="https://commons.wikimedia.org/wiki/{{ result_data.title }}" target="_blank"
-            rel="noopener noreferrer">
+        <a href="https://commons.wikimedia.org/wiki/{{ result_data.title }}" target="_blank" rel="noopener noreferrer">
             {{ result_data.title }}
         </a>
     </td>
@@ -91,6 +90,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
                     {% for item in result_data.files_processed.values() %}
                     <tr>
                         <td>{{ loop.index }}</td>
@@ -111,7 +111,6 @@
                             <span class="badge bg-primary">{{ item.status }}</span>
                             {% endif %}
                         </td>
-                        {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}
