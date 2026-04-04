@@ -98,7 +98,7 @@ def initial_result():
             "inject": {"status": "Pending"},
             "upload": {"status": "Pending"},
         },
-        "files_processed": [],
+        "files_processed": {},
         "results_summary": {},
     }
 
@@ -219,7 +219,7 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
     result = processor.run()
 
     assert len(result["files_processed"]) == 1
-    file_info = result["files_processed"][0]
+    file_info = result["files_processed"]["File1.svg"]
     assert file_info["title"] == "File1.svg"
     assert file_info["steps"]["download"]["result"] is True
     assert file_info["steps"]["nested"]["result"] is True
