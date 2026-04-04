@@ -192,7 +192,9 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
         "src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step",
         return_value={
             "success": True,
-            "data": {},
+            "data": {
+                "files": {"File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}}
+            },
             "files_to_upload": {
                 "File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}
             },
