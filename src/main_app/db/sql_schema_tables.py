@@ -89,12 +89,14 @@ fix_nested_tasks = """
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 """
 
+# pymysql.err.OperationalError: (1364, "Field 'slug' doesn't have a default value")
 templates = """
     CREATE TABLE IF NOT EXISTS templates (
         id INT NOT NULL AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
         main_file VARCHAR(255) DEFAULT NULL,
         last_world_file VARCHAR(255) DEFAULT NULL,
+        slug VARCHAR(255) NOT NULL DEFAULT '',
         source VARCHAR(255) NOT NULL DEFAULT '',
         created_at timestamp NOT NULL DEFAULT current_timestamp(),
         updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -105,6 +107,7 @@ templates = """
         KEY last_world_file (last_world_file),
         KEY source (source)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
 """
 
 admin_users = """

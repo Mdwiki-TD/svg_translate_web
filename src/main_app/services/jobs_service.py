@@ -94,7 +94,7 @@ def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
     filepath = jobs_dir / filename
 
     with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(result_data, f, indent=2, default=str)
+        json.dump(result_data, f, indent=2, default=str, ensure_ascii=False)
 
     return filepath
 
@@ -107,7 +107,7 @@ def save_job_result(job_id: int, result_data: Dict[str, Any]) -> str:
     filepath = jobs_dir / filename
 
     with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(result_data, f, indent=2, default=str)
+        json.dump(result_data, f, indent=2, default=str, ensure_ascii=False)
 
     return str(filepath.name)
 
