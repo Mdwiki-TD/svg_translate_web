@@ -112,7 +112,7 @@ def test_create_app_registers_blueprints():
 
     expected_blueprints = [
         "main",
-        "copy_svg_langs",
+        "public_jobs",
         "explorer",
         "admin",
         "auth",

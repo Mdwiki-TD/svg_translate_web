@@ -1,6 +1,5 @@
 from src.main_app import create_app
 from src.main_app.db import user_tokens as user_store
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy import routes as task_routes
 
 
 class FakeCursor:
@@ -66,7 +65,6 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     )
 
     user_store._db = None
-    task_routes.TASK_STORE = None
 
     app = create_app()
     app.config.update(TESTING=True)
@@ -78,10 +76,7 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     response = client.get("/logout")
     assert response.status_code == 302
 
-    response = client.get("/tasks")
-    assert response.status_code == 200
-
-    response = client.get("/tasks")
+    response = client.get("/jobs/copy_svg_langs/list")
     assert response.status_code == 200
 
     # TODO: FAILED tests/test_connection_reuse.py::test_sequential_requests_use_cached_connections - AssertionError: assert 4 <= 3

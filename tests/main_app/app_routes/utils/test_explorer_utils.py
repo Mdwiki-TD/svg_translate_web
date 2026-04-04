@@ -71,15 +71,6 @@ def test_get_languages_extracts_codes() -> None:
     assert langs == ["de", "es", "fr"]
 
 
-def test_get_temp_title_prefers_file(tmp_path: Path) -> None:
-    title_dir = tmp_path / "svg" / "topic"
-    title_dir.mkdir(parents=True)
-    (title_dir / "title.txt").write_text(" Display Title ", encoding="utf-8")
-
-    assert explorer_utils.get_temp_title("topic") == "Display Title"
-    assert explorer_utils.get_temp_title("missing") == "missing"
-
-
 def test_get_informations_compiles_summary(tmp_path: Path) -> None:
     base = tmp_path / "svg" / "subject"
     (base / "files").mkdir(parents=True)
@@ -100,11 +91,10 @@ def test_get_informations_compiles_summary(tmp_path: Path) -> None:
         },
     }
     (base / "files_stats.json").write_text(json.dumps(stats), encoding="utf-8")
-    (base / "title.txt").write_text("Subject", encoding="utf-8")
 
     info = explorer_utils.get_informations("subject")
 
-    assert info["title"] == "Subject"
+    assert info["title"] == "subject"
     assert info["len_files"]["downloaded"] == 2
     assert info["len_files"]["translated"] == 1
     assert info["len_files"]["not_translated"] == 1
