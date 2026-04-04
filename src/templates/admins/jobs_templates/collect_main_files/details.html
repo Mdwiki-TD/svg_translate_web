@@ -1,4 +1,5 @@
 {% extends "admins/jobs_templates/base_details.html" %}
+{% from "_macros.html" import card_header %}
 
 {% set job_type = 'collect_main_files' %}
 
@@ -77,14 +78,7 @@
 {% if result_data.templates_added %}
 <div class="card mb-3">
     <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Added Templates ({{ result_data.templates_added|length }})</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
+        {{ card_header("Added Templates (" ~ result_data.templates_added|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -118,14 +112,7 @@
 {% if result_data.templates_updated %}
 <div class="card mb-3">
     <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Updated Templates ({{ result_data.templates_updated|length }})</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
+        {{ card_header("Updated Templates (" ~ result_data.templates_updated|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -165,14 +152,7 @@
 {% if result_data.templates_failed %}
 <div class="card mb-3">
     <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Failed Templates ({{ result_data.templates_failed|length }})</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
+        {{ card_header("Failed Templates (" ~ result_data.templates_failed|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -208,14 +188,7 @@
 {% if result_data.templates_skipped %}
 <div class="card mb-3">
     <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">Skipped Templates ({{ result_data.templates_skipped|length }})</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
+        {{ card_header("Skipped Templates (" ~ result_data.templates_skipped|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
