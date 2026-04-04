@@ -364,7 +364,7 @@ class CopySvgLangsProcessor:
         self.result["stages"]["upload"]["status"] = status
         self.result["stages"]["upload"]["message"] = _msg
 
-        for title, item in self.result["files_processed"].items():
+        for _, item in self.result["files_processed"].items():
             if item["status"] != "failed":
                 item["steps"]["upload"] = {"result": result, "msg": _msg}
                 item["status"] = status
