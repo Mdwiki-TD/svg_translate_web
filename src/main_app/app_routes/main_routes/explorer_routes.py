@@ -15,7 +15,6 @@ from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
-    get_temp_title,
     svg_data_path,
     svg_data_thumb_path,
 )
@@ -29,7 +28,8 @@ logger = logging.getLogger(__name__)
 def by_title_downloaded(title_dir: str):
     files, title_path = get_files(title_dir, "files")
 
-    title = get_temp_title(title_dir)
+    # title = get_temp_title(title_dir)
+    title = title_dir
 
     return render_template(
         "explorer/explore_files.html",
@@ -46,7 +46,8 @@ def by_title_downloaded(title_dir: str):
 def by_title_translated(title_dir: str):
     files, title_path = get_files(title_dir, "translated")
 
-    title = get_temp_title(title_dir)
+    # title = get_temp_title(title_dir)
+    title = title_dir
 
     return render_template(
         "explorer/explore_files.html",
@@ -65,7 +66,8 @@ def by_title_not_translated(title_dir: str):
     downloaded, title_path = get_files(title_dir, "files")
     translated, _ = get_files(title_dir, "translated")
 
-    title = get_temp_title(title_dir)
+    # title = get_temp_title(title_dir)
+    title = title_dir
 
     not_translated = [x for x in downloaded if x not in set(translated)]
 

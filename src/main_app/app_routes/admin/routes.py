@@ -15,7 +15,6 @@ from ..admin_routes import (
     Coordinators,
     Jobs,
     OwidCharts,
-    Recent,
     SettingsRoutes,
     Templates,
 )
@@ -39,12 +38,11 @@ def inject_sidebar():
 @bp_admin.get("/")
 @admin_required
 def admin_dashboard():
-    return redirect(url_for("admin.recent_routes"))
+    return redirect(url_for("admin.templates_dashboard"))
 
 
 def register_blueprints(bp_admin) -> None:
     Coordinators(bp_admin)
-    Recent(bp_admin)
     Templates(bp_admin)
     SettingsRoutes(bp_admin)
     Jobs(bp_admin)
