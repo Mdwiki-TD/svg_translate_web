@@ -11,6 +11,33 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
+def start_injects_wrap(files, translations, output_dir_translated, overwrite=False) -> dict[str, str|int]:
+    result = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+
+    success: int = result["result"]
+    failed: int = result["failed"]
+    nested_files: int = result["nested_files"]
+    no_changes: int = result["no_changes"]
+
+    result_files: dict[str, dict[str, Any]] = {
+        x: {
+            "file_path": v.get("file_path", ""),
+            "new_languages": v.get("new_languages", ""),
+            "no_changes": v.get("no_changes", ""),
+            "error": v.get("error", ""),
+        }
+        for x, v in result["files"].items()
+    }
+
+    return {
+        "success": success,
+        "failed": failed,
+        "nested_files": nested_files,
+        "no_changes": no_changes,
+        "files": result_files,
+    }
+
+
 def inject_step(
     files: list[str],
     translations: dict[str, Any],
@@ -33,7 +60,7 @@ def inject_step(
     output_dir_translated.mkdir(parents=True, exist_ok=True)
 
     try:
-        injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+        injects_result: dict[str, Any] = start_injects_wrap(files, translations, output_dir_translated, overwrite=overwrite)
     except Exception:
         logger.exception("Failed during SVG translation injection")
         return {
