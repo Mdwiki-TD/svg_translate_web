@@ -56,7 +56,7 @@ class CopySvgLangsWorker(BaseJobWorker):
             },
             "summary": {},
             "results_summary": {},
-            "files_processed": [],
+            "files_processed": {},
         }
 
     def process(self) -> dict[str, Any]:

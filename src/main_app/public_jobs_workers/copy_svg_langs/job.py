@@ -131,19 +131,17 @@ class CopySvgLangsProcessor:
         # Initialize files_processed
 
         for title in self.titles:
-            self.result["files_processed"].append(
-                {
-                    "title": title,
-                    "status": "pending",
-                    "error": None,
-                    "steps": {
-                        "download": {"result": None, "msg": ""},
-                        "nested": {"result": None, "msg": ""},
-                        "inject": {"result": None, "msg": ""},
-                        "upload": {"result": None, "msg": ""},
-                    }
-                }
-            )
+            self.result["files_processed"][title] = {
+                "title": title,
+                "status": "pending",
+                "error": None,
+                "steps": {
+                    "download": {"result": None, "msg": ""},
+                    "nested": {"result": None, "msg": ""},
+                    "inject": {"result": None, "msg": ""},
+                    "upload": {"result": None, "msg": ""},
+                },
+            }
 
         # ----------------------------------------------
         # Stage 3: Extract Translations
@@ -177,8 +175,7 @@ class CopySvgLangsProcessor:
             download_results = download_data.get("results", {})
 
             # Update files_processed with download results
-            for item in self.result["files_processed"]:
-                title = item["title"]
+            for title, item in self.result["files_processed"].items():
                 if title in download_results:
                     item["steps"]["download"] = download_results[title]
                     if download_results[title].get("result"):
@@ -221,10 +218,8 @@ class CopySvgLangsProcessor:
             self.result["stages"]["nested"]["data"]["results"] = {}
 
             # Update files_processed with nested results
-            for item in self.result["files_processed"]:
-                # Need to find the file path associated with this title
-                # download_one_file saves to output_dir_main / title
-                file_path = str(output_dir_main / item["title"])
+            for title, item in self.result["files_processed"].items():
+                file_path = str(output_dir_main / title)
                 if file_path in self.nested_results:
                     item["steps"]["nested"] = self.nested_results[file_path]
                     if self.nested_results[file_path]["result"] is False:
@@ -252,8 +247,8 @@ class CopySvgLangsProcessor:
             inject_results = inject_stage_data.get("results", {})
 
             # Update files_processed with inject results
-            for item in self.result["files_processed"]:
-                file_path = str(output_dir_main / item["title"])
+            for title, item in self.result["files_processed"].items():
+                file_path = str(output_dir_main / title)
                 if file_path in inject_results:
                     item["steps"]["inject"] = inject_results[file_path]
                     if inject_results[file_path]["result"] is False:
@@ -294,9 +289,7 @@ class CopySvgLangsProcessor:
             upload_results = upload_result_data.get("results", {})
 
             # Update files_processed with upload results
-            for item in self.result["files_processed"]:
-                # upload_step results are keyed by filename (title)
-                title = item["title"]
+            for title, item in self.result["files_processed"].items():
                 if title in upload_results:
                     item["steps"]["upload"] = upload_results[title]
                     if upload_results[title]["result"] is True:
@@ -371,7 +364,7 @@ class CopySvgLangsProcessor:
         self.result["stages"]["upload"]["status"] = status
         self.result["stages"]["upload"]["message"] = _msg
 
-        for item in self.result["files_processed"]:
+        for title, item in self.result["files_processed"].items():
             if item["status"] != "failed":
                 item["steps"]["upload"] = {"result": result, "msg": _msg}
                 item["status"] = status
