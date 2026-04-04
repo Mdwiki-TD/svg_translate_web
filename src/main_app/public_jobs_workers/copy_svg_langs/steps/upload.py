@@ -40,24 +40,25 @@ def upload_step(
     results: dict[str, Any] = {}
 
     total_files = len(files_to_upload)
-    to_work = {name: data for name, data in files_to_upload.items() if data.get("new_languages")}
+    to_work = {title: data for title, data in files_to_upload.items() if data.get("new_languages")}
 
     # Initialize results for those not needing work
-    for name in files_to_upload:
-        if name not in to_work:
-            results[name] = {"result": None, "msg": "No new languages to upload"}
+    for t in files_to_upload:
+        if t not in to_work:
+            results[t] = {"result": None, "msg": "No new languages to upload"}
             no_changes += 1
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
     _upload_limit = int(settings.dynamic.get("copy_svg_langs_upload_limit", 0))
 
-    for index, (file_name, file_data) in enumerate(to_work.items(), 1):
+    for index, (title, file_data) in enumerate(to_work.items(), 1):
         if cancel_check and cancel_check():
             logger.info("Upload step cancelled")
             break
 
         file_path = file_data.get("file_path")
+        file_name = file_data.get("file_name")
         summary = (
             f"Adding {file_data.get('new_languages')} languages translations from {main_title_link}"
             if "new_languages" in file_data
@@ -66,7 +67,7 @@ def upload_step(
 
         if _upload_limit > 0 and index > _upload_limit:
             logger.info(f"Reached upload limit of {_upload_limit}")
-            results[file_name] = {"result": None, "msg": "Reached upload limit"}
+            results[title] = {"result": None, "msg": "Reached upload limit"}
             continue
 
         try:
@@ -75,21 +76,21 @@ def upload_step(
 
             if result_status == "Success":
                 done += 1
-                results[file_name] = {"result": True, "msg": "Uploaded successfully"}
+                results[title] = {"result": True, "msg": "Uploaded successfully"}
             elif result_status == "fileexists-no-change":
                 no_changes += 1
-                results[file_name] = {"result": True, "msg": "File already exists with same content"}
+                results[title] = {"result": True, "msg": "File already exists with same content"}
             else:
                 not_done += 1
                 err_msg = upload_result.get("error", "Unknown upload error")
-                results[file_name] = {"result": False, "msg": err_msg}
+                results[title] = {"result": False, "msg": err_msg}
                 if "error" in upload_result:
                     errors.append(f"{file_name}: {err_msg}")
 
         except Exception as e:
             logger.exception(f"Exception uploading {file_name}")
             not_done += 1
-            results[file_name] = {"result": False, "msg": str(e)}
+            results[title] = {"result": False, "msg": str(e)}
             errors.append(f"{file_name}: {str(e)}")
 
         if progress_callback and (index == 1 or index % 10 == 0 or index == len(to_work)):

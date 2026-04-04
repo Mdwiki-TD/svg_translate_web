@@ -258,37 +258,25 @@ class CopySvgLangsProcessor:
 
         def inject_run_after() -> None:
             inject_stage_data = self.result["stages"]["inject"]["data"]
+            inject_results = self.result["stages"]["inject"]["results"]
+
             self.inject_data = inject_stage_data["data"]
-            self.files_to_upload = inject_stage_data["files_to_upload"]
 
             inject_files = self.inject_data.get("files", {})
 
+            self.files_to_upload = {title: data for title, data in inject_files.items() if data.get("file_path")}
+
             # Update files_processed with inject results
             for title, item in self.result["files_processed"].items():
-                file_path = str(output_dir_main / title)
-                name = Path(file_path).name
-                file_data = inject_files.get(name, {})
+                file_data = inject_results.get(title, {})
 
-                if file_data.get("file_path"):
-                    inject_re = {
-                        "result": True,
-                        "msg": f"Injected {file_data.get('new_languages', 0)} languages",
-                        "new_languages": file_data.get('new_languages', 0)
-                    }
+                if not file_data:
+                    file_data = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
 
-                elif name in inject_files:
-                    inject_re = {
-                        "result": True if file_data.get("no_changes") else False,
-                        "msg": file_data.get("error") or "No changes needed",
-                        "new_languages": 0,
-                    }
-                else:
-                    inject_re = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
-
-                item["steps"]["inject"] = inject_re
-                if inject_re["result"] is False:
+                item["steps"]["inject"] = file_data
+                if file_data["result"] is False:
                     item["status"] = "failed"
-                    item["error"] = inject_re["msg"]
+                    item["error"] = file_data["msg"]
 
             # clean up
             self.result["stages"]["inject"]["data"]["data"] = {}
@@ -298,7 +286,7 @@ class CopySvgLangsProcessor:
             "inject",
             inject_step,
             inject_run_after,
-            self.files,
+            self.files_dict,
             self.translations,
             self.output_dir,
             overwrite=bool(self.args.get("overwrite")),
