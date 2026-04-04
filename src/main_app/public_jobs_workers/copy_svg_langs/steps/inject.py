@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def start_injects_wrap(files, translations, output_dir_translated, overwrite=False) -> dict[str, str|int]:
     result = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
 
-    success: int = result["result"]
+    success: int = result["success"]
     failed: int = result["failed"]
     nested_files: int = result["nested_files"]
     no_changes: int = result["no_changes"]
