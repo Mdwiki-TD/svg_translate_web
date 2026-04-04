@@ -245,36 +245,29 @@ class CopySvgLangsProcessor:
             self.inject_data = inject_stage_data["data"]
             self.files_to_upload = inject_stage_data["files_to_upload"]
 
-            inject_results = {}
             inject_files = self.inject_data.get("files", {})
-
-            # Track per-file results
-            inject_results: dict[str, Any] = {}
-            for file_path_str in self.files:
-                # file_path_str is the source file path
-                # inject_files is keyed by filename (basename)
-                name = Path(file_path_str).name
-                file_data = inject_files.get(name, {})
-
-                if file_data.get("file_path"):
-                    inject_results[file_path_str] = {"result": True, "msg": f"Injected {file_data.get('new_languages', 0)} languages"}
-
-                elif name in inject_files:
-                    inject_results[file_path_str] = {
-                        "result": True if file_data.get("no_changes") else False,
-                        "msg": file_data.get("error") or "No changes needed",
-                    }
-                else:
-                    inject_results[file_path_str] = {"result": False, "msg": "Injection failed or skipped"}
 
             # Update files_processed with inject results
             for title, item in self.result["files_processed"].items():
                 file_path = str(output_dir_main / title)
-                if file_path in inject_results:
-                    item["steps"]["inject"] = inject_results[file_path]
-                    if inject_results[file_path]["result"] is False:
-                        item["status"] = "failed"
-                        item["error"] = inject_results[file_path]["msg"]
+                name = Path(file_path).name
+                file_data = inject_files.get(name, {})
+
+                if file_data.get("file_path"):
+                    inject_step = {"result": True, "msg": f"Injected {file_data.get('new_languages', 0)} languages"}
+
+                elif name in inject_files:
+                    inject_step = {
+                        "result": True if file_data.get("no_changes") else False,
+                        "msg": file_data.get("error") or "No changes needed",
+                    }
+                else:
+                    inject_step = {"result": False, "msg": "Injection failed or skipped"}
+
+                item["steps"]["inject"] = inject_step
+                if inject_step["result"] is False:
+                    item["status"] = "failed"
+                    item["error"] = inject_step["msg"]
 
             # clean up
             self.result["stages"]["inject"]["data"]["data"] = {}

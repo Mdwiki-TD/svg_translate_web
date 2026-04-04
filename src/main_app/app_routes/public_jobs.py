@@ -20,7 +20,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from .auth.routes import login_required
 
 from .admin.admins_required import admin_required
 
