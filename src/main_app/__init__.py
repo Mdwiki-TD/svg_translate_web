@@ -22,7 +22,6 @@ from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
 from .db.user_tokens import ensure_user_token_table
-from .services.copy_svg_langs_service import close_task_store
 from .services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -146,10 +145,6 @@ def create_app() -> Flask:
             close_cached_db()
         except Exception:
             logger.debug("Failed to close cached DB during teardown", exc_info=True)
-        try:
-            close_task_store()
-        except Exception:
-            logger.debug("Failed to close task store during teardown", exc_info=True)
 
     register_error_pages(app)
     register_blueprints(app)

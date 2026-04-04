@@ -165,26 +165,37 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
         return_value={"success": True, "translations": {"new": {}}, "message": "Extracted translations"},
     )
 
-    # Mock download step with results
-    mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.download_step",
-        return_value={
+    # Mock download step with results - use side_effect to call progress_callback
+    def download_side_effect(*args, **kwargs):
+        results = {"File1.svg": {"result": True, "msg": "Downloaded"}}
+        if kwargs.get("progress_callback"):
+            kwargs["progress_callback"](1, 1, "Downloaded", results)
+        return {
             "success": True,
             "files": [str(tmp_path / "files" / "File1.svg")],
-            "results": {"File1.svg": {"result": True, "msg": "Downloaded"}},
-            "summary": {},
-        },
+            "files_dict": {"File1.svg": str(tmp_path / "files" / "File1.svg")},
+            "summary": {"downloaded": 1, "skipped_existing": 0, "failed": 0},
+        }
+
+    mocker.patch(
+        "src.main_app.public_jobs_workers.copy_svg_langs.job.download_step",
+        side_effect=download_side_effect,
     )
 
-    # Mock nested step
+    # Mock nested step - use side_effect to call progress_callback
+    def nested_side_effect(*args, **kwargs):
+        results = {"File1.svg": {"result": True, "msg": "Fixed"}}
+        if kwargs.get("progress_callback"):
+            kwargs["progress_callback"](1, 1, "Fixed", results)
+        return {
+            "success": True,
+            "data": {"data": {}, "results": {}},
+            "summary": {},
+        }
+
     mocker.patch(
         "src.main_app.public_jobs_workers.copy_svg_langs.job.fix_nested_step",
-        return_value={
-            "success": True,
-            "data": {},
-            "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Fixed"}},
-            "summary": {},
-        },
+        side_effect=nested_side_effect,
     )
 
     # Mock inject step
@@ -192,11 +203,13 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
         "src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step",
         return_value={
             "success": True,
-            "data": {},
+            "data": {
+                "files": {"File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}}
+            },
             "files_to_upload": {
                 "File1.svg": {"file_path": str(tmp_path / "translated" / "File1.svg"), "new_languages": 1}
             },
-            "results": {str(tmp_path / "files" / "File1.svg"): {"result": True, "msg": "Injected"}},
+            "results": {"File1.svg": {"result": True, "msg": "Injected 1 languages"}},
             "summary": {},
         },
     )

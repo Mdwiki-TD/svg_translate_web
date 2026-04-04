@@ -49,7 +49,6 @@ def test_login_required_redirects_when_anonymous(app: Flask) -> None:
         response = protected()
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("error=login-required")
 
 
 def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:

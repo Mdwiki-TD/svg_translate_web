@@ -1,4 +1,4 @@
-from src.main_app.db.exceptions import MaxUserConnectionsError, TaskAlreadyExistsError
+from src.main_app.db.exceptions import MaxUserConnectionsError
 
 
 def test_MaxUserConnectionsError():

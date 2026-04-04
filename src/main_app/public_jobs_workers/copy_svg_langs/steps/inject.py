@@ -11,8 +11,36 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
+def start_injects_wrap(files, translations, output_dir_translated, overwrite=False) -> dict[str, str | int]:
+    result = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+
+    success: int = result["success"]
+    failed: int = result["failed"]
+    nested_files: int = result["nested_files"]
+    no_changes: int = result["no_changes"]
+
+    result_files: dict[str, dict[str, Any]] = {
+        x: {
+            "file_name": x,
+            "file_path": v.get("file_path", ""),
+            "new_languages": v.get("new_languages", ""),
+            "no_changes": v.get("no_changes", ""),
+            "error": v.get("error", ""),
+        }
+        for x, v in result["files"].items()
+    }
+
+    return {
+        "success": success,
+        "failed": failed,
+        "nested_files": nested_files,
+        "no_changes": no_changes,
+        "files": result_files,
+    }
+
+
 def inject_step(
-    files: list[str],
+    files_dict: dict[str, str],
     translations: dict[str, Any],
     output_dir: Path,
     overwrite: bool = False,
@@ -21,27 +49,37 @@ def inject_step(
     Perform translation injection on a list of SVG files.
 
     Args:
-        files: List of paths to SVG files.
+        files_dict: Dictionary of files to inject. key is title, value is file path.
         translations: Dictionary of translations to inject.
         output_dir: Directory where translated files should be saved.
         overwrite: Whether to overwrite existing files.
 
     Returns:
-        dict with keys: success (bool), summary (dict), data (dict), files_to_upload (dict), results (dict)
+        dict with keys: success (bool), summary (dict), data (dict), files_to_upload (dict)
     """
     output_dir_translated = output_dir / "translated"
     output_dir_translated.mkdir(parents=True, exist_ok=True)
 
+    files = list(files_dict.values())
+
     try:
-        injects_result: dict[str, Any] = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
+        injects_result: dict[str, Any] = start_injects_wrap(
+            files, translations, output_dir_translated, overwrite=overwrite
+        )
     except Exception:
         logger.exception("Failed during SVG translation injection")
         return {
             "success": False,
-            "summary": {"total": len(files), "success": 0, "failed": len(files), "no_changes": 0, "nested_files": 0},
+            "summary": {
+                "total": len(files_dict),
+                "success": 0,
+                "failed": len(files_dict),
+                "no_changes": 0,
+                "nested_files": 0,
+            },
             "data": {},
             "files_to_upload": {},
-            "results": {file_path: {"result": False, "msg": "Injection failed"} for file_path in files},
+            "results": {title: {"result": False, "msg": "Injection failed"} for title in files_dict},
             "message": "Injection failed",
         }
 
@@ -56,42 +94,40 @@ def inject_step(
 
     summary = {
         "success": success_count,
-        "total": len(files),
+        "total": len(files_dict),
         "failed": failed_count,
         "no_changes": no_changes_count,
         "nested_files": nested_files_count,
     }
 
-    message = f"Success {success_count}/{len(files)}, Failed {failed_count}, No Changes {no_changes_count}, Nested Files {nested_files_count}"
+    message = f"Success {success_count}/{len(files_dict)}, Failed {failed_count}, No Changes {no_changes_count}, Nested Files {nested_files_count}"
+    results = {}
 
-    # Identify files that are ready for upload
-    inject_files = injects_result.get("files", {})
-    files_to_upload = {name: data for name, data in inject_files.items() if data.get("file_path")}
-
-    # Track per-file results
-    results: dict[str, Any] = {}
-    for file_path_str in files:
-        # file_path_str is the source file path
-        # inject_files is keyed by filename (basename)
-        name = Path(file_path_str).name
+    inject_files = injects_result["files"]
+    for title, file_path in files_dict.items():
+        name = Path(file_path).name
         file_data = inject_files.get(name, {})
 
         if file_data.get("file_path"):
-            results[file_path_str] = {"result": True, "msg": f"Injected {file_data.get('new_languages', 0)} languages"}
+            results[title] = {
+                "result": True,
+                "msg": f"Injected {file_data.get('new_languages', 0)} languages",
+                "new_languages": file_data.get("new_languages", 0),
+            }
 
-        elif name in inject_files:
-            results[file_path_str] = {
+        elif title in inject_files:
+            results[title] = {
                 "result": True if file_data.get("no_changes") else False,
                 "msg": file_data.get("error") or "No changes needed",
+                "new_languages": 0,
             }
         else:
-            results[file_path_str] = {"result": False, "msg": "Injection failed or skipped"}
+            results[title] = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
 
     return {
-        "success": success_count > 0 or len(files) == 0,
+        "success": success_count > 0 or len(files_dict) == 0,
         "summary": summary,
         "data": injects_result,
-        "files_to_upload": files_to_upload,
-        "results": results,
         "message": message,
+        "results": results,
     }

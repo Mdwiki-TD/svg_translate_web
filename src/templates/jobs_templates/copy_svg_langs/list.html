@@ -28,7 +28,16 @@
                     <input class="form-check-input" type="checkbox" value="z" id="overwrite" name="overwrite"
                         {{ 'checked' if not form or form.overwrite == "z" else '' }}>
                     <label class="form-check-label" for="overwrite">
-                        Overwrite translations
+                        Overwrite Existing translations
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="1" id="overwrite_downloads" name="overwrite_downloads"
+                        {{ 'checked' if form and form.overwrite_downloads == "1" else '' }}>
+                    <label class="form-check-label" for="overwrite_downloads">
+                        Overwrite download files
                     </label>
                 </div>
             </div>
