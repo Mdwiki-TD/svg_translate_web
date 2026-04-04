@@ -4,13 +4,14 @@ Processor for copy_svg_langs
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import mwclient
 import requests
@@ -18,7 +19,6 @@ import requests
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
-from ..utils import json_save, make_results_summary
 from .steps import (
     download_step,
     extract_text_step,
@@ -50,6 +50,8 @@ class CopySvgLangsProcessor:
     session: requests.Session | None = field(init=False, default=None)
     output_dir: Path = field(init=False)
 
+    files: list[str] = field(init=False, default_factory=list)
+
     def __post_init__(self) -> None:
         self.output_dir = self._compute_output_dir(self.title)
 
@@ -59,13 +61,6 @@ class CopySvgLangsProcessor:
         slug = slug.replace(" ", "_").lower()
         out = Path(settings.paths.svg_data) / slug
         out.mkdir(parents=True, exist_ok=True)
-
-        # log title to out/title.txt
-        try:
-            with open(out / "title.txt", "w", encoding="utf-8") as f:
-                f.write(name)
-        except Exception as e:
-            logger.error(f"Failed to write title to {out / 'title.txt'}: {e}")
 
         return out
 
@@ -101,108 +96,187 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 1: Extract Text
-        if not self._run_stage("text", extract_text_step, self.title):
+        def text_run_after() -> None:
+            self.text = self.result["stages"]["text"]["data"]["text"]
+            # clean up
+            self.result["stages"]["text"]["data"]["text"] = ""
+
+        if not self._run_stage(
+            "text",
+            extract_text_step,
+            text_run_after,
+            self.title,
+        ):
             return self.result
-        text = self.result["stages"]["text"]["data"]["text"]
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
+        def titles_run_after() -> None:
+            titles_data = self.result["stages"]["titles"]["data"]
+            self.main_title = titles_data["main_title"]
+            self.titles = list(titles_data["titles"])
+
+            # clean up
+            self.result["stages"]["titles"]["data"]["titles"] = []
+
         if not self._run_stage(
             "titles",
             extract_titles_step,
-            text,
+            titles_run_after,
+            self.text,
             manual_main_title=self.args.get("manual_main_title"),
         ):
             return self.result
-        titles_data = self.result["stages"]["titles"]["data"]
-        main_title = titles_data["main_title"]
-        titles = titles_data["titles"]
+
+        # Initialize files_processed
+
+        for title in self.titles:
+            self.result["files_processed"][title] = {
+                "title": title,
+                "status": "pending",
+                "error": None,
+                "steps": {
+                    "download": {"result": None, "msg": ""},
+                    "nested": {"result": None, "msg": ""},
+                    "inject": {"result": None, "msg": ""},
+                    "upload": {"result": None, "msg": ""},
+                },
+            }
 
         # ----------------------------------------------
         # Stage 3: Extract Translations
         output_dir_main = self.output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
-        if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
-            return self.result
-        translations = self.result["stages"]["translations"]["data"]["translations"]
 
+        def translations_run_after() -> None:
+            data = self.result["stages"]["translations"]["data"]
+            self.translations = data["translations"]
+            # self.result["stages"]["translations"]["message"] = data["message"]
+
+        if not self._run_stage(
+            "translations",
+            extract_translations_step,
+            translations_run_after,
+            self.main_title,
+            output_dir_main,
+        ):
+            return self.result
         # ----------------------------------------------
         # Stage 4: download SVG files
+
         def download_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["download"]["message"] = f"Downloading {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
+        def download_run_after() -> None:
+            download_data = self.result["stages"]["download"]["data"]
+            self.files = download_data["files"]
+            download_results = download_data.get("results", {})
+
+            # Update files_processed with download results
+            for title, item in self.result["files_processed"].items():
+                if title in download_results:
+                    item["steps"]["download"] = download_results[title]
+                    if download_results[title].get("result"):
+                        item["file_path"] = download_results[title].get("path")
+
+                    if download_results[title]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = download_results[title]["msg"]
+
+            # clean up
+            self.result["stages"]["download"]["data"]["results"] = {}
+            self.result["stages"]["download"]["data"]["files"] = []
+
         if not self._run_stage(
             "download",
             download_step,
-            titles,
+            download_run_after,
+            self.titles,
             output_dir_main,
             session=self.session,
             cancel_check=lambda: self._is_cancelled("download"),
             progress_callback=download_progress,
         ):
             return self.result
-        files = self.result["stages"]["download"]["data"]["files"]
-
         # ----------------------------------------------
         # Stage 5: Analyze And Fix Nested Files
+
         def fix_nested_progress(index: int, total: int, msg: str) -> None:
             self.result["stages"]["nested"]["message"] = f"Analyzing {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
+        def nested_run_after() -> None:
+            nested_stage_data = self.result["stages"]["nested"]["data"]
+            self.nested_data = nested_stage_data["data"]
+            self.nested_results = nested_stage_data.get("results", {})
+
+            # clean up
+            self.result["stages"]["nested"]["data"]["data"] = {}
+            self.result["stages"]["nested"]["data"]["results"] = {}
+
+            # Update files_processed with nested results
+            for title, item in self.result["files_processed"].items():
+                file_path = str(output_dir_main / title)
+                if file_path in self.nested_results:
+                    item["steps"]["nested"] = self.nested_results[file_path]
+                    if self.nested_results[file_path]["result"] is False:
+                        # We don't necessarily mark the whole file as failed if nested fix fails
+                        # as it might still be injectable.
+                        pass
+
         if not self._run_stage(
             "nested",
             fix_nested_step,
-            files,
+            nested_run_after,
+            self.files,
             cancel_check=lambda: self._is_cancelled("nested"),
             progress_callback=fix_nested_progress,
         ):
             return self.result
-        nested_data = self.result["stages"]["nested"]["data"]["data"]
-
         # ----------------------------------------------
         # Stage 6: Inject translations
+
+        def inject_run_after() -> None:
+            inject_stage_data = self.result["stages"]["inject"]["data"]
+            self.inject_data = inject_stage_data["data"]
+            self.files_to_upload = inject_stage_data["files_to_upload"]
+
+            inject_results = inject_stage_data.get("results", {})
+
+            # Update files_processed with inject results
+            for title, item in self.result["files_processed"].items():
+                file_path = str(output_dir_main / title)
+                if file_path in inject_results:
+                    item["steps"]["inject"] = inject_results[file_path]
+                    if inject_results[file_path]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = inject_results[file_path]["msg"]
+
+            # clean up
+            self.result["stages"]["inject"]["data"]["data"] = {}
+            self.result["stages"]["inject"]["data"]["results"] = {}
+
         if not self._run_stage(
             "inject",
             inject_step,
-            files,
-            translations,
+            inject_run_after,
+            self.files,
+            self.translations,
             self.output_dir,
             overwrite=bool(self.args.get("overwrite")),
         ):
             return self.result
-        inject_data = self.result["stages"]["inject"]["data"]["data"]
-        files_to_upload = self.result["stages"]["inject"]["data"]["files_to_upload"]
-
         # ----------------------------------------------
         # Stage 7: Upload
+
         def upload_progress(index: int, total: int, msg: str) -> None:
-            self.result["stages"]["upload"]["message"] = f"Uploading {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
-        if not bool(self.args.get("upload")):
-            self.result["stages"]["upload"]["status"] = "Skipped"
-            self.result["stages"]["upload"]["message"] = "Upload disabled"
-            upload_result = {"done": 0, "not_done": len(files_to_upload), "skipped": True}
-        elif not self.site:
-            self.result["stages"]["upload"]["status"] = "Failed"
-            self.result["stages"]["upload"]["message"] = "Authentication failed"
-            upload_result = {"done": 0, "not_done": len(files_to_upload), "failed": True}
-        else:
-
-            if not self._run_stage(
-                "upload",
-                upload_step,
-                files_to_upload,
-                main_title,
-                self.site,
-                cancel_check=lambda: self._is_cancelled("upload"),
-                progress_callback=upload_progress,
-            ):
-                return self.result
+        def upload_run_after() -> None:
             upload_result_data = self.result["stages"]["upload"]["data"]
             upload_result = {
                 "done": upload_result_data["summary"]["uploaded"],
@@ -210,39 +284,111 @@ class CopySvgLangsProcessor:
                 "no_changes": upload_result_data["summary"]["no_changes"],
                 "errors": upload_result_data["errors"],
             }
+            self.result["results_summary"]["upload_result"] = upload_result
+
+            upload_results = upload_result_data.get("results", {})
+
+            # Update files_processed with upload results
+            for title, item in self.result["files_processed"].items():
+                if title in upload_results:
+                    item["steps"]["upload"] = upload_results[title]
+                    if upload_results[title]["result"] is True:
+                        item["status"] = "completed"
+                    elif upload_results[title]["result"] is False:
+                        item["status"] = "failed"
+                        item["error"] = upload_results[title]["msg"]
+                    elif upload_results[title]["result"] is None:
+                        # Skipped or no changes
+                        item["status"] = "completed"
+
+                if item["status"] == "pending":
+                    item["status"] = "completed"
+
+        if not bool(self.args.get("upload")):
+            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "skipped": True}
+            self.result["results_summary"]["upload_result"] = upload_result
+            self.log_upload_error("Upload disabled", None, "Skipped")
+
+        elif not self.site:
+            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
+            self.result["results_summary"]["upload_result"] = upload_result
+            self.log_upload_error("Authentication failed", False, "Failed")
+        else:
+            if not self._run_stage(
+                "upload",
+                upload_step,
+                upload_run_after,
+                self.files_to_upload,
+                self.main_title,
+                self.site,
+                cancel_check=lambda: self._is_cancelled("upload"),
+                progress_callback=upload_progress,
+            ):
+                return self.result
 
         # ----------------------------------------------
         # Stage 8: save stats and mark done
         stats_data = {
-            "main_title": main_title,
-            "translations": translations,
-            "titles": titles,
-            "files": files,
-            "nested_task_result": nested_data,
-            "injects_result": inject_data,
+            "main_title": self.main_title,
+            "translations": self.translations,
+            "titles": self.titles,
+            "files": self.files,
+            "nested_task_result": self.nested_data,
+            "injects_result": self.inject_data,
         }
-        json_save(self.output_dir / "files_stats.json", stats_data)
+
+        self._save_files_stats(stats_data)
 
         # Finalize
         self.result["status"] = "completed"
         self.result["completed_at"] = datetime.now().isoformat()
 
         # Compile final results for database
-        results_summary = make_results_summary(
-            len(files),
-            len(files_to_upload),
-            len(files) - len(files_to_upload),
-            inject_data,
-            translations,
-            main_title,
-            upload_result,
-        )
-        self.result["results_summary"] = results_summary
+        self.result["results_summary"].update({
+            "total_files": len(self.files),
+            "files_to_upload_count": len(self.files_to_upload),
+            "no_file_path": len(self.files) - len(self.files_to_upload),
+            "injects_result": {
+                "nested_files": self.inject_data.get("nested_files", 0),
+                "success": self.inject_data.get("success", 0),
+                "failed": self.inject_data.get("failed", 0),
+            },
+            "new_translations_count": len(self.translations.get("new", {})),
+            "main_title": self.main_title,
+        })
 
         self._save_progress()
         return self.result
 
-    def _run_stage(self, stage_name: str, step_func: Any, *args: Any, **kwargs: Any) -> bool:
+    def log_upload_error(self, _msg, result, status):
+        self.result["stages"]["upload"]["status"] = status
+        self.result["stages"]["upload"]["message"] = _msg
+
+        for title, item in self.result["files_processed"].items():
+            if item["status"] != "failed":
+                item["steps"]["upload"] = {"result": result, "msg": _msg}
+                item["status"] = status
+                item["error"] = _msg
+
+    def _save_files_stats(self, stats_data):
+        files_stats_path = self.output_dir / "files_stats.json"
+        try:
+            with open(files_stats_path, "w", encoding="utf-8") as f:
+                json.dump(stats_data, f, indent=4, ensure_ascii=False)
+
+        except (OSError, TypeError, ValueError) as e:
+            logger.error(f"Error saving json: {e}, path: {str(files_stats_path)}")
+        except Exception:
+            logger.exception(f"Unexpected error saving json, path: {str(files_stats_path)}")
+
+    def _run_stage(
+        self,
+        stage_name: str,
+        step_func: Any,
+        run_after_func: Any | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> bool:
         """Run a single stage and update result."""
         if self._is_cancelled(stage_name):
             return False
@@ -254,18 +400,25 @@ class CopySvgLangsProcessor:
         try:
             step_result = step_func(*args, **kwargs)
             stage["data"] = step_result
+            if step_result.get("message"):
+                self.result["stages"][stage_name]["message"] = step_result["message"]
+
             if step_result.get("success"):
                 stage["status"] = "Completed"
                 if "summary" in step_result and "message" not in stage:
-                    s = step_result["summary"]
-                    if isinstance(s, dict):
-                        stage["message"] = ", ".join(f"{k}: {v}" for k, v in s.items())
+                    summary = step_result["summary"]
+                    if isinstance(summary, dict):
+                        stage["message"] = ", ".join(f"{k}: {v}" for k, v in summary.items())
+
+                if run_after_func:
+                    run_after_func()
                 return True
             else:
                 stage["status"] = "Failed"
                 stage["message"] = step_result.get("error", "Unknown error")
                 self.result["status"] = "failed"
                 return False
+
         except Exception as e:
             logger.exception(f"Error in stage {stage_name}")
             stage["status"] = "Failed"

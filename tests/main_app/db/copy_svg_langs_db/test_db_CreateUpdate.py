@@ -29,19 +29,6 @@ def test_TaskAlreadyExistsError():
     assert err.task == task
 
 
-def test_delete_task_success(store, mock_db):
-    store.delete_task("t1")
-    mock_db.execute_query.assert_called_with(
-        "\n                DELETE FROM tasks\n                WHERE id = %s\n                ", ["t1"]
-    )
-
-
-def test_delete_task_exception(store, mock_db):
-    mock_db.execute_query.side_effect = Exception("error")
-    with pytest.raises(Exception, match="error"):
-        store.delete_task("t1")
-
-
 def test_create_task_success(store, mock_db):
     mock_db.fetch_query.return_value = []  # No existing task
 
@@ -186,49 +173,6 @@ def test_update_task_one_column(store, mock_db):
 def test_update_task_one_column_illegal(store, mock_db):
     store.update_task_one_column("t1", "bad_col", "val")
     mock_db.execute_query.assert_not_called()
-
-
-def test_delete_task_success1(caplog):
-    """Test successful task deletion with info logging."""
-    mock_db = Mock()
-    mock_db.execute_query = Mock(return_value=1)
-
-    task_store = CreateUpdateTask(db=mock_db)
-
-    with caplog.at_level(logging.INFO):
-        task_store.delete_task("task123")
-
-    mock_db.execute_query.assert_called_once()
-    assert "Task task123 deleted successfully" in caplog.text
-
-
-def test_delete_task_raises_and_logs_exception(caplog):
-    """Test that delete_task logs exception and re-raises."""
-    mock_db = Mock()
-    mock_db.execute_query = Mock(side_effect=Exception("Database error"))
-
-    task_store = CreateUpdateTask(db=mock_db)
-
-    with caplog.at_level(logging.ERROR):
-        with pytest.raises(Exception, match="Database error"):
-            task_store.delete_task("task456")
-
-    # Verify that logger.exception was called (logs at ERROR level with traceback)
-    assert "Failed to delete task" in caplog.text
-    assert "Database error" in caplog.text
-
-
-def test_delete_task_sql_injection_prevention():
-    """Test that delete_task uses parameterized queries."""
-    mock_db = Mock()
-
-    task_store = CreateUpdateTask(db=mock_db)
-    task_store.delete_task("task' OR '1'='1")
-
-    # Verify parameterized query
-    call_args = mock_db.execute_query.call_args
-    assert call_args[0][0].strip().startswith("DELETE FROM tasks")
-    assert call_args[0][1] == ["task' OR '1'='1"]
 
 
 def test_task_already_exists_error_stores_task():

@@ -48,13 +48,6 @@ def create_side(active_route):
     main_menu = {
         "Main": [
             SidebarItem(
-                id="last",
-                admin=0,
-                href="recent",
-                title="Tasks",
-                icon="bi-clock-history",
-            ),
-            SidebarItem(
                 id="admins",
                 admin=1,
                 href="coordinators",
@@ -119,14 +112,6 @@ def create_side(active_route):
                 title="Download Main Files",
                 icon="bi-download",
                 disabled=True,
-            ),
-            SidebarItem(
-                id="copy_svg_langs",
-                admin=1,
-                href="copy_svg_langs/list",
-                title="Copy SVG Translation",
-                icon="bi-copy",
-                disabled=False,
             ),
         ],
         "Settings": [

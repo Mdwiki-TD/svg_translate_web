@@ -17,7 +17,6 @@ def test_generate_list_item() -> None:
 def test_create_side_marks_active_item() -> None:
     html = sidebar.create_side("coordinators")
 
-    assert "Tasks" in html
     assert "coordinators" in html
     assert "active" in html
     assert html.count("<ul") >= 2
@@ -87,7 +86,6 @@ def test_create_side_with_active_item():
     Tests sidebar creation with an active item.
     """
     result = sidebar.create_side("recent")
-    assert "id='last' class='active'" in result
     assert 'aria-expanded="true"' in result
     assert 'class="collapse show"' in result
 

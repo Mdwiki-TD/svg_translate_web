@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card_header %}
+
+{% block title %}{% block detail_title %}{% endblock %} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="headline mb-0">{% block detail_headline %}{% endblock %} Job #{{ job.id }}</h3>
+            <div class="d-flex gap-2">
+                {% if (current_user.username == job.username) and (job.status == 'running' or job.status == 'pending') %}
+                <form method="POST" action="{{ url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id) }}"
+                    onsubmit="return confirm('Are you sure you want to cancel this job?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-x-circle"></i> Cancel Job
+                    </button>
+                </form>
+                {% endif %}
+                {% if is_admin %}
+                <form method="POST" action="{{ url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id) }}"
+                    onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{{ url_for('public_jobs.jobs_list', job_type=job_type) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                {% block detail_header_actions %}{% endblock %}
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Job Summary -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header("Job Information") }}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th style="width: 40%">Status:</th>
+                                    <td>
+                                        {% if job.status == 'completed' %}
+                                        <span class="badge bg-success">{{ job.status }}</span>
+                                        {% elif job.status == 'failed' %}
+                                        <span class="badge bg-danger">{{ job.status }}</span>
+                                        {% elif job.status == 'running' %}
+                                        <span class="badge bg-primary">{{ job.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ job.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>User:</th>
+                                    <td>{{ job.username if job.username else '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Started:</th>
+                                    <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th style="width: 40%">Completed:</th>
+                                    <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
+                                    </td>
+                                </tr>
+                                {% if job.failed_at or (result_data and result_data.failed_at) %}
+                                <tr>
+                                    <th style="width: 40%">Failed At:</th>
+                                    <td>{{ (job.failed_at or result_data.failed_at) }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
+                                <tr>
+                                    <th style="width: 40%">Failed At:</th>
+                                    <td>{{ (job.cancelled_at or result_data.cancelled_at) }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Result File:</th>
+                                    <td>
+                                        {% if job.result_file %}
+                                        <a href="{{ url_for('public_jobs.read_job_result_file', result_file=job.result_file) }}"
+                                            target="_blank">
+                                            {{ job.result_file }}
+                                        </a>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% block job_info_extra %}{% endblock %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Results -->
+            {% if result_data %}
+            {% block job_results %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header("Job Summary") }}
+                </div>
+                <div class="card-body">
+                    {% block job_summary %}{% endblock %}
+
+                    {% if result_data.error %}
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">Error!</h5>
+                        <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
+                        {{ result_data.error }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% block job_details %}{% endblock %}
+            {% endblock %}
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                No job result data available yet. The job may still be running or the
+                result file may not exist.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

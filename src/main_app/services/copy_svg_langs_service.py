@@ -40,21 +40,6 @@ def get_db_tasks(user=None):
     return db_tasks
 
 
-def create_new_task(
-    new_task_id: str,
-    title: str,
-    username: str,
-    form=None,
-) -> None:
-    with TASK_STORE_LOCK:
-        _task_store().create_task(
-            new_task_id,
-            title,
-            username=username,
-            form=form,
-        )
-
-
 def get_store_task(task_id: str):
     with TASK_STORE_LOCK:
         task = _task_store().get_task(task_id)

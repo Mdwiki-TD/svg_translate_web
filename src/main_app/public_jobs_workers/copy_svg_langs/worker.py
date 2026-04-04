@@ -46,16 +46,17 @@ class CopySvgLangsWorker(BaseJobWorker):
             "cancelled_at": None,
             "title": self.title,
             "stages": {
-                "initialize": {"number": 1, "sub_name": "", "status": "Running", "message": "Starting workflow"},
-                "text": {"sub_name": "", "number": 2, "status": "Pending", "message": "Getting text"},
-                "titles": {"sub_name": "", "number": 3, "status": "Pending", "message": "Getting titles"},
-                "translations": {"sub_name": "", "number": 4, "status": "Pending", "message": "Getting translations"},
-                "download": {"sub_name": "", "number": 5, "status": "Pending", "message": "Downloading files"},
-                "nested": {"sub_name": "", "number": 6, "status": "Pending", "message": "Analyze nested files"},
-                "inject": {"sub_name": "", "number": 7, "status": "Pending", "message": "Injecting translations"},
-                "upload": {"sub_name": "", "number": 8, "status": "Pending", "message": "Uploading files"},
+                "text": {"status": "Pending", "message": "Getting text"},
+                "titles": {"status": "Pending", "message": "Getting titles"},
+                "translations": {"status": "Pending", "message": "Getting translations"},
+                "download": {"status": "Pending", "message": "Downloading files"},
+                "nested": {"status": "Pending", "message": "Analyze nested files"},
+                "inject": {"status": "Pending", "message": "Injecting translations"},
+                "upload": {"status": "Pending", "message": "Uploading files"},
             },
             "summary": {},
+            "results_summary": {},
+            "files_processed": {},
         }
 
     def process(self) -> dict[str, Any]:

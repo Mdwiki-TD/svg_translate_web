@@ -91,17 +91,6 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     return sorted(set(languages))
 
 
-def get_temp_title(title):
-    temp_title = title
-    temp_title_path = svg_data_path / title / "title.txt"
-
-    text = temp_title_path.read_text(encoding="utf-8").strip() if temp_title_path.exists() else ""
-
-    temp_title = text.strip() if text.strip() else title
-
-    return temp_title or title
-
-
 def get_informations(title):
     data = {}
     downloaded, title_path = get_files(title, "files")
@@ -125,10 +114,9 @@ def get_informations(title):
         for x in data.get("titles", [])
         if x.lower() not in downloaded_set
     ]
-    temp_title = get_temp_title(title)
 
     result = {
-        "title": temp_title,
+        "title": title,
         "title_dir": title,
         "main_file": main_file,
         "len_titles": len_titles,

@@ -1,25 +1,25 @@
 from unittest.mock import patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles import extract_titles_step
+from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
 def test_titles_task_success(mock_get_files):
-    mock_get_files.return_value = ("Main.svg", ["f1.svg", "f2.svg"])
+    mock_get_files.return_value = {"main_title": "Main.svg", "titles": ["f1.svg", "f2.svg"]}
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", None)
+    data = extract_titles_step("wikitext")
 
+    assert data["success"] is True
     assert data["main_title"] == "Main.svg"
     assert len(data["titles"]) == 2
-    assert final_stages["status"] == "Completed"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs_legacy.steps.extract_titles.get_files_list")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
 def test_titles_task_fail(mock_get_files):
-    mock_get_files.return_value = (None, [])
+    mock_get_files.return_value = {"main_title": None, "titles": []}
     stages = {}
 
-    data, final_stages = extract_titles_step(stages, "wikitext", None)
+    data = extract_titles_step("wikitext")
 
-    assert final_stages["status"] == "Failed"
+    assert data["success"] is False

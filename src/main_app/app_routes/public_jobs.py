@@ -20,16 +20,38 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...config import settings
-from ...jobs_workers import jobs_worker
-from ...jobs_workers.download_main_files_worker import create_main_files_zip
-from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
-from ...services import jobs_service
-from ...services.users_service import current_user
-from ..admin.admins_required import admin_required
-from ..utils.routes_utils import load_auth_payload
+from .auth.routes import login_required
+
+from .admin.admins_required import admin_required
+
+from ..config import settings
+from ..jobs_workers import jobs_worker
+from ..jobs_workers.download_main_files_worker import create_main_files_zip
+from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
+from ..services import jobs_service
+from ..services.admin_service import active_coordinators
+from ..services.users_service import current_user
+from .utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
+
+
+bp_jobs = Blueprint("public_jobs", __name__, url_prefix="/jobs")
+
+
+def _can_manage_job(job: Any, user: Any) -> bool:
+    """Check if the current user can manage (cancel/delete) a job.
+
+    Returns True if the user is an admin (coordinator) or if the user
+    is the owner of the job.
+    """
+    if not user:
+        return False
+    if user.username in active_coordinators():
+        return True
+    if job.username and job.username == user.username:
+        return True
+    return False
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
@@ -39,7 +61,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(url_for("admin.jobs_list", job_type=job_type))
+    return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -56,7 +78,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
 
-    return redirect(url_for("admin.jobs_list", job_type=job_type))
+    return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
 
 def _start_job(job_type: str) -> int | None:
@@ -116,7 +138,7 @@ def _jobs_list(job_type: str) -> str:
     if jobs:
         jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
 
-    template = JOB_TYPE_LIST_TEMPLATES.get(job_type)
+    template = JOB_TYPE_LIST_TEMPLATES_PUBLIC.get(job_type)
     if not template:
         abort(404)
 
@@ -137,14 +159,14 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.jobs_list", job_type=job_type))
+        return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
     # Load job result if available
     result_data = None
     if job.result_file:
         result_data = jobs_service.load_job_result(job.result_file)
 
-    template = JOB_TYPE_TEMPLATES.get(job_type)
+    template = JOB_TYPE_TEMPLATES_PUBLIC.get(job_type)
     if not template:
         abort(404)
 
@@ -157,27 +179,37 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     )
 
 
-class Jobs:
+class JobsPublicRoutes:
     """Collect Templates data Jobs management routes."""
 
-    def __init__(self, bp_admin: Blueprint) -> None:
+    def __init__(self, bp_jobs: Blueprint) -> None:
         # ================================
         # Cancel Jobs routes
         # ================================
 
-        @bp_admin.post("/<string:job_type>/<int:job_id>/cancel")
-        @admin_required
+        @bp_jobs.post("/<string:job_type>/<int:job_id>/cancel")
         def cancel_job(job_type: str, job_id: int) -> Response:
-            if job_type not in JOB_TYPE_TEMPLATES:
+            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
+            user = current_user()
+            if not user:
+                flash("You must be logged in to cancel jobs.", "danger")
+                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+            try:
+                job = jobs_service.get_job(job_id, job_type)
+            except LookupError:
+                flash("Job not found.", "warning")
+                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+            if not _can_manage_job(job, user):
+                flash("You don't have permission to cancel this job.", "danger")
+                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
             return _cancel_job(job_id, job_type)
 
         # ================================
         # Jobs List routes
         # ================================
 
-        @bp_admin.get("/<string:job_type>/list")
-        @admin_required
+        @bp_jobs.get("/<string:job_type>/list")
         def jobs_list(job_type: str) -> str:
             return _jobs_list(job_type)
 
@@ -185,8 +217,7 @@ class Jobs:
         # Job Detail routes
         # ================================
 
-        @bp_admin.get("/<string:job_type>/<int:job_id>")
-        @admin_required
+        @bp_jobs.get("/<string:job_type>/<int:job_id>")
         def job_detail(job_type: str, job_id: int) -> Response | str:
             return _job_detail(job_id, job_type)
 
@@ -194,36 +225,34 @@ class Jobs:
         # Start Job routes
         # ================================
 
-        @bp_admin.post("/<string:job_type>/start")
-        @admin_required
+        @bp_jobs.post("/<string:job_type>/start")
         def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in JOB_TYPE_TEMPLATES:
+            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
             job_id = _start_job(job_type)
             if not job_id:
-                return redirect(url_for("admin.jobs_list", job_type=job_type))
-            return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
+                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+            return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
-        @bp_admin.post("/<string:job_type>/start_with_args")
-        @admin_required
+        @bp_jobs.post("/<string:job_type>/start_with_args")
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
-            if job_type not in JOB_TYPE_TEMPLATES:
+            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
 
             args = request.form.to_dict()
             job_id = _start_job_with_args(job_type, args)
             if not job_id:
-                return redirect(url_for("admin.jobs_list", job_type=job_type))
-            return redirect(url_for("admin.job_detail", job_type=job_type, job_id=job_id))
+                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+            return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
         # Delete Job routes
         # ================================
 
-        @bp_admin.post("/<string:job_type>/<int:job_id>/delete")
+        @bp_jobs.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
-            if job_type not in JOB_TYPE_TEMPLATES:
+            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
             return _delete_job(job_id, job_type)
 
@@ -231,8 +260,7 @@ class Jobs:
         # download-main-files routes
         # ================================
 
-        @bp_admin.get("/download-main-files/file/<path:filename>")
-        @admin_required
+        @bp_jobs.get("/download-main-files/file/<path:filename>")
         def serve_download_main_file(filename: str) -> Response:
             """
             Serve a downloaded main file from the main_files_path directory.
@@ -242,8 +270,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_admin.get("/download-main-files/download-all")
-        @admin_required
+        @bp_jobs.get("/download-main-files/download-all")
         def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
 
@@ -252,7 +279,7 @@ class Jobs:
             # If the response is an error message (not a file), flash it and redirect
             if status_code != 200:
                 flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.jobs_list", job_type="download_main_files"))
+                return redirect(url_for("public_jobs.jobs_list", job_type="download_main_files"))
 
             return response
 
@@ -260,8 +287,7 @@ class Jobs:
         # crop-main-files routes
         # ================================
 
-        @bp_admin.get("/crop-main-files/original/<path:filename>")
-        @admin_required
+        @bp_jobs.get("/crop-main-files/original/<path:filename>")
         def serve_crop_original_file(filename: str) -> Response:
             """
             Serve an original file from the crop_main_files_path/original directory.
@@ -272,8 +298,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_admin.get("/crop-main-files/cropped/<path:filename>")
-        @admin_required
+        @bp_jobs.get("/crop-main-files/cropped/<path:filename>")
         def serve_crop_cropped_file(filename: str) -> Response:
             """
             Serve a cropped file from the crop_main_files_path/cropped directory.
@@ -284,8 +309,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_admin.get("/crop-main-files/compare/<path:original>/<path:cropped>")
-        @admin_required
+        @bp_jobs.get("/crop-main-files/compare/<path:original>/<path:cropped>")
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
 
@@ -297,9 +321,12 @@ class Jobs:
                 file_cropped=cropped,
             )
 
-        @bp_admin.get("/read-job-result-file/<path:result_file>")
-        @admin_required
+        @bp_jobs.get("/read-job-result-file/<path:result_file>")
+        @login_required
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
             result_data = jobs_service.load_job_result(result_file)
             return jsonify(result_data)
+
+
+JobsPublicRoutes(bp_jobs)

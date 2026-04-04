@@ -8,7 +8,7 @@ from .files_text import appendImageExtractedTemplate, create_cropped_file_text, 
 from .other_versions import add_other_versions
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
-from .temps_bot import get_files_list, get_titles, get_titles_from_wikilinks
+from .temps_bot import get_files_list, get_files_list_data, get_titles, get_titles_from_wikilinks
 
 
 def ensure_file_prefix(file_name) -> str:
@@ -32,4 +32,5 @@ __all__ = [
     "get_titles",
     "get_titles_from_wikilinks",
     "get_files_list",
+    "get_files_list_data",
 ]

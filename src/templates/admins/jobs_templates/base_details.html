@@ -1,4 +1,5 @@
-{% extends "admins/base.html" %}
+{% extends "admins/base1.html" %}
+{% from "_macros.html" import card_header %}
 
 {% block title %}{% block detail_title %}{% endblock %} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
@@ -34,14 +35,7 @@
         <!-- Job Summary -->
         <div class="card mb-3">
             <div class="card-header">
-                <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-                    <h5 class="mb-0">Job Information</h5>
-                    <div class="card-tools">
-                        <button type="button" class="btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
+                {{ card_header("Job Information") }}
             </div>
             <div class="card-body">
                 <div class="row">
@@ -67,11 +61,13 @@
                             </tr>
                             <tr>
                                 <th>Created:</th>
-                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>
+                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}
+                                </td>
                             </tr>
                             <tr>
                                 <th>Started:</th>
-                                <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}</td>
+                                <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -82,14 +78,14 @@
                                 <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
                                 </td>
                             </tr>
-                            {% if job.failed_at or result_data.failed_at %}
+                            {% if job.failed_at or (result_data and result_data.failed_at) %}
                             <tr>
                                 <th style="width: 40%">Failed At:</th>
                                 <td>{{ (job.failed_at or result_data.failed_at) }}
                                 </td>
                             </tr>
                             {% endif %}
-                            {% if job.cancelled_at or result_data.cancelled_at %}
+                            {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
                             <tr>
                                 <th style="width: 40%">Failed At:</th>
                                 <td>{{ (job.cancelled_at or result_data.cancelled_at) }}
@@ -121,14 +117,7 @@
         {% block job_results %}
         <div class="card mb-3">
             <div class="card-header">
-                <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-                    <span class="h5 mb-0">Job Summary</span>
-                    <div class="card-tools">
-                        <button type="button" class="btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
+                {{ card_header("Job Summary") }}
             </div>
             <div class="card-body">
                 {% block job_summary %}{% endblock %}
