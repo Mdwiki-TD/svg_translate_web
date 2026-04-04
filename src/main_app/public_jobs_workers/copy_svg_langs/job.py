@@ -96,15 +96,18 @@ class CopySvgLangsProcessor:
 
         # ----------------------------------------------
         # Stage 1: Extract Text
-        if not self._run_stage("text", extract_text_step, self.title):
-            return self.result
-
         def text_run_after() -> None:
             self.text = self.result["stages"]["text"]["data"]["text"]
             # clean up
             self.result["stages"]["text"]["data"]["text"] = ""
 
-        text_run_after()
+        if not self._run_stage(
+            "text",
+            extract_text_step,
+            text_run_after,
+            self.title,
+        ):
+            return self.result
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
@@ -119,12 +122,11 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "titles",
             extract_titles_step,
+            titles_run_after,
             self.text,
             manual_main_title=self.args.get("manual_main_title"),
         ):
             return self.result
-
-        titles_run_after()
 
         # Initialize files_processed
         self.result["files_processed"] = []
@@ -154,10 +156,14 @@ class CopySvgLangsProcessor:
             self.translations = data["translations"]
             # self.result["stages"]["translations"]["message"] = data["message"]
 
-        if not self._run_stage("translations", extract_translations_step, self.main_title, output_dir_main):
+        if not self._run_stage(
+            "translations",
+            extract_translations_step,
+            translations_run_after,
+            self.main_title,
+            output_dir_main,
+        ):
             return self.result
-
-        translations_run_after()
         # ----------------------------------------------
         # Stage 4: download SVG files
 
@@ -187,16 +193,14 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "download",
             download_step,
+            download_run_after,
             self.titles,
             output_dir_main,
             session=self.session,
             cancel_check=lambda: self._is_cancelled("download"),
             progress_callback=download_progress,
-            # run_after_func=download_run_after,
         ):
             return self.result
-
-        download_run_after()
         # ----------------------------------------------
         # Stage 5: Analyze And Fix Nested Files
 
@@ -229,18 +233,16 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "nested",
             fix_nested_step,
+            nested_run_after,
             self.files,
             cancel_check=lambda: self._is_cancelled("nested"),
             progress_callback=fix_nested_progress,
         ):
             return self.result
-
-        nested_run_after()
         # ----------------------------------------------
         # Stage 6: Inject translations
 
         def inject_run_after() -> None:
-
             inject_stage_data = self.result["stages"]["inject"]["data"]
             self.inject_data = inject_stage_data["data"]
             self.files_to_upload = inject_stage_data["files_to_upload"]
@@ -262,14 +264,13 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "inject",
             inject_step,
+            inject_run_after,
             self.files,
             self.translations,
             self.output_dir,
             overwrite=bool(self.args.get("overwrite")),
         ):
             return self.result
-
-        inject_run_after()
         # ----------------------------------------------
         # Stage 7: Upload
 
@@ -331,6 +332,7 @@ class CopySvgLangsProcessor:
             if not self._run_stage(
                 "upload",
                 upload_step,
+                upload_run_after,
                 self.files_to_upload,
                 self.main_title,
                 self.site,
@@ -338,8 +340,6 @@ class CopySvgLangsProcessor:
                 progress_callback=upload_progress,
             ):
                 return self.result
-
-            upload_run_after()
 
         # ----------------------------------------------
         # Stage 8: save stats and mark done
@@ -390,7 +390,7 @@ class CopySvgLangsProcessor:
         self,
         stage_name: str,
         step_func: Any,
-        # run_after_func: Any,
+        run_after_func: Any | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -415,7 +415,8 @@ class CopySvgLangsProcessor:
                     if isinstance(summary, dict):
                         stage["message"] = ", ".join(f"{k}: {v}" for k, v in summary.items())
 
-                # if run_after_func: run_after_func()
+                if run_after_func:
+                    run_after_func()
                 return True
             else:
                 stage["status"] = "Failed"
