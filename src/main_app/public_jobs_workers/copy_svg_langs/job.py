@@ -50,7 +50,7 @@ class CopySvgLangsProcessor:
     session: requests.Session | None = field(init=False, default=None)
     output_dir: Path = field(init=False)
 
-    files: list[str] = field(init=False, default_factory=list)
+    files_dict: list[str] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
         self.output_dir = self._compute_output_dir(self.title)
@@ -181,7 +181,6 @@ class CopySvgLangsProcessor:
 
         def download_run_after() -> None:
             download_data = self.result["stages"]["download"]["data"]
-            self.files = download_data["files"]
             self.files_dict = download_data["files_dict"]
 
             # clean up
@@ -355,7 +354,7 @@ class CopySvgLangsProcessor:
             "main_title": self.main_title,
             "translations": self.translations,
             "titles": self.titles,
-            "files": self.files,
+            "files": self.files_dict,
             "files_dict": self.files_dict,
             "nested_task_result": self.nested_data,
             "injects_result": self.inject_data,
@@ -369,9 +368,9 @@ class CopySvgLangsProcessor:
 
         # Compile final results for database
         self.result["results_summary"].update({
-            "total_files": len(self.files),
+            "total_files": len(self.files_dict),
             "files_to_upload_count": len(self.files_to_upload),
-            "no_file_path": len(self.files) - len(self.files_to_upload),
+            "no_file_path": len(self.files_dict) - len(self.files_to_upload),
             "injects_result": {
                 "nested_files": self.inject_data.get("nested_files", 0),
                 "success": self.inject_data.get("success", 0),
