@@ -103,9 +103,13 @@ def upload_step(
         "failed": not_done,
     }
 
+    # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
+    message = f"Uploaded {done}/{total_files}, No Changes: {no_changes}, Errors: {not_done}"
+
     return {
         "success": not_done < 10 or total_files == 0,
         "summary": summary,
         "errors": errors,
         "results": results,
+        "message": message,
     }

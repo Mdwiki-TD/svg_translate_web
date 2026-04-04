@@ -99,30 +99,36 @@ class CopySvgLangsProcessor:
         if not self._run_stage("text", extract_text_step, self.title):
             return self.result
 
-        text = self.result["stages"]["text"]["data"]["text"]
-        # clean up
-        self.result["stages"]["text"]["data"]["text"] = ""
+        def text_run_after() -> None:
+            self.text = self.result["stages"]["text"]["data"]["text"]
+            # clean up
+            self.result["stages"]["text"]["data"]["text"] = ""
+
+        text_run_after()
+
         # ----------------------------------------------
         # Stage 2: Extract Titles
+        def titles_run_after() -> None:
+            titles_data = self.result["stages"]["titles"]["data"]
+            self.main_title = titles_data["main_title"]
+            self.titles = list(titles_data["titles"])
+
+            # clean up
+            self.result["stages"]["titles"]["data"]["titles"] = []
+
         if not self._run_stage(
             "titles",
             extract_titles_step,
-            text,
+            self.text,
             manual_main_title=self.args.get("manual_main_title"),
         ):
             return self.result
 
-        titles_data = self.result["stages"]["titles"]["data"]
-        main_title = titles_data["main_title"]
-        titles = list(titles_data["titles"])
-        self.result["stages"]["titles"]["message"] = titles_data["message"]
-
-        # clean up
-        self.result["stages"]["titles"]["data"]["titles"] = []
+        titles_run_after()
 
         # Initialize files_processed
         self.result["files_processed"] = []
-        for title in titles:
+        for title in self.titles:
             self.result["files_processed"].append(
                 {
                     "title": title,
@@ -143,13 +149,13 @@ class CopySvgLangsProcessor:
         output_dir_main = self.output_dir / "files"
         output_dir_main.mkdir(parents=True, exist_ok=True)
 
-        if not self._run_stage("translations", extract_translations_step, main_title, output_dir_main):
-            return self.result
-
         def translations_run_after() -> None:
             data = self.result["stages"]["translations"]["data"]
             self.translations = data["translations"]
-            self.result["stages"]["translations"]["message"] = data["message"]
+            # self.result["stages"]["translations"]["message"] = data["message"]
+
+        if not self._run_stage("translations", extract_translations_step, self.main_title, output_dir_main):
+            return self.result
 
         translations_run_after()
         # ----------------------------------------------
@@ -181,7 +187,7 @@ class CopySvgLangsProcessor:
         if not self._run_stage(
             "download",
             download_step,
-            titles,
+            self.titles,
             output_dir_main,
             session=self.session,
             cancel_check=lambda: self._is_cancelled("download"),
@@ -231,6 +237,7 @@ class CopySvgLangsProcessor:
 
         nested_run_after()
         # ----------------------------------------------
+        # Stage 6: Inject translations
 
         def inject_run_after() -> None:
 
@@ -252,7 +259,6 @@ class CopySvgLangsProcessor:
             self.result["stages"]["inject"]["data"]["data"] = {}
             self.result["stages"]["inject"]["data"]["results"] = {}
 
-        # Stage 6: Inject translations
         if not self._run_stage(
             "inject",
             inject_step,
@@ -282,11 +288,6 @@ class CopySvgLangsProcessor:
             self.result["results_summary"]["upload_result"] = upload_result
 
             upload_results = upload_result_data.get("results", {})
-
-            # Total Files: 425, uploaded 425, no changes: 0, not uploaded: 0
-            self.result["stages"]["upload"][
-                "message"
-            ] = f"Uploaded {upload_result["done"]}/{len(self.files_to_upload)}, No Changes {upload_result['no_changes']}, Errors {upload_result['errors']}"
 
             # Update files_processed with upload results
             for item in self.result["files_processed"]:
@@ -331,7 +332,7 @@ class CopySvgLangsProcessor:
                 "upload",
                 upload_step,
                 self.files_to_upload,
-                main_title,
+                self.main_title,
                 self.site,
                 cancel_check=lambda: self._is_cancelled("upload"),
                 progress_callback=upload_progress,
@@ -343,9 +344,9 @@ class CopySvgLangsProcessor:
         # ----------------------------------------------
         # Stage 8: save stats and mark done
         stats_data = {
-            "main_title": main_title,
+            "main_title": self.main_title,
             "translations": self.translations,
-            "titles": titles,
+            "titles": self.titles,
             "files": self.files,
             "nested_task_result": self.nested_data,
             "injects_result": self.inject_data,
@@ -368,7 +369,7 @@ class CopySvgLangsProcessor:
                 "failed": self.inject_data.get("failed", 0),
             },
             "new_translations_count": len(self.translations.get("new", {})),
-            "main_title": main_title,
+            "main_title": self.main_title,
         }
 
         self._save_progress()
@@ -410,9 +411,9 @@ class CopySvgLangsProcessor:
             if step_result.get("success"):
                 stage["status"] = "Completed"
                 if "summary" in step_result and "message" not in stage:
-                    s = step_result["summary"]
-                    if isinstance(s, dict):
-                        stage["message"] = ", ".join(f"{k}: {v}" for k, v in s.items())
+                    summary = step_result["summary"]
+                    if isinstance(summary, dict):
+                        stage["message"] = ", ".join(f"{k}: {v}" for k, v in summary.items())
 
                 # if run_after_func: run_after_func()
                 return True
