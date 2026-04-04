@@ -115,6 +115,10 @@
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}
                             {% if step %}
+
+                            {% if step_key == 'inject' %}
+                            {{ step.new_languages}}
+                            {% else %}
                             {% if step.result == true %}
                             <span class="badge bg-success" title="{{ step.msg }}">
                                 <i class="bi bi-check-lg"></i>
@@ -129,6 +133,7 @@
                             </span>
                             {% else %}
                             <span class="text-muted">-</span>
+                            {% endif %}
                             {% endif %}
                             {% else %}
                             <span class="text-muted">-</span>

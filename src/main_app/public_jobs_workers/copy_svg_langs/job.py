@@ -169,15 +169,15 @@ class CopySvgLangsProcessor:
             # if index % 10 == 0:
             self._save_progress()
 
-            for title, download_result in results.items():
+            for title, _result in results.items():
                 if title in self.result["files_processed"]:
                     item = self.result["files_processed"][title]
                     if not item["steps"]["download"]["msg"]:  # to avoid overwriting previous messages
-                        item["steps"]["download"] = download_result
+                        item["steps"]["download"] = _result
 
-                        if download_result["result"] is False:
+                        if _result["result"] is False:
                             item["status"] = "failed"
-                            item["error"] = download_result["msg"]
+                            item["error"] = _result["msg"]
 
         def download_run_after() -> None:
             download_data = self.result["stages"]["download"]["data"]
@@ -257,8 +257,8 @@ class CopySvgLangsProcessor:
 
         def inject_run_after() -> None:
             inject_stage_data = self.result["stages"]["inject"]["data"]
-            inject_results = self.result["stages"]["inject"]["results"]
 
+            inject_results = inject_stage_data["results"]
             self.inject_data = inject_stage_data["data"]
 
             inject_files = self.inject_data.get("files", {})
@@ -367,18 +367,20 @@ class CopySvgLangsProcessor:
         self.result["completed_at"] = datetime.now().isoformat()
 
         # Compile final results for database
-        self.result["results_summary"].update({
-            "total_files": len(self.files_dict),
-            "files_to_upload_count": len(self.files_to_upload),
-            "no_file_path": len(self.files_dict) - len(self.files_to_upload),
-            "injects_result": {
-                "nested_files": self.inject_data.get("nested_files", 0),
-                "success": self.inject_data.get("success", 0),
-                "failed": self.inject_data.get("failed", 0),
-            },
-            "new_translations_count": len(self.translations.get("new", {})),
-            "main_title": self.main_title,
-        })
+        self.result["results_summary"].update(
+            {
+                "total_files": len(self.files_dict),
+                "files_to_upload_count": len(self.files_to_upload),
+                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
+                "injects_result": {
+                    "nested_files": self.inject_data.get("nested_files", 0),
+                    "success": self.inject_data.get("success", 0),
+                    "failed": self.inject_data.get("failed", 0),
+                },
+                "new_translations_count": len(self.translations.get("new", {})),
+                "main_title": self.main_title,
+            }
+        )
 
         self._save_progress()
         return self.result

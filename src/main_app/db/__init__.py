@@ -1,4 +1,3 @@
-
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
 from .db_OwidCharts import OwidChartRecord, OwidChartsDB
