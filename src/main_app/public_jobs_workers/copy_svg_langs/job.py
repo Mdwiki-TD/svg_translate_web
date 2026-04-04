@@ -178,8 +178,9 @@ class CopySvgLangsProcessor:
             for title, item in self.result["files_processed"].items():
                 if title in download_results:
                     item["steps"]["download"] = download_results[title]
-                    if download_results[title].get("result"):
-                        item["file_path"] = download_results[title].get("path")
+                    file_path = str(output_dir_main / title)
+                    if download_results[title].get("result") is not False:
+                        item["file_path"] = file_path
 
                     if download_results[title]["result"] is False:
                         item["status"] = "failed"
