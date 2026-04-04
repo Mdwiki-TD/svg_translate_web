@@ -49,7 +49,13 @@ def download_step(
             logger.info("Download step cancelled")
             break
 
-        result = download_one_file(title, output_dir, index, session)
+        result = download_one_file(
+            title=title,
+            out_dir=output_dir,
+            i=index,
+            session=session,
+            overwrite=True,
+        )
         status = result.get("result", "failed")
 
         if status == "success":
