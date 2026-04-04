@@ -34,8 +34,6 @@ def fix_nested_step(
             "fixed": 0,
             "not_fixed": 0,
         },
-        "len_nested_tags_before": {0: 0},
-        "len_nested_tags_after": {0: 0},
     }
 
     nested_files_count = 0
@@ -54,9 +52,6 @@ def fix_nested_step(
         nested_tags = match_nested_tags(str(file_path))
         len_nested = len(nested_tags)
 
-        data["len_nested_tags_before"].setdefault(len_nested, 0)
-        data["len_nested_tags_before"][len_nested] += 1
-
         if not nested_tags:
             results[title] = {
                 "result": None,
@@ -65,7 +60,7 @@ def fix_nested_step(
                 "len_nested": len_nested,
             }
             if progress_callback and index % 10 == 0:
-                msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, Nested: {nested_files_count}"
+                msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, files with nested tags: {nested_files_count}"
                 progress_callback(index, total, msg, results)
             continue
 
@@ -73,8 +68,6 @@ def fix_nested_step(
 
         # Skip if too many nested tags (threshold from original code)
         if len_nested > 10:
-            data["len_nested_tags_after"].setdefault(len_nested, 0)
-            data["len_nested_tags_after"][len_nested] += 1
             not_fixed_count += 1
             results[title] = {
                 "result": False,
@@ -90,8 +83,6 @@ def fix_nested_step(
 
             if not new_nested_tags:
                 fixed_count += 1
-                data["len_nested_tags_after"].setdefault(0, 0)
-                data["len_nested_tags_after"][0] += 1
                 results[title] = {
                     "result": True,
                     "msg": f"Fixed {len_nested} nested tags",
@@ -99,8 +90,6 @@ def fix_nested_step(
                     "len_nested": len_nested,
                 }
             else:
-                data["len_nested_tags_after"].setdefault(new_len_nested, 0)
-                data["len_nested_tags_after"][new_len_nested] += 1
                 not_fixed_count += 1
                 results[title] = {
                     "result": False,
