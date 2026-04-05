@@ -221,51 +221,6 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
-    def add(
-        self,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-        if not title:
-            raise ValueError("Title is required")
-
-        add_fields = []
-        add_values = []
-
-        template_fields = {
-            "title": title,
-            "main_file": main_file,
-            "last_world_file": last_world_file,
-            "source": source,
-            "slug": slug,
-        }
-        for field, value in template_fields.items():
-            if value is not None:
-                # update_fields.append(f"{field} = %s")
-                add_fields.append(field)
-                add_values.append(value)
-
-        try:
-            # Use execute_query to allow exception to propagate
-            self.db.execute_query(
-                f"""
-                INSERT INTO templates ({", ".join(add_fields)})
-                VALUES ({", ".join(["%s" for x in add_fields])})
-                """,
-                tuple(add_values),
-            )
-        except pymysql.err.IntegrityError:
-            # This assumes a UNIQUE constraint on the title column
-            raise ValueError(f"Template '{title}' already exists") from None
-
-        return self._fetch_by_title(title)
-
     def update_template_data(
         self,
         template_id: int,
@@ -297,29 +252,6 @@ class TemplatesDB:
             update_values.append(template_id)
             self.db.execute_query_safe(query, tuple(update_values))
 
-        return self._fetch_by_id(template_id)
-
-    def update(
-        self,
-        template_id: int,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        _ = self._fetch_by_id(template_id)
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-        self.db.execute_query_safe(
-            """
-            UPDATE templates
-                SET title = %s, main_file = %s, last_world_file = %s, source = %s, slug = %s
-            WHERE
-                id = %s
-            """,
-            (title, main_file, last_world_file, source, slug, template_id),
-        )
         return self._fetch_by_id(template_id)
 
     def delete(self, template_id: int) -> TemplateRecord:

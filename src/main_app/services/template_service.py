@@ -72,21 +72,6 @@ def add_template_data(
     return record
 
 
-def update_template(
-    template_id: int,
-    title: str,
-    main_file: str,
-    last_world_file: str | None = None,
-    source: str | None = None,
-) -> TemplateRecord:
-    """Update template."""
-
-    store = get_templates_db()
-    record = store.update(template_id, title, main_file, last_world_file, source)
-
-    return record
-
-
 def update_template_data(
     template_id: int,
     template_data: dict[str, str],
@@ -117,11 +102,12 @@ def get_template(template_id: int) -> TemplateRecord:
 
 
 __all__ = [
+    "add_template_data",
+    "update_template_data",
     "get_templates_db",
     "TemplateRecord",
     "TemplatesDB",
     "list_templates",
-    "update_template",
     "delete_template",
     "get_template",
 ]

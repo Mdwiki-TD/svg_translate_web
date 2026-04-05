@@ -256,24 +256,6 @@ def test_list_templates_returns_all(_mock_templates_store):
     assert templates[2].title == "Template 3"
 
 
-def test_update_template_success(_mock_templates_store):
-    """Test successfully updating a template."""
-    data = {"title": "Original", "main_file": "original.svg"}
-    record = template_service.add_template_data(data)
-
-    updated = template_service.update_template(record.id, "Updated", "updated.svg")
-
-    assert updated.id == record.id
-    assert updated.title == "Updated"
-    assert updated.main_file == "updated.svg"
-
-
-def test_update_template_not_found_raises_lookup_error(_mock_templates_store):
-    """Test that updating a non-existent template raises LookupError."""
-    with pytest.raises(LookupError, match="Template id 999 was not found"):
-        template_service.update_template(999, "Title", "file.svg")
-
-
 def test_delete_template_success(_mock_templates_store):
     """Test successfully deleting a template."""
     data = {"title": "To Delete", "main_file": "delete.svg"}
@@ -306,5 +288,6 @@ def test_module_exports_all_functions():
     assert "TemplateRecord" in template_service.__all__
     assert "TemplatesDB" in template_service.__all__
     assert "list_templates" in template_service.__all__
-    assert "update_template" in template_service.__all__
+    assert "add_template_data" in template_service.__all__
+    assert "update_template_data" in template_service.__all__
     assert "delete_template" in template_service.__all__

@@ -148,8 +148,14 @@ def _update_template() -> ResponseReturnValue:
     last_world_file = request.form.get("last_world_file", "").strip()
     source = request.form.get("source", "").strip()
 
+    data = {
+        "title": title,
+        "main_file": main_file,
+        "last_world_file": last_world_file,
+        "source": source,
+    }
     try:
-        record = template_service.update_template(template_id, title, main_file, last_world_file, source)
+        record = template_service.update_template_data(template_id, data)
     except LookupError as exc:
         logger.exception("Unable to Update template.")
         flash(str(exc), "warning")
