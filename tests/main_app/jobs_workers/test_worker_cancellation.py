@@ -60,11 +60,11 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         mock_get_category_members,
     )
 
-    # Mock add_template to avoid database calls
-    mock_add_template = MagicMock()
+    # Mock add_template_data to avoid database calls
+    mock_add_template_data = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template",
-        mock_add_template,
+        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template_data",
+        mock_add_template_data,
     )
 
     # Mock update_template_data to set the cancel event
