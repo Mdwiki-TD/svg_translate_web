@@ -258,12 +258,12 @@ class Templates:
             sql = """
                 SELECT
                     template_id,
-                    template_title,
+                    template_title as title,
                     slug,
-                    max_time,
-                    last_world_year
+                    max_time as chart_year,
+                    last_world_year as template_year
                 FROM templates_need_update
-                ORDER BY c.max_time DESC
+                ORDER BY max_time ASC
             """
             templates_need_update = fetch_query_safe(sql, ())
 
