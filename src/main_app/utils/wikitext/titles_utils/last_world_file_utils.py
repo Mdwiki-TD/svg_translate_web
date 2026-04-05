@@ -120,6 +120,18 @@ def match_last_world_file(text) -> str:
     return last_world_file
 
 
+def match_last_world_year(last_world_file) -> int | None:
+    """
+    death-rate-by-source-from-indoor-air-pollution,World,2021.svg
+    """
+    # match year
+    y_match = re.match(r"^.*?,\s*(\d{4})\.svg$", last_world_file)
+    if y_match:
+        return int(y_match.group(1))
+
+    return None
+
+
 def find_last_world_file_from_owidslidersrcs(text) -> str | None:
     """ """
     # Parse the text using wikitextparser

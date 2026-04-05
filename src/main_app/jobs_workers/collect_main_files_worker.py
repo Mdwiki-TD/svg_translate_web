@@ -14,7 +14,10 @@ from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..services import template_service
 from ..utils.wikitext import find_template_source
-from ..utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title
+from ..utils.wikitext.titles_utils import (
+    find_last_world_file_from_owidslidersrcs,
+    find_main_title,
+)
 from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
@@ -79,8 +82,12 @@ class CollectMainFilesWorker(BaseJobWorker):
                 break
 
             try:
-                # Add template with empty main files
-                template_service.add_template(title, "", "")
+                data = {
+                    "title": title,
+                    "main_file": "",
+                    "last_world_file": "",
+                }
+                template_service.add_template_data(data)
                 self.result["templates_added"].append(
                     {
                         "title": title,
@@ -171,6 +178,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
                 if last_world_file and last_world_file != template.last_world_file:
                     template_data["last_world_file"] = last_world_file
+
                     template_info["last_world_file"] = last_world_file
 
                 source = find_template_source(wikitext)

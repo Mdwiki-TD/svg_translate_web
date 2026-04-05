@@ -6,6 +6,8 @@ from typing import Any, List
 
 import pymysql
 
+from ..utils.wikitext.titles_utils import match_last_world_year
+
 from ..config import DbConfig
 from . import Database
 from .sql_schema_tables import sql_tables
@@ -38,6 +40,7 @@ class TemplateRecord:
     title: str
     main_file: str | None
     last_world_file: str | None
+    last_world_year: int | None = None
     source: str | None = None
     slug: str | None = None
     created_at: Any | None = None
@@ -48,12 +51,16 @@ class TemplateRecord:
             slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
             self.slug = slug or None
 
+            if not self.last_world_year and self.last_world_file:
+                self.last_world_year = match_last_world_year(self.last_world_file)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "title": self.title,
             "main_file": self.main_file,
             "last_world_file": self.last_world_file,
+            "last_world_year": self.last_world_year,
             "source": self.source,
             "slug": self.slug,
             "created_at": self.created_at,
@@ -63,6 +70,15 @@ class TemplateRecord:
 
 class TemplatesDB:
     """MySQL-backed"""
+
+    TEMPLATE_FIELDS_KEYS = [
+        "title",
+        "main_file",
+        "last_world_file",
+        "last_world_year",
+        "source",
+        "slug",
+    ]
 
     def __init__(self, database_data: DbConfig):
         """
@@ -91,11 +107,20 @@ class TemplatesDB:
         self.db.execute_query_safe(sql_tables.templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
+        last_world_year_val: int | None = None
+        raw_year = row.get("last_world_year")
+        if raw_year is not None and raw_year != "":
+            try:
+                last_world_year_val = int(raw_year)
+            except (ValueError, TypeError):
+                pass
+
         return TemplateRecord(
             id=int(row["id"]),
             title=row["title"],
             main_file=row.get("main_file") or "",
             last_world_file=row.get("last_world_file") or "",
+            last_world_year=last_world_year_val,
             source=row.get("source") or "",
             slug=row.get("slug") or "",
             created_at=row.get("created_at"),
@@ -109,7 +134,7 @@ class TemplatesDB:
     def _fetch_by_id(self, template_id: int) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             WHERE id = %s
             """,
@@ -122,7 +147,7 @@ class TemplatesDB:
     def _fetch_by_title(self, title: str) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             WHERE title = %s
             """,
@@ -135,49 +160,48 @@ class TemplatesDB:
     def list(self) -> List[TemplateRecord]:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             ORDER BY id ASC
             """
         )
         return [self._row_to_record(row) for row in rows]
 
-    def add(
+    def add_data(
         self,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
+        template_data: dict,
     ) -> TemplateRecord:
-        title = title.strip()
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-        if not title:
-            raise ValueError("Title is required")
-
         add_fields = []
         add_values = []
+        _data = {}
 
-        template_fields = {
-            "title": title,
-            "main_file": main_file,
-            "last_world_file": last_world_file,
-            "source": source,
-            "slug": slug,
-        }
-        for field, value in template_fields.items():
-            if value is not None:
-                # update_fields.append(f"{field} = %s")
-                add_fields.append(field)
-                add_values.append(value)
+        strip_fields = [
+            "main_file",
+            "last_world_file",
+        ]
+        for field in self.TEMPLATE_FIELDS_KEYS:
+            value = template_data.get(field)
+            if value is None:
+                continue
+
+            if field in strip_fields:
+                value = _strip_file_prefix(value)
+            value = value.strip()
+            _data[field] = value
+            add_fields.append(field)
+            add_values.append(value)
+
+        if not _data.get("title"):
+            raise ValueError("Title is required")
+
+        title = _data["title"]
 
         try:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 f"""
-                INSERT INTO templates ({', '.join(add_fields)})
-                VALUES ({', '.join(["%s" for x in add_fields])})
+                INSERT INTO templates ({", ".join(add_fields)})
+                VALUES ({", ".join(["%s" for x in add_fields])})
                 """,
                 tuple(add_values),
             )
@@ -199,14 +223,7 @@ class TemplatesDB:
         update_fields = []
         update_values = []
 
-        template_fields_keys = {
-            "title",
-            "main_file",
-            "last_world_file",
-            "source",
-            "slug",
-        }
-        for field in template_fields_keys:
+        for field in self.TEMPLATE_FIELDS_KEYS:
             value = template_data.get(field)
             if value is not None:
                 update_fields.append(f"{field} = %s")
@@ -219,64 +236,6 @@ class TemplatesDB:
 
         return self._fetch_by_id(template_id)
 
-    def update_if_not_none(
-        self,
-        template_id: int,
-        title: str | None = None,
-        main_file: str | None = None,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        """
-        Update the template record if the new values are not None.
-        """
-        _ = self._fetch_by_id(template_id)
-        update_fields = []
-        update_values = []
-
-        template_fields = {
-            "title": title,
-            "main_file": _strip_file_prefix(main_file),
-            "last_world_file": _strip_file_prefix(last_world_file),
-            "source": source,
-            "slug": slug,
-        }
-        for field, value in template_fields.items():
-            if value is not None:
-                update_fields.append(f"{field} = %s")
-                update_values.append(value)
-
-        if update_fields:
-            query = f"UPDATE templates SET {', '.join(update_fields)} WHERE id = %s"
-            update_values.append(template_id)
-            self.db.execute_query_safe(query, tuple(update_values))
-
-        return self._fetch_by_id(template_id)
-
-    def update(
-        self,
-        template_id: int,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        _ = self._fetch_by_id(template_id)
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-        self.db.execute_query_safe(
-            """
-            UPDATE templates
-                SET title = %s, main_file = %s, last_world_file = %s, source = %s, slug = %s
-            WHERE
-                id = %s
-            """,
-            (title, main_file, last_world_file, source, slug, template_id),
-        )
-        return self._fetch_by_id(template_id)
-
     def delete(self, template_id: int) -> TemplateRecord:
         record = self._fetch_by_id(template_id)
         self.db.execute_query_safe(
@@ -284,35 +243,6 @@ class TemplatesDB:
             (template_id,),
         )
         return record
-
-    def add_or_update(
-        self,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-
-        if not title:
-            logger.error("Title is required for add_or_update")
-
-        self.db.execute_query_safe(
-            """
-            INSERT INTO templates (title, main_file, last_world_file, source, slug) VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                title = COALESCE(VALUES(title), title),
-                main_file = COALESCE(VALUES(main_file), main_file),
-                last_world_file = COALESCE(VALUES(last_world_file), last_world_file),
-                source = COALESCE(VALUES(source), source),
-                slug = COALESCE(VALUES(slug), slug)
-            """,
-            (title, main_file, last_world_file, source, slug),
-        )
-        return self._fetch_by_title(title)
 
 
 __all__ = [

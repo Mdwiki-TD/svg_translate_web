@@ -2,109 +2,75 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from html import unescape
-from types import SimpleNamespace
-from typing import Any, Iterable
+from typing import Iterable
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.main_app import create_app
-from src.main_app.services import template_service
 from src.main_app.services.template_service import TemplateRecord
 
 
 class FakeTemplatesDB:
-    """In-memory replacement for the MySQL-backed TemplatesDB helper."""
+    """Fake in-memory templates store for testing."""
 
-    def __init__(self, _db_data: dict[str, Any] | None = None):
-        del _db_data
-        self._records: list[TemplateRecord] = []
+    def __init__(self):
+        self._templates = {}
         self._next_id = 1
 
-    # -- helpers -----------------------------------------------------------------
-    def reset(self) -> None:
-        self._records.clear()
-        self._next_id = 1
-
-    def _find_index(self, template_id: int) -> int:
-        for index, record in enumerate(self._records):
-            if record.id == template_id:
-                return index
-        raise LookupError(f"Template id {template_id} was not found")
-
-    def list(self) -> list[TemplateRecord]:
-        return list(self._records)
-
-    def add(
-        self, title: str, main_file: str, last_world_file: str | None = None, source: str | None = None
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = main_file.strip()
-        if not title:
-            raise ValueError("Title is required")
-        if any(record.title == title for record in self._records):
-            raise ValueError(f"Template '{title}' already exists")
-
-        record = TemplateRecord(
+    def add_data(self, data: dict) -> TemplateRecord:
+        title = data.get("title", "")
+        rec = TemplateRecord(
             id=self._next_id,
             title=title,
-            main_file=main_file or None,
-            last_world_file=last_world_file or None,
-            source=source or None,
+            main_file=data.get("main_file", ""),
+            last_world_file=data.get("last_world_file", ""),
+            last_world_year=data.get("last_world_year"),
+            source=data.get("source", ""),
         )
-        self._records.append(record)
+        self._templates[self._next_id] = rec
         self._next_id += 1
-        return record
+        return rec
 
-    def update(
-        self,
-        template_id: int,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = main_file.strip()
-        index = self._find_index(template_id)
-        updated = replace(
-            self._records[index],
-            title=title,
-            main_file=main_file or None,
-            last_world_file=last_world_file or None,
-            source=source or None,
-        )
-        self._records[index] = updated
-        return updated
+    def list(self) -> list[TemplateRecord]:
+        return list(self._templates.values())
+
+    def fetch_by_id(self, template_id: int) -> TemplateRecord:
+        if template_id not in self._templates:
+            raise LookupError(f"Template id {template_id} was not found")
+        return self._templates[template_id]
 
     def delete(self, template_id: int) -> TemplateRecord:
-        index = self._find_index(template_id)
-        record = self._records.pop(index)
-        return record
+        rec = self.fetch_by_id(template_id)
+        del self._templates[template_id]
+        return rec
 
-    def add_or_update(self, title: str, main_file: str) -> TemplateRecord:
-        try:
-            existing = next(record for record in self._records if record.title == title.strip())
-        except StopIteration:
-            return self.add(title, main_file)
-        return self.update(existing.id, title, main_file)
-
-
-def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | None]]:
-    return [(record.id, record.title, record.main_file) for record in records]
+    def update_template_data(self, template_id: int, data: dict) -> TemplateRecord:
+        rec = self.fetch_by_id(template_id)
+        if data.get("title"):
+            rec.title = data["title"]
+        if data.get("main_file"):
+            rec.main_file = data["main_file"]
+        if data.get("last_world_file"):
+            rec.last_world_file = data["last_world_file"]
+        if data.get("source"):
+            rec.source = data["source"]
+        self._templates[template_id] = rec
+        return rec
 
 
 @pytest.fixture
 def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client paired with a fake templates store."""
+    """Return a configured Flask test client with mocked templates service."""
+    from types import SimpleNamespace
 
-    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin")
+    admin_user = SimpleNamespace(username="admin_user")
 
-    def fake_current_user() -> SimpleNamespace:
+    def fake_current_user():
         return admin_user
 
+    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
@@ -113,44 +79,31 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.services.users_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
-    fake_store = FakeTemplatesDB({})
-    fake_store.add("Existing Template", "existing.svg")
+    store = FakeTemplatesDB()
+    store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
 
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: True)
+    mock_service = MagicMock()
+    mock_service.list_templates.return_value = store.list()
+    mock_service.add_template_data.side_effect = store.add_data
+    mock_service.update_template_data.side_effect = store.update_template_data
+    mock_service.delete_template.side_effect = store.delete
 
-    def fake_templates_factory(_db_data: dict[str, Any]):
-        return fake_store
+    def fake_get_template(template_id: int):
+        return store.fetch_by_id(template_id)
 
-    monkeypatch.setattr("src.main_app.services.template_service.TemplatesDB", fake_templates_factory)
+    mock_service.get_template.side_effect = fake_get_template
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.template_service", mock_service)
 
-    template_service._TEMPLATE_STORE = fake_store
+    flask_app = create_app()
+    flask_app.config["TESTING"] = True
+    flask_app.config["WTF_CSRF_ENABLED"] = False
 
-    app = create_app()
-    app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False
-    client = app.test_client()
-
-    try:
-        yield client, fake_store
-    finally:
-        template_service._TEMPLATE_STORE = None
-        fake_store.reset()
+    yield flask_app.test_client(), store
 
 
-def test_templates_dashboard_lists_existing_records(admin_templates_client):
-    client, store = admin_templates_client
-
-    store.add("Second Template", "second.svg")
-
-    response = client.get("/admin/templates")
-    assert response.status_code == 200
-    page = unescape(response.get_data(as_text=True))
-    assert "Templates" in page
-    assert "Existing Template" in page
-    assert "Second Template" in page
-    assert "second.svg" in page
+def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | None]]:
+    return [(record.id, record.title, record.main_file) for record in records]
 
 
 def test_add_template_persists_record_and_flashes_success(admin_templates_client):

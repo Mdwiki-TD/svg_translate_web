@@ -64,7 +64,7 @@ def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service, app):
-    mock_service.add_template.return_value = MagicMock(title="NewT")
+    mock_service.add_template_data.return_value = MagicMock(title="NewT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -72,7 +72,9 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         resp = _add_template()
         assert resp == "redirected"
 
-        mock_service.add_template.assert_called_with("NewT", "f.svg", "", "")
+        mock_service.add_template_data.assert_called_with(
+            {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""}
+        )
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
 
@@ -94,7 +96,7 @@ def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, app):
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_service, app):
-    mock_service.update_template.return_value = MagicMock(title="UpdT")
+    mock_service.update_template_data.return_value = MagicMock(title="UpdT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -102,7 +104,9 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _update_template()
         assert resp == "redirected"
 
-        mock_service.update_template.assert_called_with(1, "UpdT", "f2.svg", "", "")
+        mock_service.update_template_data.assert_called_with(
+            1, {"title": "UpdT", "main_file": "f2.svg", "last_world_file": "", "source": ""}
+        )
         mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
 
@@ -141,14 +145,14 @@ def test_Templates():
     bp = MagicMock()
     Templates(bp)
 
-    # Should register 3 GET routes, 3 POST routes
-    assert bp.get.call_count == 3
+    # Should register 4 GET routes, 3 POST routes
+    assert bp.get.call_count == 4
     assert bp.post.call_count == 3
 
     # Check endpoints
     bp.get.assert_any_call("/templates")
     bp.get.assert_any_call("/templates/<int:template_id>/edit")
-    bp.get.assert_any_call("/templates/download-json")
+    bp.get.assert_any_call("/templates-need-update")
     bp.post.assert_any_call("/templates/add")
     bp.post.assert_any_call("/templates/update")
     bp.post.assert_any_call("/templates/<int:template_id>/delete")

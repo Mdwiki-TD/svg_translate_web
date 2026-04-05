@@ -17,7 +17,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db import TemplateRecord
+from ...db import TemplateRecord, fetch_query_safe
 from ...services import template_service
 from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
@@ -45,6 +45,7 @@ def create_json_file() -> Tuple[Any, int]:
                 "title": template.title,
                 "main_file": template.main_file,
                 "last_world_file": template.last_world_file,
+                "last_world_year": template.last_world_year,
                 "source": template.source,
             }
             for template in templates
@@ -78,6 +79,7 @@ def _templates_dashboard():
         "total": len(templates),
         "with_main_file": len([template for template in templates if template.main_file]),
         "with_last_world_file": len([t for t in templates if t.last_world_file]),
+        "with_last_world_year": len([t for t in templates if t.last_world_year]),
         "with_source": len([template for template in templates if template.source]),
     }
     return render_template(
@@ -101,8 +103,14 @@ def _add_template() -> ResponseReturnValue:
     last_world_file = request.form.get("last_world_file", "").strip()
     source = request.form.get("source", "").strip()
 
+    data = {
+        "title": title,
+        "main_file": main_file,
+        "last_world_file": last_world_file,
+        "source": source,
+    }
     try:
-        record = template_service.add_template(title, main_file, last_world_file, source)
+        record = template_service.add_template_data(data)
     except ValueError as exc:
         logger.exception("Unable to add template.")
         flash(str(exc), "warning")
@@ -140,8 +148,14 @@ def _update_template() -> ResponseReturnValue:
     last_world_file = request.form.get("last_world_file", "").strip()
     source = request.form.get("source", "").strip()
 
+    data = {
+        "title": title,
+        "main_file": main_file,
+        "last_world_file": last_world_file,
+        "source": source,
+    }
     try:
-        record = template_service.update_template(template_id, title, main_file, last_world_file, source)
+        record = template_service.update_template_data(template_id, data)
     except LookupError as exc:
         logger.exception("Unable to Update template.")
         flash(str(exc), "warning")
@@ -234,3 +248,27 @@ class Templates:
                 return redirect(url_for("admin.templates_dashboard"))
 
             return response
+
+        @bp_admin.get("/templates-need-update")
+        @admin_required
+        def templates_need_update() -> ResponseReturnValue:
+            """Show templates that need year update based on OWID charts."""
+            user = current_user()
+
+            sql = """
+                SELECT
+                    template_id,
+                    template_title,
+                    slug,
+                    max_time as chart_year,
+                    last_world_year as template_year
+                FROM templates_need_update
+                ORDER BY max_time ASC
+            """
+            templates_need_update = fetch_query_safe(sql, ())
+
+            return render_template(
+                "admins/templates_need_update.html",
+                current_user=user,
+                templates=templates_need_update,
+            )

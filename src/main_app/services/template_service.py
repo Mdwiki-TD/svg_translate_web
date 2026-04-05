@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
+from ..utils.wikitext.titles_utils import match_last_world_year
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Templates import TemplateRecord, TemplatesDB
@@ -51,46 +53,21 @@ def list_templates() -> List[TemplateRecord]:
     return coords
 
 
-def add_template(
-    title: str,
-    main_file: str,
-    last_world_file: str | None = None,
-    source: str | None = None,
+def ensure_last_world_year(template_data):
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+    return template_data
+
+
+def add_template_data(
+    data: dict,
 ) -> TemplateRecord:
     """Add a template."""
 
-    store = get_templates_db()
-    record = store.add(title, main_file, last_world_file, source)
-
-    return record
-
-
-def update_template(
-    template_id: int,
-    title: str,
-    main_file: str,
-    last_world_file: str | None = None,
-    source: str | None = None,
-) -> TemplateRecord:
-    """Update template."""
+    data = ensure_last_world_year(data)
 
     store = get_templates_db()
-    record = store.update(template_id, title, main_file, last_world_file, source)
-
-    return record
-
-
-def update_template_if_not_none(
-    template_id: int,
-    title: str | None = None,
-    main_file: str | None = None,
-    last_world_file: str | None = None,
-    source: str | None = None,
-) -> TemplateRecord:
-    """Update template only if not None."""
-
-    store = get_templates_db()
-    record = store.update_if_not_none(template_id, title, main_file, last_world_file, source)
+    record = store.add_data(data)
 
     return record
 
@@ -100,6 +77,8 @@ def update_template_data(
     template_data: dict[str, str],
 ) -> TemplateRecord:
     """Update template only if not None."""
+
+    template_data = ensure_last_world_year(template_data)
 
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
@@ -123,12 +102,12 @@ def get_template(template_id: int) -> TemplateRecord:
 
 
 __all__ = [
+    "add_template_data",
+    "update_template_data",
     "get_templates_db",
     "TemplateRecord",
     "TemplatesDB",
     "list_templates",
-    "add_template",
-    "update_template",
     "delete_template",
     "get_template",
 ]

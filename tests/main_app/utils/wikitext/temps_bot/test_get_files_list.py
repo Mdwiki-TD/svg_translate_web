@@ -1,12 +1,8 @@
-# test_wikitext_processing.py
-# -*- coding: utf-8 -*-
-
 """
 Pytest test suite for:
 - get_files_list
 """
 
-import pytest
 
 from src.main_app.utils.wikitext.temps_bot import get_files_list
 

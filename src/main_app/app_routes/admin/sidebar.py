@@ -62,6 +62,13 @@ def create_side(active_route):
                 icon="bi-list-columns",
             ),
             SidebarItem(
+                id="templates_need_update",
+                admin=1,
+                href="templates-need-update",
+                title="Templates Need Update",
+                icon="bi-arrow-repeat",
+            ),
+            SidebarItem(
                 id="owid_charts",
                 admin=1,
                 href="owid-charts",
