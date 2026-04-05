@@ -109,7 +109,7 @@ def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | No
 def test_templates_dashboard_lists_existing_records(admin_templates_client):
     client, store = admin_templates_client
 
-    store.add("Second Template", "second.svg")
+    store.add_data({"title": "Second Template", "main_file": "second.svg"})
 
     response = client.get("/admin/templates")
     assert response.status_code == 200
