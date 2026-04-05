@@ -96,7 +96,7 @@ def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, app):
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_service, app):
-    mock_service.update_template.return_value = MagicMock(title="UpdT")
+    mock_service.update_template_data.return_value = MagicMock(title="UpdT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
