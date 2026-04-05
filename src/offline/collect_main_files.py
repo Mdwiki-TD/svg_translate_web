@@ -27,7 +27,6 @@ from src.main_app.utils.wikitext import find_template_source
 from src.main_app.utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
-    match_last_world_year,
 )
 
 logger = logging.getLogger(__name__)
