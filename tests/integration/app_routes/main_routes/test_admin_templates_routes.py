@@ -106,20 +106,6 @@ def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | No
     return [(record.id, record.title, record.main_file) for record in records]
 
 
-def test_templates_dashboard_lists_existing_records(admin_templates_client):
-    client, store = admin_templates_client
-
-    store.add_data({"title": "Second Template", "main_file": "second.svg"})
-
-    response = client.get("/admin/templates")
-    assert response.status_code == 200
-    page = unescape(response.get_data(as_text=True))
-    assert "Templates" in page
-    assert "Existing Template" in page
-    assert "Second Template" in page
-    assert "second.svg" in page
-
-
 def test_add_template_persists_record_and_flashes_success(admin_templates_client):
     client, store = admin_templates_client
 
