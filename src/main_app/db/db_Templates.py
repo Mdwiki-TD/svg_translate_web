@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import logging
 from dataclasses import dataclass
 from typing import Any, List
@@ -71,6 +70,15 @@ class TemplateRecord:
 
 class TemplatesDB:
     """MySQL-backed"""
+
+    TEMPLATE_FIELDS_KEYS = [
+        "title",
+        "main_file",
+        "last_world_file",
+        "last_world_year",
+        "source",
+        "slug",
+    ]
 
     def __init__(self, database_data: DbConfig):
         """
@@ -167,19 +175,11 @@ class TemplatesDB:
         add_values = []
         _data = {}
 
-        template_fields = [
-            "title",
+        strip_fields = [
             "main_file",
             "last_world_file",
-            "last_world_year",
-            "source",
-            "slug",
         ]
-        strip_fields = {
-            "main_file",
-            "last_world_file",
-        }
-        for field in template_fields:
+        for field in self.TEMPLATE_FIELDS_KEYS:
             value = template_data.get(field)
             if value is None:
                 continue
@@ -223,15 +223,7 @@ class TemplatesDB:
         update_fields = []
         update_values = []
 
-        template_fields_keys = {
-            "title",
-            "main_file",
-            "last_world_file",
-            "last_world_year",
-            "source",
-            "slug",
-        }
-        for field in template_fields_keys:
+        for field in self.TEMPLATE_FIELDS_KEYS:
             value = template_data.get(field)
             if value is not None:
                 update_fields.append(f"{field} = %s")
