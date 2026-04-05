@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask, g, session
 
-from src.main_app.db.user_tokens import UserTokenRecord
 from src.main_app.services.users_service import (
     CurrentUser,
-    _resolve_user_id,
     context_user,
+    _resolve_user_id,
     current_user,
-    oauth_required,
 )
+
+from src.main_app.db.user_tokens import UserTokenRecord
 
 
 @pytest.fixture
