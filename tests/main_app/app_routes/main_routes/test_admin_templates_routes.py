@@ -2,116 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from html import unescape
-from types import SimpleNamespace
-from typing import Any, Iterable
-
-import pytest
-
-from src.main_app import create_app
-from src.main_app.services import template_service
+from typing import Iterable
 from src.main_app.services.template_service import TemplateRecord
-
-
-class FakeTemplatesDB:
-    """In-memory replacement for the MySQL-backed TemplatesDB helper."""
-
-    def __init__(self, _db_data: dict[str, Any] | None = None):
-        del _db_data
-        self._records: list[TemplateRecord] = []
-        self._next_id = 1
-
-    # -- helpers -----------------------------------------------------------------
-    def reset(self) -> None:
-        self._records.clear()
-        self._next_id = 1
-
-    def _find_index(self, template_id: int) -> int:
-        for index, record in enumerate(self._records):
-            if record.id == template_id:
-                return index
-        raise LookupError(f"Template id {template_id} was not found")
-
-    def list(self) -> list[TemplateRecord]:
-        return list(self._records)
-
-    def add_data(self, template_data: dict) -> TemplateRecord:
-        title = template_data.get("title", "").strip()
-        main_file = template_data.get("main_file", "").strip()
-        last_world_file = template_data.get("last_world_file", "").strip()
-        last_world_year = template_data.get("last_world_year")
-        source = template_data.get("source", "").strip()
-
-        if not title:
-            raise ValueError("Title is required")
-        if any(record.title == title for record in self._records):
-            raise ValueError(f"Template '{title}' already exists")
-
-        record = TemplateRecord(
-            id=self._next_id,
-            title=title,
-            main_file=main_file or None,
-            last_world_file=last_world_file or None,
-            last_world_year=last_world_year or None,
-            source=source or None,
-        )
-        self._records.append(record)
-        self._next_id += 1
-        return record
-
-    def delete(self, template_id: int) -> TemplateRecord:
-        index = self._find_index(template_id)
-        record = self._records.pop(index)
-        return record
 
 
 def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | None]]:
     return [(record.id, record.title, record.main_file) for record in records]
-
-
-@pytest.fixture
-def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client paired with a fake templates store."""
-
-    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin")
-
-    def fake_current_user() -> SimpleNamespace:
-        return admin_user
-
-    monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.users_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
-
-    fake_store = FakeTemplatesDB({})
-    fake_store.add("Existing Template", "existing.svg")
-
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: True)
-
-    def fake_templates_factory(_db_data: dict[str, Any]):
-        return fake_store
-
-    monkeypatch.setattr("src.main_app.services.template_service.TemplatesDB", fake_templates_factory)
-
-    template_service._TEMPLATE_STORE = fake_store
-
-    app = create_app()
-    app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False
-    client = app.test_client()
-
-    try:
-        yield client, fake_store
-    finally:
-        template_service._TEMPLATE_STORE = None
-        fake_store.reset()
 
 
 def test_templates_dashboard_lists_existing_records(admin_templates_client):
