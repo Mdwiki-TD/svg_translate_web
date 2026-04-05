@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import logging
 from dataclasses import dataclass
 from typing import Any, List
@@ -11,6 +12,18 @@ from . import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
+
+
+def match_last_world_year(last_world_file) -> int | None:
+    """
+    death-rate-by-source-from-indoor-air-pollution,World,2021.svg
+    """
+    # match year
+    y_match = re.match(r"^.*?,\s*(\d{4})\.svg$", last_world_file)
+    if y_match:
+        return int(y_match.group(1))
+
+    return None
 
 
 def _strip_file_prefix(value: str | None) -> str | None:
@@ -48,6 +61,9 @@ class TemplateRecord:
         if not self.slug and self.source and "/grapher/" in self.source:
             slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
             self.slug = slug or None
+
+            if not self.last_world_year and self.last_world_file:
+                self.last_world_year = match_last_world_year(self.last_world_file)
 
     def to_dict(self) -> dict[str, Any]:
         return {
