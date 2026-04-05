@@ -51,7 +51,7 @@ class TemplateRecord:
     title: str
     main_file: str | None
     last_world_file: str | None
-    last_world_year: str | None = None
+    last_world_year: int | None = None
     source: str | None = None
     slug: str | None = None
     created_at: Any | None = None
@@ -128,7 +128,7 @@ class TemplatesDB:
     def _fetch_by_id(self, template_id: int) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             WHERE id = %s
             """,
@@ -141,7 +141,7 @@ class TemplatesDB:
     def _fetch_by_title(self, title: str) -> TemplateRecord:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             WHERE title = %s
             """,
@@ -154,7 +154,7 @@ class TemplatesDB:
     def list(self) -> List[TemplateRecord]:
         rows = self.db.fetch_query_safe(
             """
-            SELECT id, title, main_file, last_world_file, created_at, updated_at, source, slug
+            SELECT id, title, main_file, last_world_file, last_world_year, created_at, updated_at, source, slug
             FROM templates
             ORDER BY id ASC
             """
@@ -165,7 +165,6 @@ class TemplatesDB:
         self,
         template_data: dict,
     ) -> TemplateRecord:
-
         add_fields = []
         add_values = []
         add_data = {}
@@ -203,8 +202,8 @@ class TemplatesDB:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 f"""
-                INSERT INTO templates ({', '.join(add_fields)})
-                VALUES ({', '.join(["%s" for x in add_fields])})
+                INSERT INTO templates ({", ".join(add_fields)})
+                VALUES ({", ".join(["%s" for x in add_fields])})
                 """,
                 tuple(add_values),
             )
@@ -248,8 +247,8 @@ class TemplatesDB:
             # Use execute_query to allow exception to propagate
             self.db.execute_query(
                 f"""
-                INSERT INTO templates ({', '.join(add_fields)})
-                VALUES ({', '.join(["%s" for x in add_fields])})
+                INSERT INTO templates ({", ".join(add_fields)})
+                VALUES ({", ".join(["%s" for x in add_fields])})
                 """,
                 tuple(add_values),
             )
