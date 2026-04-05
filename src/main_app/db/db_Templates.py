@@ -114,6 +114,7 @@ class TemplatesDB:
             title=row["title"],
             main_file=row.get("main_file") or "",
             last_world_file=row.get("last_world_file") or "",
+            last_world_year=row.get("last_world_year") or "",
             source=row.get("source") or "",
             slug=row.get("slug") or "",
             created_at=row.get("created_at"),
@@ -162,7 +163,7 @@ class TemplatesDB:
 
     def add_data(
         self,
-        data: dict,
+        template_data: dict,
     ) -> TemplateRecord:
 
         add_fields = []
@@ -182,7 +183,7 @@ class TemplatesDB:
             "last_world_file",
         }
         for field in template_fields:
-            value = data.get(field)
+            value = template_data.get(field)
             if value is None:
                 continue
 
@@ -356,35 +357,6 @@ class TemplatesDB:
             (template_id,),
         )
         return record
-
-    def add_or_update(
-        self,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-        slug: str | None = None,
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = _strip_file_prefix(main_file) or ""
-        last_world_file = _strip_file_prefix(last_world_file)
-
-        if not title:
-            logger.error("Title is required for add_or_update")
-
-        self.db.execute_query_safe(
-            """
-            INSERT INTO templates (title, main_file, last_world_file, source, slug) VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                title = COALESCE(VALUES(title), title),
-                main_file = COALESCE(VALUES(main_file), main_file),
-                last_world_file = COALESCE(VALUES(last_world_file), last_world_file),
-                source = COALESCE(VALUES(source), source),
-                slug = COALESCE(VALUES(slug), slug)
-            """,
-            (title, main_file, last_world_file, source, slug),
-        )
-        return self._fetch_by_title(title)
 
 
 __all__ = [

@@ -121,17 +121,6 @@ def test_delete_success(templates_db, mock_db_instance):
     assert rec.id == 1
 
 
-def test_add_or_update(templates_db, mock_db_instance):
-    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "title": "upsert", "main_file": "f.svg"}]
-
-    rec = templates_db.add_or_update("upsert", "f.svg")
-
-    mock_db_instance.execute_query_safe.assert_called()
-    assert "INSERT INTO templates" in mock_db_instance.execute_query_safe.call_args[0][0]
-    assert "ON DUPLICATE KEY UPDATE" in mock_db_instance.execute_query_safe.call_args[0][0]
-    assert rec.title == "upsert"
-
-
 def test_row_to_record_with_all_fields(templates_db):
     """Test _row_to_record with all fields populated."""
     from datetime import datetime

@@ -83,13 +83,6 @@ class FakeTemplatesDB:
         record = self._records.pop(index)
         return record
 
-    def add_or_update(self, title: str, main_file: str) -> TemplateRecord:
-        try:
-            existing = next(record for record in self._records if record.title == title.strip())
-        except StopIteration:
-            return self.add(title, main_file)
-        return self.update(existing.id, title, main_file)
-
 
 def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | None]]:
     return [(record.id, record.title, record.main_file) for record in records]
