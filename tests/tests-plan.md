@@ -291,7 +291,7 @@ tests/
 │   │   ├── test_jobs_service.py
 │   │   ├── test_owid_charts_service.py
 │   │   └── test_template_service.py
-│   ├── test___init__.py
+│   ├── test_init.py
 │   ├── test_app_factory.py
 │   ├── test_config.py
 │   ├── test_data.py
