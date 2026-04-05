@@ -72,7 +72,7 @@ def test_add_success(templates_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {"id": 1, "title": "new", "main_file": "f.svg", "created_at": None, "updated_at": None}
     ]
-    rec = templates_db.add("new", "f.svg")
+    rec = templates_db.add_data({"title": "new", "main_file": "f.svg"})
 
     mock_db_instance.execute_query.assert_called_with(
         "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
@@ -84,12 +84,12 @@ def test_add_success(templates_db, mock_db_instance):
 def test_add_duplicate(templates_db, mock_db_instance):
     mock_db_instance.execute_query.side_effect = pymysql.err.IntegrityError(1062, "Duplicate")
     with pytest.raises(ValueError, match="already exists"):
-        templates_db.add("dup", "f.svg")
+        templates_db.add_data({"title": "dup", "main_file": "f.svg"})
 
 
 def test_add_empty_title(templates_db):
     with pytest.raises(ValueError, match="Title is required"):
-        templates_db.add("   ", "f.svg")
+        templates_db.add_data({"title": "   ", "main_file": "f.svg"})
 
 
 def test_update_success(templates_db, mock_db_instance):
@@ -98,7 +98,7 @@ def test_update_success(templates_db, mock_db_instance):
         [{"id": 1, "title": "new", "main_file": "new.svg"}],  # Return updated
     ]
 
-    rec = templates_db.update(1, "new", "new.svg")
+    rec = templates_db.update_template_data(1, {"title": "new", "main_file": "new.svg"})
 
     mock_db_instance.execute_query_safe.assert_called_with(
         """
@@ -169,7 +169,7 @@ def test_add_with_whitespace(templates_db, mock_db_instance):
         {"id": 1, "title": "trimmed", "main_file": "file.svg", "created_at": None, "updated_at": None}
     ]
 
-    _rec = templates_db.add("  trimmed  ", "  file.svg  ")
+    _rec = templates_db.add_data("  trimmed  ", "  file.svg  ")
 
     # Verify the execute_query was called with trimmed values
     call_args = mock_db_instance.execute_query.call_args[0][1]
@@ -182,7 +182,7 @@ def test_update_not_found(templates_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = []
 
     with pytest.raises(LookupError):
-        templates_db.update(999, "new_title", "new_file.svg")
+        templates_db.update_template_data(999, {"title": "new_title", "main_file": "new_file.svg"})
 
 
 def test_delete_not_found(templates_db, mock_db_instance):
