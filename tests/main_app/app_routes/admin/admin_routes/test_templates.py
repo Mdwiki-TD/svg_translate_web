@@ -73,7 +73,7 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         assert resp == "redirected"
 
         mock_service.add_template_data.assert_called_with(
-            {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "last_world_year": None, "source": ""}
+            {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""}
         )
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
@@ -143,14 +143,14 @@ def test_Templates():
     bp = MagicMock()
     Templates(bp)
 
-    # Should register 3 GET routes, 3 POST routes
-    assert bp.get.call_count == 3
+    # Should register 4 GET routes, 3 POST routes
+    assert bp.get.call_count == 4
     assert bp.post.call_count == 3
 
     # Check endpoints
     bp.get.assert_any_call("/templates")
     bp.get.assert_any_call("/templates/<int:template_id>/edit")
-    bp.get.assert_any_call("/templates/download-json")
+    bp.get.assert_any_call("/templates-need-update")
     bp.post.assert_any_call("/templates/add")
     bp.post.assert_any_call("/templates/update")
     bp.post.assert_any_call("/templates/<int:template_id>/delete")

@@ -103,6 +103,9 @@ def update_template_data(
 ) -> TemplateRecord:
     """Update template only if not None."""
 
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
 

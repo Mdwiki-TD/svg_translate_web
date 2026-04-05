@@ -17,7 +17,6 @@ from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
-    match_last_world_year,
 )
 from .base_worker import BaseJobWorker
 
@@ -176,17 +175,11 @@ class CollectMainFilesWorker(BaseJobWorker):
                     template_info["new_main_file"] = main_file
                     template_data["main_file"] = main_file
 
-                if not template.last_world_year and template.last_world_file:
-                    template_data["last_world_year"] = match_last_world_year(template.last_world_file)
-
                 last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
                 if last_world_file and last_world_file != template.last_world_file:
-                    last_world_year = match_last_world_year(last_world_file)
                     template_data["last_world_file"] = last_world_file
-                    template_data["last_world_year"] = last_world_year
 
                     template_info["last_world_file"] = last_world_file
-                    template_info["last_world_year"] = last_world_year
 
                 source = find_template_source(wikitext)
                 if source and source != template.source:
