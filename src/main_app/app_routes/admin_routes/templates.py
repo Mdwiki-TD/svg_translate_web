@@ -17,11 +17,10 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...utils.wikitext.titles_utils import match_last_world_year
-
-from ...db import TemplateRecord
+from ...db import TemplateRecord, fetch_query_safe
 from ...services import template_service
 from ...services.users_service import current_user
+from ...utils.wikitext.titles_utils import match_last_world_year
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -249,3 +248,31 @@ class Templates:
                 return redirect(url_for("admin.templates_dashboard"))
 
             return response
+
+        @bp_admin.get("/templates/need-update")
+        @admin_required
+        def templates_need_update() -> ResponseReturnValue:
+            """Show templates that need year update based on OWID charts."""
+            user = current_user()
+
+            sql = """
+                SELECT
+                    t.id AS template_id,
+                    t.slug AS slug,
+                    t.title AS title,
+                    t.last_world_year AS template_year,
+                    c.max_time AS chart_year
+                FROM owid_charts c
+                JOIN templates t
+                    ON t.slug = c.slug
+                WHERE t.last_world_year != c.max_time
+                    AND t.last_world_year IS NOT NULL
+                ORDER BY c.max_time DESC
+            """
+            templates_need_update = fetch_query_safe(sql, ())
+
+            return render_template(
+                "admins/templates_need_update.html",
+                current_user=user,
+                templates=templates_need_update,
+            )
