@@ -51,6 +51,17 @@ def list_templates() -> List[TemplateRecord]:
     return coords
 
 
+def add_template_data(
+    data: dict,
+) -> TemplateRecord:
+    """Add a template."""
+
+    store = get_templates_db()
+    record = store.add_data(data)
+
+    return record
+
+
 def add_template(
     title: str,
     main_file: str,

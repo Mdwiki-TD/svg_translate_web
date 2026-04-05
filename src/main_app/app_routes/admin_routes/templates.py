@@ -17,6 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
+from ...utils.wikitext.titles_utils import match_last_world_year
+
 from ...db import TemplateRecord
 from ...services import template_service
 from ...services.users_service import current_user
@@ -45,6 +47,7 @@ def create_json_file() -> Tuple[Any, int]:
                 "title": template.title,
                 "main_file": template.main_file,
                 "last_world_file": template.last_world_file,
+                "last_world_year": template.last_world_year,
                 "source": template.source,
             }
             for template in templates
@@ -78,6 +81,7 @@ def _templates_dashboard():
         "total": len(templates),
         "with_main_file": len([template for template in templates if template.main_file]),
         "with_last_world_file": len([t for t in templates if t.last_world_file]),
+        "with_last_world_year": len([t for t in templates if t.last_world_year]),
         "with_source": len([template for template in templates if template.source]),
     }
     return render_template(
@@ -99,10 +103,20 @@ def _add_template() -> ResponseReturnValue:
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
-    source = request.form.get("source", "").strip()
+    last_world_year = None
+    if last_world_file:
+        last_world_year = match_last_world_year(last_world_file)
 
+    source = request.form.get("source", "").strip()
+    data = {
+        "title": title,
+        "main_file": main_file,
+        "last_world_file": last_world_file,
+        "last_world_year": last_world_year,
+        "source": source,
+    }
     try:
-        record = template_service.add_template(title, main_file, last_world_file, source)
+        record = template_service.add_template_data(data)
     except ValueError as exc:
         logger.exception("Unable to add template.")
         flash(str(exc), "warning")

@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS templates (
     title VARCHAR(255) NOT NULL,
     main_file VARCHAR(255) DEFAULT NULL,
     last_world_file VARCHAR(255) DEFAULT NULL,
+    last_world_year INT DEFAULT NULL,
     source VARCHAR(255) NOT NULL DEFAULT '',
     created_at timestamp NOT NULL DEFAULT current_timestamp(),
     updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -159,3 +160,15 @@ LEFT JOIN templates t
     -- ON t.source LIKE '%/grapher/%'
     -- AND SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug;
     ON t.slug = c.slug;
+
+CREATE OR REPLACE VIEW templates_need_update AS
+SELECT
+    t.id AS template_id,
+    t.slug AS slug,
+    c.max_time,
+    t.last_world_year
+FROM owid_charts c
+JOIN templates t
+    ON t.slug = c.slug
+WHERE t.last_world_year != c.max_time
+   AND t.last_world_year IS NOT NULL

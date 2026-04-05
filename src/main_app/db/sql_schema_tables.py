@@ -96,6 +96,7 @@ templates = """
         title VARCHAR(255) NOT NULL,
         main_file VARCHAR(255) DEFAULT NULL,
         last_world_file VARCHAR(255) DEFAULT NULL,
+        last_world_year INT DEFAULT NULL,
         slug VARCHAR(255) NOT NULL DEFAULT '',
         source VARCHAR(255) NOT NULL DEFAULT '',
         created_at timestamp NOT NULL DEFAULT current_timestamp(),
@@ -105,6 +106,7 @@ templates = """
         KEY title_index (title),
         KEY main_file (main_file),
         KEY last_world_file (last_world_file),
+        KEY last_world_year (last_world_year),
         KEY source (source)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 

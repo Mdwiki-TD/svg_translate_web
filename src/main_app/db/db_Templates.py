@@ -38,6 +38,7 @@ class TemplateRecord:
     title: str
     main_file: str | None
     last_world_file: str | None
+    last_world_year: str | None = None
     source: str | None = None
     slug: str | None = None
     created_at: Any | None = None
@@ -54,6 +55,7 @@ class TemplateRecord:
             "title": self.title,
             "main_file": self.main_file,
             "last_world_file": self.last_world_file,
+            "last_world_year": self.last_world_year,
             "source": self.source,
             "slug": self.slug,
             "created_at": self.created_at,
@@ -142,6 +144,59 @@ class TemplatesDB:
         )
         return [self._row_to_record(row) for row in rows]
 
+    def add_data(
+        self,
+        data: dict,
+    ) -> TemplateRecord:
+
+        add_fields = []
+        add_values = []
+        add_data = {}
+
+        template_fields = {
+            "title",
+            "main_file",
+            "last_world_file",
+            "last_world_year",
+            "source",
+            "slug",
+        }
+        strip_fields = {
+            "main_file",
+            "last_world_file",
+        }
+        for field in template_fields:
+            value = data.get(field)
+            if value is None:
+                continue
+
+            if field in strip_fields:
+                value = _strip_file_prefix(value)
+
+            add_data[field] = value
+            add_fields.append(field)
+            add_values.append(value)
+
+        if not add_data.get("title"):
+            raise ValueError("Title is required")
+
+        title = add_data["title"]
+
+        try:
+            # Use execute_query to allow exception to propagate
+            self.db.execute_query(
+                f"""
+                INSERT INTO templates ({', '.join(add_fields)})
+                VALUES ({', '.join(["%s" for x in add_fields])})
+                """,
+                tuple(add_values),
+            )
+        except pymysql.err.IntegrityError:
+            # This assumes a UNIQUE constraint on the title column
+            raise ValueError(f"Template '{title}' already exists") from None
+
+        return self._fetch_by_title(title)
+
     def add(
         self,
         title: str,
@@ -203,6 +258,7 @@ class TemplatesDB:
             "title",
             "main_file",
             "last_world_file",
+            "last_world_year",
             "source",
             "slug",
         }
