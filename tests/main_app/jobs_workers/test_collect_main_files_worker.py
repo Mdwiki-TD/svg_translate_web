@@ -396,7 +396,7 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg"}
+        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg", "last_world_year": 2021}
     )
 
     # Should save result with correct data
@@ -404,6 +404,7 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
     assert result["summary"]["updated"] == 1
     assert result["templates_updated"][0]["new_main_file"] == "test.svg"
     assert result["templates_updated"][0]["last_world_file"] == "File:test, World, 2021.svg"
+    assert result["templates_updated"][0]["last_world_year"] == 2021
 
 
 def test_collect_main_files_cancellation_during_template_addition(mock_services):
@@ -521,7 +522,9 @@ def test_collect_main_files_only_last_world_file(mock_services, monkeypatch: pyt
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should update template with only last_world_file
-    mock_services["update_template_data"].assert_called_once_with(1, {"last_world_file": "File:test, World, 2021.svg"})
+    mock_services["update_template_data"].assert_called_once_with(
+        1, {"last_world_file": "File:test, World, 2021.svg", "last_world_year": 2021}
+    )
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]

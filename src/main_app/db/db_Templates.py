@@ -109,12 +109,20 @@ class TemplatesDB:
         self.db.execute_query_safe(sql_tables.templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
+        last_world_year_val: int | None = None
+        raw_year = row.get("last_world_year")
+        if raw_year is not None and raw_year != "":
+            try:
+                last_world_year_val = int(raw_year)
+            except (ValueError, TypeError):
+                pass
+
         return TemplateRecord(
             id=int(row["id"]),
             title=row["title"],
             main_file=row.get("main_file") or "",
             last_world_file=row.get("last_world_file") or "",
-            last_world_year=row.get("last_world_year") or "",
+            last_world_year=last_world_year_val,
             source=row.get("source") or "",
             slug=row.get("slug") or "",
             created_at=row.get("created_at"),
