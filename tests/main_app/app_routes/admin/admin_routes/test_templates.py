@@ -104,7 +104,9 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _update_template()
         assert resp == "redirected"
 
-        mock_service.update_template.assert_called_with(1, "UpdT", "f2.svg", "", "")
+        mock_service.update_template_data.assert_called_with(
+            1, {"title": "UpdT", "main_file": "f2.svg", "last_world_file": "", "source": ""}
+        )
         mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
 

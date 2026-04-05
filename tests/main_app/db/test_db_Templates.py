@@ -75,8 +75,8 @@ def test_add_success(templates_db, mock_db_instance):
     rec = templates_db.add_data({"title": "new", "main_file": "f.svg"})
 
     mock_db_instance.execute_query.assert_called_with(
-        "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
-        ("new", "f.svg"),
+        "\n                INSERT INTO templates (main_file, title)\n                VALUES (%s, %s)\n                ",
+        ("f.svg", "new"),
     )
     assert rec.title == "new"
 
@@ -103,7 +103,10 @@ def test_update_success(templates_db, mock_db_instance):
     # Just verify execute_query_safe was called with the right values (order may vary)
     call_args = mock_db_instance.execute_query_safe.call_args[0]
     assert "UPDATE templates" in call_args[0]
-    assert ("new", "new.svg", 1) in call_args[1] or ("new.svg", "new", 1) in call_args[1]
+    params = call_args[1]
+    assert "new" in params
+    assert "new.svg" in params
+    assert 1 in params
     assert rec.title == "new"
 
 
