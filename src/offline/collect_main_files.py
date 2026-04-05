@@ -90,6 +90,8 @@ class MainFilesWorker(BaseJobWorker):
             try:
                 data = {
                     "title": title,
+                    "main_file": "",
+                    "last_world_file": "",
                 }
                 template_service.add_template_data(data)
                 self.result["templates_added"].append(

@@ -285,9 +285,13 @@ def test_collect_main_files_adds_new_templates_from_category(mock_services):
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should add 2 new templates
-    assert mock_services["add_template"].call_count == 2
-    mock_services["add_template"].assert_any_call("Template:New1", "", "")
-    mock_services["add_template"].assert_any_call("Template:New2", "", "")
+    assert mock_services["add_template_data"].call_count == 2
+    mock_services["add_template_data"].assert_any_call(
+        {"title": "Template:New1", "main_file": "", "last_world_file": ""}
+    )
+    mock_services["add_template_data"].assert_any_call(
+        {"title": "Template:New2", "main_file": "", "last_world_file": ""}
+    )
 
     # Should save result with added templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -310,7 +314,7 @@ def test_collect_main_files_handles_add_template_value_error(mock_services):
 
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
-    mock_services["add_template"].side_effect = ValueError("Template 'Template:New1' already exists")
+    mock_services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
@@ -345,7 +349,9 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should add new template
-    mock_services["add_template"].assert_called_once_with("Template:NewFromCategory", "", "")
+    mock_services["add_template_data"].assert_called_once_with(
+        {"title": "Template:NewFromCategory", "main_file": "", "last_world_file": ""}
+    )
 
     # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
     mock_services["get_wikitext"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
@@ -549,7 +555,7 @@ def test_collect_main_files_add_template_generic_exception(mock_services):
 
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
-    mock_services["add_template"].side_effect = RuntimeError("Database connection failed")
+    mock_services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
     collect_main_files_worker.collect_main_files_for_templates(1)
 
