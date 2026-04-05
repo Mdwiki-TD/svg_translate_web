@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
+from ..utils.wikitext.titles_utils import match_last_world_year
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Templates import TemplateRecord, TemplatesDB
@@ -56,22 +58,11 @@ def add_template_data(
 ) -> TemplateRecord:
     """Add a template."""
 
+    if data.get("last_world_file") and not data.get("last_world_year"):
+        data["last_world_year"] = match_last_world_year(data["last_world_file"])
+
     store = get_templates_db()
     record = store.add_data(data)
-
-    return record
-
-
-def add_template(
-    title: str,
-    main_file: str,
-    last_world_file: str | None = None,
-    source: str | None = None,
-) -> TemplateRecord:
-    """Add a template."""
-
-    store = get_templates_db()
-    record = store.add(title, main_file, last_world_file, source)
 
     return record
 
@@ -138,7 +129,6 @@ __all__ = [
     "TemplateRecord",
     "TemplatesDB",
     "list_templates",
-    "add_template",
     "update_template",
     "delete_template",
     "get_template",

@@ -20,7 +20,6 @@ from flask.typing import ResponseReturnValue
 from ...db import TemplateRecord, fetch_query_safe
 from ...services import template_service
 from ...services.users_service import current_user
-from ...utils.wikitext.titles_utils import match_last_world_year
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -104,15 +103,10 @@ def _add_template() -> ResponseReturnValue:
     last_world_file = request.form.get("last_world_file", "").strip()
     source = request.form.get("source", "").strip()
 
-    last_world_year = None
-    if last_world_file:
-        last_world_year = match_last_world_year(last_world_file)
-
     data = {
         "title": title,
         "main_file": main_file,
         "last_world_file": last_world_file,
-        "last_world_year": last_world_year,
         "source": source,
     }
     try:

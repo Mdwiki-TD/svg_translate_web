@@ -175,7 +175,7 @@ class TemplatesDB:
     ) -> TemplateRecord:
         add_fields = []
         add_values = []
-        add_data = {}
+        _data = {}
 
         template_fields = {
             "title",
@@ -197,14 +197,14 @@ class TemplatesDB:
             if field in strip_fields:
                 value = _strip_file_prefix(value)
 
-            add_data[field] = value
+            _data[field] = value
             add_fields.append(field)
             add_values.append(value)
 
-        if not add_data.get("title"):
+        if not _data.get("title"):
             raise ValueError("Title is required")
 
-        title = add_data["title"]
+        title = _data["title"]
 
         try:
             # Use execute_query to allow exception to propagate

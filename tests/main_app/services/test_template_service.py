@@ -306,6 +306,5 @@ def test_module_exports_all_functions():
     assert "TemplateRecord" in template_service.__all__
     assert "TemplatesDB" in template_service.__all__
     assert "list_templates" in template_service.__all__
-    assert "add_template" in template_service.__all__
     assert "update_template" in template_service.__all__
     assert "delete_template" in template_service.__all__
