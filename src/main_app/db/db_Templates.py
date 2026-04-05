@@ -167,14 +167,14 @@ class TemplatesDB:
         add_values = []
         _data = {}
 
-        template_fields = {
+        template_fields = [
             "title",
             "main_file",
             "last_world_file",
             "last_world_year",
             "source",
             "slug",
-        }
+        ]
         strip_fields = {
             "main_file",
             "last_world_file",
