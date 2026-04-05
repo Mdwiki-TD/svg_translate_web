@@ -257,16 +257,12 @@ class Templates:
 
             sql = """
                 SELECT
-                    t.id AS template_id,
-                    t.slug AS slug,
-                    t.title AS title,
-                    t.last_world_year AS template_year,
-                    c.max_time AS chart_year
-                FROM owid_charts c
-                JOIN templates t
-                    ON t.slug = c.slug
-                WHERE t.last_world_year != c.max_time
-                    AND t.last_world_year IS NOT NULL
+                    template_id,
+                    template_title,
+                    slug,
+                    max_time,
+                    last_world_year
+                FROM templates_need_update
                 ORDER BY c.max_time DESC
             """
             templates_need_update = fetch_query_safe(sql, ())
