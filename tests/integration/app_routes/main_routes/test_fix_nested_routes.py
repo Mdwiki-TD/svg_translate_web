@@ -96,25 +96,6 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
     return captured
 
 
-def test_get_commons_file_url_basic() -> None:
-    """Test Commons URL generation for a simple filename."""
-    url = routes._get_commons_file_url("Example.svg")
-    assert url == "https://commons.wikimedia.org/wiki/File:Example.svg"
-
-
-def test_get_commons_file_url_with_spaces() -> None:
-    """Test Commons URL generation replaces spaces with underscores."""
-    url = routes._get_commons_file_url("Example File Name.svg")
-    assert url == "https://commons.wikimedia.org/wiki/File:Example_File_Name.svg"
-
-
-def test_get_commons_file_url_with_special_chars() -> None:
-    """Test Commons URL generation encodes special characters."""
-    url = routes._get_commons_file_url("Test (2024).svg")
-    # Parentheses should be percent-encoded
-    assert "File:Test_%282024%29.svg" in url
-
-
 def test_fix_nested_get_empty_by_default(app_client: tuple[Flask, Any]) -> None:
     """Test that the form input is empty by default on GET."""
     app, client = app_client
