@@ -103,11 +103,12 @@ def _add_template() -> ResponseReturnValue:
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
+    source = request.form.get("source", "").strip()
+
     last_world_year = None
     if last_world_file:
         last_world_year = match_last_world_year(last_world_file)
 
-    source = request.form.get("source", "").strip()
     data = {
         "title": title,
         "main_file": main_file,
