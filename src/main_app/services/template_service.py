@@ -53,13 +53,18 @@ def list_templates() -> List[TemplateRecord]:
     return coords
 
 
+def ensure_last_world_year(template_data):
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+    return template_data
+
+
 def add_template_data(
     data: dict,
 ) -> TemplateRecord:
     """Add a template."""
 
-    if data.get("last_world_file") and not data.get("last_world_year"):
-        data["last_world_year"] = match_last_world_year(data["last_world_file"])
+    data = ensure_last_world_year(data)
 
     store = get_templates_db()
     record = store.add_data(data)
@@ -103,8 +108,7 @@ def update_template_data(
 ) -> TemplateRecord:
     """Update template only if not None."""
 
-    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
-        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+    template_data = ensure_last_world_year(template_data)
 
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
