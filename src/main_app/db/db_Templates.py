@@ -7,23 +7,13 @@ from typing import Any, List
 
 import pymysql
 
+from ..utils.wikitext.titles_utils import match_last_world_year
+
 from ..config import DbConfig
 from . import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
-
-
-def match_last_world_year(last_world_file) -> int | None:
-    """
-    death-rate-by-source-from-indoor-air-pollution,World,2021.svg
-    """
-    # match year
-    y_match = re.match(r"^.*?,\s*(\d{4})\.svg$", last_world_file)
-    if y_match:
-        return int(y_match.group(1))
-
-    return None
 
 
 def _strip_file_prefix(value: str | None) -> str | None:
