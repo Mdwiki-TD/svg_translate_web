@@ -64,7 +64,7 @@ def create_side(active_route):
             SidebarItem(
                 id="templates_need_update",
                 admin=1,
-                href="templates/need-update",
+                href="templates-need-update",
                 title="Templates Need Update",
                 icon="bi-arrow-repeat",
             ),

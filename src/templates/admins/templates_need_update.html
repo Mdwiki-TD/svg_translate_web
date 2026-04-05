@@ -3,24 +3,25 @@ Translation{% endblock %} {% block contents %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">Templates Need Year Update</h3>
+        <h3 class="headline mb-0">Templates Need Update</h3>
     </div>
     <div class="card-body">
         {% if templates %}
         <div class="alert alert-info">
-            Found <strong>{{ templates|length }}</strong> templates where last_world_year differs from OWID chart max_time.
+            Found <strong>{{ templates|length }}</strong> templates where template last year differs from OWID chart
+            max_time.
         </div>
         {% endif %}
-        
+
         <div class="table-responsive shadow-sm">
             <table class="table table-hover align-middle mb-0 DataTable">
                 <thead>
                     <tr>
                         <th scope="col" style="width: 5%">#</th>
                         <th scope="col">Template</th>
-                        <th scope="col">Slug</th>
-                        <th scope="col" class="text-center">Template Year</th>
-                        <th scope="col" class="text-center">Chart Year</th>
+                        <th scope="col">Grapher url</th>
+                        <th scope="col" class="text-center">Template Last Year</th>
+                        <th scope="col" class="text-center">Chart Last Year</th>
                         <th scope="col" class="text-center">Difference</th>
                     </tr>
                 </thead>
@@ -29,31 +30,35 @@ Translation{% endblock %} {% block contents %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ item.title }}' target='_blank'
+                            <a href='https://commons.wikimedia.org/wiki/{{ item.template_title }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                {{ item.title }}
+                                {{ item.template_title }}
                             </a>
                         </td>
                         <td>
-                            <code>{{ item.slug }}</code>
+                            <!-- <code>{{ item.slug }}</code> -->
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
+                                rel="noopener noreferrer">
+                                <code> {{ item.slug }} </code>
+                            </a>
                         </td>
                         <td class="text-center">
                             {% if item.template_year %}
-                            <span class="badge bg-primary">{{ item.template_year }}</span>
+                            {{ item.template_year }}
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if item.chart_year %}
-                            <span class="badge bg-success">{{ item.chart_year }}</span>
+                            {{ item.chart_year }}
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if item.template_year and item.chart_year %}
-                            <span class="badge bg-warning text-dark">{{ item.chart_year - item.template_year }}</span>
+                            {{ item.chart_year - item.template_year }}
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}

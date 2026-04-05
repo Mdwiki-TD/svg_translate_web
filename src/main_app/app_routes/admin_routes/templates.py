@@ -249,7 +249,7 @@ class Templates:
 
             return response
 
-        @bp_admin.get("/templates/need-update")
+        @bp_admin.get("/templates-need-update")
         @admin_required
         def templates_need_update() -> ResponseReturnValue:
             """Show templates that need year update based on OWID charts."""
@@ -258,7 +258,7 @@ class Templates:
             sql = """
                 SELECT
                     template_id,
-                    template_title as title,
+                    template_title,
                     slug,
                     max_time as chart_year,
                     last_world_year as template_year
