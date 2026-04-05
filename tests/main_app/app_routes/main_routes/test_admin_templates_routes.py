@@ -57,6 +57,30 @@ class FakeTemplatesDB:
         self._next_id += 1
         return record
 
+    def add_data(self, template_data: dict) -> TemplateRecord:
+        title = template_data.get("title", "").strip()
+        main_file = template_data.get("main_file", "").strip()
+        last_world_file = template_data.get("last_world_file", "").strip()
+        last_world_year = template_data.get("last_world_year")
+        source = template_data.get("source", "").strip()
+
+        if not title:
+            raise ValueError("Title is required")
+        if any(record.title == title for record in self._records):
+            raise ValueError(f"Template '{title}' already exists")
+
+        record = TemplateRecord(
+            id=self._next_id,
+            title=title,
+            main_file=main_file or None,
+            last_world_file=last_world_file or None,
+            last_world_year=last_world_year or None,
+            source=source or None,
+        )
+        self._records.append(record)
+        self._next_id += 1
+        return record
+
     def update(
         self,
         template_id: int,

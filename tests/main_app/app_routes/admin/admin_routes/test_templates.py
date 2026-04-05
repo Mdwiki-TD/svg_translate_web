@@ -64,7 +64,7 @@ def test_templates_dashboard(mock_current_user, mock_service, mock_render, app):
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service, app):
-    mock_service.add_template.return_value = MagicMock(title="NewT")
+    mock_service.add_template_data.return_value = MagicMock(title="NewT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -72,7 +72,9 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         resp = _add_template()
         assert resp == "redirected"
 
-        mock_service.add_template.assert_called_with("NewT", "f.svg", "", "")
+        mock_service.add_template_data.assert_called_with(
+            {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "last_world_year": None, "source": ""}
+        )
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
 
