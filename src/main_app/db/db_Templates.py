@@ -186,7 +186,7 @@ class TemplatesDB:
 
             if field in strip_fields:
                 value = _strip_file_prefix(value)
-
+            value = value.strip()
             _data[field] = value
             add_fields.append(field)
             add_values.append(value)
