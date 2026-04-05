@@ -101,13 +101,8 @@ def test_update_success(templates_db, mock_db_instance):
     rec = templates_db.update_template_data(1, {"title": "new", "main_file": "new.svg"})
 
     mock_db_instance.execute_query_safe.assert_called_with(
-        """
-            UPDATE templates
-                SET title = %s, main_file = %s, last_world_file = %s, source = %s, slug = %s
-            WHERE
-                id = %s
-            """,
-        ("new", "new.svg", None, None, None, 1),
+        "UPDATE templates SET title = %s, main_file = %s WHERE id = %s",
+        ("new", "new.svg", 1),
     )
     assert rec.title == "new"
 
@@ -169,7 +164,7 @@ def test_add_with_whitespace(templates_db, mock_db_instance):
         {"id": 1, "title": "trimmed", "main_file": "file.svg", "created_at": None, "updated_at": None}
     ]
 
-    _rec = templates_db.add_data("  trimmed  ", "  file.svg  ")
+    _rec = templates_db.add_data({"title": "  trimmed  ", "main_file": "  file.svg  "})
 
     # Verify the execute_query was called with trimmed values
     call_args = mock_db_instance.execute_query.call_args[0][1]
