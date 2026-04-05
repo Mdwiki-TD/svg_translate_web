@@ -165,40 +165,7 @@ src/
 tests/
 ├── conftest.py
 ├── functional/
-│   ├── api_services/
-│   │   ├── clients/
-│   │   └── utils/
-│   ├── app_routes/
-│   │   ├── admin/
-│   │   │   └── admin_routes/
-│   │   ├── admin_routes/
-│   │   ├── auth/
-│   │   ├── explorer/
-│   │   ├── extract/
-│   │   ├── fix_nested/
-│   │   ├── main/
-│   │   ├── main_routes/
-│   │   ├── templates/
-│   │   └── utils/
-│   ├── core/
-│   ├── data/
-│   ├── db/
-│   ├── jobs_workers/
-│   │   ├── add_svglanguages_template/
-│   │   ├── create_owid_pages/
-│   │   ├── crop_main_files/
-│   │   └── utils/
-│   ├── public_jobs_workers/
-│   │   └── copy_svg_langs/
-│   │       └── steps/
-│   ├── services/
-│   └── utils/
-│       └── wikitext/
-│           └── titles_utils/
 ├── integration/
-│   ├── api_services/
-│   │   ├── clients/
-│   │   └── utils/
 │   ├── app_routes/
 │   │   ├── admin/
 │   │   │   ├── admin_routes/
@@ -207,13 +174,8 @@ tests/
 │   │   │   │   ├── test_templates.py
 │   │   │   │   └── test_templates_admin_routes.py
 │   │   │   └── test_admin_routes.py
-│   │   ├── admin_routes/
 │   │   ├── auth/
 │   │   │   └── test_auth_routes.py
-│   │   ├── explorer/
-│   │   ├── extract/
-│   │   ├── fix_nested/
-│   │   ├── main/
 │   │   ├── main_routes/
 │   │   │   ├── fix_nested/
 │   │   │   │   ├── test_fix_nested_routes.py
@@ -223,11 +185,8 @@ tests/
 │   │   │   ├── test_extract_routes.py
 │   │   │   ├── test_main_routes.py
 │   │   │   └── test_owid_charts_routes.py
-│   │   ├── templates/
-│   │   └── utils/
 │   ├── core/
 │   │   └── test_cookie_header_client.py
-│   ├── data/
 │   ├── db/
 │   │   └── test_connection_reuse.py
 │   ├── jobs_workers/
@@ -238,7 +197,6 @@ tests/
 │   ├── public_jobs_workers/
 │   │   └── copy_svg_langs/
 │   │       └── steps/
-│   ├── services/
 │   └── utils/
 │       └── wikitext/
 │           └── titles_utils/
@@ -378,36 +336,6 @@ tests/
 ├── test_app.py
 ├── test_logger_config.py
 └── unit/
-    ├── api_services/
-    │   ├── clients/
-    │   └── utils/
-    ├── app_routes/
-    │   ├── admin/
-    │   │   └── admin_routes/
-    │   ├── admin_routes/
-    │   ├── auth/
-    │   ├── explorer/
-    │   ├── extract/
-    │   ├── fix_nested/
-    │   ├── main/
-    │   ├── main_routes/
-    │   ├── templates/
-    │   └── utils/
-    ├── core/
-    ├── data/
-    ├── db/
-    ├── jobs_workers/
-    │   ├── add_svglanguages_template/
-    │   ├── create_owid_pages/
-    │   ├── crop_main_files/
-    │   └── utils/
-    ├── public_jobs_workers/
-    │   └── copy_svg_langs/
-    │       └── steps/
-    ├── services/
-    └── utils/
-        └── wikitext/
-            └── titles_utils/
 ```
 
 # tests targer dirs
