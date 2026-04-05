@@ -24,7 +24,11 @@ from src.main_app.api_services import get_category_members, get_wikitext
 from src.main_app.jobs_workers.base_worker import BaseJobWorker
 from src.main_app.services import jobs_service, template_service
 from src.main_app.utils.wikitext import find_template_source
-from src.main_app.utils.wikitext.titles_utils import find_last_world_file_from_owidslidersrcs, find_main_title, match_last_world_year
+from src.main_app.utils.wikitext.titles_utils import (
+    find_last_world_file_from_owidslidersrcs,
+    find_main_title,
+    match_last_world_year,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +87,11 @@ class MainFilesWorker(BaseJobWorker):
         added_count = 0
         timestamp = datetime.now().isoformat()
         for title in new_templates:
-
             try:
-                # Add template with empty main files
-                template_service.add_template(title, "", "")
+                data = {
+                    "title": title,
+                }
+                template_service.add_template_data(data)
                 self.result["templates_added"].append(
                     {
                         "title": title,
@@ -132,7 +137,6 @@ class MainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(templates_to_process))
 
         for n, template in enumerate(templates_to_process, start=1):
-
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
                 self._save_progress()

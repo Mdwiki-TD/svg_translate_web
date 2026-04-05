@@ -79,8 +79,10 @@ class CollectMainFilesWorker(BaseJobWorker):
                 break
 
             try:
-                # Add template with empty main files
-                template_service.add_template(title, "", "")
+                data = {
+                    "title": title,
+                }
+                template_service.add_template_data(data)
                 self.result["templates_added"].append(
                     {
                         "title": title,
