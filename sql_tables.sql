@@ -164,6 +164,7 @@ LEFT JOIN templates t
 CREATE OR REPLACE VIEW templates_need_update AS
 SELECT
     t.id AS template_id,
+    t.title AS template_title,
     t.slug AS slug,
     c.max_time,
     t.last_world_year
