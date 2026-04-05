@@ -36,27 +36,6 @@ class FakeTemplatesDB:
     def list(self) -> list[TemplateRecord]:
         return list(self._records)
 
-    def add(
-        self, title: str, main_file: str, last_world_file: str | None = None, source: str | None = None
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = main_file.strip()
-        if not title:
-            raise ValueError("Title is required")
-        if any(record.title == title for record in self._records):
-            raise ValueError(f"Template '{title}' already exists")
-
-        record = TemplateRecord(
-            id=self._next_id,
-            title=title,
-            main_file=main_file or None,
-            last_world_file=last_world_file or None,
-            source=source or None,
-        )
-        self._records.append(record)
-        self._next_id += 1
-        return record
-
     def add_data(self, template_data: dict) -> TemplateRecord:
         title = template_data.get("title", "").strip()
         main_file = template_data.get("main_file", "").strip()
@@ -80,27 +59,6 @@ class FakeTemplatesDB:
         self._records.append(record)
         self._next_id += 1
         return record
-
-    def update(
-        self,
-        template_id: int,
-        title: str,
-        main_file: str,
-        last_world_file: str | None = None,
-        source: str | None = None,
-    ) -> TemplateRecord:
-        title = title.strip()
-        main_file = main_file.strip()
-        index = self._find_index(template_id)
-        updated = replace(
-            self._records[index],
-            title=title,
-            main_file=main_file or None,
-            last_world_file=last_world_file or None,
-            source=source or None,
-        )
-        self._records[index] = updated
-        return updated
 
     def delete(self, template_id: int) -> TemplateRecord:
         index = self._find_index(template_id)
