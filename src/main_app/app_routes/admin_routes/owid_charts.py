@@ -240,7 +240,8 @@ class OwidCharts:
         @bp_admin.get("/owid-charts")
         @admin_required
         def owid_charts_dashboard():
-            return render_template("admins/owid_charts/list.html")
+            template_filter = request.args.get("template", "").strip()
+            return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
         @bp_admin.get("/owid-charts/add")
         @admin_required
