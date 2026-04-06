@@ -70,17 +70,6 @@ def test_generate_list_item_with_icon_and_target():
     assert "<span class='hide-on-collapse-inline'>Home</span>" in result
 
 
-@pytest.mark.skip(reason="Sidebar are currently expanded.")
-def test_create_side_no_active_item():
-    """
-    Tests sidebar creation with no active item.
-    """
-    result = sidebar.create_side("non-existent")
-    assert "class='active'" not in result
-    assert 'aria-expanded="false"' in result
-    assert 'class="collapse "' in result
-
-
 def test_create_side_with_active_item():
     """
     Tests sidebar creation with an active item.

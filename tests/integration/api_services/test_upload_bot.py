@@ -46,13 +46,6 @@ class TestUpload:
         site.pages.__getitem__.return_value = mock_page
         return UploadFile("Test.jpg", tmp_file, site, new_file=new_file)
 
-    def test_success(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file)
-        u._site_upload = MagicMock(return_value=make_upload_response())
-        with patch("builtins.open", mock_open(read_data=b"data")):
-            result = u.upload()
-        assert result["result"] == "Success"
-
     def test_check_kwargs_fails_early(self, mock_site, tmp_file):
         """upload() returns error immediately if _check_kwargs fails."""
         u = UploadFile("Test.jpg", tmp_file, site=None)
@@ -106,7 +99,6 @@ class TestUpload:
         assert result["result"] == "Success"
 
 
-@pytest.mark.integration
 class TestUploadBotIntegration:
     """
     These tests require a valid mock_site or a connection to a test wiki.

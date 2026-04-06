@@ -288,33 +288,6 @@ def test_get_settings_missing_secret_key():
     get_settings.cache_clear()
 
 
-@patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "MAIN_DIR": "/tmp/test-data"})
-@pytest.mark.skip(reason="Failed: DID NOT RAISE <class 'RuntimeError'>")
-def test_get_settings_missing_oauth_encryption_key():
-    """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
-    get_settings.cache_clear()
-    with pytest.raises(RuntimeError, match="OAUTH_ENCRYPTION_KEY environment variable is required"):
-        get_settings()
-    get_settings.cache_clear()
-
-
-@patch.dict(
-    os.environ,
-    {
-        "FLASK_SECRET_KEY": "test-secret-key",
-        "OAUTH_ENCRYPTION_KEY": "test-key",
-        "MAIN_DIR": "/tmp/test-data",
-    },
-)
-@pytest.mark.skip(reason="Failed: DID NOT RAISE <class 'RuntimeError'>")
-def test_get_settings_missing_oauth_config():
-    """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
-    get_settings.cache_clear()
-    with pytest.raises(RuntimeError, match="MediaWiki OAuth configuration is incomplete"):
-        get_settings()
-    get_settings.cache_clear()
-
-
 @patch.dict(os.environ, {"DB_NAME": "", "DB_HOST": ""}, clear=True)
 def test_load_db_data_new_empty_values():
     """Test _load_db_data_new with empty environment variables."""
@@ -375,3 +348,28 @@ def test_load_oauth_config_with_defaults():
     # Check defaults
     assert "Copy SVG Translations" in result.user_agent
     assert result.upload_host == "commons.wikimedia.org"
+
+
+class TestConfig:
+    @patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "MAIN_DIR": "/tmp/test-data"})
+    def test_get_settings_missing_oauth_encryption_key(self):
+        """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
+        get_settings.cache_clear()
+        with pytest.raises(RuntimeError, match="OAUTH_ENCRYPTION_KEY environment variable is required"):
+            get_settings()
+        get_settings.cache_clear()
+
+    @patch.dict(
+        os.environ,
+        {
+            "FLASK_SECRET_KEY": "test-secret-key",
+            "OAUTH_ENCRYPTION_KEY": "test-key",
+            "MAIN_DIR": "/tmp/test-data",
+        },
+    )
+    def test_get_settings_missing_oauth_config(self):
+        """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
+        get_settings.cache_clear()
+        with pytest.raises(RuntimeError, match="MediaWiki OAuth configuration is incomplete"):
+            get_settings()
+        get_settings.cache_clear()
