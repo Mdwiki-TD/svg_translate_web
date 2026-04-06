@@ -16,13 +16,12 @@
         </div>
     </div>
     <div class="card-body">
-        {% if all_charts_summary %}
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4" id="summaryCards">
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Charts</h2>
-                        <p class="display-6 mb-0">{{ all_charts_summary.total }}</p>
+                        <p class="display-6 mb-0" id="totalCount">-</p>
                     </div>
                 </div>
             </div>
@@ -32,12 +31,9 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Published</h2>
-                                <p class="h5 mb-1 text-success">
-                                    {{ all_charts_summary.published.with }}
-                                    <!-- <small class="text-muted">with</small> -->
-                                </p>
+                                <p class="h5 mb-1 text-success" id="publishedWith">-</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    {{ all_charts_summary.published.without }}
+                                    <span id="publishedWithout">-</span>
                                     <small class="text-muted">not published</small>
                                 </p>
                             </div>
@@ -47,12 +43,9 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Template</h2>
-                                <p class="h5 mb-1 text-success">
-                                    {{ all_charts_summary.template.with }}
-                                    <!-- <small class="text-muted">with</small> -->
-                                </p>
+                                <p class="h5 mb-1 text-success" id="templateWith">-</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    {{ all_charts_summary.template.without }}
+                                    <span id="templateWithout">-</span>
                                     <small class="text-muted">without</small>
                                 </p>
                             </div>
@@ -62,15 +55,11 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
-                                <p class="h5 mb-1 text-success">
-                                    {{ all_charts_summary.map_tab.with }}
-                                    <!-- <small class="text-muted">with</small> -->
-                                </p>
+                                <p class="h5 mb-1 text-success" id="mapTabWith">-</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    {{ all_charts_summary.map_tab.without }}
+                                    <span id="mapTabWithout">-</span>
                                     <small class="text-muted">without</small>
                                 </p>
-
                             </div>
                         </div>
                     </div>
@@ -78,12 +67,9 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Timeline</h2>
-                                <p class="h5 mb-1 text-success">
-                                    {{ all_charts_summary.timeline.with }}
-                                    <!-- <small class="text-muted">with</small> -->
-                                </p>
+                                <p class="h5 mb-1 text-success" id="timelineWith">-</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    {{ all_charts_summary.timeline.without }}
+                                    <span id="timelineWithout">-</span>
                                     <small class="text-muted">without</small>
                                 </p>
                             </div>
@@ -92,34 +78,32 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-
 
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link {% if selected_template == '' %}active{% endif %}"
+                        <a class="nav-link {% if selected_template == '' %}active{% endif %}" id="tabAll"
                             href="{{ url_for('admin.owid_charts_dashboard') }}">
-                            All ({{ total_charts }})
+                            All
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
+                        <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}" id="tabWithTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
-                            With Templates ({{ all_charts_summary.template.with }})
+                            With Templates
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
+                        <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}" id="tabWithoutTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
-                            Without Templates ({{ all_charts_summary.template.without }})
+                            Without Templates
                         </a>
                     </li>
                 </ul>
 
                 <div class="table-responsive shadow-sm">
-                    <table class="table table-hover align-middle mb-0 DataTable">
+                    <table class="table table-hover align-middle mb-0" id="chartsTable">
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
@@ -133,71 +117,7 @@
                                 <th scope="col">Edit</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for chart in charts %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>
-                                    <!-- <code> {{ chart.slug }} </code> -->
-                                    <a href="https://ourworldindata.org/grapher/{{ chart.slug }}" target="_blank"
-                                        rel="noopener noreferrer">
-                                        <code> {{ chart.slug }} </code>
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ chart.title }}
-                                </td>
-                                <td class="text-center">
-                                    {% if chart.has_map_tab %}
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                    {% else %}
-                                    <i class="bi bi-x-circle-fill text-muted"></i>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if chart.has_timeline %}
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                    {% else %}
-                                    <i class="bi bi-x-circle-fill text-muted"></i>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if chart.has_timeline %}
-                                    {{ chart.min_time }} - {{ chart.max_time }}
-                                    {% if chart.len_years %}
-                                    <small class="text-muted">({{ chart.len_years }})</small>
-                                    {% endif %}
-                                    {% else %}
-                                    {{ chart.min_time }}
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if chart.is_published %}
-                                    <span class="badge bg-success">Yes</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if chart.template_title %}
-                                    <a href="https://commons.wikimedia.org/wiki/{{ chart.template_title }}"
-                                        target="_blank" rel="noopener noreferrer">
-                                        {{ chart.template_title | replace('Template:', '') }}
-                                    </a>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-outline-primary btn-sm"
-                                        pup-target="{{ url_for('admin.edit_chart', chart_id=chart.chart_id) }}"
-                                        onclick="pup_window_new(this)">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -207,7 +127,111 @@
 
 {% endblock %}
 {% block extra_js %}
+
 <script>
+    $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateFilter = urlParams.get('template') || '';
+
+        const table = $("#chartsTable").DataTable({
+            ajax: {
+                url: "/api/owid-charts",
+                type: "GET",
+                data: function(d) {
+                    d.template = templateFilter;
+                    return d;
+                },
+                dataSrc: function(json) {
+                    if (json.summary) {
+                        $("#totalCount").text(json.summary.total);
+                        $("#publishedWith").text(json.summary.published.with);
+                        $("#publishedWithout").text(json.summary.published.without);
+                        $("#templateWith").text(json.summary.template.with);
+                        $("#templateWithout").text(json.summary.template.without);
+                        $("#mapTabWith").text(json.summary.map_tab.with);
+                        $("#mapTabWithout").text(json.summary.map_tab.without);
+                        $("#timelineWith").text(json.summary.timeline.with);
+                        $("#timelineWithout").text(json.summary.timeline.without);
+
+                        $("#tabWithTemplate").text("With Templates (" + json.summary.template.with + ")");
+                        $("#tabWithoutTemplate").text("Without Templates (" + json.summary.template.without + ")");
+                    }
+                    return json.data || [];
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                    orderable: false
+                },
+                {
+                    data: "slug",
+                    render: function (data, type, row) {
+                        return `<a href="https://ourworldindata.org/grapher/${data}" target="_blank" rel="noopener noreferrer"><code>${data}</code></a>`;
+                    }
+                },
+                {
+                    data: "title"
+                },
+                {
+                    data: "has_map_tab",
+                    render: function (data, type, row) {
+                        return data
+                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                            : '<i class="bi bi-x-circle-fill text-muted"></i>';
+                    }
+                },
+                {
+                    data: "has_timeline",
+                    render: function (data, type, row) {
+                        return data
+                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                            : '<i class="bi bi-x-circle-fill text-muted"></i>';
+                    }
+                },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        if (row.has_timeline) {
+                            let html = `${row.min_time} - ${row.max_time}`;
+                            if (row.len_years) {
+                                html += `<small class="text-muted">(${row.len_years})</small>`;
+                            }
+                            return html;
+                        }
+                        return row.min_time || '';
+                    }
+                },
+                {
+                    data: "is_published",
+                    render: function (data, type, row) {
+                        return data
+                            ? '<span class="badge bg-success">Yes</span>'
+                            : '<span class="badge bg-secondary">No</span>';
+                    }
+                },
+                {
+                    data: "template_title",
+                    render: function (data, type, row) {
+                        if (!data) return '<span class="text-muted">-</span>';
+                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data.replace('Template:', '')}</a>`;
+                    }
+                },
+                {
+                    data: "chart_id",
+                    render: function (data, type, row) {
+                        return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="/admin/owid-charts/${data}/edit" onclick="pup_window_new(this)"><i class="bi bi-pencil"></i> Edit</button>`;
+                    },
+                    orderable: false
+                }
+            ],
+            serverSide: false,
+            processing: true
+        });
+    });
     function pup_window_new(element) {
         var target = $(element).attr("pup-target");
         window.open(
