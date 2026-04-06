@@ -14,7 +14,7 @@ def mock_site():
 
 def test_upload_file_no_site():
     res = upload_file("file.svg", "/path/to/file", site=None)
-    assert res == {"error": "No site provided"}
+    assert res == {'error': 'No site provided', 'error_details': '', 'success': False, }
 
 
 @patch("src.main_app.api_services.upload_bot.Path")
@@ -22,7 +22,7 @@ def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
     mock_site.pages.__getitem__.return_value.exists = False
 
     res = upload_file("file.svg", "/path/to/file", site=mock_site)
-    assert res == {"error": "File not found on Commons"}
+    assert res == {"error": "File not found on Commons", 'error_details': '', 'success': False}
 
 
 @patch("src.main_app.api_services.upload_bot.Path")
@@ -33,7 +33,7 @@ def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
     mock_path_cls.return_value = mock_path_instance
 
     res = upload_file("file.svg", "/path/to/file", site=mock_site)
-    assert res == {"error": "File not found on server"}
+    assert res == {"error": "File not found on server", 'error_details': '', 'success': False}
 
 
 @patch("src.main_app.api_services.upload_bot.open", create=True)
@@ -64,4 +64,4 @@ def test_upload_file_fileexists_no_change(mock_path_cls, mock_open, mock_site):
     )
 
     res = upload_file("File.svg", "/path/to/file", site=mock_site)
-    assert res == {"error": "fileexists-no-change", "error_details": ""}
+    assert res == {"error": "fileexists-no-change", "error_details": "", 'success': False}
