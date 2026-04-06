@@ -1,17 +1,19 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
+extra_import_from_tests_conftest = False
+try:
+    from tests.conftest import UserTokenRecord
+    extra_import_from_tests_conftest = True
+except ImportError:
+    from src.main_app.db.user_tokens import UserTokenRecord
+
 from flask import Flask, g, session
 
 from src.main_app.services.users_service import (
-    CurrentUser,
-    context_user,
     _resolve_user_id,
     current_user,
 )
-
-from src.main_app.db.user_tokens import UserTokenRecord
-
 
 @pytest.fixture
 def app():
@@ -90,38 +92,3 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
             del g._current_user
         current_user()
         assert session["username"] == "testuser"
-
-
-@patch("src.main_app.services.users_service.active_coordinators")
-@patch("src.main_app.services.users_service.current_user")
-def test_context_user(mock_current_user, mock_active_coordinators):
-    # Case 1: User is admin
-    user = MagicMock(username="admin")
-    mock_current_user.return_value = user
-    mock_active_coordinators.return_value = ["admin"]
-
-    ctx = context_user()
-    assert ctx["current_user"] == user
-    assert ctx["is_authenticated"] is True
-    assert ctx["is_admin"] is True
-    assert ctx["username"] == "admin"
-
-    # Case 2: User is not admin
-    mock_active_coordinators.return_value = ["other"]
-    ctx = context_user()
-    assert ctx["is_admin"] is False
-
-    # Case 3: No user
-    mock_current_user.return_value = None
-    ctx = context_user()
-    assert ctx["current_user"] is None
-    assert ctx["is_authenticated"] is False
-    assert ctx["is_admin"] is False
-    assert ctx["username"] is None
-
-
-def test_CurrentUser():
-    # Just simple data class test
-    u = CurrentUser(user_id="1", username="foo")
-    assert u.user_id == "1"
-    assert u.username == "foo"

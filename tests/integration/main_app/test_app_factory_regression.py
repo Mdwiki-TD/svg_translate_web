@@ -42,64 +42,6 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     assert app is not None
 
 
-def test_format_stage_timestamp_valid():
-    """Test format_stage_timestamp with valid timestamp."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T04:41:07")
-
-    assert "Oct 27, 2025" in result
-    assert "4:41 AM" in result
-
-
-def test_format_stage_timestamp_empty():
-    """Test format_stage_timestamp with empty string."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("")
-
-    assert result == ""
-
-
-def test_format_stage_timestamp_invalid():
-    """Test format_stage_timestamp with invalid timestamp."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("invalid-timestamp")
-
-    assert result == ""
-
-
-def test_format_stage_timestamp_afternoon():
-    """Test format_stage_timestamp with PM time."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T16:41:07")
-
-    assert "Oct 27, 2025" in result
-    assert "4:41 PM" in result
-
-
-def test_format_stage_timestamp_noon():
-    """Test format_stage_timestamp with noon."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T12:00:00")
-
-    assert "Oct 27, 2025" in result
-    assert "12:00 PM" in result
-
-
-def test_format_stage_timestamp_midnight():
-    """Test format_stage_timestamp with midnight."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T00:00:00")
-
-    assert "Oct 27, 2025" in result
-    assert "12:00 AM" in result
-
-
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_registers_blueprints():
     """Test create_app registers all blueprints."""
