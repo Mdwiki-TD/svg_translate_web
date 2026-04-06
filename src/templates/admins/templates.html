@@ -56,24 +56,6 @@ Translation{% endblock %} {% block contents %}
                                 <input type="text" class="form-control" id="title" name="title" required />
                             </div>
                         </div>
-                        <!-- <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Main File</span>
-                                <input type="text" class="form-control" id="main_file" name="main_file" />
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Last World File</span>
-                                <input type="text" class="form-control" id="last_world_file" name="last_world_file" />
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Source</span>
-                                <input type="text" class="form-control" id="source" name="source" />
-                            </div>
-                        </div> -->
                         <div class="col-md-2 col-sm-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-person-plus-fill"></i> Add
@@ -103,11 +85,11 @@ Translation{% endblock %} {% block contents %}
 </div>
 
 <script>
-    $(function() {
+    $(function () {
         $("#templatesTable").DataTable({
             ajax: {
                 url: "/api/templates",
-                type: "POST",
+                type: "GET",
                 dataSrc: "data"
             },
             columns: [
