@@ -1,7 +1,5 @@
 """Tests for src/main_app/jinja_filters.py - Flask application factory."""
 
-import unittest.mock as mock
-
 import pytest
 
 from src.main_app.utils.jinja_filters import format_stage_timestamp, short_url
