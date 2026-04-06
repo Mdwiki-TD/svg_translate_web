@@ -249,6 +249,11 @@ def get_settings() -> Settings:
 
     oauth_config = _load_oauth_config()
 
+    if oauth_config is None:
+        raise RuntimeError(
+            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
+        )
+
     oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
     if not oauth_encryption_key:
         raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
@@ -266,11 +271,6 @@ def get_settings() -> Settings:
     csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
     if not csrf_time_limit or csrf_time_limit <= 0:
         csrf_time_limit = 3600
-
-    if oauth_config is None:
-        raise RuntimeError(
-            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
-        )
 
     # Load download configuration
     # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
