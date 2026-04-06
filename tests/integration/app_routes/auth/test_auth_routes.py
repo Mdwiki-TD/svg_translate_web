@@ -11,7 +11,7 @@ from src.main_app.app_routes.auth import routes
 
 
 @pytest.fixture
-def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
+def app_mock(monkeypatch: pytest.MonkeyPatch) -> Flask:
     app = Flask(__name__)
     app.secret_key = "test-secret"
     app.config["SERVER_NAME"] = "example.com"
@@ -39,19 +39,19 @@ def app(monkeypatch: pytest.MonkeyPatch) -> Flask:
     return app
 
 
-def test_login_required_redirects_when_anonymous(app: Flask) -> None:
+def test_login_required_redirects_when_anonymous(app_mock: Flask) -> None:
     @routes.login_required
     def protected() -> str:
         return "protected"
 
-    with app.test_request_context("/protected"):
+    with app_mock.test_request_context("/protected"):
         g.is_authenticated = False
         response = protected()
 
     assert response.status_code == 302
 
 
-def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_login_success_flow(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyLimiter:
         def __init__(self) -> None:
             self.calls: list[str] = []
@@ -75,7 +75,7 @@ def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None
 
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.start_login", DummyStart())
 
-    with app.test_request_context("/login"):
+    with app_mock.test_request_context("/login"):
         response = routes.login()
         assert response.status_code == 302
         assert response.headers["Location"] == "https://auth.example"
@@ -85,7 +85,7 @@ def test_login_success_flow(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None
     assert limiter.calls
 
 
-def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyLimiter:
         def allow(self, key: str) -> bool:
             return True
@@ -108,7 +108,7 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.upsert_user_token", lambda **kwargs: kwargs)
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
 
-    with app.test_request_context("/callback?state=token&oauth_verifier=code"):
+    with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
         session["req_token"] = ["k", "s"]
 
@@ -122,11 +122,11 @@ def test_callback_success(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         assert g.is_authenticated is True
 
 
-def test_logout_clears_session(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_logout_clears_session(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.delete_user_token", lambda uid: None)
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.extract_user_id", lambda token: 55)
 
-    with app.test_request_context("/logout"):
+    with app_mock.test_request_context("/logout"):
         session["uid"] = 42
         session["username"] = "Tester"
 
@@ -136,3 +136,80 @@ def test_logout_clears_session(app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         assert response.headers["Location"] == "/"
         assert "uid" not in session
         assert g.current_user is None
+
+
+def test_login_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test login redirects when rate limited."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return False
+
+        def try_after(self, key: str):
+            return type("obj", (object,), {"total_seconds": lambda self: 60})()
+
+    limiter = DummyLimiter()
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.login_rate_limiter", limiter)
+
+    with app_mock.test_request_context("/login"):
+        response = routes.login()
+        assert response.status_code == 302
+        location = response.headers["Location"]
+        # URL is URL-encoded, check for error param
+        assert "error=" in location
+
+
+def test_callback_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test callback redirects when rate limited."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return False
+
+    limiter = DummyLimiter()
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.callback_rate_limiter", limiter)
+
+    with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
+        response = routes.callback()
+        assert response.status_code == 302
+        assert "error=" in response.headers["Location"]
+
+
+def test_callback_missing_state(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test callback fails when state is missing."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return True
+
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.callback_rate_limiter", DummyLimiter())
+
+    with app_mock.test_request_context("/callback"):
+        response = routes.callback()
+        assert response.status_code == 302
+        assert "error=" in response.headers["Location"]
+
+
+def test_load_request_token_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token parses valid token."""
+    from mwoauth import RequestToken
+
+    result = routes._load_request_token(["key", "secret"])
+    assert isinstance(result, RequestToken)
+    assert result.key == "key"
+    assert result.secret == "secret"
+
+
+def test_load_request_token_invalid_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token raises on empty token."""
+    with pytest.raises(ValueError, match="Missing OAuth request token"):
+        routes._load_request_token(None)
+
+    with pytest.raises(ValueError, match="Missing OAuth request token"):
+        routes._load_request_token([])
+
+
+def test_load_request_token_invalid_short(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token raises on short token."""
+    with pytest.raises(ValueError, match="Invalid OAuth request token"):
+        routes._load_request_token(["key"])

@@ -13,15 +13,15 @@ from src.main_app.core.cookies import CookieHeaderClient
 
 class TestCookieHeaderClient:
     @pytest.fixture
-    def app(self) -> Flask:
+    def app_mock(self) -> Flask:
         app = Flask(__name__)
         app.config["SECRET_KEY"] = "test-secret"
         app.test_client_class = CookieHeaderClient
         return app
 
     @pytest.fixture
-    def client(self, app: Flask) -> CookieHeaderClient:
-        return app.test_client()
+    def client(self, app_mock: Flask) -> CookieHeaderClient:
+        return app_mock.test_client()
 
     def test_open_with_dict_headers_and_cookie(self, client: CookieHeaderClient) -> None:
         response = client.get("/", headers={"Cookie": "session=abc123"})
@@ -62,10 +62,10 @@ class TestCookieHeaderClient:
         )
         assert response.status_code == 404
 
-    def test_open_strips_cookie_from_headers(self, app: Flask) -> None:
-        client = app.test_client()
+    def test_open_strips_cookie_from_headers(self, app_mock: Flask) -> None:
+        client = app_mock.test_client()
 
-        with patch.object(app.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -80,10 +80,10 @@ class TestCookieHeaderClient:
             assert "cookie" not in passed_headers
             assert passed_headers.get("Accept") == "text/html"
 
-    def test_open_handles_tuple_cookie_header(self, app: Flask) -> None:
-        client = app.test_client()
+    def test_open_handles_tuple_cookie_header(self, app_mock: Flask) -> None:
+        client = app_mock.test_client()
 
-        with patch.object(app.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -96,10 +96,10 @@ class TestCookieHeaderClient:
             assert ("Cookie", "session=xyz") not in passed_headers
             assert ("Accept", "text/html") in passed_headers
 
-    def test_open_without_cookie_preserves_headers(self, app: Flask) -> None:
-        client = app.test_client()
+    def test_open_without_cookie_preserves_headers(self, app_mock: Flask) -> None:
+        client = app_mock.test_client()
 
-        with patch.object(app.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -112,6 +112,3 @@ class TestCookieHeaderClient:
 
     def test_cookie_header_client_subclass(self) -> None:
         assert issubclass(CookieHeaderClient, object)
-
-
-from unittest.mock import patch

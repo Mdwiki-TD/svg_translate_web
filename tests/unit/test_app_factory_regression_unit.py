@@ -1,5 +1,6 @@
-"""Unit tests for format_stage_timestamp function."""
+"""Unit tests for the Flask application factory helpers."""
 
+from __future__ import annotations
 
 def test_format_stage_timestamp_valid():
     """Test format_stage_timestamp with valid timestamp."""
