@@ -112,14 +112,14 @@ class TestCheckKwargs:
         mock_page.exists = True
         mock_site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, mock_site, new_file=False)
-        assert u._check_kwargs() == _err(None)
+        assert u._check_kwargs() == {"success": True, "error": None}
 
     def test_all_valid_new_file(self, mock_site, tmp_file):
         mock_page = MagicMock()
         mock_page.exists = False
         mock_site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", tmp_file, mock_site, new_file=True)
-        assert u._check_kwargs() == _err(None)
+        assert u._check_kwargs() == {"success": True, "error": None}
 
 
 # ══════════════════════════════════════════════════════════════════════════════

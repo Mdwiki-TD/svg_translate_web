@@ -72,7 +72,7 @@ class UploadFile:
                 logger.error(f"File {self.file_name} already exists on Commons")
                 return self._err("File already exists on Commons")
 
-        return self._err(None)
+        return {"success": True, "error": None}
 
     def _upload_file(self) -> dict:
         """

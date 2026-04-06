@@ -351,7 +351,17 @@ def test_load_oauth_config_with_defaults():
 
 
 class TestConfig:
-    @patch.dict(os.environ, {"FLASK_SECRET_KEY": "test-secret-key", "MAIN_DIR": "/tmp/test-data"})
+    @patch.dict(
+        os.environ,
+        {
+            "FLASK_SECRET_KEY": "test-secret-key",
+            "OAUTH_MWURI": "https://example.com",
+            "OAUTH_CONSUMER_KEY": "key",
+            "OAUTH_CONSUMER_SECRET": "secret",
+            "MAIN_DIR": "/tmp/test-data",
+        },
+        clear=True,
+    )
     def test_get_settings_missing_oauth_encryption_key(self):
         """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
         get_settings.cache_clear()
@@ -366,6 +376,7 @@ class TestConfig:
             "OAUTH_ENCRYPTION_KEY": "test-key",
             "MAIN_DIR": "/tmp/test-data",
         },
+        clear=True,
     )
     def test_get_settings_missing_oauth_config(self):
         """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
