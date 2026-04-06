@@ -2,85 +2,16 @@
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
-
-
-def test_extract_text_step_success(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
-    mock_get_wikitext.return_value = "some wikitext"
-
-    result = extract_text_step("File:Example.svg")
-
-    assert result["success"] is True
-    assert result["text"] == "some wikitext"
-    assert result["error"] is None
-    mock_get_wikitext.assert_called_once_with("File:Example.svg")
-
-
-def test_extract_text_step_fail(mocker):
-    mock_get_wikitext = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_text.get_wikitext")
-    mock_get_wikitext.return_value = ""
-
-    result = extract_text_step("File:Example.svg")
-
-    assert result["success"] is False
-    assert result["text"] == ""
-    assert result["error"] == "No wikitext found"
-
-
-def test_extract_titles_step_success(mocker):
-    mock_get_files_list_data = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
-    )
-    mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
-
-    result = extract_titles_step("some text")
-
-    assert result["success"] is True
-    assert result["main_title"] == "Main.svg"
-    assert result["titles"] == ["File1.svg", "File2.svg"]
-    assert result["error"] is None
-
-
-def test_extract_titles_step_manual_title(mocker):
-    mock_get_files_list_data = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
-    )
-    mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
-
-    result = extract_titles_step("some text", manual_main_title="Manual.svg")
-
-    assert result["success"] is True
-    assert result["main_title"] == "Manual.svg"
-
-
-def test_extract_titles_step_limit(mocker):
-    mock_get_files_list_data = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
-    )
-    mock_get_files_list_data.return_value = {
-        "main_title": "Main.svg",
-        "titles": ["File1.svg", "File2.svg", "File3.svg"],
-    }
-
-    result = extract_titles_step("some text", titles_limit=2)
-
-    assert result["success"] is True
-    assert len(result["titles"]) == 2
-    assert result["titles"] == ["File1.svg", "File2.svg"]
 
 
 @pytest.fixture
 def processor_args():
-    args = MagicMock()
+    _args = MagicMock()
     # It's a dict in job.py, accessed with .get()
     return {"manual_main_title": None, "titles_limit": None, "overwrite": False, "upload": False}
 

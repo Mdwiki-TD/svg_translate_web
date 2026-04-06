@@ -1,5 +1,5 @@
 """
-TODO: write tests
+TODO: write tests for `src.main_app.public_jobs_workers.copy_svg_langs.worker`
 """
 
 from pathlib import Path
