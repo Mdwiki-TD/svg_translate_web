@@ -136,3 +136,80 @@ def test_logout_clears_session(app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         assert response.headers["Location"] == "/"
         assert "uid" not in session
         assert g.current_user is None
+
+
+def test_login_rate_limited(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test login redirects when rate limited."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return False
+
+        def try_after(self, key: str):
+            return type("obj", (object,), {"total_seconds": lambda self: 60})()
+
+    limiter = DummyLimiter()
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.login_rate_limiter", limiter)
+
+    with app.test_request_context("/login"):
+        response = routes.login()
+        assert response.status_code == 302
+        location = response.headers["Location"]
+        # URL is URL-encoded, check for error param
+        assert "error=" in location
+
+
+def test_callback_rate_limited(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test callback redirects when rate limited."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return False
+
+    limiter = DummyLimiter()
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.callback_rate_limiter", limiter)
+
+    with app.test_request_context("/callback?state=token&oauth_verifier=code"):
+        response = routes.callback()
+        assert response.status_code == 302
+        assert "error=" in response.headers["Location"]
+
+
+def test_callback_missing_state(app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test callback fails when state is missing."""
+
+    class DummyLimiter:
+        def allow(self, key: str) -> bool:
+            return True
+
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.callback_rate_limiter", DummyLimiter())
+
+    with app.test_request_context("/callback"):
+        response = routes.callback()
+        assert response.status_code == 302
+        assert "error=" in response.headers["Location"]
+
+
+def test_load_request_token_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token parses valid token."""
+    from mwoauth import RequestToken
+
+    result = routes._load_request_token(["key", "secret"])
+    assert isinstance(result, RequestToken)
+    assert result.key == "key"
+    assert result.secret == "secret"
+
+
+def test_load_request_token_invalid_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token raises on empty token."""
+    with pytest.raises(ValueError, match="Missing OAuth request token"):
+        routes._load_request_token(None)
+
+    with pytest.raises(ValueError, match="Missing OAuth request token"):
+        routes._load_request_token([])
+
+
+def test_load_request_token_invalid_short(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test _load_request_token raises on short token."""
+    with pytest.raises(ValueError, match="Invalid OAuth request token"):
+        routes._load_request_token(["key"])
