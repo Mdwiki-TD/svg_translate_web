@@ -11,7 +11,7 @@ from src.main_app.app_routes.public_jobs import JobsPublicRoutes, _can_manage_jo
 
 
 @pytest.fixture
-def app():
+def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"
     return app
@@ -116,19 +116,19 @@ class TestJobsPublicRoutesInit:
         mock_bp.post.assert_any_call("/<string:job_type>/<int:job_id>/delete")
 
 
-def test_client_key_with_forwarded_for(app):
+def test_client_key_with_forwarded_for(app_mock):
     """Test _client_key returns first forwarded IP."""
     from src.main_app.app_routes.auth.routes import _client_key
 
-    with app.test_request_context(headers={"X-Forwarded-For": "192.168.1.1, 10.0.0.1"}):
+    with app_mock.test_request_context(headers={"X-Forwarded-For": "192.168.1.1, 10.0.0.1"}):
         result = _client_key()
         assert result == "192.168.1.1"
 
 
-def test_client_key_no_remote_addr(app):
+def test_client_key_no_remote_addr(app_mock):
     """Test _client_key returns anonymous when no remote addr."""
     from src.main_app.app_routes.auth.routes import _client_key
 
-    with app.test_request_context():
+    with app_mock.test_request_context():
         result = _client_key()
         assert result == "anonymous"

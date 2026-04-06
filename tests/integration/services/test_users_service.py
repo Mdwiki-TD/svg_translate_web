@@ -12,14 +12,14 @@ from src.main_app.db.user_tokens import UserTokenRecord
 
 
 @pytest.fixture
-def app():
+def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"
     return app
 
 
-def test_resolve_user_id(app):
-    with app.test_request_context():
+def test_resolve_user_id(app_mock):
+    with app_mock.test_request_context():
         session["uid"] = 123
         assert _resolve_user_id() == 123
 
@@ -36,13 +36,13 @@ def test_resolve_user_id(app):
 @patch("src.main_app.services.users_service.get_user_token")
 @patch("src.main_app.services.users_service.extract_user_id")
 @patch("src.main_app.services.users_service.settings")
-def test_current_user(mock_settings, mock_extract, mock_get_token, app):
+def test_current_user(mock_settings, mock_extract, mock_get_token, app_mock):
     mock_settings.cookie.name = "test_cookie"
 
     mock_user = UserTokenRecord(user_id=1, username="testuser", access_token=b"", access_secret=b"")
     mock_get_token.return_value = mock_user
 
-    with app.test_request_context():
+    with app_mock.test_request_context():
         g._current_user = mock_user
         assert current_user() == mock_user
         del g._current_user
@@ -54,7 +54,7 @@ def test_current_user(mock_settings, mock_extract, mock_get_token, app):
         session.clear()
 
         mock_extract.return_value = 1
-        with app.test_request_context(environ_base={"HTTP_COOKIE": "test_cookie=signed_value"}):
+        with app_mock.test_request_context(environ_base={"HTTP_COOKIE": "test_cookie=signed_value"}):
             assert current_user() == mock_user
             assert session["uid"] == 1
             assert g._current_user == mock_user

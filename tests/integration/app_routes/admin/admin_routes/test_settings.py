@@ -15,7 +15,7 @@ KEY_PATTERN = r"[a-z][a-z0-9_]{0,189}"
 
 
 @pytest.fixture
-def app():
+def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"
     return app
