@@ -2,7 +2,6 @@
 <html lang="en" data-bs-theme="light">
 
 {% set cdn_base = "https://tools-static.wmflabs.org/cdnjs/ajax/libs" %}
-<!-- {% set cdn_base = "https://cdnjs.cloudflare.com/ajax/libs" %} -->
 
 <head>
     <meta charset="utf-8">
@@ -76,7 +75,7 @@
     <script src="{{ url_for('static', filename='js/card-tools.js') }}"></script>
 
     {% block extra_js %}{% endblock %}
-
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script>
         $(document).ready(function () {
             $('.DataTable').DataTable({

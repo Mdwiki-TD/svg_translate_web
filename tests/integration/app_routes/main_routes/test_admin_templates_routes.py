@@ -74,6 +74,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
