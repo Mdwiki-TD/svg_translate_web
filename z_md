@@ -46,15 +46,10 @@
 | `test_text_api.py` | unit | MOVE | `tests/unit/main_app/api_services/test_text_api.py` |
 | `test_text_bot.py` | unit | MOVE | `tests/unit/main_app/api_services/test_text_bot.py` |
 | `test_upload_bot.py` | **SPLIT** | SPLIT | unit + integration |
-| `test_upload_bot_new.py` | **SPLIT** | SPLIT | unit + integration |
 
 **Split detail — `test_pages_api.py`:**
 - → `tests/unit/main_app/api_services/test_pages_api.py` — tests that mock the HTTP client
 - → `tests/integration/main_app/api_services/test_pages_api.py` — tests that call the real API client against a mock server
-
-**Split detail — `test_upload_bot.py` / `test_upload_bot_new.py`:**
-- → `tests/unit/…/test_upload_bot.py` — unit tests (mock file system, mock wiki client)
-- → `tests/integration/…/test_upload_bot.py` — integration tests (real file + real client interaction)
 
 ---
 
@@ -284,17 +279,6 @@ tests/integration/main_app/api_services/
 │   └── test_pages_api.py         ← real client against responses_mock / VCR
 ```
 
-### 4. `api_services/test_upload_bot.py` and `test_upload_bot_new.py`
-
-```
-tests/unit/main_app/api_services/
-│   ├── test_upload_bot.py
-│   └── test_upload_bot_new.py
-
-tests/integration/main_app/api_services/
-│   ├── test_upload_bot.py
-│   └── test_upload_bot_new.py
-```
 
 ### 5. `app_routes/auth/test_oauth.py`
 
@@ -348,7 +332,6 @@ tests/
 │       │   ├── test_text_api.py
 │       │   ├── test_text_bot.py
 │       │   ├── test_upload_bot.py         ← split (unit half)
-│       │   └── test_upload_bot_new.py     ← split (unit half)
 │       ├── app_routes/
 │       │   ├── admin/
 │       │   │   ├── test_admins_required.py
@@ -458,7 +441,6 @@ tests/
 │       ├── api_services/
 │       │   ├── test_pages_api.py          ← split (integration half)
 │       │   ├── test_upload_bot.py         ← split (integration half)
-│       │   └── test_upload_bot_new.py     ← split (integration half)
 │       ├── app_routes/
 │       │   ├── admin/
 │       │   │   └── admin_routes/
@@ -773,7 +755,6 @@ git mv tests/main_app/test_app_factory.py \
 # api_services splits
 # cp tests/main_app/api_services/test_pages_api.py → split
 # cp tests/main_app/api_services/test_upload_bot.py → split
-# cp tests/main_app/api_services/test_upload_bot_new.py → split
 
 # auth split
 # cp tests/main_app/app_routes/auth/test_oauth.py → split

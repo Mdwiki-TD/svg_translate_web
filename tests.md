@@ -78,7 +78,6 @@ tests/
 │   │   │   ├── test_text_api.py
 │   │   │   ├── test_text_bot.py
 │   │   │   ├── test_upload_bot.py
-│   │   │   ├── test_upload_bot_new.py       # UploadFile (مع Mock)
 │   │   │   ├── test_mwclient_page.py        # MwClientPage (مع Mock)
 │   │   │   └── clients/
 │   │   │       ├── test_commons_client.py

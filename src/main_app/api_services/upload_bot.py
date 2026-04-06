@@ -10,6 +10,8 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+_RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
+
 
 def fix_file_name(file_name: str) -> str:
     file_name = file_name.strip()
@@ -18,140 +20,129 @@ def fix_file_name(file_name: str) -> str:
     return file_name
 
 
-def _err(message: str, error_details: str = "") -> dict[str, object]:
-    return {"success": False, "error": message, "error_details": error_details}
+class UploadFile:
+    def __init__(
+        self,
+        file_name: str,
+        file_path: Path,
+        site: mwclient.client.Site | None = None,
+        summary: str | None = None,
+        description: str | None = None,
+        new_file: bool = False,
+    ) -> None:
+        self.file_name = file_name
+        self.site = site
+        self.file_path = file_path
+        self.summary = summary
+        self.description = description
+        self.new_file = new_file
 
+        if self.file_name:
+            self.file_name = fix_file_name(self.file_name)
 
-def _check_kwargs(
-    file_name: str,
-    file_path: Path,
-    site: mwclient.client.Site | None = None,
-    new_file: bool = False,
-):
-    """
+    @staticmethod
+    def _err(message: str, error_details: str = "") -> dict[str, object]:
+        return {"success": False, "error": message, "error_details": error_details}
+
+    def _check_kwargs(self) -> dict:
+        """
         Check if the kwargs are valid
-    """
+        """
+        if not self.site:
+            return self._err("No site provided")
 
-    if not site:
-        return _err("No site provided")
+        if not self.file_name:
+            return self._err("File name is required")
 
-    if not file_name:
-        return _err("File name is required")
+        if self.file_path is None:
+            return self._err("File path is None")
 
-    if file_path is None:
-        return _err("File path is None")
+        file_path = Path(self.file_path)
+        if not file_path.is_file():
+            logger.error(f"File not found: {self.file_path}")
+            return self._err("File not found")
 
-    file_path = Path(file_path)
+        page = self.site.pages[f"File:{self.file_name}"]
+        if not self.new_file:
+            if not page.exists:
+                logger.error(f"File {self.file_name} does not exist on Commons")
+                return self._err("File not found on Commons")
+        else:
+            if page.exists:
+                logger.error(f"File {self.file_name} already exists on Commons")
+                return self._err("File already exists on Commons")
 
-    if not file_path.is_file():
-        logger.error(f"File not found: {file_path}")
-        return _err("File not found")
+        return self._err(None)
 
-    file_name = fix_file_name(file_name)
-    page = site.pages[f"File:{file_name}"]
-    if not new_file:
-        if not page.exists:
-            logger.error(f"File {file_name} does not exist on Commons")
-            return _err("File not found on Commons")
-    else:
-        if page.exists:
-            logger.error(f"File {file_name} already exists on Commons")
-            return _err("File already exists on Commons")
-
-    return _err(None)
-
-
-def _upload_file(
-    file_name: str,
-    file_path: Path,
-    site: mwclient.client.Site | None = None,
-    summary: str | None = None,
-    description: str | None = None,
-) -> dict[str, str] | dict:
-    """
+    def _upload_file(self) -> dict:
+        """
         Single upload attempt — returns a result dict, never raises.
-    """
-    file_name = fix_file_name(file_name)
+        """
+        try:
+            response = self._site_upload()
+            logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
+            return {"success": True, "result": response.get("result", ""), "response": response}
 
-    try:
-        response = site_upload(file_name, file_path, site, summary, description)
+        except mwclient.errors.AssertUserFailedError:
+            # Session expired or user assertion failed — no point retrying
+            msg = "User assertion failed; session may have expired"
+            logger.error(msg)
+            return self._err("assertuserfailed", msg)
 
-        logger.debug(f"Successfully uploaded {file_name} to Wikimedia Commons")
-        return {"success": True, "result": response.get("result", ""), "response": response, **response}
+        except mwclient.errors.UserBlocked:
+            # User is blocked — no point retrying
+            msg = "User is blocked from editing"
+            logger.error(msg)
+            return self._err("userblocked", msg)
 
-    except mwclient.errors.AssertUserFailedError:
-        # Session expired or user assertion failed — no point retrying
-        msg = "User assertion failed; session may have expired"
-        logger.error(msg)
-        return _err("assertuserfailed", msg)
+        except mwclient.errors.InsufficientPermission:
+            msg = "User does not have sufficient permissions to upload"
+            logger.error(msg)
+            return self._err("insufficientpermission", msg)
 
-    except mwclient.errors.UserBlocked:
-        # User is blocked — no point retrying
-        msg = "User is blocked from editing"
-        logger.error(msg)
-        return _err("userblocked", msg)
+        except mwclient.errors.FileExists:
+            logger.error("File already exists on Wikimedia Commons")
+            return self._err("fileexists", "File already exists")
 
-    except mwclient.errors.InsufficientPermission:
-        msg = "User does not have sufficient permissions to upload"
-        logger.error(msg)
-        return _err("insufficientpermission", msg)
+        except mwclient.errors.MaximumRetriesExceeded:
+            # mwclient's internal network retry budget exhausted
+            msg = "Maximum network retries exceeded"
+            logger.error(msg)
+            return self._err("maxretriesexceeded", msg)
 
-    except mwclient.errors.FileExists:
-        logger.error("File already exists on Wikimedia Commons")
-        return _err("fileexists", "File already exists")
+        except requests.exceptions.Timeout as exc:
+            logger.error("Request timed out while uploading file")
+            return self._err("timeout", str(exc))
 
-    except mwclient.errors.MaximumRetriesExceeded:
-        # mwclient's internal network retry budget exhausted
-        msg = "Maximum network retries exceeded"
-        logger.error(msg)
-        return _err("maxretriesexceeded", msg)
+        except requests.exceptions.ConnectionError as exc:
+            logger.error("Connection error while uploading file")
+            return self._err("connectionerror", str(exc))
 
-    except requests.exceptions.Timeout as exc:
-        logger.error("Request timed out while uploading file")
-        return _err("timeout", str(exc))
+        except requests.exceptions.HTTPError as exc:
+            logger.error("HTTP error occurred while uploading file")
+            return self._err("httperror", str(exc))
 
-    except requests.exceptions.ConnectionError as exc:
-        logger.error("Connection error while uploading file")
-        return _err("connectionerror", str(exc))
+        except mwclient.errors.APIError as exc:
+            if exc.code == "ratelimited":
+                logger.debug("Rate limited during upload")
+                return self._err("ratelimited")
 
-    except requests.exceptions.HTTPError as exc:
-        logger.error("HTTP error occurred while uploading file")
-        return _err("httperror", str(exc))
+            if exc.code == "fileexists-no-change":
+                logger.debug("Upload result: fileexists-no-change")
+                return self._err("fileexists-no-change")
 
-    except mwclient.errors.APIError as exc:
-        if exc.code == "ratelimited":
-            logger.debug("Rate limited during upload")
-            return _err("ratelimited")
+            return self._err(exc.code, exc.info)
 
-        if exc.code == "fileexists-no-change":
-            logger.debug("Upload result: fileexists-no-change")
-            return _err("fileexists-no-change")
+        except Exception as exc:
+            logger.exception(f"Unexpected error uploading {self.file_name}")
+            return self._err("unexpected", str(exc))
 
-        return _err(exc.code, exc.info)
-
-    except Exception as exc:
-        logger.exception(f"Unexpected error uploading {file_name}")
-        return _err("unexpected", str(exc))
-
-
-def site_upload(
-    file_name: str,
-    file_path: Path,
-    site: mwclient.client.Site | None = None,
-    summary: str | None = None,
-    description: str | None = None,
-):
-    """
+    def _site_upload(self) -> dict:
+        """
         Upload a file to the site.
 
         API doc: https://www.mediawiki.org/wiki/API:Upload
 
-        Args:
-            file_name: Destination file_name, don't include namespace prefix like 'File:'
-            file_path: Path
-            site: mwclient client Site
-            summary: Upload comment summary.
-            description: Wikitext for the file description page.
 
         Returns:
             JSON result from the API.
@@ -178,18 +169,45 @@ def site_upload(
             requests.exceptions.HTTPError
             requests.exceptions.ConnectionError
             requests.exceptions.Timeout
+        """
+        with open(self.file_path, "rb") as f:
+            response = self.site.upload(
+                file=f,
+                description=self.description,
+                filename=self.file_name,
+                comment=self.summary or "",
+                ignore=True,  # skip warnings like "file exists"
+            )
 
-    """
-    with open(file_path, "rb") as f:
-        response = site.upload(
-            file=f,
-            description=description,
-            filename=file_name,
-            comment=summary or "",
-            ignore=True,  # skip warnings like "file exists"
-        )
+        return response
 
-    return response
+    def upload(self) -> dict:
+        check = self._check_kwargs()
+        if check["error"]:
+            return check
+
+        upload_result = self._upload_file()
+
+        if upload_result.get("error") != "ratelimited":
+            return upload_result
+
+        # handle retry
+        return self._upload_with_retry()
+
+    def _upload_with_retry(self) -> dict:
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+            logger.warning(
+                f"Rate limited on upload attempt {attempt}/{len(_RETRY_DELAYS)} "
+                f"for file '{self.file_name}'. Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+
+            upload_result = self._upload_file()
+
+            if upload_result.get("error") != "ratelimited":
+                return upload_result
+
+        return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
 
 def upload_file(
@@ -209,19 +227,7 @@ def upload_file(
             - error (str | None): error code on failure
             - error_details (str): additional error info
     """
-    _check = _check_kwargs(file_name, file_path, site, new_file)
-
-    if _check["error"]:
-        return _check
-
-    upload_result = _upload_file(
-        file_name,
-        file_path,
-        site,
-        summary,
-        description,
-    )
-    return upload_result
+    return UploadFile(file_name, file_path, site, summary, description, new_file).upload()
 
 
 __all__ = [
