@@ -84,8 +84,11 @@ Translation{% endblock %} {% block contents %}
     </div>
 </div>
 
+{% endblock %}
+{% block extra_js %}
+
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $("#templatesTable").DataTable({
             ajax: {
                 url: "/api/templates",
@@ -95,40 +98,40 @@ Translation{% endblock %} {% block contents %}
             columns: [
                 {
                     data: null,
-                    render: function(data, type, row, meta) {
+                    render: function (data, type, row, meta) {
                         return meta.row + 1;
                     },
                     orderable: false
                 },
                 {
                     data: "title",
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
                     }
                 },
                 {
                     data: "main_file",
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         if (!data) return "";
                         return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
                     }
                 },
                 {
                     data: "last_world_file",
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         if (!data) return "";
                         return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
                     }
                 },
                 {
                     data: "last_world_year",
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return data || "";
                     }
                 },
                 {
                     data: "source",
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         if (!data) return "";
                         return `<a href="${data}" target="_blank" rel="noopener noreferrer">${data.substring(0, 50)}...</a>`;
                     }
