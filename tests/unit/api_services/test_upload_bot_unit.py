@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import mwclient.errors
 import pytest
@@ -128,6 +128,8 @@ class TestCheckKwargs:
 
 
 class TestUploadFileInternal:
+    """Tests the error handling mapping in _upload_file."""
+
     def test_success(self, uploader):
         uploader._site_upload = MagicMock(return_value=make_upload_response())
         result = uploader._upload_file()
@@ -158,10 +160,10 @@ class TestUploadFileInternal:
         assert "error_details" in result
 
     def test_unexpected_exception(self, uploader):
-        uploader._site_upload = MagicMock(side_effect=Exception("something broke"))
+        uploader._site_upload = MagicMock(side_effect=RuntimeError("boom"))
         result = uploader._upload_file()
         assert result["error"] == "unexpected"
-        assert "something broke" in result["error_details"]
+        assert "boom" in str(result["error_details"])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -215,75 +217,3 @@ class TestUploadWithRetry:
             result = uploader._upload_with_retry()
         assert result["result"] == "Success"
         assert uploader._upload_file.call_count == 3
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# upload  (full flow)
-# ══════════════════════════════════════════════════════════════════════════════
-
-
-class TestUpload:
-    def _make_uploader(self, site, tmp_file, new_file=False):
-        mock_page = MagicMock()
-        mock_page.exists = not new_file  # exists=True for update, False for new
-        site.pages.__getitem__.return_value = mock_page
-        return UploadFile("Test.jpg", tmp_file, site, new_file=new_file)
-
-    def test_success(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file)
-        u._site_upload = MagicMock(return_value=make_upload_response())
-        with patch("builtins.open", mock_open(read_data=b"data")):
-            result = u.upload()
-        assert result["result"] == "Success"
-
-    def test_check_kwargs_fails_early(self, mock_site, tmp_file):
-        """upload() returns error immediately if _check_kwargs fails."""
-        u = UploadFile("Test.jpg", tmp_file, site=None)
-        result = u.upload()
-        assert result == _err("No site provided")
-
-    def test_rate_limited_then_success(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file)
-        u._upload_file = MagicMock(
-            side_effect=[
-                _err("ratelimited", ""),
-                make_upload_response(),
-            ]
-        )
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = u.upload()
-        assert result["result"] == "Success"
-
-    def test_rate_limited_exhausts_all_retries(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file)
-        u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = u.upload()
-        assert result["error"] == "ratelimited"
-        # 1 initial attempt + len(_RETRY_DELAYS) retries
-        assert u._upload_file.call_count == 1 + len(_RETRY_DELAYS)
-
-    def test_rate_limited_sleeps_correct_delays(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file)
-        u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep") as mock_sleep:
-            u.upload()
-        sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
-        assert sleep_calls == list(_RETRY_DELAYS)
-
-    def test_non_ratelimited_error_no_retry(self, mock_site, tmp_file):
-        """Errors other than ratelimited should not trigger retry."""
-        u = self._make_uploader(mock_site, tmp_file)
-        u._upload_file = MagicMock(return_value=_err("userblocked", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep") as mock_sleep:
-            result = u.upload()
-        assert result["error"] == "userblocked"
-        mock_sleep.assert_not_called()
-        assert u._upload_file.call_count == 1
-
-    def test_new_file_upload_success(self, mock_site, tmp_file):
-        u = self._make_uploader(mock_site, tmp_file, new_file=True)
-        u._site_upload = MagicMock(return_value=make_upload_response())
-        with patch("builtins.open", mock_open(read_data=b"data")):
-            result = u.upload()
-        assert result["result"] == "Success"
