@@ -25,40 +25,6 @@ def test_Database_init_basic(mock_pymysql):
     assert db.connection is None
 
 
-@pytest.mark.skip(reason="AssertionError: expected call not found.")
-@patch("src.main_app.db.db_class.pymysql")
-def test_Database_connect(mock_pymysql):
-    """Test Database _connect method."""
-    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
-
-    db = Database(database_config)
-
-    # Mock the pymysql.connect to return a mock connection
-    mock_connection = MagicMock()
-    mock_pymysql.connect.return_value = mock_connection
-
-    # Call _connect
-    db._connect()
-
-    # Verify pymysql.connect was called with correct parameters
-    mock_pymysql.connect.assert_called_once_with(
-        host="localhost",
-        database="testdb",
-        connect_timeout=5,
-        read_timeout=10,
-        write_timeout=10,
-        charset="utf8mb4",
-        init_command="SET time_zone = '+00:00'",
-        autocommit=True,
-        cursorclass=DictCursor,
-        user="testuser",
-        password="testpass",
-    )
-
-    # Verify that the connection was stored
-    assert db.connection == mock_connection
-
-
 @patch("src.main_app.db.db_class.pymysql")
 def test_Database_ensure_connection_new(mock_pymysql):
     """Test Database _ensure_connection when no connection exists."""
@@ -178,3 +144,37 @@ def test_Database_fetch_query_success(mock_pymysql):
     # Verify the query was executed
     mock_cursor.execute.assert_called_once_with("SELECT * FROM test", ())
     assert result == [{"id": 1, "name": "test"}]
+
+
+# @pytest.mark.skip(reason="AssertionError: expected call not found.")
+@patch("src.main_app.db.db_class.pymysql")
+def test_Database_connect(mock_pymysql):
+    """Test Database _connect method."""
+    database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
+
+    db = Database(database_config)
+
+    # Mock the pymysql.connect to return a mock connection
+    mock_connection = MagicMock()
+    mock_pymysql.connect.return_value = mock_connection
+
+    # Call _connect
+    db._connect()
+
+    # Verify pymysql.connect was called with correct parameters
+    mock_pymysql.connect.assert_called_once_with(
+        host="localhost",
+        database="testdb",
+        connect_timeout=5,
+        read_timeout=10,
+        write_timeout=10,
+        charset="utf8mb4",
+        init_command="SET time_zone = '+00:00'",
+        autocommit=True,
+        cursorclass=DictCursor,
+        user="testuser",
+        password="testpass",
+    )
+
+    # Verify that the connection was stored
+    assert db.connection == mock_connection
