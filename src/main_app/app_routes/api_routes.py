@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
-from ..db import TemplateRecord
+from ..db import OwidChartRecord, TemplateRecord
 from ..db import fetch_query_safe
-from ..services import template_service
+from ..services import owid_charts_service, template_service
 
 logger = logging.getLogger(__name__)
 
@@ -66,3 +66,41 @@ def templates_need_update_list():
             "data": data,
         }
     )
+
+
+@bp_api.get("/owid-charts")
+def owid_charts_list():
+    template_filter = request.args.get("template", "").strip()
+    all_charts: list[OwidChartRecord] = owid_charts_service.list_charts()
+
+    if template_filter == "has_template":
+        charts = [c for c in all_charts if c.template_title]
+    elif template_filter == "no_template":
+        charts = [c for c in all_charts if not c.template_title]
+    else:
+        charts = all_charts
+
+    total = len(all_charts)
+    summary = {
+        "total": total,
+        "published": {
+            "with": sum(1 for c in all_charts if c.is_published),
+            "without": sum(1 for c in all_charts if not c.is_published),
+        },
+        "template": {
+            "with": sum(1 for c in all_charts if c.template_id),
+            "without": sum(1 for c in all_charts if not c.template_id),
+        },
+        "map_tab": {
+            "with": sum(1 for c in all_charts if c.has_map_tab),
+            "without": sum(1 for c in all_charts if not c.has_map_tab),
+        },
+        "timeline": {
+            "with": sum(1 for c in all_charts if c.has_timeline),
+            "without": sum(1 for c in all_charts if not c.has_timeline),
+        },
+    }
+
+    data = [c.to_dict() for c in charts]
+
+    return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
