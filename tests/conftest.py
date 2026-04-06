@@ -24,6 +24,11 @@ from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 
 
 @pytest.fixture
+def mock_site():
+    return MagicMock()
+
+
+@pytest.fixture
 def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"

@@ -41,7 +41,6 @@ def sample_record():
 
 @pytest.fixture
 def mock_db_instance():
-    """Create a mock OwidChartsDB instance."""
     return MagicMock()
 
 

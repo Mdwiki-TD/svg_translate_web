@@ -6,11 +6,6 @@ from src.main_app.public_jobs_workers.copy_svg_langs.steps.upload import upload_
 
 
 @pytest.fixture
-def mock_site():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_store():
     return MagicMock()
 

@@ -20,11 +20,6 @@ def _err(message: str | None, error_details: str = "") -> dict[str, object]:
 
 
 @pytest.fixture
-def mock_site():
-    return MagicMock()
-
-
-@pytest.fixture
 def tmp_file(tmp_path):
     """A real file on disk so Path.exists() returns True for unit logic."""
     f = tmp_path / "test.jpg"
