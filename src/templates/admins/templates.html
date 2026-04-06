@@ -9,12 +9,12 @@ Translation{% endblock %} {% block contents %}
         </a>
     </div>
     <div class="card-body">
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4" id="summaryCards">
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Templates</h2>
-                        <p class="display-6 mb-0">{{ summary.total }}</p>
+                        <p class="display-6 mb-0" id="totalCount">-</p>
                     </div>
                 </div>
             </div>
@@ -22,7 +22,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Main File</h2>
-                        <p class="display-6 mb-0">{{ summary.with_main_file }}</p>
+                        <p class="display-6 mb-0" id="withMainFile">-</p>
                     </div>
                 </div>
             </div>
@@ -30,7 +30,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Last World File</h2>
-                        <p class="display-6 mb-0">{{ summary.with_last_world_file }}</p>
+                        <p class="display-6 mb-0" id="withLastWorldFile">-</p>
                     </div>
                 </div>
             </div>
@@ -38,7 +38,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Source</h2>
-                        <p class="display-6 mb-0">{{ summary.with_source }}</p>
+                        <p class="display-6 mb-0" id="withSource">-</p>
                     </div>
                 </div>
             </div>

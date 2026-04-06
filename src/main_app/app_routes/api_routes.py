@@ -19,7 +19,16 @@ def templates_list():
 
     data = [t.to_dict() for t in templates]
 
-    return jsonify({"data": data, })
+    total = len(templates)
+    summary = {
+        "total": total,
+        "with_main_file": sum(1 for t in templates if t.main_file),
+        "with_last_world_file": sum(1 for t in templates if t.last_world_file),
+        "with_last_world_year": sum(1 for t in templates if t.last_world_year),
+        "with_source": sum(1 for t in templates if t.source),
+    }
+
+    return jsonify({"data": data, "summary": summary})
 
 
 @bp_api.get("/templates-need-update")
@@ -52,4 +61,8 @@ def templates_need_update_list():
         for row in templates
     ]
 
-    return jsonify({"data": data, })
+    return jsonify(
+        {
+            "data": data,
+        }
+    )
