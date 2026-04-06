@@ -153,6 +153,113 @@ def test_Templates():
     bp.get.assert_any_call("/templates")
     bp.get.assert_any_call("/templates/<int:template_id>/edit")
     bp.get.assert_any_call("/templates-need-update")
+    bp.get.assert_any_call("/templates/download-json")
     bp.post.assert_any_call("/templates/add")
     bp.post.assert_any_call("/templates/update")
     bp.post.assert_any_call("/templates/<int:template_id>/delete")
+
+
+def test_create_json_file_success(app, monkeypatch):
+    """Test create_json_file returns JSON file with templates data."""
+    from src.main_app.db import TemplateRecord
+    from src.main_app.app_routes.admin_routes.templates import create_json_file
+
+    templates = [
+        TemplateRecord(
+            id=1,
+            title="Test Template",
+            main_file="File:Example.svg",
+            last_world_file="File:World.svg",
+            last_world_year="2023",
+            source="Test source",
+            created_at=None,
+            updated_at=None,
+        ),
+    ]
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin_routes.templates.template_service.list_templates", lambda: templates
+    )
+
+    response, status_code = create_json_file()
+
+    assert status_code == 200
+    assert response.headers["Content-Type"] == "application/json"
+    assert "attachment" in response.headers["Content-Disposition"]
+    assert "templates.json" in response.headers["Content-Disposition"]
+
+
+def test_create_json_file_no_templates(app, monkeypatch):
+    """Test create_json_file returns 404 when no templates."""
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.template_service.list_templates", lambda: [])
+
+    from src.main_app.app_routes.admin_routes.templates import create_json_file
+
+    msg, status_code = create_json_file()
+
+    assert status_code == 404
+    assert "No templates found" in msg
+
+
+def test_create_json_file_exception(app, monkeypatch):
+    """Test create_json_file returns 500 on exception."""
+
+    def raise_error():
+        raise RuntimeError("Database error")
+
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.template_service.list_templates", raise_error)
+
+    from src.main_app.app_routes.admin_routes.templates import create_json_file
+
+    msg, status_code = create_json_file()
+
+    assert status_code == 500
+    assert "Failed to create JSON file" in msg
+
+
+def test_edit_template_found(app, monkeypatch):
+    """Test _edit_template returns template when found."""
+    from src.main_app.db import TemplateRecord
+    from src.main_app.app_routes.admin_routes.templates import _edit_template
+
+    template = TemplateRecord(
+        id=1,
+        title="Test Template",
+        main_file="File:Example.svg",
+        last_world_file="",
+        created_at=None,
+        updated_at=None,
+        source=None,
+    )
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin_routes.templates.template_service.get_template", lambda id: template
+    )
+
+    with app.test_request_context():
+        with patch("src.main_app.app_routes.admin_routes.templates.render_template") as mock_render:
+            mock_render.return_value = "rendered"
+            result = _edit_template(1)
+            assert result == "rendered"
+            mock_render.assert_called_once()
+            kwargs = mock_render.call_args[1]
+            assert kwargs["template"] == template
+            assert kwargs["error"] is None
+
+
+def test_edit_template_not_found(app, monkeypatch):
+    """Test _edit_template returns error when template not found."""
+    from src.main_app.app_routes.admin_routes.templates import _edit_template
+
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin_routes.templates.template_service.get_template",
+        lambda id: (_ for _ in ()).throw(LookupError("Not found")),
+    )
+
+    with app.test_request_context():
+        with patch("src.main_app.app_routes.admin_routes.templates.render_template") as mock_render:
+            mock_render.return_value = "rendered"
+            result = _edit_template(999)
+            assert result == "rendered"
+            mock_render.assert_called_once()
+            kwargs = mock_render.call_args[1]
+            assert kwargs["template"] is None
+            assert "not found" in kwargs["error"].lower()

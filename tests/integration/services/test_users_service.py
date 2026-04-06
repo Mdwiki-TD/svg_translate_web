@@ -14,7 +14,7 @@ from src.main_app.db.user_tokens import UserTokenRecord
 @pytest.fixture
 def app():
     app = Flask(__name__)
-    app.secret_key = "test_secret"
+    app.secret_key = "test"
     return app
 
 
