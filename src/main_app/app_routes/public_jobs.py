@@ -188,18 +188,22 @@ class JobsPublicRoutes:
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
+
             user = current_user()
             if not user:
                 flash("You must be logged in to cancel jobs.", "danger")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+
             try:
                 job = jobs_service.get_job(job_id, job_type)
             except LookupError:
                 flash("Job not found.", "warning")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+
             if not _can_manage_job(job, user):
                 flash("You don't have permission to cancel this job.", "danger")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+
             return _cancel_job(job_id, job_type)
 
         # ================================

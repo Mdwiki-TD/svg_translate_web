@@ -199,3 +199,91 @@ def test_process_fix_nested_upload_fails(mock_upload, mock_verify, mock_fix, moc
     res = process_fix_nested("file.svg", {"user": "data"})
     assert res["success"] is False
     assert "upload failed" in res["message"]
+
+
+@patch("src.main_app.app_routes.fix_nested.worker.detect_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.fix_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.verify_fix")
+def test_process_fix_nested_file_simple_success(mock_verify, mock_fix, mock_detect, tmp_path):
+    """process_fix_nested_file_simple returns success when file is fixed."""
+    mock_detect.return_value = {"count": 3}
+    mock_fix.return_value = True
+    mock_verify.return_value = {"fixed": 3, "after": 0, "before": 3}
+
+    class FakeFile:
+        filename = "test.svg"
+
+        def save(self, path):
+            path.write_text("<svg></svg>")
+
+    from src.main_app.app_routes.fix_nested.worker import process_fix_nested_file_simple
+
+    res = process_fix_nested_file_simple(FakeFile())
+
+    assert res["success"] is True
+    assert "Successfully fixed" in res["message"]
+    assert res["details"]["fixed"] == 3
+    assert res["file_path"] is not None
+
+
+@patch("src.main_app.app_routes.fix_nested.worker.detect_nested_tags")
+def test_process_fix_nested_file_simple_no_nested_tags(mock_detect, tmp_path):
+    """process_fix_nested_file_simple returns failure when no nested tags."""
+    mock_detect.return_value = {"count": 0}
+
+    class FakeFile:
+        filename = "clean.svg"
+
+        def save(self, path):
+            path.write_text("<svg></svg>")
+
+    from src.main_app.app_routes.fix_nested.worker import process_fix_nested_file_simple
+
+    res = process_fix_nested_file_simple(FakeFile())
+
+    assert res["success"] is False
+    assert "No nested tags found" in res["message"]
+
+
+@patch("src.main_app.app_routes.fix_nested.worker.detect_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.fix_nested_tags")
+def test_process_fix_nested_file_simple_fix_fails(mock_fix, mock_detect, tmp_path):
+    """process_fix_nested_file_simple returns failure when fix fails."""
+    mock_detect.return_value = {"count": 2}
+    mock_fix.return_value = False
+
+    class FakeFile:
+        filename = "broken.svg"
+
+        def save(self, path):
+            path.write_text("<svg></svg>")
+
+    from src.main_app.app_routes.fix_nested.worker import process_fix_nested_file_simple
+
+    res = process_fix_nested_file_simple(FakeFile())
+
+    assert res["success"] is False
+    assert "Failed to fix" in res["message"]
+
+
+@patch("src.main_app.app_routes.fix_nested.worker.detect_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.fix_nested_tags")
+@patch("src.main_app.app_routes.fix_nested.worker.verify_fix")
+def test_process_fix_nested_file_simple_no_tags_fixed(mock_verify, mock_fix, mock_detect, tmp_path):
+    """process_fix_nested_file_simple returns failure when no tags fixed."""
+    mock_detect.return_value = {"count": 1}
+    mock_fix.return_value = True
+    mock_verify.return_value = {"fixed": 0, "after": 1, "before": 1}
+
+    class FakeFile:
+        filename = "stubborn.svg"
+
+        def save(self, path):
+            path.write_text("<svg></svg>")
+
+    from src.main_app.app_routes.fix_nested.worker import process_fix_nested_file_simple
+
+    res = process_fix_nested_file_simple(FakeFile())
+
+    assert res["success"] is False
+    assert "No nested tags were fixed" in res["message"]

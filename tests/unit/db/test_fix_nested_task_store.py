@@ -12,8 +12,7 @@ def mock_db_class(mocker):
 
 @pytest.fixture
 def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    return instance
+    return MagicMock()
 
 
 @pytest.fixture
