@@ -154,6 +154,9 @@ def test_Database_connect(mock_pymysql):
 
     db = Database(database_config)
 
+    # Configure mock to use real DictCursor
+    mock_pymysql.cursors.DictCursor = DictCursor
+
     # Mock the pymysql.connect to return a mock connection
     mock_connection = MagicMock()
     mock_pymysql.connect.return_value = mock_connection
