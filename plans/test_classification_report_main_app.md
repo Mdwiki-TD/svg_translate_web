@@ -1,11 +1,7 @@
-# Test Classification Report - main_app
+# Test Classification Report
 
 ## Summary Statistics
 
--   Total files analyzed: 102
--   Files MOVE_ONLY → unit: 96
--   Files MOVE_ONLY → integration: 1
--   Files MOVE_ONLY → functional: 0
 -   Files to SPLIT: 3
 
 ## Detailed Classification Table
