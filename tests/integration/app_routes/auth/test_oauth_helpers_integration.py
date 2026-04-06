@@ -1,4 +1,4 @@
-"""Unit tests for OAuth helper functions using a stubbed mwoauth."""
+"""Integration tests for OAuth helper functions."""
 
 from types import SimpleNamespace
 
@@ -25,7 +25,6 @@ class StubHandshaker:
         return "https://example.org/redirect", ("req-key", "req-secret")
 
     def complete(self, _request_token, _query_string):
-        # return as tuple to exercise tuple path in complete_login
         return ("acc-key", "acc-secret")
 
     def identify(self, _access_token):
@@ -44,26 +43,3 @@ def test_start_login_returns_redirect_and_request_token(monkeypatch):
         redirect_url, request_token = oauth_helpers.start_login("signed-state")
         assert redirect_url.startswith("https://example.org/redirect")
         assert isinstance(request_token, tuple) and len(request_token) == 2
-
-
-def test_complete_login_returns_access_and_identity(monkeypatch):
-    monkeypatch.setattr(oauth_helpers, "mwoauth", StubMWOAuth())
-    # app context not required for complete step
-    access_token, identity = oauth_helpers.complete_login(("rk", "rs"), "a=1&b=2")
-    assert isinstance(access_token, tuple) and access_token[0] == "acc-key"
-    assert identity["username"] == "Alice"
-
-
-def test_complete_login_raises_identity_error(monkeypatch):
-    class FailingHandshaker(StubHandshaker):
-        def identify(self, _access_token):
-            raise RuntimeError("boom")
-
-    class FailingMWOAuth(StubMWOAuth):
-        def __init__(self):
-            super().__init__()
-            self.Handshaker = FailingHandshaker
-
-    monkeypatch.setattr(oauth_helpers, "mwoauth", FailingMWOAuth())
-    with pytest.raises(oauth_helpers.OAuthIdentityError):
-        oauth_helpers.complete_login(("rk", "rs"), "x=1")

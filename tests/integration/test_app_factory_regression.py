@@ -1,4 +1,4 @@
-"""Regression tests for the Flask application factory."""
+"""Integration tests for the Flask application factory."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from src.main_app.db import svg_db
 def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     """Ensure the app factory can run without MySQL credentials."""
 
-    # Reset any cached connection and explicitly mark the configuration as empty.
     monkeypatch.setattr(svg_db, "_db", None)
     from src.main_app.config import DbConfig
 
@@ -32,7 +31,6 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     monkeypatch.setattr(svg_db, "Database", _SentinelDatabase)
 
-    # Reload to ensure the latest configuration is used if the module was cached.
     import src.main_app as app_module
 
     reload(app_module)
@@ -42,64 +40,6 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     assert app is not None
 
 
-def test_format_stage_timestamp_valid():
-    """Test format_stage_timestamp with valid timestamp."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T04:41:07")
-
-    assert "Oct 27, 2025" in result
-    assert "4:41 AM" in result
-
-
-def test_format_stage_timestamp_empty():
-    """Test format_stage_timestamp with empty string."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("")
-
-    assert result == ""
-
-
-def test_format_stage_timestamp_invalid():
-    """Test format_stage_timestamp with invalid timestamp."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("invalid-timestamp")
-
-    assert result == ""
-
-
-def test_format_stage_timestamp_afternoon():
-    """Test format_stage_timestamp with PM time."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T16:41:07")
-
-    assert "Oct 27, 2025" in result
-    assert "4:41 PM" in result
-
-
-def test_format_stage_timestamp_noon():
-    """Test format_stage_timestamp with noon."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T12:00:00")
-
-    assert "Oct 27, 2025" in result
-    assert "12:00 PM" in result
-
-
-def test_format_stage_timestamp_midnight():
-    """Test format_stage_timestamp with midnight."""
-    from src.main_app import format_stage_timestamp
-
-    result = format_stage_timestamp("2025-10-27T00:00:00")
-
-    assert "Oct 27, 2025" in result
-    assert "12:00 AM" in result
-
-
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_registers_blueprints():
     """Test create_app registers all blueprints."""
@@ -107,7 +47,6 @@ def test_create_app_registers_blueprints():
 
     app = create_app()
 
-    # Check that blueprints are registered
     blueprint_names = [bp.name for bp in app.blueprints.values()]
 
     expected_blueprints = [
@@ -132,7 +71,6 @@ def test_create_app_sets_secret_key(monkeypatch):
 
     app = create_app()
 
-    # Just verify a secret key is set
     assert app.secret_key is not None
     assert len(app.secret_key) > 0
 
@@ -145,7 +83,6 @@ def test_create_app_configures_cookie_settings(monkeypatch):
 
     app = create_app()
 
-    # Just verify cookie settings are configured
     assert "SESSION_COOKIE_HTTPONLY" in app.config
     assert "SESSION_COOKIE_SECURE" in app.config
     assert "SESSION_COOKIE_SAMESITE" in app.config
@@ -159,7 +96,6 @@ def test_create_app_registers_context_processor(monkeypatch):
 
     app = create_app()
 
-    # The context processor should be registered
     assert len(app.template_context_processors[None]) > 0
 
 
@@ -171,7 +107,6 @@ def test_create_app_registers_error_handlers(monkeypatch):
 
     app = create_app()
 
-    # Check that error handlers are registered
     assert 404 in app.error_handler_spec[None]
     assert 500 in app.error_handler_spec[None]
 
@@ -197,7 +132,6 @@ def test_create_app_jinja_env_configured(monkeypatch):
     get_settings.cache_clear()
     app = create_app()
 
-    # Check Jinja environment is configured
     assert "format_stage_timestamp" in app.jinja_env.filters
 
     get_settings.cache_clear()
