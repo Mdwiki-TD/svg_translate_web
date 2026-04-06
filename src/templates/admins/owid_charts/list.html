@@ -85,21 +85,21 @@
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == '' %}active{% endif %}" id="tabAll"
                             href="{{ url_for('admin.owid_charts_dashboard') }}">
-                            All
+                            All <span id="tabTotal"></span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
                             id="tabWithTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
-                            With Templates
+                            With Templates <span id="tabWithTemplateTotal"></span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
                             id="tabWithoutTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
-                            Without Templates
+                            Without Templates <span id="tabWithoutTemplateTotal"></span>
                         </a>
                     </li>
                 </ul>
@@ -155,8 +155,9 @@
                         $("#timelineWith").text(json.summary.timeline.with);
                         $("#timelineWithout").text(json.summary.timeline.without);
 
-                        $("#tabWithTemplate").text("With Templates (" + json.summary.template.with + ")");
-                        $("#tabWithoutTemplate").text("Without Templates (" + json.summary.template.without + ")");
+                        $("#tabTotal").text(" (" + json.summary.total + ")");
+                        $("#tabWithTemplateTotal").text(" (" + json.summary.template.with + ")");
+                        $("#tabWithoutTemplateTotal").text(" (" + json.summary.template.without + ")");
                     }
                     return json.data || [];
                 }
