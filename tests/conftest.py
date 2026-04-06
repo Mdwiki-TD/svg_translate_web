@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
+from flask import Flask
 import pytest
 from cryptography.fernet import Fernet
 
@@ -20,6 +21,13 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
+
+
+@pytest.fixture
+def app_mock():
+    app = Flask(__name__)
+    app.secret_key = "test"
+    return app
 
 
 @pytest.fixture

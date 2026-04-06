@@ -1,7 +1,6 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
-from flask import Flask, g, session
+from flask import g, session
 
 from src.main_app.services.users_service import (
     _resolve_user_id,
@@ -9,13 +8,6 @@ from src.main_app.services.users_service import (
 )
 
 from src.main_app.db.user_tokens import UserTokenRecord
-
-
-@pytest.fixture
-def app_mock():
-    app = Flask(__name__)
-    app.secret_key = "test"
-    return app
 
 
 def test_resolve_user_id(app_mock):

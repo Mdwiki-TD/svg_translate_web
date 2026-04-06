@@ -4,17 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-from flask import Flask
-
 from src.main_app.app_routes.public_jobs import JobsPublicRoutes, _can_manage_job
-
-
-@pytest.fixture
-def app_mock():
-    app = Flask(__name__)
-    app.secret_key = "test"
-    return app
 
 
 def test_can_manage_job_none_user():

@@ -3,22 +3,11 @@
 from __future__ import annotations
 
 import re
-from unittest.mock import MagicMock, patch
-
-import pytest
-from flask import Flask
-
+from unittest.mock import MagicMock
 from src.main_app.app_routes.admin_routes import settings
 
 
 KEY_PATTERN = r"[a-z][a-z0-9_]{0,189}"
-
-
-@pytest.fixture
-def app_mock():
-    app = Flask(__name__)
-    app.secret_key = "test"
-    return app
 
 
 def test_key_validation_pattern():

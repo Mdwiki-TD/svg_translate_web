@@ -1,8 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
-from flask import Flask
-
 from src.main_app.app_routes.admin_routes.templates import (
     Templates,
     _add_template,
@@ -11,13 +8,6 @@ from src.main_app.app_routes.admin_routes.templates import (
     _update_template,
 )
 from src.main_app.db import TemplateRecord
-
-
-@pytest.fixture
-def app_mock():
-    app = Flask(__name__)
-    app.secret_key = "test"
-    return app
 
 
 @patch("src.main_app.app_routes.admin_routes.templates.render_template")
