@@ -68,25 +68,6 @@ def create_json_file() -> Tuple[Any, int]:
         return f"Failed to create JSON file: {exc}", 500
 
 
-def _templates_dashboard():
-    """Render the template management dashboard."""
-
-    templates: List[TemplateRecord] = template_service.list_templates()
-    total = len(templates)
-    summary = {
-        "total": len(templates),
-        "with_main_file": len([template for template in templates if template.main_file]),
-        "with_last_world_file": len([t for t in templates if t.last_world_file]),
-        "with_last_world_year": len([t for t in templates if t.last_world_year]),
-        "with_source": len([template for template in templates if template.source]),
-    }
-    return render_template(
-        "admins/templates.html",
-        total_templates=total,
-        summary=summary,
-    )
-
-
 def _add_template() -> ResponseReturnValue:
     """Create a new template from the submitted title."""
 
@@ -209,7 +190,10 @@ class Templates:
         @bp_admin.get("/templates")
         @admin_required
         def templates_dashboard():
-            return _templates_dashboard()
+
+            return render_template(
+                "admins/templates.html",
+            )
 
         @bp_admin.post("/templates/add")
         @admin_required
