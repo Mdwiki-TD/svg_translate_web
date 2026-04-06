@@ -41,14 +41,13 @@ class UploadFile:
             self.file_name = fix_file_name(self.file_name)
 
     @staticmethod
-    def _ok(**extra: object) -> dict[str, object]:
-        return {"success": True, **extra}
-
-    @staticmethod
     def _err(message: str, error_details: str = "") -> dict[str, object]:
         return {"success": False, "error": message, "error_details": error_details}
 
     def _check_kwargs(self) -> dict:
+        """
+        Check if the kwargs are valid
+        """
         if not self.site:
             return self._err("No site provided")
 
@@ -76,11 +75,13 @@ class UploadFile:
         return self._err(None)
 
     def _upload_file(self) -> dict:
-        """Single upload attempt — returns a result dict, never raises."""
+        """
+        Single upload attempt — returns a result dict, never raises.
+        """
         try:
             response = self._site_upload()
             logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
-            return self._ok(result=response.get("result", ""), response=response)
+            return {"success": True, "result": response.get("result", ""), "response": response}
 
         except mwclient.errors.AssertUserFailedError:
             # Session expired or user assertion failed — no point retrying
@@ -158,6 +159,7 @@ class UploadFile:
         - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
 
         Raises:
+            TypeError
             mwclient.errors.AssertUserFailedError
             mwclient.errors.UserBlocked
             mwclient.errors.InsufficientPermission
@@ -208,14 +210,14 @@ class UploadFile:
         return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
 
-def upload_file(
+def upload_file_new(
     file_name: str,
     file_path: Path,
     site: mwclient.client.Site | None = None,
     summary: str | None = None,
     description: str | None = None,
     new_file: bool = False,
-) -> dict:
+) -> dict[str, str] | dict:
     """
     Upload a file to Wikimedia Commons using mwclient.
 
@@ -229,5 +231,5 @@ def upload_file(
 
 
 __all__ = [
-    "upload_file",
+    "upload_file_new",
 ]
