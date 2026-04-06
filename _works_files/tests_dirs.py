@@ -43,7 +43,7 @@ def replicate_test_structure(source_dir, target_roots):
 
 if __name__ == "__main__":
     # Define paths relative to the current script's location
-    main_dir = Path(__file__).parent
+    main_dir = Path(__file__).parent.parent
     SOURCE = main_dir / "src/main_app"
     TARGETS = [
         main_dir / "tests/integration",
