@@ -17,9 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db import TemplateRecord, fetch_query_safe
+from ...db import TemplateRecord
 from ...services import template_service
-from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -72,7 +71,6 @@ def create_json_file() -> Tuple[Any, int]:
 def _templates_dashboard():
     """Render the template management dashboard."""
 
-    user = current_user()
     templates: List[TemplateRecord] = template_service.list_templates()
     total = len(templates)
     summary = {
@@ -84,8 +82,6 @@ def _templates_dashboard():
     }
     return render_template(
         "admins/templates.html",
-        current_user=user,
-        templates=templates,
         total_templates=total,
         summary=summary,
     )
@@ -253,22 +249,6 @@ class Templates:
         @admin_required
         def templates_need_update() -> ResponseReturnValue:
             """Show templates that need year update based on OWID charts."""
-            user = current_user()
-
-            sql = """
-                SELECT
-                    template_id,
-                    template_title,
-                    slug,
-                    max_time as chart_year,
-                    last_world_year as template_year
-                FROM templates_need_update
-                ORDER BY max_time ASC
-            """
-            templates_need_update = fetch_query_safe(sql, ())
-
             return render_template(
                 "admins/templates_need_update.html",
-                current_user=user,
-                templates=templates_need_update,
             )
