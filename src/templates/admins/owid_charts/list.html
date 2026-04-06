@@ -89,13 +89,15 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}" id="tabWithTemplate"
+                        <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
+                            id="tabWithTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
                             With Templates
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}" id="tabWithoutTemplate"
+                        <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
+                            id="tabWithoutTemplate"
                             href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
                             Without Templates
                         </a>
@@ -137,11 +139,11 @@
             ajax: {
                 url: "/api/owid-charts",
                 type: "GET",
-                data: function(d) {
+                data: function (d) {
                     d.template = templateFilter;
                     return d;
                 },
-                dataSrc: function(json) {
+                dataSrc: function (json) {
                     if (json.summary) {
                         $("#totalCount").text(json.summary.total);
                         $("#publishedWith").text(json.summary.published.with);
@@ -165,7 +167,6 @@
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     },
-                    orderable: false
                 },
                 {
                     data: "slug",
@@ -225,7 +226,6 @@
                     render: function (data, type, row) {
                         return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="/admin/owid-charts/${data}/edit" onclick="pup_window_new(this)"><i class="bi bi-pencil"></i> Edit</button>`;
                     },
-                    orderable: false
                 }
             ],
             serverSide: false,

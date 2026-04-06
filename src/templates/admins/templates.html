@@ -107,7 +107,6 @@ Translation{% endblock %} {% block contents %}
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     },
-                    orderable: false
                 },
                 {
                     data: "title",
@@ -143,7 +142,6 @@ Translation{% endblock %} {% block contents %}
                     render: function (data, type, row) {
                         return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="/admin/templates/${data}/edit" onclick="pup_window_new(this)"><i class="bi bi-pencil"></i> Edit</button>`;
                     },
-                    orderable: false
                 }
             ],
             serverSide: false,

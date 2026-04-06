@@ -19,7 +19,6 @@ from flask.typing import ResponseReturnValue
 
 from ...db import OwidChartRecord
 from ...services import owid_charts_service
-from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
