@@ -170,7 +170,8 @@ def test_create_json_file_success(app_mock, monkeypatch):
         "src.main_app.app_routes.admin_routes.templates.template_service.list_templates", lambda: templates
     )
 
-    response, status_code = create_json_file()
+    with app_mock.app_context():
+        response, status_code = create_json_file()
 
     assert status_code == 200
     assert response.headers["Content-Type"] == "application/json"
