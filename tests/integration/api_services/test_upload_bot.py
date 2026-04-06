@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -121,17 +120,19 @@ class TestUploadBotIntegration:
             new_file=False
         )
 
-        # Patch the low-level mwclient call to verify what was actually read from disk
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(uploader, "_site_upload", lambda **kwargs: {"result": "Success"})
-            result = uploader.upload()
+        def fake_upload(*, file, **kwargs):
+            assert file.read() == image_content
+            return {"result": "Success"}
+
+        mock_site.upload.side_effect = fake_upload
+        result = uploader.upload()
 
         assert result["result"] == "Success"
         assert image_path.exists()
 
-    def test_invalid_path_error_handling(self, mock_site):
+    def test_invalid_path_error_handling(self, mock_site, tmp_path):
         # Test behavior with a path that definitely doesn't exist on the OS
-        bad_path = Path("/tmp/should_not_exist_12345.jpg")
+        bad_path = tmp_path / "should_not_exist_12345.jpg"
         uploader = UploadFile("Test.jpg", bad_path, mock_site)
 
         result = uploader.upload()
