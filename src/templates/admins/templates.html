@@ -141,5 +141,13 @@ Translation{% endblock %} {% block contents %}
             processing: true
         });
     });
+    function pup_window_new(element) {
+        var target = $(element).attr("pup-target");
+        window.open(
+            target,
+            "",
+            "width=600,height=550,left=100,top=100,location=no"
+        );
+    }
 </script>
 {% endblock %}
