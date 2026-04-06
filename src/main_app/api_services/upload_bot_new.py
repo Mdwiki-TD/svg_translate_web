@@ -59,8 +59,8 @@ class UploadFile:
 
         file_path = Path(self.file_path)
         if not file_path.is_file():
-            logger.error(f"File not found on server: {self.file_path}")
-            return self._err("File not found on server")
+            logger.error(f"File not found: {self.file_path}")
+            return self._err("File not found")
 
         page = self.site.pages[f"File:{self.file_name}"]
         if not self.new_file:

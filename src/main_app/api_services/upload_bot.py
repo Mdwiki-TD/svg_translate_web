@@ -41,11 +41,11 @@ def _check_kwargs(
     if file_path is None:
         return _err("File path is None")
 
-    file_path = Path(str(file_path))
+    file_path = Path(file_path)
 
     if not file_path.is_file():
-        logger.error(f"File not found on server: {file_path}")
-        return _err("File not found on server")
+        logger.error(f"File not found: {file_path}")
+        return _err("File not found")
 
     file_name = fix_file_name(file_name)
     page = site.pages[f"File:{file_name}"]

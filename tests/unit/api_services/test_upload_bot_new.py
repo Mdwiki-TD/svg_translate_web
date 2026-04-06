@@ -122,7 +122,7 @@ class TestCheckKwargs:
         mock_page.exists = True
         site.pages.__getitem__.return_value = mock_page
         u = UploadFile("Test.jpg", Path("/nonexistent/path.jpg"), site, new_file=False)
-        assert u._check_kwargs() == _err("File not found on server")
+        assert u._check_kwargs() == _err("File not found")
 
     def test_all_valid_existing_file(self, site, tmp_file):
         mock_page = MagicMock()
