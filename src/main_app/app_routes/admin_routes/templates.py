@@ -190,9 +190,16 @@ class Templates:
         @bp_admin.get("/templates")
         @admin_required
         def templates_dashboard():
-
             return render_template(
                 "admins/templates.html",
+            )
+
+        @bp_admin.get("/templates-need-update")
+        @admin_required
+        def templates_need_update() -> ResponseReturnValue:
+            """Show templates that need year update based on OWID charts."""
+            return render_template(
+                "admins/templates_need_update.html",
             )
 
         @bp_admin.post("/templates/add")
@@ -228,11 +235,3 @@ class Templates:
                 return redirect(url_for("admin.templates_dashboard"))
 
             return response
-
-        @bp_admin.get("/templates-need-update")
-        @admin_required
-        def templates_need_update() -> ResponseReturnValue:
-            """Show templates that need year update based on OWID charts."""
-            return render_template(
-                "admins/templates_need_update.html",
-            )
