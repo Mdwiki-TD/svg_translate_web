@@ -85,75 +85,42 @@ Translation{% endblock %} {% block contents %}
         </div>
 
         <div class="table-responsive shadow-sm">
-            <table class="table table-hover align-middle mb-0 DataTable">
+            <table class="table table-hover align-middle mb-0 DataTable" id="templatesTable">
                 <thead>
                     <tr>
                         <th scope="col" style="width: 5%">#</th>
-                        <!-- <th scope="col" style="width: 5%">ID</th> -->
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
-                        <th scope="col" class="text-center">Last World File</th>
+                        <th class="text-center">Last World File</th>
+                        <th scope="col" class="text-center">Year</th>
                         <th scope="col" class="text-center" style="width: 20%">Source</th>
-                        <th scope="col" class="text-center" style="width: 10%">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for template in templates %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <!-- <td>{{ template.id }}</td> -->
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td class="text-center">
-                            {% if template.main_file %}
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.main_file }}" target="_blank"
-                                rel="noopener noreferrer">
-                                File:{{ template.main_file }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if template.last_world_file %}
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.last_world_file }}"
-                                target="_blank" rel="noopener noreferrer">
-                                File:{{ template.last_world_file }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if template.source %}
-                            <a href='{{ template.source }}' target='_blank' rel='noopener noreferrer'>
-                                {{ template.source | short_url }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('admin.edit_template', template_id=template.id) }}"
-                                onclick="pup_window_new(this)">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    function pup_window_new(element) {
-        var target = $(element).attr("pup-target");
-        window.open(
-            target,
-            "",
-            "width=600,height=550,left=100,top=100,location=no"
-        );
-    }
+    $(function() {
+        $("#templatesTable").DataTable({
+            ajax: {
+                url: "/api/templates",
+                type: "POST",
+                dataSrc: "data"
+            },
+            columns: [
+                { data: 0, orderable: false },
+                { data: 1, orderable: true },
+                { data: 2, orderable: false },
+                { data: 3, orderable: false },
+                { data: 4, orderable: true },
+                { data: 5, orderable: false }
+            ],
+            serverSide: false,
+            processing: true
+        });
+    });
 </script>
 {% endblock %}
