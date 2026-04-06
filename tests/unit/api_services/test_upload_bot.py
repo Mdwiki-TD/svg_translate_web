@@ -1,10 +1,15 @@
-from pathlib import Path
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
-import mwclient
+import mwclient.errors
 import pytest
 
 from src.main_app.api_services.upload_bot import upload_file
+
+# ══════════════════════════════════════════════════════════════════════════════
+# fixtures & helpers
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 def _err(message: str, error_details: str = "") -> dict[str, object]:
@@ -13,8 +18,15 @@ def _err(message: str, error_details: str = "") -> dict[str, object]:
 
 @pytest.fixture
 def mock_site():
-    site = MagicMock()
-    return site
+    return MagicMock()
+
+
+@pytest.fixture
+def tmp_file(tmp_path):
+    """A real file on disk so Path.exists() returns True."""
+    f = tmp_path / "test.jpg"
+    f.write_bytes(b"fake image data")
+    return f
 
 
 def test_upload_file_no_site():
@@ -30,14 +42,14 @@ def test_upload_file_not_found_on_commons(mock_path_cls, mock_site):
     assert res == _err("File not found on Commons")
 
 
-@patch("src.main_app.api_services.upload_bot.Path")
-def test_upload_file_not_found_on_server(mock_path_cls, mock_site):
+# @patch("src.main_app.api_services.upload_bot.Path")
+def test_upload_file_not_found_on_server(mock_site):
     """Local file path does not exist."""
     mock_page = MagicMock()
     mock_page.exists = True
     mock_site.pages.__getitem__.return_value = mock_page
 
-    res = upload_file("file.svg", Path("/nonexistent/path.jpg"), site=mock_site, new_file=False)
+    res = upload_file("file.svg", "/nonexistent/path.jpg", site=mock_site, new_file=False)
     assert res == _err("File not found")
 
 

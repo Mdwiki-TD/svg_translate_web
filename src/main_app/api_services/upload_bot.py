@@ -181,9 +181,7 @@ def site_upload(
 
     """
     with open(file_path, "rb") as f:
-        # Perform the upload
         response = site.upload(
-            # file=(os.path.basename(file_path), file_content, 'image/svg+xml'),
             file=f,
             description=description,
             filename=file_name,
