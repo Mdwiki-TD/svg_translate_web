@@ -86,7 +86,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
 
     mock_service = MagicMock()
-    mock_service.list_templates.return_value = store.list()
+    mock_service.list_templates.side_effect = store.list
     mock_service.add_template_data.side_effect = store.add_data
     mock_service.update_template_data.side_effect = store.update_template_data
     mock_service.delete_template.side_effect = store.delete
