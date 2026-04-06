@@ -87,11 +87,19 @@ Translation{% endblock %} {% block contents %}
 
 <script>
     $(document).ready(function () {
-        $("#templatesTable").DataTable({
+        const table = $("#templatesTable").DataTable({
             ajax: {
                 url: "/api/templates",
                 type: "GET",
-                dataSrc: "data"
+                dataSrc: function(json) {
+                    if (json.summary) {
+                        $("#totalCount").text(json.summary.total);
+                        $("#withMainFile").text(json.summary.with_main_file);
+                        $("#withLastWorldFile").text(json.summary.with_last_world_file);
+                        $("#withSource").text(json.summary.with_source);
+                    }
+                    return json.data || [];
+                }
             },
             columns: [
                 {
