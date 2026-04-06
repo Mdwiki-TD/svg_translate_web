@@ -217,7 +217,7 @@ def upload_file(
     summary: str | None = None,
     description: str | None = None,
     new_file: bool = False,
-) -> dict[str, str] | dict:
+) -> dict:
     """
     Upload a file to Wikimedia Commons using mwclient.
 
