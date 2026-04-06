@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 from src.main_app.jobs_workers.crop_main_files import upload
 
 
