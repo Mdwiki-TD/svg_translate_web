@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flask import Flask, session
+from flask import Flask, g, session
 
 from src.main_app.services.users_service import (
     _resolve_user_id,
