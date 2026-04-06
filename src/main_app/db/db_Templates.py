@@ -51,8 +51,8 @@ class TemplateRecord:
             slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
             self.slug = slug or None
 
-            if not self.last_world_year and self.last_world_file:
-                self.last_world_year = match_last_world_year(self.last_world_file)
+        if not self.last_world_year and self.last_world_file:
+            self.last_world_year = match_last_world_year(self.last_world_file)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -186,7 +186,9 @@ class TemplatesDB:
 
             if field in strip_fields:
                 value = _strip_file_prefix(value)
-            value = value.strip()
+
+            value = value.strip() if isinstance(value, str) else value
+
             _data[field] = value
             add_fields.append(field)
             add_values.append(value)

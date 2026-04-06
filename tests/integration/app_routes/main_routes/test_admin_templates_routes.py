@@ -48,13 +48,15 @@ class FakeTemplatesDB:
 
     def update_template_data(self, template_id: int, data: dict) -> TemplateRecord:
         rec = self.fetch_by_id(template_id)
-        if data.get("title"):
+        if "title" in data and data["title"] is not None:
             rec.title = data["title"]
-        if data.get("main_file"):
+        if "main_file" in data and data["main_file"] is not None:
             rec.main_file = data["main_file"]
-        if data.get("last_world_file"):
+        if "last_world_file" in data and data["last_world_file"] is not None:
             rec.last_world_file = data["last_world_file"]
-        if data.get("source"):
+        if "last_world_year" in data and data["last_world_year"] is not None:
+            rec.last_world_year = data["last_world_year"]
+        if "source" in data and data["source"] is not None:
             rec.source = data["source"]
         self._templates[template_id] = rec
         return rec
@@ -84,7 +86,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
 
     mock_service = MagicMock()
-    mock_service.list_templates.return_value = store.list()
+    mock_service.list_templates.side_effect = store.list
     mock_service.add_template_data.side_effect = store.add_data
     mock_service.update_template_data.side_effect = store.update_template_data
     mock_service.delete_template.side_effect = store.delete
