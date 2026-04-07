@@ -90,34 +90,22 @@ class FixNestedJobsProcessor:
         # ----------------------------------------------
         # Stage 1: Download SVG files
 
-        if not self._run_stage(
-            "download",
-            self._download_step,
-        ):
+        if not self._run_stage("download", self._download_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
-        if not self._run_stage(
-            "analyze",
-            self._analyze_step,
-        ):
+        if not self._run_stage("analyze", self._analyze_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Fix nested tags
-        if not self._run_stage(
-            "fix",
-            self._fix_step,
-        ):
+        if not self._run_stage("fix", self._fix_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 4: Verify fixes
-        if not self._run_stage(
-            "verify",
-            self._verify_step,
-        ):
+        if not self._run_stage("verify", self._verify_step):
             return self.result
 
         # ----------------------------------------------
@@ -132,10 +120,7 @@ class FixNestedJobsProcessor:
             self.result["stages"]["upload"]["message"] = "Authentication failed"
             self.result["status"] = "failed"
         else:
-            if not self._run_stage(
-                "upload",
-                self._upload_step,
-            ):
+            if not self._run_stage("upload", self._upload_step):
                 return self.result
 
         # ----------------------------------------------
@@ -148,9 +133,6 @@ class FixNestedJobsProcessor:
 
     def _download_step(self) -> dict[str, Any]:
         """Download SVG files from Commons."""
-        results = []
-        success_count = 0
-        failed_count = 0
 
         temp_dir = Path(tempfile.gettempdir())
 
@@ -165,175 +147,143 @@ class FixNestedJobsProcessor:
         if download_result["ok"]:
             file_result["status"] = "success"
             file_result["path"] = str(download_result["path"])
-            success_count += 1
         else:
             file_result["status"] = "failed"
             file_result["error"] = download_result.get("error", "download_failed")
-            failed_count += 1
-
-        results.append(file_result)
-        self.result["results"].append(file_result)
 
         # Update stage message
+        self.result["file_result"] = file_result
         self.result["stages"]["download"]["message"] = "Downloaded 1/1"
         self._save_progress()
 
         return {
             "success": True,
-            "message": f"Downloaded {success_count}/1 files",
-            "results": results,
+            "message": "Downloaded True",
         }
 
     def _analyze_step(self) -> dict[str, Any]:
         """Analyze nested tags in downloaded files."""
-        results = []
-        success_count = 0
-        skipped_count = 0
 
-        for file_result in self.result["results"]:
-            if file_result["status"] != "success" or not file_result.get("path"):
-                continue
+        file_result = self.result["file_result"]
+        if file_result["status"] != "success" or not file_result.get("path"):
+            return False
 
-            file_path = Path(file_result["path"])
-            if not file_path.is_file():
-                file_result["analyze_status"] = "failed"
-                continue
+        file_path = Path(file_result["path"])
+        if not file_path.is_file():
+            file_result["analyze_status"] = "failed"
+            return {"success": False, "message": "File not found"}
 
-            detect_result = detect_nested_tags(file_path)
+        detect_result = detect_nested_tags(file_path)
 
-            file_result["nested_tags_before"] = detect_result["count"]
-            file_result["nested_tags"] = detect_result["tags"]
+        file_result["nested_tags_before"] = detect_result["count"]
+        file_result["nested_tags"] = detect_result["tags"]
 
-            if detect_result["count"] == 0:
-                file_result["analyze_status"] = "skipped"
-                file_result["analyze_message"] = "No nested tags found"
-                skipped_count += 1
-            else:
-                file_result["analyze_status"] = "success"
-                file_result["analyze_message"] = f"Found {detect_result['count']} nested tags"
-                success_count += 1
+        if detect_result["count"] == 0:
+            file_result["analyze_status"] = "skipped"
+            file_result["analyze_message"] = "No nested tags found"
+        else:
+            file_result["analyze_status"] = "success"
+            file_result["analyze_message"] = f"Found {detect_result['count']} nested tags"
 
-            results.append({
-                "filename": file_result["filename"],
-                "nested_count": detect_result["count"],
-            })
-
-            # self.result["stages"]["analyze"]["message"] = f"Analyzed {file_result['filename']}"
-            self.result["stages"]["analyze"]["message"] = file_result["analyze_message"]
-            self._save_progress()
+        self.result["stages"]["analyze"]["message"] = file_result["analyze_message"]
+        self._save_progress()
 
         return {
             "success": True,
-            # "message": f"Analyzed {len(self.result['results'])} files",
             "message": file_result["analyze_message"],
-            "results": results,
         }
 
     def _fix_step(self) -> dict[str, Any]:
         """Fix nested tags in files."""
-        success_count = 0
-        failed_count = 0
-        skipped_count = 0
 
-        for file_result in self.result["results"]:
-            if file_result.get("analyze_status") != "success":
-                file_result["fix_status"] = "skipped"
-                file_result["fix_message"] = file_result.get("analyze_message", "Skipped")
-                skipped_count += 1
-                continue
+        file_result = self.result["file_result"]
+        if file_result.get("analyze_status") != "success":
+            file_result["fix_status"] = "skipped"
+            file_result["fix_message"] = file_result.get("analyze_message", "Skipped")
+            return {"success": False, "message": "analyze failed"}
 
-            file_path = Path(file_result["path"])
-            fix_success = fix_nested_tags(file_path)
+        file_path = Path(file_result["path"])
+        fix_success = fix_nested_tags(file_path)
 
-            if fix_success:
-                file_result["fix_status"] = "success"
-                file_result["fix_message"] = "Fixed nested tags"
-                success_count += 1
-            else:
-                file_result["fix_status"] = "failed"
-                file_result["fix_message"] = "Failed to fix nested tags"
-                failed_count += 1
+        if fix_success:
+            file_result["fix_status"] = "success"
+            file_result["fix_message"] = "Fixed nested tags"
+        else:
+            file_result["fix_status"] = "failed"
+            file_result["fix_message"] = "Failed to fix nested tags"
 
-            self.result["stages"]["fix"]["message"] = f"Fixed {file_result['filename']}"
-            self._save_progress()
+        self.result["stages"]["fix"]["message"] = "Fixed True"
+        self._save_progress()
 
         return {
             "success": True,
-            "message": f"Fixed {success_count} files",
+            "message": "Fixed True",
         }
 
     def _verify_step(self) -> dict[str, Any]:
         """Verify that nested tags were fixed."""
-        success_count = 0
-        failed_count = 0
 
-        for file_result in self.result["results"]:
-            if file_result.get("fix_status") != "success":
-                file_result["verify_status"] = "skipped"
-                continue
+        file_result = self.result["file_result"]
+        if file_result.get("fix_status") != "success":
+            file_result["verify_status"] = "skipped"
+            return {"success": False, "message": "fix failed"}
 
-            file_path = Path(file_result["path"])
-            before_count = file_result.get("nested_tags_before", 0)
-            verify_result = verify_fix(file_path, before_count)
+        file_path = Path(file_result["path"])
+        before_count = file_result.get("nested_tags_before", 0)
+        verify_result = verify_fix(file_path, before_count)
 
-            file_result["nested_tags_after"] = verify_result["after"]
-            file_result["nested_tags_fixed"] = verify_result["fixed"]
+        file_result["nested_tags_after"] = verify_result["after"]
+        file_result["nested_tags_fixed"] = verify_result["fixed"]
 
-            if verify_result["fixed"] > 0:
-                file_result["verify_status"] = "success"
-                file_result["verify_message"] = f"Verified: {verify_result['fixed']} tags fixed"
-                success_count += 1
-            else:
-                file_result["verify_status"] = "failed"
-                file_result["verify_message"] = "No tags were fixed"
-                failed_count += 1
+        if verify_result["fixed"] > 0:
+            file_result["verify_status"] = "success"
+            file_result["verify_message"] = f"Verified: {verify_result['fixed']} tags fixed"
+        else:
+            file_result["verify_status"] = "failed"
+            file_result["verify_message"] = "No tags were fixed"
 
-            self.result["stages"]["verify"]["message"] = f"Verified {file_result['filename']}"
-            self._save_progress()
+        self.result["stages"]["verify"]["message"] = "Verified True"
+        self._save_progress()
 
         return {
             "success": True,
-            "message": f"Verified {success_count} files",
+            "message": "Verified True",
         }
 
     def _upload_step(self) -> dict[str, Any]:
         """Upload fixed files to Commons."""
-        success_count = 0
-        failed_count = 0
 
-        for file_result in self.result["results"]:
+        file_result = self.result["file_result"]
 
-            if file_result.get("verify_status") != "success":
-                file_result["upload_status"] = "skipped"
-                file_result["upload_message"] = "Skipped (not fixed)"
-                continue
+        if file_result.get("verify_status") != "success":
+            file_result["upload_status"] = "skipped"
+            file_result["upload_message"] = "Skipped (not fixed)"
+            return {"success": False, "message": "Skipped (not fixed)"}
 
-            file_path = Path(file_result["path"])
-            tags_fixed = file_result.get("nested_tags_fixed", 0)
+        file_path = Path(file_result["path"])
+        tags_fixed = file_result.get("nested_tags_fixed", 0)
 
-            upload_result = upload_fixed_svg(
-                file_result["filename"],
-                file_path,
-                tags_fixed,
-                self.user,
-            )
+        upload_result = upload_fixed_svg(
+            self.filename,
+            file_path,
+            tags_fixed,
+            self.user,
+        )
 
-            if upload_result["ok"]:
-                file_result["upload_status"] = "success"
-                file_result["upload_message"] = "Uploaded successfully"
-                file_result["upload_result"] = upload_result.get("result")
-                success_count += 1
-            else:
-                file_result["upload_status"] = "failed"
-                file_result["upload_message"] = upload_result.get("error", "Upload failed")
-                failed_count += 1
+        if upload_result["ok"]:
+            file_result["upload_status"] = "success"
+            file_result["upload_message"] = "Uploaded successfully"
+            file_result["upload_result"] = upload_result.get("result")
+        else:
+            file_result["upload_status"] = "failed"
+            file_result["upload_message"] = upload_result.get("error", "Upload failed")
 
-            self.result["stages"]["upload"]["message"] = f"Uploaded {file_result['filename']}"
-            self._save_progress()
+        self.result["stages"]["upload"]["message"] = "Uploaded True"
+        self._save_progress()
 
         return {
             "success": True,
-            "message": f"Uploaded {success_count} files",
+            "message": "Uploaded True",
         }
 
     def _run_stage(

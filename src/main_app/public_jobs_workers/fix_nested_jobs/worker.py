@@ -43,6 +43,11 @@ class FixNestedJobsWorker(BaseJobWorker):
             "completed_at": None,
             "cancelled_at": None,
             "filename": None,
+            "file_result": {
+                "status": "pending",
+                "path": None,
+                "error": None,
+            },
             "stages": {
                 "download": {"status": "Pending", "message": "Downloading files"},
                 "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
@@ -50,7 +55,6 @@ class FixNestedJobsWorker(BaseJobWorker):
                 "verify": {"status": "Pending", "message": "Verifying fixes"},
                 "upload": {"status": "Pending", "message": "Uploading fixed files"},
             },
-            "results": [],
         }
 
     def process(self) -> dict[str, Any]:
