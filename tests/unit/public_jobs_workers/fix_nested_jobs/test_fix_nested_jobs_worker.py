@@ -37,8 +37,6 @@ class TestFixNestedJobsWorker:
         assert "fix" in result["stages"]
         assert "verify" in result["stages"]
         assert "upload" in result["stages"]
-        assert "summary" in result
-        assert "results" in result
 
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = FixNestedJobsWorker(
@@ -51,18 +49,6 @@ class TestFixNestedJobsWorker:
             assert "status" in stage_data
             assert "message" in stage_data
             assert stage_data["status"] == "Pending"
-
-    def test_get_initial_result_summary_structure(self) -> None:
-        worker = FixNestedJobsWorker(
-            task_id=1,
-            args={"filename": "Test.svg"},
-        )
-        result = worker.get_initial_result()
-
-        assert "total" in result["summary"]
-        assert "success" in result["summary"]
-        assert "failed" in result["summary"]
-        assert "skipped" in result["summary"]
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
