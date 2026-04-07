@@ -5,7 +5,6 @@ Processor for fix_nested_tasks.
 from __future__ import annotations
 
 import logging
-import re
 import tempfile
 import threading
 from dataclasses import dataclass, field
@@ -46,10 +45,10 @@ class FixNestedTasksProcessor:
     site: mwclient.Site | None = field(init=False, default=None)
     session: requests.Session | None = field(init=False, default=None)
 
-    filenames: list[str] = field(init=False, default_factory=list)
+    filename: str = None
 
     def __post_init__(self) -> None:
-        ...
+        self.filename = self.args.get("filename")
 
     def _save_progress(self) -> None:
         try:
@@ -81,14 +80,14 @@ class FixNestedTasksProcessor:
         self.session = create_commons_session(settings.oauth.user_agent)
         self.site = get_user_site(self.user)
 
-        # Parse filenames from args
-        self.filenames = self._parse_filenames()
-        self.result["summary"]["total"] = len(self.filenames)
+        self.result["summary"]["total"] = 1
 
         if not self.filename:
             logger.error("No filename found")
             self.result["status"] = "failed"
             return self.result
+
+        self.result["filename"] = self.filename
 
         # ----------------------------------------------
         # Stage 1: Download SVG files
@@ -168,30 +167,6 @@ class FixNestedTasksProcessor:
 
         return self.result
 
-    def _parse_filenames(self) -> list[str]:
-        """Parse filenames from args."""
-        filenames = []
-        # Support single filename or list
-        if isinstance(self.args.get("filename"), str):
-            filenames.append(self.args["filename"])
-        elif isinstance(self.args.get("filename"), list):
-            filenames = self.args["filename"]
-        elif isinstance(self.args.get("filenames"), list):
-            filenames = self.args["filenames"]
-        elif isinstance(self.args.get("filenames"), str):
-            # Comma-separated string
-            filenames = [f.strip() for f in self.args["filenames"].split(",") if f.strip()]
-
-        # Clean up filenames (remove File: prefix if present)
-        cleaned = []
-        for fn in filenames:
-            if fn.lower().startswith("file:"):
-                cleaned.append(fn[5:].lstrip())
-            else:
-                cleaned.append(fn)
-
-        return cleaned
-
     def _download_step(self) -> dict[str, Any]:
         """Download SVG files from Commons."""
         results = []
@@ -201,38 +176,34 @@ class FixNestedTasksProcessor:
         with tempfile.TemporaryDirectory() as tmp_dir:
             temp_dir = Path(tmp_dir)
 
-            for i, filename in enumerate(self.filenames):
-                if self._is_cancelled("download"):
-                    break
+            download_result = download_svg_file(self.filename, temp_dir)
 
-                download_result = download_svg_file(filename, temp_dir)
+            file_result = {
+                "filename": self.filename,
+                "status": "pending",
+                "path": None,
+                "error": None,
+            }
 
-                file_result = {
-                    "filename": filename,
-                    "status": "pending",
-                    "path": None,
-                    "error": None,
-                }
+            if download_result["ok"]:
+                file_result["status"] = "success"
+                file_result["path"] = str(download_result["path"])
+                success_count += 1
+            else:
+                file_result["status"] = "failed"
+                file_result["error"] = download_result.get("error", "download_failed")
+                failed_count += 1
 
-                if download_result["ok"]:
-                    file_result["status"] = "success"
-                    file_result["path"] = str(download_result["path"])
-                    success_count += 1
-                else:
-                    file_result["status"] = "failed"
-                    file_result["error"] = download_result.get("error", "download_failed")
-                    failed_count += 1
+            results.append(file_result)
+            self.result["results"].append(file_result)
 
-                results.append(file_result)
-                self.result["results"].append(file_result)
-
-                # Update stage message
-                self.result["stages"]["download"]["message"] = f"Downloaded {i + 1}/{len(self.filenames)}"
-                self._save_progress()
+            # Update stage message
+            self.result["stages"]["download"]["message"] = "Downloaded 1/1"
+            self._save_progress()
 
         return {
             "success": True,
-            "message": f"Downloaded {success_count}/{len(self.filenames)} files",
+            "message": f"Downloaded {success_count}/1 files",
             "summary": {"success": success_count, "failed": failed_count},
             "results": results,
         }
@@ -244,9 +215,6 @@ class FixNestedTasksProcessor:
         skipped_count = 0
 
         for file_result in self.result["results"]:
-            if self._is_cancelled("analyze"):
-                break
-
             if file_result["status"] != "success" or not file_result.get("path"):
                 continue
 
@@ -287,9 +255,6 @@ class FixNestedTasksProcessor:
         skipped_count = 0
 
         for file_result in self.result["results"]:
-            if self._is_cancelled("fix"):
-                break
-
             if file_result.get("analyze_status") != "success":
                 file_result["fix_status"] = "skipped"
                 file_result["fix_message"] = file_result.get("analyze_message", "Skipped")
@@ -323,9 +288,6 @@ class FixNestedTasksProcessor:
         failed_count = 0
 
         for file_result in self.result["results"]:
-            if self._is_cancelled("verify"):
-                break
-
             if file_result.get("fix_status") != "success":
                 file_result["verify_status"] = "skipped"
                 continue
@@ -361,8 +323,6 @@ class FixNestedTasksProcessor:
         failed_count = 0
 
         for file_result in self.result["results"]:
-            if self._is_cancelled("upload"):
-                break
 
             if file_result.get("verify_status") != "success":
                 file_result["upload_status"] = "skipped"

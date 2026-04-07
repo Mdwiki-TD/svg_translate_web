@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 def start_copy_svg_langs_job(
-    title: str,
     args: Any,
     user: dict[str, Any] | None = None,
 ) -> int:
@@ -22,13 +21,13 @@ def start_copy_svg_langs_job(
     Start a background job to copy SVG translations.
 
     Args:
-        title: Main file title.
         args: Job arguments.
         user: User authentication data.
 
     Returns:
         Job ID.
     """
+    title = args.get("title", "")
     username = user.get("username") if user else None
     job = jobs_service.create_job("copy_svg_langs", username)
 
@@ -37,7 +36,7 @@ def start_copy_svg_langs_job(
 
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, title, args, user, cancel_event, copy_svg_langs_worker_entry),
+        args=(job.id, args, user, cancel_event, copy_svg_langs_worker_entry),
         daemon=True,
     )
     thread.start()

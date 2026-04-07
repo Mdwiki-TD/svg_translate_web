@@ -23,13 +23,11 @@ class CopySvgLangsWorker(BaseJobWorker):
     def __init__(
         self,
         task_id: int,
-        title: str,
         args: Any,
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
         self.task_id = task_id
-        self.title = title
         self.args = args
         super().__init__(task_id, user, cancel_event)
 
@@ -44,7 +42,7 @@ class CopySvgLangsWorker(BaseJobWorker):
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,
-            "title": self.title,
+            "title": None,
             "stages": {
                 "text": {"status": "Pending", "message": "Getting text"},
                 "titles": {"status": "Pending", "message": "Getting titles"},
@@ -62,7 +60,6 @@ class CopySvgLangsWorker(BaseJobWorker):
     def process(self) -> dict[str, Any]:
         processor = CopySvgLangsProcessor(
             task_id=self.task_id,
-            title=self.title,
             args=self.args,
             user=self.user,
             result=self.result,
@@ -75,20 +72,14 @@ class CopySvgLangsWorker(BaseJobWorker):
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
     task_id: str,
-    title: str,
     args: Any,
     user: Dict[str, str] | None,
     *,
     cancel_event: threading.Event | None = None,
 ) -> None:
     """Entry point for the background job."""
-    if not title or not args:
-        logger.error(f"Job {task_id}: Missing title or args")
-        return
-
     worker = CopySvgLangsWorker(
         task_id=task_id,
-        title=title,
         args=args,
         user=user,
         cancel_event=cancel_event,

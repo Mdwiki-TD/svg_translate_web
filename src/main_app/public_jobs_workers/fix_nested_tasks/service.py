@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 def start_fix_nested_tasks_job(
-    title: str,
     args: dict[str, Any],
     user: dict[str, Any] | None = None,
 ) -> int:
@@ -22,13 +21,13 @@ def start_fix_nested_tasks_job(
     Start a background job to fix nested tags in SVG files.
 
     Args:
-        title: Job title (usually the main filename).
         args: Job arguments (filename, filenames, upload).
         user: User authentication data.
 
     Returns:
         Job ID.
     """
+    title = args.get("title", "")
     username = user.get("username") if user else None
     job = jobs_service.create_job("fix_nested_tasks", username)
 
@@ -37,7 +36,7 @@ def start_fix_nested_tasks_job(
 
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, title, args, user, cancel_event, fix_nested_tasks_worker_entry),
+        args=(job.id, args, user, cancel_event, fix_nested_tasks_worker_entry),
         daemon=True,
     )
     thread.start()
