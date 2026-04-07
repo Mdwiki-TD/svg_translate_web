@@ -90,56 +90,38 @@ class FixNestedJobsProcessor:
         # ----------------------------------------------
         # Stage 1: Download SVG files
 
-        def download_run_after() -> None:
-            pass
-
         if not self._run_stage(
             "download",
             self._download_step,
-            download_run_after,
         ):
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
-        def analyze_run_after() -> None:
-            pass
-
         if not self._run_stage(
             "analyze",
             self._analyze_step,
-            analyze_run_after,
         ):
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Fix nested tags
-        def fix_run_after() -> None:
-            pass
-
         if not self._run_stage(
             "fix",
             self._fix_step,
-            fix_run_after,
         ):
             return self.result
 
         # ----------------------------------------------
         # Stage 4: Verify fixes
-        def verify_run_after() -> None:
-            pass
-
         if not self._run_stage(
             "verify",
             self._verify_step,
-            verify_run_after,
         ):
             return self.result
 
         # ----------------------------------------------
         # Stage 5: Upload fixed files
-        def upload_run_after() -> None:
-            pass
 
         upload_enabled = self.args.get("upload", True)
         if not upload_enabled:
@@ -153,7 +135,6 @@ class FixNestedJobsProcessor:
             if not self._run_stage(
                 "upload",
                 self._upload_step,
-                upload_run_after,
             ):
                 return self.result
 
@@ -359,7 +340,6 @@ class FixNestedJobsProcessor:
         self,
         stage_name: str,
         step_func: Any,
-        run_after_func: Any | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -377,8 +357,6 @@ class FixNestedJobsProcessor:
                 stage["status"] = "Completed"
                 stage["message"] = step_result.get("message", "")
                 stage.update(step_result)
-                if run_after_func:
-                    run_after_func()
                 return True
             else:
                 stage["status"] = "Failed"
