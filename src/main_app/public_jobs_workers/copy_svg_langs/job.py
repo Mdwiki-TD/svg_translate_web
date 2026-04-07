@@ -94,8 +94,13 @@ class CopySvgLangsProcessor:
         self.session = create_commons_session(settings.oauth.user_agent)
         self.site = get_user_site(self.user)
 
+        if not self.title:
+            logger.error("No title found")
+            self.result["status"] = "failed"
+            return self.result
         # ----------------------------------------------
         # Stage 1: Extract Text
+
         def text_run_after() -> None:
             self.text = self.result["stages"]["text"]["data"]["text"]
             # clean up

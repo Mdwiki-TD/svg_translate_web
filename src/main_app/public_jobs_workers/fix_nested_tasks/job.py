@@ -37,7 +37,6 @@ class FixNestedTasksProcessor:
     """
 
     task_id: str | int
-    title: str
     args: Any
     user: dict[str, Any] | None
     result: dict[str, Any]
@@ -46,21 +45,11 @@ class FixNestedTasksProcessor:
 
     site: mwclient.Site | None = field(init=False, default=None)
     session: requests.Session | None = field(init=False, default=None)
-    output_dir: Path = field(init=False)
 
     filenames: list[str] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
-        self.output_dir = self._compute_output_dir(self.title)
-
-    def _compute_output_dir(self, title: str) -> Path:
-        name = Path(title).name
-        slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
-        slug = slug.replace(" ", "_").lower()
-        out = Path(settings.paths.svg_data) / "fix_nested" / slug
-        out.mkdir(parents=True, exist_ok=True)
-
-        return out
+        ...
 
     def _save_progress(self) -> None:
         try:
@@ -96,8 +85,14 @@ class FixNestedTasksProcessor:
         self.filenames = self._parse_filenames()
         self.result["summary"]["total"] = len(self.filenames)
 
+        if not self.filename:
+            logger.error("No filename found")
+            self.result["status"] = "failed"
+            return self.result
+
         # ----------------------------------------------
         # Stage 1: Download SVG files
+
         def download_run_after() -> None:
             pass
 
