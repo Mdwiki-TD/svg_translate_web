@@ -244,7 +244,7 @@ def test_owid_chart_record_to_dict_with_none_values():
         "updated_at": None,
         "template_id": None,
         "template_title": None,
-        "template_source": None,
+        "template_source": "https://ourworldindata.org/grapher/health-expenditure",
     }
 
     assert result == expected
