@@ -109,4 +109,4 @@ class TestFixNestedJobsProcessor:
         result = processor._run_stage("download", mock_step)
         assert result is False
         assert processor.result["stages"]["download"]["status"] == "Failed"
-        assert processor.result["status"] == "failed"
+        assert processor.result["status"] == "Failed"
