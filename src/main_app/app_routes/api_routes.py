@@ -4,7 +4,7 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
-from ..db import OwidChartRecord, TemplateRecord
+from ..shared.models import OwidChartRecord, TemplateRecord
 from ..db import fetch_query_safe
 from ..services import owid_charts_service, template_service
 
