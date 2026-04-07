@@ -297,10 +297,11 @@ class FixNestedJobsProcessor:
                 stage.update(step_result)
                 return True
             else:
-                stage["status"] = "Failed" if step_result.get("success") is False else "skipped"
+                status = "Failed" if step_result.get("success") is False else "skipped"
+                stage["status"] = status
                 stage["message"] = step_result.get("error", "Unknown error")
                 stage.update(step_result)
-                self.result["status"] = "failed"
+                self.result["status"] = status
                 return False
 
         except Exception as e:
