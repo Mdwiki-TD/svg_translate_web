@@ -230,15 +230,21 @@ class FixNestedJobsProcessor:
         if verify_result["fixed"] > 0:
             self.result["file_result"]["verify_status"] = "success"
             self.result["file_result"]["verify_message"] = f"Verified: {verify_result['fixed']} tags fixed"
-        else:
-            self.result["file_result"]["verify_status"] = "Failed"
-            self.result["file_result"]["verify_message"] = "No tags were fixed"
+            message = self.result["file_result"]["verify_message"]
+            self.result["stages"]["verify"]["message"] = message
+            return {
+                "success": True,
+                "message": message,
+            }
 
-        self.result["stages"]["verify"]["message"] = "Verified True"
+        self.result["file_result"]["verify_status"] = "Failed"
+        self.result["file_result"]["verify_message"] = "No tags were fixed"
+        message = self.result["file_result"]["verify_message"]
+        self.result["stages"]["verify"]["message"] = message
 
         return {
-            "success": True,
-            "message": "Verified True",
+            "success": False,
+            "error": message,
         }
 
     def _upload_step(self) -> dict[str, Any]:
@@ -263,15 +269,20 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["upload_status"] = "success"
             self.result["file_result"]["upload_message"] = "Uploaded successfully"
             self.result["file_result"]["upload_result"] = upload_result.get("result")
-        else:
-            self.result["file_result"]["upload_status"] = "Failed"
-            self.result["file_result"]["upload_message"] = upload_result.get("error", "Upload failed")
+            self.result["stages"]["upload"]["message"] = "Uploaded successfully"
+            return {
+                "success": True,
+                "message": "Uploaded successfully",
+            }
 
-        self.result["stages"]["upload"]["message"] = "Uploaded True"
+        self.result["file_result"]["upload_status"] = "Failed"
+        self.result["file_result"]["upload_message"] = upload_result.get("error", "Upload failed")
+        self.result["stages"]["upload"]["message"] = self.result["file_result"]["upload_message"]
 
         return {
-            "success": True,
-            "message": "Uploaded True",
+            "success": False,
+            "error": self.result["file_result"]["upload_message"],
+            "message": self.result["file_result"]["upload_message"],
         }
 
     def _run_stage(
