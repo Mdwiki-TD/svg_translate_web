@@ -137,7 +137,10 @@
     function copy_data() {
         const table = $("#chartsTable").DataTable();
         const data = table.data().toArray();
-        const urls = data.map(row => `${row.template_title}\t${row.slug}`).join("\n");
+        const urls = data
+            .filter(row => row.template_title && row.slug)
+            .map(row => `${row.template_title.replace('Template:', '')}\t${row.slug}`)
+            .join("\n");
 
         navigator.clipboard.writeText(urls).then(() => {
             alert(`Copied ${urls.split("\n").length} lines to clipboard`);
