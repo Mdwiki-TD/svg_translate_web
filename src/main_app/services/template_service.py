@@ -56,6 +56,10 @@ def list_templates() -> List[TemplateRecord]:
 def ensure_last_world_year(template_data):
     if template_data.get("last_world_file") and not template_data.get("last_world_year"):
         template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+
+    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
+        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
     return template_data
 
 
