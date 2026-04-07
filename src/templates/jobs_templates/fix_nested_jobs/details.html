@@ -6,28 +6,48 @@
 {% block detail_title %}Fix Nested Tags{% endblock %}
 {% block detail_headline %}Fix Nested Tags in SVG Files{% endblock %}
 
+{% block job_info_extra %}
+
+{% if result_data and result_data.filename %}
+<tr>
+    <th>File:</th>
+    <td>
+        <a href="https://commons.wikimedia.org/wiki/{{ result_data.filename }}" target="_blank"
+            rel="noopener noreferrer">
+            {{ result_data.filename }}
+        </a>
+    </td>
+</tr>
+{% endif %}
+{% endblock %}
+
 {% block job_summary %}
 
 <!-- Pipeline Stages -->
 {% if result_data.stages %}
+{% set stage_order = ['download', 'analyze', 'fix', 'verify', 'upload'] %}
+{% set stages = [] %}
+{% for stage_key in stage_order %}
+{% set stage = result_data.stages.get(stage_key) %}
+{% if stage %}
+{% set _ = stages.append((stage_key, stage)) %}
+{% endif %}
+{% endfor %}
+{% if stages %}
 <div class="table-responsive">
     <table class="table table-striped table-sm mb-0">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Stage</th>
-                <th>Status</th>
-                <th>Message</th>
+                <th></th>
+                {% for stage_key, stage in stages %}
+                <th>{{ stage_key|title }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
-            {% set stage_order = ['download', 'analyze', 'fix', 'verify', 'upload'] %}
-            {% for stage_key in stage_order %}
-            {% set stage = result_data.stages.get(stage_key) %}
-            {% if stage %}
             <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ stage_key|title }}</td>
+                <td><strong>Status</strong></td>
+                {% for stage_key, stage in stages %}
                 <td>
                     {% if stage.status == 'Completed' %}
                     <span class="badge bg-success">{{ stage.status }}</span>
@@ -43,13 +63,18 @@
                     <span class="badge bg-light text-dark">{{ stage.status }}</span>
                     {% endif %}
                 </td>
-                <td><small>{{ stage.message }}</small></td>
+                {% endfor %}
             </tr>
-            {% endif %}
-            {% endfor %}
+            <tr>
+                <td><strong>Message</strong></td>
+                {% for stage_key, stage in stages %}
+                <td><small>{{ stage.message }}</small></td>
+                {% endfor %}
+            </tr>
         </tbody>
     </table>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
 
@@ -114,7 +139,8 @@
                             {% if item.upload_status == 'success' %}
                             <span class="badge bg-success">Completed</span>
                             {% elif item.upload_status == 'failed' or item.fix_status == 'failed' %}
-                            <span class="badge bg-danger" title="{{ item.upload_message or item.fix_message }}">Failed</span>
+                            <span class="badge bg-danger"
+                                title="{{ item.upload_message or item.fix_message }}">Failed</span>
                             {% elif item.analyze_status == 'skipped' %}
                             <span class="badge bg-secondary">Skipped</span>
                             {% else %}
