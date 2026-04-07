@@ -28,7 +28,7 @@
                         {{ nav_link('public_jobs.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type='copy_svg_langs') ) }}
                     </li>
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('public_jobs.', 'bi-list-task', 'Fix Nested Tags', url_for('public_jobs.jobs_list', job_type='fix_nested_jobs') ) }}
+                        {{ nav_link('public_jobs.jobs_list.fix_nested_jobs', 'bi-list-task', 'Fix Nested Tags', url_for('public_jobs.jobs_list', job_type='fix_nested_jobs') ) }}
                     </li>
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.extract_translations')) }}
