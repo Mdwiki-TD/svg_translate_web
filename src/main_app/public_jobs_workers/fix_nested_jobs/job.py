@@ -1,5 +1,5 @@
 """
-Processor for fix_nested_tasks.
+Processor for fix_nested_jobs.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class FixNestedTasksProcessor:
+class FixNestedJobsProcessor:
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
@@ -60,7 +60,7 @@ class FixNestedTasksProcessor:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
-        elif jobs_service.is_job_cancelled(self.task_id, job_type="fix_nested_tasks"):
+        elif jobs_service.is_job_cancelled(self.task_id, job_type="fix_nested_jobs"):
             cancelled = True
 
         if cancelled:

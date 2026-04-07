@@ -8,7 +8,6 @@ class TablesCreatesSql:
     user_tokens: str
     tasks: str
     task_stages: str
-    fix_nested_tasks: str
     templates: str
     admin_users: str
     jobs: str
@@ -67,27 +66,6 @@ task_stages = """
         UNIQUE KEY uq_task_stage (task_id, stage_name),
         KEY idx_task_stages_task (task_id, stage_number),
         CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-"""
-
-fix_nested_tasks = """
-    CREATE TABLE IF NOT EXISTS fix_nested_tasks (
-        id VARCHAR(128) NOT NULL,
-        username text DEFAULT NULL,
-        filename text NOT NULL,
-        status VARCHAR(64) NOT NULL,
-        nested_tags_before INT DEFAULT NULL,
-        nested_tags_after INT DEFAULT NULL,
-        nested_tags_fixed INT DEFAULT NULL,
-        download_result JSON NULL,
-        upload_result JSON NULL,
-        error_message text DEFAULT NULL,
-        created_at timestamp NOT NULL DEFAULT current_timestamp(),
-        updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-        PRIMARY KEY (id),
-        INDEX idx_fix_nested_status (status),
-        INDEX idx_fix_nested_username (username (255)),
-        INDEX idx_fix_nested_created (created_at)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 """
 
@@ -208,7 +186,6 @@ sql_tables = TablesCreatesSql(
     user_tokens=user_tokens,
     tasks=tasks,
     task_stages=task_stages,
-    fix_nested_tasks=fix_nested_tasks,
     templates=templates,
     admin_users=admin_users,
     jobs=jobs,

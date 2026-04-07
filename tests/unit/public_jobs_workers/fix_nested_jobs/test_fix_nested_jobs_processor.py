@@ -1,16 +1,16 @@
-"""Unit tests for fix_nested_tasks processor module."""
+"""Unit tests for fix_nested_jobs processor module."""
 
 from __future__ import annotations
 
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedTasksProcessor
+from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
 
 
-class TestFixNestedTasksProcessor:
+class TestFixNestedJobsProcessor:
     def test_parse_filenames_single_string(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "Test.svg"},
@@ -22,7 +22,7 @@ class TestFixNestedTasksProcessor:
         assert filenames == ["Test.svg"]
 
     def test_parse_filenames_list(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filenames": ["File1.svg", "File2.svg"]},
@@ -34,7 +34,7 @@ class TestFixNestedTasksProcessor:
         assert filenames == ["File1.svg", "File2.svg"]
 
     def test_parse_filenames_comma_separated(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filenames": "File1.svg, File2.svg, File3.svg"},
@@ -46,7 +46,7 @@ class TestFixNestedTasksProcessor:
         assert filenames == ["File1.svg", "File2.svg", "File3.svg"]
 
     def test_parse_filenames_removes_file_prefix(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "File:Test.svg"},
@@ -58,7 +58,7 @@ class TestFixNestedTasksProcessor:
         assert filenames == ["Test.svg"]
 
     def test_parse_filenames_empty(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={},
@@ -70,7 +70,7 @@ class TestFixNestedTasksProcessor:
         assert filenames == []
 
     def test_is_cancelled_no_event(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "Test.svg"},
@@ -78,14 +78,14 @@ class TestFixNestedTasksProcessor:
             result={"status": "running"},
             result_file="test.json",
         )
-        with patch("src.main_app.public_jobs_workers.fix_nested_tasks.job.jobs_service") as mock_jobs:
+        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service") as mock_jobs:
             mock_jobs.is_job_cancelled.return_value = False
             assert processor._is_cancelled() is False
 
     def test_is_cancelled_with_event(self) -> None:
         cancel_event = threading.Event()
         cancel_event.set()
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "Test.svg"},
@@ -98,7 +98,7 @@ class TestFixNestedTasksProcessor:
         assert processor.result["status"] == "cancelled"
 
     def test_run_stage_success(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "Test.svg"},
@@ -120,7 +120,7 @@ class TestFixNestedTasksProcessor:
         assert processor.result["stages"]["download"]["status"] == "Completed"
 
     def test_run_stage_failure(self) -> None:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=1,
             title="Test.svg",
             args={"filename": "Test.svg"},

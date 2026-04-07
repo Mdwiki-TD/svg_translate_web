@@ -1,5 +1,5 @@
 """
-Worker module for fix_nested_tasks.
+Worker module for fix_nested_jobs.
 """
 
 from __future__ import annotations
@@ -10,12 +10,12 @@ from datetime import datetime
 from typing import Any, Dict
 
 from ...jobs_workers.base_worker import BaseJobWorker
-from .job import FixNestedTasksProcessor
+from .job import FixNestedJobsProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class FixNestedTasksWorker(BaseJobWorker):
+class FixNestedJobsWorker(BaseJobWorker):
     """
     Worker for fixing nested tags in user-submitted SVG files.
     """
@@ -33,7 +33,7 @@ class FixNestedTasksWorker(BaseJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "fix_nested_tasks"
+        return "fix_nested_jobs"
 
     def get_initial_result(self) -> dict[str, Any]:
         """Return the initial result structure."""
@@ -60,7 +60,7 @@ class FixNestedTasksWorker(BaseJobWorker):
         }
 
     def process(self) -> dict[str, Any]:
-        processor = FixNestedTasksProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=self.task_id,
             args=self.args,
             user=self.user,
@@ -72,7 +72,7 @@ class FixNestedTasksWorker(BaseJobWorker):
 
 
 # --- main pipeline --------------------------------------------
-def fix_nested_tasks_worker_entry(
+def fix_nested_jobs_worker_entry(
     task_id: str,
     args: Any,
     user: Dict[str, str] | None,
@@ -81,7 +81,7 @@ def fix_nested_tasks_worker_entry(
 ) -> None:
     """Entry point for the background job."""
 
-    worker = FixNestedTasksWorker(
+    worker = FixNestedJobsWorker(
         task_id=task_id,
         args=args,
         user=user,
@@ -91,6 +91,6 @@ def fix_nested_tasks_worker_entry(
 
 
 __all__ = [
-    "fix_nested_tasks_worker_entry",
-    "FixNestedTasksWorker",
+    "fix_nested_jobs_worker_entry",
+    "FixNestedJobsWorker",
 ]
