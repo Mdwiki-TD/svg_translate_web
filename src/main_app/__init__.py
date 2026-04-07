@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from typing import Any, Tuple
 
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
@@ -133,7 +133,7 @@ def create_app() -> Flask:
         ensure_user_token_table()
 
     @app.context_processor
-    def _inject_user():  # pragma: no cover - trivial wrapper
+    def _inject_user() -> dict[str, Any]:
         return context_user()
 
     app.jinja_env.filters["format_stage_timestamp"] = format_stage_timestamp

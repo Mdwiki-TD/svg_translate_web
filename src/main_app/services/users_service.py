@@ -68,6 +68,9 @@ def oauth_required(func: F) -> F:
 
 
 def context_user() -> dict[str, Any]:
+    """
+    used in @app.context_processor
+    """
     user = current_user()
     return {
         "current_user": user,

@@ -27,19 +27,6 @@ def load_auth_payload(user: Optional[UserTokenRecord] | None) -> Dict[str, Any]:
     return auth_payload
 
 
-def get_error_message(error_code: str | None) -> str:
-    if not error_code:
-        return ""
-    # ---
-    messages = {
-        "task-active": "A task for this title is already in progress.",
-        "not-found": "Task not found.",
-        "task-create-failed": "Task creation failed.",
-    }
-    # ---
-    return messages.get(error_code, error_code)
-
-
 def _format_timestamp(value: datetime | str | None) -> tuple[str, str]:
     """
     Format a timestamp value for user display and provide a sortable ISO-style key.
