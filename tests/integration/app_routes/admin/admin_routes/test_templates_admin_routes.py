@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from unittest.mock import Mock, patch
+
 from src.main_app.app_routes.admin_routes import templates
 
 
 def test_update_template_uses_request_form_type_parameter(app_mock):
     """Test that _update_template uses request.form.get with type=int parameter."""
-    with app_mock.test_request_context(method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}):
+    with app_mock.test_request_context(
+        method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}
+    ):
         mock_service = Mock()
         mock_service.update_template = Mock(return_value=Mock(title="Test Title"))
 

@@ -110,8 +110,8 @@ def test_Templates():
 
 def test_create_json_file_success(app_mock, monkeypatch):
     """Test create_json_file returns JSON file with templates data."""
-    from src.main_app.shared.models import TemplateRecord
     from src.main_app.app_routes.admin_routes.templates import create_json_file
+    from src.main_app.shared.models import TemplateRecord
 
     templates = [
         TemplateRecord(
@@ -168,8 +168,8 @@ def test_create_json_file_exception(app_mock, monkeypatch):
 
 def test_edit_template_found(app_mock, monkeypatch):
     """Test _edit_template returns template when found."""
-    from src.main_app.shared.models import TemplateRecord
     from src.main_app.app_routes.admin_routes.templates import _edit_template
+    from src.main_app.shared.models import TemplateRecord
 
     template = TemplateRecord(
         id=1,

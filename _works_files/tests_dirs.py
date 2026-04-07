@@ -18,10 +18,7 @@ def replicate_test_structure(source_dir, target_roots):
         return
 
     # Fetch directories only and filter out __pycache__
-    subdirs = [
-        d for d in source_path.rglob("*")
-        if d.is_dir() and "__pycache__" not in d.parts
-    ]
+    subdirs = [d for d in source_path.rglob("*") if d.is_dir() and "__pycache__" not in d.parts]
 
     for root in target_roots:
         target_root_path = Path(root)
@@ -45,11 +42,7 @@ if __name__ == "__main__":
     # Define paths relative to the current script's location
     main_dir = Path(__file__).parent.parent
     SOURCE = main_dir / "src/main_app"
-    TARGETS = [
-        main_dir / "tests/integration",
-        main_dir / "tests/unit",
-        main_dir / "tests/functional"
-    ]
+    TARGETS = [main_dir / "tests/integration", main_dir / "tests/unit", main_dir / "tests/functional"]
 
     replicate_test_structure(SOURCE, TARGETS)
     print("\nTask completed successfully. Cache directories were excluded.")

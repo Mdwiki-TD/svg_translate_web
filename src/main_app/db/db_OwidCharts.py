@@ -5,9 +5,8 @@ from typing import Any, List
 
 import pymysql
 
-from ..shared.models import OwidChartRecord
-
 from ..config import DbConfig
+from ..shared.models import OwidChartRecord
 from . import Database
 from .sql_schema_tables import sql_tables
 

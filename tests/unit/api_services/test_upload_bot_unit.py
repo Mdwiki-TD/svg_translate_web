@@ -47,19 +47,23 @@ def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
 def make_upload_response(result: str = "Success") -> dict:
     return {"result": result, "filename": "Test_file.jpg"}
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Test Groups
 # ══════════════════════════════════════════════════════════════════════════════
 
 
 class TestFixFileName:
-    @pytest.mark.parametrize("input_name, expected", [
-        ("file:Test.jpg", "Test.jpg"),
-        ("File:Test.jpg", "Test.jpg"),
-        ("FILE:Test.jpg", "Test.jpg"),
-        ("  Test.jpg  ", "Test.jpg"),
-        ("Test.jpg", "Test.jpg"),
-    ])
+    @pytest.mark.parametrize(
+        "input_name, expected",
+        [
+            ("file:Test.jpg", "Test.jpg"),
+            ("File:Test.jpg", "Test.jpg"),
+            ("FILE:Test.jpg", "Test.jpg"),
+            ("  Test.jpg  ", "Test.jpg"),
+            ("Test.jpg", "Test.jpg"),
+        ],
+    )
     def test_filename_cleaning(self, input_name, expected, mock_site, tmp_file):
         u = UploadFile(input_name, tmp_file, mock_site)
         assert u.file_name == expected
@@ -131,18 +135,21 @@ class TestUploadFileInternal:
         assert result["result"] == "Success"
         assert "error" not in result
 
-    @pytest.mark.parametrize("exception, expected_code", [
-        (mwclient.errors.AssertUserFailedError(), "assertuserfailed"),
-        (mwclient.errors.UserBlocked(MagicMock()), "userblocked"),
-        (mwclient.errors.InsufficientPermission(MagicMock()), "insufficientpermission"),
-        (mwclient.errors.FileExists("Test.jpg"), "fileexists"),
-        (mwclient.errors.MaximumRetriesExceeded(MagicMock(), MagicMock()), "maxretriesexceeded"),
-        (requests.exceptions.Timeout("timed out"), "timeout"),
-        (requests.exceptions.ConnectionError("refused"), "connectionerror"),
-        (requests.exceptions.HTTPError("403"), "httperror"),
-        (make_api_error("ratelimited"), "ratelimited"),
-        (make_api_error("fileexists-no-change"), "fileexists-no-change"),
-    ])
+    @pytest.mark.parametrize(
+        "exception, expected_code",
+        [
+            (mwclient.errors.AssertUserFailedError(), "assertuserfailed"),
+            (mwclient.errors.UserBlocked(MagicMock()), "userblocked"),
+            (mwclient.errors.InsufficientPermission(MagicMock()), "insufficientpermission"),
+            (mwclient.errors.FileExists("Test.jpg"), "fileexists"),
+            (mwclient.errors.MaximumRetriesExceeded(MagicMock(), MagicMock()), "maxretriesexceeded"),
+            (requests.exceptions.Timeout("timed out"), "timeout"),
+            (requests.exceptions.ConnectionError("refused"), "connectionerror"),
+            (requests.exceptions.HTTPError("403"), "httperror"),
+            (make_api_error("ratelimited"), "ratelimited"),
+            (make_api_error("fileexists-no-change"), "fileexists-no-change"),
+        ],
+    )
     def test_exception_mapping(self, uploader, exception, expected_code):
         uploader._site_upload = MagicMock(side_effect=exception)
         result = uploader._upload_file()

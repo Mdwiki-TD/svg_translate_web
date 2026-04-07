@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+
 def test_format_stage_timestamp_valid():
     """Test format_stage_timestamp with valid timestamp."""
     from src.main_app import format_stage_timestamp
