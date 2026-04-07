@@ -60,24 +60,6 @@ CREATE TABLE IF NOT EXISTS task_stages (
     CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS fix_nested_tasks (
-    id VARCHAR(128) NOT NULL,
-    username text DEFAULT NULL,
-    filename text NOT NULL,
-    status VARCHAR(64) NOT NULL,
-    nested_tags_before INT DEFAULT NULL,
-    nested_tags_after INT DEFAULT NULL,
-    nested_tags_fixed INT DEFAULT NULL,
-    download_result JSON NULL,
-    upload_result JSON NULL,
-    error_message text DEFAULT NULL,
-    created_at timestamp NOT NULL DEFAULT current_timestamp(),
-    updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    PRIMARY KEY (id),
-    INDEX idx_fix_nested_status (status),
-    INDEX idx_fix_nested_username (username (255)),
-    INDEX idx_fix_nested_created (created_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS templates (
     id INT NOT NULL AUTO_INCREMENT,
