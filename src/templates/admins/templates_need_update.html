@@ -26,11 +26,22 @@ Translation{% endblock %} {% block contents %}
         </div>
     </div>
 </div>
-<textarea id='urls_textarea' name='urls_textarea' hidden>sdsd</textarea>
 {% endblock %}
 {% block extra_js %}
 
 <script>
+    function copy_urls() {
+        const table = $("#templatesNeedUpdateTable").DataTable();
+        const data = table.data().toArray();
+        const urls = data.map(row => `https://ourworldindata.org/grapher/${row.slug}`).join("\n");
+
+        navigator.clipboard.writeText(urls).then(() => {
+            alert(`Copied ${urls.split("\n").length} URLs to clipboard`);
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+        });
+    }
+
     $(document).ready(function () {
         $("#templatesNeedUpdateTable").DataTable({
             ajax: {
@@ -78,12 +89,6 @@ Translation{% endblock %} {% block contents %}
             ],
             serverSide: false,
         });
-
-        function copy_urls() {
-            let textarea = document.getElementById("urls_textarea");
-            textarea.select();
-            document.execCommand("copy");
-        }
 
     });
 
