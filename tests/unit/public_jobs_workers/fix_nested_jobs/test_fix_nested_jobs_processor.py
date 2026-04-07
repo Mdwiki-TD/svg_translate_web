@@ -5,74 +5,46 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
 
 
 class TestFixNestedJobsProcessor:
-    def test_parse_filenames_single_string(self) -> None:
+    def test_filename_from_args(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=None,
             result={},
             result_file="test.json",
         )
-        filenames = processor._parse_filenames()
-        assert filenames == ["Test.svg"]
+        assert processor.filename == "Test.svg"
 
-    def test_parse_filenames_list(self) -> None:
+    def test_filename_from_args_with_file_prefix(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
-            args={"filenames": ["File1.svg", "File2.svg"]},
-            user=None,
-            result={},
-            result_file="test.json",
-        )
-        filenames = processor._parse_filenames()
-        assert filenames == ["File1.svg", "File2.svg"]
-
-    def test_parse_filenames_comma_separated(self) -> None:
-        processor = FixNestedJobsProcessor(
-            task_id=1,
-            title="Test.svg",
-            args={"filenames": "File1.svg, File2.svg, File3.svg"},
-            user=None,
-            result={},
-            result_file="test.json",
-        )
-        filenames = processor._parse_filenames()
-        assert filenames == ["File1.svg", "File2.svg", "File3.svg"]
-
-    def test_parse_filenames_removes_file_prefix(self) -> None:
-        processor = FixNestedJobsProcessor(
-            task_id=1,
-            title="Test.svg",
             args={"filename": "File:Test.svg"},
             user=None,
             result={},
             result_file="test.json",
         )
-        filenames = processor._parse_filenames()
-        assert filenames == ["Test.svg"]
+        # The processor just gets the value as-is from args
+        assert processor.filename == "File:Test.svg"
 
-    def test_parse_filenames_empty(self) -> None:
+    def test_filename_empty(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={},
             user=None,
             result={},
             result_file="test.json",
         )
-        filenames = processor._parse_filenames()
-        assert filenames == []
+        assert processor.filename is None
 
     def test_is_cancelled_no_event(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=None,
             result={"status": "running"},
@@ -87,7 +59,6 @@ class TestFixNestedJobsProcessor:
         cancel_event.set()
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=None,
             result={"status": "running"},
@@ -100,7 +71,6 @@ class TestFixNestedJobsProcessor:
     def test_run_stage_success(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -122,7 +92,6 @@ class TestFixNestedJobsProcessor:
     def test_run_stage_failure(self) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=None,
             result={

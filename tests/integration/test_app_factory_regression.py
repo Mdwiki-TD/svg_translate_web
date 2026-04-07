@@ -55,7 +55,6 @@ def test_create_app_registers_blueprints():
         "explorer",
         "admin",
         "auth",
-        "fix_nested",
         "extract",
     ]
 

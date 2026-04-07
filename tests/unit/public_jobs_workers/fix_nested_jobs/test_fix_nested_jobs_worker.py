@@ -15,7 +15,6 @@ class TestFixNestedJobsWorker:
     def test_get_job_type(self) -> None:
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
         )
         assert worker.get_job_type() == "fix_nested_jobs"
@@ -23,7 +22,6 @@ class TestFixNestedJobsWorker:
     def test_get_initial_result_structure(self) -> None:
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -32,7 +30,7 @@ class TestFixNestedJobsWorker:
         assert result["started_at"] is not None
         assert result["completed_at"] is None
         assert result["cancelled_at"] is None
-        assert result["title"] == "Test.svg"
+        assert result["filename"] is None  # filename comes from args, not set until processor runs
         assert "stages" in result
         assert "download" in result["stages"]
         assert "analyze" in result["stages"]
@@ -45,7 +43,6 @@ class TestFixNestedJobsWorker:
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -58,7 +55,6 @@ class TestFixNestedJobsWorker:
     def test_get_initial_result_summary_structure(self) -> None:
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -72,7 +68,6 @@ class TestFixNestedJobsWorker:
         user = {"username": "testuser", "id": 123}
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             user=user,
         )
@@ -82,7 +77,6 @@ class TestFixNestedJobsWorker:
         cancel_event = threading.Event()
         worker = FixNestedJobsWorker(
             task_id=1,
-            title="Test.svg",
             args={"filename": "Test.svg"},
             cancel_event=cancel_event,
         )
@@ -90,20 +84,10 @@ class TestFixNestedJobsWorker:
 
 
 class TestFixNestedJobsWorkerEntry:
-    def test_worker_entry_missing_title(self) -> None:
-        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsWorker"):
-            fix_nested_jobs_worker_entry(
-                task_id="1",
-                title="",
-                args={"filename": "Test.svg"},
-                user=None,
-            )
-
     def test_worker_entry_missing_args(self) -> None:
         with patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsWorker"):
             fix_nested_jobs_worker_entry(
                 task_id="1",
-                title="Test.svg",
                 args={},
                 user=None,
             )
@@ -115,7 +99,6 @@ class TestFixNestedJobsWorkerEntry:
 
             fix_nested_jobs_worker_entry(
                 task_id="1",
-                title="Test.svg",
                 args={"filename": "Test.svg"},
                 user=None,
             )
@@ -131,7 +114,6 @@ class TestFixNestedJobsWorkerEntry:
 
             fix_nested_jobs_worker_entry(
                 task_id="1",
-                title="Test.svg",
                 args={"filename": "Test.svg"},
                 user=user,
             )
@@ -147,7 +129,6 @@ class TestFixNestedJobsWorkerEntry:
 
             fix_nested_jobs_worker_entry(
                 task_id="1",
-                title="Test.svg",
                 args={"filename": "Test.svg"},
                 user=None,
                 cancel_event=cancel_event,
