@@ -7,6 +7,16 @@
 {% endmacro %}
 
 
+{% macro nav_link_with_args(endpoint, icon, text, url, path) %}
+{# check endpoint and job_type in URL #}
+{% set is_active = request and request.path and request.path.startswith(path) %}
+<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
+    {% endif %} title="{{ text }}">
+    <i class="bi {{ icon }}"></i> {{ text }}
+</a>
+{% endmacro %}
+
+
 <header>
     <nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
         <div class="container-fluid">
@@ -25,10 +35,25 @@
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('public_jobs.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type='copy_svg_langs') ) }}
+                        {{ nav_link_with_args(
+                            'public_jobs.jobs_list',
+                            'bi-list-task',
+                            'All Copy Tasks',
+                            url_for('public_jobs.jobs_list', job_type='copy_svg_langs' ),
+                            "/jobs/copy_svg_langs"
+                            )
+                        }}
                     </li>
+
                     <li class="{{ nav_item_class }}">
-                        {{ nav_link('public_jobs.', 'bi-list-task', 'Fix Nested Tags', url_for('public_jobs.jobs_list', job_type='fix_nested_jobs') ) }}
+                        {{ nav_link_with_args(
+                            'public_jobs.jobs_list',
+                            'bi-list-task',
+                            'Fix Nested Tags',
+                            url_for('public_jobs.jobs_list', job_type='fix_nested_jobs'),
+                            "/jobs/fix_nested_jobs"
+                            )
+                        }}
                     </li>
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.extract_translations')) }}
