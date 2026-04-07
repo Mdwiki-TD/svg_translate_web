@@ -6,7 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.db.db_OwidCharts import OwidChartRecord, OwidChartsDB
+from src.main_app.db.db_OwidCharts import OwidChartsDB
+from src.main_app.shared.models import OwidChartRecord
 
 
 @pytest.fixture
