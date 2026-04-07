@@ -6,8 +6,6 @@ from dataclasses import dataclass
 @dataclass
 class TablesCreatesSql:
     user_tokens: str
-    tasks: str
-    task_stages: str
     templates: str
     admin_users: str
     jobs: str
@@ -29,43 +27,6 @@ user_tokens = """
         rotated_at datetime DEFAULT NULL,
         PRIMARY KEY (user_id),
         KEY idx_user_tokens_username (username)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-"""
-
-tasks = """
-    CREATE TABLE IF NOT EXISTS tasks (
-        id VARCHAR(128) NOT NULL,
-        username text DEFAULT NULL,
-        title text NOT NULL,
-        normalized_title VARCHAR(512) NOT NULL,
-        main_file VARCHAR(512) DEFAULT NULL,
-        status VARCHAR(64) NOT NULL,
-        form_json longtext DEFAULT NULL,
-        data_json longtext DEFAULT NULL,
-        results_json longtext DEFAULT NULL,
-        created_at timestamp NOT NULL DEFAULT current_timestamp(),
-        updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-        PRIMARY KEY (id),
-        KEY idx_tasks_norm (normalized_title),
-        KEY idx_tasks_status (status),
-        KEY idx_tasks_created (created_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-"""
-
-task_stages = """
-    CREATE TABLE IF NOT EXISTS task_stages (
-        stage_id VARCHAR(255) NOT NULL,
-        task_id VARCHAR(128) NOT NULL,
-        stage_name VARCHAR(255) NOT NULL,
-        stage_number INT NOT NULL,
-        stage_status VARCHAR(64) NOT NULL,
-        stage_sub_name longtext DEFAULT NULL,
-        stage_message longtext DEFAULT NULL,
-        updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-        PRIMARY KEY (stage_id),
-        UNIQUE KEY uq_task_stage (task_id, stage_name),
-        KEY idx_task_stages_task (task_id, stage_number),
-        CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 """
 
@@ -184,8 +145,6 @@ templates_need_update = """
 # sql_tables
 sql_tables = TablesCreatesSql(
     user_tokens=user_tokens,
-    tasks=tasks,
-    task_stages=task_stages,
     templates=templates,
     admin_users=admin_users,
     jobs=jobs,

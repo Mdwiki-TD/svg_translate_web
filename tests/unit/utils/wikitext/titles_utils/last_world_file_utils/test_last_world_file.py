@@ -1,4 +1,4 @@
-"""Tests for tasks/titles/utils/last_world_file module."""
+"""Tests for last_world_file module."""
 
 from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import (
     find_last_world_file_from_owidslidersrcs,

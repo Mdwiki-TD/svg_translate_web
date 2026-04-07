@@ -67,7 +67,6 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 7. **inject** - Inject translations into SVGs
 8. **upload** - Upload results to Wikimedia Commons
 
-Tasks run in background threads with cancellation support via `threading.Event`. Progress is tracked in MySQL tables (`tasks` and `task_stages`).
 
 ### Database Layer
 
