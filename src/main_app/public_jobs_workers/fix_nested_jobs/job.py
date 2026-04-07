@@ -80,8 +80,6 @@ class FixNestedJobsProcessor:
         self.session = create_commons_session(settings.oauth.user_agent)
         self.site = get_user_site(self.user)
 
-        self.result["summary"]["total"] = 1
-
         if not self.filename:
             logger.error("No filename found")
             self.result["status"] = "failed"
@@ -173,38 +171,35 @@ class FixNestedJobsProcessor:
         success_count = 0
         failed_count = 0
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            temp_dir = Path(tmp_dir)
+        temp_dir = Path(tempfile.gettempdir())
 
-            download_result = download_svg_file(self.filename, temp_dir)
+        download_result = download_svg_file(self.filename, temp_dir)
 
-            file_result = {
-                "filename": self.filename,
-                "status": "pending",
-                "path": None,
-                "error": None,
-            }
+        file_result = {
+            "status": "pending",
+            "path": None,
+            "error": None,
+        }
 
-            if download_result["ok"]:
-                file_result["status"] = "success"
-                file_result["path"] = str(download_result["path"])
-                success_count += 1
-            else:
-                file_result["status"] = "failed"
-                file_result["error"] = download_result.get("error", "download_failed")
-                failed_count += 1
+        if download_result["ok"]:
+            file_result["status"] = "success"
+            file_result["path"] = str(download_result["path"])
+            success_count += 1
+        else:
+            file_result["status"] = "failed"
+            file_result["error"] = download_result.get("error", "download_failed")
+            failed_count += 1
 
-            results.append(file_result)
-            self.result["results"].append(file_result)
+        results.append(file_result)
+        self.result["results"].append(file_result)
 
-            # Update stage message
-            self.result["stages"]["download"]["message"] = "Downloaded 1/1"
-            self._save_progress()
+        # Update stage message
+        self.result["stages"]["download"]["message"] = "Downloaded 1/1"
+        self._save_progress()
 
         return {
             "success": True,
             "message": f"Downloaded {success_count}/1 files",
-            "summary": {"success": success_count, "failed": failed_count},
             "results": results,
         }
 
@@ -219,6 +214,10 @@ class FixNestedJobsProcessor:
                 continue
 
             file_path = Path(file_result["path"])
+            if not file_path.is_file():
+                file_result["analyze_status"] = "failed"
+                continue
+
             detect_result = detect_nested_tags(file_path)
 
             file_result["nested_tags_before"] = detect_result["count"]
@@ -238,13 +237,14 @@ class FixNestedJobsProcessor:
                 "nested_count": detect_result["count"],
             })
 
-            self.result["stages"]["analyze"]["message"] = f"Analyzed {file_result['filename']}"
+            # self.result["stages"]["analyze"]["message"] = f"Analyzed {file_result['filename']}"
+            self.result["stages"]["analyze"]["message"] = file_result["analyze_message"]
             self._save_progress()
 
         return {
             "success": True,
-            "message": f"Analyzed {len(self.result['results'])} files",
-            "summary": {"analyzed": success_count, "skipped": skipped_count},
+            # "message": f"Analyzed {len(self.result['results'])} files",
+            "message": file_result["analyze_message"],
             "results": results,
         }
 
@@ -279,7 +279,6 @@ class FixNestedJobsProcessor:
         return {
             "success": True,
             "message": f"Fixed {success_count} files",
-            "summary": {"success": success_count, "failed": failed_count, "skipped": skipped_count},
         }
 
     def _verify_step(self) -> dict[str, Any]:
@@ -314,7 +313,6 @@ class FixNestedJobsProcessor:
         return {
             "success": True,
             "message": f"Verified {success_count} files",
-            "summary": {"success": success_count, "failed": failed_count},
         }
 
     def _upload_step(self) -> dict[str, Any]:
@@ -355,7 +353,6 @@ class FixNestedJobsProcessor:
         return {
             "success": True,
             "message": f"Uploaded {success_count} files",
-            "summary": {"success": success_count, "failed": failed_count},
         }
 
     def _run_stage(
@@ -379,7 +376,7 @@ class FixNestedJobsProcessor:
             if step_result.get("success"):
                 stage["status"] = "Completed"
                 stage["message"] = step_result.get("message", "")
-                stage["data"] = step_result
+                stage.update(step_result)
                 if run_after_func:
                     run_after_func()
                 return True
