@@ -27,8 +27,9 @@ class OwidChartsDB:
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        """Ensure the owid_charts table exists with the required schema."""
+        """Ensure the owid_charts table, owid_charts_templates view exists with the required schema."""
         self.db.execute_query_safe(sql_tables.owid_charts)
+        self.db.execute_query_safe(sql_tables.owid_charts_templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> OwidChartRecord:
         return OwidChartRecord(

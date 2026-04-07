@@ -8,7 +8,8 @@ from typing import List
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Templates import TemplatesDB
-from ..shared.models import TemplateRecord
+from ..db.db_TemplatesNeedUpdate import TemplatesNeedUpdateDB
+from ..shared.models import TemplateNeedUpdateRecord, TemplateRecord
 from ..utils.wikitext.titles_utils import match_last_world_year
 
 logger = logging.getLogger(__name__)
@@ -44,11 +45,44 @@ def get_templates_db() -> TemplatesDB:
     return _TEMPLATE_STORE
 
 
+def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
+    """
+    Return the module's cached TemplatesNeedUpdateDB instance, initializing it on first use.
+
+    Returns:
+        TemplatesNeedUpdateDB: The initialized and cached templates database instance.
+
+    Raises:
+        RuntimeError: If no database configuration is available.
+        RuntimeError: If initializing the TemplatesNeedUpdateDB fails.
+    """
+    global _TEMPLATE_STORE
+
+    if _TEMPLATE_STORE is None:
+        if not has_db_config():
+            raise RuntimeError(
+                "Template administration requires database configuration; no fallback store is available."
+            )
+
+        try:
+            _TEMPLATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
+        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+            logger.exception("Failed to initialize MySQL template store")
+            raise RuntimeError("Unable to initialize template store") from exc
+
+    return _TEMPLATE_STORE
+
+
 def list_templates() -> List[TemplateRecord]:
     """Return all templates while keeping settings.admins in sync."""
-
     store = get_templates_db()
+    coords = store.list()
+    return coords
 
+
+def list_templates_need_update() -> List[TemplateNeedUpdateRecord]:
+    """Return all templates"""
+    store = get_templates_need_update_db()
     coords = store.list()
     return coords
 
@@ -114,4 +148,5 @@ __all__ = [
     "list_templates",
     "delete_template",
     "get_template",
+    "list_templates_need_update",
 ]

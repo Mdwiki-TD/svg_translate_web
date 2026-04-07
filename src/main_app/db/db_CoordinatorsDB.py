@@ -5,9 +5,8 @@ from typing import Any, Iterable, List
 
 import pymysql
 
-from ..shared.models import CoordinatorRecord
-
 from ..config import DbConfig
+from ..shared.models import CoordinatorRecord
 from . import Database
 from .sql_schema_tables import sql_tables
 
