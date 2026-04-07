@@ -15,7 +15,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ...services import admin_service
-from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -24,14 +23,12 @@ logger = logging.getLogger(__name__)
 def _coordinators_dashboard():
     """Render the coordinator management dashboard."""
 
-    user = current_user()
     coordinators = admin_service.list_coordinators()
     total = len(coordinators)
     active = sum(1 for coord in coordinators if coord.is_active)
 
     return render_template(
         "admins/coordinators.html",
-        current_user=user,
         coordinators=coordinators,
         total_coordinators=total,
         active_coordinators=active,

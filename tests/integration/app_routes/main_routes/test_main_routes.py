@@ -15,9 +15,7 @@ def app_mock():
 
 
 @patch("src.main_app.app_routes.main_routes.routes.render_template")
-@patch("src.main_app.app_routes.main_routes.routes.current_user")
-def test_index(mock_current_user, mock_render, app_mock):
-    mock_current_user.return_value = MagicMock(username="user")
+def test_index(mock_render, app_mock):
     mock_render.return_value = "rendered"
 
     with app_mock.test_client() as client:
@@ -27,7 +25,8 @@ def test_index(mock_current_user, mock_render, app_mock):
         mock_render.assert_called_once()
         args, kwargs = mock_render.call_args
         assert args[0] == "index.html"
-        assert kwargs["current_user"] == mock_current_user.return_value
+        assert kwargs["form"] == {}
+        assert kwargs["set_titles_limit"] == False
 
 
 @patch("src.main_app.app_routes.main_routes.routes.send_from_directory")

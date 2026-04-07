@@ -122,10 +122,14 @@ def match_last_world_file(text) -> str:
 
 def match_last_world_year(last_world_file) -> int | None:
     """
-    death-rate-by-source-from-indoor-air-pollution,World,2021.svg
+    input:
+        death-rate-by-source-from-indoor-air-pollution,World,2021.svg
+        death-rate-by-source-from-indoor-air-pollution,World,2021 (cropped).svg
+    output:
+        2021
     """
     # match year
-    y_match = re.match(r"^.*?,\s*(\d{4})\.svg$", last_world_file)
+    y_match = re.match(r"^.*?,\s*(\d{4})(\s*\(cropped\))?\.svg$", last_world_file)
     if y_match:
         return int(y_match.group(1))
 

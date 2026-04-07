@@ -21,9 +21,8 @@ class TemplateNeedUpdateRecord:
     difference: int | None = None
 
     def __post_init__(self):
-        self.difference = (
-            (self.chart_year or 0) - (self.template_year or 0) if self.template_year and self.chart_year else None
-        )
+        if self.template_year is not None and self.chart_year is not None:
+            self.difference = (self.chart_year or 0) - (self.template_year or 0)
 
     def to_dict(self) -> dict[str, Any]:
         return {

@@ -79,7 +79,7 @@ def login() -> Response:
         time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
         time_left = str(time_left).split(".")[0]
         flash(f"Too many login attempts. Please try again after {time_left}s.", "warning")
-        return redirect(url_for("main.index", error=f"Too many login attempts. Please try again after {time_left}s."))
+        return redirect(url_for("main.index"))
 
     state_nonce = secrets.token_urlsafe(32)
     session[oauth_state_nonce] = state_nonce
@@ -91,7 +91,7 @@ def login() -> Response:
     except Exception:
         logger.exception("Failed to start OAuth login")
         flash("Failed to initiate OAuth login", "danger")
-        return redirect(url_for("main.index", error="Failed to initiate OAuth login"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # add request_token to session
@@ -105,7 +105,7 @@ def callback() -> Response:
     # callback rate limiter
     if not callback_rate_limiter.allow(_client_key()):
         flash("Too many login attempts", "warning")
-        return redirect(url_for("main.index", error="Too many login attempts"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # verify state token
@@ -113,12 +113,12 @@ def callback() -> Response:
     returned_state = request.args.get("state")
     if not expected_state or not returned_state:
         flash("Invalid OAuth state", "danger")
-        return redirect(url_for("main.index", error="Invalid OAuth state"))
+        return redirect(url_for("main.index"))
 
     verified_state = verify_state_token(returned_state)
     if verified_state != expected_state:
         flash("OAuth state mismatch", "danger")
-        return redirect(url_for("main.index", error="oauth-state-mismatch"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # token data
@@ -126,7 +126,7 @@ def callback() -> Response:
     oauth_verifier = request.args.get("oauth_verifier")
     if not raw_request_token or not oauth_verifier:
         flash("Invalid OAuth verifier", "danger")
-        return redirect(url_for("main.index", error="Invalid OAuth verifier"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # RequestToken
@@ -135,7 +135,7 @@ def callback() -> Response:
     except ValueError:
         logger.exception("Invalid OAuth request token")
         flash("Invalid OAuth request token", "danger")
-        return redirect(url_for("main.index", error="Invalid request token"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # access_token, identity
@@ -145,7 +145,7 @@ def callback() -> Response:
     except OAuthIdentityError:
         logger.exception("OAuth identity verification failed")
         flash("Failed to verify OAuth identity", "danger")
-        return redirect(url_for("main.index", error="Failed to verify OAuth identity"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # access_key, access_secret
@@ -159,26 +159,26 @@ def callback() -> Response:
     if not (token_key and token_secret):
         logger.error("OAuth access token missing key/secret")
         flash("Missing OAuth credentials", "danger")
-        return redirect(url_for("main.index", error="Missing credentials"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # user info
     user_identifier = identity.get("sub") or identity.get("id") or identity.get("central_id") or identity.get("user_id")
     if not user_identifier:
         flash("Missing user id", "danger")
-        return redirect(url_for("main.index", error="Missing id"))
+        return redirect(url_for("main.index"))
 
     try:
         user_id = int(user_identifier)
     except (TypeError, ValueError):
         logger.exception("Invalid user identifier")
         flash("Invalid user identifier", "danger")
-        return redirect(url_for("main.index", error="Invalid user identifier"))
+        return redirect(url_for("main.index"))
 
     username = identity.get("username") or identity.get("name")
     if not username:
         flash("Missing username", "danger")
-        return redirect(url_for("main.index", error="Missing username"))
+        return redirect(url_for("main.index"))
 
     # ------------------
     # upsert credentials

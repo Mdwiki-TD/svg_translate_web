@@ -249,7 +249,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="d-flex justify-content-between">
                     <button
                         type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-outline-primary">
                         <i class="bi bi-save"></i> Save Changes
                     </button>
 

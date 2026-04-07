@@ -6,11 +6,14 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">OWID Charts</h3>
         <div>
-            <button type="button" class="btn btn-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
+            <a class="btn btn-outline-success" onclick="copy_data()">
+                <i class="bi bi-copy"></i> Copy data
+            </a>
+            <button type="button" class="btn btn-outline-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
                 onclick="pup_window_new(this)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
-            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-success">
+            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-outline-success">
                 <i class="bi bi-download"></i> Download Json
             </a>
         </div>
@@ -131,6 +134,20 @@
 {% block extra_js %}
 
 <script>
+    function copy_data() {
+        const table = $("#chartsTable").DataTable();
+        const data = table.rows({ search: 'applied' }).data().toArray();
+        const urls = data
+            .filter(row => row.template_title && row.slug)
+            .map(row => `${row.template_title.replace('Template:', '')}\t${row.slug}`)
+            .join("\n");
+
+        navigator.clipboard.writeText(urls).then(() => {
+            alert(`Copied ${urls.split("\n").length} lines to clipboard`);
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+        });
+    }
     $(document).ready(function () {
         const urlParams = new URLSearchParams(window.location.search);
         const templateFilter = urlParams.get('template') || '';

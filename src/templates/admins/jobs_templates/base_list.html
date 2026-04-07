@@ -12,7 +12,7 @@
             {% if not hide_start_button %}
             <form method="post" action="{{ url_for('admin.start_job', job_type=job_type) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit" class="btn btn-primary"
+                <button type="submit" class="btn btn-outline-primary"
                     data-confirm-message="{% block start_confirm_message %}{% endblock %}"
                     onclick="return confirm(this.dataset.confirmMessage);">
                     <i class="bi {% block start_icon %}bi-play-circle{% endblock %}"></i> {% block start_text %}Start

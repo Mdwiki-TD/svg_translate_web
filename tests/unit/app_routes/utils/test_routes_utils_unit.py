@@ -5,18 +5,9 @@ from datetime import datetime
 from src.main_app.app_routes.utils.routes_utils import (
     _format_timestamp,
     format_task,
-    get_error_message,
     load_auth_payload,
     order_stages,
 )
-
-
-def test_get_error_message_known_and_unknown():
-    assert get_error_message("task-active") == "A task for this title is already in progress."
-    assert get_error_message("not-found") == "Task not found."
-    assert get_error_message(None) == ""
-    assert get_error_message("some-other") == "some-other"
-
 
 def test_format_timestamp_variants():
     dt = datetime(2024, 1, 2, 3, 4, 5)

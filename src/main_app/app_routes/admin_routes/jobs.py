@@ -108,7 +108,6 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
-    user = current_user()
     # Filter jobs at database level for better performance
     jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
 
@@ -122,7 +121,6 @@ def _jobs_list(job_type: str) -> str:
 
     return render_template(
         template,
-        current_user=user,
         jobs=jobs,
         job_type=job_type,
     )
@@ -130,7 +128,6 @@ def _jobs_list(job_type: str) -> str:
 
 def _job_detail(job_id: int, job_type: str) -> Response | str:
     """Render the job detail page for any job type."""
-    user = current_user()
 
     try:
         job = jobs_service.get_job(job_id, job_type)
@@ -150,7 +147,6 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
 
     return render_template(
         template,
-        current_user=user,
         job=job,
         job_type=job_type,
         result_data=result_data,
