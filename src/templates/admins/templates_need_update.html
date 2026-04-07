@@ -32,11 +32,20 @@ Translation{% endblock %} {% block contents %}
 <script>
     function copy_urls() {
         const table = $("#templatesNeedUpdateTable").DataTable();
-        const data = table.data().toArray();
-        const urls = data.map(row => `https://ourworldindata.org/grapher/${row.slug}`).join("\n");
+        const data = table.rows({ search: 'applied' }).data().toArray();
+        const urls = data
+            .filter(row => row.slug)
+            .map(row => `https://ourworldindata.org/grapher/${row.slug}`)
+            .join("\n");
+
+        if (!urls) {
+            alert("No URLs found to copy.");
+            return;
+        }
 
         navigator.clipboard.writeText(urls).then(() => {
-            alert(`Copied ${urls.split("\n").length} URLs to clipboard`);
+            const count = urls.split("\n").length;
+            alert(`Copied ${count} URL${count > 1 ? 's' : ''} to clipboard`);
         }).catch(err => {
             console.error("Failed to copy:", err);
         });
