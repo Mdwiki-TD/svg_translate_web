@@ -68,7 +68,7 @@ class TestFixNestedJobsProcessor:
         assert processor._is_cancelled() is True
         assert processor.result["status"] == "cancelled"
 
-    def test_run_stage_success(self) -> None:
+    def test_run_stage_success(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
             args={"filename": "Test.svg"},
@@ -89,7 +89,7 @@ class TestFixNestedJobsProcessor:
         assert result is True
         assert processor.result["stages"]["download"]["status"] == "Completed"
 
-    def test_run_stage_failure(self) -> None:
+    def test_run_stage_failure(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
             task_id=1,
             args={"filename": "Test.svg"},
