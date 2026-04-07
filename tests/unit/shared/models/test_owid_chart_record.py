@@ -34,7 +34,7 @@ def test_owid_chart_record_initialization():
     assert rec.updated_at is None
     assert rec.template_id is None
     assert rec.template_title is None
-    assert rec.template_source is None
+    assert rec.template_source == "https://ourworldindata.org/grapher/health-expenditure"
 
 
 def test_owid_chart_record_with_all_fields():
