@@ -98,13 +98,26 @@ def test_template_record_slug_already_set():
     assert rec.slug == "existing-slug"
 
 
-def test_template_record_last_world_year_from_file():
+def test_template_record_last_world_year_from_cropped_file():
     """Test last_world_year extraction from filename."""
     rec = TemplateRecord(
         id=1,
         title="Test Template",
         main_file="test.svg",
         last_world_file="File:Health-expenditure-government-expenditure,World,2022 (cropped).svg",
+    )
+
+    # Year should be extracted from filename
+    assert rec.last_world_year == 2022
+
+
+def test_template_record_last_world_year_from_file():
+    """Test last_world_year extraction from filename."""
+    rec = TemplateRecord(
+        id=1,
+        title="Test Template",
+        main_file="test.svg",
+        last_world_file="File:Health-expenditure-government-expenditure,World, 2022.svg",
     )
 
     # Year should be extracted from filename
