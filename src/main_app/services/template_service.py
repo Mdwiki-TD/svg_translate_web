@@ -15,6 +15,7 @@ from ..utils.wikitext.titles_utils import match_last_world_year
 logger = logging.getLogger(__name__)
 
 _TEMPLATE_STORE: TemplatesDB | None = None
+_TEMPLATE_UPDATE_STORE: TemplatesDB | None = None
 
 
 def get_templates_db() -> TemplatesDB:
@@ -56,21 +57,21 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
         RuntimeError: If no database configuration is available.
         RuntimeError: If initializing the TemplatesNeedUpdateDB fails.
     """
-    global _TEMPLATE_STORE
+    global _TEMPLATE_UPDATE_STORE
 
-    if _TEMPLATE_STORE is None:
+    if _TEMPLATE_UPDATE_STORE is None:
         if not has_db_config():
             raise RuntimeError(
                 "Template administration requires database configuration; no fallback store is available."
             )
 
         try:
-            _TEMPLATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
+            _TEMPLATE_UPDATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
             logger.exception("Failed to initialize MySQL template store")
             raise RuntimeError("Unable to initialize template store") from exc
 
-    return _TEMPLATE_STORE
+    return _TEMPLATE_UPDATE_STORE
 
 
 def list_templates() -> List[TemplateRecord]:

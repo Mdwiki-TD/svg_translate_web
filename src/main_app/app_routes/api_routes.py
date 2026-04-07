@@ -36,11 +36,7 @@ def templates_need_update_list():
 
     data = [t.to_dict() for t in templates]
 
-    return jsonify(
-        {
-            "data": data,
-        }
-    )
+    return jsonify({"data": data})
 
 
 @bp_api.get("/owid-charts")
