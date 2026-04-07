@@ -27,8 +27,11 @@
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('public_jobs.', 'bi-list-task', 'All Copy Tasks', url_for('public_jobs.jobs_list', job_type='copy_svg_langs') ) }}
                     </li>
+                    <li class="{{ nav_item_class }}">
+                        {{ nav_link('public_jobs.', 'bi-list-task', 'Fix Nested Tags', url_for('public_jobs.jobs_list', job_type='fix_nested_tasks') ) }}
+                    </li>
                     {% set is_dropdown_active = request and request.endpoint and request.endpoint.startswith("fix_nested") %}
-                    <li class="{{ nav_item_class }} dropdown {{ 'active fw-bold' if is_dropdown_active }}">
+                    <!-- <li class="{{ nav_item_class }} dropdown {{ 'active fw-bold' if is_dropdown_active }}">
                         <a class="nav-link dropdown-toggle" href="#" id="fixNestedDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-wrench-adjustable"></i> Fix Nested
@@ -45,7 +48,7 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.extract_translations')) }}
                     </li>
