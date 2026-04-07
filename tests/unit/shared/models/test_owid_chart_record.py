@@ -17,6 +17,7 @@ def test_owid_chart_record_initialization():
         is_published=True,
         single_year_data=False,
         len_years=24,
+        has_timeline=False,
     )
 
     assert rec.chart_id == 1
@@ -54,6 +55,7 @@ def test_owid_chart_record_with_all_fields():
         template_id=42,
         template_title="Template:Health",
         template_source="https://example.com/template",
+        has_timeline=True,
     )
 
     assert rec.chart_id == 1
@@ -86,6 +88,7 @@ def test_owid_chart_record_template_source_generation():
         is_published=True,
         single_year_data=False,
         len_years=24,
+        has_timeline=False,
     )
 
     # Template source should be generated from slug
@@ -105,6 +108,7 @@ def test_owid_chart_record_no_template_source_generation():
         is_published=True,
         single_year_data=False,
         len_years=24,
+        has_timeline=False,
     )
 
     # Template source should remain None
@@ -124,6 +128,7 @@ def test_owid_chart_record_template_source_preserved():
         is_published=True,
         single_year_data=False,
         len_years=24,
+        has_timeline=False,
         template_source="https://custom.source/template",
     )
 
