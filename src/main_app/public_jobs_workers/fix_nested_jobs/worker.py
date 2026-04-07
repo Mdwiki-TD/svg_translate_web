@@ -49,7 +49,8 @@ class FixNestedJobsWorker(BaseJobWorker):
                 "fix": {"status": "Pending", "message": "Fixing nested tags"},
                 "verify": {"status": "Pending", "message": "Verifying fixes"},
                 "upload": {"status": "Pending", "message": "Uploading fixed files"},
-            }
+            },
+            "results": [],
         }
 
     def process(self) -> dict[str, Any]:
