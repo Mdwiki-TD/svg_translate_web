@@ -171,7 +171,7 @@ class FixNestedJobsProcessor:
         file_path = Path(file_result["path"])
         if not file_path.is_file():
             file_result["analyze_status"] = "failed"
-            return {"success": False, "message": "File not found"}
+            return {"success": False, "error": "File not found"}
 
         detect_result = detect_nested_tags(file_path)
 
@@ -200,7 +200,7 @@ class FixNestedJobsProcessor:
         if file_result.get("analyze_status") != "success":
             file_result["fix_status"] = "skipped"
             file_result["fix_message"] = file_result.get("analyze_message", "Skipped")
-            return {"success": False, "message": "analyze failed"}
+            return {"success": False, "error": "analyze failed"}
 
         file_path = Path(file_result["path"])
         fix_success = fix_nested_tags(file_path)
@@ -226,7 +226,7 @@ class FixNestedJobsProcessor:
         file_result = self.result["file_result"]
         if file_result.get("fix_status") != "success":
             file_result["verify_status"] = "skipped"
-            return {"success": False, "message": "fix failed"}
+            return {"success": False, "error": "fix failed"}
 
         file_path = Path(file_result["path"])
         before_count = file_result.get("nested_tags_before", 0)
@@ -258,7 +258,7 @@ class FixNestedJobsProcessor:
         if file_result.get("verify_status") != "success":
             file_result["upload_status"] = "skipped"
             file_result["upload_message"] = "Skipped (not fixed)"
-            return {"success": False, "message": "Skipped (not fixed)"}
+            return {"success": False, "error": "Skipped (not fixed)"}
 
         file_path = Path(file_result["path"])
         tags_fixed = file_result.get("nested_tags_fixed", 0)
