@@ -311,6 +311,7 @@ class FixNestedJobsProcessor:
             else:
                 stage["status"] = "Failed"
                 stage["message"] = step_result.get("error", "Unknown error")
+                stage.update(step_result)
                 self.result["status"] = "failed"
                 return False
 
