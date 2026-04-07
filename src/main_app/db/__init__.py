@@ -1,11 +1,9 @@
 from .db_class import Database
 from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
-from .db_OwidCharts import OwidChartRecord, OwidChartsDB
+from .db_OwidCharts import OwidChartsDB
 from .db_Settings import SettingsDB
 from .db_Templates import TemplatesDB
 from .svg_db import close_cached_db, fetch_query_safe, get_db, has_db_config
-
-from ..shared.models import TemplateRecord
 
 __all__ = [
     "Database",
@@ -15,9 +13,7 @@ __all__ = [
     "close_cached_db",
     "CoordinatorRecord",
     "CoordinatorsDB",
-    "OwidChartRecord",
     "OwidChartsDB",
-    "TemplateRecord",
     "TemplatesDB",
     "SettingsDB",
 ]
