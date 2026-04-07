@@ -6,11 +6,11 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">OWID Charts</h3>
         <div>
-            <button type="button" class="btn btn-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
+            <button type="button" class="btn btn-outline-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
                 onclick="pup_window_new(this)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
-            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-success">
+            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-outline-success">
                 <i class="bi bi-download"></i> Download Json
             </a>
         </div>
