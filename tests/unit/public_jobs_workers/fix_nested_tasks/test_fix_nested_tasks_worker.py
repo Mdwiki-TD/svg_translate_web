@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs_workers.fix_nested_tasks.worker import (
+from src.main_app.public_jobs_workers.fix_nested_jobs.worker import (
     FixNestedTasksWorker,
     fix_nested_tasks_worker_entry,
 )
