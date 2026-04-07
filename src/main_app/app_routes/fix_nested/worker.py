@@ -1,19 +1,11 @@
 import logging
-import shutil
-import tempfile
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
-from werkzeug.utils import secure_filename
 
 from ...api_services.clients import get_user_site
 from ...api_services.upload_bot import upload_file
 from ...api_services.utils import download_one_file
-from ...config import settings
-from ...db.fix_nested_task_store import FixNestedTaskStore
-from ..utils.fix_nested_utils import create_task_folder, log_to_task, save_metadata
 
 logger = logging.getLogger(__name__)
 
