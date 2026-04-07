@@ -79,7 +79,7 @@ def login() -> Response:
         time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
         time_left = str(time_left).split(".")[0]
         flash(f"Too many login attempts. Please try again after {time_left}s.", "warning")
-        return redirect(url_for("main.index"))
+        return redirect(url_for("main.index", error="rate_limited"))
 
     state_nonce = secrets.token_urlsafe(32)
     session[oauth_state_nonce] = state_nonce
@@ -105,7 +105,7 @@ def callback() -> Response:
     # callback rate limiter
     if not callback_rate_limiter.allow(_client_key()):
         flash("Too many login attempts", "warning")
-        return redirect(url_for("main.index"))
+        return redirect(url_for("main.index", error="rate_limited"))
 
     # ------------------
     # verify state token

@@ -4,12 +4,11 @@ Translation{% endblock %} {% block contents %}
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Templates Need Update</h3>
-        <a class="btn btn-outline-success">
+        <a class="btn btn-outline-success" onclick="copy_urls()">
             <i class="bi bi-copy"></i> Copy urls
         </a>
     </div>
     <div class="card-body">
-
         <div class="table-responsive shadow-sm">
             <table class="table table-hover align-middle mb-0" id="templatesNeedUpdateTable">
                 <thead>
@@ -27,7 +26,7 @@ Translation{% endblock %} {% block contents %}
         </div>
     </div>
 </div>
-
+<textarea id='urls_textarea' name='urls_textarea' hidden>sdsd</textarea>
 {% endblock %}
 {% block extra_js %}
 
@@ -79,6 +78,14 @@ Translation{% endblock %} {% block contents %}
             ],
             serverSide: false,
         });
+
+        function copy_urls() {
+            let textarea = document.getElementById("urls_textarea");
+            textarea.select();
+            document.execCommand("copy");
+        }
+
     });
+
 </script>
 {% endblock %}
