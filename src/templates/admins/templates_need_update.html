@@ -78,16 +78,6 @@ Translation{% endblock %} {% block contents %}
                 }
             ],
             serverSide: false,
-            processing: true,
-            drawCallback: function (settings) {
-                const count = settings.aiDisplay.length;
-                const total = settings.aoData.length;
-                if (count === total) {
-                    $("#countInfo").html(`Found <strong>${count}</strong> templates where template last year differs from OWID chart max_time.`);
-                } else {
-                    $("#countInfo").html(`Found <strong>${count}</strong> of ${total} templates (filtered).`);
-                }
-            }
         });
     });
 </script>
