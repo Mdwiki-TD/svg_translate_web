@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.db_OwidCharts import OwidChartRecord
+from src.main_app.shared.models import OwidChartRecord
 
 
 @dataclass
