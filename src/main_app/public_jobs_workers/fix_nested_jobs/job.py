@@ -82,7 +82,7 @@ class FixNestedJobsProcessor:
 
         if not self.filename:
             logger.error("No filename found")
-            self.result["status"] = "failed"
+            self.result["status"] = "Failed"
             return self.result
 
         self.result["filename"] = self.filename
@@ -118,7 +118,7 @@ class FixNestedJobsProcessor:
         elif not self.site:
             self.result["stages"]["upload"]["status"] = "Failed"
             self.result["stages"]["upload"]["message"] = "Authentication failed"
-            self.result["status"] = "failed"
+            self.result["status"] = "Failed"
         else:
             if not self._run_stage("upload", self._upload_step):
                 return self.result
@@ -148,7 +148,7 @@ class FixNestedJobsProcessor:
             file_result["status"] = "success"
             file_result["path"] = str(download_result["path"])
         else:
-            file_result["status"] = "failed"
+            file_result["status"] = "Failed"
             file_result["error"] = download_result.get("error", "download_failed")
 
         # Update stage message
@@ -168,7 +168,7 @@ class FixNestedJobsProcessor:
 
         file_path = Path(self.result["file_result"]["path"])
         if not file_path.is_file():
-            self.result["file_result"]["analyze_status"] = "failed"
+            self.result["file_result"]["analyze_status"] = "Failed"
             return {"success": False, "error": "File not found"}
 
         detect_result = detect_nested_tags(file_path)
@@ -209,7 +209,7 @@ class FixNestedJobsProcessor:
 
             return {"success": True, "message": "Fixed True"}
 
-        self.result["file_result"]["fix_status"] = "failed"
+        self.result["file_result"]["fix_status"] = "Failed"
         self.result["file_result"]["fix_message"] = "Failed to fix nested tags"
         return {"success": False, "message": "Fixed failed"}
 
@@ -231,7 +231,7 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["verify_status"] = "success"
             self.result["file_result"]["verify_message"] = f"Verified: {verify_result['fixed']} tags fixed"
         else:
-            self.result["file_result"]["verify_status"] = "failed"
+            self.result["file_result"]["verify_status"] = "Failed"
             self.result["file_result"]["verify_message"] = "No tags were fixed"
 
         self.result["stages"]["verify"]["message"] = "Verified True"
@@ -264,7 +264,7 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["upload_message"] = "Uploaded successfully"
             self.result["file_result"]["upload_result"] = upload_result.get("result")
         else:
-            self.result["file_result"]["upload_status"] = "failed"
+            self.result["file_result"]["upload_status"] = "Failed"
             self.result["file_result"]["upload_message"] = upload_result.get("error", "Upload failed")
 
         self.result["stages"]["upload"]["message"] = "Uploaded True"
@@ -308,5 +308,5 @@ class FixNestedJobsProcessor:
             logger.exception(f"Error in stage {stage_name}")
             stage["status"] = "Failed"
             stage["message"] = str(e)
-            self.result["status"] = "failed"
+            self.result["status"] = "Failed"
             return False
