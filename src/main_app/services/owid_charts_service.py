@@ -7,7 +7,8 @@ from typing import Any, List
 
 from ..config import settings
 from ..db import has_db_config
-from ..db.db_OwidCharts import OwidChartRecord, OwidChartsDB
+from ..db.db_OwidCharts import OwidChartsDB
+from ..shared.models import OwidChartRecord
 
 logger = logging.getLogger(__name__)
 

@@ -1,42 +1,16 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any, List
 
 import pymysql
 
 from ..config import DbConfig
+from ..shared.models import OwidChartRecord
 from . import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class OwidChartRecord:
-    """Representation of an OWID chart record."""
-
-    chart_id: int
-    slug: str
-    title: str
-    has_map_tab: bool
-    max_time: int | None
-    min_time: int | None
-    default_tab: str | None
-    is_published: bool
-    single_year_data: bool
-    len_years: int | None
-    has_timeline: bool
-    created_at: Any | None = None
-    updated_at: Any | None = None
-    template_id: int | None = None
-    template_title: str | None = None
-    template_source: str | None = None
-
-    def __post_init__(self):
-        if not self.template_source and self.slug:
-            self.template_source = f"https://ourworldindata.org/grapher/{self.slug}"
 
 
 class OwidChartsDB:
@@ -53,8 +27,9 @@ class OwidChartsDB:
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        """Ensure the owid_charts table exists with the required schema."""
+        """Ensure the owid_charts table, owid_charts_templates view exists with the required schema."""
         self.db.execute_query_safe(sql_tables.owid_charts)
+        self.db.execute_query_safe(sql_tables.owid_charts_templates)
 
     def _row_to_record(self, row: dict[str, Any]) -> OwidChartRecord:
         return OwidChartRecord(

@@ -17,9 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db import TemplateRecord, fetch_query_safe
 from ...services import template_service
-from ...services.users_service import current_user
+from ...shared.models import TemplateRecord
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -67,28 +66,6 @@ def create_json_file() -> Tuple[Any, int]:
     except Exception as exc:
         logger.exception("Failed to create JSON file.")
         return f"Failed to create JSON file: {exc}", 500
-
-
-def _templates_dashboard():
-    """Render the template management dashboard."""
-
-    user = current_user()
-    templates: List[TemplateRecord] = template_service.list_templates()
-    total = len(templates)
-    summary = {
-        "total": len(templates),
-        "with_main_file": len([template for template in templates if template.main_file]),
-        "with_last_world_file": len([t for t in templates if t.last_world_file]),
-        "with_last_world_year": len([t for t in templates if t.last_world_year]),
-        "with_source": len([template for template in templates if template.source]),
-    }
-    return render_template(
-        "admins/templates.html",
-        current_user=user,
-        templates=templates,
-        total_templates=total,
-        summary=summary,
-    )
 
 
 def _add_template() -> ResponseReturnValue:
@@ -213,7 +190,17 @@ class Templates:
         @bp_admin.get("/templates")
         @admin_required
         def templates_dashboard():
-            return _templates_dashboard()
+            return render_template(
+                "admins/templates.html",
+            )
+
+        @bp_admin.get("/templates-need-update")
+        @admin_required
+        def templates_need_update() -> ResponseReturnValue:
+            """Show templates that need year update based on OWID charts."""
+            return render_template(
+                "admins/templates_need_update.html",
+            )
 
         @bp_admin.post("/templates/add")
         @admin_required
@@ -248,27 +235,3 @@ class Templates:
                 return redirect(url_for("admin.templates_dashboard"))
 
             return response
-
-        @bp_admin.get("/templates-need-update")
-        @admin_required
-        def templates_need_update() -> ResponseReturnValue:
-            """Show templates that need year update based on OWID charts."""
-            user = current_user()
-
-            sql = """
-                SELECT
-                    template_id,
-                    template_title,
-                    slug,
-                    max_time as chart_year,
-                    last_world_year as template_year
-                FROM templates_need_update
-                ORDER BY max_time ASC
-            """
-            templates_need_update = fetch_query_safe(sql, ())
-
-            return render_template(
-                "admins/templates_need_update.html",
-                current_user=user,
-                templates=templates_need_update,
-            )

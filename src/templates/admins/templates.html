@@ -9,13 +9,12 @@ Translation{% endblock %} {% block contents %}
         </a>
     </div>
     <div class="card-body">
-        {% if summary %}
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4" id="summaryCards">
             <div class="col-md-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Templates</h2>
-                        <p class="display-6 mb-0">{{ summary.total }}</p>
+                        <p class="display-6 mb-0" id="totalCount">-</p>
                     </div>
                 </div>
             </div>
@@ -23,7 +22,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Main File</h2>
-                        <p class="display-6 mb-0">{{ summary.with_main_file }}</p>
+                        <p class="display-6 mb-0" id="withMainFile">-</p>
                     </div>
                 </div>
             </div>
@@ -31,7 +30,7 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Last World File</h2>
-                        <p class="display-6 mb-0">{{ summary.with_last_world_file }}</p>
+                        <p class="display-6 mb-0" id="withLastWorldFile">-</p>
                     </div>
                 </div>
             </div>
@@ -39,12 +38,11 @@ Translation{% endblock %} {% block contents %}
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Source</h2>
-                        <p class="display-6 mb-0">{{ summary.with_source }}</p>
+                        <p class="display-6 mb-0" id="withSource">-</p>
                     </div>
                 </div>
             </div>
         </div>
-        {% endif %}
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
                 <form method="post" action="{{ url_for('admin.add_template') }}" class="row g-2 align-items-end">
@@ -56,24 +54,6 @@ Translation{% endblock %} {% block contents %}
                                 <input type="text" class="form-control" id="title" name="title" required />
                             </div>
                         </div>
-                        <!-- <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Main File</span>
-                                <input type="text" class="form-control" id="main_file" name="main_file" />
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Last World File</span>
-                                <input type="text" class="form-control" id="last_world_file" name="last_world_file" />
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Source</span>
-                                <input type="text" class="form-control" id="source" name="source" />
-                            </div>
-                        </div> -->
                         <div class="col-md-2 col-sm-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-person-plus-fill"></i> Add
@@ -85,11 +65,10 @@ Translation{% endblock %} {% block contents %}
         </div>
 
         <div class="table-responsive shadow-sm">
-            <table class="table table-hover align-middle mb-0 DataTable">
+            <table class="table table-hover align-middle mb-0" id="templatesTable">
                 <thead>
                     <tr>
                         <th scope="col" style="width: 5%">#</th>
-                        <!-- <th scope="col" style="width: 5%">ID</th> -->
                         <th scope="col">Template</th>
                         <th scope="col" class="text-center">Main File</th>
                         <th scope="col" class="text-center">Last World File</th>
@@ -97,56 +76,78 @@ Translation{% endblock %} {% block contents %}
                         <th scope="col" class="text-center" style="width: 10%">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for template in templates %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <!-- <td>{{ template.id }}</td> -->
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td class="text-center">
-                            {% if template.main_file %}
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.main_file }}" target="_blank"
-                                rel="noopener noreferrer">
-                                File:{{ template.main_file }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if template.last_world_file %}
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ template.last_world_file }}"
-                                target="_blank" rel="noopener noreferrer">
-                                File:{{ template.last_world_file }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if template.source %}
-                            <a href='{{ template.source }}' target='_blank' rel='noopener noreferrer'>
-                                {{ template.source | short_url }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('admin.edit_template', template_id=template.id) }}"
-                                onclick="pup_window_new(this)">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 </div>
 
+{% endblock %}
+{% block extra_js %}
+
 <script>
+    $(document).ready(function () {
+        const table = $("#templatesTable").DataTable({
+            ajax: {
+                url: "/api/templates",
+                type: "GET",
+                dataSrc: function(json) {
+                    if (json.summary) {
+                        $("#totalCount").text(json.summary.total);
+                        $("#withMainFile").text(json.summary.with_main_file);
+                        $("#withLastWorldFile").text(json.summary.with_last_world_file);
+                        $("#withSource").text(json.summary.with_source);
+                    }
+                    return json.data || [];
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                },
+                {
+                    data: "title",
+                    render: function (data, type, row) {
+                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
+                    }
+                },
+                {
+                    data: "main_file",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
+                    }
+                },
+                {
+                    data: "last_world_file",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
+                    }
+                },
+                {
+                    data: "source",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        let shortUrl = data.split("/").pop().split("?")[0].trim();
+                        if (shortUrl.length > 50) shortUrl = shortUrl.substring(0, 50) + "...";
+                        return `<a href="${data}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
+                    }
+                },
+                {
+                    data: "id",
+                    render: function (data, type, row) {
+                        return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="/admin/templates/${data}/edit" onclick="pup_window_new(this)"><i class="bi bi-pencil"></i> Edit</button>`;
+                    },
+                }
+            ],
+            serverSide: false,
+            processing: true
+        });
+    });
     function pup_window_new(element) {
         var target = $(element).attr("pup-target");
         window.open(

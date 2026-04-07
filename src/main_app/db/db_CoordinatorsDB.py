@@ -1,27 +1,16 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any, Iterable, List
 
 import pymysql
 
 from ..config import DbConfig
+from ..shared.models import CoordinatorRecord
 from . import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class CoordinatorRecord:
-    """Representation of a coordinator/admin account."""
-
-    id: int
-    username: str
-    is_active: bool
-    created_at: Any | None = None
-    updated_at: Any | None = None
 
 
 class CoordinatorsDB:
@@ -151,6 +140,5 @@ class CoordinatorsDB:
 
 
 __all__ = [
-    "CoordinatorRecord",
     "CoordinatorsDB",
 ]

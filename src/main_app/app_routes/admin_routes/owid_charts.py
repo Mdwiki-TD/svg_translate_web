@@ -17,9 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db import OwidChartRecord
 from ...services import owid_charts_service
-from ...services.users_service import current_user
+from ...shared.models import OwidChartRecord
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -73,50 +72,6 @@ def create_json_file() -> Tuple[Any, int]:
     except Exception:
         logger.exception("Failed to create JSON file.")
         return "Failed to create JSON file.", 500
-
-
-def _charts_dashboard():
-    """Render the charts management dashboard."""
-    user = current_user()
-    template_filter = request.args.get("template", "").strip()
-    all_charts: List[OwidChartRecord] = owid_charts_service.list_charts()
-
-    if template_filter == "has_template":
-        charts = [c for c in all_charts if c.template_title]
-    elif template_filter == "no_template":
-        charts = [c for c in all_charts if not c.template_title]
-    else:
-        charts = all_charts
-
-    total = len(all_charts)
-    all_charts_summary = {
-        "total": total,
-        "published": {
-            "with": len([c for c in all_charts if c.is_published]),
-            "without": len([c for c in all_charts if not c.is_published]),
-        },
-        "template": {
-            "with": len([c for c in all_charts if c.template_id]),
-            "without": len([c for c in all_charts if not c.template_id]),
-        },
-        "map_tab": {
-            "with": len([c for c in all_charts if c.has_map_tab]),
-            "without": len([c for c in all_charts if not c.has_map_tab]),
-        },
-        "timeline": {
-            "with": len([c for c in all_charts if c.has_timeline]),
-            "without": len([c for c in all_charts if not c.has_timeline]),
-        },
-    }
-
-    return render_template(
-        "admins/owid_charts/list.html",
-        current_user=user,
-        charts=charts,
-        total_charts=total,
-        all_charts_summary=all_charts_summary,
-        selected_template=template_filter,
-    )
 
 
 def _add_chart_popup():
@@ -284,7 +239,8 @@ class OwidCharts:
         @bp_admin.get("/owid-charts")
         @admin_required
         def owid_charts_dashboard():
-            return _charts_dashboard()
+            template_filter = request.args.get("template", "").strip()
+            return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
         @bp_admin.get("/owid-charts/add")
         @admin_required

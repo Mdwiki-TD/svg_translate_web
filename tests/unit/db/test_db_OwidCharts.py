@@ -6,7 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.db.db_OwidCharts import OwidChartRecord, OwidChartsDB
+from src.main_app.db.db_OwidCharts import OwidChartsDB
+from src.main_app.shared.models import OwidChartRecord
 
 
 @pytest.fixture
@@ -118,7 +119,7 @@ class TestOwidChartsDB:
 
         db = OwidChartsDB(mock_db_config)
 
-        mock_db_instance.execute_query_safe.assert_called_once()
+        assert mock_db_instance.execute_query_safe.call_count == 2
 
     @patch("src.main_app.db.db_OwidCharts.Database")
     def test_fetch_by_id_success(self, mock_database_cls, mock_db_config, sample_row):

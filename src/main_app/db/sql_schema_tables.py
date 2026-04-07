@@ -14,6 +14,8 @@ class TablesCreatesSql:
     jobs: str
     settings: str
     owid_charts: str
+    templates_need_update: str
+    owid_charts_templates: str
 
 
 user_tokens = """
@@ -174,6 +176,33 @@ owid_charts = """
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 """
 
+owid_charts_templates = """
+
+    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
+    SELECT
+        c.chart_id,
+        t.id AS template_id,
+        t.title AS template_title
+    FROM owid_charts c
+    LEFT JOIN templates t
+        ON t.slug = c.slug;
+"""
+
+templates_need_update = """
+    CREATE VIEW IF NOT EXISTS templates_need_update AS
+    SELECT
+        t.id AS template_id,
+        t.title AS template_title,
+        t.slug AS slug,
+        c.max_time,
+        t.last_world_year
+    FROM owid_charts c
+    JOIN templates t
+        ON t.slug = c.slug
+    WHERE t.last_world_year != c.max_time
+    AND t.last_world_year IS NOT NULL
+"""
+
 # sql_tables
 sql_tables = TablesCreatesSql(
     user_tokens=user_tokens,
@@ -185,4 +214,6 @@ sql_tables = TablesCreatesSql(
     jobs=jobs,
     settings=settings,
     owid_charts=owid_charts,
+    templates_need_update=templates_need_update,
+    owid_charts_templates=owid_charts_templates,
 )

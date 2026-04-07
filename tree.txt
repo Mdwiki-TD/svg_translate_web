@@ -26,6 +26,7 @@ src/
 │   │   ├── __init__.py
 │   │   ├── admin/
 │   │   │   ├── __init__.py
+│   │   │   ├── admin_routes/
 │   │   │   ├── admins_required.py
 │   │   │   ├── routes.py
 │   │   │   └── sidebar.py
@@ -34,17 +35,14 @@ src/
 │   │   │   ├── coordinators.py
 │   │   │   ├── jobs.py
 │   │   │   ├── owid_charts.py
-│   │   │   ├── recent.py
 │   │   │   ├── settings.py
 │   │   │   └── templates.py
+│   │   ├── api_routes.py
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   ├── cookie.py
 │   │   │   ├── oauth.py
 │   │   │   ├── rate_limit.py
-│   │   │   └── routes.py
-│   │   ├── copy_svg_langs_job/
-│   │   │   ├── __init__.py
 │   │   │   └── routes.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
@@ -55,8 +53,8 @@ src/
 │   │   │   ├── explorer_routes.py
 │   │   │   ├── extract_routes.py
 │   │   │   ├── owid_charts_routes.py
-│   │   │   ├── routes.py
-│   │   │   └── templates_routes.py
+│   │   │   └── routes.py
+│   │   ├── public_jobs.py
 │   │   └── utils/
 │   │       ├── __init__.py
 │   │       ├── args_utils.py
@@ -77,11 +75,6 @@ src/
 │   │   └── topics_categories.json
 │   ├── db/
 │   │   ├── __init__.py
-│   │   ├── copy_svg_langs_db/
-│   │   │   ├── __init__.py
-│   │   │   ├── copy_svg_langs_store.py
-│   │   │   ├── db_CreateUpdate.py
-│   │   │   └── db_StageStore.py
 │   │   ├── db_class.py
 │   │   ├── db_CoordinatorsDB.py
 │   │   ├── db_Jobs.py
@@ -92,8 +85,7 @@ src/
 │   │   ├── fix_nested_task_store.py
 │   │   ├── sql_schema_tables.py
 │   │   ├── svg_db.py
-│   │   ├── user_tokens.py
-│   │   └── utils.py
+│   │   └── user_tokens.py
 │   ├── jobs_workers/
 │   │   ├── __init__.py
 │   │   ├── add_svglanguages_template/
@@ -115,46 +107,30 @@ src/
 │   │   ├── download_main_files_worker.py
 │   │   ├── fix_nested_main_files_worker.py
 │   │   ├── jobs_worker.py
-│   │   └── utils/
-│   │       ├── __init__.py
-│   │       ├── add_svglanguages_template_utils.py
-│   │       └── crop_main_files_utils.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── add_svglanguages_template_utils.py
+│   │   │   └── crop_main_files_utils.py
+│   │   └── workers_list.py
 │   ├── public_jobs_workers/
 │   │   ├── __init__.py
 │   │   └── copy_svg_langs/
 │   │       ├── __init__.py
+│   │       ├── job.py
+│   │       ├── service.py
 │   │       ├── steps/
 │   │       │   ├── __init__.py
-│   │       │   ├── downloads/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── download.py
-│   │       │   ├── extract/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── extract_task.py
-│   │       │   ├── fix_nested/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── fix_nested_tasks.py
-│   │       │   ├── injects/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── inject_tasks.py
-│   │       │   ├── texts/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── start_bot.py
-│   │       │   ├── titles/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── titles_tasks.py
-│   │       │   ├── uploads/
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── up.py
-│   │       │   └── utils/
-│   │       │       ├── __init__.py
-│   │       │       └── tasks_utils.py
-│   │       ├── service.py
-│   │       └── job.py
+│   │       │   ├── download.py
+│   │       │   ├── extract_text.py
+│   │       │   ├── extract_titles.py
+│   │       │   ├── extract_translations.py
+│   │       │   ├── fix_nested.py
+│   │       │   ├── inject.py
+│   │       │   └── upload.py
+│   │       └── worker.py
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── admin_service.py
-│   │   ├── copy_svg_langs_service.py
 │   │   ├── jobs_service.py
 │   │   ├── owid_charts_service.py
 │   │   ├── template_service.py
@@ -205,15 +181,17 @@ src/
 │   │   ├── autocomplete.js
 │   │   ├── card-tools.js
 │   │   ├── dark-mode.js
-│   │   └── sidebar.js
+│   │   ├── sidebar.js
+│   │   └── SVGLanguages.js
 │   └── translate.svg
 ├── svg_config.py
 ├── templates/
+│   ├── _macros.html
 │   ├── _navbar.html
 │   ├── admins/
 │   │   ├── _sidebar.html
 │   │   ├── admin.html
-│   │   ├── base.html
+│   │   ├── base1.html
 │   │   ├── compare_crop_files.html
 │   │   ├── coordinators.html
 │   │   ├── jobs_templates/
@@ -244,7 +222,8 @@ src/
 │   │   ├── popup_action.html
 │   │   ├── settings.html
 │   │   ├── template_edit.html
-│   │   └── templates.html
+│   │   ├── templates.html
+│   │   └── templates_need_update.html
 │   ├── admins.html
 │   ├── base.html
 │   ├── explorer/
@@ -262,12 +241,14 @@ src/
 │   │   ├── tasks_list.html
 │   │   └── upload_form.html
 │   ├── index.html
-│   ├── owid_charts/
-│   │   ├── all_charts.html
-│   │   └── index.html
-│   ├── task.html
-│   ├── tasks.html
-│   └── templates/
+│   ├── jobs_templates/
+│   │   ├── base_details2.html
+│   │   ├── base_list2.html
+│   │   └── copy_svg_langs/
+│   │       ├── details.html
+│   │       └── list.html
+│   └── owid_charts/
+│       ├── all_charts.html
 │       └── index.html
 └── uwsgi.ini
 PS I:\SVG\svg_repo\src>

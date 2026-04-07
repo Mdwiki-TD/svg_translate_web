@@ -60,7 +60,9 @@ def fix_nested_step(
                 "len_nested": len_nested,
             }
             if progress_callback and index % 10 == 0:
-                msg = f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, files with nested tags: {nested_files_count}"
+                msg = (
+                    f"Fixed: {fixed_count}, Not fixed: {not_fixed_count}, files with nested tags: {nested_files_count}"
+                )
                 progress_callback(index, total, msg, results)
             continue
 

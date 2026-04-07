@@ -6,15 +6,12 @@ Translation{% endblock %} {% block contents %}
         <h3 class="headline mb-0">Templates Need Update</h3>
     </div>
     <div class="card-body">
-        {% if templates %}
-        <div class="alert alert-info">
-            Found <strong>{{ templates|length }}</strong> templates where template last year differs from OWID chart
-            max_time.
+        <div class="alert alert-info" id="countInfo">
+            Loading...
         </div>
-        {% endif %}
 
         <div class="table-responsive shadow-sm">
-            <table class="table table-hover align-middle mb-0 DataTable">
+            <table class="table table-hover align-middle mb-0" id="templatesNeedUpdateTable">
                 <thead>
                     <tr>
                         <th scope="col" style="width: 5%">#</th>
@@ -25,56 +22,73 @@ Translation{% endblock %} {% block contents %}
                         <th scope="col" class="text-center">Difference</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for item in templates %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ item.template_title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ item.template_title }}
-                            </a>
-                        </td>
-                        <td>
-                            <!-- <code>{{ item.slug }}</code> -->
-                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
-                                rel="noopener noreferrer">
-                                <code> {{ item.slug }} </code>
-                            </a>
-                        </td>
-                        <td class="text-center">
-                            {% if item.template_year %}
-                            {{ item.template_year }}
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if item.chart_year %}
-                            {{ item.chart_year }}
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if item.template_year and item.chart_year %}
-                            {{ item.chart_year - item.template_year }}
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            No templates need update. All years are in sync!
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 </div>
 
+{% endblock %}
+{% block extra_js %}
+
+<script>
+    $(document).ready(function () {
+        $("#templatesNeedUpdateTable").DataTable({
+            ajax: {
+                url: "/api/templates-need-update",
+                type: "GET",
+                dataSrc: "data"
+            },
+            columns: [
+                {
+                    data: null,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                },
+                {
+                    data: "template_title",
+                    render: function (data, type, row) {
+                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
+                    }
+                },
+                {
+                    data: "slug",
+                    render: function (data, type, row) {
+                        return `<a href="https://ourworldindata.org/grapher/${data}" target="_blank" rel="noopener noreferrer"><code>${data}</code></a>`;
+                    }
+                },
+                {
+                    data: "template_year",
+                    render: function (data, type, row) {
+                        return data ? data : '<span class="text-muted">-</span>';
+                    }
+                },
+                {
+                    data: "chart_year",
+                    render: function (data, type, row) {
+                        return data ? data : '<span class="text-muted">-</span>';
+                    }
+                },
+                {
+                    data: "difference",
+                    render: function (data, type, row) {
+                        return data !== null ? data : '<span class="text-muted">-</span>';
+                    }
+                }
+            ],
+            serverSide: false,
+            processing: true,
+            drawCallback: function (settings) {
+                const count = settings.aiDisplay.length;
+                const total = settings.aoData.length;
+                if (count === total) {
+                    $("#countInfo").html(`Found <strong>${count}</strong> templates where template last year differs from OWID chart max_time.`);
+                } else {
+                    $("#countInfo").html(`Found <strong>${count}</strong> of ${total} templates (filtered).`);
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

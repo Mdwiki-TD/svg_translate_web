@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import (
     bp_admin,
+    bp_api,
     bp_auth,
     bp_explorer,
     bp_extract,
@@ -37,6 +38,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_fix_nested)
     app.register_blueprint(bp_extract)
     app.register_blueprint(bp_owid_charts)
+    app.register_blueprint(bp_api)
 
 
 def register_error_pages(app: Flask):

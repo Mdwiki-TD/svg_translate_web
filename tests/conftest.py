@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
-from flask import Flask
 import pytest
 from cryptography.fernet import Fernet
+from flask import Flask
 
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))

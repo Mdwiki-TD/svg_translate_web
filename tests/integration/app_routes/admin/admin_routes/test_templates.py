@@ -4,49 +4,8 @@ from src.main_app.app_routes.admin_routes.templates import (
     Templates,
     _add_template,
     _delete_template,
-    _templates_dashboard,
     _update_template,
 )
-from src.main_app.db import TemplateRecord
-
-
-@patch("src.main_app.app_routes.admin_routes.templates.render_template")
-@patch("src.main_app.app_routes.admin_routes.templates.template_service")
-@patch("src.main_app.app_routes.admin_routes.templates.current_user")
-def test_templates_dashboard(mock_current_user, mock_service, mock_render, app_mock):
-    templates = [
-        TemplateRecord(
-            id=0,
-            title="t1",
-            main_file="",
-            last_world_file="",
-            created_at=None,
-            updated_at=None,
-            source=None,
-        ),
-        TemplateRecord(
-            id=1,
-            title="t2",
-            main_file="",
-            last_world_file="",
-            created_at=None,
-            updated_at=None,
-            source=None,
-        ),
-    ]
-    mock_service.list_templates.return_value = templates
-    mock_current_user.return_value = "user"
-    mock_render.return_value = "rendered"
-
-    with app_mock.test_request_context():
-        resp = _templates_dashboard()
-        assert resp == "rendered"
-
-        mock_render.assert_called_once()
-        kwargs = mock_render.call_args[1]
-        assert kwargs["templates"] == templates
-        assert kwargs["total_templates"] == 2
-        assert kwargs["current_user"] == "user"
 
 
 @patch("src.main_app.app_routes.admin_routes.templates.template_service")
@@ -151,8 +110,8 @@ def test_Templates():
 
 def test_create_json_file_success(app_mock, monkeypatch):
     """Test create_json_file returns JSON file with templates data."""
-    from src.main_app.db import TemplateRecord
     from src.main_app.app_routes.admin_routes.templates import create_json_file
+    from src.main_app.shared.models import TemplateRecord
 
     templates = [
         TemplateRecord(
@@ -209,8 +168,8 @@ def test_create_json_file_exception(app_mock, monkeypatch):
 
 def test_edit_template_found(app_mock, monkeypatch):
     """Test _edit_template returns template when found."""
-    from src.main_app.db import TemplateRecord
     from src.main_app.app_routes.admin_routes.templates import _edit_template
+    from src.main_app.shared.models import TemplateRecord
 
     template = TemplateRecord(
         id=1,

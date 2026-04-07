@@ -13,7 +13,8 @@ from src.main_app.jobs_workers.create_owid_pages.worker import (
     TemplateProcessingInfo,
     create_owid_pages_for_templates,
 )
-from src.main_app.services.template_service import TemplateRecord
+from src.main_app.services.template_service import TemplatesDB
+from src.main_app.shared.models import TemplateRecord
 
 
 @pytest.fixture

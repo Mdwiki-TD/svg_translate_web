@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.db_OwidCharts import OwidChartRecord
+from src.main_app.shared.models import OwidChartRecord
 
 
 @dataclass
@@ -50,7 +50,6 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.owid_charts.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}

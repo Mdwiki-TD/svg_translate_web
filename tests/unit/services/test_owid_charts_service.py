@@ -22,7 +22,7 @@ from src.main_app.services.owid_charts_service import (
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
-    from src.main_app.db.db_OwidCharts import OwidChartRecord
+    from src.main_app.shared.models import OwidChartRecord
 
     return OwidChartRecord(
         chart_id=1,

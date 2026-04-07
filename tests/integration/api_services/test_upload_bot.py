@@ -23,6 +23,7 @@ def tmp_file(tmp_path):
 def make_upload_response(result: str = "Success") -> dict:
     return {"result": result, "filename": "Test_file.jpg"}
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Test Groups
 # ══════════════════════════════════════════════════════════════════════════════
@@ -108,12 +109,7 @@ class TestUploadBotIntegration:
         # Mock only the network call, keep the file logic real
         mock_site.pages.__getitem__.return_value.exists = True
 
-        uploader = UploadFile(
-            file_name="Integration_Test.jpg",
-            file_path=image_path,
-            site=mock_site,
-            new_file=False
-        )
+        uploader = UploadFile(file_name="Integration_Test.jpg", file_path=image_path, site=mock_site, new_file=False)
 
         def fake_upload(*, file, **kwargs):
             assert file.read() == image_content
