@@ -17,7 +17,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db import TemplateRecord
+from ...shared.models import TemplateRecord
 from ...services import template_service
 from ..admin.admins_required import admin_required
 

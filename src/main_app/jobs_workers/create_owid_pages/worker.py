@@ -17,7 +17,7 @@ from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...data import get_slug_categories
-from ...db.db_Templates import TemplateRecord
+from ...shared.models import TemplateRecord
 from ...services import template_service
 from ...utils.wikitext.categories_utils import merge_categories, sort_categories
 from ..base_worker import BaseJobWorker
@@ -295,7 +295,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
         }
 
     def process(self):
-
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")

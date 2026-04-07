@@ -18,7 +18,7 @@ from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
-from ...db.db_Templates import TemplateRecord
+from ...shared.models import TemplateRecord
 from ...services import jobs_service, template_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..utils.crop_main_files_utils import generate_cropped_filename
@@ -73,7 +73,6 @@ def is_cropped_file_existing(
     cropped_filename: str,
     site: mwclient.Site | None,
 ) -> bool:
-
     page = site.pages[cropped_filename]
 
     if page.exists:
@@ -148,7 +147,6 @@ class CropMainFilesProcessor:
             )
 
     def check_exists(self, templates) -> None:
-
         cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
@@ -291,7 +289,6 @@ class CropMainFilesProcessor:
         self._append(file_info)
 
     def update_file_references(self, file_info):
-
         # Step 4 - Update original file wikitext
         self._step_update_original(file_info)
 
@@ -362,8 +359,7 @@ class CropMainFilesProcessor:
 
         if upload_result.get("file_exists"):
             logger.warning(
-                f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} "
-                "(file already exists on Commons)"
+                f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (file already exists on Commons)"
             )
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
             file_info.status = "skipped"

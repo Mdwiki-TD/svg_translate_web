@@ -9,7 +9,8 @@ from ..utils.wikitext.titles_utils import match_last_world_year
 
 from ..config import settings
 from ..db import has_db_config
-from ..db.db_Templates import TemplateRecord, TemplatesDB
+from ..db.db_Templates import TemplatesDB
+from ..shared.models import TemplateRecord
 
 logger = logging.getLogger(__name__)
 

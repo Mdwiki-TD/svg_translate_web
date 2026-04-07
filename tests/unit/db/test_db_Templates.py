@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 
-from src.main_app.db.db_Templates import TemplateRecord, TemplatesDB
+from src.main_app.db.db_Templates import TemplatesDB
+from src.main_app.shared.models import TemplateRecord
 
 
 @pytest.fixture
