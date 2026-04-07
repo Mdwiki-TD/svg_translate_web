@@ -1,0 +1,153 @@
+{% extends "jobs_templates/base_details2.html" %}
+{% from "_macros.html" import card_header %}
+
+{% set job_type = 'fix_nested_tasks' %}
+
+{% block detail_title %}Fix Nested Tags{% endblock %}
+{% block detail_headline %}Fix Nested Tags in SVG Files{% endblock %}
+
+{% block job_summary %}
+
+<!-- Pipeline Stages -->
+{% if result_data.stages %}
+<div class="table-responsive">
+    <table class="table table-striped table-sm mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set stage_order = ['download', 'analyze', 'fix', 'verify', 'upload'] %}
+            {% for stage_key in stage_order %}
+            {% set stage = result_data.stages.get(stage_key) %}
+            {% if stage %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ stage_key|title }}</td>
+                <td>
+                    {% if stage.status == 'Completed' %}
+                    <span class="badge bg-success">{{ stage.status }}</span>
+                    {% elif stage.status == 'Failed' %}
+                    <span class="badge bg-danger">{{ stage.status }}</span>
+                    {% elif stage.status == 'Running' %}
+                    <span class="badge bg-primary">{{ stage.status }}</span>
+                    {% elif stage.status == 'Skipped' %}
+                    <span class="badge bg-secondary">{{ stage.status }}</span>
+                    {% elif stage.status == 'Cancelled' %}
+                    <span class="badge bg-warning">{{ stage.status }}</span>
+                    {% else %}
+                    <span class="badge bg-light text-dark">{{ stage.status }}</span>
+                    {% endif %}
+                </td>
+                <td><small>{{ stage.message }}</small></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block job_details %}
+
+<!-- Summary -->
+{% if result_data.summary %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Summary") }}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Total:</strong> {{ result_data.summary.total }}
+            </div>
+            <div class="col-md-3">
+                <strong>Success:</strong> {{ result_data.summary.success }}
+            </div>
+            <div class="col-md-3">
+                <strong>Failed:</strong> {{ result_data.summary.failed }}
+            </div>
+            <div class="col-md-3">
+                <strong>Skipped:</strong> {{ result_data.summary.skipped }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Results -->
+{% if result_data.results %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Files Processed (" ~ result_data.results|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Filename</th>
+                        <th>Status</th>
+                        <th>Nested Before</th>
+                        <th>Nested After</th>
+                        <th>Tags Fixed</th>
+                        <th>Upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in result_data.results %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/File:{{ item.filename }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ item.filename[:50] }}{% if item.filename|length > 50 %}...{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.upload_status == 'success' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif item.upload_status == 'failed' or item.fix_status == 'failed' %}
+                            <span class="badge bg-danger" title="{{ item.upload_message or item.fix_message }}">Failed</span>
+                            {% elif item.analyze_status == 'skipped' %}
+                            <span class="badge bg-secondary">Skipped</span>
+                            {% else %}
+                            <span class="badge bg-primary">{{ item.status or 'Pending' }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.nested_tags_before or '-' }}</td>
+                        <td>{{ item.nested_tags_after or '-' }}</td>
+                        <td>{{ item.nested_tags_fixed or '-' }}</td>
+                        <td>
+                            {% if item.upload_status == 'success' %}
+                            <span class="badge bg-success" title="{{ item.upload_message }}">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            {% elif item.upload_status == 'skipped' %}
+                            <span class="badge bg-secondary" title="{{ item.upload_message }}">
+                                <i class="bi bi-dash"></i>
+                            </span>
+                            {% elif item.upload_status == 'failed' %}
+                            <span class="badge bg-danger" title="{{ item.upload_message }}">
+                                <i class="bi bi-x-lg"></i>
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

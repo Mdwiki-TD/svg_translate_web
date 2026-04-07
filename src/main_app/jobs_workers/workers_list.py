@@ -1,4 +1,5 @@
 from ..public_jobs_workers.copy_svg_langs.worker import copy_svg_langs_worker_entry
+from ..public_jobs_workers.fix_nested_tasks.worker import fix_nested_tasks_worker_entry
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
 from .create_owid_pages import create_owid_pages_for_templates
@@ -8,6 +9,7 @@ from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 
 jobs_targets_public = {
     "copy_svg_langs": copy_svg_langs_worker_entry,
+    "fix_nested_tasks": fix_nested_tasks_worker_entry,
 }
 
 jobs_targets = {
@@ -42,11 +44,13 @@ JOB_TYPE_LIST_TEMPLATES = {
 
 JOB_TYPE_TEMPLATES_PUBLIC = {
     "copy_svg_langs": "jobs_templates/copy_svg_langs/details.html",
+    "fix_nested_tasks": "jobs_templates/fix_nested_tasks/details.html",
 }
 
 
 JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
     "copy_svg_langs": "jobs_templates/copy_svg_langs/list.html",
+    "fix_nested_tasks": "jobs_templates/fix_nested_tasks/list.html",
 }
 
 
