@@ -154,7 +154,6 @@ class FixNestedJobsProcessor:
         # Update stage message
         self.result["file_result"] = file_result
         self.result["stages"]["download"]["message"] = "Downloaded 1/1"
-        self._save_progress()
 
         return {
             "success": True,
@@ -180,12 +179,12 @@ class FixNestedJobsProcessor:
         if detect_result["count"] == 0:
             self.result["file_result"]["analyze_status"] = "skipped"
             self.result["file_result"]["analyze_message"] = "No nested tags found"
-        else:
-            self.result["file_result"]["analyze_status"] = "success"
-            self.result["file_result"]["analyze_message"] = f"Found {detect_result['count']} nested tags"
+            return {"success": None, "message": "No nested tags found"}
 
-        self.result["stages"]["analyze"]["message"] = self.result["file_result"]["analyze_message"]
-        self._save_progress()
+        self.result["file_result"]["analyze_status"] = "success"
+        self.result["file_result"]["analyze_message"] = f"Found {detect_result['count']} nested tags"
+
+        self.result["stages"]["analyze"]["message"] = f"Found {detect_result['count']} nested tags"
 
         return {
             "success": True,
@@ -198,7 +197,7 @@ class FixNestedJobsProcessor:
         if self.result["file_result"].get("analyze_status") != "success":
             self.result["file_result"]["fix_status"] = "skipped"
             self.result["file_result"]["fix_message"] = self.result["file_result"].get("analyze_message", "Skipped")
-            return {"success": False, "error": "analyze failed"}
+            return {"success": None, "error": "analyze failed"}
 
         file_path = Path(self.result["file_result"]["path"])
         fix_success = fix_nested_tags(file_path)
@@ -206,17 +205,13 @@ class FixNestedJobsProcessor:
         if fix_success:
             self.result["file_result"]["fix_status"] = "success"
             self.result["file_result"]["fix_message"] = "Fixed nested tags"
-        else:
-            self.result["file_result"]["fix_status"] = "failed"
-            self.result["file_result"]["fix_message"] = "Failed to fix nested tags"
+            self.result["stages"]["fix"]["message"] = "Fixed True"
 
-        self.result["stages"]["fix"]["message"] = "Fixed True"
-        self._save_progress()
+            return {"success": True, "message": "Fixed True"}
 
-        return {
-            "success": True,
-            "message": "Fixed True",
-        }
+        self.result["file_result"]["fix_status"] = "failed"
+        self.result["file_result"]["fix_message"] = "Failed to fix nested tags"
+        return {"success": False, "message": "Fixed failed"}
 
     def _verify_step(self) -> dict[str, Any]:
         """Verify that nested tags were fixed."""
@@ -240,7 +235,6 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["verify_message"] = "No tags were fixed"
 
         self.result["stages"]["verify"]["message"] = "Verified True"
-        self._save_progress()
 
         return {
             "success": True,
@@ -274,7 +268,6 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["upload_message"] = upload_result.get("error", "Upload failed")
 
         self.result["stages"]["upload"]["message"] = "Uploaded True"
-        self._save_progress()
 
         return {
             "success": True,
@@ -304,7 +297,7 @@ class FixNestedJobsProcessor:
                 stage.update(step_result)
                 return True
             else:
-                stage["status"] = "Failed"
+                stage["status"] = "Failed" if step_result.get("success") is False else "skipped"
                 stage["message"] = step_result.get("error", "Unknown error")
                 stage.update(step_result)
                 self.result["status"] = "failed"
