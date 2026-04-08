@@ -126,7 +126,7 @@ class FixNestedJobsProcessor:
 
         return self.result
 
-    def _download_step(self) -> dict[str, Any]:
+    def _download_step(self) -> bool | None:
         """Download SVG files from Commons."""
 
         temp_dir = Path(tempfile.gettempdir())
@@ -155,7 +155,7 @@ class FixNestedJobsProcessor:
 
         return False
 
-    def _analyze_step(self) -> dict[str, Any]:
+    def _analyze_step(self) -> bool | None:
         """Analyze nested tags in downloaded files."""
 
         if self.result["stages"]["download"]["status"] != "success" or not self.result["file_result"].get("path"):
@@ -181,7 +181,7 @@ class FixNestedJobsProcessor:
 
         return True
 
-    def _fix_step(self) -> dict[str, Any]:
+    def _fix_step(self) -> bool | None:
         """Fix nested tags in files."""
 
         if self.result["stages"]["analyze"]["status"] != "success":
@@ -198,7 +198,7 @@ class FixNestedJobsProcessor:
         self._update_step("fix", "Failed", "Failed to fix nested tags")
         return False
 
-    def _verify_step(self) -> dict[str, Any]:
+    def _verify_step(self) -> bool | None:
         """Verify that nested tags were fixed."""
 
         if self.result["stages"]["fix"]["status"] != "success":
@@ -222,7 +222,7 @@ class FixNestedJobsProcessor:
 
         return False
 
-    def _upload_step(self) -> dict[str, Any]:
+    def _upload_step(self) -> bool | None:
         """Upload fixed files to Commons."""
 
         upload_enabled = self.args.get("upload", True)
@@ -290,4 +290,3 @@ class FixNestedJobsProcessor:
             stage["message"] = str(e)
             self.result["status"] = "Failed"
             return False
-
