@@ -40,10 +40,6 @@ class TestFixNestedJobsProcessorSteps:
             args={"filename": "Test.svg"},
             user=None,
             result={
-                "file_result": {
-                    "path": "/tmp/test.svg",
-                    "nested_tags_before": 2,
-                },
                 "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": ""}},
             },
             result_file="test.json",
@@ -86,10 +82,6 @@ class TestFixNestedJobsProcessorSteps:
             args={"filename": "Test.svg"},
             user=None,
             result={
-                "file_result": {
-                    "path": "/tmp/test.svg",
-                    "nested_tags_fixed": 2,
-                },
                 "stages": {"verify": {"message": "", "status": ""}, "upload": {"message": "", "status": ""}},
             },
             result_file="test.json",
