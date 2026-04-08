@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from src.main_app.shared.models.owid_chart_record import OwidChartRecord
 
 

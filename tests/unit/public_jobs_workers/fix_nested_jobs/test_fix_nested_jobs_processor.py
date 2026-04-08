@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
 from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
 
 
@@ -27,8 +28,7 @@ class TestFixNestedJobsProcessorSteps:
 
         result = processor._verify_step()
 
-        assert result["success"] is True
-        assert "2 tags fixed" in result["message"]
+        assert result is True
         assert processor.result["stages"]["verify"]["status"] == "success"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
@@ -38,7 +38,8 @@ class TestFixNestedJobsProcessorSteps:
             args={"filename": "Test.svg"},
             user=None,
             result={
-                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": "success"}},
+                "file_result": {"path": "/tmp/test.svg", "nested_tags_before": 2},
             },
             result_file="test.json",
         )
@@ -46,10 +47,8 @@ class TestFixNestedJobsProcessorSteps:
 
         result = processor._verify_step()
 
-        # This should fail after the fix
-        assert result["success"] is None
-        assert "fix failed" in result["error"]
-        assert processor.result["stages"]["verify"]["status"] == "skipped"
+        assert result is False
+        assert processor.result["stages"]["verify"]["status"] == "Failed"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_success(self, mock_upload_fixed_svg) -> None:
@@ -66,11 +65,12 @@ class TestFixNestedJobsProcessorSteps:
             },
             result_file="test.json",
         )
+        processor.site = MagicMock()
         mock_upload_fixed_svg.return_value = {"ok": True, "result": {"some": "data"}}
 
         result = processor._upload_step()
 
-        assert result["success"] is True
+        assert result is True
         assert processor.result["stages"]["upload"]["status"] == "success"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
@@ -80,18 +80,21 @@ class TestFixNestedJobsProcessorSteps:
             args={"filename": "Test.svg"},
             user=None,
             result={
-                "stages": {"verify": {"message": "", "status": ""}, "upload": {"message": "", "status": ""}},
+                "file_result": {
+                    "path": "/tmp/test.svg",
+                    "nested_tags_fixed": 2,
+                },
+                "stages": {"verify": {"message": "", "status": "success"}, "upload": {"message": "", "status": ""}},
             },
             result_file="test.json",
         )
+        processor.site = MagicMock()
         mock_upload_fixed_svg.return_value = {"ok": False, "error": "Upload failed message"}
 
         result = processor._upload_step()
 
-        # This should fail after the fix
-        assert result["success"] is None
-        assert result["error"] == "Skipped (not fixed)"
-        assert processor.result["stages"]["upload"]["status"] == "skipped"
+        assert result is False
+        assert processor.result["stages"]["upload"]["status"] == "Failed"
 
 
 class TestFixNestedJobsProcessor:
@@ -150,7 +153,7 @@ class TestFixNestedJobsProcessor:
             cancel_event=cancel_event,
         )
         assert processor._is_cancelled() is True
-        assert processor.result["status"] == "cancelled"
+        assert processor.result["status"] == "Cancelled"
 
     def test_run_stage_success(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
@@ -167,11 +170,10 @@ class TestFixNestedJobsProcessor:
         )
 
         def mock_step():
-            return {"success": True, "message": "Done"}
+            return True
 
         result = processor._run_stage("download", mock_step)
         assert result is True
-        assert processor.result["stages"]["download"]["status"] == "Completed"
 
     def test_run_stage_failure(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
@@ -188,9 +190,8 @@ class TestFixNestedJobsProcessor:
         )
 
         def mock_step():
-            return {"success": False, "error": "Failed"}
+            return False
 
         result = processor._run_stage("download", mock_step)
         assert result is False
-        assert processor.result["stages"]["download"]["status"] == "Failed"
         assert processor.result["status"] == "Failed"

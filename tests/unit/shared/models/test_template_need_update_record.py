@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from src.main_app.shared.models.template_need_update_record import TemplateNeedUpdateRecord
 
 
