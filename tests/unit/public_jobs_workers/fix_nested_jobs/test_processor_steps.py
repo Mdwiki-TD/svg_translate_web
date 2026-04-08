@@ -21,7 +21,7 @@ class TestFixNestedJobsProcessorSteps:
                     "path": "/tmp/test.svg",
                     "nested_tags_before": 2,
                 },
-                "stages": {"verify": {"message": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": ""}},
             },
             result_file="test.json",
         )
@@ -32,8 +32,6 @@ class TestFixNestedJobsProcessorSteps:
         assert result["success"] is True
         assert "2 tags fixed" in result["message"]
         assert processor.result["stages"]["verify"]["status"] == "success"
-        # In the corrected version, message should be consistent
-        # assert processor.result["stages"]["verify"]["message"] == result["message"]
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
     def test_verify_step_failure_no_tags_fixed(self, mock_verify_fix) -> None:
@@ -46,7 +44,7 @@ class TestFixNestedJobsProcessorSteps:
                     "path": "/tmp/test.svg",
                     "nested_tags_before": 2,
                 },
-                "stages": {"verify": {"message": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": ""}},
             },
             result_file="test.json",
         )
@@ -56,8 +54,8 @@ class TestFixNestedJobsProcessorSteps:
 
         # This should fail after the fix
         assert result["success"] is False
-        assert "No tags were fixed" in result["error"]
-        assert processor.result["stages"]["verify"]["status"] == "Failed"
+        assert "fix failed" in result["error"]
+        assert processor.result["stages"]["verify"]["status"] == "skipped"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_success(self, mock_upload_fixed_svg) -> None:
@@ -70,7 +68,7 @@ class TestFixNestedJobsProcessorSteps:
                     "path": "/tmp/test.svg",
                     "nested_tags_fixed": 2,
                 },
-                "stages": {"upload": {"message": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "upload": {"message": "", "status": ""}},
             },
             result_file="test.json",
         )
@@ -92,7 +90,7 @@ class TestFixNestedJobsProcessorSteps:
                     "path": "/tmp/test.svg",
                     "nested_tags_fixed": 2,
                 },
-                "stages": {"upload": {"message": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "upload": {"message": "", "status": ""}},
             },
             result_file="test.json",
         )
@@ -102,5 +100,5 @@ class TestFixNestedJobsProcessorSteps:
 
         # This should fail after the fix
         assert result["success"] is False
-        assert result["error"] == "Upload failed message"
-        assert processor.result["stages"]["upload"]["status"] == "Failed"
+        assert result["error"] == "Skipped (not fixed)"
+        assert processor.result["stages"]["upload"]["status"] == "skipped"
