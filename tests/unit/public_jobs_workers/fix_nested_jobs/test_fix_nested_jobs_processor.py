@@ -27,8 +27,7 @@ class TestFixNestedJobsProcessorSteps:
 
         result = processor._verify_step()
 
-        assert result["success"] is True
-        assert "2 tags fixed" in result["message"]
+        assert result is True
         assert processor.result["stages"]["verify"]["status"] == "success"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
