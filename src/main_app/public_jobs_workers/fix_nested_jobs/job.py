@@ -138,27 +138,24 @@ class FixNestedJobsProcessor:
 
         download_result = download_svg_file(self.filename, temp_dir)
 
-        file_result = {
-            "status": "pending",
-            "path": None,
-            "error": None,
-        }
-
         if download_result["ok"]:
-            file_result["status"] = "success"
-            file_result["path"] = str(download_result["path"])
-        else:
-            file_result["status"] = "Failed"
-            file_result["error"] = download_result.get("error", "download_failed")
+            self.result["file_result"] = {
+                "success": True,
+                "status": "success",
+                "path": str(download_result["path"]),
+                "error": None,
+            }
+            return {"success": True, "message": "Downloaded True"}
 
         # Update stage message
-        self.result["file_result"] = file_result
-        self.result["stages"]["download"]["message"] = "Downloaded 1/1"
-
-        return {
-            "success": True,
-            "message": "Downloaded True",
+        self.result["file_result"] = {
+            "success": False,
+            "status": "Failed",
+            "path": None,
+            "error": download_result.get("error", "download_failed"),
         }
+
+        return {"success": False, "message": "Downloaded Failed"}
 
     def _analyze_step(self) -> dict[str, Any]:
         """Analyze nested tags in downloaded files."""
@@ -232,20 +229,14 @@ class FixNestedJobsProcessor:
             self.result["file_result"]["verify_message"] = f"Verified: {verify_result['fixed']} tags fixed"
             message = self.result["file_result"]["verify_message"]
             self.result["stages"]["verify"]["message"] = message
-            return {
-                "success": True,
-                "message": message,
-            }
+            return {"success": True, "message": message, }
 
         self.result["file_result"]["verify_status"] = "Failed"
         self.result["file_result"]["verify_message"] = "No tags were fixed"
         message = self.result["file_result"]["verify_message"]
         self.result["stages"]["verify"]["message"] = message
 
-        return {
-            "success": False,
-            "error": message,
-        }
+        return {"success": False, "error": message}
 
     def _upload_step(self) -> dict[str, Any]:
         """Upload fixed files to Commons."""
