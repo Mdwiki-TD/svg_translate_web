@@ -151,7 +151,7 @@ class TestDownloadStep:
         result = proc._download_step()
         assert result["success"] is True
         assert proc.result["stages"]["download"]["status"] == "success"
-        assert proc.result["file_result"]["path"] == "/tmp/test.svg"
+        assert Path(proc.result["file_result"]["path"]) == Path("/tmp/test.svg")
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file")
     def test_failure(self, mock_dl):
