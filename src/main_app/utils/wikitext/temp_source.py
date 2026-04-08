@@ -4,7 +4,10 @@ import re
 import urllib.parse
 
 
-def check_url(url: str) -> str:
+def check_url(url: str) -> bool:
+    if "/grapher/" not in url:
+        return False
+
     try:
         parsed = urllib.parse.urlparse(url)
     except ValueError:
@@ -12,6 +15,7 @@ def check_url(url: str) -> str:
 
     if parsed.netloc.lower() not in {"ourworldindata.org", "www.ourworldindata.org"}:
         return False
+
     return True
 
 
