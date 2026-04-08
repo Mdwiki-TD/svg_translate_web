@@ -192,7 +192,7 @@ class FixNestedJobsProcessor:
         fix_success = fix_nested_tags(file_path)
 
         if fix_success:
-            self._update_step("fix", "success", "Fixed True")
+            self._update_step("fix", "success", "Nested tags fixed successfully")
             return True
 
         self._update_step("fix", "Failed", "Failed to fix nested tags")
