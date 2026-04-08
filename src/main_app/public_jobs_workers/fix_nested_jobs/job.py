@@ -166,7 +166,8 @@ class FixNestedJobsProcessor:
         """Analyze nested tags in downloaded files."""
 
         if self.result["stages"]["download"]["status"] != "success" or not self.result["file_result"].get("path"):
-            return False
+            self._update_step("analyze", "skipped", "download step Failed")
+            return {"success": None, "error": "download step Failed"}
 
         file_path = Path(self.result["file_result"]["path"])
         if not file_path.is_file():
