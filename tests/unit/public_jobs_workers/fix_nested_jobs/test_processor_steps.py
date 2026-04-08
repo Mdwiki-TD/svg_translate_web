@@ -21,13 +21,17 @@ class TestFixNestedJobsProcessorSteps:
                     "path": "/tmp/test.svg",
                     "nested_tags_before": 2,
                 },
-                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": ""}},
+                "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": "success"}},
             },
             result_file="test.json",
         )
         mock_verify_fix.return_value = {"after": 0, "fixed": 2}
 
         result = processor._verify_step()
+
+        # Debug output
+        print(f"Result: {result}")
+        print(f"Processor result: {processor.result}")
 
         assert result["success"] is True
         assert "2 tags fixed" in result["message"]
@@ -75,6 +79,10 @@ class TestFixNestedJobsProcessorSteps:
         mock_upload_fixed_svg.return_value = {"ok": True, "result": {"some": "data"}}
 
         result = processor._upload_step()
+
+        # Debug output
+        print(f"Upload Result: {result}")
+        print(f"Processor result: {processor.result}")
 
         assert result["success"] is True
         assert processor.result["stages"]["upload"]["status"] == "success"
