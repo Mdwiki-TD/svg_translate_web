@@ -1,5 +1,5 @@
 """
-Worker module for copy_svg_langs.
+Worker module for fix_nested_jobs.
 """
 
 from __future__ import annotations
@@ -10,14 +10,14 @@ from datetime import datetime
 from typing import Any, Dict
 
 from ...jobs_workers.base_worker import BaseJobWorker
-from .job import CopySvgLangsProcessor
+from .job import FixNestedJobsProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class CopySvgLangsWorker(BaseJobWorker):
+class FixNestedJobsWorker(BaseJobWorker):
     """
-    Worker for copying SVG translations from a main file to its versions.
+    Worker for fixing nested tags in user-submitted SVG files.
     """
 
     def __init__(
@@ -33,7 +33,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "copy_svg_langs"
+        return "fix_nested_jobs"
 
     def get_initial_result(self) -> dict[str, Any]:
         """Return the initial result structure."""
@@ -42,23 +42,23 @@ class CopySvgLangsWorker(BaseJobWorker):
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,
-            "title": None,
-            "stages": {
-                "text": {"status": "Pending", "message": "Getting text"},
-                "titles": {"status": "Pending", "message": "Getting titles"},
-                "translations": {"status": "Pending", "message": "Getting translations"},
-                "download": {"status": "Pending", "message": "Downloading files"},
-                "nested": {"status": "Pending", "message": "Analyze nested files"},
-                "inject": {"status": "Pending", "message": "Injecting translations"},
-                "upload": {"status": "Pending", "message": "Uploading files"},
+            "filename": None,
+            "file_result": {
+                "status": "pending",
+                "path": None,
+                "error": None,
             },
-            "summary": {},
-            "results_summary": {},
-            "files_processed": {},
+            "stages": {
+                "download": {"status": "Pending", "message": "Downloading files"},
+                "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
+                "fix": {"status": "Pending", "message": "Fixing nested tags"},
+                "verify": {"status": "Pending", "message": "Verifying fixes"},
+                "upload": {"status": "Pending", "message": "Uploading fixed files"},
+            },
         }
 
     def process(self) -> dict[str, Any]:
-        processor = CopySvgLangsProcessor(
+        processor = FixNestedJobsProcessor(
             task_id=self.task_id,
             args=self.args,
             user=self.user,
@@ -70,7 +70,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
 
 # --- main pipeline --------------------------------------------
-def copy_svg_langs_worker_entry(
+def fix_nested_jobs_worker_entry(
     task_id: str,
     args: Any,
     user: Dict[str, str] | None,
@@ -78,7 +78,8 @@ def copy_svg_langs_worker_entry(
     cancel_event: threading.Event | None = None,
 ) -> None:
     """Entry point for the background job."""
-    worker = CopySvgLangsWorker(
+
+    worker = FixNestedJobsWorker(
         task_id=task_id,
         args=args,
         user=user,
@@ -88,6 +89,6 @@ def copy_svg_langs_worker_entry(
 
 
 __all__ = [
-    "copy_svg_langs_worker_entry",
-    "CopySvgLangsWorker",
+    "fix_nested_jobs_worker_entry",
+    "FixNestedJobsWorker",
 ]

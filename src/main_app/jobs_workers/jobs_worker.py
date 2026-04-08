@@ -45,14 +45,13 @@ def _runner(
 
 def _runner_with_args(
     task_id: int,
-    title: str,
     args: Dict[str, Any] | None,
     user: Dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
 ) -> None:
     try:
-        target_func(task_id, title, args, user, cancel_event=cancel_event)
+        target_func(task_id, args, user, cancel_event=cancel_event)
     finally:
         _pop_cancel_event(task_id)
 
@@ -131,12 +130,11 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
-    title = args.get("title", "")
 
     # Start background thread
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, title, args, user, cancel_event, job_func),
+        args=(job.id, args, user, cancel_event, job_func),
         daemon=True,
     )
     thread.start()

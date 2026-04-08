@@ -37,10 +37,10 @@ def initial_result():
 def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
     mock_settings.paths.svg_data = "/tmp/svg_data"
+    processor_args_with_title = {**processor_args, "title": "File:Test Path/Example.svg"}
     processor = CopySvgLangsProcessor(
         task_id=1,
-        title="File:Test Path/Example.svg",
-        args=processor_args,
+        args=processor_args_with_title,
         user=None,
         result=initial_result,
         result_file="job_1.json",
@@ -59,10 +59,10 @@ def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initia
     mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step")
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
 
+    processor_args_with_title = {**processor_args, "title": "Test"}
     processor = CopySvgLangsProcessor(
         task_id=1,
-        title="Test",
-        args=processor_args,
+        args=processor_args_with_title,
         user=None,
         result=initial_result,
         result_file="job_1.json",
@@ -146,12 +146,11 @@ def test_processor_files_processed_tracking(mock_jobs_service, processor_args, i
     )
 
     # Mock upload disabled
-    processor_args["upload"] = False
+    processor_args_with_title = {**processor_args, "upload": False, "title": "Test"}
 
     processor = CopySvgLangsProcessor(
         task_id=1,
-        title="Test",
-        args=processor_args,
+        args=processor_args_with_title,
         user=None,
         result=initial_result,
         result_file="job_1.json",

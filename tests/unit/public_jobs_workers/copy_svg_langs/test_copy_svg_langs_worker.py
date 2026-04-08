@@ -15,16 +15,14 @@ class TestCopySvgLangsWorker:
     def test_get_job_type(self) -> None:
         worker = CopySvgLangsWorker(
             task_id=1,
-            title="Test.svg",
-            args={"main": "Test.svg"},
+            args={"title": "Test.svg"},
         )
         assert worker.get_job_type() == "copy_svg_langs"
 
     def test_get_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
             task_id=1,
-            title="Test.svg",
-            args={"main": "Test.svg"},
+            args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
 
@@ -32,7 +30,7 @@ class TestCopySvgLangsWorker:
         assert result["started_at"] is not None
         assert result["completed_at"] is None
         assert result["cancelled_at"] is None
-        assert result["title"] == "Test.svg"
+        assert result["title"] is None  # title comes from args, not set until processor runs
         assert "stages" in result
         assert "text" in result["stages"]
         assert "titles" in result["stages"]
@@ -45,8 +43,7 @@ class TestCopySvgLangsWorker:
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = CopySvgLangsWorker(
             task_id=1,
-            title="Test.svg",
-            args={"main": "Test.svg"},
+            args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
 
@@ -59,8 +56,7 @@ class TestCopySvgLangsWorker:
         user = {"username": "testuser", "id": 123}
         worker = CopySvgLangsWorker(
             task_id=1,
-            title="Test.svg",
-            args={"main": "Test.svg"},
+            args={"title": "Test.svg"},
             user=user,
         )
         assert worker.user == user
@@ -69,8 +65,7 @@ class TestCopySvgLangsWorker:
         cancel_event = threading.Event()
         worker = CopySvgLangsWorker(
             task_id=1,
-            title="Test.svg",
-            args={"main": "Test.svg"},
+            args={"title": "Test.svg"},
             cancel_event=cancel_event,
         )
         assert worker.cancel_event is cancel_event
@@ -81,8 +76,7 @@ class TestCopySvgLangsWorkerEntry:
         with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
                 task_id="1",
-                title="",
-                args={"main": "Test.svg"},
+                args={"title": ""},
                 user=None,
             )
 
@@ -90,8 +84,7 @@ class TestCopySvgLangsWorkerEntry:
         with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
                 task_id="1",
-                title="Test.svg",
-                args={},
+                args={"title": "Test.svg"},
                 user=None,
             )
 
@@ -102,15 +95,13 @@ class TestCopySvgLangsWorkerEntry:
 
             copy_svg_langs_worker_entry(
                 task_id="123",
-                title="Test.svg",
-                args={"main": "Test.svg"},
+                args={"title": "Test.svg"},
                 user={"id": 1},
             )
 
             MockWorker.assert_called_once_with(
                 task_id="123",
-                title="Test.svg",
-                args={"main": "Test.svg"},
+                args={"title": "Test.svg"},
                 user={"id": 1},
                 cancel_event=None,
             )
@@ -124,8 +115,7 @@ class TestCopySvgLangsWorkerEntry:
 
             copy_svg_langs_worker_entry(
                 task_id="456",
-                title="Another.svg",
-                args={"main": "Another.svg"},
+                args={"title": "Another.svg"},
                 user=None,
                 cancel_event=cancel_event,
             )

@@ -27,57 +27,6 @@ CREATE TABLE IF NOT EXISTS user_tokens (
     KEY idx_user_tokens_username (username)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS tasks (
-    id VARCHAR(128) NOT NULL,
-    username text DEFAULT NULL,
-    title text NOT NULL,
-    normalized_title VARCHAR(512) NOT NULL,
-    main_file VARCHAR(512) DEFAULT NULL,
-    status VARCHAR(64) NOT NULL,
-    form_json longtext DEFAULT NULL,
-    data_json longtext DEFAULT NULL,
-    results_json longtext DEFAULT NULL,
-    created_at timestamp NOT NULL DEFAULT current_timestamp(),
-    updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    PRIMARY KEY (id),
-    KEY idx_tasks_norm (normalized_title),
-    KEY idx_tasks_status (status),
-    KEY idx_tasks_created (created_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-
-CREATE TABLE IF NOT EXISTS task_stages (
-    stage_id VARCHAR(255) NOT NULL,
-    task_id VARCHAR(128) NOT NULL,
-    stage_name VARCHAR(255) NOT NULL,
-    stage_number INT NOT NULL,
-    stage_status VARCHAR(64) NOT NULL,
-    stage_sub_name longtext DEFAULT NULL,
-    stage_message longtext DEFAULT NULL,
-    updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    PRIMARY KEY (stage_id),
-    UNIQUE KEY uq_task_stage (task_id, stage_name),
-    KEY idx_task_stages_task (task_id, stage_number),
-    CONSTRAINT fk_task_stage_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-
-CREATE TABLE IF NOT EXISTS fix_nested_tasks (
-    id VARCHAR(128) NOT NULL,
-    username text DEFAULT NULL,
-    filename text NOT NULL,
-    status VARCHAR(64) NOT NULL,
-    nested_tags_before INT DEFAULT NULL,
-    nested_tags_after INT DEFAULT NULL,
-    nested_tags_fixed INT DEFAULT NULL,
-    download_result JSON NULL,
-    upload_result JSON NULL,
-    error_message text DEFAULT NULL,
-    created_at timestamp NOT NULL DEFAULT current_timestamp(),
-    updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    PRIMARY KEY (id),
-    INDEX idx_fix_nested_status (status),
-    INDEX idx_fix_nested_username (username (255)),
-    INDEX idx_fix_nested_created (created_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS templates (
     id INT NOT NULL AUTO_INCREMENT,

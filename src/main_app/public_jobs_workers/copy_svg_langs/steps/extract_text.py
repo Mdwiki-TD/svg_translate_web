@@ -20,6 +20,10 @@ def extract_text_step(title: str) -> dict[str, Any]:
         dict with keys: success (bool), text (str), error (str|None)
     """
     logger.info(f"Extracting wikitext for: {title}")
+    if not title:
+        logger.error("No title found")
+        return {"success": False, "text": "", "error": "No title found"}
+
     text = get_wikitext(title)
 
     if not text:

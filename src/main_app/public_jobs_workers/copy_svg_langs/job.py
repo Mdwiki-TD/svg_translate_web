@@ -39,7 +39,6 @@ class CopySvgLangsProcessor:
     """
 
     task_id: str | int
-    title: str
     args: Any
     user: dict[str, Any] | None
     result: dict[str, Any]
@@ -53,9 +52,12 @@ class CopySvgLangsProcessor:
     files_dict: list[str] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
+        self.title = self.args.get("title")
         self.output_dir = self._compute_output_dir(self.title)
 
     def _compute_output_dir(self, title: str) -> Path:
+        if not title:
+            return None
         name = Path(title).name
         slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
         slug = slug.replace(" ", "_").lower()
@@ -94,8 +96,15 @@ class CopySvgLangsProcessor:
         self.session = create_commons_session(settings.oauth.user_agent)
         self.site = get_user_site(self.user)
 
+        if not self.title:
+            logger.error("No title found")
+            self.result["status"] = "failed"
+            return self.result
+
+        self.result["title"] = self.title
         # ----------------------------------------------
         # Stage 1: Extract Text
+
         def text_run_after() -> None:
             self.text = self.result["stages"]["text"]["data"]["text"]
             # clean up

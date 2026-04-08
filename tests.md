@@ -135,8 +135,6 @@ tests/
 │   │   │   │   └── test_download.py
 │   │   │   ├── extract/
 │   │   │   │   └── test_extract_task.py
-│   │   │   ├── fix_nested/
-│   │   │   │   └── test_fix_nested_tasks.py
 │   │   │   ├── injects/
 │   │   │   │   └── test_inject_tasks.py
 │   │   │   ├── texts/
