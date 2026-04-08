@@ -18,7 +18,6 @@ class TestFixNestedJobsProcessorSteps:
             user=None,
             result={
                 "file_result": {
-                    "fix_status": "success",
                     "path": "/tmp/test.svg",
                     "nested_tags_before": 2,
                 },
@@ -32,7 +31,7 @@ class TestFixNestedJobsProcessorSteps:
 
         assert result["success"] is True
         assert "2 tags fixed" in result["message"]
-        assert processor.result["file_result"]["verify_status"] == "success"
+        assert processor.result["stages"]["verify"]["status"] == "success"
         # In the corrected version, message should be consistent
         # assert processor.result["stages"]["verify"]["message"] == result["message"]
 
@@ -44,7 +43,6 @@ class TestFixNestedJobsProcessorSteps:
             user=None,
             result={
                 "file_result": {
-                    "fix_status": "success",
                     "path": "/tmp/test.svg",
                     "nested_tags_before": 2,
                 },
@@ -59,7 +57,7 @@ class TestFixNestedJobsProcessorSteps:
         # This should fail after the fix
         assert result["success"] is False
         assert "No tags were fixed" in result["error"]
-        assert processor.result["file_result"]["verify_status"] == "Failed"
+        assert processor.result["stages"]["verify"]["status"] == "Failed"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_success(self, mock_upload_fixed_svg) -> None:
@@ -69,7 +67,6 @@ class TestFixNestedJobsProcessorSteps:
             user=None,
             result={
                 "file_result": {
-                    "verify_status": "success",
                     "path": "/tmp/test.svg",
                     "nested_tags_fixed": 2,
                 },
@@ -82,7 +79,7 @@ class TestFixNestedJobsProcessorSteps:
         result = processor._upload_step()
 
         assert result["success"] is True
-        assert processor.result["file_result"]["upload_status"] == "success"
+        assert processor.result["stages"]["upload"]["status"] == "success"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_failure(self, mock_upload_fixed_svg) -> None:
@@ -92,7 +89,6 @@ class TestFixNestedJobsProcessorSteps:
             user=None,
             result={
                 "file_result": {
-                    "verify_status": "success",
                     "path": "/tmp/test.svg",
                     "nested_tags_fixed": 2,
                 },
@@ -107,4 +103,4 @@ class TestFixNestedJobsProcessorSteps:
         # This should fail after the fix
         assert result["success"] is False
         assert result["error"] == "Upload failed message"
-        assert processor.result["file_result"]["upload_status"] == "Failed"
+        assert processor.result["stages"]["upload"]["status"] == "Failed"
