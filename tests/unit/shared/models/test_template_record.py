@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from src.main_app.shared.models.template_record import TemplateRecord
 from src.main_app.utils.wikitext.titles_utils import match_last_world_year
 

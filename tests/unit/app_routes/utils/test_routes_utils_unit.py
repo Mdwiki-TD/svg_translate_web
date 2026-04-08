@@ -9,6 +9,7 @@ from src.main_app.app_routes.utils.routes_utils import (
     order_stages,
 )
 
+
 def test_format_timestamp_variants():
     dt = datetime(2024, 1, 2, 3, 4, 5)
     disp, key = _format_timestamp(dt)

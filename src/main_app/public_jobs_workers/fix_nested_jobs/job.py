@@ -64,7 +64,7 @@ class FixNestedJobsProcessor:
             cancelled = True
 
         if cancelled:
-            self.result["status"] = "cancelled"
+            self.result["status"] = "Cancelled"
             if self.result.get("cancelled_at") is None:
                 self.result["cancelled_at"] = datetime.now().isoformat()
             if stage_name and stage_name in self.result.get("stages", {}):

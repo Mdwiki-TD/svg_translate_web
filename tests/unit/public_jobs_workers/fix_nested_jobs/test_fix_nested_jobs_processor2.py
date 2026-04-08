@@ -6,16 +6,16 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
 from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
 
-
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
+
 
 def _make_result(stages=None):
     """Return a minimal result dict mirroring what the real job initialises."""
@@ -61,6 +61,7 @@ def _make_processor(
 # __post_init__ / construction
 # ---------------------------------------------------------------------------
 
+
 class TestPostInit:
     def test_filename_extracted_from_args(self):
         proc = _make_processor(filename="File:foo.svg")
@@ -80,14 +81,13 @@ class TestPostInit:
 # _save_progress
 # ---------------------------------------------------------------------------
 
+
 class TestSaveProgress:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_delegates_to_jobs_service(self, mock_svc):
         proc = _make_processor()
         proc._save_progress()
-        mock_svc.save_job_result_by_name.assert_called_once_with(
-            proc.result_file, proc.result
-        )
+        mock_svc.save_job_result_by_name.assert_called_once_with(proc.result_file, proc.result)
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_swallows_exceptions(self, mock_svc):
@@ -100,6 +100,7 @@ class TestSaveProgress:
 # ---------------------------------------------------------------------------
 # _is_cancelled
 # ---------------------------------------------------------------------------
+
 
 class TestIsCancelled:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
@@ -127,7 +128,7 @@ class TestIsCancelled:
         mock_svc.is_job_cancelled.return_value = True
         proc = _make_processor()
         proc._is_cancelled()
-        assert proc.result["status"] == "cancelled"
+        assert proc.result["status"] == "Cancelled"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_sets_cancelled_at_timestamp(self, mock_svc):
@@ -163,6 +164,7 @@ class TestIsCancelled:
 # _update_step
 # ---------------------------------------------------------------------------
 
+
 class TestUpdateStep:
     def test_updates_status_and_message(self):
         proc = _make_processor()
@@ -174,6 +176,7 @@ class TestUpdateStep:
 # ---------------------------------------------------------------------------
 # Individual step methods (unit-tested in isolation)
 # ---------------------------------------------------------------------------
+
 
 class TestDownloadStep:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file")
@@ -372,26 +375,31 @@ class TestUploadStep:
 # _run_stage
 # ---------------------------------------------------------------------------
 
+
 class TestRunStage:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_returns_true_when_step_returns_true(self, mock_svc):
+        mock_svc.is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: True) is True
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_svc):
+        mock_svc.is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: False) is False
         assert proc.result["status"] == "Failed"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_svc):
+        mock_svc.is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: None) is False
         assert proc.result["status"] == "skipped"
 
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
     def test_handles_exception_and_sets_failed(self, mock_svc):
+        mock_svc.is_job_cancelled.return_value = False
         proc = _make_processor()
 
         def boom():
@@ -428,15 +436,14 @@ class TestRunStage:
 # run() integration-level tests (all workers mocked)
 # ---------------------------------------------------------------------------
 
+
 class TestRun:
     def _patch_all(self, tmp_path):
         """Return a context-manager-compatible list of patchers."""
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
-            "jobs_service": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service"
-            ),
+            "jobs_service": patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service"),
             "create_session": patch(
                 "src.main_app.public_jobs_workers.fix_nested_jobs.job.create_commons_session",
                 return_value=MagicMock(),
@@ -517,9 +524,8 @@ class TestRun:
 
         call_count = [0]
 
-        def cancel_on_third(*_):
+        def cancel_on_third(*_, **kwargs):
             call_count[0] += 1
-            # Cancel after download and analyze have completed
             return call_count[0] >= 3
 
         mocks["jobs_service"].is_job_cancelled.side_effect = cancel_on_third
@@ -527,7 +533,7 @@ class TestRun:
         try:
             proc = _make_processor()
             result = proc.run()
-            assert result["status"] == "cancelled"
+            assert result["status"] == "Cancelled"
             mocks["upload"].assert_not_called()
         finally:
             for p in patchers.values():
