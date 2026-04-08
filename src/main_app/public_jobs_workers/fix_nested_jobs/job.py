@@ -117,7 +117,7 @@ class FixNestedJobsProcessor:
 
         upload_enabled = self.args.get("upload", True)
         if not upload_enabled:
-            self._update_step("upload", "Skipped", "Upload disabled")
+            self._update_step("upload", "skipped", "Upload disabled")
         elif not self.site:
             self._update_step("upload", "Failed", "Authentication failed")
             self.result["status"] = "Failed"
@@ -194,7 +194,7 @@ class FixNestedJobsProcessor:
         """Fix nested tags in files."""
 
         if self.result["stages"]["analyze"]["status"] != "success":
-            self._update_step("fix", "skipped", self.result["stages"]["analyze"]["message"] or "Skipped")
+            self._update_step("fix", "skipped", self.result["stages"]["analyze"]["message"] or "skipped")
             return {"success": None, "error": "analyze failed"}
 
         file_path = Path(self.result["file_result"]["path"])
@@ -212,7 +212,7 @@ class FixNestedJobsProcessor:
 
         if self.result["stages"]["fix"]["status"] != "success":
             self._update_step("verify", "skipped", "fix failed")
-            return {"success": False, "error": "fix failed"}
+            return {"success": None, "error": "fix failed"}
 
         file_path = Path(self.result["file_result"]["path"])
         before_count = self.result["file_result"].get("nested_tags_before", 0)
@@ -236,7 +236,7 @@ class FixNestedJobsProcessor:
 
         if self.result["stages"]["verify"]["status"] != "success":
             self._update_step("upload", "skipped", "Skipped (not fixed)")
-            return {"success": False, "error": "Skipped (not fixed)"}
+            return {"success": None, "error": "Skipped (not fixed)"}
 
         file_path = Path(self.result["file_result"]["path"])
         tags_fixed = self.result["file_result"].get("nested_tags_fixed", 0)
