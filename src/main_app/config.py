@@ -145,7 +145,8 @@ def _get_paths() -> Paths:
             - svg_jobs_path: path for SVG job files
             - main_files_path: path for main files
     """
-    main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
+    main_dir = os.getenv("MAIN_DIR", "~/data")
+    main_dir = Path(os.path.expandvars(main_dir)).expanduser()
     svg_data = f"{main_dir}/svg_data"
     svg_data_thumb = f"{main_dir}/svg_data_thumb"
     log_dir = f"{main_dir}/logs"
