@@ -7,7 +7,7 @@ from ...config import settings
 logger = logging.getLogger(__name__)
 
 
-# svg_data_path = Path("I:/SVG/data/svg_data")
+# svg_data_path = Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
 # svg_data_path = Path(__name__).parent.parent.parent / "svg_data"
 svg_data_path = Path(settings.paths.svg_data)
 svg_data_thumb_path = Path(settings.paths.svg_data_thumb)
