@@ -16,7 +16,7 @@ os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
 
-_CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/SVG_PY/CopySVGTranslation/CopySVGTranslation")
+_CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "I:/TOOLFORGE_TOOLS/SVG_PY/CopySVGTranslation/CopySVGTranslation")
 if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 

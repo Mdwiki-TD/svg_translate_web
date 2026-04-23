@@ -12,28 +12,19 @@ import colorlog
 
 
 def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Path | None:
-    """Prepare the log file path and create parent directories if needed.
-
-    Parameters
-    ----------
-    log_file : str | None
-        Path to the log file.
-    project_logger : logging.Logger
-        Logger instance for error reporting.
-
-    Returns
-    -------
-    Path | None
-        The expanded log file path, or None if creation failed.
     """
-    if log_file is None:
+    Prepare the log file path and create parent directories if needed.
+    """
+    if not log_file:
         return None
-    log_file_path = Path(log_file).expanduser()
+    log_file_path = os.path.expandvars(str(log_file))
+    log_file_path = Path(log_file_path).expanduser()
+
     try:
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         project_logger.error(f"Failed to create log directory: {e}")
-        return None
+        log_file_path = None
     return log_file_path
 
 
@@ -97,15 +88,16 @@ def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: in
     project_logger.addHandler(file_handler)
 
 
-def configure_logging(DEBUG) -> None:
+def configure_logging(level) -> None:
     # Create log directory if needed
-    main_dir = os.getenv("MAIN_DIR", os.path.join(os.path.expanduser("~"), "data"))
+    main_dir = os.getenv("MAIN_DIR", "~/data")
+    main_dir = Path(os.path.expandvars(main_dir)).expanduser()
 
     log_dir = Path(main_dir) / "logs"
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        setup_logging(level=logging.DEBUG if DEBUG else logging.INFO, name="main_app")
+        setup_logging(level=level, name="main_app")
         logging.getLogger("main_app").warning(
             "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
         )
@@ -116,7 +108,7 @@ def configure_logging(DEBUG) -> None:
     error_log_path = log_dir / "errors.log"
 
     setup_logging(
-        level=logging.DEBUG if DEBUG else logging.INFO,
+        level=level,
         name="main_app",
         log_file=all_log_path,
         error_log_file=error_log_path,
