@@ -26,7 +26,7 @@ class MwClientPage:
         try:
             self.page = self.site.pages[self.title]
         except mwclient.errors.InvalidPageTitle:
-            logger.warning(f"Title {self.title} is invalid")
+            logger.exception(f"Title {self.title} is invalid")
             self.load_page_error = "invalidpagetitle"
             return False
 
