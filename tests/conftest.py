@@ -23,6 +23,14 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def disable_network(mocker):
+    """Disable all network requests during testing"""
+    mocker.patch("requests.get", side_effect=Exception("Network disabled in tests"))
+    mocker.patch("requests.post", side_effect=Exception("Network disabled in tests"))
+    mocker.patch("urllib.request.urlopen", side_effect=Exception("Network disabled in tests"))
+
+
 @pytest.fixture
 def mock_site():
     return MagicMock()

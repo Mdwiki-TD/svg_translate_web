@@ -141,7 +141,7 @@ class CropMainFilesProcessor:
         try:
             jobs_service.save_job_result_by_name(self.result_file, self.result)
         except Exception as exc:
-            logger.warning(
+            logger.exception(
                 f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                 exc_info=exc,
             )
@@ -176,7 +176,7 @@ class CropMainFilesProcessor:
                 try:
                     jobs_service.save_job_result_by_name(self.result_file, self.result)
                 except Exception as exc:
-                    logger.warning(
+                    logger.exception(
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",
                         exc_info=exc,
                     )
@@ -190,7 +190,7 @@ class CropMainFilesProcessor:
         try:
             jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
         except LookupError:
-            logger.warning(
+            logger.exception(
                 f"Job {self.job_id}: Could not update status to running - job record might have been deleted."
             )
             return False

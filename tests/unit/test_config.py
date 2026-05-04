@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -156,11 +157,11 @@ def test_get_paths():
     result = _get_paths()
 
     assert isinstance(result, Paths)
-    assert result.svg_data == "/tmp/main/svg_data"
-    assert result.svg_data_thumb == "/tmp/main/svg_data_thumb"
-    assert result.log_dir == "/tmp/main/logs"
-    assert result.fix_nested_data == "/tmp/main/fix_nested_data"
-    assert result.svg_jobs_path == "/tmp/main/svg_jobs"
+    assert Path(result.svg_data) == Path("/tmp/main/svg_data")
+    assert Path(result.svg_data_thumb) == Path("/tmp/main/svg_data_thumb")
+    assert Path(result.log_dir) == Path("/tmp/main/logs")
+    assert Path(result.fix_nested_data) == Path("/tmp/main/fix_nested_data")
+    assert Path(result.svg_jobs_path) == Path("/tmp/main/svg_jobs")
 
 
 def test_env_bool():

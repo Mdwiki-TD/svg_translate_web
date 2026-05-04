@@ -189,13 +189,13 @@ class Database:
         try:
             cursor.execute("SET SESSION MAX_EXECUTION_TIME=%s", (milliseconds,))
         except pymysql.MySQLError:
-            logger.warning("event=db_set_timeout_failed timeout_ms=%s", milliseconds)
+            logger.exception("event=db_set_timeout_failed timeout_ms=%s", milliseconds)
 
     def _reset_query_timeout(self, cursor) -> None:
         try:
             cursor.execute("SET SESSION MAX_EXECUTION_TIME=0")
         except pymysql.MySQLError:
-            logger.warning("event=db_reset_timeout_failed")
+            logger.exception("event=db_reset_timeout_failed")
 
     def _maybe_commit(self) -> None:
         if self.connection is None:

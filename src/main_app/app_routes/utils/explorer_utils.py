@@ -44,7 +44,7 @@ def get_files_full_path(title, sub_dir):
     try:
         title_path = _validate_path_under_base(title, sub_dir)
     except PermissionError as e:
-        logger.warning(str(e))
+        logger.exception(str(e))
         return [], svg_data_path / title / sub_dir
 
     if not title_path.exists():
@@ -61,7 +61,7 @@ def get_files(title, sub_dir):
     try:
         title_path = _validate_path_under_base(title, sub_dir)
     except PermissionError as e:
-        logger.warning(str(e))
+        logger.exception(str(e))
         return [], svg_data_path / title / sub_dir
 
     if not title_path.exists():
