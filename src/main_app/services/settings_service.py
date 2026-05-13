@@ -32,22 +32,37 @@ def get_settings_db() -> SettingsDB:
     return _SETTINGS_STORE
 
 
-def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
+def _parse_setting_value(value_type: str, raw_val: str) -> tuple[any, bool]:
     """Returns (value, success)"""
-    if v_type == "boolean":
+    if value_type == "boolean":
         return raw_val == "on", True
-    elif v_type == "integer":
+    elif value_type == "integer":
         try:
             return int(raw_val), True
         except ValueError:
             return 0, True
-    elif v_type == "json":
+    elif value_type == "json":
         try:
             return json.loads(raw_val), True
         except Exception:
             return None, False
     else:
         return raw_val, True
+
+
+def _serialize_value(value: Any, value_type: str) -> str | None:
+    if value is None:
+        return None
+    if value_type == "boolean":
+        return "true" if value else "false"
+    elif value_type == "integer":
+        try:
+            return str(int(value))
+        except (ValueError, TypeError):
+            return "0"
+    elif value_type == "json":
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
 
 
 def list_settings() -> list[SettingRecord]:
@@ -71,7 +86,7 @@ def get_setting_by_key(key: str) :
 def delete_setting(key: str) -> bool:
     """delete a setting by key."""
     store = get_settings_db()
-    return store.delete_setting(key)
+    return store.delete(key)
 
 
 def update_setting(
