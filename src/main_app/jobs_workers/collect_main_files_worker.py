@@ -220,7 +220,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if not template.slug and not template_data.get("slug"):
                     _slug = slugify_title(template.title)
                     if _slug:
-                        template_dwta["slug"] = _slug
+                        template_data["slug"] = _slug
                     
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
