@@ -34,7 +34,7 @@ from .template_service import (
     upsert_template,
 )
 
-from ..jobs_workers.jobs_files_service import (
+from ..su_services.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
     save_job_result,

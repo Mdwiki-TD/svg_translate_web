@@ -21,7 +21,7 @@ from ...config import settings
 from ...services import jobs_service, template_service
 from ...shared.models import TemplateRecord
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
-from .. import jobs_files_service
+from ...su_services import jobs_files_service
 from ..utils.crop_main_files_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping

@@ -20,12 +20,14 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+from ...su_services import jobs_files_service
+
 from ...config import settings
-from ...jobs_workers import jobs_files_service, jobs_worker
+from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
 from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
 from ...services import jobs_service
-from ...services.users_service import current_user
+from ...su_services.users_service import current_user
 from ..admin.admins_required import admin_required
 from ..utils.routes_utils import load_auth_payload
 

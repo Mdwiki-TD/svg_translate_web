@@ -31,7 +31,7 @@ from ..services import (
     load_job_result,
 )
 from ..services.admin_service import active_coordinators
-from ..services.users_service import current_user
+from ..su_services.users_service import current_user
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
 

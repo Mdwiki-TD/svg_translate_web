@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.jobs_workers.jobs_files_service import (
+from src.main_app.su_services.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
     save_job_result,

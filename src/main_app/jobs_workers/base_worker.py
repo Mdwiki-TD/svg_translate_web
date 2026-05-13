@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
 from ..services import jobs_service
-from . import jobs_files_service
+from ..su_services import jobs_files_service
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
