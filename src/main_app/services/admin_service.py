@@ -44,8 +44,10 @@ def get_admins_db() -> CoordinatorsDB:
     return _ADMINS_STORE
 
 
-def active_coordinators() -> list:
-    """Return all coordinators while keeping settings.admins in sync."""
+def active_coordinators() -> list[str]:
+    """
+    Return all coordinators while keeping settings.admins in sync.
+    """
 
     store = get_admins_db()
 
@@ -53,7 +55,7 @@ def active_coordinators() -> list:
 
 
 def list_coordinators() -> List[CoordinatorRecord]:
-    """Return all coordinators while keeping settings.admins in sync."""
+    """Return all coordinators."""
 
     store = get_admins_db()
 
@@ -71,8 +73,7 @@ def add_coordinator(username: str) -> CoordinatorRecord:
 
 
 def set_coordinator_active(coordinator_id: int, is_active: bool) -> CoordinatorRecord:
-    """Toggle coordinator activity and refresh settings."""
-
+    """Toggle coordinator activity."""
     store = get_admins_db()
     record = store.set_active(coordinator_id, is_active)
 
@@ -80,17 +81,14 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> CoordinatorR
 
 
 def delete_coordinator(coordinator_id: int) -> bool:
-    """Delete a coordinator and refresh settings."""
+    """Delete a coordinator."""
 
     store = get_admins_db()
     return store.delete(coordinator_id)
 
 
 __all__ = [
-    "get_admins_db",
     "active_coordinators",
-    "CoordinatorRecord",
-    "CoordinatorsDB",
     "list_coordinators",
     "add_coordinator",
     "set_coordinator_active",
