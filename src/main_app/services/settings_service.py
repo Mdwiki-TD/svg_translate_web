@@ -21,15 +21,13 @@ def get_settings_db() -> SettingsDB:
 
     if _SETTINGS_STORE is None:
         if not has_db_config():
-            raise RuntimeError(
-                "Coordinator administration requires database configuration; no fallback store is available."
-            )
+            raise RuntimeError("SettingsDB requires database configuration; no fallback store is available.")
 
         try:
             _SETTINGS_STORE = SettingsDB(settings.database_data)
         except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL coordinator store")
-            raise RuntimeError("Unable to initialize coordinator store") from exc
+            logger.exception("Failed to initialize MySQL settings store")
+            raise RuntimeError("Unable to initialize settings store") from exc
 
     return _SETTINGS_STORE
 

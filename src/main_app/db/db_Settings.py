@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
-from . import Database
+from .db_class import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)

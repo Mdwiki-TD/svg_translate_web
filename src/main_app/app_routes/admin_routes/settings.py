@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -10,10 +9,8 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from ...config import settings
 from ...services.settings_service import (
     create_setting,
-    delete_setting,
     get_all_settings_raw,
     settings_update_form,
-    update_setting,
 )
 from ..admin.admins_required import admin_required
 

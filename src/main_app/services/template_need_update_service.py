@@ -6,10 +6,9 @@ import logging
 from typing import Any, List
 
 from ..config import DbConfig, settings
-from ..db import has_db_config
+from ..db import Database, has_db_config
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models import TemplateNeedUpdateRecord
-from . import Database
 
 logger = logging.getLogger(__name__)
 
