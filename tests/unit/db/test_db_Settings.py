@@ -248,7 +248,7 @@ def test_create_setting_success(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.create_setting("new_key", "New Setting", "boolean", True)
+    result = settings_db.create("new_key", "New Setting", "boolean", True)
 
     assert result is True
     mock_db.execute_query_safe.assert_any_call(
@@ -266,7 +266,7 @@ def test_create_setting_failure(mock_database_class, db_config):
     settings_db = SettingsDB(db_config)
     # Now set the side_effect for the create operation
     mock_db.execute_query_safe.side_effect = Exception("DB Error")
-    result = settings_db.create_setting("new_key", "New Setting", "string", "value")
+    result = settings_db.create("new_key", "New Setting", "string", "value")
 
     assert result is False
 
@@ -279,8 +279,8 @@ def test_create_setting_serialize_boolean(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("bool_key", "Bool Setting", "boolean", True)
-    settings_db.create_setting("bool_key2", "Bool Setting 2", "boolean", False)
+    settings_db.create("bool_key", "Bool Setting", "boolean", True)
+    settings_db.create("bool_key2", "Bool Setting 2", "boolean", False)
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE from __init__
@@ -297,7 +297,7 @@ def test_create_setting_serialize_integer(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("int_key", "Int Setting", "integer", 42)
+    settings_db.create("int_key", "Int Setting", "integer", 42)
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT
@@ -312,7 +312,7 @@ def test_create_setting_serialize_json(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("json_key", "JSON Setting", "json", {"key": "value"})
+    settings_db.create("json_key", "JSON Setting", "json", {"key": "value"})
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT

@@ -109,15 +109,16 @@ def create_setting(key: str, title: str, value_type: str) -> bool:
     store = get_settings_db()
 
     if value_type == "boolean":
-        value = False
+        value = "false"
     elif value_type == "integer":
-        value = 0
+        value = "0"
     elif value_type == "json":
-        value = {}
+        value = "{}"
     else:
         value = ""
 
-    return store.create_setting(key, title, value_type, value)
+    # str_val = _serialize_value(value, value_type)
+    return store.create(key, title, value_type, value)
 
 
 def settings_update_form(request_form) -> tuple[list[str], list[str]]:

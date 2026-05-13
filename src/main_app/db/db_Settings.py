@@ -55,15 +55,14 @@ class SettingsDB:
             return None
         return self._parse_value(rows[0]["value"], rows[0]["value_type"])
 
-    def create_setting(self, key: str, title: str, value_type: str, value: Any) -> bool:
+    def create(self, key: str, title: str, value_type: str, value: Any) -> bool:
         """Create a new setting."""
-        str_val = self._serialize_value(value, value_type)
         if self.get_by_key(key) is not None:
             return False
         try:
             affected_rows = self.db.execute_query_safe(
                 "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
-                (key, title, value_type, str_val),
+                (key, title, value_type, value),
             )
             return affected_rows > 0
         except Exception as e:
@@ -124,17 +123,3 @@ class SettingsDB:
         except Exception as e:
             logger.error(f"Failed to delete setting '{key}': {e}")
             return False
-
-    def _serialize_value(self, value: Any, value_type: str) -> Optional[str]:
-        if value is None:
-            return None
-        if value_type == "boolean":
-            return "true" if value else "false"
-        elif value_type == "integer":
-            try:
-                return str(int(value))
-            except (ValueError, TypeError):
-                return "0"
-        elif value_type == "json":
-            return json.dumps(value, ensure_ascii=False)
-        return str(value)
