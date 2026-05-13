@@ -41,43 +41,93 @@ def get_jobs_db() -> JobsDB:
 
 
 def create_job(job_type: str, username: str | None = None) -> JobRecord:
-    """Create a new job."""
+    """
+    Create a new job record.
+
+    Query to match:
+        INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
+        (job_type, "pending", username),
+    """
     store = get_jobs_db()
     return store.create(job_type, username)
 
 
 def get_job(job_id: int, job_type: str) -> JobRecord:
-    """Get a job by ID."""
+    """
+    Get a job by ID.
+
+    Query to match:
+        SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
+        FROM jobs
+        WHERE id = %s AND job_type = %s
+    """
     store = get_jobs_db()
     return store.get(job_id, job_type)
 
 
-def delete_job(job_id: int, job_type: str) -> None:
-    """Delete a job by ID and job type."""
-    store = get_jobs_db()
-    store.delete(job_id, job_type)
-
-
-def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-    """list recent jobs, optionally filtered by job_type."""
-    store = get_jobs_db()
-    return store.list(limit=limit, job_type=job_type)
-
-
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
-    """Update job status."""
+    """
+    Update job status.
+
+    Query to match:
+
+    """
     store = get_jobs_db()
     return store.update_status(job_id, status, result_file, job_type=job_type)
 
 
+def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
+    """
+    list recent jobs, optionally filtered by job_type.
+
+    Query to match:
+        if job_type:
+            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
+            FROM jobs
+            WHERE job_type = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        else:
+            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
+            FROM jobs
+            ORDER BY created_at DESC
+            LIMIT %s
+    """
+    store = get_jobs_db()
+    return store.list(limit=limit, job_type=job_type)
+
+
+def delete_job(job_id: int, job_type: str) -> None:
+    """
+    Delete a job by ID and job type.
+
+    Query to match:
+        DELETE FROM jobs
+        WHERE id = %s AND job_type = %s
+    """
+    store = get_jobs_db()
+    store.delete(job_id, job_type)
+
+
 def cancel_job(job_id: int, job_type: str | None = None) -> bool:
-    """Mark a job as cancelled."""
+    """
+    Mark a job as cancelled.
+
+    Query to match:
+        UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')
+        AND job_type = %s
+    """
     store = get_jobs_db()
     return store.cancel(job_id, job_type)
 
 
 def is_job_cancelled(job_id: int, job_type: str) -> bool:
-    """Check if a job is marked as cancelled."""
+    """
+    Check if a job is marked as cancelled.
+
+    Query to match:
+        SELECT status FROM jobs WHERE id = %s AND job_type = %s
+    """
     store = get_jobs_db()
     return store.is_cancelled(job_id, job_type)
 
