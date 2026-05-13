@@ -73,6 +73,10 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
 
     """
     store = get_jobs_db()
+
+    if status == "running":
+        return store.update_running_status(job_id, result_file, job_type)
+
     return store.update_status(job_id, status, result_file, job_type=job_type)
 
 
