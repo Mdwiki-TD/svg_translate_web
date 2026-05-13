@@ -1,6 +1,6 @@
 """"""
 
-from .jobs_files_service import (
+from ..jobs_workers.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
     save_job_result,

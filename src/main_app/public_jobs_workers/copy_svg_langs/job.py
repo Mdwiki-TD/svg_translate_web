@@ -18,7 +18,8 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...services import jobs_files_service, jobs_service
+from ...jobs_workers import jobs_files_service
+from ...services import jobs_service
 from .steps import (
     download_step,
     extract_text_step,

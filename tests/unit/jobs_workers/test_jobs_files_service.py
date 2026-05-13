@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.jobs_workers.utils import generate_result_file_name
-from src.main_app.services.jobs_files_service import (
+from src.main_app.jobs_workers.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
     save_job_result,
     save_job_result_by_name,
 )
+from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.services.jobs_service import (
     create_job,
 )
