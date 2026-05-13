@@ -88,8 +88,8 @@ def delete_coordinator(coordinator_id: int) -> bool:
 
 
 __all__ = [
-    "active_coordinators",
     "list_coordinators",
+    "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",
     "delete_coordinator",
