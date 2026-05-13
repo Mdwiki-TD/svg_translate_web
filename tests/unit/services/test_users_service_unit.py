@@ -6,8 +6,8 @@ from src.main_app.su_services.users_service import (
 )
 
 
-@patch("src.main_app.services.users_service.active_coordinators")
-@patch("src.main_app.services.users_service.current_user")
+@patch("src.main_app.su_services.users_service.active_coordinators")
+@patch("src.main_app.su_services.users_service.current_user")
 def test_context_user(mock_current_user, mock_active_coordinators):
     # Case 1: User is admin
     user = MagicMock(username="admin")

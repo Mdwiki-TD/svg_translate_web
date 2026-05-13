@@ -24,9 +24,9 @@ def test_resolve_user_id(app_mock):
         assert _resolve_user_id() is None
 
 
-@patch("src.main_app.services.users_service.get_user_token")
-@patch("src.main_app.services.users_service.extract_user_id")
-@patch("src.main_app.services.users_service.settings")
+@patch("src.main_app.su_services.users_service.get_user_token")
+@patch("src.main_app.su_services.users_service.extract_user_id")
+@patch("src.main_app.su_services.users_service.settings")
 def test_current_user(mock_settings, mock_extract, mock_get_token, app_mock):
     mock_settings.cookie.name = "test_cookie"
 
