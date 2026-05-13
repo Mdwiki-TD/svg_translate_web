@@ -83,13 +83,13 @@ class TestPostInit:
 
 
 class TestSaveProgress:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_files_service")
     def test_delegates_to_jobs_service(self, mock_svc):
         proc = _make_processor()
         proc._save_progress()
         mock_svc.save_job_result_by_name.assert_called_once_with(proc.result_file, proc.result)
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_files_service")
     def test_swallows_exceptions(self, mock_svc):
         mock_svc.save_job_result_by_name.side_effect = RuntimeError("disk full")
         proc = _make_processor()
