@@ -40,9 +40,17 @@ def slugify_title(title: str) -> str:
     # Remove multiple hyphens
     while "--" in slug:
         slug = slug.replace("--", "-")
-    return slug.strip("-")
+    slug = slug.strip("-")
 
-
+    if slug:
+         # Only assign slug if it exists in the owid_charts table
+         try:
+            owid_charts_service.get_chart_by_slug(slug)
+            return slug
+        except LookupError:
+            return None
+    return None
+    
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
@@ -202,30 +210,16 @@ class CollectMainFilesWorker(BaseJobWorker):
                     template_info["last_world_file"] = last_world_file
 
                 source = find_template_source(wikitext)
-                if source:
-                    if source != template.source:
-                        template_info["source"] = source
-                        template_data["source"] = source
-
-                    if not template.slug or source != template.source:
-                        slug = None
-                        if "/grapher/" in source:
-                            slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
-
-                        if not slug and template.title:
-                            slug = slugify_title(template.title)
-
-                        if slug:
-                            # Only assign slug if it exists in the owid_charts table
-                            try:
-                                owid_charts_service.get_chart_by_slug(slug)
-                                if slug != template.slug:
-                                    template_data["slug"] = slug
-                            except LookupError:
-                                logger.info(
-                                    f"Job {self.job_id}: Slug {slug} not found in owid_charts for {template.title}"
-                                )
-
+                if source and source != template.source:
+                    template_info["source"] = source
+                    template_data["source"] = source
+                    if "/grapher/" in source:
+                        slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                        template_data["slug"] = slug or None
+                        
+                if not template.slug and not template_data.get("slug"):
+                    template_dwta["slug"] = slugify_title(template.title)
+                    
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
