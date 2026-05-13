@@ -61,6 +61,15 @@ def active_coordinators() -> list[str]:
     return [u.username for u in store.list() if u.is_active]
 
 
+def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
+    """
+    Get a coordinator by ID.
+    """
+    store = get_admins_db()
+    record = store.get_by_id(coordinator_id)
+    return record
+
+
 def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
 
@@ -95,6 +104,7 @@ def delete_coordinator(coordinator_id: int) -> bool:
 
 
 __all__ = [
+    "get_coordinator_by_id",
     "list_coordinators",
     "active_coordinators",
     "add_coordinator",
