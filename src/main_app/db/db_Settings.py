@@ -55,7 +55,12 @@ class SettingsDB:
             logger.error(f"Failed to create setting '{key}': {e}")
             return False
 
-    def update_setting(self, key: str, value: Any, value_type: str | None = None) -> bool:
+    def update_setting(
+        self, key: str,
+        value: Any,
+        value_type: str | None = None,
+        title: str | None = None,
+    ) -> bool:
         """Update an existing setting.
 
         Args:
@@ -73,7 +78,7 @@ class SettingsDB:
         str_val = self._serialize_value(value, value_type)
 
         try:
-            self.db.execute_query_safe("UPDATE `settings` SET `value` = %s WHERE `key` = %s", (str_val, key))
+            self.db.execute_query_safe("UPDATE `settings` SET `value` = %s, `title` = %s WHERE `key` = %s", (str_val, title, key))
             return True
         except Exception as e:
             logger.error(f"Failed to update setting '{key}': {e}")

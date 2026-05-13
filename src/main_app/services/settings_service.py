@@ -65,14 +65,14 @@ def delete_setting(key: str) -> bool:
 def update_setting(
     key: str,
     value: Any,
-    title: str | None = None,
     value_type: str | None = None,
+    title: str | None = None,
 ) -> bool:
     """
     Update an existing setting.
     """
     store = get_settings_db()
-    return store.update_setting(key, value, value_type)
+    return store.update_setting(key, value, value_type, title)
 
 
 def create_setting(key: str, title: str, value_type: str) -> bool:
