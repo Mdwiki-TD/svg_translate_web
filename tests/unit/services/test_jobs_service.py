@@ -28,7 +28,7 @@ from src.main_app.services.jobs_service import (
     update_job_status,
 )
 
-from ....src.main_app.db.db_Jobs import JobRecord
+from src.main_app.db.db_Jobs import JobRecord
 
 
 class FakeJobsDB:
