@@ -110,11 +110,10 @@ def delete_template(template_id: int) -> bool:
 
 
 __all__ = [
-    "get_template",
     "get_template_by_title",
-    "list_templates",
     "add_template_data",
     "update_template_data",
+    "list_templates",
     "delete_template",
     "get_template",
     "get_templates_db",
