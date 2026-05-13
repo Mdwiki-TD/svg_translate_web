@@ -9,12 +9,11 @@ import pytest
 from src.main_app.services.owid_charts_service import (
     add_chart,
     delete_chart,
-    get_chart,
+    get_chart_by_id,
     get_chart_by_slug,
     get_owid_charts_db,
     list_charts,
     list_published_charts,
-    update_chart,
     update_chart_data,
 )
 
@@ -113,14 +112,14 @@ class TestListPublishedCharts:
 
 
 class TestGetChart:
-    """Tests for get_chart function."""
+    """Tests for get_chart_by_id function."""
 
     def test_returns_chart_by_id(self, mock_db_instance, sample_record):
         """Test fetching a chart by ID."""
         mock_db_instance.fetch_by_id.return_value = sample_record
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = get_chart(1)
+            result = get_chart_by_id(1)
 
             assert result == sample_record
             mock_db_instance.fetch_by_id.assert_called_once_with(1)
@@ -131,7 +130,7 @@ class TestGetChart:
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
             with pytest.raises(LookupError):
-                get_chart(999)
+                get_chart_by_id(999)
 
 
 class TestGetChartBySlug:
@@ -189,23 +188,6 @@ class TestAddChart:
             assert call_kwargs["has_map_tab"] is True
             assert call_kwargs["is_published"] is True
             assert call_kwargs["max_time"] == 2024
-
-
-class TestUpdateChart:
-    """Tests for update_chart function."""
-
-    def test_updates_chart(self, mock_db_instance, sample_record):
-        """Test updating an existing chart."""
-        mock_db_instance.update.return_value = sample_record
-
-        with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = update_chart(chart_id=1, slug="updated", title="Updated")
-
-            assert result == sample_record
-            mock_db_instance.update.assert_called_once()
-            call_kwargs = mock_db_instance.update.call_args[1]
-            assert call_kwargs["chart_id"] == 1
-            assert call_kwargs["slug"] == "updated"
 
 
 class TestUpdateChartData:

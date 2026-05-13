@@ -55,7 +55,7 @@ def list_published_charts() -> List[OwidChartRecord]:
     return store.list_published()
 
 
-def get_chart(chart_id: int) -> OwidChartRecord:
+def get_chart_by_id(chart_id: int) -> OwidChartRecord:
     """Fetch a single chart by ID."""
     store = get_owid_charts_db()
     return store.fetch_by_id(chart_id)
@@ -95,36 +95,6 @@ def add_chart(
     )
 
 
-def update_chart(
-    chart_id: int,
-    slug: str,
-    title: str,
-    has_map_tab: bool = False,
-    max_time: int | None = None,
-    min_time: int | None = None,
-    default_tab: str | None = None,
-    is_published: bool = False,
-    single_year_data: bool = False,
-    len_years: int | None = None,
-    has_timeline: bool = False,
-) -> OwidChartRecord:
-    """Update an existing chart."""
-    store = get_owid_charts_db()
-    return store.update(
-        chart_id=chart_id,
-        slug=slug,
-        title=title,
-        has_map_tab=has_map_tab,
-        max_time=max_time,
-        min_time=min_time,
-        default_tab=default_tab,
-        is_published=is_published,
-        single_year_data=single_year_data,
-        len_years=len_years,
-        has_timeline=has_timeline,
-    )
-
-
 def update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
@@ -141,15 +111,11 @@ def delete_chart(chart_id: int) -> OwidChartRecord:
 
 
 __all__ = [
-    "get_owid_charts_db",
-    "OwidChartRecord",
-    "OwidChartsDB",
-    "list_charts",
-    "list_published_charts",
-    "get_chart",
+    "get_chart_by_id",
     "get_chart_by_slug",
     "add_chart",
-    "update_chart",
     "update_chart_data",
     "delete_chart",
+    "list_charts",
+    "list_published_charts",
 ]
