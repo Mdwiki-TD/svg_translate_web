@@ -141,7 +141,7 @@ class TestUserTokenRecord:
         assert record.rotated_at == "2024-01-04 00:00:00"
 
     @patch("src.main_app.db.user_tokens.mark_token_used")
-    @patch("src.main_app.db.user_tokens.decrypt_value")
+    @patch("src.main_app.shared.models.users_record.decrypt_value")
     def test_decrypted_success(self, mock_decrypt, mock_mark_used):
         """Test decrypted method returns decrypted credentials."""
         mock_decrypt.side_effect = ["decrypted_token", "decrypted_secret"]
@@ -162,7 +162,7 @@ class TestUserTokenRecord:
         mock_mark_used.assert_called_once_with(789)
 
     @patch("src.main_app.db.user_tokens.mark_token_used")
-    @patch("src.main_app.db.user_tokens.decrypt_value")
+    @patch("src.main_app.shared.models.users_record.decrypt_value")
     def test_decrypted_calls_mark_token_used(self, mock_decrypt, mock_mark_used):
         """Test decrypted method marks token as used."""
         mock_decrypt.return_value = "decrypted"
