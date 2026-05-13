@@ -144,8 +144,6 @@ __all__ = [
     "add_template_data",
     "update_template_data",
     "get_templates_db",
-    "TemplateRecord",
-    "TemplatesDB",
     "list_templates",
     "delete_template",
     "get_template",
