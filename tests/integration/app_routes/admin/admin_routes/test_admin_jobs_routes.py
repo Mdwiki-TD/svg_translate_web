@@ -55,7 +55,7 @@ class FakeJobsDB:
         index = self._find_index(job_id, job_type)
         return self._records[index]
 
-    def list(self, limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
+    def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
         """List recent jobs, optionally filtered by job_type."""
         if job_type:
             return [r for r in self._records if r.job_type == job_type][:limit]

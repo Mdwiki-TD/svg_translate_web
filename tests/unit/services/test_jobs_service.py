@@ -39,6 +39,7 @@ class FakeJobsDB:
         self._next_id = 1
 
     def create(self, job_type: str, username: str | None = None) -> JobRecord:
+        """Create a new job."""
         record = JobRecord(
             id=self._next_id,
             job_type=job_type,
@@ -50,6 +51,7 @@ class FakeJobsDB:
         return record
 
     def get(self, job_id: int, job_type: str) -> JobRecord:
+        """Get a job by ID."""
         for record in self._records:
             if record.id == job_id and record.job_type == job_type:
                 return record
@@ -64,9 +66,23 @@ class FakeJobsDB:
         return False
 
     def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
+        """List recent jobs, optionally filtered by job_type."""
         if job_type:
             return [r for r in self._records if r.job_type == job_type][:limit]
         return list(self._records[:limit])
+
+    def update_running_status(
+        self,
+        job_id: int,
+        job_type: str = "fix_nested_main_files",
+        result_file: str | None = None,
+    ) -> JobRecord:
+        for record in self._records:
+            if record.id == job_id and record.job_type == job_type:
+                record.status = "running"
+                record.result_file = result_file
+                return record
+        raise LookupError(f"Job id {job_id} of type {job_type} was not found")
 
     def update_status(self, job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
         for record in self._records:
