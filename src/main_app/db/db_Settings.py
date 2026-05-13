@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
+from ..shared.models import SettingRecord
 from .db_class import Database
 from .sql_schema_tables import sql_tables
 
@@ -21,9 +22,24 @@ class SettingsDB:
     def _ensure_table(self) -> None:
         self.db.execute_query_safe(sql_tables.settings)
 
+    def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
+        value = self._parse_value(row["value"], row["value_type"])
+        return SettingRecord(
+            id=int(row["id"]),
+            key=row["key"],
+            title=row.get("title"),
+            value_type=row["value_type"],
+            value=value,
+        )
+
+    def all(self) -> list[SettingRecord]:
+        """Fetch all settings and return them as a dictionary of key -> parsed value."""
+        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings")
+        return [self._row_to_record(row) for row in rows]
+
     def get_all(self) -> Dict[str, Any]:
         """Fetch all settings and return them as a dictionary of key -> parsed value."""
-        rows = self.db.fetch_query_safe("SELECT `key`, `value`, `value_type` FROM `settings`")
+        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings")
         settings_dict = {}
         for row in rows:
             settings_dict[row["key"]] = self._parse_value(row["value"], row["value_type"])
@@ -31,10 +47,10 @@ class SettingsDB:
 
     def get_raw_all(self) -> List[Dict[str, Any]]:
         """Fetch all settings as raw rows for admin panel."""
-        return self.db.fetch_query_safe("SELECT * FROM `settings` ORDER BY `id` ASC")
+        return self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings ORDER BY id ASC")
 
     def get_by_key(self, key: str) -> Optional[Any]:
-        rows = self.db.fetch_query_safe("SELECT `value`, `value_type` FROM `settings` WHERE `key` = %s", (key,))
+        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
         if not rows:
             return None
         return self._parse_value(rows[0]["value"], rows[0]["value_type"])
@@ -46,8 +62,7 @@ class SettingsDB:
             return False
         try:
             affected_rows = self.db.execute_query_safe(
-                # "INSERT IGNORE INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
-                "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
                 (key, title, value_type, str_val),
             )
             return affected_rows > 0
@@ -70,7 +85,7 @@ class SettingsDB:
         """
         # If value_type not provided, retrieve it from the database
         if value_type is None:
-            rows = self.db.fetch_query_safe("SELECT `value_type` FROM `settings` WHERE `key` = %s", (key,))
+            rows = self.db.fetch_query_safe("SELECT value_type FROM settings WHERE key = %s", (key,))
             if not rows:
                 return False
             value_type = rows[0]["value_type"]
@@ -78,7 +93,7 @@ class SettingsDB:
         str_val = self._serialize_value(value, value_type)
 
         try:
-            self.db.execute_query_safe("UPDATE `settings` SET `value` = %s, `title` = %s WHERE `key` = %s", (str_val, title, key))
+            self.db.execute_query_safe("UPDATE settings SET value = %s, title = %s WHERE key = %s", (str_val, title, key))
             return True
         except Exception as e:
             logger.error(f"Failed to update setting '{key}': {e}")
@@ -104,7 +119,7 @@ class SettingsDB:
     def delete_setting(self, key: str) -> bool:
         """Delete a setting by key."""
         try:
-            affected_rows = self.db.execute_query_safe("DELETE FROM `settings` WHERE `key` = %s", (key,))
+            affected_rows = self.db.execute_query_safe("DELETE FROM settings WHERE key = %s", (key,))
             return affected_rows > 0
         except Exception as e:
             logger.error(f"Failed to delete setting '{key}': {e}")

@@ -3,6 +3,7 @@ from .owid_chart_record import OwidChartRecord
 from .template_need_update_record import TemplateNeedUpdateRecord
 from .template_record import TemplateRecord
 from .users_record import AdminUserRecord
+from .setting_record import SettingRecord
 
 __all__ = [
     "AdminUserRecord",
@@ -10,4 +11,5 @@ __all__ = [
     "OwidChartRecord",
     "TemplateNeedUpdateRecord",
     "JobRecord",
+    "SettingRecord",
 ]

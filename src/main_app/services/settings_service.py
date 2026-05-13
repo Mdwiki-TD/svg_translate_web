@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Any
 
-# from ..shared.models import SettingRecord
+from ..shared.models import SettingRecord
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Settings import SettingsDB
@@ -50,10 +50,22 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
         return raw_val, True
 
 
+def list_settings() -> list[SettingRecord]:
+    """List all settings."""
+    store = get_settings_db()
+    return store.all()
+
+
 def get_all_settings_raw() -> list[dict[str, Any]]:
     """Fetch a setting by key."""
     store = get_settings_db()
     return store.get_raw_all()
+
+
+def get_setting_by_key(key: str) :
+    """Fetch a setting by key."""
+    store = get_settings_db()
+    return store.get_by_key(key)
 
 
 def delete_setting(key: str) -> bool:
@@ -127,9 +139,11 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
 
 
 __all__ = [
+    "get_setting_by_key",
     "get_all_settings_raw",
     "delete_setting",
     "update_setting",
     "create_setting",
     "settings_update_form",
+    "list_settings",
 ]
