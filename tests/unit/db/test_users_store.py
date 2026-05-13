@@ -26,7 +26,7 @@ def test_mark_token_used_updates_last_used(monkeypatch):
 
 
 def test_user_token_record_decrypted_marks_usage(monkeypatch):
-    monkeypatch.setattr(user_tokens, "decrypt_value", lambda value: value.decode("utf-8"))
+    monkeypatch.setattr("src.main_app.shared.models.users_record.decrypt_value", lambda value: value.decode("utf-8"))
     calls: list[int] = []
     monkeypatch.setattr(user_tokens, "mark_token_used", lambda user_id: calls.append(user_id))
 
