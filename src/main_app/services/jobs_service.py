@@ -73,6 +73,14 @@ def update_running_status(job_id: int, result_file: str | None = None, *, job_ty
     return store.update_running_status(job_id, result_file, job_type)
 
 
+def _update_status(job_id: int, status: str, result_file: str, job_type: str) -> JobRecord:
+    """
+    Update job status and result file.
+    """
+    store = get_jobs_db()
+    return store.update_status(job_id, status, result_file, job_type=job_type)
+
+
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """
     Update job status and optional result file.
@@ -80,11 +88,10 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
     Query to match:
 
     """
-    store = get_jobs_db()
     if status == "running":
         return update_running_status(job_id, result_file, job_type)
 
-    return store.update_status(job_id, status, result_file, job_type=job_type)
+    return _update_status(job_id, status, result_file, job_type)
 
 
 def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
