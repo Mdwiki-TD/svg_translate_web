@@ -44,16 +44,6 @@ def get_admins_db() -> CoordinatorsDB:
     return _ADMINS_STORE
 
 
-def active_coordinators() -> list[str]:
-    """
-    Return all coordinators while keeping settings.admins in sync.
-    """
-
-    store = get_admins_db()
-
-    return [u.username for u in store.list() if u.is_active]
-
-
 def list_coordinators() -> List[AdminUserRecord]:
     """Return all coordinators."""
 
@@ -63,10 +53,26 @@ def list_coordinators() -> List[AdminUserRecord]:
     return coords
 
 
+def active_coordinators() -> list[str]:
+    """Return usernames of all active coordinators."""
+
+    store = get_admins_db()
+
+    return [u.username for u in store.list() if u.is_active]
+
+
 def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
 
+    if not username:
+        raise ValueError("Username is required")
+
     store = get_admins_db()
+    record = store.get_by_username(username)
+    if record:
+        # This assumes a UNIQUE constraint on the username column
+        raise ValueError(f"Coordinator '{username}' already exists") from None
+
     record = store.add(username)
 
     return record
