@@ -6,6 +6,12 @@
 #     delete_user_token_by_username,
 # )
 
+# from .settings_service import (
+#     get_setting,
+#     set_setting,
+#     list_settings,
+# )
+
 from .admin_service import (
     active_coordinators,
     add_coordinator,
@@ -13,6 +19,7 @@ from .admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
+
 from .jobs_service import (
     cancel_job,
     create_job,
@@ -22,22 +29,19 @@ from .jobs_service import (
     list_jobs,
     update_job_status,
 )
+
 from .owid_charts_service import (  # upsert_chart,
-    add_chart,
-    delete_chart,
     get_chart_by_id,
     get_chart_by_slug,
+    add_chart,
+    update_chart_data,
+    delete_chart,
     list_charts,
     list_published_charts,
-    update_chart_data,
 )
 
-# from .settings_service import (
-#     get_setting,
-#     set_setting,
-#     list_settings,
-# )
-from .template_service import (  # get_template_by_title,; upsert_template,
+from .template_service import (
+    get_template_by_title,
     get_template,
     list_templates,
 )
@@ -53,12 +57,14 @@ __all__ = [
     "delete_user_token",
     "get_user_token_by_username",
     "delete_user_token_by_username",
+
     # admin_service
     "list_coordinators",
     "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",
     "delete_coordinator",
+
     # owid_charts_service
     "get_chart_by_id",
     "get_chart_by_slug",
