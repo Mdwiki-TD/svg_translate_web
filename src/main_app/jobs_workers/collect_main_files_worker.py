@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..services import template_service
+from ..services import owid_charts_service, template_service
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -23,6 +23,34 @@ from .base_worker import BaseJobWorker
 logger = logging.getLogger(__name__)
 
 
+def slugify_title(title: str) -> str:
+    """Derive a slug from a template title."""
+    # Remove 'Template:OWID/' or 'Template:' prefix
+    if title.startswith("Template:OWID/"):
+        name = title[len("Template:OWID/") :]
+    elif title.startswith("Template:"):
+        name = title[len("Template:") :]
+    else:
+        name = title
+
+    # Lowercase, replace spaces and underscores with hyphens
+    slug = name.lower().replace(" ", "-").replace("_", "-")
+    # Remove any other non-alphanumeric characters (except hyphens)
+    slug = "".join(c for c in slug if c.isalnum() or c == "-")
+    # Remove multiple hyphens
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    slug = slug.strip("-")
+
+    if slug:
+         # Only assign slug if it exists in the owid_charts table
+         try:
+            owid_charts_service.get_chart_by_slug(slug)
+            return slug
+         except LookupError:
+            return None
+    return None
+    
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
@@ -188,7 +216,12 @@ class CollectMainFilesWorker(BaseJobWorker):
                     if "/grapher/" in source:
                         slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
                         template_data["slug"] = slug or None
-
+                        
+                if not template.slug and not template_data.get("slug"):
+                    _slug = slugify_title(template.title)
+                    if _slug:
+                        template_data["slug"] = _slug
+                    
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
