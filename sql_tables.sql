@@ -108,8 +108,7 @@ FROM owid_charts c
 LEFT JOIN templates t
     -- ON t.source LIKE '%/grapher/%'
     -- AND SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug;
-    ON t.slug = c.slug
-    OR (t.slug = '' AND LOWER(REPLACE(REPLACE(REPLACE(t.title, 'Template:OWID/', ''), ' ', '-'), '_', '-')) = c.slug);
+    ON t.slug = c.slug;
 
 CREATE OR REPLACE VIEW templates_need_update AS
 SELECT
@@ -121,6 +120,5 @@ SELECT
 FROM owid_charts c
 JOIN templates t
     ON t.slug = c.slug
-    OR (t.slug = '' AND LOWER(REPLACE(REPLACE(REPLACE(t.title, 'Template:OWID/', ''), ' ', '-'), '_', '-')) = c.slug)
 WHERE t.last_world_year != c.max_time
    AND t.last_world_year IS NOT NULL

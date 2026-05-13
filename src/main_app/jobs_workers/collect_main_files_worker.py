@@ -23,6 +23,26 @@ from .base_worker import BaseJobWorker
 logger = logging.getLogger(__name__)
 
 
+def slugify_title(title: str) -> str:
+    """Derive a slug from a template title."""
+    # Remove 'Template:OWID/' or 'Template:' prefix
+    if title.startswith("Template:OWID/"):
+        name = title[len("Template:OWID/") :]
+    elif title.startswith("Template:"):
+        name = title[len("Template:") :]
+    else:
+        name = title
+
+    # Lowercase, replace spaces and underscores with hyphens
+    slug = name.lower().replace(" ", "-").replace("_", "-")
+    # Remove any other non-alphanumeric characters (except hyphens)
+    slug = "".join(c for c in slug if c.isalnum() or c == "-")
+    # Remove multiple hyphens
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return slug.strip("-")
+
+
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
@@ -185,9 +205,16 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if source and source != template.source:
                     template_info["source"] = source
                     template_data["source"] = source
+
+                    slug = None
                     if "/grapher/" in source:
                         slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
-                        template_data["slug"] = slug or None
+
+                    if not slug and template.title:
+                        slug = slugify_title(template.title)
+
+                    if slug:
+                        template_data["slug"] = slug
 
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
