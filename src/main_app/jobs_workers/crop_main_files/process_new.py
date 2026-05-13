@@ -20,8 +20,8 @@ from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...services import jobs_service, template_service
 from ...shared.models import TemplateRecord
-from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ...su_services import jobs_files_service
+from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..utils.crop_main_files_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
