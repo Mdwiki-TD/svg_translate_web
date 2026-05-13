@@ -127,8 +127,8 @@ class JobsDB:
     def update_running_status(
         self,
         job_id: int,
-        result_file: str | None = None,
         job_type: str = "fix_nested_main_files",
+        result_file: str | None = None,
     ) -> JobRecord:
         """
         Update job status.
@@ -162,7 +162,7 @@ class JobsDB:
         Raises LookupError if the job doesn't exist or the update fails.
         """
         if status == "running":
-            return self.update_running_status(job_id, result_file, job_type)
+            return self.update_running_status(job_id, job_type, result_file)
 
         if status in ["completed", "failed", "cancelled"]:
             rowcount = self.db.execute_query_safe(

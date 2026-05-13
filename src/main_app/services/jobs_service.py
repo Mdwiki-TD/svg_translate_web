@@ -65,12 +65,12 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
     return store.get(job_id, job_type)
 
 
-def update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
+def update_running_status(job_id: int, job_type: str, result_file: str | None = None) -> JobRecord:
     """
     Update running job status and optional result file.
     """
     store = get_jobs_db()
-    return store.update_running_status(job_id, result_file, job_type)
+    return store.update_running_status(job_id, job_type, result_file)
 
 
 def _update_status(job_id: int, status: str, result_file: str, job_type: str) -> JobRecord:
@@ -89,7 +89,7 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
 
     """
     if status == "running":
-        return update_running_status(job_id, result_file, job_type)
+        return update_running_status(job_id, job_type, result_file)
 
     return _update_status(job_id, status, result_file, job_type)
 
