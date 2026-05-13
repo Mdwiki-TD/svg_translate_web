@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, List
+from typing import Any
 
 # from ..shared.models import SettingRecord
 from ..config import settings
@@ -50,7 +50,7 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
         return raw_val, True
 
 
-def get_all_settings_raw() -> List[dict[str, Any]]:
+def get_all_settings_raw() -> list[dict[str, Any]]:
     """Fetch a setting by key."""
     store = get_settings_db()
     return store.get_raw_all()
@@ -62,7 +62,12 @@ def delete_setting(key: str) -> bool:
     return store.delete_setting(key)
 
 
-def update_setting(key: str, value: Any, value_type: str | None = None) -> bool:
+def update_setting(
+    key: str,
+    value: Any,
+    title: str | None = None,
+    value_type: str | None = None,
+) -> bool:
     """
     Update an existing setting.
     """

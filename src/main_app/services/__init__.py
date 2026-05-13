@@ -6,11 +6,13 @@
 #     delete_user_token_by_username,
 # )
 
-# from .settings_service import (
-#     get_setting,
-#     set_setting,
-#     list_settings,
-# )
+from .settings_service import (
+    get_all_settings_raw,
+    delete_setting,
+    update_setting,
+    create_setting,
+    settings_update_form,
+)
 
 from .admin_service import (
     active_coordinators,
@@ -68,10 +70,14 @@ __all__ = [
     "upsert_chart",
     "list_charts",
     "list_published_charts",
+
     # settings_service
-    "get_setting",
-    "set_setting",
-    "list_settings",
+    "get_all_settings_raw",
+    "delete_setting",
+    "update_setting",
+    "create_setting",
+    "settings_update_form",
+
     # template_service
     "get_template",
     "get_template_by_title",
