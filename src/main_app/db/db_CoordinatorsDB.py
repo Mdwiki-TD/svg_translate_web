@@ -130,13 +130,15 @@ class CoordinatorsDB:
         )
         return self._fetch_by_id(coordinator_id)
 
-    def delete(self, coordinator_id: int) -> CoordinatorRecord:
+    def delete(self, coordinator_id: int) -> bool:
         record = self._fetch_by_id(coordinator_id)
-        self.db.execute_query_safe(
-            "DELETE FROM admin_users WHERE id = %s",
-            (coordinator_id,),
-        )
-        return record
+        if record:
+            self.db.execute_query_safe(
+                "DELETE FROM admin_users WHERE id = %s",
+                (coordinator_id,),
+            )
+            return True
+        return False
 
 
 __all__ = [

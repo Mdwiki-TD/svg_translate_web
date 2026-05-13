@@ -142,14 +142,14 @@ class OwidChartsDB:
                 (
                     slug,
                     title,
-                    1 if has_map_tab else 0,
+                    has_map_tab,
                     max_time,
                     min_time,
                     default_tab,
-                    1 if is_published else 0,
-                    1 if single_year_data else 0,
+                    is_published,
+                    single_year_data,
                     len_years,
-                    1 if has_timeline else 0,
+                    has_timeline,
                 ),
             )
         except pymysql.err.IntegrityError:
@@ -241,14 +241,16 @@ class OwidChartsDB:
         )
         return self._fetch_by_id(chart_id)
 
-    def delete(self, chart_id: int) -> OwidChartRecord:
+    def delete(self, chart_id: int) -> bool:
         """Delete a chart."""
         record = self._fetch_by_id(chart_id)
-        self.db.execute_query_safe(
-            "DELETE FROM owid_charts WHERE chart_id = %s",
-            (chart_id,),
-        )
-        return record
+        if record:
+            self.db.execute_query_safe(
+                "DELETE FROM owid_charts WHERE chart_id = %s",
+                (chart_id,),
+            )
+            return True
+        return False
 
 
 __all__ = [
