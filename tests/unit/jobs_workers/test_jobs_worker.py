@@ -7,9 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers import jobs_worker
-
 from src.main_app.db.db_Jobs import JobRecord
+from src.main_app.jobs_workers import jobs_worker
 
 
 @pytest.fixture(autouse=True)

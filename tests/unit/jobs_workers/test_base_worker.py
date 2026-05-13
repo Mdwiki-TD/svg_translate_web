@@ -37,7 +37,7 @@ class TestJobExceptionHandler:
             raise ValueError("Test error")
 
         with (
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name") as mock_save,
+            patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
             patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
         ):
             result = failing_func()
@@ -54,7 +54,7 @@ class TestJobExceptionHandler:
             raise RuntimeError("Unexpected failure")
 
         with (
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name") as mock_save,
+            patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
             patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"),
         ):
             failing_func()
@@ -72,7 +72,7 @@ class TestJobExceptionHandler:
         def failing_func():
             raise ValueError("Test error")
 
-        with patch("src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name") as mock_save:
+        with patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save:
             mock_save.side_effect = LookupError("Job not found")
 
             result = failing_func()
@@ -87,7 +87,7 @@ class TestJobExceptionHandler:
             raise ValueError("Test error")
 
         with (
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name") as mock_save,
+            patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
             patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
         ):
             # First save fails with a generic exception
@@ -109,7 +109,7 @@ class TestJobExceptionHandler:
             raise ValueError("Test error")
 
         with (
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name") as mock_save,
+            patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
             patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
         ):
             # Save fails with generic exception
@@ -171,7 +171,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(

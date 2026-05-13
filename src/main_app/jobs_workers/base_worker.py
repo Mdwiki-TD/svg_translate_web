@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from ..services import jobs_service
+from ..services import jobs_files_service, jobs_service
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
@@ -55,11 +55,11 @@ def job_exception_handler(
                 }
 
                 try:
-                    jobs_service.save_job_result_by_name(result_file, error_result)
+                    jobs_files_service.save_job_result_by_name(result_file, error_result)
                     jobs_service.update_job_status(job_id, "failed", result_file, job_type=job_type)
                 except LookupError:
                     logger.exception(
-                        f"Job {job_id}: Could not update status to failed, " "job record might have been deleted."
+                        f"Job {job_id}: Could not update status to failed, job record might have been deleted."
                     )
                 except Exception:
                     logger.exception(f"Job {job_id}: Failed to save error result")
@@ -151,7 +151,7 @@ class BaseJobWorker(ABC):
             return True
         except LookupError:
             logger.exception(
-                f"Job {self.job_id}: Could not update status to running, " "job record might have been deleted."
+                f"Job {self.job_id}: Could not update status to running, job record might have been deleted."
             )
             return False
 
@@ -168,15 +168,13 @@ class BaseJobWorker(ABC):
         try:
             jobs_service.update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except LookupError:
-            logger.exception(
-                f"Job {self.job_id}: Could not update final status, " "job record might have been deleted."
-            )
+            logger.exception(f"Job {self.job_id}: Could not update final status, job record might have been deleted.")
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
     def _save_progress(self):
         try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
+            jobs_files_service.save_job_result_by_name(self.result_file, self.result)
         except Exception:
             logger.exception(f"Job {self.job_id}: Failed to save job result")
 

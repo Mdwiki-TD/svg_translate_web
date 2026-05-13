@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 
+from src.main_app.db.db_Jobs import JobRecord
 from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.services import jobs_service
 from src.main_app.services.jobs_files_service import (
@@ -27,8 +28,6 @@ from src.main_app.services.jobs_service import (
     list_jobs,
     update_job_status,
 )
-
-from src.main_app.db.db_Jobs import JobRecord
 
 
 class FakeJobsDB:
@@ -179,7 +178,7 @@ def test_update_job_status_with_result_file(jobs_db_fixture):
 def test_save_job_result(jobs_db_fixture, tmp_path, monkeypatch):
     """Test saving a job result to a JSON file."""
     # Mock get_jobs_data_dir to use tmp_path
-    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("collect_main_files")
 
@@ -378,7 +377,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
     """Test saving a job result with datetime objects (default serialization)."""
     from datetime import datetime
 
-    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("test_job")
 
@@ -392,7 +391,7 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
 
 def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.MonkeyPatch):
     """Test save_job_result without by_name variant."""
-    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("test_job")
 

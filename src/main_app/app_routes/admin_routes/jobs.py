@@ -24,7 +24,7 @@ from ...config import settings
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
 from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
-from ...services import jobs_service
+from ...services import jobs_files_service, jobs_service
 from ...services.users_service import current_user
 from ..admin.admins_required import admin_required
 from ..utils.routes_utils import load_auth_payload
@@ -139,7 +139,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     # Load job result if available
     result_data = None
     if job.result_file:
-        result_data = jobs_service.load_job_result(job.result_file)
+        result_data = jobs_files_service.load_job_result(job.result_file)
 
     template = JOB_TYPE_TEMPLATES.get(job_type)
     if not template:
@@ -297,5 +297,5 @@ class Jobs:
         @admin_required
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
-            result_data = jobs_service.load_job_result(result_file)
+            result_data = jobs_files_service.load_job_result(result_file)
             return jsonify(result_data)
