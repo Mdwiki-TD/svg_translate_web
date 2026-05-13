@@ -100,12 +100,14 @@ def add_chart(
     chart_data: dict[str, Any],
 ) -> OwidChartRecord:
     """Add a new chart."""
-    chart_data.update({
-        "has_map_tab": 1 if chart_data.get("has_map_tab") else 0,
-        "is_published": 1 if chart_data.get("is_published") else 0,
-        "single_year_data": 1 if chart_data.get("single_year_data") else 0,
-        "has_timeline": 1 if chart_data.get("has_timeline") else 0,
-    })
+    chart_data.update(
+        {
+            "has_map_tab": 1 if chart_data.get("has_map_tab") else 0,
+            "is_published": 1 if chart_data.get("is_published") else 0,
+            "single_year_data": 1 if chart_data.get("single_year_data") else 0,
+            "has_timeline": 1 if chart_data.get("has_timeline") else 0,
+        }
+    )
     store = get_owid_charts_db()
     return store.add(
         chart_data=chart_data,

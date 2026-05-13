@@ -9,7 +9,6 @@ from ..services import (
     owid_charts_service,
     template_service,
 )
-
 from ..shared.models import OwidChartRecord, TemplateNeedUpdateRecord, TemplateRecord
 
 logger = logging.getLogger(__name__)

@@ -19,7 +19,6 @@ from .admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
-
 from .jobs_service import (
     cancel_job,
     create_job,
@@ -29,25 +28,22 @@ from .jobs_service import (
     list_jobs,
     update_job_status,
 )
-
 from .owid_charts_service import (  # upsert_chart,
+    add_chart,
+    delete_chart,
     get_chart_by_id,
     get_chart_by_slug,
-    add_chart,
-    update_chart_data,
-    delete_chart,
     list_charts,
     list_published_charts,
+    update_chart_data,
 )
-
-from .template_service import (
-    get_template_by_title,
-    get_template,
-    list_templates,
-)
-
 from .template_need_update_service import (
     list_templates_need_update,
+)
+from .template_service import (
+    get_template,
+    get_template_by_title,
+    list_templates,
 )
 
 __all__ = [
@@ -57,14 +53,12 @@ __all__ = [
     "delete_user_token",
     "get_user_token_by_username",
     "delete_user_token_by_username",
-
     # admin_service
     "list_coordinators",
     "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",
     "delete_coordinator",
-
     # owid_charts_service
     "get_chart_by_id",
     "get_chart_by_slug",
@@ -74,21 +68,17 @@ __all__ = [
     "upsert_chart",
     "list_charts",
     "list_published_charts",
-
     # settings_service
     "get_setting",
     "set_setting",
     "list_settings",
-
     # template_service
     "get_template",
     "get_template_by_title",
     "list_templates",
     "upsert_template",
-
     # template_need_update_service
     "list_templates_need_update",
-
     # jobs_service
     "delete_job",
     "create_job",

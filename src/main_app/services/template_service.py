@@ -54,7 +54,7 @@ def get_templates_db() -> TemplatesDB:
     return _TEMPLATE_STORE
 
 
-def list_templates(limit: int | None= None) -> List[TemplateRecord]:
+def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     """Return all templates"""
     store = get_templates_db()
     coords = store.list()

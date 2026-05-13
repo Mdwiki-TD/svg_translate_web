@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import datetime
 import logging
-from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from ..core.crypto import decrypt_value, encrypt_value
+from ..core.crypto import encrypt_value
+from ..shared.models.users_record import UserTokenRecord
 from . import get_db, has_db_config
 from .sql_schema_tables import sql_tables
 
@@ -46,28 +46,6 @@ def mark_token_used(user_id: int) -> None:
         )
     except Exception:
         logger.exception("Failed to update last_used_at for user %s", user_id)
-
-
-@dataclass
-class UserTokenRecord:
-    """Decrypted OAuth credential bundle stored in the database."""
-
-    user_id: int
-    username: str
-    access_token: bytes
-    access_secret: bytes
-    created_at: Any | None = None
-    updated_at: Any | None = None
-    last_used_at: Any | None = None
-    rotated_at: Any | None = None
-
-    def decrypted(self) -> tuple[str, str]:
-        """Return the decrypted access token and secret."""
-
-        access_key = decrypt_value(self.access_token)
-        access_secret = decrypt_value(self.access_secret)
-        mark_token_used(self.user_id)
-        return access_key, access_secret
 
 
 def ensure_user_token_table() -> None:

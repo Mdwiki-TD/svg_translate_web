@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Any
+from typing import Any, List
 
-from ..config import settings
+from ..config import DbConfig, settings
 from ..db import has_db_config
-from ..shared.models import TemplateNeedUpdateRecord
-from ..config import DbConfig
-from . import Database
 from ..db.sql_schema_tables import sql_tables
+from ..shared.models import TemplateNeedUpdateRecord
+from . import Database
 
 logger = logging.getLogger(__name__)
 
