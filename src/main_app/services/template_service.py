@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List
+from typing import Any, List
 
 from ..config import settings
 from ..db import has_db_config
@@ -74,10 +74,11 @@ def get_template_by_title(title: str) -> TemplateRecord:
 
 
 def add_template_data(
-    data: dict,
+    data: dict[str, Any],
 ) -> TemplateRecord:
-    """Add a template."""
-
+    """
+    Add a new template.
+    """
     data = _ensure_last_world_year(data)
 
     store = get_templates_db()
@@ -90,8 +91,9 @@ def update_template_data(
     template_id: int,
     template_data: dict[str, str],
 ) -> TemplateRecord:
-    """Update template only if not None."""
-
+    """
+    Update template only if not None.
+    """
     template_data = _ensure_last_world_year(template_data)
 
     store = get_templates_db()
@@ -108,10 +110,11 @@ def delete_template(template_id: int) -> bool:
 
 
 __all__ = [
+    "get_template_by_title",
     "add_template_data",
     "update_template_data",
-    "get_templates_db",
     "list_templates",
     "delete_template",
     "get_template",
+    "get_templates_db",
 ]
