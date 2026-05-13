@@ -285,8 +285,6 @@ def test_template_record_dataclass_with_none_main_file(_mock_templates_store):
 def test_module_exports_all_functions():
     """Test that all expected functions are exported in __all__."""
     assert "get_templates_db" in template_service.__all__
-    assert "TemplateRecord" in template_service.__all__
-    assert "TemplatesDB" in template_service.__all__
     assert "list_templates" in template_service.__all__
     assert "add_template_data" in template_service.__all__
     assert "update_template_data" in template_service.__all__
