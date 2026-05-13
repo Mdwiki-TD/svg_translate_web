@@ -16,6 +16,36 @@ from src.main_app.db.user_tokens import (
 )
 
 
+class TestMarkTokenUsed:
+    """Tests for mark_token_used function."""
+
+    @patch("src.main_app.db.user_tokens.get_db")
+    def test_mark_token_used_success(self, mock_get_db):
+        """Test mark_token_used updates timestamp successfully."""
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+
+        mark_token_used(123)
+
+        mock_db.execute_query.assert_called_once_with(
+            "UPDATE user_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE user_id = %s",
+            (123,),
+        )
+
+    @patch("src.main_app.db.user_tokens.logger")
+    @patch("src.main_app.db.user_tokens.get_db")
+    def test_mark_token_used_failure(self, mock_get_db, mock_logger):
+        """Test mark_token_used logs error on failure."""
+        mock_db = MagicMock()
+        mock_db.execute_query.side_effect = Exception("DB Error")
+        mock_get_db.return_value = mock_db
+
+        mark_token_used(456)
+
+        mock_logger.exception.assert_called_once()
+        assert "Failed to update last_used_at" in mock_logger.exception.call_args[0][0]
+
+
 class TestCurrentTimestamp:
     """Tests for _current_ts function."""
 
@@ -71,36 +101,6 @@ class TestCoerceBytes:
             _coerce_bytes(None)
 
 
-class TestMarkTokenUsed:
-    """Tests for mark_token_used function."""
-
-    @patch("src.main_app.db.user_tokens.get_db")
-    def test_mark_token_used_success(self, mock_get_db):
-        """Test mark_token_used updates timestamp successfully."""
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
-
-        mark_token_used(123)
-
-        mock_db.execute_query.assert_called_once_with(
-            "UPDATE user_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE user_id = %s",
-            (123,),
-        )
-
-    @patch("src.main_app.db.user_tokens.logger")
-    @patch("src.main_app.db.user_tokens.get_db")
-    def test_mark_token_used_failure(self, mock_get_db, mock_logger):
-        """Test mark_token_used logs error on failure."""
-        mock_db = MagicMock()
-        mock_db.execute_query.side_effect = Exception("DB Error")
-        mock_get_db.return_value = mock_db
-
-        mark_token_used(456)
-
-        mock_logger.exception.assert_called_once()
-        assert "Failed to update last_used_at" in mock_logger.exception.call_args[0][0]
-
-
 class TestUserTokenRecord:
     """Tests for UserTokenRecord dataclass."""
 
@@ -140,9 +140,8 @@ class TestUserTokenRecord:
         assert record.last_used_at == "2024-01-03 00:00:00"
         assert record.rotated_at == "2024-01-04 00:00:00"
 
-    @patch("src.main_app.db.user_tokens.mark_token_used")
     @patch("src.main_app.shared.models.users_record.decrypt_value")
-    def test_decrypted_success(self, mock_decrypt, mock_mark_used):
+    def test_decrypted_success(self, mock_decrypt):
         """Test decrypted method returns decrypted credentials."""
         mock_decrypt.side_effect = ["decrypted_token", "decrypted_secret"]
 
@@ -159,24 +158,6 @@ class TestUserTokenRecord:
         assert secret == "decrypted_secret"
         mock_decrypt.assert_any_call(b"encrypted_token")
         mock_decrypt.assert_any_call(b"encrypted_secret")
-        mock_mark_used.assert_called_once_with(789)
-
-    @patch("src.main_app.db.user_tokens.mark_token_used")
-    @patch("src.main_app.shared.models.users_record.decrypt_value")
-    def test_decrypted_calls_mark_token_used(self, mock_decrypt, mock_mark_used):
-        """Test decrypted method marks token as used."""
-        mock_decrypt.return_value = "decrypted"
-
-        record = UserTokenRecord(
-            user_id=999,
-            username="testuser",
-            access_token=b"token",
-            access_secret=b"secret",
-        )
-
-        record.decrypted()
-
-        mock_mark_used.assert_called_once_with(999)
 
 
 class TestEnsureUserTokenTable:

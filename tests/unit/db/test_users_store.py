@@ -25,10 +25,8 @@ def test_mark_token_used_updates_last_used(monkeypatch):
     assert "last_used_at = CURRENT_TIMESTAMP" in executed_sql
 
 
-def test_user_token_record_decrypted_marks_usage(monkeypatch):
+def test_user_token_record_decrypted(monkeypatch):
     monkeypatch.setattr("src.main_app.shared.models.users_record.decrypt_value", lambda value: value.decode("utf-8"))
-    calls: list[int] = []
-    monkeypatch.setattr(user_tokens, "mark_token_used", lambda user_id: calls.append(user_id))
 
     record = user_tokens.UserTokenRecord(
         user_id=3,
@@ -40,4 +38,3 @@ def test_user_token_record_decrypted_marks_usage(monkeypatch):
     decrypted = record.decrypted()
 
     assert decrypted == ("token", "secret")
-    assert calls == [3]

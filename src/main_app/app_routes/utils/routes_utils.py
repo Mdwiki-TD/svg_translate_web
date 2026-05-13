@@ -16,8 +16,6 @@ def load_auth_payload(user: Optional[UserTokenRecord] | None) -> Dict[str, Any]:
         # returns (access_key, access_secret) and marks token used
         access_key, access_secret = user.access_token, user.access_secret
 
-        # if hasattr(user, "decrypted"): access_key, access_secret = user.decrypted()
-
         auth_payload = {
             "id": user.user_id,
             "username": user.username,
