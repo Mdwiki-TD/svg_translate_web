@@ -88,12 +88,41 @@ def list_templates_need_update() -> List[TemplateNeedUpdateRecord]:
     return coords
 
 
+def slugify_title(title: str) -> str:
+    """Derive a slug from a template title."""
+    # Remove 'Template:OWID/' or 'Template:' prefix
+    if title.startswith("Template:OWID/"):
+        name = title[len("Template:OWID/") :]
+    elif title.startswith("Template:"):
+        name = title[len("Template:") :]
+    else:
+        name = title
+
+    # Lowercase, replace spaces and underscores with hyphens
+    slug = name.lower().replace(" ", "-").replace("_", "-")
+    # Remove any other non-alphanumeric characters (except hyphens)
+    slug = "".join(c for c in slug if c.isalnum() or c == "-")
+    # Remove multiple hyphens
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return slug.strip("-")
+
+
 def ensure_last_world_year(template_data):
     if template_data.get("last_world_file") and not template_data.get("last_world_year"):
         template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
 
+    # If slug is provided as a full URL, extract the slug part
     if template_data.get("slug") and "/grapher/" in template_data["slug"]:
         template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    # If slug is still empty but we have a source URL, try extracting from source
+    if not template_data.get("slug") and template_data.get("source") and "/grapher/" in template_data["source"]:
+        template_data["slug"] = template_data["source"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    # If slug is still empty, derive it from the title
+    if not template_data.get("slug") and template_data.get("title"):
+        template_data["slug"] = slugify_title(template_data["title"])
 
     return template_data
 
