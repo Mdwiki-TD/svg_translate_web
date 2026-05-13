@@ -125,13 +125,11 @@ def update_template_data(
     return record
 
 
-def delete_template(template_id: int) -> TemplateRecord:
+def delete_template(template_id: int) -> bool:
     """Delete a template."""
 
     store = get_templates_db()
-    record = store.delete(template_id)
-
-    return record
+    return store.delete(template_id)
 
 
 def get_template(template_id: int) -> TemplateRecord:

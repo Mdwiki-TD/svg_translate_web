@@ -152,7 +152,9 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
     from_popup = request.form.get("from_popup") == "1"
 
     try:
-        record = template_service.delete_template(template_id)
+        template = template_service.get_template(template_id)
+        title = template.title
+        template_service.delete_template(template_id)
     except LookupError as exc:
         logger.exception("Unable to delete template.")
         flash(str(exc), "warning")
@@ -160,7 +162,7 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
         logger.exception("Unable to delete template.")
         flash("Unable to delete template. Please try again.", "danger")
     else:
-        flash(f"Template '{record.title}' removed.", "success")
+        flash(f"Template '{title}' removed.", "success")
 
     if from_popup:
         return render_template("admins/popup_action.html")

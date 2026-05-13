@@ -77,7 +77,8 @@ def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, app_moc
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_service, app_mock):
-    mock_service.delete_template.return_value = MagicMock(title="DelT")
+    mock_service.get_template.return_value = MagicMock(title="DelT")
+    mock_service.delete_template.return_value = True
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -85,6 +86,7 @@ def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _delete_template(1)
         assert resp == "redirected"
 
+        mock_service.get_template.assert_called_with(1)
         mock_service.delete_template.assert_called_with(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 

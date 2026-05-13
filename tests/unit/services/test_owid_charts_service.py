@@ -162,6 +162,10 @@ class TestAddChart:
                 chart_data={
                     "slug": "new-chart",
                     "title": "New Chart",
+                    "has_map_tab": 0,
+                    "is_published": 0,
+                    "single_year_data": 0,
+                    "has_timeline": 0,
                 }
             )
 
@@ -181,8 +185,8 @@ class TestAddChart:
             )
 
             call_kwargs = mock_db_instance.add.call_args[1]
-            assert call_kwargs["chart_data"]["has_map_tab"] is True
-            assert call_kwargs["chart_data"]["is_published"] is True
+            assert call_kwargs["chart_data"]["has_map_tab"] == 1
+            assert call_kwargs["chart_data"]["is_published"] == 1
             assert call_kwargs["chart_data"]["max_time"] == 2024
 
 

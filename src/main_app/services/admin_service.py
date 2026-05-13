@@ -79,13 +79,11 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> CoordinatorR
     return record
 
 
-def delete_coordinator(coordinator_id: int) -> CoordinatorRecord:
+def delete_coordinator(coordinator_id: int) -> bool:
     """Delete a coordinator and refresh settings."""
 
     store = get_admins_db()
-    record = store.delete(coordinator_id)
-
-    return record
+    return store.delete(coordinator_id)
 
 
 __all__ = [

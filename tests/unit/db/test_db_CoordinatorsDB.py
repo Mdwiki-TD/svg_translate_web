@@ -129,10 +129,10 @@ def test_set_active(coordinators_db, mock_db_instance):
 def test_delete(coordinators_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "username": "u", "is_active": 1}]
 
-    record = coordinators_db.delete(1)
+    result = coordinators_db.delete(1)
 
     mock_db_instance.execute_query_safe.assert_called_with("DELETE FROM admin_users WHERE id = %s", (1,))
-    assert record.id == 1
+    assert result is True
 
 
 def test_seed_empty_list(coordinators_db, mock_db_instance):

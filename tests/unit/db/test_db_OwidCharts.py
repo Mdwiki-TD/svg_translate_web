@@ -284,7 +284,7 @@ class TestOwidChartsDB:
         db = OwidChartsDB(mock_db_config)
         result = db.delete(chart_id=1)
 
-        assert isinstance(result, OwidChartRecord)
+        assert result is True
         mock_db_instance.execute_query_safe.assert_called()
 
     @patch("src.main_app.db.db_OwidCharts.Database")

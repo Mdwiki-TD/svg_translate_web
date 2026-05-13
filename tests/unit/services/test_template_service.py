@@ -261,9 +261,9 @@ def test_delete_template_success(_mock_templates_store):
     data = {"title": "To Delete", "main_file": "delete.svg"}
     record = template_service.add_template_data(data)
 
-    deleted = template_service.delete_template(record.id)
+    result = template_service.delete_template(record.id)
 
-    assert deleted.title == "To Delete"
+    assert result is True
     assert len(template_service.list_templates()) == 0
 
 
