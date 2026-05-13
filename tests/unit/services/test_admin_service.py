@@ -117,6 +117,7 @@ def test_add_coordinator(mock_get_admins_db):
     """Test add_coordinator function."""
     mock_store = MagicMock()
     mock_get_admins_db.return_value = mock_store
+    mock_store.get_by_username.return_value = None
 
     mock_record = MagicMock()
     mock_store.add.return_value = mock_record

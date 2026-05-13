@@ -77,7 +77,10 @@ def add_coordinator(username: str) -> AdminUserRecord:
         raise ValueError("Username is required")
 
     store = get_admins_db()
-    record = store.get_by_username(username)
+    try:
+        record = store.get_by_username(username)
+    except LookupError:
+        record = None
     if record:
         # This assumes a UNIQUE constraint on the username column
         raise ValueError(f"Coordinator '{username}' already exists") from None
