@@ -5,12 +5,7 @@
 #     get_user_token_by_username,
 #     delete_user_token_by_username,
 # )
-from ..su_services.jobs_files_service import (
-    get_jobs_data_dir,
-    load_job_result,
-    save_job_result,
-    save_job_result_by_name,
-)
+
 from .admin_service import (
     active_coordinators,
     add_coordinator,
@@ -88,11 +83,6 @@ __all__ = [
     # template_need_update_service
     "list_templates_need_update",
 
-    # jobs_files_service
-    "get_jobs_data_dir",
-    "save_job_result_by_name",
-    "save_job_result",
-    "load_job_result",
     # jobs_service
     "delete_job",
     "create_job",
