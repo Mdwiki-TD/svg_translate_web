@@ -25,10 +25,10 @@ from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
 from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
 from ..services import (
-    load_job_result,
+    delete_job,
     get_job,
     list_jobs,
-    delete_job,
+    load_job_result,
 )
 from ..services.admin_service import active_coordinators
 from ..services.users_service import current_user

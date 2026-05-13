@@ -11,9 +11,24 @@ from typing import Any
 
 import pytest
 
-from ....src.main_app.db.db_Jobs import JobRecord
 from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.services import jobs_service
+from src.main_app.services.jobs_files_service import (
+    get_jobs_data_dir,
+    load_job_result,
+    save_job_result,
+    save_job_result_by_name,
+)
+from src.main_app.services.jobs_service import (
+    create_job,
+    delete_job,
+    get_job,
+    get_jobs_db,
+    list_jobs,
+    update_job_status,
+)
+
+from ....src.main_app.db.db_Jobs import JobRecord
 
 
 class FakeJobsDB:
@@ -85,7 +100,7 @@ def jobs_db_fixture(monkeypatch: pytest.MonkeyPatch):
 
 def test_create_job(jobs_db_fixture):
     """Test creating a new job."""
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
 
     assert job is not None
     assert job.id == 1
@@ -95,7 +110,7 @@ def test_create_job(jobs_db_fixture):
 
 def test_create_job_with_username(jobs_db_fixture):
     """Test creating a new job with username."""
-    job = jobs_service.create_job("collect_main_files", username="test_user")
+    job = create_job("collect_main_files", username="test_user")
 
     assert job is not None
     assert job.id == 1
@@ -106,9 +121,9 @@ def test_create_job_with_username(jobs_db_fixture):
 
 def test_get_job(jobs_db_fixture):
     """Test retrieving a job by ID."""
-    created_job = jobs_service.create_job("collect_main_files")
+    created_job = create_job("collect_main_files")
 
-    retrieved_job = jobs_service.get_job(created_job.id, job_type="collect_main_files")
+    retrieved_job = get_job(created_job.id, job_type="collect_main_files")
 
     assert retrieved_job.id == created_job.id
     assert retrieved_job.job_type == created_job.job_type
@@ -117,16 +132,16 @@ def test_get_job(jobs_db_fixture):
 def test_get_nonexistent_job(jobs_db_fixture):
     """Test retrieving a nonexistent job raises LookupError."""
     with pytest.raises(LookupError, match="Job id 999 of type collect_main_files was not found"):
-        jobs_service.get_job(999, job_type="collect_main_files")
+        get_job(999, job_type="collect_main_files")
 
 
 def test_list_jobs(jobs_db_fixture):
     """Test listing jobs."""
-    jobs_service.create_job("collect_main_files")
-    jobs_service.create_job("collect_main_files")
-    jobs_service.create_job("other_job")
+    create_job("collect_main_files")
+    create_job("collect_main_files")
+    create_job("other_job")
 
-    jobs = jobs_service.list_jobs()
+    jobs = list_jobs()
 
     assert len(jobs) == 3
     assert all(isinstance(job, JobRecord) for job in jobs)
@@ -135,29 +150,27 @@ def test_list_jobs(jobs_db_fixture):
 def test_list_jobs_with_limit(jobs_db_fixture):
     """Test listing jobs with a limit."""
     for _ in range(5):
-        jobs_service.create_job("collect_main_files")
+        create_job("collect_main_files")
 
-    jobs = jobs_service.list_jobs(limit=2)
+    jobs = list_jobs(limit=2)
 
     assert len(jobs) == 2
 
 
 def test_update_job_status(jobs_db_fixture):
     """Test updating a job's status."""
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
 
-    updated_job = jobs_service.update_job_status(job.id, "running", job_type="collect_main_files")
+    updated_job = update_job_status(job.id, "running", job_type="collect_main_files")
 
     assert updated_job.status == "running"
 
 
 def test_update_job_status_with_result_file(jobs_db_fixture):
     """Test updating a job's status with a result file."""
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
 
-    updated_job = jobs_service.update_job_status(
-        job.id, "completed", "/path/to/result.json", job_type="collect_main_files"
-    )
+    updated_job = update_job_status(job.id, "completed", "/path/to/result.json", job_type="collect_main_files")
 
     assert updated_job.status == "completed"
     assert updated_job.result_file == "/path/to/result.json"
@@ -168,7 +181,7 @@ def test_save_job_result(jobs_db_fixture, tmp_path, monkeypatch):
     # Mock get_jobs_data_dir to use tmp_path
     monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
 
     result_data = {
         "job_id": job.id,
@@ -179,7 +192,7 @@ def test_save_job_result(jobs_db_fixture, tmp_path, monkeypatch):
     }
 
     result_file = generate_result_file_name(job.id, job.job_type)
-    result_file = jobs_service.save_job_result_by_name(result_file, result_data)
+    result_file = save_job_result_by_name(result_file, result_data)
 
     assert result_file is not None
     assert Path(result_file).exists()
@@ -203,7 +216,7 @@ def test_load_job_result(tmp_path):
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    loaded_data = jobs_service.load_job_result(str(result_file))
+    loaded_data = load_job_result(str(result_file))
 
     assert loaded_data is not None
     assert loaded_data["job_id"] == 1
@@ -212,7 +225,7 @@ def test_load_job_result(tmp_path):
 
 def test_load_nonexistent_job_result():
     """Test loading a nonexistent job result returns None."""
-    loaded_data = jobs_service.load_job_result("/nonexistent/file.json")
+    loaded_data = load_job_result("/nonexistent/file.json")
 
     assert loaded_data is None
 
@@ -223,44 +236,44 @@ def test_load_job_result_with_invalid_json(tmp_path):
     with open(result_file, "w") as f:
         f.write("not valid json")
 
-    loaded_data = jobs_service.load_job_result(str(result_file))
+    loaded_data = load_job_result(str(result_file))
 
     assert loaded_data is None
 
 
 def test_delete_job(jobs_db_fixture):
     """Test deleting a job."""
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
     assert len(jobs_service.list_jobs()) == 1
 
-    jobs_service.delete_job(job.id, "collect_main_files")
+    delete_job(job.id, "collect_main_files")
 
     assert len(jobs_service.list_jobs()) == 0
 
 
 def test_delete_job_with_correct_type(jobs_db_fixture):
     """Test deleting a job with correct job type."""
-    job1 = jobs_service.create_job("collect_main_files")
-    job2 = jobs_service.create_job("fix_nested_main_files")
+    job1 = create_job("collect_main_files")
+    job2 = create_job("fix_nested_main_files")
     assert len(jobs_service.list_jobs()) == 2
 
-    jobs_service.delete_job(job1.id, "collect_main_files")
+    delete_job(job1.id, "collect_main_files")
 
-    remaining_jobs = jobs_service.list_jobs()
+    remaining_jobs = list_jobs()
     assert len(remaining_jobs) == 1
     assert remaining_jobs[0].id == job2.id
 
 
 def test_delete_job_with_wrong_type(jobs_db_fixture):
     """Test deleting a job with wrong job type doesn't delete it."""
-    job = jobs_service.create_job("collect_main_files")
+    job = create_job("collect_main_files")
     assert len(jobs_service.list_jobs()) == 1
 
     # Try to delete with wrong job type
-    jobs_service.delete_job(job.id, "fix_nested_main_files")
+    delete_job(job.id, "fix_nested_main_files")
 
     # Job should still exist
-    remaining_jobs = jobs_service.list_jobs()
+    remaining_jobs = list_jobs()
     assert len(remaining_jobs) == 1
     assert remaining_jobs[0].id == job.id
 
@@ -268,7 +281,7 @@ def test_delete_job_with_wrong_type(jobs_db_fixture):
 def test_delete_nonexistent_job(jobs_db_fixture):
     """Test deleting a non-existent job."""
     # Should not raise an error
-    jobs_service.delete_job(999, "collect_main_files")
+    delete_job(999, "collect_main_files")
 
     # No jobs should exist
     assert len(jobs_service.list_jobs()) == 0
@@ -276,35 +289,35 @@ def test_delete_nonexistent_job(jobs_db_fixture):
 
 def test_list_jobs_filtered_by_type(jobs_db_fixture):
     """Test listing jobs filtered by job_type."""
-    jobs_service.create_job("collect_main_files")
-    jobs_service.create_job("collect_main_files")
-    jobs_service.create_job("fix_nested_main_files")
-    jobs_service.create_job("other_job_type")
+    create_job("collect_main_files")
+    create_job("collect_main_files")
+    create_job("fix_nested_main_files")
+    create_job("other_job_type")
 
     # Filter by collect_main_files
-    collect_jobs = jobs_service.list_jobs(job_type="collect_main_files")
+    collect_jobs = list_jobs(job_type="collect_main_files")
     assert len(collect_jobs) == 2
     assert all(job.job_type == "collect_main_files" for job in collect_jobs)
 
     # Filter by fix_nested_main_files
-    fix_jobs = jobs_service.list_jobs(job_type="fix_nested_main_files")
+    fix_jobs = list_jobs(job_type="fix_nested_main_files")
     assert len(fix_jobs) == 1
     assert all(job.job_type == "fix_nested_main_files" for job in fix_jobs)
 
     # No filter - should return all
-    all_jobs = jobs_service.list_jobs()
+    all_jobs = list_jobs()
     assert len(all_jobs) == 4
 
 
 def test_list_jobs_filtered_with_limit(jobs_db_fixture):
     """Test listing jobs filtered by job_type with a limit."""
     for _ in range(5):
-        jobs_service.create_job("collect_main_files")
+        create_job("collect_main_files")
     for _ in range(3):
-        jobs_service.create_job("fix_nested_main_files")
+        create_job("fix_nested_main_files")
 
     # Filter by type with limit
-    collect_jobs = jobs_service.list_jobs(limit=2, job_type="collect_main_files")
+    collect_jobs = list_jobs(limit=2, job_type="collect_main_files")
     assert len(collect_jobs) == 2
     assert all(job.job_type == "collect_main_files" for job in collect_jobs)
 
@@ -312,18 +325,18 @@ def test_list_jobs_filtered_with_limit(jobs_db_fixture):
 def test_get_jobs_db_no_config(monkeypatch: pytest.MonkeyPatch):
     """Test get_jobs_db raises error when DB config is missing."""
     monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: False)
-    jobs_service._JOBS_STORE = None
+    _JOBS_STORE = None
 
     with pytest.raises(RuntimeError, match="Jobs administration requires database configuration"):
-        jobs_service.get_jobs_db()
+        get_jobs_db()
 
-    jobs_service._JOBS_STORE = None
+    _JOBS_STORE = None
 
 
 def test_get_jobs_db_cached(jobs_db_fixture):
     """Test get_jobs_db returns cached instance."""
-    db1 = jobs_service.get_jobs_db()
-    db2 = jobs_service.get_jobs_db()
+    db1 = get_jobs_db()
+    db2 = get_jobs_db()
 
     assert db1 is db2
 
@@ -335,12 +348,12 @@ def test_get_jobs_data_dir_not_configured(monkeypatch: pytest.MonkeyPatch):
     mock_settings = SimpleNamespace(paths=SimpleNamespace())
 
     monkeypatch.setattr("src.main_app.services.jobs_service.settings", mock_settings)
-    jobs_service.get_jobs_data_dir.cache_clear()
+    get_jobs_data_dir.cache_clear()
 
     with pytest.raises(RuntimeError, match="MAIN_DIR/svg_jobs environment variable is required"):
-        jobs_service.get_jobs_data_dir()
+        get_jobs_data_dir()
 
-    jobs_service.get_jobs_data_dir.cache_clear()
+    get_jobs_data_dir.cache_clear()
 
 
 def test_get_jobs_data_dir_creates_directory(tmp_path, monkeypatch: pytest.MonkeyPatch):
@@ -352,13 +365,13 @@ def test_get_jobs_data_dir_creates_directory(tmp_path, monkeypatch: pytest.Monke
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace(svg_jobs_path=str(jobs_dir)))
     monkeypatch.setattr("src.main_app.services.jobs_service.settings", mock_settings)
-    jobs_service.get_jobs_data_dir.cache_clear()
+    get_jobs_data_dir.cache_clear()
 
-    result = jobs_service.get_jobs_data_dir()
+    result = get_jobs_data_dir()
 
     assert result == jobs_dir
     assert jobs_dir.exists()
-    jobs_service.get_jobs_data_dir.cache_clear()
+    get_jobs_data_dir.cache_clear()
 
 
 def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: pytest.MonkeyPatch):
@@ -367,12 +380,12 @@ def test_save_job_result_with_datetime(jobs_db_fixture, tmp_path, monkeypatch: p
 
     monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = jobs_service.create_job("test_job")
+    job = create_job("test_job")
 
     result_data = {"job_id": job.id, "timestamp": datetime.now(), "data": "test"}
 
     result_file_name = generate_result_file_name(job.id, job.job_type)
-    result_file = jobs_service.save_job_result_by_name(result_file_name, result_data)
+    result_file = save_job_result_by_name(result_file_name, result_data)
 
     assert result_file.exists()
 
@@ -381,11 +394,11 @@ def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.M
     """Test save_job_result without by_name variant."""
     monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = jobs_service.create_job("test_job")
+    job = create_job("test_job")
 
     result_data = {"test": "data"}
 
-    result_file_name = jobs_service.save_job_result(job.id, result_data)
+    result_file_name = save_job_result(job.id, result_data)
 
     assert result_file_name == f"job_{job.id}.json"
     assert (tmp_path / result_file_name).exists()
@@ -394,4 +407,4 @@ def test_save_job_result_simple(jobs_db_fixture, tmp_path, monkeypatch: pytest.M
 def test_update_job_status_nonexistent(jobs_db_fixture):
     """Test updating status of a nonexistent job raises LookupError."""
     with pytest.raises(LookupError):
-        jobs_service.update_job_status(999, "completed", job_type="test_job")
+        update_job_status(999, "completed", job_type="test_job")
