@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..services import template_service
+from ..services import owid_charts_service, template_service
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -202,19 +202,29 @@ class CollectMainFilesWorker(BaseJobWorker):
                     template_info["last_world_file"] = last_world_file
 
                 source = find_template_source(wikitext)
-                if source and source != template.source:
-                    template_info["source"] = source
-                    template_data["source"] = source
+                if source:
+                    if source != template.source:
+                        template_info["source"] = source
+                        template_data["source"] = source
 
-                    slug = None
-                    if "/grapher/" in source:
-                        slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                    if not template.slug or source != template.source:
+                        slug = None
+                        if "/grapher/" in source:
+                            slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
 
-                    if not slug and template.title:
-                        slug = slugify_title(template.title)
+                        if not slug and template.title:
+                            slug = slugify_title(template.title)
 
-                    if slug:
-                        template_data["slug"] = slug
+                        if slug:
+                            # Only assign slug if it exists in the owid_charts table
+                            try:
+                                owid_charts_service.get_chart_by_slug(slug)
+                                if slug != template.slug:
+                                    template_data["slug"] = slug
+                            except LookupError:
+                                logger.info(
+                                    f"Job {self.job_id}: Slug {slug} not found in owid_charts for {template.title}"
+                                )
 
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
