@@ -10,6 +10,7 @@ mwoauth
 pymysql
 python-dotenv
 requests
+SQLAlchemy
 tqdm
 uvicorn
 wikitextparser

@@ -22,6 +22,7 @@ from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
 from .db.user_tokens import ensure_user_token_table
+from .engine import build_db_url, init_db
 from .services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -129,6 +130,11 @@ def create_app() -> Flask:
 
     if settings.database_data.db_host or settings.database_data.db_user:
         ensure_user_token_table()
+        try:
+            db_url = build_db_url(settings.database_data.to_dict())
+            init_db(db_url, create_tables=False)
+        except Exception:
+            logger.exception("Failed to initialize SQLAlchemy")
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:

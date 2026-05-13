@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+import logging
+
+from sqlalchemy import Column, DateTime, Integer, String, func, Boolean, Index
+
+from ..shared.engine import BaseDb
+
+logger = logging.getLogger(__name__)
+
+
+class OwidChartRecord(BaseDb):
+    """
+    CREATE TABLE `owid_charts` (
+      `chart_id` int(11) NOT NULL AUTO_INCREMENT,
+      `slug` varchar(255) NOT NULL,
+      `title` varchar(500) NOT NULL,
+      `has_map_tab` tinyint(1) DEFAULT 0,
+      `max_time` int(11) DEFAULT NULL,
+      `min_time` int(11) DEFAULT NULL,
+      `default_tab` varchar(50) DEFAULT NULL,
+      `is_published` tinyint(1) DEFAULT 0,
+      `single_year_data` tinyint(1) DEFAULT 0,
+      `len_years` int(11) DEFAULT NULL,
+      `has_timeline` tinyint(1) DEFAULT 0,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      PRIMARY KEY (`chart_id`),
+      UNIQUE KEY `unique_slug` (`slug`),
+      KEY `idx_slug` (`slug`),
+      KEY `idx_published` (`is_published`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    """
+
+    __tablename__ = "owid_charts"
+
+    chart_id = Column(Integer, primary_key=True, autoincrement=True)
+    slug = Column(String(255), unique=True, nullable=False)
+    title = Column(String(500), nullable=False)
+    has_map_tab = Column(Boolean, server_default="0")
+    max_time = Column(Integer, nullable=True)
+    min_time = Column(Integer, nullable=True)
+    default_tab = Column(String(50), nullable=True)
+    is_published = Column(Boolean, server_default="0")
+    single_year_data = Column(Boolean, server_default="0")
+    len_years = Column(Integer, nullable=True)
+    has_timeline = Column(Boolean, server_default="0")
+
+    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        server_onupdate=func.current_timestamp(),
+    )
+
+
+__all__ = [
+    "OwidChartRecord",
+]
