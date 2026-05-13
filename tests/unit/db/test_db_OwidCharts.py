@@ -208,7 +208,7 @@ class TestOwidChartsDB:
         mock_database_cls.return_value = mock_db_instance
 
         db = OwidChartsDB(mock_db_config)
-        result = db.add(slug="new-chart", title="New Chart")
+        result = db.add({"slug": "new-chart", "title": "New Chart"})
 
         mock_db_instance.execute_query.assert_called_once()
         assert isinstance(result, OwidChartRecord)
@@ -222,7 +222,7 @@ class TestOwidChartsDB:
         db = OwidChartsDB(mock_db_config)
 
         with pytest.raises(ValueError, match="Slug is required"):
-            db.add(slug="", title="New Chart")
+            db.add({"slug": "", "title": "New Chart"})
 
     @patch("src.main_app.db.db_OwidCharts.Database")
     def test_add_missing_title_raises_value_error(self, mock_database_cls, mock_db_config):
@@ -233,7 +233,7 @@ class TestOwidChartsDB:
         db = OwidChartsDB(mock_db_config)
 
         with pytest.raises(ValueError, match="Title is required"):
-            db.add(slug="new-chart", title="")
+            db.add({"slug": "new-chart", "title": ""})
 
     @patch("src.main_app.db.db_OwidCharts.Database")
     def test_add_duplicate_slug_raises_value_error(self, mock_database_cls, mock_db_config):
@@ -247,7 +247,7 @@ class TestOwidChartsDB:
         db = OwidChartsDB(mock_db_config)
 
         with pytest.raises(ValueError, match="Chart with slug 'existing' already exists"):
-            db.add(slug="existing", title="Existing Chart")
+            db.add({"slug": "existing", "title": "Existing Chart"})
 
     @patch("src.main_app.db.db_OwidCharts.Database")
     def test_update_success(self, mock_database_cls, mock_db_config, sample_row):

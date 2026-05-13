@@ -107,18 +107,21 @@ class OwidChartsDB:
 
     def add(
         self,
-        slug: str,
-        title: str,
-        has_map_tab: bool = False,
-        max_time: int | None = None,
-        min_time: int | None = None,
-        default_tab: str | None = None,
-        is_published: bool = False,
-        single_year_data: bool = False,
-        len_years: int | None = None,
-        has_timeline: bool = False,
+        chart_data: dict[str, Any],
     ) -> OwidChartRecord:
         """Add a new chart."""
+
+        slug: str = chart_data.get("slug", "")
+        title: str = chart_data.get("title", "")
+        has_map_tab: bool = chart_data.get("has_map_tab", False)
+        max_time: int | None = chart_data.get("max_time")
+        min_time: int | None = chart_data.get("min_time")
+        default_tab: str | None = chart_data.get("default_tab")
+        is_published: bool = chart_data.get("is_published", False)
+        single_year_data: bool = chart_data.get("single_year_data", False)
+        len_years: int | None = chart_data.get("len_years")
+        has_timeline: bool = chart_data.get("has_timeline", False)
+
         slug = slug.strip()
         title = title.strip()
 

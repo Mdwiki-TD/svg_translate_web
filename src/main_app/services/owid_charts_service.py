@@ -43,7 +43,7 @@ def get_owid_charts_db() -> OwidChartsDB:
     return _OWID_CHARTS_STORE
 
 
-def list_charts() -> List[OwidChartRecord]:
+def list_charts(limit: int = 100) -> List[OwidChartRecord]:
     """Return all charts from the view."""
     store = get_owid_charts_db()
     return store.list()
@@ -68,30 +68,12 @@ def get_chart_by_slug(slug: str) -> OwidChartRecord:
 
 
 def add_chart(
-    slug: str,
-    title: str,
-    has_map_tab: bool = False,
-    max_time: int | None = None,
-    min_time: int | None = None,
-    default_tab: str | None = None,
-    is_published: bool = False,
-    single_year_data: bool = False,
-    len_years: int | None = None,
-    has_timeline: bool = False,
+    chart_data: dict[str, Any],
 ) -> OwidChartRecord:
     """Add a new chart."""
     store = get_owid_charts_db()
     return store.add(
-        slug=slug,
-        title=title,
-        has_map_tab=has_map_tab,
-        max_time=max_time,
-        min_time=min_time,
-        default_tab=default_tab,
-        is_published=is_published,
-        single_year_data=single_year_data,
-        len_years=len_years,
-        has_timeline=has_timeline,
+        chart_data=chart_data,
     )
 
 

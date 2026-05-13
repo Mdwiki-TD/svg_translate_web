@@ -155,20 +155,14 @@ class TestAddChart:
         mock_db_instance.add.return_value = sample_record
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = add_chart(slug="new-chart", title="New Chart")
+            result = add_chart({"slug": "new-chart", "title": "New Chart"})
 
             assert result == sample_record
             mock_db_instance.add.assert_called_once_with(
-                slug="new-chart",
-                title="New Chart",
-                has_map_tab=False,
-                max_time=None,
-                min_time=None,
-                default_tab=None,
-                is_published=False,
-                single_year_data=False,
-                len_years=None,
-                has_timeline=False,
+                chart_data={
+                    "slug": "new-chart",
+                    "title": "New Chart",
+                }
             )
 
     def test_adds_chart_with_options(self, mock_db_instance, sample_record):
@@ -177,17 +171,19 @@ class TestAddChart:
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
             add_chart(
-                slug="new-chart",
-                title="New Chart",
-                has_map_tab=True,
-                is_published=True,
-                max_time=2024,
+                {
+                    "slug": "new-chart",
+                    "title": "New Chart",
+                    "has_map_tab": True,
+                    "is_published": True,
+                    "max_time": 2024,
+                }
             )
 
             call_kwargs = mock_db_instance.add.call_args[1]
-            assert call_kwargs["has_map_tab"] is True
-            assert call_kwargs["is_published"] is True
-            assert call_kwargs["max_time"] == 2024
+            assert call_kwargs["chart_data"]["has_map_tab"] is True
+            assert call_kwargs["chart_data"]["is_published"] is True
+            assert call_kwargs["chart_data"]["max_time"] == 2024
 
 
 class TestUpdateChartData:
