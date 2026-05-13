@@ -140,6 +140,30 @@ class JobsDB:
             )
         return [self._row_to_record(row) for row in rows]
 
+    def update_running_status(
+        self,
+        job_id: int,
+        result_file: str | None = None,
+        job_type: str = "fix_nested_main_files",
+    ) -> JobRecord:
+        """
+        Update job status.
+        Raises LookupError if the job doesn't exist or the update fails.
+        """
+        query = "UPDATE jobs SET status = running, started_at = NOW()"
+        params = []
+        if result_file is not None:
+            query += ", result_file = %s"
+            params.append(result_file)
+        query += " WHERE id = %s AND job_type = %s"
+        params.append(job_id)
+        params.append(job_type)
+        rowcount = self.db.execute_query_safe(query, tuple(params))
+        if rowcount == 0:
+            raise LookupError(f"Job id {job_id} was not found or update failed")
+
+        return self.get(job_id, job_type)
+
     def update_status(
         self,
         job_id: int,
@@ -152,19 +176,7 @@ class JobsDB:
         Raises LookupError if the job doesn't exist or the update fails.
         """
         if status == "running":
-            query = "UPDATE jobs SET status = %s, started_at = NOW()"
-            params = [status]
-            if result_file is not None:
-                query += ", result_file = %s"
-                params.append(result_file)
-            query += " WHERE id = %s AND job_type = %s"
-            params.append(job_id)
-            params.append(job_type)
-            rowcount = self.db.execute_query_safe(query, tuple(params))
-            if rowcount == 0:
-                raise LookupError(f"Job id {job_id} was not found or update failed")
-
-            return self.get(job_id, job_type)
+            return self.update_running_status(job_id, result_file, job_type)
 
         if status in ["completed", "failed", "cancelled"]:
             rowcount = self.db.execute_query_safe(

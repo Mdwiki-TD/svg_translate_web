@@ -67,7 +67,7 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
 
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """
-    Update job status.
+    Update job status and optional result file.
 
     Query to match:
 
