@@ -175,6 +175,9 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
+    def fetch_by_title(self, title) -> TemplateRecord:
+        return self._fetch_by_title(title)
+
     def update_template_data(
         self,
         template_id: int,
