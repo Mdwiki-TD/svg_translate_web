@@ -22,7 +22,7 @@ from src.main_app.su_services.jobs_files_service import (
 def test_save_job_result(tmp_path, monkeypatch):
     """Test saving a job result to a JSON file."""
     # Mock get_jobs_data_dir to use tmp_path
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("collect_main_files")
 
@@ -83,7 +83,7 @@ def test_get_jobs_data_dir_not_configured(monkeypatch: pytest.MonkeyPatch):
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace())
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_files_service.settings", mock_settings)
+    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.settings", mock_settings)
     get_jobs_data_dir.cache_clear()
 
     with pytest.raises(RuntimeError, match="MAIN_DIR/svg_jobs environment variable is required"):
@@ -100,7 +100,7 @@ def test_get_jobs_data_dir_creates_directory(tmp_path, monkeypatch: pytest.Monke
     assert not jobs_dir.exists()
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace(svg_jobs_path=str(jobs_dir)))
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_files_service.settings", mock_settings)
+    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.settings", mock_settings)
     get_jobs_data_dir.cache_clear()
 
     result = get_jobs_data_dir()
@@ -114,7 +114,7 @@ def test_save_job_result_with_datetime(tmp_path, monkeypatch: pytest.MonkeyPatch
     """Test saving a job result with datetime objects (default serialization)."""
     from datetime import datetime
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("test_job")
 
@@ -128,7 +128,7 @@ def test_save_job_result_with_datetime(tmp_path, monkeypatch: pytest.MonkeyPatch
 
 def test_save_job_result_simple(tmp_path, monkeypatch: pytest.MonkeyPatch):
     """Test save_job_result without by_name variant."""
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
     job = create_job("test_job")
 
