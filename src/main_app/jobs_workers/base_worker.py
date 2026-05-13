@@ -168,7 +168,9 @@ class BaseJobWorker(ABC):
         try:
             jobs_service.update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except LookupError:
-            logger.exception(f"Job {self.job_id}: Could not update final status, " "job record might have been deleted.")
+            logger.exception(
+                f"Job {self.job_id}: Could not update final status, " "job record might have been deleted."
+            )
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
