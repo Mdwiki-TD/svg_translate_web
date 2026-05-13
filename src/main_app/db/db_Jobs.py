@@ -155,9 +155,11 @@ class JobsDB:
         if result_file is not None:
             query += ", result_file = %s"
             params.append(result_file)
+
         query += " WHERE id = %s AND job_type = %s"
         params.append(job_id)
         params.append(job_type)
+
         rowcount = self.db.execute_query_safe(query, tuple(params))
         if rowcount == 0:
             raise LookupError(f"Job id {job_id} was not found or update failed")

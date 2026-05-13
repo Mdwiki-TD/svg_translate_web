@@ -66,6 +66,9 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
 
 
 def update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
+    """
+    Update running job status and optional result file.
+    """
     store = get_jobs_db()
     return store.update_running_status(job_id, result_file, job_type)
 
@@ -78,7 +81,6 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
 
     """
     store = get_jobs_db()
-
     if status == "running":
         return update_running_status(job_id, result_file, job_type)
 
@@ -146,6 +148,7 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
+    "update_running_status",
     "cancel_job",
     "is_job_cancelled",
     "delete_job",
