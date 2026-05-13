@@ -81,8 +81,9 @@ def add_coordinator(username: str) -> AdminUserRecord:
 def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
     """Toggle coordinator activity."""
     store = get_admins_db()
-    record = store.set_active(coordinator_id, is_active)
-
+    record = store.get_by_id(coordinator_id)
+    if record:
+        record = store.set_active(coordinator_id, is_active)
     return record
 
 

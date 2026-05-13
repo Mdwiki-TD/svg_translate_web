@@ -108,6 +108,9 @@ class CoordinatorsDB:
     def get_by_username(self, username: str) -> AdminUserRecord:
         return self._fetch_by_username(username)
 
+    def get_by_id(self, coordinator_id: str) -> AdminUserRecord:
+        return self._fetch_by_id(coordinator_id)
+
     def add(self, username: str) -> AdminUserRecord:
         username = username.strip()
         if not username:
