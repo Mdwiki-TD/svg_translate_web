@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, call
 import pymysql
 import pytest
 
-from src.main_app.db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from src.main_app.db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def coordinators_db(mock_db_instance):
 
 
 def test_CoordinatorRecord():
-    record = CoordinatorRecord(id=1, username="test", is_active=True)
+    record = AdminUserRecord(id=1, username="test", is_active=True)
     assert record.id == 1
     assert record.username == "test"
     assert record.is_active is True

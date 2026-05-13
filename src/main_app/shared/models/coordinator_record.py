@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class CoordinatorRecord:
+class AdminUserRecord:
     """Representation of a coordinator/admin account."""
 
     id: int

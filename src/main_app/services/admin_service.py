@@ -7,7 +7,7 @@ from typing import List
 
 from ..config import settings
 from ..db import has_db_config
-from ..db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def active_coordinators() -> list[str]:
     return [u.username for u in store.list() if u.is_active]
 
 
-def list_coordinators() -> List[CoordinatorRecord]:
+def list_coordinators() -> List[AdminUserRecord]:
     """Return all coordinators."""
 
     store = get_admins_db()
@@ -63,7 +63,7 @@ def list_coordinators() -> List[CoordinatorRecord]:
     return coords
 
 
-def add_coordinator(username: str) -> CoordinatorRecord:
+def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
 
     store = get_admins_db()
@@ -72,7 +72,7 @@ def add_coordinator(username: str) -> CoordinatorRecord:
     return record
 
 
-def set_coordinator_active(coordinator_id: int, is_active: bool) -> CoordinatorRecord:
+def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
     """Toggle coordinator activity."""
     store = get_admins_db()
     record = store.set_active(coordinator_id, is_active)

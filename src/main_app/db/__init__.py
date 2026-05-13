@@ -1,6 +1,6 @@
 from ..shared.models import OwidChartRecord, TemplateRecord
 from .db_class import Database
-from .db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from .db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 from .db_OwidCharts import OwidChartsDB
 from .db_Settings import SettingsDB
 from .db_Templates import TemplatesDB
@@ -13,7 +13,7 @@ __all__ = [
     "get_db",
     "has_db_config",
     "close_cached_db",
-    "CoordinatorRecord",
+    "AdminUserRecord",
     "CoordinatorsDB",
     "OwidChartRecord",
     "OwidChartsDB",

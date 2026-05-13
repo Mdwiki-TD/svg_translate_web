@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.shared.models.coordinator_record import CoordinatorRecord
+from src.main_app.shared.models.coordinator_record import AdminUserRecord
 
 
 def test_coordinator_record_initialization():
-    """Test CoordinatorRecord initialization with required fields."""
-    rec = CoordinatorRecord(id=1, username="testuser", is_active=True)
+    """Test AdminUserRecord initialization with required fields."""
+    rec = AdminUserRecord(id=1, username="testuser", is_active=True)
 
     assert rec.id == 1
     assert rec.username == "testuser"
@@ -17,8 +17,8 @@ def test_coordinator_record_initialization():
 
 
 def test_coordinator_record_with_all_fields():
-    """Test CoordinatorRecord initialization with all fields."""
-    rec = CoordinatorRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
+    """Test AdminUserRecord initialization with all fields."""
+    rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
 
     assert rec.id == 1
     assert rec.username == "testuser"
@@ -28,8 +28,8 @@ def test_coordinator_record_with_all_fields():
 
 
 def test_coordinator_record_inactive():
-    """Test CoordinatorRecord with inactive user."""
-    rec = CoordinatorRecord(id=1, username="testuser", is_active=False)
+    """Test AdminUserRecord with inactive user."""
+    rec = AdminUserRecord(id=1, username="testuser", is_active=False)
 
     assert rec.id == 1
     assert rec.username == "testuser"
@@ -40,7 +40,7 @@ def test_coordinator_record_inactive():
 
 def test_coordinator_record_to_dict():
     """Test conversion to dictionary."""
-    rec = CoordinatorRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
+    rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
 
     result = rec.to_dict()
 
@@ -57,7 +57,7 @@ def test_coordinator_record_to_dict():
 
 def test_coordinator_record_to_dict_with_none_values():
     """Test conversion to dictionary with None values."""
-    rec = CoordinatorRecord(id=1, username="testuser", is_active=True, created_at=None, updated_at=None)
+    rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at=None, updated_at=None)
 
     result = rec.to_dict()
 
