@@ -47,6 +47,10 @@ from .template_service import (  # get_template_by_title,; upsert_template,
     list_templates,
 )
 
+from .template_need_update_service import (
+    list_templates_need_update,
+)
+
 __all__ = [
     # user_token_service
     "upsert_user_token",
@@ -69,15 +73,21 @@ __all__ = [
     "upsert_chart",
     "list_charts",
     "list_published_charts",
+
     # settings_service
     "get_setting",
     "set_setting",
     "list_settings",
+
     # template_service
     "get_template",
     "get_template_by_title",
     "list_templates",
     "upsert_template",
+
+    # template_need_update_service
+    "list_templates_need_update",
+
     # jobs_files_service
     "get_jobs_data_dir",
     "save_job_result_by_name",
