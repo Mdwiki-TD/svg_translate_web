@@ -2,8 +2,6 @@
 
 from types import SimpleNamespace
 
-import pytest
-
 from src.main_app import create_app
 from src.main_app.app_routes.auth import oauth as oauth_helpers
 

@@ -95,7 +95,7 @@ def update_app_config(app: Flask) -> None:
     )
 
 
-def create_app(_conf) -> Flask:
+def create_app(_conf=None) -> Flask:
     """
     Create and configure and return the Flask application used by the project.
 

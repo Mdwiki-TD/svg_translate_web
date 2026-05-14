@@ -76,14 +76,12 @@ def test_OAuthConfig():
         mw_uri="https://example.com",
         consumer_key="key",
         consumer_secret="secret",
-        user_agent="test-agent",
         upload_host="upload.example.com",
     )
 
     assert oauth_config.mw_uri == "https://example.com"
     assert oauth_config.consumer_key == "key"
     assert oauth_config.consumer_secret == "secret"
-    assert oauth_config.user_agent == "test-agent"
     assert oauth_config.upload_host == "upload.example.com"
 
 
@@ -104,12 +102,12 @@ def test_Settings():
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
+        user_agent="user_agent",
         has_db_config=lambda: True,
         database_data=db_config,
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="request",
         secret_key="secret",
-        oauth_encryption_key="enc_key",
         cookie=cookie_config,
         oauth=None,
         paths=paths,
@@ -234,7 +232,6 @@ def test_load_oauth_config():
     assert result.mw_uri == "https://example.com"
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
-    assert result.user_agent == "test-agent"
     assert result.upload_host == "upload.example.com"
 
 
@@ -348,7 +345,6 @@ def test_load_oauth_config_with_defaults():
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
     # Check defaults
-    assert "Copy SVG Translations" in result.user_agent
     assert result.upload_host == "commons.wikimedia.org"
 
 

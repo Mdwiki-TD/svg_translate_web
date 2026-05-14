@@ -146,6 +146,7 @@ class Settings:
 
 # --- Helper Functions ---
 
+
 def _env_bool(name: str, default: bool = False) -> bool:
     """Convert environment variable to boolean."""
     value = os.getenv(name)
@@ -200,6 +201,9 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
     """
     Loads OAuth settings and validates them if enabled.
     Returns None if USE_MW_OAUTH is disabled.
+
+    Raises:
+        RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
     """
     mw_uri = os.getenv("OAUTH_MWURI", "")
     consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
@@ -284,7 +288,7 @@ def has_db_config(db_settings) -> bool:
     return bool(db_settings.db_host or db_settings.db_user)
 
 
-def load_cookie_config():
+def load_cookie_config() -> CookieConfig:
     session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
     session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
     session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
@@ -319,9 +323,6 @@ def get_settings() -> Settings:
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
-    session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
-    session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
-    session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     STATE_SESSION_KEY = os.getenv("STATE_SESSION_KEY", "oauth_state_nonce")
     REQUEST_TOKEN_SESSION_KEY = os.getenv("REQUEST_TOKEN_SESSION_KEY", "state")
 
@@ -331,13 +332,8 @@ def get_settings() -> Settings:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
-    cookie = CookieConfig(
-        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
-        max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
-        secure=session_cookie_secure,
-        httponly=session_cookie_httponly,
-        samesite=session_cookie_samesite,
-    )
+
+    cookie_config = load_cookie_config()
 
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     # Set to 0 or None to disable expiration (not recommended for production).
@@ -379,7 +375,7 @@ def get_settings() -> Settings:
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
-        cookie=cookie,
+        cookie=cookie_config,
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
         download=DownloadConfig(dev_limit=dev_download_limit),
@@ -393,13 +389,10 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 
-class DevelopmentConfig:
-    ...
+class DevelopmentConfig: ...
 
 
-class TestingConfig:
-    ...
+class TestingConfig: ...
 
 
-class ProductionConfig:
-    ...
+class ProductionConfig: ...
