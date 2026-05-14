@@ -4,6 +4,8 @@ import json
 import logging
 from typing import Any
 
+from ..db.exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Settings import SettingsDB
@@ -21,7 +23,7 @@ def get_settings_db() -> SettingsDB:
 
     if _SETTINGS_STORE is None:
         if not has_db_config():
-            raise RuntimeError("SettingsDB requires database configuration; no fallback store is available.")
+            raise InsufficientDatabaseConfigError()
 
         try:
             _SETTINGS_STORE = SettingsDB(settings.database_data)

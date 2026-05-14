@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 from src.main_app.services.user_token_service import (
     UserTokenRecord,
-    _current_ts,
     delete_user_token,
     get_user_token,
     mark_token_used,
@@ -40,22 +39,6 @@ class TestMarkTokenUsed:
 
         mock_logger.exception.assert_called_once()
         assert "Failed to update last_used_at" in mock_logger.exception.call_args[0][0]
-
-
-class TestCurrentTimestamp:
-    """Tests for _current_ts function."""
-
-    @patch("src.main_app.services.user_token_service.datetime.datetime")
-    def test_current_ts_format(self, mock_datetime):
-        """Test that _current_ts returns properly formatted timestamp."""
-        mock_now = MagicMock()
-        mock_now.strftime.return_value = "2024-01-15 10:30:45"
-        mock_datetime.now.return_value = mock_now
-
-        result = _current_ts()
-
-        assert result == "2024-01-15 10:30:45"
-        mock_datetime.now.assert_called_once()
 
 
 class TestUserTokenRecord:

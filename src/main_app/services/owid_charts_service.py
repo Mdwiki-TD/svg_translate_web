@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
+from ..db.exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_OwidCharts import OwidChartsDB
@@ -30,9 +32,7 @@ def get_owid_charts_db() -> OwidChartsDB:
 
     if _OWID_CHARTS_STORE is None:
         if not has_db_config():
-            raise RuntimeError(
-                "OWID charts administration requires database configuration; no fallback store is available."
-            )
+            raise InsufficientDatabaseConfigError()
 
         try:
             _OWID_CHARTS_STORE = OwidChartsDB(settings.database_data)

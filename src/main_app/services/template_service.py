@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
+from ..db.exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Templates import TemplatesDB
@@ -41,9 +43,7 @@ def get_templates_db() -> TemplatesDB:
 
     if _TEMPLATE_STORE is None:
         if not has_db_config():
-            raise RuntimeError(
-                "Template administration requires database configuration; no fallback store is available."
-            )
+            raise InsufficientDatabaseConfigError()
 
         try:
             _TEMPLATE_STORE = TemplatesDB(settings.database_data)

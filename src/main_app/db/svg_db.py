@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from .exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from .db_class import Database
 
@@ -37,11 +39,16 @@ def get_db() -> Database:
     """
     global _db
 
-    if not has_db_config():
-        logger.error("MySQL configuration is not available for the user token store.")
-
     if _db is None:
-        _db = Database(settings.database_data)
+        if not has_db_config():
+            raise InsufficientDatabaseConfigError()
+
+        try:
+            _db = Database(settings.database_data)
+        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+            logger.exception("Failed to initialize MySQL template store")
+            raise RuntimeError("Unable to initialize template store") from exc
+
     return _db
 
 

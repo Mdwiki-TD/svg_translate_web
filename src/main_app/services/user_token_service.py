@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import logging
 from typing import Any, Dict, Optional
 
@@ -13,17 +12,6 @@ from ..shared.models.users_record import UserTokenRecord
 from ..sqlalchemy_db.decode_bytes import coerce_bytes
 
 logger = logging.getLogger(__name__)
-
-
-def _current_ts() -> str:
-    # Store in UTC. MySQL DATETIME has no TZ; keep application-level UTC.
-    """
-    Return the current UTC timestamp formatted for MySQL DATETIME.
-
-    Returns:
-        A string of the current UTC time in the format "YYYY-MM-DD HH:MM:SS".
-    """
-    return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def mark_token_used(user_id: int) -> None:
@@ -42,10 +30,6 @@ def mark_token_used(user_id: int) -> None:
 def ensure_user_token_table() -> None:
     """Create the user_tokens table if it does not already exist."""
 
-    if not has_db_config():
-        logger.debug("Skipping user token table creation; MySQL configuration missing.")
-        return
-
     db = get_db()
     db.execute_query_safe(sql_tables.user_tokens)
 
@@ -54,7 +38,6 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
     """Insert or update the encrypted OAuth credentials for a user."""
 
     db = get_db()
-    now = _current_ts()
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
     return db.execute_query_safe(
@@ -69,7 +52,7 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
                 last_used_at,
                 rotated_at
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)
+            VALUES (%s, %s, %s, %s, NOW(), NOW(), NOW(), NULL)
             ON DUPLICATE KEY UPDATE
                 username = VALUES(username),
                 access_token = VALUES(access_token),
@@ -83,9 +66,6 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
             username,
             encrypted_token,
             encrypted_secret,
-            now,
-            now,
-            now,
         ),
     )
 

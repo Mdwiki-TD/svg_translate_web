@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from ..db.exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Jobs import JobRecord, JobsDB
@@ -29,7 +31,7 @@ def get_jobs_db() -> JobsDB:
 
     if _JOBS_STORE is None:
         if not has_db_config():
-            raise RuntimeError("Jobs administration requires database configuration; no fallback store is available.")
+            raise InsufficientDatabaseConfigError()
 
         try:
             _JOBS_STORE = JobsDB(settings.database_data)
