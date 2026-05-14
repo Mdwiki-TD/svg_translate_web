@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import logging
 import os
+from pathlib import Path
 import sys
 from typing import Any, Dict, List
 
@@ -14,7 +15,9 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+if os.getenv("APP_ENV") != "production":
+    _env_file_path = str(Path(__file__).parent.parent.parent / ".env")
+    load_dotenv(_env_file_path)
 
 
 def parse_bool(value: str) -> bool:
@@ -86,8 +89,8 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
 
     try:
         import pymysql
-    except ImportError:
-        raise RuntimeError("PyMySQL is not installed. Run: pip install pymysql")
+    except ImportError as e:
+        raise RuntimeError("PyMySQL is not installed. Run: pip install pymysql") from e
 
     logger.info(f"Connecting to database: {db_name}")
 
@@ -204,10 +207,10 @@ def main():
         else:
             logger.info("Import completed successfully!")
             print("\n✓ All charts imported successfully!")
-            print(f"\nView charts at:")
-            print(f"  - Admin:  http://localhost:5000/admin/owid-charts")
-            print(f"  - Public: http://localhost:5000/owid-charts/")
-            print(f"  - Test:   http://localhost:5000/owid-charts/all")
+            print("\nView charts at:")
+            print("  - Admin:  http://localhost:5000/admin/owid-charts")
+            print("  - Public: http://localhost:5000/owid-charts/")
+            print("  - Test:   http://localhost:5000/owid-charts/all")
 
     except Exception as e:
         logger.exception(f"Import failed: {e}")
