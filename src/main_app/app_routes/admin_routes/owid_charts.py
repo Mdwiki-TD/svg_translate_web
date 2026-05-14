@@ -53,7 +53,6 @@ def create_json_file() -> Tuple[Any, int]:
                 "has_timeline": chart.has_timeline,
                 "template_id": chart.template_id,
                 "template_title": chart.template_title,
-                "template_source": chart.template_source,
             }
             for chart in charts
         ]

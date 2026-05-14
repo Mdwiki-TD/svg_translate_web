@@ -48,7 +48,6 @@ class OwidChartsDB:
             updated_at=row.get("updated_at"),
             template_id=row.get("template_id"),
             template_title=row.get("template_title"),
-            template_source=row.get("template_source"),
         )
 
     def fetch_by_id(self, chart_id: int) -> OwidChartRecord:

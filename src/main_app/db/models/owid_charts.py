@@ -48,11 +48,6 @@ class OwidChartRecord:
     updated_at: Any | None = None
     template_id: int | None = None
     template_title: str | None = None
-    template_source: str | None = None
-
-    def __post_init__(self):
-        if not self.template_source and self.slug:
-            self.template_source = f"https://ourworldindata.org/grapher/{self.slug}"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -71,7 +66,6 @@ class OwidChartRecord:
             "updated_at": self.updated_at,
             "template_id": self.template_id,
             "template_title": self.template_title,
-            "template_source": self.template_source,
         }
 
 

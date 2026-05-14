@@ -5,8 +5,8 @@ from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 
-from ..engine import BaseDb
 from ...utils.wikitext.titles_utils import match_last_world_year
+from ..engine import BaseDb
 
 logger = logging.getLogger(__name__)
 

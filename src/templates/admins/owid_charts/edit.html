@@ -103,7 +103,12 @@
                 </a>
                 <br>
                 <small class="text-muted">
-                    Auto-linked via source: {{ chart.template_source or 'N/A' }}
+                    Auto-linked via source:
+                    {% if chart.slug %}
+                    https://ourworldindata.org/grapher/{{ chart.slug }}
+                    {% else %}
+                    'N/A'
+                    {% endif %}
                 </small>
             </div>
             {% endif %}

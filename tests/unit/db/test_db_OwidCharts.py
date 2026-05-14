@@ -48,7 +48,6 @@ def sample_row():
         "updated_at": "2024-01-02 00:00:00",
         "template_id": 10,
         "template_title": "Test Template",
-        "template_source": None,
     }
 
 
@@ -75,23 +74,6 @@ class TestOwidChartRecord:
         assert record.title == "Test Chart"
         assert record.has_map_tab is True
         assert record.is_published is True
-
-    def test_template_source_auto_generated(self):
-        """Test that template_source is auto-generated from slug."""
-        record = OwidChartRecord(
-            chart_id=1,
-            slug="my-chart",
-            title="My Chart",
-            has_map_tab=False,
-            max_time=None,
-            min_time=None,
-            default_tab=None,
-            is_published=False,
-            single_year_data=False,
-            len_years=None,
-            has_timeline=False,
-        )
-        assert record.template_source == "https://ourworldindata.org/grapher/my-chart"
 
     def test_optional_fields_default_none(self):
         """Test that optional fields default to None."""

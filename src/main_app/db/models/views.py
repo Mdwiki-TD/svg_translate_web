@@ -16,7 +16,6 @@ class OwidChartTemplateRecord:
     chart_id: int
     template_id: int | None = None
     template_title: str | None = None
-    # template_source: str | None = None
 
     __table_args__ = (
         # Prevent SQLAlchemy from trying to create this as a table

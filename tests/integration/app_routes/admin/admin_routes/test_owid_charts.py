@@ -484,7 +484,6 @@ class TestDownloadJson:
             "has_timeline",
             "template_id",
             "template_title",
-            "template_source",
         ]
         for field in expected_fields:
             assert field in data
