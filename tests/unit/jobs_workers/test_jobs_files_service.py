@@ -9,9 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.jobs_workers.utils import generate_result_file_name
-from src.main_app.services.jobs_service import (
-    create_job,
-)
+from src.main_app.shared.models.jobs_record import JobRecord
 from src.main_app.su_services.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
@@ -31,7 +29,7 @@ def test_save_job_result(tmp_path, monkeypatch):
     # Mock get_jobs_data_dir to use tmp_path
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = create_job("collect_main_files")
+    job = JobRecord(id=1, job_type="collect_main_files", status="pending")
 
     result_data = {
         "job_id": job.id,
@@ -123,7 +121,7 @@ def test_save_job_result_with_datetime(tmp_path, monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = create_job("test_job")
+    job = JobRecord(id=1, job_type="test_job", status="pending")
 
     result_data = {"job_id": job.id, "timestamp": datetime.now(), "data": "test"}
 
@@ -137,7 +135,7 @@ def test_save_job_result_simple(tmp_path, monkeypatch: pytest.MonkeyPatch):
     """Test save_job_result without by_name variant."""
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = create_job("test_job")
+    job = JobRecord(id=1, job_type="test_job", status="pending")
 
     result_data = {"test": "data"}
 

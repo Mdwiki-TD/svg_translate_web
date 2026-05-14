@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib import reload
 from unittest.mock import patch
 
+
 def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     """Ensure the app factory can run without MySQL credentials."""
 

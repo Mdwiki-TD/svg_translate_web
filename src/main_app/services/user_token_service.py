@@ -5,13 +5,38 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from ..config import settings
 from ..core.crypto import encrypt_value
-from ..db.svg_db import get_db
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models.users_record import UserTokenRecord
 from ..sqlalchemy_db.decode_bytes import coerce_bytes
 
+_db: Database | None = None
+
 logger = logging.getLogger(__name__)
+
+
+def get_db() -> Database:
+    """
+    Get the cached Database instance, creating and caching a new Database from settings.database_data if none exists.
+    Logs an error if the database configuration is not available.
+
+    Returns:
+        Database: The cached Database instance.
+    """
+    global _db
+
+    if _db is None:
+        if not settings.has_db_config():
+            raise InsufficientDatabaseConfigError()
+
+        try:
+            _db = Database(settings.database_data)
+        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+            logger.exception("Failed to initialize MySQL template store")
+            raise RuntimeError("Unable to initialize template store") from exc
+
+    return _db
 
 
 def mark_token_used(user_id: int) -> None:
