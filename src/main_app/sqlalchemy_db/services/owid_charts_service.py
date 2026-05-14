@@ -22,8 +22,8 @@ def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        query = session.query(OwidChartRecord).options(joinedload(OwidChartRecord._template_info))
-        if limit:
+        query = session.query(OwidChartRecord).options(joinedload(OwidChartRecord._template_info)).order_by(OwidChartRecord.chart_id.asc())
+        if limit is not None:
             query = query.limit(limit)
         return query.all()
 
