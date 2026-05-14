@@ -9,7 +9,29 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class OwidChartRecord:
-    """Representation of an OWID chart record."""
+    """
+    CREATE TABLE `owid_charts` (
+      `chart_id` int(11) NOT NULL AUTO_INCREMENT,
+      `slug` varchar(255) NOT NULL,
+      `title` varchar(500) NOT NULL,
+      `has_map_tab` tinyint(1) DEFAULT 0,
+      `max_time` int(11) DEFAULT NULL,
+      `min_time` int(11) DEFAULT NULL,
+      `default_tab` varchar(50) DEFAULT NULL,
+      `is_published` tinyint(1) DEFAULT 0,
+      `single_year_data` tinyint(1) DEFAULT 0,
+      `len_years` int(11) DEFAULT NULL,
+      `has_timeline` tinyint(1) DEFAULT 0,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      PRIMARY KEY (`chart_id`),
+      UNIQUE KEY `unique_slug` (`slug`),
+      KEY `idx_slug` (`slug`),
+      KEY `idx_published` (`is_published`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    """
+
+    __tablename__ = "owid_charts"
 
     chart_id: int
     slug: str
@@ -51,3 +73,8 @@ class OwidChartRecord:
             "template_title": self.template_title,
             "template_source": self.template_source,
         }
+
+
+__all__ = [
+    "OwidChartRecord",
+]

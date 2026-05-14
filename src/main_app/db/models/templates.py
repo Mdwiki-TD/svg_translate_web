@@ -11,7 +11,28 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemplateRecord:
-    """Representation of a template."""
+    """
+    CREATE TABLE `templates` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `title` varchar(255) NOT NULL,
+      `main_file` varchar(255) DEFAULT NULL,
+      `last_world_file` varchar(255) DEFAULT NULL,
+      `last_world_year` int(11) DEFAULT NULL,
+      `slug` varchar(255) NOT NULL DEFAULT '',
+      `source` varchar(255) NOT NULL DEFAULT '',
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `title` (`title`),
+      KEY `title_index` (`title`),
+      KEY `main_file` (`main_file`),
+      KEY `last_world_file` (`last_world_file`),
+      KEY `source` (`source`),
+      KEY `last_world_year` (`last_world_year`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    """
+
+    __tablename__ = "templates"
 
     id: int
     title: str
@@ -45,29 +66,6 @@ class TemplateRecord:
         }
 
 
-@dataclass
-class TemplateNeedUpdateRecord:
-    """
-    Representation of a template.
-    """
-
-    id: int
-    template_title: str | None = None
-    slug: str | None = None
-    chart_year: int | None = None
-    template_year: int | None = None
-    difference: int | None = None
-
-    def __post_init__(self):
-        if self.template_year is not None and self.chart_year is not None:
-            self.difference = (self.chart_year or 0) - (self.template_year or 0)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "template_title": self.template_title,
-            "slug": self.slug,
-            "chart_year": self.chart_year,
-            "template_year": self.template_year,
-            "difference": self.difference,
-        }
+__all__ = [
+    "TemplateRecord",
+]

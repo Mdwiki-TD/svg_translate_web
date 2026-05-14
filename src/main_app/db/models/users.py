@@ -11,7 +11,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class AdminUserRecord:
-    """Representation of a coordinator/admin account."""
+    """
+    CREATE TABLE `admin_users` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `username` varchar(255) NOT NULL,
+      `is_active` tinyint(1) NOT NULL DEFAULT 1,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `username` (`username`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    """
+
+    __tablename__ = "admin_users"
 
     id: int
     username: str
@@ -50,3 +62,9 @@ class UserTokenRecord:
         access_secret = decrypt_value(self.access_secret)
         # mark_token_used(self.user_id)
         return access_key, access_secret
+
+
+__all__ = [
+    "UserTokenRecord",
+    "AdminUserRecord",
+]
