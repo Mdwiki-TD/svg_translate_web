@@ -29,8 +29,8 @@ class JobRecord:
 
     id: int
     job_type: str
-    username: str | None = None  # User who started the job
     status: str  # pending, running, completed, failed
+    username: str | None = None  # User who started the job
     started_at: datetime | None = None
     completed_at: datetime | None = None
     result_file: str | None = None  # Path to JSON file with job results
