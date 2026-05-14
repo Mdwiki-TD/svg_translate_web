@@ -5,12 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from ..core.crypto import encrypt_value
-from ..db.sql_schema_tables import sql_tables
 from ..db.db_class import Database
+from ..db.exceptions import InsufficientDatabaseConfigError
+from ..db.sql_schema_tables import sql_tables
 from ..shared.models.users_record import UserTokenRecord
 from ..sqlalchemy_db.decode_bytes import coerce_bytes
 
@@ -140,3 +139,12 @@ def delete_user_token(user_id: int) -> None:
 
     db = get_db()
     db.execute_query_safe("DELETE FROM user_tokens WHERE user_id = %s", (user_id,))
+
+
+__all__ = [
+    "mark_token_used",
+    "ensure_user_token_table",
+    "upsert_user_token",
+    "get_user_token",
+    "delete_user_token",
+]
