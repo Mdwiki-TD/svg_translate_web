@@ -41,7 +41,7 @@ class TemplatesNeedUpdateDB:
             template_title=row["template_title"],
             slug=row.get("slug") or "",
             chart_year=row.get("chart_year") or "",
-            template_year=row.get("template_year") or "",
+            last_world_year=row.get("last_world_year") or "",
         )
 
     def list(self) -> List[TemplateNeedUpdateRecord]:
@@ -52,7 +52,7 @@ class TemplatesNeedUpdateDB:
                 template_title,
                 slug,
                 max_time as chart_year,
-                last_world_year as template_year
+                last_world_year as last_world_year
             FROM templates_need_update
             ORDER BY max_time ASC
             """
