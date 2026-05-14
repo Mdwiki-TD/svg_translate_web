@@ -6,7 +6,7 @@ import json
 from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
-from typing import Any, List
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -119,11 +119,8 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     fake_store = FakeJobsDB({})
-
-    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store

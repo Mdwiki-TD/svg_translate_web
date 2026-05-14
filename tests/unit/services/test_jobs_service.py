@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import json
-
-# import tempfile
-# from unittest.mock import MagicMock, patch
-from pathlib import Path
 from typing import Any
 
 import pytest
 
 from src.main_app.db.db_Jobs import JobRecord
-from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.services import jobs_service
 from src.main_app.services.jobs_service import (
     create_job,
@@ -23,10 +17,7 @@ from src.main_app.services.jobs_service import (
     update_job_status,
 )
 from src.main_app.su_services.jobs_files_service import (
-    get_jobs_data_dir,
     load_job_result,
-    save_job_result,
-    save_job_result_by_name,
 )
 
 
@@ -97,8 +88,6 @@ class FakeJobsDB:
 def jobs_db_fixture(monkeypatch: pytest.MonkeyPatch):
     """Set up a fake jobs database."""
     fake_store = FakeJobsDB({})
-
-    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
@@ -277,17 +266,6 @@ def test_list_jobs_filtered_with_limit(jobs_db_fixture):
     collect_jobs = list_jobs(limit=2, job_type="collect_main_files")
     assert len(collect_jobs) == 2
     assert all(job.job_type == "collect_main_files" for job in collect_jobs)
-
-
-def test_get_jobs_db_no_config(monkeypatch: pytest.MonkeyPatch):
-    """Test get_jobs_db raises error when DB config is missing."""
-    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: False)
-    _JOBS_STORE = None
-
-    with pytest.raises(RuntimeError, match="Jobs administration requires database configuration"):
-        get_jobs_db()
-
-    _JOBS_STORE = None
 
 
 def test_get_jobs_db_cached(jobs_db_fixture):

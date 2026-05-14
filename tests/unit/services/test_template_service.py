@@ -166,7 +166,6 @@ class FakeDatabase:
 def _mock_templates_store(monkeypatch: pytest.MonkeyPatch):
     """Create a mock TemplatesDB with FakeDatabase."""
     monkeypatch.setattr("src.main_app.db.db_Templates.Database", FakeDatabase)
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: True)
 
     # Reset the global store
     template_service._TEMPLATE_STORE = None
@@ -175,15 +174,6 @@ def _mock_templates_store(monkeypatch: pytest.MonkeyPatch):
 
     # Clean up
     template_service._TEMPLATE_STORE = None
-
-
-def test_get_templates_db_requires_config(monkeypatch: pytest.MonkeyPatch):
-    """Test that get_templates_db raises when no database config is available."""
-    template_service._TEMPLATE_STORE = None
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: False)
-
-    with pytest.raises(RuntimeError, match="Template administration requires database configuration"):
-        template_service.get_templates_db()
 
 
 def test_get_templates_db_caches_store(_mock_templates_store):
