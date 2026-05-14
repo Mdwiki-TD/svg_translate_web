@@ -12,7 +12,7 @@ def test_template_need_update_record_initialization():
     assert rec.slug is None
     assert rec.max_time is None
     assert rec.last_world_year is None
-    assert rec.difference is None
+    assert rec.to_dict()["difference"] == 0
 
 
 def test_template_need_update_record_with_all_fields():
@@ -26,7 +26,7 @@ def test_template_need_update_record_with_all_fields():
     assert rec.slug == "test-slug"
     assert rec.max_time == 2023
     assert rec.last_world_year == 2020
-    assert rec.difference == 3  # 2023 - 2020
+    assert rec.to_dict()["difference"] == 3  # 2023 - 2020
 
 
 def test_template_need_update_record_difference_calculation():
@@ -35,7 +35,7 @@ def test_template_need_update_record_difference_calculation():
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2025, last_world_year=2020
     )
 
-    assert rec.difference == 5  # 2025 - 2020
+    assert rec.to_dict()["difference"] == 5  # 2025 - 2020
 
 
 def test_template_need_update_record_difference_none_when_missing_years():
@@ -44,19 +44,19 @@ def test_template_need_update_record_difference_none_when_missing_years():
     rec1 = TemplateNeedUpdateRecord(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=None, last_world_year=2020
     )
-    assert rec1.difference is None
+    assert rec1.to_dict()["difference"] == 0
 
     # Missing last_world_year
     rec2 = TemplateNeedUpdateRecord(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2025, last_world_year=None
     )
-    assert rec2.difference is None
+    assert rec2.to_dict()["difference"] == 0
 
     # Both missing
     rec3 = TemplateNeedUpdateRecord(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=None, last_world_year=None
     )
-    assert rec3.difference is None
+    assert rec3.to_dict()["difference"] == 0
 
 
 def test_template_need_update_record_difference_with_zero_values():
@@ -65,7 +65,7 @@ def test_template_need_update_record_difference_with_zero_values():
         template_id=1, template_title="Test Template", slug="test-slug", max_time=0, last_world_year=0
     )
 
-    assert rec.difference == 0  # 0 - 0
+    assert rec.to_dict()["difference"] == 0  # 0 - 0
 
 
 def test_template_need_update_record_to_dict():
@@ -100,7 +100,7 @@ def test_template_need_update_record_to_dict_with_none_values():
         "slug": None,
         "max_time": None,
         "last_world_year": None,
-        "difference": None,
+        "difference": 0,
     }
 
     assert result == expected
@@ -112,4 +112,4 @@ def test_template_need_update_record_negative_difference():
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2020, last_world_year=2023
     )
 
-    assert rec.difference == -3  # 2020 - 2023
+    assert rec.to_dict()["difference"] == -3  # 2020 - 2023

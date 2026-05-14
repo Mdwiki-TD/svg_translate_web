@@ -51,7 +51,7 @@ class BaseDb(DeclarativeBase):
 
         for column in self.__table__.columns:
             if column.nullable is False and data[column.name] is None:
-                data[column.name] = column.default
+                data[column.name] = column.default if column.default is not None else None
 
         return data
 
