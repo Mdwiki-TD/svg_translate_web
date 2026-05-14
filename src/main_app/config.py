@@ -50,7 +50,6 @@ class OAuthConfig:
     mw_uri: str
     consumer_key: str
     consumer_secret: str
-    user_agent: str
     upload_host: str
 
 
@@ -101,6 +100,7 @@ class DynamicSettingsStore:
 
 @dataclass(frozen=True)
 class Settings:
+    user_agent: str
     is_localhost: callable
     has_db_config: callable
     database_data: DbConfig
@@ -215,10 +215,6 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
         mw_uri=mw_uri,
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
-        user_agent=os.getenv(
-            "USER_AGENT",
-            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-        ),
         upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
     )
 
@@ -319,6 +315,10 @@ def get_settings() -> Settings:
     database_data = _load_db_data_new()
     return Settings(
         is_localhost=is_localhost,
+        user_agent=os.getenv(
+            "USER_AGENT",
+            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
+        ),
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,

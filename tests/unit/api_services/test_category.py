@@ -13,7 +13,7 @@ from src.main_app.api_services import category
 def patch_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "src.main_app.api_services.category.settings",
-        types.SimpleNamespace(oauth=types.SimpleNamespace(user_agent="agent")),
+        types.SimpleNamespace(oauth=types.SimpleNamespace(), user_agent="agent"),
     )
 
 

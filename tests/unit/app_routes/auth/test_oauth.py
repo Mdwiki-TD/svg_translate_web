@@ -15,9 +15,10 @@ def fake_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         consumer_key="consumer",
         consumer_secret="secret",
         mw_uri="https://example.com",
-        user_agent="agent",
     )
-    settings = types.SimpleNamespace(oauth=oauth_config)
+    settings = types.SimpleNamespace(
+        oauth=oauth_config, user_agent="user_agent"
+    )
     monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", settings)
 
 
@@ -26,8 +27,8 @@ def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
     created_handshakers: list[tuple[str, object]] = []
 
     class DummyHandshaker:
-        def __init__(self, uri: str, *, consumer_token: object, user_agent: str) -> None:
-            created_handshakers.append((uri, consumer_token, user_agent))
+        def __init__(self, uri: str, *, consumer_token: object) -> None:
+            created_handshakers.append((uri, consumer_token))
 
     def fake_consumer(key: str, secret: str) -> tuple[str, str]:
         created_tokens.append((key, secret))
@@ -45,7 +46,7 @@ def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_get_handshaker_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", types.SimpleNamespace(oauth=None))
+    monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", types.SimpleNamespace(oauth=None, user_agent="user_agent"))
 
     with pytest.raises(RuntimeError):
         oauth.get_handshaker()
