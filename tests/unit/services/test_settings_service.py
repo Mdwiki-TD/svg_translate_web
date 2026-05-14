@@ -6,7 +6,7 @@ from src.main_app.services.settings_service import (
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_none(mock_database_class, db_config):
+def test_serialize_value_none(mock_database_class):
     """Test _serialize_value handles None."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
@@ -17,7 +17,7 @@ def test_serialize_value_none(mock_database_class, db_config):
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_boolean(mock_database_class, db_config):
+def test_serialize_value_boolean(mock_database_class):
     """Test _serialize_value handles booleans."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
@@ -27,7 +27,7 @@ def test_serialize_value_boolean(mock_database_class, db_config):
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_integer(mock_database_class, db_config):
+def test_serialize_value_integer(mock_database_class):
     """Test _serialize_value handles integers."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
@@ -37,7 +37,7 @@ def test_serialize_value_integer(mock_database_class, db_config):
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_json(mock_database_class, db_config):
+def test_serialize_value_json(mock_database_class):
     """Test _serialize_value handles JSON."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
@@ -47,7 +47,7 @@ def test_serialize_value_json(mock_database_class, db_config):
 
 
 @patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_string(mock_database_class, db_config):
+def test_serialize_value_string(mock_database_class):
     """Test _serialize_value handles strings."""
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
