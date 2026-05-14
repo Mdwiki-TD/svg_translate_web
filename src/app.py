@@ -5,20 +5,15 @@ WSGI production entry point for the app.
 
 from __future__ import annotations
 import logging
+import pymysql
 
-try:
-    from logger_config import configure_logging
-except ImportError:
-    from .logger_config import configure_logging
+pymysql.install_as_MySQLdb()
+
+from main_app import create_app  # noqa: E402
+from logger_config import configure_logging  # noqa: E402
 
 configure_logging(logging.WARNING)
-
-try:
-    from main_app import create_app
-except ImportError:
-    from .main_app import create_app
-
 app = create_app()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=False, port=5000)
