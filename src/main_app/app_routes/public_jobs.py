@@ -21,12 +21,12 @@ from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
 from ..config import settings
-from ..db.services import (
+from ..sqlalchemy_db.services import (
     delete_job,
     get_job,
     list_jobs,
 )
-from ..db.services.admin_service import active_coordinators
+from ..sqlalchemy_db.services.admin_service import active_coordinators
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
 from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC

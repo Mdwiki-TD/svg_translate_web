@@ -18,7 +18,7 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...db.services import jobs_service
+from ...sqlalchemy_db.services import jobs_service
 from ...su_services import jobs_files_service
 from .steps import (
     download_step,
