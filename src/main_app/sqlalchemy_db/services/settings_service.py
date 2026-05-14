@@ -74,6 +74,30 @@ def delete_setting(key: str) -> bool:
 def update_setting(
     key: str,
     value: Any,
+    value_type: str = "string",
+    title: str | None = None,
+) -> SettingRecord:
+    """
+    Update an existing setting.
+    """
+    with get_session() as session:
+        setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
+        if not setting:
+            return False
+
+        if not value_type:
+            value_type = setting.value_type
+
+        setting.value = _serialize_value(value, value_type)
+        if title:
+            setting.title = title
+        session.commit()
+        return setting
+
+
+def update_setting_bool(
+    key: str,
+    value: Any,
     value_type: str | None = None,
     title: str | None = None,
 ) -> bool:

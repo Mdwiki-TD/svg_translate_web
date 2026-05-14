@@ -17,7 +17,6 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...sqlalchemy_db.services import jobs_service
 from ...shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
@@ -25,6 +24,7 @@ from ...shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
+from ...sqlalchemy_db.services import jobs_service
 from ...su_services import jobs_files_service
 
 logger = logging.getLogger(__name__)

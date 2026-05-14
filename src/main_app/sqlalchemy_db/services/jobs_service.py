@@ -35,14 +35,11 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
         WHERE id = %s AND job_type = %s
     """
     with get_session() as session:
-        return (
-            session.query(JobRecord)
-            .filter(
-                JobRecord.id == job_id,
-                JobRecord.job_type == job_type,
-            )
-            .first()
-        )
+        query = session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        job = query.first()
+        return job
 
 
 def update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:

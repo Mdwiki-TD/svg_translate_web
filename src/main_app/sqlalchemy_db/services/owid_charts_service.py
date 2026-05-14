@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from ..engine import get_session
 from ..models.owid_charts import OwidChartRecord
+
 # from ..models.views import OwidChartTemplateRecord
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,11 @@ def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        query = session.query(OwidChartRecord).options(joinedload(OwidChartRecord._template_info)).order_by(OwidChartRecord.chart_id.asc())
+        query = (
+            session.query(OwidChartRecord)
+            .options(joinedload(OwidChartRecord._template_info))
+            .order_by(OwidChartRecord.chart_id.asc())
+        )
         if limit is not None:
             query = query.limit(limit)
         return query.all()
@@ -39,13 +44,14 @@ def list_published_charts() -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        return (
+        query = (
             session.query(OwidChartRecord)
             .filter(OwidChartRecord.is_published == 1)
             .options(joinedload(OwidChartRecord._template_info))
             .order_by(OwidChartRecord.chart_id.asc())
-            .all()
         )
+        records = query.all()
+        return records
 
 
 def get_chart_by_id(chart_id: int) -> OwidChartRecord:
