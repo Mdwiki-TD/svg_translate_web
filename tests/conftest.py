@@ -33,10 +33,9 @@ _CopySVGTranslation_PATH = os.getenv(
 if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
-from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
-
 # Import after environment setup
 from src.main_app import create_app
+from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import TestingConfig
 
 
