@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 # fixture tries to iterate sorted_tables.
 import src.main_app.sqlalchemy_db.models  # noqa: F401
 
-os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
+os.environ.setdefault("FLASK_SECRET_KEY", "test_secret_key_12345678901234567890")
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
