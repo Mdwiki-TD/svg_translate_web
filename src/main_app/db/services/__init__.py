@@ -31,9 +31,6 @@ from .settings_service import (
     settings_update_form,
     update_setting,
 )
-from .template_need_update_service import (
-    list_templates_need_update,
-)
 from .template_service import (
     get_template,
     get_template_by_title,
@@ -78,7 +75,6 @@ __all__ = [
     "get_template_by_title",
     "list_templates",
     # template_need_update_service
-    "list_templates_need_update",
     # jobs_service
     "delete_job",
     "create_job",

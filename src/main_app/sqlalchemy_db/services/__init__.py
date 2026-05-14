@@ -77,7 +77,6 @@ __all__ = [
     "get_template",
     "get_template_by_title",
     "list_templates",
-    # template_need_update_service
     "list_templates_need_update",
     # jobs_service
     "delete_job",
