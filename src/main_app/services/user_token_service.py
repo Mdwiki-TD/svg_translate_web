@@ -7,9 +7,9 @@ import logging
 from typing import Any, Dict, Optional
 
 from ..core.crypto import encrypt_value
-from ..shared.models.users_record import UserTokenRecord
 from ..db import get_db, has_db_config
 from ..db.sql_schema_tables import sql_tables
+from ..shared.models.users_record import UserTokenRecord
 
 logger = logging.getLogger(__name__)
 
