@@ -327,7 +327,7 @@ def test_update_setting_success(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("existing_key", "new_value")
+    result = settings_db.update("existing_key", "new_value")
 
     assert result is True
     mock_db.execute_query_safe.assert_called_with(
@@ -344,7 +344,7 @@ def test_update_setting_not_found(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("missing_key", "value")
+    result = settings_db.update("missing_key", "value")
 
     assert result is False
 
@@ -359,7 +359,7 @@ def test_update_setting_failure(mock_database_class, db_config):
     settings_db = SettingsDB(db_config)
     # Set the side_effect for the update operation after init
     mock_db.execute_query_safe.side_effect = Exception("DB Error")
-    result = settings_db.update_setting("existing_key", "value")
+    result = settings_db.update("existing_key", "value")
 
     assert result is False
 
@@ -372,7 +372,7 @@ def test_update_setting_preserves_type(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.update_setting("int_key", 100)
+    settings_db.update("int_key", 100)
 
     # Verify the value was serialized as integer
     calls = mock_db.execute_query_safe.call_args_list
@@ -386,7 +386,7 @@ def test_update_setting_with_value_type_skips_select(mock_database_class, db_con
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("key", "value", value_type="string")
+    result = settings_db.update("key", "value", value_type="string")
 
     assert result is True
     # Should only have the UPDATE call, no SELECT call
@@ -408,7 +408,7 @@ def test_update_setting_without_value_type_queries_db(mock_database_class, db_co
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("key", 42)
+    result = settings_db.update("key", 42)
 
     assert result is True
     # Should have SELECT call to get value_type
@@ -430,7 +430,7 @@ def test_update_setting_with_value_type_serializes_correctly(mock_database_class
 
     settings_db = SettingsDB(db_config)
     # Pass integer value with explicit boolean type
-    result = settings_db.update_setting("key", 1, value_type="boolean")
+    result = settings_db.update("key", 1, value_type="boolean")
 
     assert result is True
     # Value should be serialized as boolean "true", not as integer "1"

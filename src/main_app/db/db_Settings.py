@@ -37,6 +37,12 @@ class SettingsDB:
         rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings")
         return [self._row_to_record(row) for row in rows]
 
+    def get_by_key(self, key: str) -> None | SettingRecord:
+        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
+        if not rows:
+            return None
+        return self._row_to_record(rows[0])
+
     def get_all(self) -> Dict[str, Any]:
         """Fetch all settings and return them as a dictionary of key -> parsed value."""
         rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings")
@@ -48,12 +54,6 @@ class SettingsDB:
     def get_raw_all(self) -> List[Dict[str, Any]]:
         """Fetch all settings as raw rows for admin panel."""
         return self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings ORDER BY id ASC")
-
-    def get_by_key(self, key: str) -> Optional[Any]:
-        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
-        if not rows:
-            return None
-        return self._parse_value(rows[0]["value"], rows[0]["value_type"])
 
     def create(self, key: str, title: str, value_type: str, value: Any) -> bool:
         """Create a new setting."""
@@ -69,10 +69,9 @@ class SettingsDB:
             logger.error(f"Failed to create setting '{key}': {e}")
             return False
 
-    def update_setting(
+    def update(
         self, key: str,
-        value: Any,
-        value_type: str | None = None,
+        str_val: Any,
         title: str | None = None,
     ) -> bool:
         """Update an existing setting.
@@ -80,17 +79,7 @@ class SettingsDB:
         Args:
             key: The setting key to update.
             value: The new value.
-            value_type: Optional value type. If provided, skips the SELECT query.
-        """
-        # If value_type not provided, retrieve it from the database
-        if value_type is None:
-            rows = self.db.fetch_query_safe("SELECT value_type FROM settings WHERE key = %s", (key,))
-            if not rows:
-                return False
-            value_type = rows[0]["value_type"]
-
-        str_val = self._serialize_value(value, value_type)
-
+x        """
         try:
             self.db.execute_query_safe("UPDATE settings SET value = %s, title = %s WHERE key = %s", (str_val, title, key))
             return True

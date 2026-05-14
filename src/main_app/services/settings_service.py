@@ -77,7 +77,7 @@ def get_all_settings_raw() -> list[dict[str, Any]]:
     return store.get_raw_all()
 
 
-def get_setting_by_key(key: str) :
+def get_setting_by_key(key: str) -> SettingRecord | None:
     """Fetch a setting by key."""
     store = get_settings_db()
     return store.get_by_key(key)
@@ -99,25 +99,30 @@ def update_setting(
     Update an existing setting.
     """
     store = get_settings_db()
-    return store.update_setting(key, value, value_type, title)
+    # If value_type not provided, retrieve it from the database
+    if not value_type:
+        record = store.get_by_key(key)
+        if not record:
+            return False
+        value_type = record.value_type
+
+    str_val = _serialize_value(value, value_type)
+    return store.update(key, str_val, title)
 
 
 def create_setting(key: str, title: str, value_type: str) -> bool:
     """
     Create new setting.
     """
+    default_value_types = {
+        "boolean": "false",
+        "integer": "0",
+        "json": "{}",
+    }
+
+    value = default_value_types.get(value_type, "")
+
     store = get_settings_db()
-
-    if value_type == "boolean":
-        value = "false"
-    elif value_type == "integer":
-        value = "0"
-    elif value_type == "json":
-        value = "{}"
-    else:
-        value = ""
-
-    # str_val = _serialize_value(value, value_type)
     return store.create(key, title, value_type, value)
 
 
