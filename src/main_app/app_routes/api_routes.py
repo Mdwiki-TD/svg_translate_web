@@ -4,12 +4,12 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
+from ..db.models import OwidChartRecord, TemplateNeedUpdateRecord, TemplateRecord
 from ..services import (
     list_templates_need_update,
     owid_charts_service,
     template_service,
 )
-from ..db.models import OwidChartRecord, TemplateNeedUpdateRecord, TemplateRecord
 
 logger = logging.getLogger(__name__)
 

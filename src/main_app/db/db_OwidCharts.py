@@ -6,8 +6,8 @@ from typing import Any, List
 import pymysql
 
 from ..config import DbConfig
-from .models import OwidChartRecord
 from .db_class import Database
+from .models import OwidChartRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)

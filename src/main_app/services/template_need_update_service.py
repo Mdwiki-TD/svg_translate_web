@@ -8,8 +8,8 @@ from typing import Any, List
 from ..config import DbConfig, settings
 from ..db import Database
 from ..db.exceptions import InsufficientDatabaseConfigError
-from ..db.sql_schema_tables import sql_tables
 from ..db.models import TemplateNeedUpdateRecord
+from ..db.sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

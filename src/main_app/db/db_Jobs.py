@@ -7,8 +7,8 @@ import logging
 from typing import Any, List
 
 from ..config import DbConfig
-from .models import JobRecord
 from .db_class import Database
+from .models import JobRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
