@@ -7,7 +7,6 @@ import logging
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_Jobs import JobRecord, JobsDB
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ def get_jobs_db() -> JobsDB:
     global _JOBS_STORE
 
     if _JOBS_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

@@ -7,7 +7,6 @@ from typing import Any
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_Settings import SettingsDB
 from ..shared.models import SettingRecord
 
@@ -22,7 +21,7 @@ def get_settings_db() -> SettingsDB:
     global _SETTINGS_STORE
 
     if _SETTINGS_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

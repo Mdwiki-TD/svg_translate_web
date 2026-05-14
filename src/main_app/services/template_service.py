@@ -8,7 +8,6 @@ from typing import Any, List
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_Templates import TemplatesDB
 from ..shared.models import TemplateRecord
 from ..utils.wikitext.titles_utils import match_last_world_year
@@ -42,7 +41,7 @@ def get_templates_db() -> TemplatesDB:
     global _TEMPLATE_STORE
 
     if _TEMPLATE_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

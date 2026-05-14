@@ -8,7 +8,6 @@ from typing import Any, List
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_OwidCharts import OwidChartsDB
 from ..shared.models import OwidChartRecord
 
@@ -31,7 +30,7 @@ def get_owid_charts_db() -> OwidChartsDB:
     global _OWID_CHARTS_STORE
 
     if _OWID_CHARTS_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

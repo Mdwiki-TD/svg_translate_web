@@ -18,6 +18,18 @@ from src.main_app.services.owid_charts_service import (
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.owid_charts_service.settings",
+        _mock,
+    )
+    return _mock
+
+
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
@@ -49,37 +61,30 @@ class TestGetOwidChartsDb:
 
     def test_raises_runtime_error_without_db_config(self):
         """Test that RuntimeError is raised when no DB config exists."""
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=False):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with pytest.raises(RuntimeError, match="requires database configuration"):
-                    get_owid_charts_db()
+        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
+            with pytest.raises(RuntimeError, match="requires database configuration"):
+                get_owid_charts_db()
 
     def test_raises_runtime_error_on_init_failure(self):
         """Test that RuntimeError is raised when DB init fails."""
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=True):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with patch("src.main_app.services.owid_charts_service.settings") as mock_settings:
-                    mock_settings.database_data = MagicMock()
-                    with patch(
-                        "src.main_app.services.owid_charts_service.OwidChartsDB",
-                        side_effect=Exception("DB error"),
-                    ):
-                        with pytest.raises(RuntimeError, match="Unable to initialize"):
-                            get_owid_charts_db()
+        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
+            with patch(
+                "src.main_app.services.owid_charts_service.OwidChartsDB",
+                side_effect=Exception("DB error"),
+            ):
+                with pytest.raises(RuntimeError, match="Unable to initialize"):
+                    get_owid_charts_db()
 
     def test_returns_initialized_instance(self):
         """Test that initialized instance is returned."""
         mock_store = MagicMock()
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=True):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with patch("src.main_app.services.owid_charts_service.settings") as mock_settings:
-                    mock_settings.database_data = MagicMock()
-                    with patch(
-                        "src.main_app.services.owid_charts_service.OwidChartsDB",
-                        return_value=mock_store,
-                    ):
-                        result = get_owid_charts_db()
-                        assert result == mock_store
+        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
+            with patch(
+                "src.main_app.services.owid_charts_service.OwidChartsDB",
+                return_value=mock_store,
+            ):
+                result = get_owid_charts_db()
+                assert result == mock_store
 
 
 class TestListCharts:

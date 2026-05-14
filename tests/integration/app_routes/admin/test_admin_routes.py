@@ -1,6 +1,7 @@
 from html import unescape
 from types import SimpleNamespace
 from typing import Any, Iterable
+from unittest.mock import MagicMock
 
 import pymysql
 import pytest
@@ -132,6 +133,18 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", _fake_current_user)
 
 
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.admin_service.settings",
+        _mock,
+    )
+    return _mock
+
+
 @pytest.fixture
 def app_and_store(monkeypatch: pytest.MonkeyPatch):
     """
@@ -151,7 +164,6 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     # Patch Database used by CoordinatorsDB
     monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", FakeDatabase)
-    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
     store = CoordinatorsDB(settings.database_data)

@@ -8,7 +8,7 @@ from typing import Any, List
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import DbConfig, settings
-from ..db import Database, has_db_config
+from ..db import Database
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models import TemplateNeedUpdateRecord
 
@@ -75,7 +75,7 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
     global _TEMPLATE_UPDATE_STORE
 
     if _TEMPLATE_UPDATE_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

@@ -130,7 +130,6 @@ def mock_jobs_service(monkeypatch: pytest.MonkeyPatch):
     Returns:
         MagicMock: The mock is_job_cancelled function that can be configured per test.
     """
-    from unittest.mock import MagicMock
 
     mock_is_cancelled = MagicMock(return_value=False)
     monkeypatch.setattr(

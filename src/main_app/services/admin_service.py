@@ -8,7 +8,6 @@ from typing import List
 from ..db.exceptions import InsufficientDatabaseConfigError
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,7 @@ def get_admins_db() -> CoordinatorsDB:
     global _ADMINS_STORE
 
     if _ADMINS_STORE is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

@@ -15,20 +15,6 @@ _db: Database | None = None
 logger = logging.getLogger(__name__)
 
 
-def has_db_config() -> bool:
-    """
-    Return whether the application has database connection settings configured.
-
-    Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
-
-    Returns:
-        `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
-    """
-
-    db_settings = settings.database_data or {}
-    return bool(db_settings.db_host or db_settings.db_user)
-
-
 def get_db() -> Database:
     """
     Get the cached Database instance, creating and caching a new Database from settings.database_data if none exists.
@@ -40,7 +26,7 @@ def get_db() -> Database:
     global _db
 
     if _db is None:
-        if not has_db_config():
+        if not settings.has_db_config():
             raise InsufficientDatabaseConfigError()
 
         try:

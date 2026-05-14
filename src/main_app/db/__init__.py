@@ -4,13 +4,12 @@ from .db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 from .db_OwidCharts import OwidChartsDB
 from .db_Settings import SettingsDB
 from .db_Templates import TemplatesDB
-from .svg_db import close_cached_db, fetch_query_safe, get_db, has_db_config
+from .svg_db import close_cached_db, fetch_query_safe, get_db
 
 __all__ = [
     "Database",
     "fetch_query_safe",
     "get_db",
-    "has_db_config",
     "close_cached_db",
     "AdminUserRecord",
     "CoordinatorsDB",

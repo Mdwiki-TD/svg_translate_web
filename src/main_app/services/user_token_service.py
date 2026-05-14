@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from ..core.crypto import encrypt_value
-from ..db import get_db, has_db_config
+from ..db import get_db
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models.users_record import UserTokenRecord
 from ..sqlalchemy_db.decode_bytes import coerce_bytes
