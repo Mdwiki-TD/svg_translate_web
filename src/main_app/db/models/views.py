@@ -9,8 +9,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemplateNeedUpdateRecord:
-    """
-    """
+    """ """
 
     __tablename__ = "templates_need_update"
 
@@ -21,7 +20,6 @@ class TemplateNeedUpdateRecord:
     max_time: int | None = None
 
     difference: int | None = None
-    chart_year: int | None = None
 
     __table_args__ = (
         # Prevent SQLAlchemy from trying to create this as a table
@@ -49,23 +47,22 @@ class TemplateNeedUpdateRecord:
     )
 
     def __post_init__(self):
-        if self.last_world_year is not None and self.chart_year is not None:
-            self.difference = (self.chart_year or 0) - (self.last_world_year or 0)
+        if self.last_world_year is not None and self.max_time is not None:
+            self.difference = (self.max_time or 0) - (self.last_world_year or 0)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "template_id": self.template_id,
             "template_title": self.template_title,
             "slug": self.slug,
-            "chart_year": self.chart_year,
+            "max_time": self.max_time,
             "last_world_year": self.last_world_year,
             "difference": self.difference,
         }
 
 
 class OwidChartTemplateRecord:
-    """
-    """
+    """ """
 
     __tablename__ = "owid_charts_templates"
 

@@ -40,7 +40,7 @@ class TemplatesNeedUpdateDB:
             template_id=int(row["template_id"]),
             template_title=row["template_title"],
             slug=row.get("slug") or "",
-            chart_year=row.get("chart_year") or "",
+            max_time=row.get("max_time") or "",
             last_world_year=row.get("last_world_year") or "",
         )
 
@@ -51,7 +51,7 @@ class TemplatesNeedUpdateDB:
                 template_id,
                 template_title,
                 slug,
-                max_time as chart_year,
+                max_time as max_time,
                 last_world_year as last_world_year
             FROM templates_need_update
             ORDER BY max_time ASC
