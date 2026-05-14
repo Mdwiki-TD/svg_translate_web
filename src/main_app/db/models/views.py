@@ -14,7 +14,7 @@ class TemplateNeedUpdateRecord:
 
     __tablename__ = "templates_need_update"
 
-    id: int
+    template_id: int
     template_title: str | None = None
     slug: str | None = None
     chart_year: int | None = None
@@ -53,7 +53,7 @@ class TemplateNeedUpdateRecord:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "id": self.id,
+            "template_id": self.template_id,
             "template_title": self.template_title,
             "slug": self.slug,
             "chart_year": self.chart_year,

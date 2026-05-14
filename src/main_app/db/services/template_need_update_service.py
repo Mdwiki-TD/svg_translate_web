@@ -37,7 +37,7 @@ class TemplatesNeedUpdateDB:
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateNeedUpdateRecord:
         return TemplateNeedUpdateRecord(
-            id=int(row["template_id"]),
+            template_id=int(row["template_id"]),
             template_title=row["template_title"],
             slug=row.get("slug") or "",
             chart_year=row.get("chart_year") or "",
