@@ -1,21 +1,17 @@
 """
 # isort:skip_file
-WSGI entry point for SVG Translate.
+WSGI production entry point for the app.
 """
 
 from __future__ import annotations
-import sys
 import logging
 
 try:
-    from svg_config import _env_file_path  # Triggers environment configuration
     from logger_config import configure_logging
 except ImportError:
-    from .svg_config import _env_file_path  # noqa: F401 # Triggers environment configuration
     from .logger_config import configure_logging
 
-level = logging.DEBUG if ("debug" in sys.argv or "DEBUG" in sys.argv) else logging.INFO
-configure_logging(level)
+configure_logging(logging.WARNING)
 
 try:
     from main_app import create_app
@@ -25,4 +21,4 @@ except ImportError:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=level)
+    app.run()

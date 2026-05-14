@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-if os.getenv("APP_ENV") != "production":
+if os.getenv("APP_ENV") not in ("production", "testing"):
     _env_file_path = str(Path(__file__).parent.parent.parent / ".env")
     load_dotenv(_env_file_path)
 
