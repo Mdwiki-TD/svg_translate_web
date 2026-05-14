@@ -4,7 +4,6 @@ import pytest
 
 from src.main_app.config import DbConfig
 from src.main_app.services.admin_service import (
-    _ADMINS_STORE,
     active_coordinators,
     add_coordinator,
     delete_coordinator,
@@ -30,7 +29,7 @@ def test_get_admins_db_first_call(mock_has_db_config, mock_coordinators_db):
     # Mock settings.database_data
     with patch("src.main_app.services.admin_service.settings") as mock_settings:
         mock_settings.database_data = DbConfig(
-            **{"db_host": "localhost", "db_name": "test", "db_user": "user", "db_password": "pass"}
+            db_host="localhost", db_name="test", db_user="user", db_password="pass"
         )
 
         result = get_admins_db()
