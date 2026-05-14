@@ -214,7 +214,8 @@ def setup_db():
             table.create(engine, checkfirst=True)
         elif table.info.get("create_query"):
             # Create views manually
-            engine.execute(text(table.info["create_query"]))
+            with engine.connect() as conn:
+                conn.execute(text(table.info["create_query"]))
 
     factory = sessionmaker(bind=engine, expire_on_commit=False)
 
