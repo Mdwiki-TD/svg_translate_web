@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.models.jobs_record import JobRecord
+from src.main_app.db.models.jobs import JobRecord
 from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.su_services.jobs_files_service import (
     get_jobs_data_dir,

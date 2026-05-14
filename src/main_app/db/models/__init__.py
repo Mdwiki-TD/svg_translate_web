@@ -1,6 +1,6 @@
-from .jobs_record import JobRecord
-from .owid_chart_record import OwidChartRecord
-from .setting_record import SettingRecord
+from .jobs import JobRecord
+from .owid_charts import OwidChartRecord
+from .settings import SettingRecord
 from .templates import TemplateNeedUpdateRecord, TemplateRecord
 from .users import AdminUserRecord
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models.owid_chart_record import OwidChartRecord
+from src.main_app.db.models.owid_charts import OwidChartRecord
 
 
 def test_owid_chart_record_initialization():
