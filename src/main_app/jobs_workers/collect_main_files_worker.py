@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..services import owid_charts_service, template_service
+from ..db.services import owid_charts_service, template_service
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -47,7 +47,7 @@ def slugify_title(title: str) -> str:
         try:
             owid_charts_service.get_chart_by_slug(slug)
             return slug
-        except LookupError:
+        except (LookupError, RuntimeError):
             return None
     return None
 

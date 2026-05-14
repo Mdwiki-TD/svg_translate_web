@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
-from src.main_app.shared.models.owid_chart_record import OwidChartRecord
+from src.main_app.sqlalchemy_db.models.owid_charts import OwidChartRecord
 
 
 def test_owid_chart_record_initialization():
@@ -33,9 +31,6 @@ def test_owid_chart_record_initialization():
     assert rec.len_years == 24
     assert rec.created_at is None
     assert rec.updated_at is None
-    assert rec.template_id is None
-    assert rec.template_title is None
-    assert rec.template_source == "https://ourworldindata.org/grapher/health-expenditure"
 
 
 def test_owid_chart_record_with_all_fields():
@@ -53,9 +48,6 @@ def test_owid_chart_record_with_all_fields():
         len_years=24,
         created_at="2023-01-01",
         updated_at="2023-01-02",
-        template_id=42,
-        template_title="Template:Health",
-        template_source="https://example.com/template",
         has_timeline=True,
     )
 
@@ -71,70 +63,6 @@ def test_owid_chart_record_with_all_fields():
     assert rec.len_years == 24
     assert rec.created_at == "2023-01-01"
     assert rec.updated_at == "2023-01-02"
-    assert rec.template_id == 42
-    assert rec.template_title == "Template:Health"
-    assert rec.template_source == "https://example.com/template"
-
-
-def test_owid_chart_record_template_source_generation():
-    """Test template source generation from slug."""
-    rec = OwidChartRecord(
-        chart_id=1,
-        slug="health-expenditure",
-        title="Health Expenditure",
-        has_map_tab=True,
-        max_time=2023,
-        min_time=2000,
-        default_tab="chart",
-        is_published=True,
-        single_year_data=False,
-        len_years=24,
-        has_timeline=False,
-    )
-
-    # Template source should be generated from slug
-    assert rec.template_source == "https://ourworldindata.org/grapher/health-expenditure"
-
-
-def test_owid_chart_record_no_template_source_generation():
-    """Test that template source is not generated when slug is missing."""
-    rec = OwidChartRecord(
-        chart_id=1,
-        slug="",  # Empty slug
-        title="Health Expenditure",
-        has_map_tab=True,
-        max_time=2023,
-        min_time=2000,
-        default_tab="chart",
-        is_published=True,
-        single_year_data=False,
-        len_years=24,
-        has_timeline=False,
-    )
-
-    # Template source should remain None
-    assert rec.template_source is None
-
-
-def test_owid_chart_record_template_source_preserved():
-    """Test that existing template source is not overwritten."""
-    rec = OwidChartRecord(
-        chart_id=1,
-        slug="health-expenditure",
-        title="Health Expenditure",
-        has_map_tab=True,
-        max_time=2023,
-        min_time=2000,
-        default_tab="chart",
-        is_published=True,
-        single_year_data=False,
-        len_years=24,
-        has_timeline=False,
-        template_source="https://custom.source/template",
-    )
-
-    # Existing template source should be preserved
-    assert rec.template_source == "https://custom.source/template"
 
 
 def test_owid_chart_record_boolean_fields():
@@ -177,9 +105,6 @@ def test_owid_chart_record_to_dict():
         has_timeline=False,
         created_at="2023-01-01",
         updated_at="2023-01-02",
-        template_id=42,
-        template_title="Template:Health",
-        template_source="https://ourworldindata.org/grapher/health-expenditure",
     )
 
     result = rec.to_dict()
@@ -198,9 +123,6 @@ def test_owid_chart_record_to_dict():
         "has_timeline": False,
         "created_at": "2023-01-01",
         "updated_at": "2023-01-02",
-        "template_id": 42,
-        "template_title": "Template:Health",
-        "template_source": "https://ourworldindata.org/grapher/health-expenditure",
     }
 
     assert result == expected
@@ -222,9 +144,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         has_timeline=False,
         created_at=None,
         updated_at=None,
-        template_id=None,
-        template_title=None,
-        template_source=None,
     )
 
     result = rec.to_dict()
@@ -243,9 +162,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         "has_timeline": False,
         "created_at": None,
         "updated_at": None,
-        "template_id": None,
-        "template_title": None,
-        "template_source": "https://ourworldindata.org/grapher/health-expenditure",
     }
 
     assert result == expected

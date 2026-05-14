@@ -4,7 +4,7 @@ import pymysql
 import pytest
 
 from src.main_app.db.db_Templates import TemplatesDB
-from src.main_app.shared.models import TemplateRecord
+from src.main_app.db.models import TemplateRecord
 
 
 @pytest.fixture
@@ -187,8 +187,8 @@ def test_delete_not_found(templates_db, mock_db_instance):
     """Test delete raises LookupError when template ID doesn't exist."""
     mock_db_instance.fetch_query_safe.return_value = []
 
-    with pytest.raises(LookupError):
-        templates_db.delete(999)
+    result = templates_db.delete(999)
+    assert result is False
 
 
 def test_list_empty(templates_db, mock_db_instance):

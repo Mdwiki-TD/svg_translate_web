@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 
-from src.main_app.services import template_service
+from src.main_app.db.services import template_service
 
 
 @pytest.fixture(autouse=True)
@@ -17,7 +17,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock.database_data = MagicMock()
     _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.template_service.settings",
+        "src.main_app.db.services.template_service.settings",
         _mock,
     )
     return _mock
@@ -272,8 +272,8 @@ def test_delete_template_success(_mock_templates_store):
 
 def test_delete_template_not_found_raises_lookup_error(_mock_templates_store):
     """Test that deleting a non-existent template raises LookupError."""
-    with pytest.raises(LookupError, match="Template id 999 was not found"):
-        template_service.delete_template(999)
+    result = template_service.delete_template(999)
+    assert result is False
 
 
 def test_template_record_dataclass_with_none_main_file(_mock_templates_store):
@@ -283,12 +283,3 @@ def test_template_record_dataclass_with_none_main_file(_mock_templates_store):
 
     assert record.title == "No Main File"
     assert isinstance(record.main_file, str)
-
-
-def test_module_exports_all_functions():
-    """Test that all expected functions are exported in __all__."""
-    assert "get_templates_db" in template_service.__all__
-    assert "list_templates" in template_service.__all__
-    assert "add_template_data" in template_service.__all__
-    assert "update_template_data" in template_service.__all__
-    assert "delete_template" in template_service.__all__

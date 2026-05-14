@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from ..services import jobs_service
+from ..db.services import jobs_service
 from ..su_services import jobs_files_service
 from .utils import generate_result_file_name
 

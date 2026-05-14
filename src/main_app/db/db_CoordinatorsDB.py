@@ -6,8 +6,8 @@ from typing import Any, Iterable, List
 import pymysql
 
 from ..config import DbConfig
-from ..shared.models import AdminUserRecord
-from .db_class import Database
+from .engine import Database
+from .models import AdminUserRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class CoordinatorsDB:
     def get_by_username(self, username: str) -> AdminUserRecord:
         return self._fetch_by_username(username)
 
-    def get_by_id(self, coordinator_id: str) -> AdminUserRecord:
+    def get_by_id(self, coordinator_id: int) -> AdminUserRecord:
         return self._fetch_by_id(coordinator_id)
 
     def add(self, username: str) -> AdminUserRecord:

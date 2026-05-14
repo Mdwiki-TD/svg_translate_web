@@ -14,7 +14,7 @@ from werkzeug.wrappers import Response
 
 from src.main_app import create_app
 from src.main_app.db.db_Jobs import JobRecord
-from src.main_app.services import jobs_service
+from src.main_app.db.services import jobs_service
 
 
 class FakeJobsDB:
@@ -117,7 +117,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
-    monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     fake_store = FakeJobsDB({})
@@ -125,7 +125,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.main_app.services.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.main_app.db.services.jobs_service.JobsDB", fake_jobs_factory)
 
     jobs_service._JOBS_STORE = fake_store
 
@@ -884,7 +884,7 @@ def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
     def mock_delete_job(job_id, job_type):
         raise Exception("Database error")
 
-    monkeypatch.setattr("src.main_app.services.jobs_service.delete_job", mock_delete_job)
+    monkeypatch.setattr("src.main_app.db.services.jobs_service.delete_job", mock_delete_job)
 
     response = client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200

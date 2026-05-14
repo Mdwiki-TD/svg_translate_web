@@ -4,12 +4,12 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
-from ..services import (
-    list_templates_need_update,
+from ..db.models import OwidChartRecord, TemplateRecord
+from ..db.services import (
     owid_charts_service,
     template_service,
 )
-from ..shared.models import OwidChartRecord, TemplateNeedUpdateRecord, TemplateRecord
+from ..sqlalchemy_db.services import list_templates_need_update
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def templates_list():
 
 @bp_api.get("/templates-need-update")
 def templates_need_update_list():
-    templates: list[TemplateNeedUpdateRecord] = list_templates_need_update()
+    templates = list_templates_need_update()
 
     data = [t.to_dict() for t in templates]
 

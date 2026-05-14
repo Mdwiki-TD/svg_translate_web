@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from ..services import template_service
+from ..db.services import template_service
 from ..shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,

@@ -5,8 +5,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
-from ..shared.models import SettingRecord
-from .db_class import Database
+from .engine import Database
+from .models import SettingRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class SettingsDB:
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
         value = self._parse_value(row["value"], row["value_type"])
         if not row.get("id"):
-            raise ValueError("Missing id field in settings row", row)
+            raise ValueError(f"Missing id field in settings row for key '{row.get('key', 'unknown')}'")
 
         return SettingRecord(
             id=int(row["id"]),

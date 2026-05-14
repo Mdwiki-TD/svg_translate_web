@@ -4,10 +4,10 @@ import pytest
 from pymysql.cursors import DictCursor
 
 from src.main_app.config import DbConfig
-from src.main_app.db.db_class import Database
+from src.main_app.db.engine import Database
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_init_basic(mock_pymysql):
     """Test Database initialization with basic credentials."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -25,7 +25,7 @@ def test_Database_init_basic(mock_pymysql):
     assert db.connection is None
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_ensure_connection_new(mock_pymysql):
     """Test Database _ensure_connection when no connection exists."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -40,7 +40,7 @@ def test_Database_ensure_connection_new(mock_pymysql):
         mock_connect.assert_called_once()
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_ensure_connection_ping(mock_pymysql):
     """Test Database _ensure_connection when connection exists."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -58,7 +58,7 @@ def test_Database_ensure_connection_ping(mock_pymysql):
     mock_connection.ping.assert_called_once_with(reconnect=True)
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_close(mock_pymysql):
     """Test Database close method."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -77,7 +77,7 @@ def test_Database_close(mock_pymysql):
     assert db.connection is None
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_context_manager(mock_pymysql):
     """Test Database as context manager."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -96,7 +96,7 @@ def test_Database_context_manager(mock_pymysql):
     mock_connection.close.assert_called_once()
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_execute_query_success(mock_pymysql):
     """Test Database execute_query method with success."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -121,7 +121,7 @@ def test_Database_execute_query_success(mock_pymysql):
     assert result == [{"id": 1, "name": "test"}]
 
 
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_fetch_query_success(mock_pymysql):
     """Test Database fetch_query method with success."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")
@@ -147,7 +147,7 @@ def test_Database_fetch_query_success(mock_pymysql):
 
 
 # @pytest.mark.skip(reason="AssertionError: expected call not found.")
-@patch("src.main_app.db.db_class.pymysql")
+@patch("src.main_app.db.engine.pymysql")
 def test_Database_connect(mock_pymysql):
     """Test Database _connect method."""
     database_config = DbConfig(db_name="testdb", db_host="localhost", db_user="testuser", db_password="testpass")

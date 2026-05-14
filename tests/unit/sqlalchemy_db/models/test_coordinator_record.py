@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.shared.models.users_record import AdminUserRecord
+from src.main_app.sqlalchemy_db.models.users import AdminUserRecord
 
 
 def test_coordinator_record_initialization():

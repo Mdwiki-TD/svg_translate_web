@@ -9,14 +9,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.db.models import TemplateRecord
+from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers.crop_main_files.process_new import (
     CropMainFilesProcessor,
     FileProcessingInfo,
     is_cropped_file_existing,
     process_crops,
 )
-from src.main_app.services.template_service import TemplatesDB
-from src.main_app.shared.models import TemplateRecord
 
 
 @pytest.fixture

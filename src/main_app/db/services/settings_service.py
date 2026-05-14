@@ -4,10 +4,10 @@ import json
 import logging
 from typing import Any
 
-from ..config import settings
-from ..db.db_Settings import SettingsDB
-from ..db.exceptions import InsufficientDatabaseConfigError
-from ..shared.models import SettingRecord
+from ...config import settings
+from ..db_Settings import SettingsDB
+from ..exceptions import InsufficientDatabaseConfigError
+from ..models import SettingRecord
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None
@@ -32,7 +32,7 @@ def get_settings_db() -> SettingsDB:
     return _SETTINGS_STORE
 
 
-def _parse_setting_value(value_type: str, raw_val: str) -> tuple[any, bool]:
+def _parse_setting_value(value_type: str, raw_val: str) -> tuple[Any, bool]:
     """Returns (value, success)"""
     if value_type == "boolean":
         return raw_val == "on", True

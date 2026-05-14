@@ -1,11 +1,3 @@
-# from .user_token_service import (
-#     upsert_user_token,
-#     get_user_token,
-#     delete_user_token,
-#     get_user_token_by_username,
-#     delete_user_token_by_username,
-# )
-
 from .admin_service import (
     active_coordinators,
     add_coordinator,
@@ -22,7 +14,7 @@ from .jobs_service import (
     list_jobs,
     update_job_status,
 )
-from .owid_charts_service import (  # upsert_chart,
+from .owid_charts_service import (
     add_chart,
     delete_chart,
     get_chart_by_id,
@@ -35,16 +27,20 @@ from .settings_service import (
     create_setting,
     delete_setting,
     get_all_settings_raw,
+    list_settings,
     settings_update_form,
     update_setting,
-)
-from .template_need_update_service import (
-    list_templates_need_update,
 )
 from .template_service import (
     get_template,
     get_template_by_title,
     list_templates,
+)
+from .user_token_service import (
+    delete_user_token,
+    get_user_token,
+    get_user_token_by_username,
+    upsert_user_token,
 )
 
 __all__ = [
@@ -53,7 +49,6 @@ __all__ = [
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",
-    "delete_user_token_by_username",
     # admin_service
     "list_coordinators",
     "active_coordinators",
@@ -66,7 +61,6 @@ __all__ = [
     "add_chart",
     "update_chart_data",
     "delete_chart",
-    "upsert_chart",
     "list_charts",
     "list_published_charts",
     # settings_service
@@ -75,13 +69,12 @@ __all__ = [
     "update_setting",
     "create_setting",
     "settings_update_form",
+    "list_settings",
     # template_service
     "get_template",
     "get_template_by_title",
     "list_templates",
-    "upsert_template",
     # template_need_update_service
-    "list_templates_need_update",
     # jobs_service
     "delete_job",
     "create_job",

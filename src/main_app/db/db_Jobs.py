@@ -7,8 +7,8 @@ import logging
 from typing import Any, List
 
 from ..config import DbConfig
-from ..shared.models import JobRecord
-from .db_class import Database
+from .engine import Database
+from .models import JobRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,7 @@ class JobsDB:
         Update job status.
         Raises LookupError if the job doesn't exist or the update fails.
         """
-        query = "UPDATE jobs SET status = running, started_at = NOW()"
+        query = "UPDATE jobs SET status = 'running', started_at = NOW()"
         params = []
         if result_file is not None:
             query += ", result_file = %s"

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers import collect_main_files_worker
-from src.main_app.shared.models import TemplateRecord
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +29,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock.database_data = MagicMock()
     _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.owid_charts_service.settings",
+        "src.main_app.db.services.owid_charts_service.settings",
         _mock,
     )
     return _mock

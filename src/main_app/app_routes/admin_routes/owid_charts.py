@@ -17,8 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...services import owid_charts_service
-from ...shared.models import OwidChartRecord
+from ...db.models import OwidChartRecord
+from ...db.services import owid_charts_service
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,6 @@ def create_json_file() -> Tuple[Any, int]:
                 "has_timeline": chart.has_timeline,
                 "template_id": chart.template_id,
                 "template_title": chart.template_title,
-                "template_source": chart.template_source,
             }
             for chart in charts
         ]

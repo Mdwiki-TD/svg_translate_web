@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..config import settings
-from ..db.db_Templates import TemplatesDB
-from ..db.exceptions import InsufficientDatabaseConfigError
-from ..shared.models import TemplateRecord
-from ..utils.wikitext.titles_utils import match_last_world_year
+from ...config import settings
+from ...utils.wikitext.titles_utils import match_last_world_year
+from ..db_Templates import TemplatesDB
+from ..exceptions import InsufficientDatabaseConfigError
+from ..models import TemplateRecord
 
 logger = logging.getLogger(__name__)
 
@@ -114,5 +114,4 @@ __all__ = [
     "list_templates",
     "delete_template",
     "get_template",
-    "get_templates_db",
 ]

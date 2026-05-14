@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app import create_app
-from src.main_app.shared.models import TemplateRecord
+from src.main_app.db.models import TemplateRecord
 
 
 class FakeTemplatesDB:
@@ -78,7 +78,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
-    monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     store = FakeTemplatesDB()

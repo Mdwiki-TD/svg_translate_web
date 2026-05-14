@@ -6,8 +6,8 @@ from typing import Any, List
 import pymysql
 
 from ..config import DbConfig
-from ..shared.models import TemplateRecord
-from .db_class import Database
+from .engine import Database
+from .models import TemplateRecord
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -204,14 +204,16 @@ class TemplatesDB:
         return self._fetch_by_id(template_id)
 
     def delete(self, template_id: int) -> bool:
-        record = self._fetch_by_id(template_id)
-        if record:
-            self.db.execute_query_safe(
-                "DELETE FROM templates WHERE id = %s",
-                (template_id,),
-            )
-            return True
-        return False
+        try:
+            record = self._fetch_by_id(template_id)
+            if record:
+                self.db.execute_query_safe(
+                    "DELETE FROM templates WHERE id = %s",
+                    (template_id,),
+                )
+                return True
+        except LookupError:
+            return False
 
 
 __all__ = [

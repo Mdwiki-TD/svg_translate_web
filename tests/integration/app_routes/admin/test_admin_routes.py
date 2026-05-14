@@ -11,7 +11,7 @@ from src.main_app import create_app
 # from src.main_app.app_routes.admin.admin_routes import coordinators
 from src.main_app.config import settings
 from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB  # , AdminUserRecord
-from src.main_app.services import admin_service
+from src.main_app.db.services import admin_service
 
 
 class FakeDatabase:
@@ -139,7 +139,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock.database_data = MagicMock()
     _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.admin_service.settings",
+        "src.main_app.db.services.admin_service.settings",
         _mock,
     )
     return _mock
@@ -171,7 +171,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
 
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
-    monkeypatch.setattr("src.main_app.services.admin_service.get_admins_db", lambda: store)
+    monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
 
     app = create_app()
     app.config["TESTING"] = True
