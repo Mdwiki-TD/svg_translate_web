@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
+from ...utils.wikitext.titles_utils import match_last_world_year
 from ..engine import get_session
 from ..models.templates import TemplateRecord
-from ...utils.wikitext.titles_utils import match_last_world_year
 
 logger = logging.getLogger(__name__)
 
