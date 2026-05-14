@@ -6,8 +6,8 @@ import logging
 from typing import List
 
 from ..config import settings
-from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 from ..db import has_db_config
+from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 
 logger = logging.getLogger(__name__)
 

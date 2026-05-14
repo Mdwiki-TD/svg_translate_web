@@ -36,11 +36,11 @@ class SettingRecord:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'id': self.id,
-            'key': self.key,
-            'title': self.title,
-            'value_type': self.value_type,
-            'value': self.value,
+            "id": self.id,
+            "key": self.key,
+            "title": self.title,
+            "value_type": self.value_type,
+            "value": self.value,
         }
 
 

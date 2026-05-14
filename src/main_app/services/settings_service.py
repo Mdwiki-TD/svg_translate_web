@@ -4,10 +4,10 @@ import json
 import logging
 from typing import Any
 
-from ..shared.models import SettingRecord
 from ..config import settings
 from ..db import has_db_config
 from ..db.db_Settings import SettingsDB
+from ..shared.models import SettingRecord
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None
