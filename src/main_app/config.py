@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+# --- Data Classes for Configuration Sections ---
 
 
 @dataclass(frozen=True)
@@ -46,10 +50,21 @@ class CookieConfig:
 
 
 @dataclass(frozen=True)
+class SessionConfig:
+    """Keys used for storing data in Flask session."""
+
+    state_key: str
+    request_token_key: str
+
+
+@dataclass(frozen=True)
 class OAuthConfig:
+    """MediaWiki OAuth specific configuration."""
+
     mw_uri: str
     consumer_key: str
     consumer_secret: str
+    encryption_key: Optional[str]
     user_agent: str
     upload_host: str
 
@@ -336,4 +351,17 @@ def get_settings() -> Settings:
     )
 
 
+# Singleton settings instance
 settings = get_settings()
+
+
+class DevelopmentConfig:
+    ...
+
+
+class TestingConfig:
+    ...
+
+
+class ProductionConfig:
+    ...
