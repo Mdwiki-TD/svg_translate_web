@@ -67,14 +67,10 @@ def _update_status(job_id: int, status: str, result_file: str, job_type: str) ->
     Update job status and result file.
     """
     with get_session() as session:
-        job = (
-            session.query(JobRecord)
-            .filter(
-                JobRecord.id == job_id,
-                JobRecord.job_type == job_type,
-            )
-            .first()
-        )
+        query = session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        job = query.first()
 
         if job:
             job.status = status
@@ -121,7 +117,7 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     with get_session() as session:
         query = session.query(JobRecord)
         if job_type:
-            query.filter(JobRecord.job_type == job_type)
+            query = query.filter(JobRecord.job_type == job_type)
         return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
 
@@ -155,14 +151,10 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
         return rowcount > 0
     """
     with get_session() as session:
-        job = (
-            session.query(JobRecord)
-            .filter(
-                JobRecord.id == job_id,
-                JobRecord.job_type == job_type,
-            )
-            .first()
-        )
+        query = session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        job = query.first()
 
         if job:
             job.status = "cancelled"
