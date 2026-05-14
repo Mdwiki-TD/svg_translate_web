@@ -9,7 +9,7 @@ from ..db.services import (
     owid_charts_service,
     template_service,
 )
-from ..sqlalchemy_db.services import list_templates_need_update
+from ..db.services import list_templates_need_update
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from src.main_app.sqlalchemy_db.models.templates import TemplateRecord
+import pytest
+
+from src.main_app.db.models.templates import TemplateRecord
+from src.main_app.utils.wikitext.titles_utils import match_last_world_year
 
 
 def test_template_record_initialization():
@@ -54,7 +57,7 @@ def test_template_record_slug_generation():
     )
 
     # Slug should be generated from source
-    assert rec.to_dict()["slug"] == "health-expenditure"
+    assert rec.slug == "health-expenditure"
 
 
 def test_template_record_slug_generation_with_query_params():
@@ -68,7 +71,7 @@ def test_template_record_slug_generation_with_query_params():
     )
 
     # Slug should exclude query parameters
-    assert rec.to_dict()["slug"] == "health-expenditure"
+    assert rec.slug == "health-expenditure"
 
 
 def test_template_record_no_slug_generation():
@@ -106,7 +109,7 @@ def test_template_record_last_world_year_from_cropped_file():
     )
 
     # Year should be extracted from filename
-    assert rec.to_dict()["last_world_year"] == 2022
+    assert rec.last_world_year == 2022
 
 
 def test_template_record_last_world_year_from_file():
@@ -119,7 +122,7 @@ def test_template_record_last_world_year_from_file():
     )
 
     # Year should be extracted from filename
-    assert rec.to_dict()["last_world_year"] == 2022
+    assert rec.last_world_year == 2022
 
 
 def test_template_record_last_world_year_none():

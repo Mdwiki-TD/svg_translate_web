@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from ...config import settings
 from ...core.crypto import encrypt_value
-from ...sqlalchemy_db.decode_bytes import coerce_bytes
+from ...su_services.decode_bytes import coerce_bytes
 from ..engine import Database
 from ..exceptions import InsufficientDatabaseConfigError
 from ..models.users import UserTokenRecord

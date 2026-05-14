@@ -20,7 +20,6 @@ from .app_routes import (
 )
 from .config import settings
 from .core.cookies import CookieHeaderClient
-from .sqlalchemy_db.engine import build_db_url, init_db
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -126,12 +125,7 @@ def create_app() -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    if settings.database_data.db_host or settings.database_data.db_user:
-        try:
-            db_url = build_db_url(settings.database_data.to_dict())
-            init_db(db_url, create_tables=False)
-        except Exception:
-            logger.exception("Failed to initialize SQLAlchemy")
+    # if settings.database_data.db_host or settings.database_data.db_user:
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
