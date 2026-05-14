@@ -4,12 +4,9 @@ from .db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
 from .db_OwidCharts import OwidChartsDB
 from .db_Settings import SettingsDB
 from .db_Templates import TemplatesDB
-from .svg_db import fetch_query_safe, get_db
 
 __all__ = [
     "Database",
-    "fetch_query_safe",
-    "get_db",
     "AdminUserRecord",
     "CoordinatorsDB",
     "OwidChartRecord",
