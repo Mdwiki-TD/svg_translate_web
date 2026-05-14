@@ -41,7 +41,10 @@ class SettingsDB:
         return [self._row_to_record(row) for row in rows]
 
     def _is_key_exist(self, key: str) -> None | SettingRecord:
-        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
+        rows = self.db.fetch_query_safe(
+            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s",
+            (key),
+        )
         if not rows:
             return None
         return True
