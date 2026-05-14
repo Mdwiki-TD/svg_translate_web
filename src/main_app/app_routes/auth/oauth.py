@@ -31,7 +31,7 @@ def get_handshaker():
     return mwoauth.Handshaker(
         settings.oauth.mw_uri,
         consumer_token=consumer_token,
-        user_agent=settings.oauth.user_agent,
+        user_agent=settings.user_agent,
     )
 
 
