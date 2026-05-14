@@ -103,12 +103,10 @@ class TestUserTokenRecord:
 class TestUpsertUserToken:
     """Tests for upsert_user_token function."""
 
-    @patch("src.main_app.services.user_token_service._current_ts")
     @patch("src.main_app.services.user_token_service.encrypt_value")
     @patch("src.main_app.services.user_token_service.get_db")
-    def test_upsert_new_token(self, mock_get_db, mock_encrypt, mock_current_ts):
+    def test_upsert_new_token(self, mock_get_db, mock_encrypt):
         """Test upsert_user_token inserts new token."""
-        mock_current_ts.return_value = "2024-01-15 10:30:45"
         mock_encrypt.side_effect = [b"encrypted_key", b"encrypted_secret"]
         mock_db = MagicMock()
         mock_get_db.return_value = mock_db
@@ -128,12 +126,10 @@ class TestUpsertUserToken:
         call_args = mock_db.execute_query_safe.call_args
         assert "ON DUPLICATE KEY UPDATE" in call_args[0][0]
 
-    @patch("src.main_app.services.user_token_service._current_ts")
     @patch("src.main_app.services.user_token_service.encrypt_value")
     @patch("src.main_app.services.user_token_service.get_db")
-    def test_upsert_updates_existing(self, mock_get_db, mock_encrypt, mock_current_ts):
+    def test_upsert_updates_existing(self, mock_get_db, mock_encrypt):
         """Test upsert_user_token updates existing token."""
-        mock_current_ts.return_value = "2024-01-15 10:30:45"
         mock_encrypt.side_effect = [b"new_encrypted_key", b"new_encrypted_secret"]
         mock_db = MagicMock()
         mock_get_db.return_value = mock_db
