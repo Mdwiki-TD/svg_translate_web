@@ -10,8 +10,9 @@ from flask import g, redirect, request, session, url_for
 
 from ..app_routes.auth.cookie import extract_user_id
 from ..config import settings
-from ..db.services.admin_service import active_coordinators
-from ..db.services.user_token_service import UserTokenRecord, get_user_token
+from ..db.services import active_coordinators
+from ..db.services import get_user_token
+from ..db.models import UserTokenRecord
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -54,7 +55,7 @@ def current_user() -> Optional[UserTokenRecord]:
     return user
 
 
-def oauth_required(func: F) -> F:
+def oauth_required(func: F) -> F:  # noqa: UP047
     """Decorator that requires a full OAuth credential bundle."""
 
     @wraps(func)

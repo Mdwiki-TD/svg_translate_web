@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.main_app.su_services.decode_bytes import coerce_bytes
+from src.main_app.shared.decode_bytes import coerce_bytes
 
 
 class TestCoerceBytes:
