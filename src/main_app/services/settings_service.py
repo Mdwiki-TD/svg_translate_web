@@ -4,10 +4,9 @@ import json
 import logging
 from typing import Any
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from ..db.db_Settings import SettingsDB
+from ..db.exceptions import InsufficientDatabaseConfigError
 from ..shared.models import SettingRecord
 
 logger = logging.getLogger(__name__)

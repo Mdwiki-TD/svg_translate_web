@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import logging
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from ..db.db_Jobs import JobRecord, JobsDB
+from ..db.exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
 

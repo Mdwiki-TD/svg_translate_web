@@ -5,10 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import DbConfig, settings
 from ..db import Database
+from ..db.exceptions import InsufficientDatabaseConfigError
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models import TemplateNeedUpdateRecord
 

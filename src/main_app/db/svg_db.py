@@ -5,10 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from .exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from .db_class import Database
+from .exceptions import InsufficientDatabaseConfigError
 
 _db: Database | None = None
 

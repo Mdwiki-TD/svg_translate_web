@@ -5,10 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from ..db.db_Templates import TemplatesDB
+from ..db.exceptions import InsufficientDatabaseConfigError
 from ..shared.models import TemplateRecord
 from ..utils.wikitext.titles_utils import match_last_world_year
 

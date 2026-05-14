@@ -5,10 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..db.exceptions import InsufficientDatabaseConfigError
-
 from ..config import settings
 from ..db.db_OwidCharts import OwidChartsDB
+from ..db.exceptions import InsufficientDatabaseConfigError
 from ..shared.models import OwidChartRecord
 
 logger = logging.getLogger(__name__)
