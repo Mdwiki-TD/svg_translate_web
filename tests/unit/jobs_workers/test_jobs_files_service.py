@@ -21,12 +21,10 @@ from src.main_app.su_services.jobs_files_service import (
 
 
 @pytest.fixture(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+def mock_settings_j(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    _mock.database_data = MagicMock()
-    _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.jobs_service.settings",
+        "src.main_app.services.jobs_service.get_jobs_db",
         _mock,
     )
     return _mock
