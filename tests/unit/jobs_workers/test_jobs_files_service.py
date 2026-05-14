@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -17,6 +18,18 @@ from src.main_app.su_services.jobs_files_service import (
     save_job_result,
     save_job_result_by_name,
 )
+
+
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.jobs_service.settings",
+        _mock,
+    )
+    return _mock
 
 
 def test_save_job_result(tmp_path, monkeypatch):
