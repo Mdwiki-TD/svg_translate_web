@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from ..engine import get_session
 from ..models.owid_charts import OwidChartRecord
-from ..models.views import OwidChartTemplateRecord
+# from ..models.views import OwidChartTemplateRecord
 
 logger = logging.getLogger(__name__)
 
