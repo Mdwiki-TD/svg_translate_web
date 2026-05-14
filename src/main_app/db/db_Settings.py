@@ -81,6 +81,9 @@ class SettingsDB:
                     key: The setting key to update.
                     value: The new value.
         """
+        if not self.get_by_key(key):
+            return False
+
         query = "UPDATE settings SET value = %s WHERE key = %s"
         params = (value, key)
 

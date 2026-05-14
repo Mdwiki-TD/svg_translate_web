@@ -248,7 +248,7 @@ def test_create_setting_success(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.create("new_key", "New Setting", "boolean", "true")
+    result = settings_db.create(key="new_key", title="New Setting", value_type="boolean", value="true")
 
     assert result is True
     mock_db.execute_query_safe.assert_any_call(
@@ -266,7 +266,7 @@ def test_create_setting_failure(mock_database_class, db_config):
     settings_db = SettingsDB(db_config)
     # Now set the side_effect for the create operation
     mock_db.execute_query_safe.side_effect = Exception("DB Error")
-    result = settings_db.create("new_key", "New Setting", "string", "value")
+    result = settings_db.create(key="new_key", title="New Setting", value_type="string", value="value")
 
     assert result is False
 
@@ -279,8 +279,8 @@ def test_create_setting_serialize_boolean(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create("bool_key", "Bool Setting", "boolean", True)
-    settings_db.create("bool_key2", "Bool Setting 2", "boolean", False)
+    settings_db.create(key="bool_key", title="Bool Setting", value_type="boolean", value="true")
+    settings_db.create(key="bool_key2", title="Bool Setting 2", value_type="boolean", value="false")
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE from __init__
@@ -297,7 +297,7 @@ def test_create_setting_serialize_integer(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create("int_key", "Int Setting", "integer", 42)
+    settings_db.create(key="int_key", title="Int Setting", value_type="integer", value="42")
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT
@@ -312,7 +312,8 @@ def test_create_setting_serialize_json(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create("json_key", "JSON Setting", "json", {"key": "value"})
+
+    settings_db.create(key="json_key", title="JSON Setting", value_type="json", value='{"key": "value"}')
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT
@@ -401,11 +402,11 @@ class TestUpdate:
     def test_update_setting_without_value_type_queries_db(self, mock_database_class, db_config):
         """Test update_setting performs SELECT when value_type is not provided."""
         mock_db = MagicMock()
-        mock_db.fetch_query_safe.return_value = [{"value_type": "integer"}]
+        mock_db.fetch_query_safe.return_value = [{"id": 0, "value_type": "integer", "value": "0"}]
         mock_database_class.return_value = mock_db
 
         settings_db = SettingsDB(db_config)
-        result = settings_db.update("key", 42)
+        result = settings_db.update(key="key", value="42")
 
         assert result is True
         # Should have SELECT call to get value_type
