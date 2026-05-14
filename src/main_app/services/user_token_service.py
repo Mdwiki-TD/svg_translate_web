@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import logging
 from typing import Any, Dict, Optional
+from ..config import settings
 
 from ..core.crypto import encrypt_value
 from ..db import get_db, has_db_config
@@ -12,6 +13,29 @@ from ..db.sql_schema_tables import sql_tables
 from ..shared.models.users_record import UserTokenRecord
 
 logger = logging.getLogger(__name__)
+
+_USERTOKEN_STORE: CoordinatorsDB | None = None
+
+
+def get_admins_db() -> CoordinatorsDB:
+    """
+    Return the singleton user_token_service database store, initializing it on first access.
+    """
+    global _USERTOKEN_STORE
+
+    if _USERTOKEN_STORE is None:
+        if not has_db_config():
+            raise RuntimeError(
+                "user_token_service requires database configuration; no fallback store is available."
+            )
+
+        try:
+            _USERTOKEN_STORE = CoordinatorsDB(settings.database_data)
+        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
+            logger.exception("Failed to initialize MySQL coordinator store")
+            raise RuntimeError("Unable to initialize coordinator store") from exc
+
+    return _USERTOKEN_STORE
 
 
 def _current_ts() -> str:

@@ -21,7 +21,6 @@ from .app_routes import (
 from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
-from .services.user_token_service import ensure_user_token_table
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -127,8 +126,7 @@ def create_app() -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    if settings.database_data.db_host or settings.database_data.db_user:
-        ensure_user_token_table()
+    # if settings.database_data.db_host or settings.database_data.db_user: ensure_user_token_table()
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:

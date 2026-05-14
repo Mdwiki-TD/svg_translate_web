@@ -9,7 +9,6 @@ from src.main_app.services.user_token_service import (
     _coerce_bytes,
     _current_ts,
     delete_user_token,
-    ensure_user_token_table,
     get_user_token,
     mark_token_used,
     upsert_user_token,
@@ -158,35 +157,6 @@ class TestUserTokenRecord:
         assert secret == "decrypted_secret"
         mock_decrypt.assert_any_call(b"encrypted_token")
         mock_decrypt.assert_any_call(b"encrypted_secret")
-
-
-class TestEnsureUserTokenTable:
-    """Tests for ensure_user_token_table function."""
-
-    @patch("src.main_app.services.user_token_service.has_db_config")
-    def test_ensure_table_no_config(self, mock_has_config):
-        """Test ensure_user_token_table returns early if no DB config."""
-        mock_has_config.return_value = False
-
-        with patch("src.main_app.services.user_token_service.get_db") as mock_get_db:
-            ensure_user_token_table()
-            mock_get_db.assert_not_called()
-
-    @patch("src.main_app.services.user_token_service.get_db")
-    @patch("src.main_app.services.user_token_service.has_db_config")
-    def test_ensure_table_creates_table(self, mock_has_config, mock_get_db):
-        """Test ensure_user_token_table creates table and index."""
-        mock_has_config.return_value = True
-        mock_db = MagicMock()
-        mock_db.fetch_query_safe.return_value = []  # No existing index
-        mock_get_db.return_value = mock_db
-
-        ensure_user_token_table()
-
-        # Should execute table creation
-        mock_db.execute_query_safe.assert_called()
-        calls = mock_db.execute_query_safe.call_args_list
-        assert any("CREATE TABLE IF NOT EXISTS user_tokens" in str(call) for call in calls)
 
 
 class TestUpsertUserToken:
