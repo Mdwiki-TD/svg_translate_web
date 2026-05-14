@@ -5,9 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from ..db.exceptions import InsufficientDatabaseConfigError
+
 from ..config import settings
 from ..core.crypto import encrypt_value
 from ..db.sql_schema_tables import sql_tables
+from ..db.db_class import Database
 from ..shared.models.users_record import UserTokenRecord
 from ..sqlalchemy_db.decode_bytes import coerce_bytes
 
