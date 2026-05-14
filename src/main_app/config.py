@@ -94,6 +94,7 @@ class DynamicSettingsStore:
 @dataclass(frozen=True)
 class Settings:
     is_localhost: callable
+    has_db_config: callable
     database_data: DbConfig
     STATE_SESSION_KEY: str
     REQUEST_TOKEN_SESSION_KEY: str
@@ -223,6 +224,19 @@ def is_localhost(host: str) -> bool:
     return any(x in host for x in local_hosts)
 
 
+def has_db_config(db_settings) -> bool:
+    """
+    Return whether the application has database connection settings configured.
+
+    Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
+
+    Returns:
+        `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
+    """
+
+    return bool(db_settings.db_host or db_settings.db_user)
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """
@@ -294,11 +308,12 @@ def get_settings() -> Settings:
         max_form_parts=max_form_parts,
         secret_key_fallbacks=secret_key_fallbacks,
     )
-
+    database_data = _load_db_data_new()
     return Settings(
         is_localhost=is_localhost,
+        has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
-        database_data=_load_db_data_new(),
+        database_data=database_data,
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
@@ -309,7 +324,7 @@ def get_settings() -> Settings:
         download=DownloadConfig(dev_limit=dev_download_limit),
         security=security,
         csrf_time_limit=csrf_time_limit,
-        dynamic=DynamicSettingsStore(_load_db_data_new()),
+        dynamic=DynamicSettingsStore(database_data),
     )
 
 

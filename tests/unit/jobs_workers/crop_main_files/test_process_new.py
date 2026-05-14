@@ -31,7 +31,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.jobs_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.crop_main_files.process_new.jobs_files_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(

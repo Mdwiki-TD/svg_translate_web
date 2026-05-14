@@ -159,19 +159,22 @@ def _update_chart() -> ResponseReturnValue:
     has_timeline = request.form.get("has_timeline") == "1"
 
     save_error = None
+    chart_data = {
+        "slug": slug,
+        "title": title,
+        "has_map_tab": has_map_tab,
+        "max_time": max_time,
+        "min_time": min_time,
+        "default_tab": default_tab,
+        "is_published": is_published,
+        "single_year_data": single_year_data,
+        "len_years": len_years,
+        "has_timeline": has_timeline,
+    }
     try:
-        record = owid_charts_service.update_chart(
+        record = owid_charts_service.update_chart_data(
             chart_id=chart_id,
-            slug=slug,
-            title=title,
-            has_map_tab=has_map_tab,
-            max_time=max_time,
-            min_time=min_time,
-            default_tab=default_tab or None,
-            is_published=is_published,
-            single_year_data=single_year_data,
-            len_years=len_years,
-            has_timeline=has_timeline,
+            chart_data=chart_data,
         )
     except LookupError as exc:
         logger.exception("Unable to update chart.")
@@ -219,7 +222,7 @@ def _delete_chart(chart_id: int) -> ResponseReturnValue:
 def _edit_chart(chart_id: int) -> ResponseReturnValue:
     """Render the edit chart popup page."""
     try:
-        chart = owid_charts_service.get_chart(chart_id)
+        chart = owid_charts_service.get_chart_by_id(chart_id)
     except LookupError:
         return render_template(
             "admins/owid_charts/edit.html",
@@ -254,7 +257,7 @@ class OwidCharts:
 
         @bp_admin.post("/owid-charts/update")
         @admin_required
-        def update_chart() -> ResponseReturnValue:
+        def update_chart_data() -> ResponseReturnValue:
             chart_id = request.form.get("chart_id", default=0, type=int)
             from_popup = request.form.get("from_popup") == "1"
 

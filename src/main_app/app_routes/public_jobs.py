@@ -24,9 +24,16 @@ from ..config import settings
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
 from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
-from ..services import jobs_service
+from ..services import (
+    delete_job,
+    get_job,
+    list_jobs,
+)
 from ..services.admin_service import active_coordinators
-from ..services.users_service import current_user
+from ..su_services import (
+    load_job_result,
+)
+from ..su_services.users_service import current_user
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
 
@@ -69,7 +76,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         if jobs_worker.cancel_job(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
-        jobs_service.delete_job(job_id, job_type)
+        delete_job(job_id, job_type)
         flash(f"Job {job_id} deleted successfully.", "success")
     except Exception as exc:
         logger.exception("Failed to delete job")
@@ -128,7 +135,7 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+    jobs = list_jobs(limit=100, job_type=job_type)
 
     # sort jobs by created_at key
     if jobs:
@@ -149,7 +156,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
-        job = jobs_service.get_job(job_id, job_type)
+        job = get_job(job_id, job_type)
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
@@ -158,7 +165,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     # Load job result if available
     result_data = None
     if job.result_file:
-        result_data = jobs_service.load_job_result(job.result_file)
+        result_data = load_job_result(job.result_file)
 
     template = JOB_TYPE_TEMPLATES_PUBLIC.get(job_type)
     if not template:
@@ -191,7 +198,7 @@ class JobsPublicRoutes:
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
             try:
-                job = jobs_service.get_job(job_id, job_type)
+                job = get_job(job_id, job_type)
             except LookupError:
                 flash("Job not found.", "warning")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
@@ -322,7 +329,7 @@ class JobsPublicRoutes:
         # @login_required
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
-            result_data = jobs_service.load_job_result(result_file)
+            result_data = load_job_result(result_file)
             return jsonify(result_data)
 
 

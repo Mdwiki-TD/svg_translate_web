@@ -1,6 +1,5 @@
-from . import logger_config, svg_config
+from . import logger_config
 
 __all__ = [
-    "svg_config",
     "logger_config",
 ]

@@ -25,6 +25,7 @@ from ...shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
+from ...su_services import jobs_files_service
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class FixNestedJobsProcessor:
 
     def _save_progress(self) -> None:
         try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
+            jobs_files_service.save_job_result_by_name(self.result_file, self.result)
         except Exception:
             logger.exception(f"Job {self.task_id}: Failed to save progress")
 

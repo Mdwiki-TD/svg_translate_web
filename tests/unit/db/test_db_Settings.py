@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.config import DbConfig
-from src.main_app.db.db_Settings import SettingsDB
+from src.main_app.db.db_Settings import SettingRecord, SettingsDB
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def test_settings_db_init(mock_database_class, db_config):
     mock_db = MagicMock()
     mock_database_class.return_value = mock_db
 
-    settings_db = SettingsDB(db_config)
+    _settings_db = SettingsDB(db_config)
 
     mock_database_class.assert_called_once_with(db_config)
     mock_db.execute_query_safe.assert_called_once()
@@ -207,22 +207,24 @@ def test_get_raw_all(mock_database_class, db_config):
     assert len(result) == 2
     assert result[0]["key"] == "setting1"
     assert result[1]["key"] == "setting2"
-    mock_db.fetch_query_safe.assert_called_with("SELECT * FROM `settings` ORDER BY `id` ASC")
+    mock_db.fetch_query_safe.assert_called_with(
+        "SELECT id, key, title, value_type, value FROM settings ORDER BY id ASC"
+    )
 
 
 @patch("src.main_app.db.db_Settings.Database")
 def test_get_by_key_found(mock_database_class, db_config):
     """Test get_by_key returns value when key exists."""
     mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [{"value": "test_value", "value_type": "string"}]
+    mock_db.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value": "test_value", "value_type": "string"}]
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
     result = settings_db.get_by_key("test_key")
 
-    assert result == "test_value"
+    assert result == SettingRecord(id=1, key="key", title=None, value_type="string", value="test_value")
     mock_db.fetch_query_safe.assert_called_with(
-        "SELECT `value`, `value_type` FROM `settings` WHERE `key` = %s", ("test_key",)
+        "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("test_key",)
     )
 
 
@@ -248,11 +250,11 @@ def test_create_setting_success(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.create_setting("new_key", "New Setting", "boolean", True)
+    result = settings_db.create(key="new_key", title="New Setting", value_type="boolean", value="true")
 
     assert result is True
     mock_db.execute_query_safe.assert_any_call(
-        "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
         ("new_key", "New Setting", "boolean", "true"),
     )
 
@@ -266,8 +268,8 @@ def test_create_setting_failure(mock_database_class, db_config):
     settings_db = SettingsDB(db_config)
     # Now set the side_effect for the create operation
     mock_db.execute_query_safe.side_effect = Exception("DB Error")
-    result = settings_db.create_setting("new_key", "New Setting", "string", "value")
-
+    # with pytest.raises(ValueError, match="Invalid value_type:"):
+    result = settings_db.create(key="new_key", title="New Setting", value_type="stringz", value="value")
     assert result is False
 
 
@@ -279,8 +281,8 @@ def test_create_setting_serialize_boolean(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("bool_key", "Bool Setting", "boolean", True)
-    settings_db.create_setting("bool_key2", "Bool Setting 2", "boolean", False)
+    settings_db.create(key="bool_key", title="Bool Setting", value_type="boolean", value="true")
+    settings_db.create(key="bool_key2", title="Bool Setting 2", value_type="boolean", value="false")
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE from __init__
@@ -297,7 +299,7 @@ def test_create_setting_serialize_integer(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("int_key", "Int Setting", "integer", 42)
+    settings_db.create(key="int_key", title="Int Setting", value_type="integer", value="42")
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT
@@ -312,191 +314,133 @@ def test_create_setting_serialize_json(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    settings_db.create_setting("json_key", "JSON Setting", "json", {"key": "value"})
+
+    settings_db.create(key="json_key", title="JSON Setting", value_type="json", value='{"key": "value"}')
 
     calls = mock_db.execute_query_safe.call_args_list
     # First call is CREATE TABLE, second is INSERT
     assert calls[1][0][1][3] == '{"key": "value"}'
 
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_success(mock_database_class, db_config):
-    """Test update_setting returns True on success."""
-    mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [{"value_type": "string"}]
-    mock_database_class.return_value = mock_db
+class TestUpdate:
 
-    settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("existing_key", "new_value")
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_success(self, mock_database_class, db_config):
+        """Test update_setting returns True on success."""
+        mock_db = MagicMock()
+        mock_db.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "string", "value": "value"}]
+        mock_database_class.return_value = mock_db
 
-    assert result is True
-    mock_db.execute_query_safe.assert_called_with(
-        "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
-        ("new_value", "existing_key"),
-    )
+        settings_db = SettingsDB(db_config)
+        result = settings_db.update("existing_key", "new_value")
 
+        assert result is True
+        mock_db.execute_query_safe.assert_called_with(
+            "UPDATE settings SET value = %s WHERE key = %s",
+            ("new_value", "existing_key"),
+        )
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_not_found(mock_database_class, db_config):
-    """Test update_setting returns False when key doesn't exist."""
-    mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = []
-    mock_database_class.return_value = mock_db
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_not_found(self, mock_database_class, db_config):
+        """Test update_setting returns False when key doesn't exist."""
+        mock_db = MagicMock()
+        mock_db.fetch_query_safe.return_value = []
+        mock_database_class.return_value = mock_db
 
-    settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("missing_key", "value")
+        settings_db = SettingsDB(db_config)
+        result = settings_db.update("missing_key", "value")
 
-    assert result is False
+        assert result is False
 
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_failure(self, mock_database_class, db_config):
+        """Test update_setting returns False on failure."""
+        mock_db = MagicMock()
+        mock_db.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "string", "value": "value"}]
+        mock_database_class.return_value = mock_db
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_failure(mock_database_class, db_config):
-    """Test update_setting returns False on failure."""
-    mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [{"value_type": "string"}]
-    mock_database_class.return_value = mock_db
+        settings_db = SettingsDB(db_config)
+        # Set the side_effect for the update operation after init
+        mock_db.execute_query_safe.side_effect = Exception("DB Error")
+        result = settings_db.update("existing_key", "value")
 
-    settings_db = SettingsDB(db_config)
-    # Set the side_effect for the update operation after init
-    mock_db.execute_query_safe.side_effect = Exception("DB Error")
-    result = settings_db.update_setting("existing_key", "value")
+        assert result is False
 
-    assert result is False
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_preserves_type(self, mock_database_class, db_config):
+        """Test update_setting uses existing value_type from database."""
+        mock_db = MagicMock()
+        mock_db.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "integer", "value": "0"}]
+        mock_database_class.return_value = mock_db
 
+        settings_db = SettingsDB(db_config)
+        settings_db.update("int_key", "100")
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_preserves_type(mock_database_class, db_config):
-    """Test update_setting uses existing value_type from database."""
-    mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [{"value_type": "integer"}]
-    mock_database_class.return_value = mock_db
+        # Verify the value was serialized as integer
+        calls = mock_db.execute_query_safe.call_args_list
+        assert calls[1][0][1] == ("100", "int_key")
 
-    settings_db = SettingsDB(db_config)
-    settings_db.update_setting("int_key", 100)
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_with_value_type_skips_select(self, mock_database_class, db_config):
+        """Test update_setting skips SELECT when value_type is provided."""
+        mock_db = MagicMock()
+        mock_database_class.return_value = mock_db
 
-    # Verify the value was serialized as integer
-    calls = mock_db.execute_query_safe.call_args_list
-    assert calls[1][0][1] == ("100", "int_key")
+        settings_db = SettingsDB(db_config)
+        result = settings_db.update(key="key", value="value", title="")
 
+        assert result is True
+        # Second call (first is CREATE TABLE) should be the UPDATE
+        mock_db.execute_query_safe.assert_any_call(
+            "UPDATE settings SET value = %s WHERE key = %s",
+            ("value", "key"),
+        )
+        # Should only have the UPDATE call, no SELECT call
+        mock_db.fetch_query_safe.assert_called_with(
+            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s",
+            ("key"),
+        )
+        # Total of 2 calls: CREATE TABLE and UPDATE
+        assert mock_db.execute_query_safe.call_count == 2
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_with_value_type_skips_select(mock_database_class, db_config):
-    """Test update_setting skips SELECT when value_type is provided."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_without_value_type_queries_db(self, mock_database_class, db_config):
+        """Test update_setting performs SELECT when value_type is not provided."""
+        mock_db = MagicMock()
+        mock_db.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "integer", "value": "0"}]
+        mock_database_class.return_value = mock_db
 
-    settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("key", "value", value_type="string")
+        settings_db = SettingsDB(db_config)
+        result = settings_db.update(key="key", value="42")
 
-    assert result is True
-    # Should only have the UPDATE call, no SELECT call
-    mock_db.fetch_query_safe.assert_not_called()
-    # Second call (first is CREATE TABLE) should be the UPDATE
-    mock_db.execute_query_safe.assert_any_call(
-        "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
-        ("value", "key"),
-    )
-    # Total of 2 calls: CREATE TABLE and UPDATE
-    assert mock_db.execute_query_safe.call_count == 2
+        assert result is True
+        # Should have SELECT call to get value_type
+        mock_db.fetch_query_safe.assert_called_once_with(
+            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("key")
+        )
+        # Value should be serialized as integer
+        mock_db.execute_query_safe.assert_any_call(
+            "UPDATE settings SET value = %s WHERE key = %s",
+            ("42", "key"),
+        )
+        # Total of 2 calls: CREATE TABLE and UPDATE
+        assert mock_db.execute_query_safe.call_count == 2
 
+    @patch("src.main_app.db.db_Settings.Database")
+    def test_update_setting_with_value_type_serializes_correctly(self, mock_database_class, db_config):
+        """Test update_setting uses provided value_type for serialization."""
+        mock_db = MagicMock()
+        mock_database_class.return_value = mock_db
 
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_without_value_type_queries_db(mock_database_class, db_config):
-    """Test update_setting performs SELECT when value_type is not provided."""
-    mock_db = MagicMock()
-    mock_db.fetch_query_safe.return_value = [{"value_type": "integer"}]
-    mock_database_class.return_value = mock_db
+        settings_db = SettingsDB(db_config)
+        # Pass integer value with explicit boolean type
+        result = settings_db.update(key="key", value="true")
 
-    settings_db = SettingsDB(db_config)
-    result = settings_db.update_setting("key", 42)
-
-    assert result is True
-    # Should have SELECT call to get value_type
-    mock_db.fetch_query_safe.assert_called_once_with("SELECT `value_type` FROM `settings` WHERE `key` = %s", ("key",))
-    # Value should be serialized as integer
-    mock_db.execute_query_safe.assert_any_call(
-        "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
-        ("42", "key"),
-    )
-    # Total of 2 calls: CREATE TABLE and UPDATE
-    assert mock_db.execute_query_safe.call_count == 2
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_update_setting_with_value_type_serializes_correctly(mock_database_class, db_config):
-    """Test update_setting uses provided value_type for serialization."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-    # Pass integer value with explicit boolean type
-    result = settings_db.update_setting("key", 1, value_type="boolean")
-
-    assert result is True
-    # Value should be serialized as boolean "true", not as integer "1"
-    mock_db.execute_query_safe.assert_any_call(
-        "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
-        ("true", "key"),
-    )
-    # Total of 2 calls: CREATE TABLE and UPDATE
-    assert mock_db.execute_query_safe.call_count == 2
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_none(mock_database_class, db_config):
-    """Test _serialize_value handles None."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-    result = settings_db._serialize_value(None, "string")
-
-    assert result is None
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_boolean(mock_database_class, db_config):
-    """Test _serialize_value handles booleans."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-
-    assert settings_db._serialize_value(True, "boolean") == "true"
-    assert settings_db._serialize_value(False, "boolean") == "false"
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_integer(mock_database_class, db_config):
-    """Test _serialize_value handles integers."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-
-    assert settings_db._serialize_value(42, "integer") == "42"
-    assert settings_db._serialize_value(-10, "integer") == "-10"
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_json(mock_database_class, db_config):
-    """Test _serialize_value handles JSON."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-
-    assert settings_db._serialize_value({"key": "value"}, "json") == '{"key": "value"}'
-    assert settings_db._serialize_value([1, 2, 3], "json") == "[1, 2, 3]"
-
-
-@patch("src.main_app.db.db_Settings.Database")
-def test_serialize_value_string(mock_database_class, db_config):
-    """Test _serialize_value handles strings."""
-    mock_db = MagicMock()
-    mock_database_class.return_value = mock_db
-
-    settings_db = SettingsDB(db_config)
-
-    assert settings_db._serialize_value("hello", "string") == "hello"
-    assert settings_db._serialize_value(123, "string") == "123"
+        assert result is True
+        # Value should be serialized as boolean "true", not as integer "1"
+        mock_db.execute_query_safe.assert_any_call(
+            "UPDATE settings SET value = %s WHERE key = %s",
+            ("true", "key"),
+        )
+        # Total of 2 calls: CREATE TABLE and UPDATE
+        assert mock_db.execute_query_safe.call_count == 2

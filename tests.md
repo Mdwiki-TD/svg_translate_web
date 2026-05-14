@@ -91,7 +91,7 @@ tests/
 │   │   │   ├── test_db_tasks_list_db.py     # TasksListDB
 │   │   │   ├── test_task_store_pymysql.py   # TaskStorePyMysql
 │   │   │   ├── test_fix_nested_task_store.py # FixNestedTaskStore
-│   │   │   ├── test_db_coordinators_db.py   # CoordinatorsDB, CoordinatorRecord
+│   │   │   ├── test_db_coordinators_db.py   # CoordinatorsDB, AdminUserRecord
 │   │   │   ├── test_db_jobs.py              # JobsDB, JobRecord
 │   │   │   ├── test_db_owid_charts.py       # OwidChartsDB, OwidChartRecord
 │   │   │   ├── test_db_settings.py          # SettingsDB

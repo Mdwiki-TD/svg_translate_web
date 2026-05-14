@@ -1,5 +1,5 @@
 from src.main_app import create_app
-from src.main_app.db import user_tokens as user_store
+from src.main_app.services import user_token_service as user_store
 
 
 class FakeCursor:
@@ -7,7 +7,7 @@ class FakeCursor:
         self.description = None
         self.rowcount = 0
 
-    def execute(self, sql: str, params=None) -> None:  # noqa: ANN001 - test helper signature
+    def execute(self, sql: str, params=None) -> None:
         statement = sql.strip().upper()
         if statement.startswith("SELECT"):
             self.description = ("column",)
@@ -16,7 +16,7 @@ class FakeCursor:
             self.description = None
             self.rowcount = 1
 
-    def executemany(self, sql: str, params_seq):  # noqa: ANN001 - test helper signature
+    def executemany(self, sql: str, params_seq):
         self.description = None
         self.rowcount = len(list(params_seq))
 
@@ -31,7 +31,7 @@ class FakeConnection:
     def cursor(self) -> FakeCursor:
         return FakeCursor()
 
-    def ping(self, reconnect: bool = False) -> None:  # noqa: FBT002 - signature compatibility
+    def ping(self, reconnect: bool = False) -> None:
         pass
 
     def close(self) -> None:
@@ -55,10 +55,6 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
         return FakeConnection()
 
     monkeypatch.setattr("src.main_app.db.db_class.pymysql.connect", fake_connect)
-    monkeypatch.setattr(
-        "src.main_app.db.has_db_config",
-        lambda: True,
-    )
     monkeypatch.setattr(
         "src.main_app.services.jobs_service.get_jobs_db",
         lambda: type("FakeJobsDB", (), {"list": lambda self, **kwargs: []})(),

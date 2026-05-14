@@ -81,7 +81,12 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     """Remove a coordinator entirely."""
 
     try:
-        record = admin_service.delete_coordinator(coordinator_id)
+        coordinators = admin_service.list_coordinators()
+        matched = [c for c in coordinators if c.id == coordinator_id]
+        if not matched:
+            raise LookupError(f"Coordinator id {coordinator_id} was not found")
+        username = matched[0].username
+        admin_service.delete_coordinator(coordinator_id)
     except LookupError as exc:
         logger.exception("Unable to delete coordinator.")
         flash(str(exc), "warning")
@@ -89,7 +94,7 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
         logger.exception("Unable to delete coordinator.")
         flash("Unable to delete coordinator. Please try again.", "danger")
     else:
-        flash(f"Coordinator '{record.username}' removed.", "success")
+        flash(f"Coordinator '{username}' removed.", "success")
 
     return redirect(url_for("admin.coordinators_dashboard"))
 

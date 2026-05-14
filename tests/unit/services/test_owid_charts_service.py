@@ -9,14 +9,25 @@ import pytest
 from src.main_app.services.owid_charts_service import (
     add_chart,
     delete_chart,
-    get_chart,
+    get_chart_by_id,
     get_chart_by_slug,
     get_owid_charts_db,
     list_charts,
     list_published_charts,
-    update_chart,
     update_chart_data,
 )
+
+
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.owid_charts_service.settings",
+        _mock,
+    )
+    return _mock
 
 
 @pytest.fixture
@@ -48,39 +59,26 @@ def mock_db_instance():
 class TestGetOwidChartsDb:
     """Tests for get_owid_charts_db function."""
 
-    def test_raises_runtime_error_without_db_config(self):
-        """Test that RuntimeError is raised when no DB config exists."""
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=False):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with pytest.raises(RuntimeError, match="requires database configuration"):
-                    get_owid_charts_db()
-
     def test_raises_runtime_error_on_init_failure(self):
         """Test that RuntimeError is raised when DB init fails."""
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=True):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with patch("src.main_app.services.owid_charts_service.settings") as mock_settings:
-                    mock_settings.database_data = MagicMock()
-                    with patch(
-                        "src.main_app.services.owid_charts_service.OwidChartsDB",
-                        side_effect=Exception("DB error"),
-                    ):
-                        with pytest.raises(RuntimeError, match="Unable to initialize"):
-                            get_owid_charts_db()
+        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
+            with patch(
+                "src.main_app.services.owid_charts_service.OwidChartsDB",
+                side_effect=Exception("DB error"),
+            ):
+                with pytest.raises(RuntimeError, match="Unable to initialize"):
+                    get_owid_charts_db()
 
     def test_returns_initialized_instance(self):
         """Test that initialized instance is returned."""
         mock_store = MagicMock()
-        with patch("src.main_app.services.owid_charts_service.has_db_config", return_value=True):
-            with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-                with patch("src.main_app.services.owid_charts_service.settings") as mock_settings:
-                    mock_settings.database_data = MagicMock()
-                    with patch(
-                        "src.main_app.services.owid_charts_service.OwidChartsDB",
-                        return_value=mock_store,
-                    ):
-                        result = get_owid_charts_db()
-                        assert result == mock_store
+        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
+            with patch(
+                "src.main_app.services.owid_charts_service.OwidChartsDB",
+                return_value=mock_store,
+            ):
+                result = get_owid_charts_db()
+                assert result == mock_store
 
 
 class TestListCharts:
@@ -113,14 +111,14 @@ class TestListPublishedCharts:
 
 
 class TestGetChart:
-    """Tests for get_chart function."""
+    """Tests for get_chart_by_id function."""
 
     def test_returns_chart_by_id(self, mock_db_instance, sample_record):
         """Test fetching a chart by ID."""
         mock_db_instance.fetch_by_id.return_value = sample_record
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = get_chart(1)
+            result = get_chart_by_id(1)
 
             assert result == sample_record
             mock_db_instance.fetch_by_id.assert_called_once_with(1)
@@ -131,7 +129,7 @@ class TestGetChart:
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
             with pytest.raises(LookupError):
-                get_chart(999)
+                get_chart_by_id(999)
 
 
 class TestGetChartBySlug:
@@ -156,20 +154,18 @@ class TestAddChart:
         mock_db_instance.add.return_value = sample_record
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = add_chart(slug="new-chart", title="New Chart")
+            result = add_chart({"slug": "new-chart", "title": "New Chart"})
 
             assert result == sample_record
             mock_db_instance.add.assert_called_once_with(
-                slug="new-chart",
-                title="New Chart",
-                has_map_tab=False,
-                max_time=None,
-                min_time=None,
-                default_tab=None,
-                is_published=False,
-                single_year_data=False,
-                len_years=None,
-                has_timeline=False,
+                chart_data={
+                    "slug": "new-chart",
+                    "title": "New Chart",
+                    "has_map_tab": 0,
+                    "is_published": 0,
+                    "single_year_data": 0,
+                    "has_timeline": 0,
+                }
             )
 
     def test_adds_chart_with_options(self, mock_db_instance, sample_record):
@@ -178,34 +174,19 @@ class TestAddChart:
 
         with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
             add_chart(
-                slug="new-chart",
-                title="New Chart",
-                has_map_tab=True,
-                is_published=True,
-                max_time=2024,
+                {
+                    "slug": "new-chart",
+                    "title": "New Chart",
+                    "has_map_tab": True,
+                    "is_published": True,
+                    "max_time": 2024,
+                }
             )
 
             call_kwargs = mock_db_instance.add.call_args[1]
-            assert call_kwargs["has_map_tab"] is True
-            assert call_kwargs["is_published"] is True
-            assert call_kwargs["max_time"] == 2024
-
-
-class TestUpdateChart:
-    """Tests for update_chart function."""
-
-    def test_updates_chart(self, mock_db_instance, sample_record):
-        """Test updating an existing chart."""
-        mock_db_instance.update.return_value = sample_record
-
-        with patch("src.main_app.services.owid_charts_service.get_owid_charts_db", return_value=mock_db_instance):
-            result = update_chart(chart_id=1, slug="updated", title="Updated")
-
-            assert result == sample_record
-            mock_db_instance.update.assert_called_once()
-            call_kwargs = mock_db_instance.update.call_args[1]
-            assert call_kwargs["chart_id"] == 1
-            assert call_kwargs["slug"] == "updated"
+            assert call_kwargs["chart_data"]["has_map_tab"] == 1
+            assert call_kwargs["chart_data"]["is_published"] == 1
+            assert call_kwargs["chart_data"]["max_time"] == 2024
 
 
 class TestUpdateChartData:

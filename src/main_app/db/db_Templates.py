@@ -7,7 +7,7 @@ import pymysql
 
 from ..config import DbConfig
 from ..shared.models import TemplateRecord
-from . import Database
+from .db_class import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -175,6 +175,9 @@ class TemplatesDB:
 
         return self._fetch_by_title(title)
 
+    def fetch_by_title(self, title) -> TemplateRecord:
+        return self._fetch_by_title(title)
+
     def update_template_data(
         self,
         template_id: int,
@@ -200,13 +203,15 @@ class TemplatesDB:
 
         return self._fetch_by_id(template_id)
 
-    def delete(self, template_id: int) -> TemplateRecord:
+    def delete(self, template_id: int) -> bool:
         record = self._fetch_by_id(template_id)
-        self.db.execute_query_safe(
-            "DELETE FROM templates WHERE id = %s",
-            (template_id,),
-        )
-        return record
+        if record:
+            self.db.execute_query_safe(
+                "DELETE FROM templates WHERE id = %s",
+                (template_id,),
+            )
+            return True
+        return False
 
 
 __all__ = [

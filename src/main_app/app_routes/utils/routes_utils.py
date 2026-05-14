@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ...db.user_tokens import UserTokenRecord
+from ...services.user_token_service import UserTokenRecord
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,6 @@ def load_auth_payload(user: Optional[UserTokenRecord] | None) -> Dict[str, Any]:
     if user:
         # returns (access_key, access_secret) and marks token used
         access_key, access_secret = user.access_token, user.access_secret
-
-        # if hasattr(user, "decrypted"): access_key, access_secret = user.decrypted()
 
         auth_payload = {
             "id": user.user_id,

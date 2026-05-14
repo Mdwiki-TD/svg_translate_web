@@ -7,7 +7,7 @@ import pymysql
 
 from ..config import DbConfig
 from ..shared.models import OwidChartRecord
-from . import Database
+from .db_class import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -107,18 +107,21 @@ class OwidChartsDB:
 
     def add(
         self,
-        slug: str,
-        title: str,
-        has_map_tab: bool = False,
-        max_time: int | None = None,
-        min_time: int | None = None,
-        default_tab: str | None = None,
-        is_published: bool = False,
-        single_year_data: bool = False,
-        len_years: int | None = None,
-        has_timeline: bool = False,
+        chart_data: dict[str, Any],
     ) -> OwidChartRecord:
         """Add a new chart."""
+
+        slug: str = chart_data.get("slug", "")
+        title: str = chart_data.get("title", "")
+        has_map_tab: bool = chart_data.get("has_map_tab", False)
+        max_time: int | None = chart_data.get("max_time")
+        min_time: int | None = chart_data.get("min_time")
+        default_tab: str | None = chart_data.get("default_tab")
+        is_published: bool = chart_data.get("is_published", False)
+        single_year_data: bool = chart_data.get("single_year_data", False)
+        len_years: int | None = chart_data.get("len_years")
+        has_timeline: bool = chart_data.get("has_timeline", False)
+
         slug = slug.strip()
         title = title.strip()
 
@@ -139,14 +142,14 @@ class OwidChartsDB:
                 (
                     slug,
                     title,
-                    1 if has_map_tab else 0,
+                    has_map_tab,
                     max_time,
                     min_time,
                     default_tab,
-                    1 if is_published else 0,
-                    1 if single_year_data else 0,
+                    is_published,
+                    single_year_data,
                     len_years,
-                    1 if has_timeline else 0,
+                    has_timeline,
                 ),
             )
         except pymysql.err.IntegrityError:
@@ -238,14 +241,16 @@ class OwidChartsDB:
         )
         return self._fetch_by_id(chart_id)
 
-    def delete(self, chart_id: int) -> OwidChartRecord:
+    def delete(self, chart_id: int) -> bool:
         """Delete a chart."""
         record = self._fetch_by_id(chart_id)
-        self.db.execute_query_safe(
-            "DELETE FROM owid_charts WHERE chart_id = %s",
-            (chart_id,),
-        )
-        return record
+        if record:
+            self.db.execute_query_safe(
+                "DELETE FROM owid_charts WHERE chart_id = %s",
+                (chart_id,),
+            )
+            return True
+        return False
 
 
 __all__ = [

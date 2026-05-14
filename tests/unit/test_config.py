@@ -104,6 +104,7 @@ def test_Settings():
 
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
+        has_db_config=lambda: True,
         database_data=db_config,
         STATE_SESSION_KEY="state",
         REQUEST_TOKEN_SESSION_KEY="request",

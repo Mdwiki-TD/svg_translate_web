@@ -49,13 +49,13 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
         return admin_user
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.su_services.users_service.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.users_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     mock_service = MagicMock()
     mock_service.list_charts.return_value = []
@@ -269,7 +269,7 @@ class TestUpdateChart:
     def test_update_chart_success(self, owid_charts_admin_client, sample_chart_record):
         """Test updating a chart successfully."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.update_chart.return_value = sample_chart_record
+        mock_service.update_chart_data.return_value = sample_chart_record
 
         response = flask_client.post(
             "/admin/owid-charts/update",
@@ -281,7 +281,7 @@ class TestUpdateChart:
             follow_redirects=True,
         )
 
-        mock_service.update_chart.assert_called_once()
+        mock_service.update_chart_data.assert_called_once()
         assert response.status_code == 200
 
     def test_update_chart_missing_id(self, owid_charts_admin_client):
@@ -318,7 +318,7 @@ class TestUpdateChart:
     def test_update_chart_from_popup(self, owid_charts_admin_client, sample_chart_record):
         """Test updating a chart from popup renders popup action."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.update_chart.return_value = sample_chart_record
+        mock_service.update_chart_data.return_value = sample_chart_record
 
         response = flask_client.post(
             "/admin/owid-charts/update",
@@ -335,7 +335,7 @@ class TestUpdateChart:
     def test_update_chart_not_found(self, owid_charts_admin_client):
         """Test updating a non-existent chart shows error."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.update_chart.side_effect = LookupError("Chart not found")
+        mock_service.update_chart_data.side_effect = LookupError("Chart not found")
 
         response = flask_client.post(
             "/admin/owid-charts/update",
@@ -393,7 +393,7 @@ class TestEditChart:
     def test_edit_chart_success(self, owid_charts_admin_client, sample_chart_record):
         """Test editing a chart renders edit page."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.get_chart.return_value = sample_chart_record
+        mock_service.get_chart_by_id.return_value = sample_chart_record
 
         response = flask_client.get("/admin/owid-charts/1/edit")
 
@@ -402,7 +402,7 @@ class TestEditChart:
     def test_edit_chart_not_found(self, owid_charts_admin_client):
         """Test editing a non-existent chart shows error."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.get_chart.side_effect = LookupError("Not found")
+        mock_service.get_chart_by_id.side_effect = LookupError("Not found")
 
         response = flask_client.get("/admin/owid-charts/999/edit")
 

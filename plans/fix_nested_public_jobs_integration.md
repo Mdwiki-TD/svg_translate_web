@@ -330,7 +330,7 @@ tests/unit/public_jobs_workers/
 
 3. **Authentication**: Users must be logged in to start jobs. OAuth credentials are needed for uploading fixed files.
 
-4. **Result Storage**: Job results should be stored in the same format as other public jobs, using `jobs_service.save_job_result_by_name()`.
+4. **Result Storage**: Job results should be stored in the same format as other public jobs, using `jobs_files_service.save_job_result_by_name()`.
 
 5. **Cancellation**: Support job cancellation via the existing `_register_cancel_event` mechanism.
 

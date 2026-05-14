@@ -43,14 +43,15 @@ def slugify_title(title: str) -> str:
     slug = slug.strip("-")
 
     if slug:
-         # Only assign slug if it exists in the owid_charts table
-         try:
+        # Only assign slug if it exists in the owid_charts table
+        try:
             owid_charts_service.get_chart_by_slug(slug)
             return slug
-         except LookupError:
+        except LookupError:
             return None
     return None
-    
+
+
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
@@ -216,12 +217,12 @@ class CollectMainFilesWorker(BaseJobWorker):
                     if "/grapher/" in source:
                         slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
                         template_data["slug"] = slug or None
-                        
+
                 if not template.slug and not template_data.get("slug"):
                     _slug = slugify_title(template.title)
                     if _slug:
                         template_data["slug"] = _slug
-                    
+
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"

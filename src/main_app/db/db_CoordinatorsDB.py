@@ -6,8 +6,8 @@ from typing import Any, Iterable, List
 import pymysql
 
 from ..config import DbConfig
-from ..shared.models import CoordinatorRecord
-from . import Database
+from ..shared.models import AdminUserRecord
+from .db_class import Database
 from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,8 @@ class CoordinatorsDB:
         """
         self.db.execute_query_safe(sql_tables.admin_users)
 
-    def _row_to_record(self, row: dict[str, Any]) -> CoordinatorRecord:
-        return CoordinatorRecord(
+    def _row_to_record(self, row: dict[str, Any]) -> AdminUserRecord:
+        return AdminUserRecord(
             id=int(row["id"]),
             username=row["username"],
             is_active=bool(row.get("is_active")),
@@ -50,7 +50,7 @@ class CoordinatorsDB:
             updated_at=row.get("updated_at"),
         )
 
-    def _fetch_by_id(self, coordinator_id: int) -> CoordinatorRecord:
+    def _fetch_by_id(self, coordinator_id: int) -> AdminUserRecord:
         rows = self.db.fetch_query_safe(
             """
             SELECT id, username, is_active, created_at, updated_at
@@ -63,7 +63,7 @@ class CoordinatorsDB:
             raise LookupError(f"Coordinator id {coordinator_id} was not found")
         return self._row_to_record(rows[0])
 
-    def _fetch_by_username(self, username: str) -> CoordinatorRecord:
+    def _fetch_by_username(self, username: str) -> AdminUserRecord:
         rows = self.db.fetch_query_safe(
             """
             SELECT id, username, is_active, created_at, updated_at
@@ -95,7 +95,7 @@ class CoordinatorsDB:
                 (username,),
             )
 
-    def list(self) -> List[CoordinatorRecord]:
+    def list(self) -> List[AdminUserRecord]:
         rows = self.db.fetch_query_safe(
             """
             SELECT id, username, is_active, created_at, updated_at
@@ -105,7 +105,13 @@ class CoordinatorsDB:
         )
         return [self._row_to_record(row) for row in rows]
 
-    def add(self, username: str) -> CoordinatorRecord:
+    def get_by_username(self, username: str) -> AdminUserRecord:
+        return self._fetch_by_username(username)
+
+    def get_by_id(self, coordinator_id: str) -> AdminUserRecord:
+        return self._fetch_by_id(coordinator_id)
+
+    def add(self, username: str) -> AdminUserRecord:
         username = username.strip()
         if not username:
             raise ValueError("Username is required")
@@ -122,7 +128,7 @@ class CoordinatorsDB:
 
         return self._fetch_by_username(username)
 
-    def set_active(self, coordinator_id: int, is_active: bool) -> CoordinatorRecord:
+    def set_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord:
         _ = self._fetch_by_id(coordinator_id)
         self.db.execute_query_safe(
             "UPDATE admin_users SET is_active = %s WHERE id = %s",
@@ -130,13 +136,15 @@ class CoordinatorsDB:
         )
         return self._fetch_by_id(coordinator_id)
 
-    def delete(self, coordinator_id: int) -> CoordinatorRecord:
+    def delete(self, coordinator_id: int) -> bool:
         record = self._fetch_by_id(coordinator_id)
-        self.db.execute_query_safe(
-            "DELETE FROM admin_users WHERE id = %s",
-            (coordinator_id,),
-        )
-        return record
+        if record:
+            self.db.execute_query_safe(
+                "DELETE FROM admin_users WHERE id = %s",
+                (coordinator_id,),
+            )
+            return True
+        return False
 
 
 __all__ = [

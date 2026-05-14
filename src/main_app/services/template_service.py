@@ -1,21 +1,29 @@
-"""Utilities for managing administrator (template) accounts."""
+"""Utilities for managing TemplatesDB"""
 
 from __future__ import annotations
 
 import logging
-from typing import List
+from typing import Any, List
 
 from ..config import settings
-from ..db import has_db_config
 from ..db.db_Templates import TemplatesDB
-from ..db.db_TemplatesNeedUpdate import TemplatesNeedUpdateDB
-from ..shared.models import TemplateNeedUpdateRecord, TemplateRecord
+from ..db.exceptions import InsufficientDatabaseConfigError
+from ..shared.models import TemplateRecord
 from ..utils.wikitext.titles_utils import match_last_world_year
 
 logger = logging.getLogger(__name__)
 
 _TEMPLATE_STORE: TemplatesDB | None = None
-_TEMPLATE_UPDATE_STORE: TemplatesDB | None = None
+
+
+def _ensure_last_world_year(template_data):
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+
+    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
+        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    return template_data
 
 
 def get_templates_db() -> TemplatesDB:
@@ -32,10 +40,8 @@ def get_templates_db() -> TemplatesDB:
     global _TEMPLATE_STORE
 
     if _TEMPLATE_STORE is None:
-        if not has_db_config():
-            raise RuntimeError(
-                "Template administration requires database configuration; no fallback store is available."
-            )
+        if not settings.has_db_config():
+            raise InsufficientDatabaseConfigError()
 
         try:
             _TEMPLATE_STORE = TemplatesDB(settings.database_data)
@@ -46,64 +52,32 @@ def get_templates_db() -> TemplatesDB:
     return _TEMPLATE_STORE
 
 
-def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
-    """
-    Return the module's cached TemplatesNeedUpdateDB instance, initializing it on first use.
-
-    Returns:
-        TemplatesNeedUpdateDB: The initialized and cached templates database instance.
-
-    Raises:
-        RuntimeError: If no database configuration is available.
-        RuntimeError: If initializing the TemplatesNeedUpdateDB fails.
-    """
-    global _TEMPLATE_UPDATE_STORE
-
-    if _TEMPLATE_UPDATE_STORE is None:
-        if not has_db_config():
-            raise RuntimeError(
-                "Template administration requires database configuration; no fallback store is available."
-            )
-
-        try:
-            _TEMPLATE_UPDATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
-
-    return _TEMPLATE_UPDATE_STORE
-
-
-def list_templates() -> List[TemplateRecord]:
-    """Return all templates while keeping settings.admins in sync."""
+def list_templates(limit: int | None = None) -> List[TemplateRecord]:
+    """Return all templates"""
     store = get_templates_db()
     coords = store.list()
     return coords
 
 
-def list_templates_need_update() -> List[TemplateNeedUpdateRecord]:
-    """Return all templates"""
-    store = get_templates_need_update_db()
-    coords = store.list()
-    return coords
+def get_template(template_id: int) -> TemplateRecord:
+    """Fetch a template by ID."""
+    store = get_templates_db()
+    return store.fetch_by_id(template_id)
 
 
-def ensure_last_world_year(template_data):
-    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
-        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
-
-    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
-        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
-
-    return template_data
+def get_template_by_title(title: str) -> TemplateRecord:
+    """Fetch a template by title."""
+    store = get_templates_db()
+    return store.fetch_by_title(title)
 
 
 def add_template_data(
-    data: dict,
+    data: dict[str, Any],
 ) -> TemplateRecord:
-    """Add a template."""
-
-    data = ensure_last_world_year(data)
+    """
+    Add a new template.
+    """
+    data = _ensure_last_world_year(data)
 
     store = get_templates_db()
     record = store.add_data(data)
@@ -115,9 +89,10 @@ def update_template_data(
     template_id: int,
     template_data: dict[str, str],
 ) -> TemplateRecord:
-    """Update template only if not None."""
-
-    template_data = ensure_last_world_year(template_data)
+    """
+    Update template only if not None.
+    """
+    template_data = _ensure_last_world_year(template_data)
 
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
@@ -125,29 +100,19 @@ def update_template_data(
     return record
 
 
-def delete_template(template_id: int) -> TemplateRecord:
+def delete_template(template_id: int) -> bool:
     """Delete a template."""
 
     store = get_templates_db()
-    record = store.delete(template_id)
-
-    return record
-
-
-def get_template(template_id: int) -> TemplateRecord:
-    """Fetch a single template by ID."""
-    store = get_templates_db()
-    return store.fetch_by_id(template_id)
+    return store.delete(template_id)
 
 
 __all__ = [
+    "get_template_by_title",
     "add_template_data",
     "update_template_data",
-    "get_templates_db",
-    "TemplateRecord",
-    "TemplatesDB",
     "list_templates",
     "delete_template",
     "get_template",
-    "list_templates_need_update",
+    "get_templates_db",
 ]

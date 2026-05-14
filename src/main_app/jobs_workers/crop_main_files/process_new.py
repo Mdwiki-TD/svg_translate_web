@@ -20,6 +20,7 @@ from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...services import jobs_service, template_service
 from ...shared.models import TemplateRecord
+from ...su_services import jobs_files_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..utils.crop_main_files_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
@@ -139,7 +140,7 @@ class CropMainFilesProcessor:
 
     def _save_progress(self):
         try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
+            jobs_files_service.save_job_result_by_name(self.result_file, self.result)
         except Exception as exc:
             logger.exception(
                 f"Job {self.job_id}: Failed to persist periodic progress; continuing",
@@ -174,7 +175,7 @@ class CropMainFilesProcessor:
             if n == 1 or n % per_item == 0:
                 self._save_progress()
                 try:
-                    jobs_service.save_job_result_by_name(self.result_file, self.result)
+                    jobs_files_service.save_job_result_by_name(self.result_file, self.result)
                 except Exception as exc:
                     logger.exception(
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",

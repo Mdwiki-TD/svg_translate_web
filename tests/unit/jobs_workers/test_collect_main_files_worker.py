@@ -10,6 +10,31 @@ from src.main_app.jobs_workers import collect_main_files_worker
 from src.main_app.shared.models import TemplateRecord
 
 
+@pytest.fixture(autouse=True)
+def mock_database(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    mock_database_cls = MagicMock()
+    mock_db_instance = MagicMock()
+    mock_db_instance.fetch_query_safe.return_value = []
+    mock_database_cls.return_value = mock_db_instance
+    monkeypatch.setattr(
+        "src.main_app.db.db_OwidCharts.Database",
+        mock_database_cls,
+    )
+    return mock_database_cls
+
+
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.owid_charts_service.settings",
+        _mock,
+    )
+    return _mock
+
+
 @pytest.fixture
 def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
@@ -57,7 +82,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.save_job_result_by_name", mock_save_job_result
+        "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name", mock_save_job_result
     )
 
     # Mock get_category_members

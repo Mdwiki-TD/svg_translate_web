@@ -6,8 +6,8 @@ import logging
 from typing import List
 
 from ..config import settings
-from ..db import has_db_config
-from ..db.db_CoordinatorsDB import CoordinatorRecord, CoordinatorsDB
+from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from ..db.exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,8 @@ def get_admins_db() -> CoordinatorsDB:
     global _ADMINS_STORE
 
     if _ADMINS_STORE is None:
-        if not has_db_config():
-            raise RuntimeError(
-                "Coordinator administration requires database configuration; no fallback store is available."
-            )
+        if not settings.has_db_config():
+            raise InsufficientDatabaseConfigError()
 
         try:
             _ADMINS_STORE = CoordinatorsDB(settings.database_data)
@@ -44,16 +42,8 @@ def get_admins_db() -> CoordinatorsDB:
     return _ADMINS_STORE
 
 
-def active_coordinators() -> list:
-    """Return all coordinators while keeping settings.admins in sync."""
-
-    store = get_admins_db()
-
-    return [u.username for u in store.list() if u.is_active]
-
-
-def list_coordinators() -> List[CoordinatorRecord]:
-    """Return all coordinators while keeping settings.admins in sync."""
+def list_coordinators() -> List[AdminUserRecord]:
+    """Return all coordinators."""
 
     store = get_admins_db()
 
@@ -61,39 +51,63 @@ def list_coordinators() -> List[CoordinatorRecord]:
     return coords
 
 
-def add_coordinator(username: str) -> CoordinatorRecord:
-    """Add a coordinator."""
+def active_coordinators() -> list[str]:
+    """Return usernames of all active coordinators."""
 
     store = get_admins_db()
+
+    return [u.username for u in store.list() if u.is_active]
+
+
+def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
+    """
+    Get a coordinator by ID.
+    """
+    store = get_admins_db()
+    record = store.get_by_id(coordinator_id)
+    return record
+
+
+def add_coordinator(username: str) -> AdminUserRecord:
+    """Add a coordinator."""
+
+    if not username:
+        raise ValueError("Username is required")
+
+    store = get_admins_db()
+    try:
+        record = store.get_by_username(username)
+    except LookupError:
+        record = None
+    if record:
+        # This assumes a UNIQUE constraint on the username column
+        raise ValueError(f"Coordinator '{username}' already exists") from None
+
     record = store.add(username)
 
     return record
 
 
-def set_coordinator_active(coordinator_id: int, is_active: bool) -> CoordinatorRecord:
-    """Toggle coordinator activity and refresh settings."""
-
+def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
+    """Toggle coordinator activity."""
     store = get_admins_db()
-    record = store.set_active(coordinator_id, is_active)
-
+    record = store.get_by_id(coordinator_id)
+    if record:
+        record = store.set_active(coordinator_id, is_active)
     return record
 
 
-def delete_coordinator(coordinator_id: int) -> CoordinatorRecord:
-    """Delete a coordinator and refresh settings."""
+def delete_coordinator(coordinator_id: int) -> bool:
+    """Delete a coordinator."""
 
     store = get_admins_db()
-    record = store.delete(coordinator_id)
-
-    return record
+    return store.delete(coordinator_id)
 
 
 __all__ = [
-    "get_admins_db",
-    "active_coordinators",
-    "CoordinatorRecord",
-    "CoordinatorsDB",
+    "get_coordinator_by_id",
     "list_coordinators",
+    "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",
     "delete_coordinator",

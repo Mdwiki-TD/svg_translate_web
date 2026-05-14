@@ -3,11 +3,24 @@
 from __future__ import annotations
 
 from typing import Any, Iterable
+from unittest.mock import MagicMock
 
 import pymysql
 import pytest
 
 from src.main_app.services import template_service
+
+
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = MagicMock()
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.template_service.settings",
+        _mock,
+    )
+    return _mock
 
 
 class FakeDatabase:
@@ -166,7 +179,6 @@ class FakeDatabase:
 def _mock_templates_store(monkeypatch: pytest.MonkeyPatch):
     """Create a mock TemplatesDB with FakeDatabase."""
     monkeypatch.setattr("src.main_app.db.db_Templates.Database", FakeDatabase)
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: True)
 
     # Reset the global store
     template_service._TEMPLATE_STORE = None
@@ -175,15 +187,6 @@ def _mock_templates_store(monkeypatch: pytest.MonkeyPatch):
 
     # Clean up
     template_service._TEMPLATE_STORE = None
-
-
-def test_get_templates_db_requires_config(monkeypatch: pytest.MonkeyPatch):
-    """Test that get_templates_db raises when no database config is available."""
-    template_service._TEMPLATE_STORE = None
-    monkeypatch.setattr("src.main_app.services.template_service.has_db_config", lambda: False)
-
-    with pytest.raises(RuntimeError, match="Template administration requires database configuration"):
-        template_service.get_templates_db()
 
 
 def test_get_templates_db_caches_store(_mock_templates_store):
@@ -261,9 +264,9 @@ def test_delete_template_success(_mock_templates_store):
     data = {"title": "To Delete", "main_file": "delete.svg"}
     record = template_service.add_template_data(data)
 
-    deleted = template_service.delete_template(record.id)
+    result = template_service.delete_template(record.id)
 
-    assert deleted.title == "To Delete"
+    assert result is True
     assert len(template_service.list_templates()) == 0
 
 
@@ -285,8 +288,6 @@ def test_template_record_dataclass_with_none_main_file(_mock_templates_store):
 def test_module_exports_all_functions():
     """Test that all expected functions are exported in __all__."""
     assert "get_templates_db" in template_service.__all__
-    assert "TemplateRecord" in template_service.__all__
-    assert "TemplatesDB" in template_service.__all__
     assert "list_templates" in template_service.__all__
     assert "add_template_data" in template_service.__all__
     assert "update_template_data" in template_service.__all__

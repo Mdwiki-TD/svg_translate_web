@@ -19,6 +19,7 @@ import requests
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
 from ...services import jobs_service
+from ...su_services import jobs_files_service
 from .steps import (
     download_step,
     extract_text_step,
@@ -68,7 +69,7 @@ class CopySvgLangsProcessor:
 
     def _save_progress(self) -> None:
         try:
-            jobs_service.save_job_result_by_name(self.result_file, self.result)
+            jobs_files_service.save_job_result_by_name(self.result_file, self.result)
         except Exception:
             logger.exception(f"Job {self.task_id}: Failed to save progress")
 

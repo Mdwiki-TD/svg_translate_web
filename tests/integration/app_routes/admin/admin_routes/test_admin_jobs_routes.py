@@ -6,15 +6,15 @@ import json
 from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
-from typing import Any, List
+from typing import Any
 from unittest.mock import patch
 
 import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
+from src.main_app.db.db_Jobs import JobRecord
 from src.main_app.services import jobs_service
-from src.main_app.services.jobs_service import JobRecord
 
 
 class FakeJobsDB:
@@ -55,7 +55,7 @@ class FakeJobsDB:
         index = self._find_index(job_id, job_type)
         return self._records[index]
 
-    def list(self, limit: int = 100, job_type: str | None = None) -> List[JobRecord]:
+    def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
         """List recent jobs, optionally filtered by job_type."""
         if job_type:
             return [r for r in self._records if r.job_type == job_type][:limit]
@@ -111,19 +111,16 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.main_app.services.users_service.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.su_services.users_service.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr("src.main_app.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.users_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.services.admin_service.has_db_config", lambda: True)
+    monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     fake_store = FakeJobsDB({})
-
-    monkeypatch.setattr("src.main_app.services.jobs_service.has_db_config", lambda: True)
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
