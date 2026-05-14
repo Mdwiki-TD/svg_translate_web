@@ -1,5 +1,4 @@
 from .jobs_files_service import (
-    get_jobs_data_dir,
     load_job_result,
     save_job_result,
     save_job_result_by_name,
@@ -12,7 +11,6 @@ from .users_service import (
 )
 
 __all__ = [
-    "get_jobs_data_dir",
     "save_job_result_by_name",
     "save_job_result",
     "load_job_result",
