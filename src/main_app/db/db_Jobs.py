@@ -7,7 +7,7 @@ import logging
 from typing import Any, List
 
 from ..config import DbConfig
-from .db_class import Database
+from .engine import Database
 from .models import JobRecord
 from .sql_schema_tables import sql_tables
 

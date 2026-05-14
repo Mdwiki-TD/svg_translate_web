@@ -14,7 +14,7 @@ from .jobs_service import (
     list_jobs,
     update_job_status,
 )
-from .owid_charts_service import (  # upsert_chart,
+from .owid_charts_service import (
     add_chart,
     delete_chart,
     get_chart_by_id,
@@ -64,7 +64,6 @@ __all__ = [
     "add_chart",
     "update_chart_data",
     "delete_chart",
-    "upsert_chart",
     "list_charts",
     "list_published_charts",
     # settings_service
@@ -78,7 +77,6 @@ __all__ = [
     "get_template",
     "get_template_by_title",
     "list_templates",
-    "upsert_template",
     # template_need_update_service
     "list_templates_need_update",
     # jobs_service

@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from ..config import DbConfig
-from .db_class import Database
+from .engine import Database
 from .models import SettingRecord
 from .sql_schema_tables import sql_tables
 

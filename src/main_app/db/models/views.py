@@ -13,6 +13,8 @@ class TemplateNeedUpdateRecord:
     Representation of a template.
     """
 
+    __tablename__ = "templates_need_update"
+
     id: int
     template_title: str | None = None
     slug: str | None = None

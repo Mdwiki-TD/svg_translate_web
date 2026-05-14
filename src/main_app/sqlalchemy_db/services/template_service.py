@@ -41,23 +41,6 @@ def get_template_by_title(title: str) -> TemplateRecord:
         return session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
 
-def upsert_template(template_data: dict) -> TemplateRecord:
-    """Insert or update a template."""
-    title = template_data.get("title")
-    with get_session() as session:
-        template = session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
-        if template:
-            for key, value in template_data.items():
-                if value:
-                    setattr(template, key, value)
-        else:
-            template = TemplateRecord(**template_data)
-            session.add(template)
-        session.commit()
-        session.refresh(template)
-        return template
-
-
 def add_template_data(
     data: dict[str, Any],
 ) -> TemplateRecord:
@@ -105,12 +88,10 @@ def delete_template(template_id: int) -> bool:
 
 
 __all__ = [
-    "get_template",
     "get_template_by_title",
-    "list_templates",
     "add_template_data",
     "update_template_data",
+    "list_templates",
     "delete_template",
     "get_template",
-    "upsert_template",
 ]

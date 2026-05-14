@@ -6,7 +6,7 @@ import logging
 from typing import List
 
 from ..engine import get_session
-from ..models.admin_users import AdminUserRecord
+from ..models import AdminUserRecord
 
 logger = logging.getLogger(__name__)
 

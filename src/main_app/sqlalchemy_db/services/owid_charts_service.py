@@ -62,23 +62,6 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
         return session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 
 
-def upsert_chart(chart_data: dict) -> OwidChartRecord:
-    """Insert or update a chart record."""
-    slug = chart_data.get("slug")
-    with get_session() as session:
-        chart = session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
-        if chart:
-            for key, value in chart_data.items():
-                if value:
-                    setattr(chart, key, value)
-        else:
-            chart = OwidChartRecord(**chart_data)
-            session.add(chart)
-        session.commit()
-        session.refresh(chart)
-        return chart
-
-
 def add_chart(
     chart_data: dict[str, Any],
 ) -> OwidChartRecord:
@@ -139,5 +122,4 @@ __all__ = [
     "delete_chart",
     "list_charts",
     "list_published_charts",
-    "upsert_chart",
 ]

@@ -6,7 +6,7 @@ from typing import Any, List
 import pymysql
 
 from ..config import DbConfig
-from .db_class import Database
+from .engine import Database
 from .models import TemplateRecord
 from .sql_schema_tables import sql_tables
 

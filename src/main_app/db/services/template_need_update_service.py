@@ -94,6 +94,5 @@ def list_templates_need_update() -> List[TemplateNeedUpdateRecord]:
 
 
 __all__ = [
-    "get_templates_need_update_db",
     "list_templates_need_update",
 ]

@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from ...config import settings
 from ...core.crypto import encrypt_value
 from ...sqlalchemy_db.decode_bytes import coerce_bytes
-from ..db_class import Database
+from ..engine import Database
 from ..exceptions import InsufficientDatabaseConfigError
 from ..models.users import UserTokenRecord
 from ..sql_schema_tables import sql_tables
@@ -38,6 +38,8 @@ def get_db() -> Database:
             logger.exception("Failed to initialize MySQL template store")
             raise RuntimeError("Unable to initialize template store") from exc
 
+        _db.execute_query_safe(sql_tables.user_tokens)
+
     return _db
 
 
@@ -52,13 +54,6 @@ def mark_token_used(user_id: int) -> None:
         )
     except Exception:
         logger.exception("Failed to update last_used_at for user %s", user_id)
-
-
-def ensure_user_token_table() -> None:
-    """Create the user_tokens table if it does not already exist."""
-
-    db = get_db()
-    db.execute_query_safe(sql_tables.user_tokens)
 
 
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
@@ -182,8 +177,8 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
 
 __all__ = [
     "mark_token_used",
-    "ensure_user_token_table",
     "upsert_user_token",
     "get_user_token",
     "delete_user_token",
+    "get_user_token_by_username",
 ]

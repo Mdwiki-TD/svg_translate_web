@@ -114,5 +114,4 @@ __all__ = [
     "list_templates",
     "delete_template",
     "get_template",
-    "get_templates_db",
 ]
