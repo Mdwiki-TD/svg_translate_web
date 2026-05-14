@@ -17,7 +17,10 @@ pymysql.install_as_MySQLdb()
 # Load environment variables before any other imports
 
 _env_file_path = str(Path(__file__).parent.parent.parent / ".env")
-load_dotenv(_env_file_path)
+try:
+    load_dotenv(_env_file_path)
+except Exception:
+    logging.warning(f"Failed to load .env file from {str(_env_file_path)}")
 
 CopySVGTranslation_PATH = os.getenv("CopySVGTranslation_PATH", "")
 try:
@@ -28,12 +31,13 @@ except ImportError:
 
 # import app here
 from main_app import create_app  # noqa: E402
+from main_app.config import DevelopmentConfig  # noqa: E402
 
 from logger_config import configure_logging  # noqa: E402
 
 configure_logging(logging.DEBUG)
 
-app = create_app()
+app = create_app(DevelopmentConfig)
 
 if __name__ == "__main__":
     app.run(debug=True)

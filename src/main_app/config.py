@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+# --- Data Classes for Configuration Sections ---
 
 
 @dataclass(frozen=True)
@@ -46,11 +50,27 @@ class CookieConfig:
 
 
 @dataclass(frozen=True)
+class SessionConfig:
+    """Keys used for storing data in Flask session."""
+
+    state_key: str
+    request_token_key: str
+
+
+@dataclass(frozen=True)
 class OAuthConfig:
+    """MediaWiki OAuth specific configuration."""
+
     mw_uri: str
     consumer_key: str
     consumer_secret: str
+    encryption_key: Optional[str]
     upload_host: str
+
+
+@dataclass(frozen=True)
+class CorsConfig:
+    allowed_domains: list[str]
 
 
 @dataclass(frozen=True)
@@ -100,22 +120,59 @@ class DynamicSettingsStore:
 
 @dataclass(frozen=True)
 class Settings:
-    user_agent: str
-    is_localhost: callable
-    has_db_config: callable
-    database_data: DbConfig
-    STATE_SESSION_KEY: str
-    REQUEST_TOKEN_SESSION_KEY: str
+    """Main settings container."""
+
     secret_key: str
-    oauth_encryption_key: str
+    user_agent: str
+    is_localhost: Callable[[str], bool]
+    has_db_config: callable
+
+    # Nested configurations
+    database_data: DbConfig
+    paths: Paths
     cookie: CookieConfig
     oauth: OAuthConfig
-    paths: Paths
-    disable_uploads: str
+    # sessions: SessionConfig
+    # cors: CorsConfig
     download: DownloadConfig
     security: SecurityConfig
-    csrf_time_limit: Optional[int]  # None means never expire
     dynamic: DynamicSettingsStore
+
+    disable_uploads: str
+    csrf_time_limit: Optional[int]  # None means never expire
+    STATE_SESSION_KEY: str
+    REQUEST_TOKEN_SESSION_KEY: str
+
+
+# --- Helper Functions ---
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    """Convert environment variable to boolean."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name: str, default: int) -> int:
+    """Convert environment variable to integer."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:  # pragma: no cover - defensive guard
+        raise ValueError(f"Environment variable {name} must be an integer") from exc
+
+
+def resolve_path(_path) -> Path:
+    """Expand environment variables and user home directory in paths."""
+    _path = os.path.expandvars(str(_path))
+    _path = Path(_path).expanduser()
+    return _path
+
+
+# --- Configuration Loaders ---
 
 
 def _load_db_data_new() -> DbConfig:
@@ -163,6 +220,7 @@ def _get_paths() -> Paths:
     svg_jobs_path = f"{main_dir}/svg_jobs"
     main_files_path = f"{main_dir}/main_files"
     crop_main_files_path = f"{main_dir}/crop_main_files"
+
     crop_main_files_original = f"{crop_main_files_path}/original"
     crop_main_files_cropped = f"{crop_main_files_path}/cropped"
 
@@ -211,7 +269,12 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
     if not (mw_uri and consumer_key and consumer_secret):
         return None
 
+    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
+    if not oauth_encryption_key:
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
+
     return OAuthConfig(
+        encryption_key=oauth_encryption_key,
         mw_uri=mw_uri,
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
@@ -220,6 +283,7 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
 
 
 def is_localhost(host: str) -> bool:
+    """Check if the host refers to a local environment."""
     local_hosts = [
         "localhost",
         "127.0.0.1",
@@ -239,6 +303,22 @@ def has_db_config(db_settings) -> bool:
     """
 
     return bool(db_settings.db_host or db_settings.db_user)
+
+
+def load_cookie_config():
+    session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
+    session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
+    session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+
+    cookie = CookieConfig(
+        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
+        max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
+        secure=session_cookie_secure,
+        httponly=session_cookie_httponly,
+        samesite=session_cookie_samesite,
+    )
+
+    return cookie
 
 
 @lru_cache(maxsize=1)
@@ -272,11 +352,6 @@ def get_settings() -> Settings:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
-
-    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
-    if not oauth_encryption_key:
-        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
-
     cookie = CookieConfig(
         name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
         max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
@@ -325,7 +400,6 @@ def get_settings() -> Settings:
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
-        oauth_encryption_key=oauth_encryption_key,
         cookie=cookie,
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
