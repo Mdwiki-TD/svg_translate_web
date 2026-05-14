@@ -24,6 +24,9 @@ class SettingsDB:
 
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
         value = self._parse_value(row["value"], row["value_type"])
+        if not row.get("id"):
+            raise ValueError("Missing id field in settings row", row)
+
         return SettingRecord(
             id=int(row["id"]),
             key=row["key"],
@@ -77,9 +80,9 @@ class SettingsDB:
     ) -> bool:
         """Update an existing setting.
 
-                Args:
-                    key: The setting key to update.
-                    value: The new value.
+        Args:
+            key: The setting key to update.
+            value: The new value.
         """
         if not self.get_by_key(key):
             return False
