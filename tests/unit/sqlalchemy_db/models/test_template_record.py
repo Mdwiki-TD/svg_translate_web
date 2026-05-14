@@ -54,7 +54,7 @@ def test_template_record_slug_generation():
     )
 
     # Slug should be generated from source
-    assert rec.slug == "health-expenditure"
+    assert rec.to_dict()["slug"] == "health-expenditure"
 
 
 def test_template_record_slug_generation_with_query_params():
@@ -68,7 +68,7 @@ def test_template_record_slug_generation_with_query_params():
     )
 
     # Slug should exclude query parameters
-    assert rec.slug == "health-expenditure"
+    assert rec.to_dict()["slug"] == "health-expenditure"
 
 
 def test_template_record_no_slug_generation():
