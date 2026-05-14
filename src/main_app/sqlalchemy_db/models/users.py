@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Column, DateTime, Integer, LargeBinary, String, func, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, func
 from sqlalchemy.orm import validates
 
 from ...core.crypto import decrypt_value
