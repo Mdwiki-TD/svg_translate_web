@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from src.main_app.sqlalchemy_db.models.owid_charts import OwidChartRecord
+import pytest
+
+from src.main_app.db.models.owid_charts import OwidChartRecord
 
 
 def test_owid_chart_record_initialization():
@@ -31,6 +33,8 @@ def test_owid_chart_record_initialization():
     assert rec.len_years == 24
     assert rec.created_at is None
     assert rec.updated_at is None
+    assert rec.template_id is None
+    assert rec.template_title is None
 
 
 def test_owid_chart_record_with_all_fields():
@@ -48,6 +52,9 @@ def test_owid_chart_record_with_all_fields():
         len_years=24,
         created_at="2023-01-01",
         updated_at="2023-01-02",
+        template_id=42,
+        template_title="Template:Health",
+
         has_timeline=True,
     )
 
@@ -63,6 +70,8 @@ def test_owid_chart_record_with_all_fields():
     assert rec.len_years == 24
     assert rec.created_at == "2023-01-01"
     assert rec.updated_at == "2023-01-02"
+    assert rec.template_id == 42
+    assert rec.template_title == "Template:Health"
 
 
 def test_owid_chart_record_boolean_fields():
@@ -105,6 +114,9 @@ def test_owid_chart_record_to_dict():
         has_timeline=False,
         created_at="2023-01-01",
         updated_at="2023-01-02",
+        template_id=42,
+        template_title="Template:Health",
+
     )
 
     result = rec.to_dict()
@@ -123,6 +135,9 @@ def test_owid_chart_record_to_dict():
         "has_timeline": False,
         "created_at": "2023-01-01",
         "updated_at": "2023-01-02",
+        "template_id": 42,
+        "template_title": "Template:Health",
+
     }
 
     assert result == expected
@@ -144,6 +159,9 @@ def test_owid_chart_record_to_dict_with_none_values():
         has_timeline=False,
         created_at=None,
         updated_at=None,
+        template_id=None,
+        template_title=None,
+
     )
 
     result = rec.to_dict()
@@ -162,6 +180,9 @@ def test_owid_chart_record_to_dict_with_none_values():
         "has_timeline": False,
         "created_at": None,
         "updated_at": None,
+        "template_id": None,
+        "template_title": None,
+
     }
 
     assert result == expected

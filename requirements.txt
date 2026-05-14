@@ -15,4 +15,3 @@ uvicorn
 wikitextparser
 colorlog
 CopySVGTranslation>=0.1.6
-sqlalchemy

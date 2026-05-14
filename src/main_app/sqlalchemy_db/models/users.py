@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, 
 from sqlalchemy.orm import validates
 
 from ...core.crypto import decrypt_value
-from ..decode_bytes import coerce_bytes
+from ...shared.decode_bytes import coerce_bytes
 from ..engine import BaseDb
 
 logger = logging.getLogger(__name__)

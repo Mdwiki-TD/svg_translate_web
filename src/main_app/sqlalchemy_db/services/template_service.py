@@ -68,7 +68,7 @@ def update_template_data(
         template = session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
         if template:
             for key, value in template_data.items():
-                if value:
+                if value is not None:
                     setattr(template, key, value)
             session.commit()
             session.refresh(template)
