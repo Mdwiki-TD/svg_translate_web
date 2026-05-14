@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ...sqlalchemy_db.services.user_token_service import UserTokenRecord
+from ...sqlalchemy_db.models import UserTokenRecord
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...sqlalchemy_db.services.admin_service import active_coordinators
+from ...sqlalchemy_db.services import active_coordinators
 from ...su_services.users_service import current_user
 
 F = TypeVar("F", bound=Callable[..., ResponseReturnValue])

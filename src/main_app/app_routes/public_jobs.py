@@ -25,11 +25,11 @@ from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
 from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
 from ..sqlalchemy_db.services import (
+    active_coordinators,
     delete_job,
     get_job,
     list_jobs,
 )
-from ..sqlalchemy_db.services.admin_service import active_coordinators
 from ..su_services import (
     load_job_result,
 )
