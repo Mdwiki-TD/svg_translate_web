@@ -23,8 +23,8 @@ from datetime import datetime
 from typing import Any, Dict
 
 from src.main_app.api_services import get_category_members, get_wikitext
-from src.main_app.jobs_workers.base_worker import BaseJobWorker
 from src.main_app.db.services import template_service
+from src.main_app.jobs_workers.base_worker import BaseJobWorker
 from src.main_app.utils.wikitext import find_template_source
 from src.main_app.utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,

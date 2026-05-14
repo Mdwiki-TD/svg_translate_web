@@ -6,10 +6,10 @@ import logging
 from typing import Any, List
 
 from ...config import settings
+from ...utils.wikitext.titles_utils import match_last_world_year
 from ..db_Templates import TemplatesDB
 from ..exceptions import InsufficientDatabaseConfigError
 from ..models import TemplateRecord
-from ...utils.wikitext.titles_utils import match_last_world_year
 
 logger = logging.getLogger(__name__)
 

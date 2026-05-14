@@ -7,11 +7,11 @@ from typing import Any, Dict, Optional
 
 from ...config import settings
 from ...core.crypto import encrypt_value
+from ...sqlalchemy_db.decode_bytes import coerce_bytes
 from ..db_class import Database
 from ..exceptions import InsufficientDatabaseConfigError
 from ..models.users_record import UserTokenRecord
 from ..sql_schema_tables import sql_tables
-from ...sqlalchemy_db.decode_bytes import coerce_bytes
 
 _db: Database | None = None
 

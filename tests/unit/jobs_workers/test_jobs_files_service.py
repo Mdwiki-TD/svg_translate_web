@@ -21,7 +21,7 @@ from src.main_app.su_services.jobs_files_service import (
 @pytest.fixture(autouse=True)
 def mock_general(monkeypatch: pytest.MonkeyPatch):
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.services.jobs_service.get_jobs_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.jobs_service.get_jobs_db", _mock)
 
 
 def test_save_job_result(tmp_path, monkeypatch):

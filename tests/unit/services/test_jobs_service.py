@@ -42,7 +42,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock.database_data = MagicMock()
     _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.jobs_service.settings",
+        "src.main_app.db.services.jobs_service.settings",
         _mock,
     )
     return _mock
@@ -119,7 +119,7 @@ def jobs_db_fixture(monkeypatch: pytest.MonkeyPatch):
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
-    monkeypatch.setattr("src.main_app.services.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.main_app.db.services.jobs_service.JobsDB", fake_jobs_factory)
 
     jobs_service._JOBS_STORE = None  # Reset global state
 

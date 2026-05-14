@@ -10,11 +10,9 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ..db.services import owid_charts_service
-
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..db.services import template_service
+from ..db.services import owid_charts_service, template_service
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,

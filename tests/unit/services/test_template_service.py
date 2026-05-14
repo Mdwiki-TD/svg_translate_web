@@ -17,7 +17,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock.database_data = MagicMock()
     _mock.has_db_config = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.services.template_service.settings",
+        "src.main_app.db.services.template_service.settings",
         _mock,
     )
     return _mock

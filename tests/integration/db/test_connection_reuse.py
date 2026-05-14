@@ -56,7 +56,7 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
 
     monkeypatch.setattr("src.main_app.db.db_class.pymysql.connect", fake_connect)
     monkeypatch.setattr(
-        "src.main_app.services.jobs_service.get_jobs_db",
+        "src.main_app.db.services.jobs_service.get_jobs_db",
         lambda: type("FakeJobsDB", (), {"list": lambda self, **kwargs: []})(),
     )
 
