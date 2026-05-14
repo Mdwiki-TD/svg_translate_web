@@ -1,14 +1,16 @@
-#
+"""Configuration and fixtures for pytest"""
+
 import os
 import secrets
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptography.fernet import Fernet
-from flask import Flask
+from flask.app import Flask
+from flask.testing import FlaskClient
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
@@ -33,6 +35,10 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 
+# Import after environment setup
+from src.main_app import create_app
+from src.main_app.config import TestingConfig
+
 
 @pytest.fixture(autouse=True)
 def disable_network(mocker):
@@ -43,10 +49,36 @@ def disable_network(mocker):
 
 
 @pytest.fixture
+def app() -> Generator[Flask, Any, None]:
+    """Create and configure a test Flask application.
+
+    Yields:
+        Flask application configured for testing.
+    """
+    app = create_app(TestingConfig)
+
+    with app.app_context():
+        yield app
+
+
+@pytest.fixture
 def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"
     return app
+
+
+@pytest.fixture
+def client(app: Flask) -> FlaskClient:
+    """Create a test client for the app.
+
+    Args:
+        app: The Flask application fixture.
+
+    Returns:
+        Test client for making HTTP requests.
+    """
+    return app.test_client()
 
 
 @pytest.fixture
