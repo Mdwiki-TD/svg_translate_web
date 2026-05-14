@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 
 from ..engine import BaseDb
+from ...utils.wikitext.titles_utils import match_last_world_year
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,29 @@ class TemplateRecord(BaseDb):
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
     )
+
+    def to_dict(self) -> dict[str, Any]:
+        slug = self.slug
+
+        if not self.slug and self.source and "/grapher/" in self.source:
+            slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+            slug = slug or None
+
+        last_world_year = self.last_world_year
+        if not self.last_world_year and self.last_world_file:
+            last_world_year = match_last_world_year(self.last_world_file)
+
+        return {
+            "id": self.id,
+            "title": self.title,
+            "main_file": self.main_file,
+            "last_world_file": self.last_world_file,
+            "last_world_year": last_world_year,
+            "source": self.source,
+            "slug": slug,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
 
 
 __all__ = [
