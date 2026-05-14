@@ -81,11 +81,8 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     """Remove a coordinator entirely."""
 
     try:
-        coordinators = admin_service.list_coordinators()
-        matched = [c for c in coordinators if c.id == coordinator_id]
-        if not matched:
-            raise LookupError(f"Coordinator id {coordinator_id} was not found")
-        username = matched[0].username
+        record = admin_service.get_coordinator_by_id(coordinator_id)
+        username = record.username
         admin_service.delete_coordinator(coordinator_id)
     except LookupError as exc:
         logger.exception("Unable to delete coordinator.")

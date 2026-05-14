@@ -187,8 +187,8 @@ def test_delete_not_found(templates_db, mock_db_instance):
     """Test delete raises LookupError when template ID doesn't exist."""
     mock_db_instance.fetch_query_safe.return_value = []
 
-    with pytest.raises(LookupError):
-        templates_db.delete(999)
+    result = templates_db.delete(999)
+    assert result is False
 
 
 def test_list_empty(templates_db, mock_db_instance):

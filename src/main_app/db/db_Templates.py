@@ -204,14 +204,16 @@ class TemplatesDB:
         return self._fetch_by_id(template_id)
 
     def delete(self, template_id: int) -> bool:
-        record = self._fetch_by_id(template_id)
-        if record:
-            self.db.execute_query_safe(
-                "DELETE FROM templates WHERE id = %s",
-                (template_id,),
-            )
-            return True
-        return False
+        try:
+            record = self._fetch_by_id(template_id)
+            if record:
+                self.db.execute_query_safe(
+                    "DELETE FROM templates WHERE id = %s",
+                    (template_id,),
+                )
+                return True
+        except LookupError:
+            return False
 
 
 __all__ = [

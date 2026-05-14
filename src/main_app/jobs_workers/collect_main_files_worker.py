@@ -47,7 +47,7 @@ def slugify_title(title: str) -> str:
         try:
             owid_charts_service.get_chart_by_slug(slug)
             return slug
-        except LookupError:
+        except (LookupError, RuntimeError):
             return None
     return None
 

@@ -32,7 +32,7 @@ def get_settings_db() -> SettingsDB:
     return _SETTINGS_STORE
 
 
-def _parse_setting_value(value_type: str, raw_val: str) -> tuple[any, bool]:
+def _parse_setting_value(value_type: str, raw_val: str) -> tuple[Any, bool]:
     """Returns (value, success)"""
     if value_type == "boolean":
         return raw_val == "on", True

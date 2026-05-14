@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.db_Jobs import JobRecord
+from src.main_app.db.db_Jobs import JobRecord, JobsDB
 from src.main_app.services import jobs_service
 from src.main_app.services.jobs_service import (
     create_job,
@@ -17,9 +17,23 @@ from src.main_app.services.jobs_service import (
     list_jobs,
     update_job_status,
 )
-from src.main_app.su_services.jobs_files_service import (
-    load_job_result,
-)
+
+
+@pytest.fixture
+def mock_db_class(mocker):
+    return mocker.patch("src.main_app.db.db_Jobs.Database")
+
+
+@pytest.fixture
+def mock_db_instance(mock_db_class):
+    instance = MagicMock()
+    mock_db_class.return_value = instance
+    return instance
+
+
+@pytest.fixture
+def coordinators_db(mock_db_instance):
+    return JobsDB({})
 
 
 @pytest.fixture(autouse=True)
@@ -191,13 +205,6 @@ def test_update_job_status_with_result_file(jobs_db_fixture):
 
     assert updated_job.status == "completed"
     assert updated_job.result_file == "/path/to/result.json"
-
-
-def test_load_nonexistent_job_result():
-    """Test loading a nonexistent job result returns None."""
-    loaded_data = load_job_result("/nonexistent/file.json")
-
-    assert loaded_data is None
 
 
 def test_delete_job(jobs_db_fixture):

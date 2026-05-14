@@ -134,7 +134,7 @@ def test_update_status_running(jobs_db, mock_db_instance):
 
     mock_db_instance.execute_query_safe.assert_called()
     call_args = mock_db_instance.execute_query_safe.call_args
-    assert "UPDATE jobs SET status = running, started_at = NOW()" in call_args[0][0]
+    assert "UPDATE jobs SET status = 'running', started_at = NOW()" in call_args[0][0]
     assert record.status == "running"
 
 

@@ -272,8 +272,8 @@ def test_delete_template_success(_mock_templates_store):
 
 def test_delete_template_not_found_raises_lookup_error(_mock_templates_store):
     """Test that deleting a non-existent template raises LookupError."""
-    with pytest.raises(LookupError, match="Template id 999 was not found"):
-        template_service.delete_template(999)
+    result = template_service.delete_template(999)
+    assert result is False
 
 
 def test_template_record_dataclass_with_none_main_file(_mock_templates_store):

@@ -134,7 +134,7 @@ class JobsDB:
         Update job status.
         Raises LookupError if the job doesn't exist or the update fails.
         """
-        query = "UPDATE jobs SET status = running, started_at = NOW()"
+        query = "UPDATE jobs SET status = 'running', started_at = NOW()"
         params = []
         if result_file is not None:
             query += ", result_file = %s"
