@@ -2,8 +2,6 @@
 
 from types import SimpleNamespace
 
-import pytest
-
 from src.main_app import create_app
 from src.main_app.app_routes.auth import oauth as oauth_helpers
 
@@ -16,9 +14,10 @@ class StubConsumerToken:
 
 
 class StubHandshaker:
-    def __init__(self, mw_uri, consumer_token=None):
+    def __init__(self, mw_uri, consumer_token=None, user_agent=None):
         self.mw_uri = mw_uri
         self.consumer_token = consumer_token
+        self.user_agent = user_agent
 
     def initiate(self, callback=None):
         return "https://example.org/redirect", ("req-key", "req-secret")
