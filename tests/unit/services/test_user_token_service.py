@@ -80,7 +80,7 @@ class TestUserTokenRecord:
         assert record.last_used_at == "2024-01-03 00:00:00"
         assert record.rotated_at == "2024-01-04 00:00:00"
 
-    @patch("src.main_app.db.models.users_record.decrypt_value")
+    @patch("src.main_app.db.models.users.decrypt_value")
     def test_decrypted_success(self, mock_decrypt):
         """Test decrypted method returns decrypted credentials."""
         mock_decrypt.side_effect = ["decrypted_token", "decrypted_secret"]

@@ -10,7 +10,7 @@ from ...core.crypto import encrypt_value
 from ...sqlalchemy_db.decode_bytes import coerce_bytes
 from ..db_class import Database
 from ..exceptions import InsufficientDatabaseConfigError
-from ..models.users_record import UserTokenRecord
+from ..models.users import UserTokenRecord
 from ..sql_schema_tables import sql_tables
 
 _db: Database | None = None

@@ -1,9 +1,8 @@
 from .jobs_record import JobRecord
 from .owid_chart_record import OwidChartRecord
 from .setting_record import SettingRecord
-from .template_need_update_record import TemplateNeedUpdateRecord
-from .template_record import TemplateRecord
-from .users_record import AdminUserRecord
+from .templates import TemplateNeedUpdateRecord, TemplateRecord
+from .users import AdminUserRecord
 
 __all__ = [
     "AdminUserRecord",
