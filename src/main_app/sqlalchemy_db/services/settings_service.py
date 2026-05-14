@@ -68,7 +68,10 @@ def update_setting(
     with get_session() as session:
         setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
         if setting:
-            setting.value = str(value)
+            if value_type == "json":
+                setting.value = json.dumps(value)
+            else:
+                setting.value = str(value)
             if title:
                 setting.title = title
         else:

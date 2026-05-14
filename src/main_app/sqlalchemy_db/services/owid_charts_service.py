@@ -33,7 +33,7 @@ def list_published_charts() -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        return session.query(OwidChartRecord).filter(OwidChartRecord.is_published == 1)
+        return session.query(OwidChartRecord).filter(OwidChartRecord.is_published == 1).all()
 
 
 def get_chart_by_id(chart_id: int) -> OwidChartRecord:
