@@ -22,10 +22,10 @@ from werkzeug.wrappers.response import Response
 
 from ..config import settings
 from ..db.services import (
+    active_coordinators,
     delete_job,
     get_job,
     list_jobs,
-    active_coordinators,
 )
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
