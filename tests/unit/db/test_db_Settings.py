@@ -207,7 +207,7 @@ def test_get_raw_all(mock_database_class, db_config):
     assert len(result) == 2
     assert result[0]["key"] == "setting1"
     assert result[1]["key"] == "setting2"
-    mock_db.fetch_query_safe.assert_called_with("SELECT * FROM `settings` ORDER BY `id` ASC")
+    mock_db.fetch_query_safe.assert_called_with("SELECT id, key, title, value_type, value FROM settings ORDER BY id ASC")
 
 
 @patch("src.main_app.db.db_Settings.Database")
@@ -222,7 +222,7 @@ def test_get_by_key_found(mock_database_class, db_config):
 
     assert result == "test_value"
     mock_db.fetch_query_safe.assert_called_with(
-        "SELECT `value`, `value_type` FROM `settings` WHERE `key` = %s", ("test_key",)
+        "SELECT value, value_type FROM settings WHERE key = %s", ("test_key",)
     )
 
 
@@ -248,11 +248,11 @@ def test_create_setting_success(mock_database_class, db_config):
     mock_database_class.return_value = mock_db
 
     settings_db = SettingsDB(db_config)
-    result = settings_db.create("new_key", "New Setting", "boolean", True)
+    result = settings_db.create("new_key", "New Setting", "boolean", "true")
 
     assert result is True
     mock_db.execute_query_safe.assert_any_call(
-        "INSERT INTO `settings` (`key`, `title`, `value_type`, `value`) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
         ("new_key", "New Setting", "boolean", "true"),
     )
 
@@ -333,7 +333,7 @@ class TestUpdate:
 
         assert result is True
         mock_db.execute_query_safe.assert_called_with(
-            "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
+            "UPDATE settings SET value = %s WHERE key = %s",
             ("new_value", "existing_key"),
         )
 
@@ -371,7 +371,7 @@ class TestUpdate:
         mock_database_class.return_value = mock_db
 
         settings_db = SettingsDB(db_config)
-        settings_db.update("int_key", 100)
+        settings_db.update("int_key", "100")
 
         # Verify the value was serialized as integer
         calls = mock_db.execute_query_safe.call_args_list
@@ -384,14 +384,14 @@ class TestUpdate:
         mock_database_class.return_value = mock_db
 
         settings_db = SettingsDB(db_config)
-        result = settings_db.update("key", "value", value_type="string")
+        result = settings_db.update(key="key", value="value", title="")
 
         assert result is True
         # Should only have the UPDATE call, no SELECT call
         mock_db.fetch_query_safe.assert_not_called()
         # Second call (first is CREATE TABLE) should be the UPDATE
         mock_db.execute_query_safe.assert_any_call(
-            "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
+            "UPDATE settings SET value = %s WHERE key = %s",
             ("value", "key"),
         )
         # Total of 2 calls: CREATE TABLE and UPDATE
@@ -409,10 +409,10 @@ class TestUpdate:
 
         assert result is True
         # Should have SELECT call to get value_type
-        mock_db.fetch_query_safe.assert_called_once_with("SELECT `value_type` FROM `settings` WHERE `key` = %s", ("key",))
+        mock_db.fetch_query_safe.assert_called_once_with("SELECT value_type FROM settings WHERE key = %s", ("key",))
         # Value should be serialized as integer
         mock_db.execute_query_safe.assert_any_call(
-            "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
+            "UPDATE settings SET value = %s WHERE key = %s",
             ("42", "key"),
         )
         # Total of 2 calls: CREATE TABLE and UPDATE
@@ -426,12 +426,12 @@ class TestUpdate:
 
         settings_db = SettingsDB(db_config)
         # Pass integer value with explicit boolean type
-        result = settings_db.update("key", 1, value_type="boolean")
+        result = settings_db.update(key="key", value="true")
 
         assert result is True
         # Value should be serialized as boolean "true", not as integer "1"
         mock_db.execute_query_safe.assert_any_call(
-            "UPDATE `settings` SET `value` = %s WHERE `key` = %s",
+            "UPDATE settings SET value = %s WHERE key = %s",
             ("true", "key"),
         )
         # Total of 2 calls: CREATE TABLE and UPDATE

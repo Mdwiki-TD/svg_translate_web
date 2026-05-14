@@ -72,7 +72,7 @@ class SettingsDB:
     def update(
         self,
         key: str,
-        str_val: Any,
+        value: Any,
         title: str | None = None,
     ) -> bool:
         """Update an existing setting.
@@ -80,11 +80,16 @@ class SettingsDB:
                 Args:
                     key: The setting key to update.
                     value: The new value.
-        x"""
+        """
+        query = "UPDATE settings SET value = %s WHERE key = %s"
+        params = (value, key)
+
+        if title:
+            query = "UPDATE settings SET value = %s, title = %s WHERE key = %s"
+            params = (value, title, key)
+
         try:
-            self.db.execute_query_safe(
-                "UPDATE settings SET value = %s, title = %s WHERE key = %s", (str_val, title, key)
-            )
+            self.db.execute_query_safe(query, params)
             return True
         except Exception as e:
             logger.error(f"Failed to update setting '{key}': {e}")
