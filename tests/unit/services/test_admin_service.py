@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.config import DbConfig
-from src.main_app.services.admin_service import (
+from src.main_app.db.services.admin_service import (
     active_coordinators,
     add_coordinator,
     delete_coordinator,
@@ -29,9 +29,9 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 def test_get_admins_db_first_call(mock_coordinators_db):
     """Test get_admins_db creates a new instance on first call."""
     # Reset the global variable
-    import src.main_app.services.admin_service
+    import src.main_app.db.services.admin_service
 
-    src.main_app.services.admin_service._ADMINS_STORE = None
+    src.main_app.db.services.admin_service._ADMINS_STORE = None
 
     mock_db_instance = MagicMock()
     mock_coordinators_db.return_value = mock_db_instance
@@ -42,17 +42,17 @@ def test_get_admins_db_first_call(mock_coordinators_db):
 
     assert result == mock_db_instance
     mock_coordinators_db.assert_called_once()
-    assert src.main_app.services.admin_service._ADMINS_STORE == mock_db_instance
+    assert src.main_app.db.services.admin_service._ADMINS_STORE == mock_db_instance
 
 
 @patch("src.main_app.services.admin_service.CoordinatorsDB")
 def test_get_admins_db_cached(mock_coordinators_db):
     """Test get_admins_db returns cached instance on subsequent calls."""
     # Reset the global variable
-    import src.main_app.services.admin_service
+    import src.main_app.db.services.admin_service
 
     mock_cached_db = MagicMock()
-    src.main_app.services.admin_service._ADMINS_STORE = mock_cached_db
+    src.main_app.db.services.admin_service._ADMINS_STORE = mock_cached_db
 
     result = get_admins_db()
 

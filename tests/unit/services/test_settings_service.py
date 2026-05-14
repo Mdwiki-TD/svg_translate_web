@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from src.main_app.services.settings_service import (
+from src.main_app.db.services.settings_service import (
     _serialize_value,
 )
 

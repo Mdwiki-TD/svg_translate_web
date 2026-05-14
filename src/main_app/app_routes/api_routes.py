@@ -4,10 +4,11 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
+from src.main_app.db.services import list_templates_need_update
+from ..db.services import owid_charts_service
+
 from ..db.models import OwidChartRecord, TemplateNeedUpdateRecord, TemplateRecord
-from ..services import (
-    list_templates_need_update,
-    owid_charts_service,
+from ..db.services import (
     template_service,
 )
 

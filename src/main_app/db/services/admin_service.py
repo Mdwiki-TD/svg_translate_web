@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from ..config import settings
-from ..db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
-from ..db.exceptions import InsufficientDatabaseConfigError
+from ...config import settings
+from ..db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from ..exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
 

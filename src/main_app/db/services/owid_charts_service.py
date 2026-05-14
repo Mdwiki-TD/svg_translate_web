@@ -5,10 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..config import settings
-from ..db.db_OwidCharts import OwidChartsDB
-from ..db.exceptions import InsufficientDatabaseConfigError
-from ..db.models import OwidChartRecord
+from ...config import settings
+from ..db_OwidCharts import OwidChartsDB
+from ..exceptions import InsufficientDatabaseConfigError
+from ..models import OwidChartRecord
 
 logger = logging.getLogger(__name__)
 

@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..config import DbConfig, settings
-from ..db import Database
-from ..db.exceptions import InsufficientDatabaseConfigError
-from ..db.models import TemplateNeedUpdateRecord
-from ..db.sql_schema_tables import sql_tables
+from ...config import DbConfig, settings
+from .. import Database
+from ..exceptions import InsufficientDatabaseConfigError
+from ..models import TemplateNeedUpdateRecord
+from ..sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ from werkzeug.wrappers import Response
 
 from src.main_app import create_app
 from src.main_app.db.db_Jobs import JobRecord
-from src.main_app.services import jobs_service
+from src.main_app.db.services import jobs_service
 
 
 class FakeJobsDB:

@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.db_Jobs import JobRecord, JobsDB
-from src.main_app.services import jobs_service
-from src.main_app.services.jobs_service import (
+from src.main_app.db.services import jobs_service
+from src.main_app.db.services.jobs_service import (
     create_job,
     delete_job,
     get_job,

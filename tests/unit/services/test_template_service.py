@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 
-from src.main_app.services import template_service
+from src.main_app.db.services import template_service
 
 
 @pytest.fixture(autouse=True)
