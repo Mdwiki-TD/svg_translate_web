@@ -1,5 +1,5 @@
 from src.main_app import create_app
-from src.main_app.db import user_tokens as user_store
+from src.main_app.services import user_token_service as user_store
 
 
 class FakeCursor:

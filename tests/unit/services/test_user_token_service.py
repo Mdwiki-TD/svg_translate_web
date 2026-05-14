@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.db.user_tokens import (
+from src.main_app.services.user_token_service import (
     UserTokenRecord,
     _coerce_bytes,
     _current_ts,
@@ -19,7 +19,7 @@ from src.main_app.db.user_tokens import (
 class TestMarkTokenUsed:
     """Tests for mark_token_used function."""
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_mark_token_used_success(self, mock_get_db):
         """Test mark_token_used updates timestamp successfully."""
         mock_db = MagicMock()
@@ -32,8 +32,8 @@ class TestMarkTokenUsed:
             (123,),
         )
 
-    @patch("src.main_app.db.user_tokens.logger")
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.logger")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_mark_token_used_failure(self, mock_get_db, mock_logger):
         """Test mark_token_used logs error on failure."""
         mock_db = MagicMock()
@@ -49,7 +49,7 @@ class TestMarkTokenUsed:
 class TestCurrentTimestamp:
     """Tests for _current_ts function."""
 
-    @patch("src.main_app.db.user_tokens.datetime.datetime")
+    @patch("src.main_app.services.user_token_service.datetime.datetime")
     def test_current_ts_format(self, mock_datetime):
         """Test that _current_ts returns properly formatted timestamp."""
         mock_now = MagicMock()
@@ -163,17 +163,17 @@ class TestUserTokenRecord:
 class TestEnsureUserTokenTable:
     """Tests for ensure_user_token_table function."""
 
-    @patch("src.main_app.db.user_tokens.has_db_config")
+    @patch("src.main_app.services.user_token_service.has_db_config")
     def test_ensure_table_no_config(self, mock_has_config):
         """Test ensure_user_token_table returns early if no DB config."""
         mock_has_config.return_value = False
 
-        with patch("src.main_app.db.user_tokens.get_db") as mock_get_db:
+        with patch("src.main_app.services.user_token_service.get_db") as mock_get_db:
             ensure_user_token_table()
             mock_get_db.assert_not_called()
 
-    @patch("src.main_app.db.user_tokens.get_db")
-    @patch("src.main_app.db.user_tokens.has_db_config")
+    @patch("src.main_app.services.user_token_service.get_db")
+    @patch("src.main_app.services.user_token_service.has_db_config")
     def test_ensure_table_creates_table(self, mock_has_config, mock_get_db):
         """Test ensure_user_token_table creates table and index."""
         mock_has_config.return_value = True
@@ -192,9 +192,9 @@ class TestEnsureUserTokenTable:
 class TestUpsertUserToken:
     """Tests for upsert_user_token function."""
 
-    @patch("src.main_app.db.user_tokens._current_ts")
-    @patch("src.main_app.db.user_tokens.encrypt_value")
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service._current_ts")
+    @patch("src.main_app.services.user_token_service.encrypt_value")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_upsert_new_token(self, mock_get_db, mock_encrypt, mock_current_ts):
         """Test upsert_user_token inserts new token."""
         mock_current_ts.return_value = "2024-01-15 10:30:45"
@@ -217,9 +217,9 @@ class TestUpsertUserToken:
         call_args = mock_db.execute_query_safe.call_args
         assert "ON DUPLICATE KEY UPDATE" in call_args[0][0]
 
-    @patch("src.main_app.db.user_tokens._current_ts")
-    @patch("src.main_app.db.user_tokens.encrypt_value")
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service._current_ts")
+    @patch("src.main_app.services.user_token_service.encrypt_value")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_upsert_updates_existing(self, mock_get_db, mock_encrypt, mock_current_ts):
         """Test upsert_user_token updates existing token."""
         mock_current_ts.return_value = "2024-01-15 10:30:45"
@@ -243,7 +243,7 @@ class TestUpsertUserToken:
 class TestGetUserToken:
     """Tests for get_user_token function."""
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_get_user_token_found(self, mock_get_db):
         """Test get_user_token returns record when found."""
         mock_db = MagicMock()
@@ -270,7 +270,7 @@ class TestGetUserToken:
         assert result.access_secret == b"encrypted_secret"
         assert result.created_at == "2024-01-01 00:00:00"
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_get_user_token_not_found(self, mock_get_db):
         """Test get_user_token returns None when not found."""
         mock_db = MagicMock()
@@ -281,7 +281,7 @@ class TestGetUserToken:
 
         assert result is None
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_get_user_token_string_id(self, mock_get_db):
         """Test get_user_token converts string ID to int."""
         mock_db = MagicMock()
@@ -295,8 +295,8 @@ class TestGetUserToken:
         call_args = mock_db.fetch_query_safe.call_args
         assert call_args[0][1] == (456,)
 
-    @patch("src.main_app.db.user_tokens._coerce_bytes")
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service._coerce_bytes")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_get_user_token_coerces_bytes(self, mock_get_db, mock_coerce):
         """Test get_user_token coerces bytes for token fields."""
         mock_coerce.side_effect = [b"coerced_token", b"coerced_secret"]
@@ -321,7 +321,7 @@ class TestGetUserToken:
 class TestDeleteUserToken:
     """Tests for delete_user_token function."""
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_delete_user_token(self, mock_get_db):
         """Test delete_user_token executes delete query."""
         mock_db = MagicMock()
@@ -334,7 +334,7 @@ class TestDeleteUserToken:
             (123,),
         )
 
-    @patch("src.main_app.db.user_tokens.get_db")
+    @patch("src.main_app.services.user_token_service.get_db")
     def test_delete_user_token_different_id(self, mock_get_db):
         """Test delete_user_token with different user ID."""
         mock_db = MagicMock()

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from flask import g, session
 
-from src.main_app.db.user_tokens import UserTokenRecord
+from src.main_app.services.user_token_service import UserTokenRecord
 from src.main_app.su_services.users_service import (
     _resolve_user_id,
     current_user,

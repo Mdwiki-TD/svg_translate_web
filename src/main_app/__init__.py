@@ -21,7 +21,7 @@ from .app_routes import (
 from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import close_cached_db
-from .db.user_tokens import ensure_user_token_table
+from .services.user_token_service import ensure_user_token_table
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
