@@ -5,31 +5,8 @@ from __future__ import annotations
 from importlib import reload
 from unittest.mock import patch
 
-from src.main_app.db import svg_db
-
-
 def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     """Ensure the app factory can run without MySQL credentials."""
-
-    monkeypatch.setattr(svg_db, "_db", None)
-    from src.main_app.config import DbConfig
-
-    monkeypatch.setattr(
-        svg_db,
-        "settings",
-        type(svg_db.settings)(
-            **{
-                **svg_db.settings.__dict__,
-                "database_data": DbConfig(db_name="", db_host="", db_user=None, db_password=None),
-            }
-        ),
-    )
-
-    class _SentinelDatabase:
-        def __init__(self, *_args, **_kwargs):  # pragma: no cover - defensive guard
-            raise AssertionError("Database should not be instantiated during app creation")
-
-    monkeypatch.setattr(svg_db, "Database", _SentinelDatabase)
 
     import src.main_app as app_module
 

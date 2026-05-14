@@ -37,14 +37,6 @@ def get_db() -> Database:
     return _db
 
 
-def close_cached_db() -> None:
-    """Close the cached :class:`Database` instance if it has been initialized."""
-    global _db
-    if _db is not None:
-        _db.close()
-        _db = None
-
-
 def execute_query(sql_query: str, params: Optional[Any] = None):
     """Proxy :meth:`Database.execute_query` for backwards compatibility."""
 
@@ -75,8 +67,6 @@ def fetch_query_safe(sql_query: str, params: Optional[Any] = None):
 
 __all__ = [
     "get_db",
-    "has_db_config",
-    "close_cached_db",
     "execute_query",
     "fetch_query",
     "execute_query_safe",

@@ -20,7 +20,6 @@ from .app_routes import (
 )
 from .config import settings
 from .core.cookies import CookieHeaderClient
-from .db import close_cached_db
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -139,10 +138,11 @@ def create_app() -> Flask:
     def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
         # Idempotent teardown - safe for Flask 3.1.2+ stream_with_context regression
         # See: https://github.com/pallets/flask/issues/5804
-        try:
-            close_cached_db()
-        except Exception:
-            logger.debug("Failed to close cached DB during teardown", exc_info=True)
+        # try:
+        #     close_cached_db()
+        # except Exception:
+        #     logger.debug("Failed to close cached DB during teardown", exc_info=True)
+        pass
 
     register_error_pages(app)
     register_blueprints(app)
