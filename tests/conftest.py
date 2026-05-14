@@ -212,8 +212,10 @@ def setup_db():
     for table in BaseDb.metadata.sorted_tables:
         if not table.info.get("is_view"):
             table.create(engine, checkfirst=True)
-        elif table.info.get("create_query"):
-            # Create views manually
+
+    # Create views manually
+    for table in BaseDb.metadata.sorted_tables:
+        if table.info.get("is_view") and table.info.get("create_query"):
             with engine.connect() as conn:
                 conn.execute(text(table.info["create_query"]))
 
