@@ -12,7 +12,7 @@ import pytest
 
 
 @pytest.fixture
-def mock_site():
+def mock_site() -> MagicMock:
     return MagicMock()
 
 

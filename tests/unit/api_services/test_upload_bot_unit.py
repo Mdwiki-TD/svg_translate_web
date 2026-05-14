@@ -15,7 +15,7 @@ from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 
 
 @pytest.fixture
-def mock_site():
+def mock_site() -> MagicMock:
     return MagicMock()
 
 

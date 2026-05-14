@@ -18,7 +18,7 @@ def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
 
 
 @pytest.fixture
-def mock_site():
+def mock_site() -> MagicMock:
     return MagicMock()
 
 
