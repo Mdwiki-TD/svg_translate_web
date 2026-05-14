@@ -40,6 +40,12 @@ class SettingsDB:
         rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings")
         return [self._row_to_record(row) for row in rows]
 
+    def _is_key_exist(self, key: str) -> None | SettingRecord:
+        rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
+        if not rows:
+            return None
+        return True
+
     def get_by_key(self, key: str) -> None | SettingRecord:
         rows = self.db.fetch_query_safe("SELECT id, key, title, value_type, value FROM settings WHERE key = %s", (key,))
         if not rows:
@@ -60,7 +66,7 @@ class SettingsDB:
 
     def create(self, key: str, title: str, value_type: str, value: Any) -> bool:
         """Create a new setting."""
-        if self.get_by_key(key) is not None:
+        if self._is_key_exist(key) is True:
             return False
         try:
             affected_rows = self.db.execute_query_safe(
@@ -84,7 +90,7 @@ class SettingsDB:
             key: The setting key to update.
             value: The new value.
         """
-        if not self.get_by_key(key):
+        if not self._is_key_exist(key):
             return False
 
         query = "UPDATE settings SET value = %s WHERE key = %s"
