@@ -15,13 +15,13 @@ def _require_fernet() -> Fernet:
     if _fernet is not None:
         return _fernet
 
-    if not settings.oauth_encryption_key:
+    if not settings.oauth.encryption_key:
         raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
     key_bytes = (
-        settings.oauth_encryption_key.encode()
-        if isinstance(settings.oauth_encryption_key, str)
-        else settings.oauth_encryption_key
+        settings.oauth.encryption_key.encode()
+        if isinstance(settings.oauth.encryption_key, str)
+        else settings.oauth.encryption_key
     )
     # with _fernet_lock:
 

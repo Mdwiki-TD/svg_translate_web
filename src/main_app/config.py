@@ -146,6 +146,7 @@ class Settings:
 
 # --- Helper Functions ---
 
+
 def _env_bool(name: str, default: bool = False) -> bool:
     """Convert environment variable to boolean."""
     value = os.getenv(name)
@@ -175,7 +176,7 @@ def resolve_path(_path) -> Path:
 # --- Configuration Loaders ---
 
 
-def _load_db_data_new() -> DbConfig:
+def _load_database_config() -> DbConfig:
     """
     Construct a DbConfig populated from environment variables.
 
@@ -196,6 +197,33 @@ def _load_db_data_new() -> DbConfig:
     )
 
 
+def _load_oauth_config() -> Optional[OAuthConfig]:
+    """
+    Loads OAuth settings and validates them if enabled.
+    Returns None if USE_MW_OAUTH is disabled.
+
+    Raises:
+        RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
+    """
+    mw_uri = os.getenv("OAUTH_MWURI", "")
+    consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
+    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
+    if not (mw_uri and consumer_key and consumer_secret):
+        return None
+
+    encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
+    if not encryption_key:
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
+
+    return OAuthConfig(
+        mw_uri=mw_uri,
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
+        encryption_key=encryption_key,
+    )
+
+
 def _get_paths() -> Paths:
     """
     Compute the filesystem paths the application uses for SVG data, thumbnails, logs, fix data, and SVG job files and ensure those directories exist.
@@ -212,74 +240,29 @@ def _get_paths() -> Paths:
             - main_files_path: path for main files
     """
     main_dir = os.getenv("MAIN_DIR", "~/data")
-    main_dir = Path(os.path.expandvars(main_dir)).expanduser()
-    svg_data = f"{main_dir}/svg_data"
-    svg_data_thumb = f"{main_dir}/svg_data_thumb"
-    log_dir = f"{main_dir}/logs"
-    fix_nested_data = f"{main_dir}/fix_nested_data"
-    svg_jobs_path = f"{main_dir}/svg_jobs"
-    main_files_path = f"{main_dir}/main_files"
+    main_dir = resolve_path(main_dir)
     crop_main_files_path = f"{main_dir}/crop_main_files"
 
     crop_main_files_original = f"{crop_main_files_path}/original"
     crop_main_files_cropped = f"{crop_main_files_path}/cropped"
 
-    # Ensure directories exist
-    Path(svg_data).mkdir(parents=True, exist_ok=True)
-    Path(svg_data_thumb).mkdir(parents=True, exist_ok=True)
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
-    Path(fix_nested_data).mkdir(parents=True, exist_ok=True)
-    Path(svg_jobs_path).mkdir(parents=True, exist_ok=True)
-    Path(main_files_path).mkdir(parents=True, exist_ok=True)
     Path(crop_main_files_original).mkdir(parents=True, exist_ok=True)
     Path(crop_main_files_cropped).mkdir(parents=True, exist_ok=True)
 
-    return Paths(
-        svg_data=svg_data,
-        svg_data_thumb=svg_data_thumb,
-        log_dir=log_dir,
-        fix_nested_data=fix_nested_data,
-        svg_jobs_path=svg_jobs_path,
-        main_files_path=main_files_path,
-        crop_main_files_path=crop_main_files_path,
-    )
+    _dirs = {
+        "svg_data": f"{main_dir}/svg_data",
+        "svg_data_thumb": f"{main_dir}/svg_data_thumb",
+        "log_dir": f"{main_dir}/logs",
+        "fix_nested_data": f"{main_dir}/fix_nested_data",
+        "svg_jobs_path": f"{main_dir}/svg_jobs",
+        "main_files_path": f"{main_dir}/main_files",
+        "crop_main_files_path": crop_main_files_path,
+    }
+    # Ensure directories exist
+    for dir_name in _dirs.values():
+        Path(dir_name).mkdir(parents=True, exist_ok=True)
 
-
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _env_int(name: str, default: int) -> int:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    try:
-        return int(value)
-    except ValueError as exc:  # pragma: no cover - defensive guard
-        raise ValueError(f"Environment variable {name} must be an integer") from exc
-
-
-def _load_oauth_config() -> Optional[OAuthConfig]:
-    mw_uri = os.getenv("OAUTH_MWURI", "")
-    consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
-    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
-    if not (mw_uri and consumer_key and consumer_secret):
-        return None
-
-    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
-    if not oauth_encryption_key:
-        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
-
-    return OAuthConfig(
-        encryption_key=oauth_encryption_key,
-        mw_uri=mw_uri,
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
-    )
+    return Paths(**_dirs)
 
 
 def is_localhost(host: str) -> bool:
@@ -305,7 +288,7 @@ def has_db_config(db_settings) -> bool:
     return bool(db_settings.db_host or db_settings.db_user)
 
 
-def load_cookie_config():
+def load_cookie_config() -> CookieConfig:
     session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
     session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
     session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
@@ -340,9 +323,6 @@ def get_settings() -> Settings:
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
-    session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
-    session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
-    session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     STATE_SESSION_KEY = os.getenv("STATE_SESSION_KEY", "oauth_state_nonce")
     REQUEST_TOKEN_SESSION_KEY = os.getenv("REQUEST_TOKEN_SESSION_KEY", "state")
 
@@ -352,13 +332,8 @@ def get_settings() -> Settings:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
-    cookie = CookieConfig(
-        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
-        max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
-        secure=session_cookie_secure,
-        httponly=session_cookie_httponly,
-        samesite=session_cookie_samesite,
-    )
+
+    cookie_config = load_cookie_config()
 
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     # Set to 0 or None to disable expiration (not recommended for production).
@@ -387,7 +362,7 @@ def get_settings() -> Settings:
         max_form_parts=max_form_parts,
         secret_key_fallbacks=secret_key_fallbacks,
     )
-    database_data = _load_db_data_new()
+    database_data = _load_database_config()
     return Settings(
         is_localhost=is_localhost,
         user_agent=os.getenv(
@@ -400,7 +375,7 @@ def get_settings() -> Settings:
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
-        cookie=cookie,
+        cookie=cookie_config,
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
         download=DownloadConfig(dev_limit=dev_download_limit),
@@ -410,4 +385,14 @@ def get_settings() -> Settings:
     )
 
 
+# Singleton settings instance
 settings = get_settings()
+
+
+class DevelopmentConfig: ...
+
+
+class TestingConfig: ...
+
+
+class ProductionConfig: ...
