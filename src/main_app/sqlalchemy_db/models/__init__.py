@@ -1,9 +1,8 @@
-from .admin_users import AdminUserRecord
 from .jobs import JobRecord
 from .owid_charts import OwidChartRecord
 from .settings import SettingRecord
 from .templates import TemplateRecord
-from .users import UserTokenRecord
+from .users import UserTokenRecord, AdminUserRecord
 from .views import (
     OwidChartTemplateRecord,
     TemplateNeedUpdateRecord,
