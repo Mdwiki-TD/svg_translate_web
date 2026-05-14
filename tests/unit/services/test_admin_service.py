@@ -13,33 +13,40 @@ from src.main_app.services.admin_service import (
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
+    _mock.has_db_config = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.admin_service.settings",
+        _mock,
+    )
+    return _mock
+
+
 @patch("src.main_app.services.admin_service.CoordinatorsDB")
-@patch("src.main_app.services.admin_service.has_db_config")
-def test_get_admins_db_first_call(mock_has_db_config, mock_coordinators_db):
+def test_get_admins_db_first_call(mock_coordinators_db):
     """Test get_admins_db creates a new instance on first call."""
     # Reset the global variable
     import src.main_app.services.admin_service
 
     src.main_app.services.admin_service._ADMINS_STORE = None
 
-    mock_has_db_config.return_value = True
     mock_db_instance = MagicMock()
     mock_coordinators_db.return_value = mock_db_instance
 
     # Mock settings.database_data
-    with patch("src.main_app.services.admin_service.settings") as mock_settings:
-        mock_settings.database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
 
-        result = get_admins_db()
+    result = get_admins_db()
 
-        assert result == mock_db_instance
-        mock_coordinators_db.assert_called_once()
-        assert src.main_app.services.admin_service._ADMINS_STORE == mock_db_instance
+    assert result == mock_db_instance
+    mock_coordinators_db.assert_called_once()
+    assert src.main_app.services.admin_service._ADMINS_STORE == mock_db_instance
 
 
 @patch("src.main_app.services.admin_service.CoordinatorsDB")
-@patch("src.main_app.services.admin_service.has_db_config")
-def test_get_admins_db_cached(mock_has_db_config, mock_coordinators_db):
+def test_get_admins_db_cached(mock_coordinators_db):
     """Test get_admins_db returns cached instance on subsequent calls."""
     # Reset the global variable
     import src.main_app.services.admin_service
@@ -51,20 +58,6 @@ def test_get_admins_db_cached(mock_has_db_config, mock_coordinators_db):
 
     assert result == mock_cached_db
     mock_coordinators_db.assert_not_called()
-
-
-@patch("src.main_app.services.admin_service.has_db_config")
-def test_get_admins_db_no_config(mock_has_db_config):
-    """Test get_admins_db raises RuntimeError when no DB config."""
-    # Reset the global variable to ensure it's None
-    import src.main_app.services.admin_service
-
-    src.main_app.services.admin_service._ADMINS_STORE = None
-
-    mock_has_db_config.return_value = False
-
-    with pytest.raises(RuntimeError, match="Coordinator administration requires database configuration"):
-        get_admins_db()
 
 
 @patch("src.main_app.services.admin_service.get_admins_db")

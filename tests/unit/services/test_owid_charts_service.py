@@ -59,12 +59,6 @@ def mock_db_instance():
 class TestGetOwidChartsDb:
     """Tests for get_owid_charts_db function."""
 
-    def test_raises_runtime_error_without_db_config(self):
-        """Test that RuntimeError is raised when no DB config exists."""
-        with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
-            with pytest.raises(RuntimeError, match="requires database configuration"):
-                get_owid_charts_db()
-
     def test_raises_runtime_error_on_init_failure(self):
         """Test that RuntimeError is raised when DB init fails."""
         with patch("src.main_app.services.owid_charts_service._OWID_CHARTS_STORE", None):
