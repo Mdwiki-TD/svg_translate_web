@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def list_templates_need_update() -> List[TemplateNeedUpdateRecord]:
     """Return all templates"""
     with get_session() as session:
-        query = session.query(TemplateNeedUpdateRecord).order_by(TemplateNeedUpdateRecord.title)
+        query = session.query(TemplateNeedUpdateRecord).order_by(TemplateNeedUpdateRecord.template_title)
         return query.all()
 
 
