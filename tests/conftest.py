@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from cryptography.fernet import Fernet
 from flask import Flask
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
@@ -211,6 +212,9 @@ def setup_db():
     for table in BaseDb.metadata.sorted_tables:
         if not table.info.get("is_view"):
             table.create(engine, checkfirst=True)
+        elif table.info.get("create_query"):
+            # Create views manually
+            engine.execute(text(table.info["create_query"]))
 
     factory = sessionmaker(bind=engine, expire_on_commit=False)
 
