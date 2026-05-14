@@ -124,7 +124,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
-    mock_settings.oauth.user_agent = "TestBot/1.0"
+    mock_settings.user_agent = "TestBot/1.0"
     mock_settings.dynamic = {}
     mock_settings.download.dev_limit = 0
     monkeypatch.setattr(

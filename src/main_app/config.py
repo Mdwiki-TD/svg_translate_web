@@ -65,8 +65,12 @@ class OAuthConfig:
     consumer_key: str
     consumer_secret: str
     encryption_key: Optional[str]
-    user_agent: str
     upload_host: str
+
+
+@dataclass(frozen=True)
+class CorsConfig:
+    allowed_domains: list[str]
 
 
 @dataclass(frozen=True)
@@ -116,24 +120,62 @@ class DynamicSettingsStore:
 
 @dataclass(frozen=True)
 class Settings:
-    is_localhost: callable
-    has_db_config: callable
-    database_data: DbConfig
-    STATE_SESSION_KEY: str
-    REQUEST_TOKEN_SESSION_KEY: str
+    """Main settings container."""
+
     secret_key: str
-    oauth_encryption_key: str
-    cookie: CookieConfig
-    oauth: OAuthConfig
+    user_agent: str
+    is_localhost: Callable[[str], bool]
+    has_db_config: callable
+
+    # Nested configurations
+    database_data: DbConfig
     paths: Paths
-    disable_uploads: str
+    cookie: CookieConfig
+    sessions: SessionConfig
+    oauth: OAuthConfig
+    cors: CorsConfig
     download: DownloadConfig
     security: SecurityConfig
-    csrf_time_limit: Optional[int]  # None means never expire
     dynamic: DynamicSettingsStore
 
+    disable_uploads: str
+    csrf_time_limit: Optional[int]  # None means never expire
+    STATE_SESSION_KEY: str
+    REQUEST_TOKEN_SESSION_KEY: str
 
-def _load_db_data_new() -> DbConfig:
+
+# --- Helper Functions ---
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    """Convert environment variable to boolean."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name: str, default: int) -> int:
+    """Convert environment variable to integer."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:  # pragma: no cover - defensive guard
+        raise ValueError(f"Environment variable {name} must be an integer") from exc
+
+
+def resolve_path(_path) -> Path:
+    """Expand environment variables and user home directory in paths."""
+    _path = os.path.expandvars(str(_path))
+    _path = Path(_path).expanduser()
+    return _path
+
+
+# --- Configuration Loaders ---
+
+
+def _load_database_config() -> DbConfig:
     """
     Construct a DbConfig populated from environment variables.
 
@@ -151,6 +193,30 @@ def _load_db_data_new() -> DbConfig:
         db_host=os.getenv("DB_HOST", ""),
         db_user=os.getenv("TOOL_REPLICA_USER", None),
         db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
+    )
+
+
+def _load_oauth_config() -> Optional[OAuthConfig]:
+    """
+    Loads OAuth settings and validates them if enabled.
+    Returns None if USE_MW_OAUTH is disabled.
+    """
+    mw_uri = os.getenv("OAUTH_MWURI", "")
+    consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
+    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
+    if not (mw_uri and consumer_key and consumer_secret):
+        return None
+
+    encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
+    if not encryption_key:
+        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
+
+    return OAuthConfig(
+        mw_uri=mw_uri,
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
+        encryption_key=encryption_key,
     )
 
 
@@ -202,43 +268,8 @@ def _get_paths() -> Paths:
     )
 
 
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _env_int(name: str, default: int) -> int:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    try:
-        return int(value)
-    except ValueError as exc:  # pragma: no cover - defensive guard
-        raise ValueError(f"Environment variable {name} must be an integer") from exc
-
-
-def _load_oauth_config() -> Optional[OAuthConfig]:
-    mw_uri = os.getenv("OAUTH_MWURI", "")
-    consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
-    consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
-    if not (mw_uri and consumer_key and consumer_secret):
-        return None
-
-    return OAuthConfig(
-        mw_uri=mw_uri,
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        user_agent=os.getenv(
-            "USER_AGENT",
-            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-        ),
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
-    )
-
-
 def is_localhost(host: str) -> bool:
+    """Check if the host refers to a local environment."""
     local_hosts = [
         "localhost",
         "127.0.0.1",
@@ -258,6 +289,22 @@ def has_db_config(db_settings) -> bool:
     """
 
     return bool(db_settings.db_host or db_settings.db_user)
+
+
+def load_cookie_config():
+    session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
+    session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
+    session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+
+    cookie = CookieConfig(
+        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
+        max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
+        secure=session_cookie_secure,
+        httponly=session_cookie_httponly,
+        samesite=session_cookie_samesite,
+    )
+
+    return cookie
 
 
 @lru_cache(maxsize=1)
@@ -291,11 +338,6 @@ def get_settings() -> Settings:
         raise RuntimeError(
             "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
         )
-
-    oauth_encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
-    if not oauth_encryption_key:
-        raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
-
     cookie = CookieConfig(
         name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
         max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
@@ -331,16 +373,19 @@ def get_settings() -> Settings:
         max_form_parts=max_form_parts,
         secret_key_fallbacks=secret_key_fallbacks,
     )
-    database_data = _load_db_data_new()
+    database_data = _load_database_config()
     return Settings(
         is_localhost=is_localhost,
+        user_agent=os.getenv(
+            "USER_AGENT",
+            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
+        ),
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
         STATE_SESSION_KEY=STATE_SESSION_KEY,
         REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
-        oauth_encryption_key=oauth_encryption_key,
         cookie=cookie,
         oauth=oauth_config,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
