@@ -4,11 +4,16 @@ import secrets
 import sys
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptography.fernet import Fernet
 from flask import Flask
+from sqlalchemy.orm import sessionmaker
+
+# Ensure all SQLAlchemy models are registered with BaseDb.metadata before any
+# fixture tries to iterate sorted_tables.
+import src.main_app.sqlalchemy_db.models  # noqa: F401
 
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
@@ -31,11 +36,6 @@ def disable_network(mocker):
     mocker.patch("requests.get", side_effect=Exception("Network disabled in tests"))
     mocker.patch("requests.post", side_effect=Exception("Network disabled in tests"))
     mocker.patch("urllib.request.urlopen", side_effect=Exception("Network disabled in tests"))
-
-
-@pytest.fixture
-def mock_site():
-    return MagicMock()
 
 
 @pytest.fixture
@@ -185,3 +185,34 @@ def mock_exists_page() -> MagicMock:
 @pytest.fixture
 def mw_client(mock_site: MagicMock) -> MwClientPage:
     return MwClientPage("Test Page", mock_site)
+
+
+
+@pytest.fixture(autouse=True)
+def setup_db():
+    """Initialize an in-memory SQLite database for tests.
+
+    Creates a fresh SQLite in-memory engine for every test and patches
+    engine_mod._SessionFactory so all sqlalchemy_db service calls use it.
+    View-backed tables (is_view=True) are skipped since SQLite cannot run
+    the MySQL CREATE VIEW statements.
+    """
+    from src.main_app.sqlalchemy_db import engine as engine_mod
+    from src.main_app.sqlalchemy_db.engine import (
+        BaseDb,
+        build_engine,
+    )
+
+    engine = build_engine("sqlite:///:memory:")
+
+    # Create only real tables; skip view-backed mapped classes
+    for table in BaseDb.metadata.sorted_tables:
+        if not table.info.get("is_view"):
+            table.create(engine, checkfirst=True)
+
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+
+    with patch.object(engine_mod, "_SessionFactory", factory):
+        yield
+
+    engine.dispose()
