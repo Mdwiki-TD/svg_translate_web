@@ -5,37 +5,14 @@ from __future__ import annotations
 import datetime
 import logging
 from typing import Any, Dict, Optional
-from ..config import settings
 
 from ..core.crypto import encrypt_value
 from ..db import get_db, has_db_config
 from ..db.sql_schema_tables import sql_tables
 from ..shared.models.users_record import UserTokenRecord
+from ..sqlalchemy_db.decode_bytes import coerce_bytes
 
 logger = logging.getLogger(__name__)
-
-_USERTOKEN_STORE: CoordinatorsDB | None = None
-
-
-def get_admins_db() -> CoordinatorsDB:
-    """
-    Return the singleton user_token_service database store, initializing it on first access.
-    """
-    global _USERTOKEN_STORE
-
-    if _USERTOKEN_STORE is None:
-        if not has_db_config():
-            raise RuntimeError(
-                "user_token_service requires database configuration; no fallback store is available."
-            )
-
-        try:
-            _USERTOKEN_STORE = CoordinatorsDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL coordinator store")
-            raise RuntimeError("Unable to initialize coordinator store") from exc
-
-    return _USERTOKEN_STORE
 
 
 def _current_ts() -> str:
@@ -47,16 +24,6 @@ def _current_ts() -> str:
         A string of the current UTC time in the format "YYYY-MM-DD HH:MM:SS".
     """
     return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
-
-
-def _coerce_bytes(value: Any) -> bytes:
-    if isinstance(value, bytes):
-        return value
-    if isinstance(value, bytearray):
-        return bytes(value)
-    if isinstance(value, memoryview):
-        return value.tobytes()
-    raise TypeError("Expected bytes-compatible value for encrypted token")
 
 
 def mark_token_used(user_id: int) -> None:
@@ -151,8 +118,8 @@ def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
     return UserTokenRecord(
         user_id=row["user_id"],
         username=row["username"],
-        access_token=_coerce_bytes(row["access_token"]),
-        access_secret=_coerce_bytes(row["access_secret"]),
+        access_token=coerce_bytes(row["access_token"]),
+        access_secret=coerce_bytes(row["access_secret"]),
         created_at=row.get("created_at"),
         updated_at=row.get("updated_at"),
         last_used_at=row.get("last_used_at"),

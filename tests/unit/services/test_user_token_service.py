@@ -2,11 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.main_app.services.user_token_service import (
     UserTokenRecord,
-    _coerce_bytes,
     _current_ts,
     delete_user_token,
     get_user_token,
@@ -59,45 +56,6 @@ class TestCurrentTimestamp:
 
         assert result == "2024-01-15 10:30:45"
         mock_datetime.now.assert_called_once()
-
-
-class TestCoerceBytes:
-    """Tests for _coerce_bytes function."""
-
-    def test_coerce_bytes_with_bytes(self):
-        """Test _coerce_bytes with bytes input."""
-        input_bytes = b"test_data"
-        result = _coerce_bytes(input_bytes)
-        assert result == input_bytes
-
-    def test_coerce_bytes_with_bytearray(self):
-        """Test _coerce_bytes with bytearray input."""
-        input_bytearray = bytearray(b"test_data")
-        result = _coerce_bytes(input_bytearray)
-        assert result == b"test_data"
-        assert isinstance(result, bytes)
-
-    def test_coerce_bytes_with_memoryview(self):
-        """Test _coerce_bytes with memoryview input."""
-        input_memoryview = memoryview(b"test_data")
-        result = _coerce_bytes(input_memoryview)
-        assert result == b"test_data"
-        assert isinstance(result, bytes)
-
-    def test_coerce_bytes_with_invalid_type(self):
-        """Test _coerce_bytes raises TypeError for invalid input."""
-        with pytest.raises(TypeError, match="Expected bytes-compatible value"):
-            _coerce_bytes("string_not_bytes")
-
-    def test_coerce_bytes_with_int(self):
-        """Test _coerce_bytes raises TypeError for integer input."""
-        with pytest.raises(TypeError, match="Expected bytes-compatible value"):
-            _coerce_bytes(123)
-
-    def test_coerce_bytes_with_none(self):
-        """Test _coerce_bytes raises TypeError for None input."""
-        with pytest.raises(TypeError, match="Expected bytes-compatible value"):
-            _coerce_bytes(None)
 
 
 class TestUserTokenRecord:
@@ -265,7 +223,7 @@ class TestGetUserToken:
         call_args = mock_db.fetch_query_safe.call_args
         assert call_args[0][1] == (456,)
 
-    @patch("src.main_app.services.user_token_service._coerce_bytes")
+    @patch("src.main_app.services.user_token_service.coerce_bytes")
     @patch("src.main_app.services.user_token_service.get_db")
     def test_get_user_token_coerces_bytes(self, mock_get_db, mock_coerce):
         """Test get_user_token coerces bytes for token fields."""
