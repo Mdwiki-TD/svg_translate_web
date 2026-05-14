@@ -34,7 +34,7 @@ class TemplateNeedUpdateRecord(BaseDb):
                         t.title AS template_title,
                         t.slug AS slug,
                         t.last_world_year AS last_world_year
-                        c.max_time AS max_time,
+                        c.max_time AS max_time
                     from owid_charts c
                             join templates t on t.slug = c.slug
                     where
@@ -66,7 +66,7 @@ class OwidChartTemplateRecord(BaseDb):
     __tablename__ = "owid_charts_templates"
 
     chart_id = Column(Integer, primary_key=True, autoincrement=True)
-    template_id = Column(Integer, primary_key=True, autoincrement=True)
+    template_id = Column(Integer, primary_key=True)
     template_title = Column(String(255), unique=True, nullable=False)
 
     __table_args__ = (

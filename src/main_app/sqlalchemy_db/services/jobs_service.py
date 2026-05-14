@@ -67,14 +67,10 @@ def _update_status(job_id: int, status: str, result_file: str, job_type: str) ->
     Update job status and result file.
     """
     with get_session() as session:
-        job = (
-            session.query(JobRecord)
-            .filter(
-                JobRecord.id == job_id,
-                JobRecord.job_type == job_type,
-            )
-            .first()
-        )
+        query = session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        job = query.first()
 
         if job:
             job.status = status
