@@ -236,36 +236,29 @@ def _get_paths() -> Paths:
             - main_files_path: path for main files
     """
     main_dir = os.getenv("MAIN_DIR", "~/data")
-    main_dir = Path(os.path.expandvars(main_dir)).expanduser()
-    svg_data = f"{main_dir}/svg_data"
-    svg_data_thumb = f"{main_dir}/svg_data_thumb"
-    log_dir = f"{main_dir}/logs"
-    fix_nested_data = f"{main_dir}/fix_nested_data"
-    svg_jobs_path = f"{main_dir}/svg_jobs"
-    main_files_path = f"{main_dir}/main_files"
+    main_dir = resolve_path(main_dir)
     crop_main_files_path = f"{main_dir}/crop_main_files"
+
     crop_main_files_original = f"{crop_main_files_path}/original"
     crop_main_files_cropped = f"{crop_main_files_path}/cropped"
 
-    # Ensure directories exist
-    Path(svg_data).mkdir(parents=True, exist_ok=True)
-    Path(svg_data_thumb).mkdir(parents=True, exist_ok=True)
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
-    Path(fix_nested_data).mkdir(parents=True, exist_ok=True)
-    Path(svg_jobs_path).mkdir(parents=True, exist_ok=True)
-    Path(main_files_path).mkdir(parents=True, exist_ok=True)
     Path(crop_main_files_original).mkdir(parents=True, exist_ok=True)
     Path(crop_main_files_cropped).mkdir(parents=True, exist_ok=True)
 
-    return Paths(
-        svg_data=svg_data,
-        svg_data_thumb=svg_data_thumb,
-        log_dir=log_dir,
-        fix_nested_data=fix_nested_data,
-        svg_jobs_path=svg_jobs_path,
-        main_files_path=main_files_path,
-        crop_main_files_path=crop_main_files_path,
-    )
+    _dirs = {
+        "svg_data": f"{main_dir}/svg_data",
+        "svg_data_thumb": f"{main_dir}/svg_data_thumb",
+        "log_dir": f"{main_dir}/logs",
+        "fix_nested_data": f"{main_dir}/fix_nested_data",
+        "svg_jobs_path": f"{main_dir}/svg_jobs",
+        "main_files_path": f"{main_dir}/main_files",
+        "crop_main_files_path": crop_main_files_path,
+    }
+    # Ensure directories exist
+    for dir_name in _dirs.values():
+        Path(dir_name).mkdir(parents=True, exist_ok=True)
+
+    return Paths(**_dirs)
 
 
 def is_localhost(host: str) -> bool:
