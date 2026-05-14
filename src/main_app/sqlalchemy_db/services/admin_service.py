@@ -58,11 +58,11 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
     with get_session() as session:
         # record = get_coordinator_by_id(coordinator_id)
         record = session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
-
-        record.is_active = is_active
-        session.commit()
-        session.refresh(record)
-        return record
+        if record:
+            record.is_active = is_active
+            session.commit()
+            session.refresh(record)
+            return record
 
 
 def delete_coordinator(coordinator_id: int) -> bool:
