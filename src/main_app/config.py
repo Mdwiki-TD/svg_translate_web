@@ -131,9 +131,9 @@ class Settings:
     database_data: DbConfig
     paths: Paths
     cookie: CookieConfig
-    sessions: SessionConfig
     oauth: OAuthConfig
-    cors: CorsConfig
+    # sessions: SessionConfig
+    # cors: CorsConfig
     download: DownloadConfig
     security: SecurityConfig
     dynamic: DynamicSettingsStore
