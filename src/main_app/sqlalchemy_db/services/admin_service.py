@@ -58,6 +58,8 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
     with get_session() as session:
         # record = get_coordinator_by_id(coordinator_id)
         record = session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
+        if not record:
+            raise LookupError(f"Coordinator id {coordinator_id} was not found")
 
         record.is_active = is_active
         session.commit()

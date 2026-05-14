@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Boolean, Column, DateTime, Index, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
+from sqlalchemy.orm import relationship
 
 from ..engine import BaseDb
 
@@ -45,6 +46,22 @@ class OwidChartRecord(BaseDb):
     single_year_data = Column(Boolean, server_default="0")
     len_years = Column(Integer, nullable=True)
     has_timeline = Column(Boolean, server_default="0")
+
+    _template_info = relationship(
+        "OwidChartTemplateRecord",
+        primaryjoin="OwidChartRecord.chart_id == OwidChartTemplateRecord.chart_id",
+        foreign_keys="OwidChartTemplateRecord.chart_id",
+        viewonly=True,
+        uselist=False,
+    )
+
+    @property
+    def template_id(self) -> int | None:
+        return self._template_info.template_id if hasattr(self, "_template_info") and self._template_info else None
+
+    @property
+    def template_title(self) -> str | None:
+        return self._template_info.template_title if hasattr(self, "_template_info") and self._template_info else None
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(

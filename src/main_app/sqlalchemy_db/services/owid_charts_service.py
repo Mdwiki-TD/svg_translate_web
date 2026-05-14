@@ -3,13 +3,16 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional
 
+from sqlalchemy.orm import joinedload
+
 from ..engine import get_session
 from ..models.owid_charts import OwidChartRecord
+from ..models.views import OwidChartTemplateRecord
 
 logger = logging.getLogger(__name__)
 
 
-def list_charts(limit: int = 100) -> List[OwidChartRecord]:
+def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
     """
     Return all charts from the view.
 
@@ -19,7 +22,10 @@ def list_charts(limit: int = 100) -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        return session.query(OwidChartRecord).limit(limit).all()
+        query = session.query(OwidChartRecord).options(joinedload(OwidChartRecord._template_info))
+        if limit:
+            query = query.limit(limit)
+        return query.all()
 
 
 def list_published_charts() -> List[OwidChartRecord]:
@@ -33,7 +39,12 @@ def list_published_charts() -> List[OwidChartRecord]:
         ORDER BY oc.chart_id ASC
     """
     with get_session() as session:
-        return session.query(OwidChartRecord).filter(OwidChartRecord.is_published == 1)
+        return (
+            session.query(OwidChartRecord)
+            .filter(OwidChartRecord.is_published == 1)
+            .options(joinedload(OwidChartRecord._template_info))
+            .all()
+        )
 
 
 def get_chart_by_id(chart_id: int) -> OwidChartRecord:
@@ -46,7 +57,12 @@ def get_chart_by_id(chart_id: int) -> OwidChartRecord:
         and oct.chart_id = oc.chart_id
     """
     with get_session() as session:
-        return session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+        return (
+            session.query(OwidChartRecord)
+            .filter(OwidChartRecord.chart_id == chart_id)
+            .options(joinedload(OwidChartRecord._template_info))
+            .first()
+        )
 
 
 def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
@@ -59,7 +75,12 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
         and oct.chart_id = oc.chart_id
     """
     with get_session() as session:
-        return session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
+        return (
+            session.query(OwidChartRecord)
+            .filter(OwidChartRecord.slug == slug)
+            .options(joinedload(OwidChartRecord._template_info))
+            .first()
+        )
 
 
 def add_chart(
@@ -95,7 +116,7 @@ def update_chart_data(
         chart = session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
         if chart:
             for key, value in chart_data.items():
-                if value:
+                if value is not None:
                     setattr(chart, key, value)
         session.commit()
         session.refresh(chart)

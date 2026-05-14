@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
     """Insert or update the encrypted OAuth credentials for a user."""
-    username = username.strip()
-    if not username:
-        raise ValueError("Username is required")
+    username = (username or "").strip()
 
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
@@ -44,6 +42,7 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
                 created_at=now,
                 updated_at=now,
                 last_used_at=now,
+                rotated_at=None,
             )
             session.add(orm_obj)
 
