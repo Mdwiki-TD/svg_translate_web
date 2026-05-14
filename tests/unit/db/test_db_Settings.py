@@ -416,7 +416,7 @@ class TestUpdate:
         assert result is True
         # Should have SELECT call to get value_type
         mock_db.fetch_query_safe.assert_called_once_with(
-            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("key",)
+            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("key")
         )
         # Value should be serialized as integer
         mock_db.execute_query_safe.assert_any_call(
