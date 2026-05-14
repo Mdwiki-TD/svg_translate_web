@@ -8,12 +8,18 @@ from __future__ import annotations
 from unittest.mock import MagicMock, call, patch
 
 import mwclient.errors
+import pytest
 
 from src.main_app.api_services.mwclient_page import _RETRY_DELAYS
 
 
 def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
     return mwclient.errors.APIError(code, info, {})
+
+
+@pytest.fixture
+def mock_site():
+    return MagicMock()
 
 
 # ══════════════════════════════════════════════════════════════════════════════

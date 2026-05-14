@@ -1,31 +1,28 @@
 #
 import os
+import secrets
 import sys
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-# ── Fernet imported first so we can generate a key for the env var ────────────
+import pytest
 from cryptography.fernet import Fernet
+from flask import Flask
+from sqlalchemy.orm import sessionmaker
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError
 # if FLASK_SECRET_KEY is missing, so every env var must be set here first,
 # before any import that pulls in src.main_app.
-os.environ.setdefault("FLASK_SECRET_KEY", "test_secret_key_12345678901234567890")
+os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
 
 # ── Now safe to import third-party and src packages ──────────────────────────
-import pytest
-from flask import Flask
-from sqlalchemy.orm import sessionmaker
 
-# Ensure all SQLAlchemy models are registered with BaseDb.metadata before any
-# fixture tries to iterate sorted_tables.
-import src.main_app.sqlalchemy_db.models  # noqa: F401
 
 _CopySVGTranslation_PATH = os.getenv(
     "CopySVGTranslation_PATH", "I:/TOOLFORGE_TOOLS/SVG_PY/CopySVGTranslation/CopySVGTranslation"
@@ -191,7 +188,6 @@ def mock_exists_page() -> MagicMock:
 @pytest.fixture
 def mw_client(mock_site: MagicMock) -> MwClientPage:
     return MwClientPage("Test Page", mock_site)
-
 
 
 @pytest.fixture(autouse=True)
