@@ -54,7 +54,6 @@ def test_owid_chart_record_with_all_fields():
         updated_at="2023-01-02",
         template_id=42,
         template_title="Template:Health",
-
         has_timeline=True,
     )
 
@@ -116,7 +115,6 @@ def test_owid_chart_record_to_dict():
         updated_at="2023-01-02",
         template_id=42,
         template_title="Template:Health",
-
     )
 
     result = rec.to_dict()
@@ -137,7 +135,6 @@ def test_owid_chart_record_to_dict():
         "updated_at": "2023-01-02",
         "template_id": 42,
         "template_title": "Template:Health",
-
     }
 
     assert result == expected
@@ -161,7 +158,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         updated_at=None,
         template_id=None,
         template_title=None,
-
     )
 
     result = rec.to_dict()
@@ -182,7 +178,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         "updated_at": None,
         "template_id": None,
         "template_title": None,
-
     }
 
     assert result == expected
