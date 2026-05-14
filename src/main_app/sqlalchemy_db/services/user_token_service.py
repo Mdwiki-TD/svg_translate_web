@@ -86,21 +86,9 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
         return orm_obj
 
 
-def delete_user_token_by_username(username: str) -> None:
-    """Remove the stored OAuth credentials for the given username."""
-    username = username.strip()
-    if not username:
-        return
-
-    with get_session() as session:
-        session.query(UserTokenRecord).filter(UserTokenRecord.username == username).delete()
-        session.commit()
-
-
 __all__ = [
     "upsert_user_token",
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",
-    "delete_user_token_by_username",
 ]

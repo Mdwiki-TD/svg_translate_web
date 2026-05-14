@@ -141,6 +141,45 @@ def delete_user_token(user_id: int) -> None:
     db.execute_query_safe("DELETE FROM user_tokens WHERE user_id = %s", (user_id,))
 
 
+def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
+    """Fetch the encrypted OAuth credentials for a user by username."""
+    username = username.strip()
+    if not username:
+        return None
+
+    db = get_db()
+    rows: list[Dict[str, Any]] = db.fetch_query_safe(
+        """
+        SELECT
+            user_id,
+            username,
+            access_token,
+            access_secret,
+            created_at,
+            updated_at,
+            last_used_at,
+            rotated_at
+        FROM user_tokens
+        WHERE username = %s
+        """,
+        (username,),
+    )
+    if not rows:
+        return None
+
+    row = rows[0]
+    return UserTokenRecord(
+        user_id=row["user_id"],
+        username=row["username"],
+        access_token=coerce_bytes(row["access_token"]),
+        access_secret=coerce_bytes(row["access_secret"]),
+        created_at=row.get("created_at"),
+        updated_at=row.get("updated_at"),
+        last_used_at=row.get("last_used_at"),
+        rotated_at=row.get("rotated_at"),
+    )
+
+
 __all__ = [
     "mark_token_used",
     "ensure_user_token_table",

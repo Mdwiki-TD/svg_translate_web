@@ -1,16 +1,18 @@
-# from .user_token_service import (
-#     upsert_user_token,
-#     get_user_token,
-#     delete_user_token,
-#     get_user_token_by_username,
-#     delete_user_token_by_username,
-# )
+from .user_token_service import (
+    upsert_user_token,
+    get_user_token,
+    delete_user_token,
+    get_user_token_by_username,
+)
 
-# from .settings_service import (
-#     get_setting,
-#     set_setting,
-#     list_settings,
-# )
+from .settings_service import (
+    create_setting,
+    delete_setting,
+    get_all_settings_raw,
+    settings_update_form,
+    update_setting,
+    list_settings,
+)
 
 from .admin_service import (
     active_coordinators,
@@ -52,7 +54,6 @@ __all__ = [
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",
-    "delete_user_token_by_username",
     # admin_service
     "list_coordinators",
     "active_coordinators",
@@ -69,8 +70,11 @@ __all__ = [
     "list_charts",
     "list_published_charts",
     # settings_service
-    "get_setting",
-    "set_setting",
+    "get_all_settings_raw",
+    "delete_setting",
+    "update_setting",
+    "create_setting",
+    "settings_update_form",
     "list_settings",
     # template_service
     "get_template",

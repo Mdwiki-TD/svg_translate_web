@@ -1,10 +1,18 @@
-# from .user_token_service import (
-#     upsert_user_token,
-#     get_user_token,
-#     delete_user_token,
-#     get_user_token_by_username,
-#     delete_user_token_by_username,
-# )
+from .user_token_service import (
+    upsert_user_token,
+    get_user_token,
+    delete_user_token,
+    get_user_token_by_username,
+)
+
+from .settings_service import (
+    create_setting,
+    delete_setting,
+    get_all_settings_raw,
+    settings_update_form,
+    update_setting,
+    list_settings,
+)
 
 from .admin_service import (
     active_coordinators,
@@ -31,13 +39,6 @@ from .owid_charts_service import (  # upsert_chart,
     list_published_charts,
     update_chart_data,
 )
-from .settings_service import (
-    create_setting,
-    delete_setting,
-    get_all_settings_raw,
-    settings_update_form,
-    update_setting,
-)
 from .template_need_update_service import (
     list_templates_need_update,
 )
@@ -53,7 +54,6 @@ __all__ = [
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",
-    "delete_user_token_by_username",
     # admin_service
     "list_coordinators",
     "active_coordinators",
@@ -75,6 +75,7 @@ __all__ = [
     "update_setting",
     "create_setting",
     "settings_update_form",
+    "list_settings",
     # template_service
     "get_template",
     "get_template_by_title",
