@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models.templates import TemplateNeedUpdateRecord
+from src.main_app.db.models.views import TemplateNeedUpdateRecord
 
 
 def test_template_need_update_record_initialization():
