@@ -43,6 +43,7 @@ def list_published_charts() -> List[OwidChartRecord]:
             session.query(OwidChartRecord)
             .filter(OwidChartRecord.is_published == 1)
             .options(joinedload(OwidChartRecord._template_info))
+            .order_by(OwidChartRecord.chart_id.asc())
             .all()
         )
 
