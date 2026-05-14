@@ -95,7 +95,7 @@ def update_chart_data(
         chart = session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
         if chart:
             for key, value in chart_data.items():
-                if value:
+                if value is not None:
                     setattr(chart, key, value)
         session.commit()
         session.refresh(chart)
