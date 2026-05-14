@@ -10,11 +10,18 @@ import pytest
 from cryptography.fernet import Fernet
 from flask import Flask
 
+# ── Set ALL env vars before any src.* import ─────────────────────────────────
+# config.py executes get_settings() at module level and raises RuntimeError
+# if FLASK_SECRET_KEY is missing, so every env var must be set here first,
+# before any import that pulls in src.main_app.
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
+
+# ── Now safe to import third-party and src packages ──────────────────────────
+
 
 _CopySVGTranslation_PATH = os.getenv(
     "CopySVGTranslation_PATH", "I:/TOOLFORGE_TOOLS/SVG_PY/CopySVGTranslation/CopySVGTranslation"
