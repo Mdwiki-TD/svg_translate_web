@@ -18,7 +18,7 @@ from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...data import get_slug_categories
 from ...services import template_service
-from ...shared.models import TemplateRecord
+from ...db.models import TemplateRecord
 from ...utils.wikitext.categories_utils import merge_categories, sort_categories
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text

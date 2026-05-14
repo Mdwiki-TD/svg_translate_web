@@ -14,7 +14,7 @@ from src.main_app.jobs_workers.create_owid_pages.worker import (
     create_owid_pages_for_templates,
 )
 from src.main_app.services.template_service import TemplatesDB
-from src.main_app.shared.models import TemplateRecord
+from src.main_app.db.models import TemplateRecord
 
 
 @pytest.fixture

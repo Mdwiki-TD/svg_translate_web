@@ -18,7 +18,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ...services import owid_charts_service
-from ...shared.models import OwidChartRecord
+from ...db.models import OwidChartRecord
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)

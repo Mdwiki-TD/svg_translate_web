@@ -8,7 +8,7 @@ from typing import Any, List
 from ..config import settings
 from ..db.db_OwidCharts import OwidChartsDB
 from ..db.exceptions import InsufficientDatabaseConfigError
-from ..shared.models import OwidChartRecord
+from ..db.models import OwidChartRecord
 
 logger = logging.getLogger(__name__)
 

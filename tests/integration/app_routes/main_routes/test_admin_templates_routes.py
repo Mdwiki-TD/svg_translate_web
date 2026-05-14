@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app import create_app
-from src.main_app.shared.models import TemplateRecord
+from src.main_app.db.models import TemplateRecord
 
 
 class FakeTemplatesDB:

@@ -7,7 +7,7 @@ from typing import Any
 from ..config import settings
 from ..db.db_Settings import SettingsDB
 from ..db.exceptions import InsufficientDatabaseConfigError
-from ..shared.models import SettingRecord
+from ..db.models import SettingRecord
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None

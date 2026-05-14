@@ -9,7 +9,7 @@ from ..config import DbConfig, settings
 from ..db import Database
 from ..db.exceptions import InsufficientDatabaseConfigError
 from ..db.sql_schema_tables import sql_tables
-from ..shared.models import TemplateNeedUpdateRecord
+from ..db.models import TemplateNeedUpdateRecord
 
 logger = logging.getLogger(__name__)
 

@@ -33,7 +33,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
-    from src.main_app.shared.models import OwidChartRecord
+    from src.main_app.db.models import OwidChartRecord
 
     return OwidChartRecord(
         chart_id=1,

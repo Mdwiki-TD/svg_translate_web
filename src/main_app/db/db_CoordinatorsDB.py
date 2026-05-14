@@ -6,7 +6,7 @@ from typing import Any, Iterable, List
 import pymysql
 
 from ..config import DbConfig
-from ..shared.models import AdminUserRecord
+from .models import AdminUserRecord
 from .db_class import Database
 from .sql_schema_tables import sql_tables
 
