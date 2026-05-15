@@ -77,6 +77,7 @@ def test_OAuthConfig():
         consumer_key="key",
         consumer_secret="secret",
         upload_host="upload.example.com",
+        encryption_key="encryption_key",
     )
 
     assert oauth_config.mw_uri == "https://example.com"
