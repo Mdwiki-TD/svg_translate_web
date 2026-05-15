@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import types
-
-import pytest
-from itsdangerous import URLSafeTimedSerializer
-
 from src.main_app.app_routes.auth import cookie
+
 
 def test_sign_user_id() -> None:
     token = cookie.sign_user_id(123)
