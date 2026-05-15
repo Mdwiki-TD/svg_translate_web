@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from ..db_Jobs import JobRecord, JobsDB
-from .check_db import initialize_db
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def get_jobs_db() -> JobsDB:
     """
     global _JOBS_STORE
     if _JOBS_STORE is None:
-        _JOBS_STORE = initialize_db(JobsDB)
+        _JOBS_STORE = initialize_db(JobsDB, get_main_db())
     return _JOBS_STORE
 
 

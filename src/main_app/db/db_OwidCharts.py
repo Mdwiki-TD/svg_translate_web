@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Any, List
 
 import pymysql
@@ -140,7 +141,7 @@ class OwidChartsDB:
                     has_timeline,
                 ),
             )
-        except pymysql.err.IntegrityError:
+        except (pymysql.err.IntegrityError, sqlite3.IntegrityError):
             raise ValueError(f"Chart with slug '{slug}' already exists") from None
 
         return self.fetch_by_slug(slug)

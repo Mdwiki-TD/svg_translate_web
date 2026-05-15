@@ -6,7 +6,7 @@ from typing import Any
 
 from ..db_Settings import SettingsDB
 from ..models import SettingRecord
-from .check_db import initialize_db
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None
@@ -19,7 +19,7 @@ def get_settings_db() -> SettingsDB:
     global _SETTINGS_STORE
 
     if _SETTINGS_STORE is None:
-        _SETTINGS_STORE = initialize_db(SettingsDB)
+        _SETTINGS_STORE = initialize_db(SettingsDB, get_main_db())
 
     return _SETTINGS_STORE
 

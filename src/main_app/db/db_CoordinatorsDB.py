@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Any, Iterable, List
 
 import pymysql
@@ -104,7 +105,7 @@ class CoordinatorsDB:
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
-        except pymysql.err.IntegrityError:
+        except (pymysql.err.IntegrityError, sqlite3.IntegrityError):
             # This assumes a UNIQUE constraint on the username column
             raise ValueError(f"Coordinator '{username}' already exists") from None
 

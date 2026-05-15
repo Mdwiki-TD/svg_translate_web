@@ -30,6 +30,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name",
         mock_save_job_result,
     )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mock_jobs_service,
+    )
 
     # Mock generate_result_file_name
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")

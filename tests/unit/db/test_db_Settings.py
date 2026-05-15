@@ -189,13 +189,9 @@ def test_get_by_key_not_found(mock_db_instance, settings_db):
 
 
 def test_create_setting_success(mock_db_instance, settings_db):
-    """Test create_setting returns True on success."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-    mock_db_instance.execute_query_safe.return_value = 1  # affected_rows > 0
-
+    mock_db_instance.fetch_query_safe.return_value = []
+    mock_db_instance.insert_query.return_value = 1
     result = settings_db.create(key="new_key", title="New Setting", value_type="boolean", value="true")
-
     assert result is True
     mock_db_instance.insert_query.assert_any_call(
         "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
@@ -204,52 +200,32 @@ def test_create_setting_success(mock_db_instance, settings_db):
 
 
 def test_create_setting_failure(mock_db_instance, settings_db):
-    """Test create_setting returns False on failure."""
-
-    # Now set the side_effect for the create operation
-    mock_db_instance.execute_query_safe.side_effect = Exception("DB Error")
-    # with pytest.raises(ValueError, match="Invalid value_type:"):
+    mock_db_instance.insert_query.side_effect = Exception("DB Error")
     result = settings_db.create(key="new_key", title="New Setting", value_type="stringz", value="value")
     assert result is False
 
 
 def test_create_setting_serialize_boolean(mock_db_instance, settings_db):
-    """Test create_setting serializes boolean values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="bool_key", title="Bool Setting", value_type="boolean", value="true")
     settings_db.create(key="bool_key2", title="Bool Setting 2", value_type="boolean", value="false")
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE from __init__
-    # Second and third calls are the INSERT statements
-    assert calls[1][0][1][3] == "true"
-    assert calls[2][0][1][3] == "false"
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == "true"
+    assert calls[1][0][1][3] == "false"
 
 
 def test_create_setting_serialize_integer(mock_db_instance, settings_db):
-    """Test create_setting serializes integer values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="int_key", title="Int Setting", value_type="integer", value="42")
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE, second is INSERT
-    assert calls[1][0][1][3] == "42"
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == "42"
 
 
 def test_create_setting_serialize_json(mock_db_instance, settings_db):
-    """Test create_setting serializes JSON values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="json_key", title="JSON Setting", value_type="json", value='{"key": "value"}')
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE, second is INSERT
-    assert calls[1][0][1][3] == '{"key": "value"}'
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == '{"key": "value"}'
 
 
 class TestUpdate:
@@ -292,70 +268,46 @@ class TestUpdate:
         assert result is False
 
     def test_update_setting_preserves_type(self, mock_db_instance, settings_db):
-        """Test update_setting uses existing value_type from database."""
-
         mock_db_instance.fetch_query_safe.return_value = [
             {"id": 1, "key": "key", "value_type": "integer", "value": "0"}
         ]
-
         settings_db.update("int_key", "100")
-
-        # Verify the value was serialized as integer
         calls = mock_db_instance.execute_query_safe.call_args_list
-        assert calls[1][0][1] == ("100", "int_key")
+        assert calls[0][0][1] == ("100", "int_key")
 
     def test_update_setting_with_value_type_skips_select(self, mock_db_instance, settings_db):
-        """Test update_setting skips SELECT when value_type is provided."""
-
         result = settings_db.update(key="key", value="value", title="")
-
         assert result is True
-        # Second call (first is CREATE TABLE) should be the UPDATE
         mock_db_instance.execute_query_safe.assert_any_call(
             "UPDATE settings SET value = %s WHERE key = %s",
             ("value", "key"),
         )
-        # Should only have the UPDATE call, no SELECT call
         mock_db_instance.fetch_query_safe.assert_called_with(
             "SELECT id, key, title, value_type, value FROM settings WHERE key = %s",
-            ("key"),
+            ("key",),
         )
-        # Total of 2 calls: CREATE TABLE and UPDATE
-        assert mock_db_instance.execute_query_safe.call_count == 2
+        assert mock_db_instance.execute_query_safe.call_count == 1
 
     def test_update_setting_without_value_type_queries_db(self, mock_db_instance, settings_db):
-        """Test update_setting performs SELECT when value_type is not provided."""
-
         mock_db_instance.fetch_query_safe.return_value = [
             {"id": 1, "key": "key", "value_type": "integer", "value": "0"}
         ]
-
         result = settings_db.update(key="key", value="42")
-
         assert result is True
-        # Should have SELECT call to get value_type
         mock_db_instance.fetch_query_safe.assert_called_once_with(
-            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("key")
+            "SELECT id, key, title, value_type, value FROM settings WHERE key = %s", ("key",)
         )
-        # Value should be serialized as integer
         mock_db_instance.execute_query_safe.assert_any_call(
             "UPDATE settings SET value = %s WHERE key = %s",
             ("42", "key"),
         )
-        # Total of 2 calls: CREATE TABLE and UPDATE
         assert mock_db_instance.execute_query_safe.call_count == 1
 
     def test_update_setting_with_value_type_serializes_correctly(self, mock_db_instance, settings_db):
-        """Test update_setting uses provided value_type for serialization."""
-
-        # Pass integer value with explicit boolean type
         result = settings_db.update(key="key", value="true")
-
         assert result is True
-        # Value should be serialized as boolean "true", not as integer "1"
         mock_db_instance.execute_query_safe.assert_any_call(
             "UPDATE settings SET value = %s WHERE key = %s",
             ("true", "key"),
         )
-        # Total of 2 calls: CREATE TABLE and UPDATE
-        assert mock_db_instance.execute_query_safe.call_count == 2
+        assert mock_db_instance.execute_query_safe.call_count == 1

@@ -7,7 +7,7 @@ from typing import List
 
 from ..db_CoordinatorsDB import CoordinatorsDB
 from ..models import AdminUserRecord
-from .check_db import initialize_db
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def get_admins_db() -> CoordinatorsDB:
     global _ADMINS_STORE
 
     if _ADMINS_STORE is None:
-        _ADMINS_STORE = initialize_db(CoordinatorsDB)
+        _ADMINS_STORE = initialize_db(CoordinatorsDB, get_main_db())
 
     return _ADMINS_STORE
 

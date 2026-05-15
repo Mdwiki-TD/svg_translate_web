@@ -41,6 +41,7 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
 
     store = get_admins_db()
+    store.add("admin")
 
     yield app, store
 

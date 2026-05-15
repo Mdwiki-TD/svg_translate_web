@@ -7,7 +7,7 @@ from typing import Any, List
 
 from .. import Database
 from ..models import TemplateNeedUpdateRecord
-from .check_db import initialize_db
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
     global _TEMPLATE_UPDATE_STORE
 
     if _TEMPLATE_UPDATE_STORE is None:
-        _TEMPLATE_UPDATE_STORE = initialize_db(TemplatesNeedUpdateDB)
+        _TEMPLATE_UPDATE_STORE = initialize_db(TemplatesNeedUpdateDB, get_main_db())
 
     return _TEMPLATE_UPDATE_STORE
 

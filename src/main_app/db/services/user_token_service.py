@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from ...config import settings
 from ...core.crypto import encrypt_value
 from ...shared.decode_bytes import coerce_bytes
 from ..engine import Database
 from ..models.users import UserTokenRecord
-from .check_db import initialize_db
 
 _db: Database | None = None
 
@@ -27,7 +27,7 @@ def get_db() -> Database:
     global _db
 
     if _db is None:
-        _db = initialize_db(Database)
+        _db = Database(settings.database_data)
 
     return _db
 

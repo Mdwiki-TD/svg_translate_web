@@ -71,7 +71,7 @@ def test_add_success(templates_db, mock_db_instance):
 
 
 def test_add_duplicate(templates_db, mock_db_instance):
-    mock_db_instance.execute_query.side_effect = pymysql.err.IntegrityError(1062, "Duplicate")
+    mock_db_instance.insert_query.side_effect = pymysql.err.IntegrityError(1062, "Duplicate")
     with pytest.raises(ValueError, match="already exists"):
         templates_db.add_data({"title": "dup", "main_file": "f.svg"})
 
@@ -158,8 +158,8 @@ def test_add_with_whitespace(templates_db, mock_db_instance):
 
     _rec = templates_db.add_data({"title": "  trimmed  ", "main_file": "  file.svg  "})
 
-    # Verify the execute_query was called - main_file is trimmed but title is not
-    call_args = mock_db_instance.execute_query.call_args[0][1]
+    # Verify the insert_query was called - main_file is trimmed but title is not
+    call_args = mock_db_instance.insert_query.call_args[0][1]
     assert "file.svg" in call_args  # main_file is trimmed
 
 
