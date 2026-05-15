@@ -133,7 +133,7 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", _fake_current_user)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture#(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.database_data = MagicMock()

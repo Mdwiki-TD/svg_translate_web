@@ -13,7 +13,7 @@ from src.main_app.db.services.admin_service import (
 )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture#(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")

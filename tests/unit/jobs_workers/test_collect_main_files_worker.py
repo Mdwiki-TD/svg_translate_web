@@ -23,7 +23,7 @@ def mock_database(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     return mock_database_cls
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture#(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.database_data = MagicMock()
