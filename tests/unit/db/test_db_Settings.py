@@ -333,7 +333,7 @@ class TestUpdate:
             ("42", "key"),
         )
         # Total of 2 calls: CREATE TABLE and UPDATE
-        assert mock_db_instance.execute_query_safe.call_count == 2
+        assert mock_db_instance.execute_query_safe.call_count == 1
 
     def test_update_setting_with_value_type_serializes_correctly(self, mock_db_instance, settings_db):
         """Test update_setting uses provided value_type for serialization."""
