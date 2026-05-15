@@ -9,16 +9,12 @@ from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 
 
 @pytest.fixture
-def mock_db_instance(tmp_path):
-    db_path = str(tmp_path / "test.sqlite3")
-    instance = DatabaseSqlLite(db_path=db_path)
-    mock_db_class = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
-def coordinators_db(mock_db_instance,):
+def coordinators_db(mock_db_instance):
     return CoordinatorsDB(db=mock_db_instance)
 
 
