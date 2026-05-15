@@ -96,7 +96,6 @@ def update_template_data(
 
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
-
     return record
 
 
