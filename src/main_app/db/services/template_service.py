@@ -38,7 +38,9 @@ def get_templates_db() -> TemplatesDB:
     """
     global _TEMPLATE_STORE
 
-    _TEMPLATE_STORE = initialize_db(_TEMPLATE_STORE, TemplatesDB)
+    if _TEMPLATE_STORE is None:
+        _TEMPLATE_STORE = initialize_db(TemplatesDB)
+
     return _TEMPLATE_STORE
 
 

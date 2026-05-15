@@ -32,9 +32,22 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
 # Import after environment setup
-from src.main_app import create_app
+from src.main_app import create_app  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
-from src.main_app.config import TestingConfig
+from src.main_app.config import DbConfig, TestingConfig  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def mock_check_db(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    def _mock(_db_class):
+        database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
+        return _db_class(database_data)
+
+    monkeypatch.setattr(
+        "src.main_app.db.services.owid_charts_service.settings",
+        _mock,
+    )
+    return _mock
 
 
 @pytest.fixture(autouse=True)
@@ -46,7 +59,7 @@ def disable_network(mocker):
 
 
 @pytest.fixture
-def app() -> Generator[Flask, Any, None]:
+def app() -> Generator[Flask, Any]:
     """Create and configure a test Flask application.
 
     Yields:

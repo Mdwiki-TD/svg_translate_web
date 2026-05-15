@@ -28,7 +28,9 @@ def get_admins_db() -> CoordinatorsDB:
     """
     global _ADMINS_STORE
 
-    _ADMINS_STORE = initialize_db(_ADMINS_STORE, CoordinatorsDB)
+    if _ADMINS_STORE is None:
+        _ADMINS_STORE = initialize_db(CoordinatorsDB)
+
     return _ADMINS_STORE
 
 

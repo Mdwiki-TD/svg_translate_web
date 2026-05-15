@@ -73,7 +73,9 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
     """
     global _TEMPLATE_UPDATE_STORE
 
-    _TEMPLATE_UPDATE_STORE = initialize_db(_TEMPLATE_UPDATE_STORE, TemplatesNeedUpdateDB)
+    if _TEMPLATE_UPDATE_STORE is None:
+        _TEMPLATE_UPDATE_STORE = initialize_db(TemplatesNeedUpdateDB)
+
     return _TEMPLATE_UPDATE_STORE
 
 

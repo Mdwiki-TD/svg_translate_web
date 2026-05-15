@@ -27,7 +27,9 @@ def get_owid_charts_db() -> OwidChartsDB:
     """
     global _OWID_CHARTS_STORE
 
-    _OWID_CHARTS_STORE = initialize_db(_OWID_CHARTS_STORE, OwidChartsDB)
+    if _OWID_CHARTS_STORE is None:
+        _OWID_CHARTS_STORE = initialize_db(OwidChartsDB)
+
     return _OWID_CHARTS_STORE
 
 

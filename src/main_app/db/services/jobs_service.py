@@ -25,8 +25,8 @@ def get_jobs_db() -> JobsDB:
         RuntimeError: If no database configuration is available or if JobsDB initialization fails.
     """
     global _JOBS_STORE
-
-    _JOBS_STORE = initialize_db(_JOBS_STORE, JobsDB)
+    if _JOBS_STORE is None:
+        _JOBS_STORE = initialize_db(JobsDB)
     return _JOBS_STORE
 
 
