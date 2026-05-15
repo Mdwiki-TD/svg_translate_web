@@ -15,16 +15,6 @@ logger = logging.getLogger(__name__)
 _TEMPLATE_STORE: TemplatesDB | None = None
 
 
-def _ensure_last_world_year(template_data):
-    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
-        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
-
-    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
-        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
-
-    return template_data
-
-
 def get_templates_db() -> TemplatesDB:
     """
     Return the module's cached TemplatesDB instance, initializing it on first use.
@@ -42,6 +32,16 @@ def get_templates_db() -> TemplatesDB:
         _TEMPLATE_STORE = initialize_db(TemplatesDB)
 
     return _TEMPLATE_STORE
+
+
+def _ensure_last_world_year(template_data):
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+
+    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
+        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    return template_data
 
 
 def list_templates(limit: int | None = None) -> List[TemplateRecord]:
