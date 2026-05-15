@@ -6,11 +6,25 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
+from datetime import datetime
+
 from ..config import DbConfig
 from .engine import Database
 from .models import JobRecord
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_dt(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        logger.exception("Failed to parse datetime: %s", value)
+        return None
 
 
 class JobsDB:
@@ -31,11 +45,11 @@ class JobsDB:
             job_type=row["job_type"],
             username=row.get("username"),
             status=row["status"],
-            started_at=row.get("started_at"),
-            completed_at=row.get("completed_at"),
+            started_at=_parse_dt(row.get("started_at")),
+            completed_at=_parse_dt(row.get("completed_at")),
             result_file=row.get("result_file"),
-            created_at=row.get("created_at"),
-            updated_at=row.get("updated_at"),
+            created_at=_parse_dt(row.get("created_at")),
+            updated_at=_parse_dt(row.get("updated_at")),
         )
 
     def create(self, job_type: str, username: str | None = None) -> JobRecord:
