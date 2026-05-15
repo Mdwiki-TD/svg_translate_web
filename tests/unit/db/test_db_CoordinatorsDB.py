@@ -64,7 +64,7 @@ def test_seed(coordinators_db, mock_db_instance):
     coordinators_db.seed(["admin", "new_admin", "  "])
 
     # Verify that only new_admin was inserted
-    mock_db_instance.execute_query_safe.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("new_admin",)
     )
 
@@ -87,7 +87,7 @@ def test_add_success(coordinators_db, mock_db_instance):
 
     record = coordinators_db.add("newuser")
 
-    mock_db_instance.execute_query.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("newuser",)
     )
     assert record.username == "newuser"

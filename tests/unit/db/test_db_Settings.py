@@ -195,7 +195,7 @@ def test_create_setting_success(mock_db_instance, settings_db):
     result = settings_db.create(key="new_key", title="New Setting", value_type="boolean", value="true")
 
     assert result is True
-    mock_db_instance.execute_query_safe.assert_any_call(
+    mock_db_instance.insert_query.assert_any_call(
         "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
         ("new_key", "New Setting", "boolean", "true"),
     )

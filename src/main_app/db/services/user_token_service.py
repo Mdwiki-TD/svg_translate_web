@@ -51,7 +51,7 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
     db = get_db()
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
-    return db.execute_query_safe(
+    return db.insert_query(
         """
             INSERT INTO user_tokens (
                 user_id,

@@ -67,7 +67,7 @@ class SettingsDB:
         if self._is_key_exist(key) is True:
             return False
         try:
-            affected_rows = self.db.execute_query_safe(
+            affected_rows = self.db.insert_query(
                 "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
                 (key, title, value_type, value),
             )

@@ -144,7 +144,7 @@ class TemplatesDB:
 
         try:
             # Use execute_query to allow exception to propagate
-            self.db.execute_query(
+            self.db.insert_query(
                 f"""
                 INSERT INTO templates ({", ".join(add_fields)})
                 VALUES ({", ".join(["%s" for x in add_fields])})

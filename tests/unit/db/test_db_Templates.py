@@ -63,7 +63,7 @@ def test_add_success(templates_db, mock_db_instance):
     ]
     rec = templates_db.add_data({"title": "new", "main_file": "f.svg"})
 
-    mock_db_instance.execute_query.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
         ("new", "f.svg"),
     )

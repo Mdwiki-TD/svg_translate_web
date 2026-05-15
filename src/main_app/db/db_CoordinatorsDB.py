@@ -72,7 +72,7 @@ class CoordinatorsDB:
         for username in clean_usernames:
             if username in existing:
                 continue
-            self.db.execute_query_safe(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
@@ -100,7 +100,7 @@ class CoordinatorsDB:
 
         try:
             # Use execute_query to allow exception to propagate
-            self.db.execute_query(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
