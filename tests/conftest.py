@@ -83,7 +83,7 @@ def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
     monkeypatch.setattr("src.main_app.db.services.settings_service.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.template_need_update_service.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.template_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.user_token_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.user_token_service.get_db", mock_sqlite3_db)
 
 
 @pytest.fixture(autouse=True)
