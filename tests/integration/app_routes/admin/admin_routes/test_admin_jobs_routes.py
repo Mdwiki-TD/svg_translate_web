@@ -509,7 +509,7 @@ def test_download_main_files_job_detail_page_displays_job_info(admin_jobs_client
     assert "completed" in page
 
 
-def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
+def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client, jobs_db, tmp_path):
     """Test that the download main files job detail page displays result data from JSON file."""
 
     job = jobs_db.create("download_main_files")
