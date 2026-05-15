@@ -12,8 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 def _mysql_to_sqlite(sql: str) -> str:
-    """Convert %s placeholders to ? for SQLite."""
-    return re.sub(r"%s", "?", sql)
+    """Convert MySQL-specific syntax to SQLite-compatible syntax."""
+    sql = re.sub(r"%s", "?", sql)
+    sql = re.sub(r"\bNOW\s*\(\s*\)", "CURRENT_TIMESTAMP", sql, flags=re.IGNORECASE)
+    return sql
 
 
 class DatabaseSqlLite:
