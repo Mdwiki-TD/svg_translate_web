@@ -7,11 +7,9 @@ from typing import Any, Dict, Optional
 
 from .check_db import initialize_db
 
-from ...config import settings
 from ...core.crypto import encrypt_value
 from ...shared.decode_bytes import coerce_bytes
 from ..engine import Database
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models.users import UserTokenRecord
 from ..sql_schema_tables import sql_tables
 
