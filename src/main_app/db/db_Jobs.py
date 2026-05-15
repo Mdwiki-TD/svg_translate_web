@@ -52,7 +52,7 @@ class JobsDB:
             FROM jobs
             WHERE id = %s
             """,
-            (job_id)
+            (job_id,),
         )
         if not rows:
             logger.exception("Failed to create job")

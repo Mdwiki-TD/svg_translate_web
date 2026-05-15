@@ -4,8 +4,8 @@ import pymysql
 import pytest
 
 from src.main_app.db.db_Templates import TemplatesDB
-from src.main_app.db.models import TemplateRecord
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import TemplateRecord
 
 
 @pytest.fixture
