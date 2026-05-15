@@ -235,7 +235,7 @@ owid_charts_sqlite3 = """
 """
 
 owid_charts_templates_sqlite3 = """
-    CREATE IF NOT EXISTS VIEW owid_charts_templates AS
+    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
     SELECT
         c.chart_id,
         t.id AS template_id,
@@ -246,7 +246,7 @@ owid_charts_templates_sqlite3 = """
 """
 
 templates_need_update_sqlite3 = """
-    CREATE IF NOT EXISTS VIEW templates_need_update AS
+    CREATE VIEW IF NOT EXISTS templates_need_update AS
     SELECT
         t.id AS template_id,
         t.title AS template_title,
