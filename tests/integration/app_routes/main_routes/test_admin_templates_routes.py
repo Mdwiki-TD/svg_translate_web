@@ -97,8 +97,12 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.list_templates", mock_service.list_templates)
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.get_template", mock_service.get_template)
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.delete_template", mock_service.delete_template)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.update_template_data", mock_service.update_template_data)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.add_template_data", mock_service.add_template_data)
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin_routes.templates.update_template_data", mock_service.update_template_data
+    )
+    monkeypatch.setattr(
+        "src.main_app.app_routes.admin_routes.templates.add_template_data", mock_service.add_template_data
+    )
 
     flask_app = create_app()
     flask_app.config["TESTING"] = True

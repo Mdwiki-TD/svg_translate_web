@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from .check_db import initialize_db
 from ..db_OwidCharts import OwidChartsDB
 from ..models import OwidChartRecord
+from .check_db import initialize_db
 
 logger = logging.getLogger(__name__)
 

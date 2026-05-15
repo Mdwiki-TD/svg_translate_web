@@ -4,9 +4,9 @@ import json
 import logging
 from typing import Any
 
-from .check_db import initialize_db
 from ..db_Settings import SettingsDB
 from ..models import SettingRecord
+from .check_db import initialize_db
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None

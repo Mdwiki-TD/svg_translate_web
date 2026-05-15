@@ -20,9 +20,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock list_templates
     mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.list_templates", mock_list_templates
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.list_templates", mock_list_templates)
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()

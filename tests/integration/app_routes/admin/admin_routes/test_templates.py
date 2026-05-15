@@ -21,9 +21,7 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         resp = _add_template()
         assert resp == "redirected"
 
-        mock_service.assert_called_with(
-            {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""}
-        )
+        mock_service.assert_called_with({"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""})
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
 
@@ -77,7 +75,9 @@ def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, app_moc
 @patch("src.main_app.app_routes.admin_routes.templates.flash")
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
-def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_delete_template, mock_get_template, app_mock):
+def test_delete_template_success(
+    mock_url, mock_redirect, mock_flash, mock_delete_template, mock_get_template, app_mock
+):
     mock_get_template.return_value = MagicMock(title="DelT")
     mock_delete_template.return_value = True
     mock_url.return_value = "/dash"
@@ -128,9 +128,7 @@ def test_create_json_file_success(app_mock, monkeypatch):
             updated_at=None,
         ),
     ]
-    monkeypatch.setattr(
-        "src.main_app.app_routes.admin_routes.templates.list_templates", lambda: templates
-    )
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.list_templates", lambda: templates)
 
     with app_mock.app_context():
         response, status_code = create_json_file()
@@ -183,9 +181,7 @@ def test_edit_template_found(app_mock, monkeypatch):
         updated_at=None,
         source=None,
     )
-    monkeypatch.setattr(
-        "src.main_app.app_routes.admin_routes.templates.get_template", lambda id: template
-    )
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.get_template", lambda id: template)
 
     with app_mock.test_request_context():
         with patch("src.main_app.app_routes.admin_routes.templates.render_template") as mock_render:

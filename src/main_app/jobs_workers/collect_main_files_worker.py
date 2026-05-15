@@ -13,10 +13,10 @@ from typing import Any, Dict
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..live_db.services import (
-    get_chart_by_slug,
-    update_template_data,
-    list_templates,
     add_template_data,
+    get_chart_by_slug,
+    list_templates,
+    update_template_data,
 )
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
