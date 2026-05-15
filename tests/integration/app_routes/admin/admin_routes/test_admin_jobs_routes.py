@@ -11,6 +11,7 @@ import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
+from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.services import jobs_service as _sqlalchemy_jobs_service
 
 
@@ -65,9 +66,13 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
-    client = app.test_client()
 
-    yield client
+    with app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+        yield app.test_client()
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 def test_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):

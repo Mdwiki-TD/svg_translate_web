@@ -8,6 +8,7 @@ from typing import Iterable
 import pytest
 
 from src.main_app import create_app
+from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.models import TemplateRecord
 from src.main_app.sqlalchemy_db.services import template_service as _sqlalchemy_template_service
 
@@ -26,13 +27,6 @@ class _TemplatesStore:
 
     def delete(self, template_id):
         return _sqlalchemy_template_service.delete_template(template_id)
-
-
-@pytest.fixture
-def jobs_db():
-    store = _TemplatesStore()
-    store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
-    return store
 
 
 @pytest.fixture
@@ -59,7 +53,19 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
-    yield flask_app.test_client()
+    with flask_app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+        yield flask_app.test_client()
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
+
+
+@pytest.fixture
+def jobs_db(admin_templates_client):
+    store = _TemplatesStore()
+    store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
+    return store
 
 
 def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | None]]:

@@ -1,4 +1,5 @@
 from src.main_app import create_app
+from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.services import user_token_service as user_store
 
 
@@ -51,6 +52,11 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
 
     app = create_app()
     app.config.update(TESTING=True)
+
+    with app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+
     client = app.test_client()
 
     with client.session_transaction() as session:
