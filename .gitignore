@@ -14,10 +14,6 @@ plan.md
 start_bot copy.py
 .claude/settings.local.json
 .coverage
-docs/plans/*.md
-!docs/plans/crop_main_files_job_plan.md
-!docs/plans/optimize_templates_page_plan.md
-!docs/plans/sqlalchemy_to_flask_sqlalchemy_migration.md
 .claude/settings.json
 /.claude/skills/mwclient
 coverage.xml
