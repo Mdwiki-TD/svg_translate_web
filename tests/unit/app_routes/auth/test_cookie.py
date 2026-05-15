@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from src.main_app.app_routes.auth import cookie
 
+
 def test_sign_user_id() -> None:
     token = cookie.sign_user_id(123)
 
