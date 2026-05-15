@@ -5,7 +5,6 @@ from typing import Any
 import pytest
 
 from src.main_app import create_app
-
 from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.services import admin_service

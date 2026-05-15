@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import logging
 
-from ..engine import Database
 from ...config import settings
+from ..engine import Database
 from ..exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
