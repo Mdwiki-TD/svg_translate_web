@@ -23,18 +23,6 @@ def mock_database(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     return mock_database_cls
 
 
-@pytest.fixture#(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.database_data = MagicMock()
-    _mock.has_db_config = MagicMock(return_value=True)
-    monkeypatch.setattr(
-        "src.main_app.db.services.owid_charts_service.settings",
-        _mock,
-    )
-    return _mock
-
-
 @pytest.fixture
 def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""

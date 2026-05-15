@@ -36,18 +36,6 @@ def coordinators_db(mock_db_instance):
     return JobsDB({})
 
 
-@pytest.fixture#(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.database_data = MagicMock()
-    _mock.has_db_config = MagicMock(return_value=True)
-    monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.settings",
-        _mock,
-    )
-    return _mock
-
-
 class FakeJobsDB:
     """In-memory replacement for the MySQL-backed JobsDB helper."""
 
