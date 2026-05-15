@@ -13,7 +13,7 @@ from typing import Any, Dict
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
 from ..live_db.services import (
-    owid_charts_service,
+    get_chart_by_slug,
     update_template_data,
     list_templates,
     add_template_data,
@@ -50,7 +50,7 @@ def slugify_title(title: str) -> str:
     if slug:
         # Only assign slug if it exists in the owid_charts table
         try:
-            owid_charts_service.get_chart_by_slug(slug)
+            get_chart_by_slug(slug)
             return slug
         except (LookupError, RuntimeError):
             return None
