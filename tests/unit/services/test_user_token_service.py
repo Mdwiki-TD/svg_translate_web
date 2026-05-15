@@ -120,10 +120,10 @@ class TestUpsertUserToken:
 
         mock_encrypt.assert_any_call("my_access_key")
         mock_encrypt.assert_any_call("my_access_secret")
-        mock_db.execute_query_safe.assert_called_once()
+        mock_db.insert_query.assert_called_once()
 
         # Verify the query contains ON DUPLICATE KEY UPDATE
-        call_args = mock_db.execute_query_safe.call_args
+        call_args = mock_db.insert_query.call_args
         assert "ON DUPLICATE KEY UPDATE" in call_args[0][0]
 
     @patch("src.main_app.db.services.user_token_service.encrypt_value")
@@ -141,9 +141,9 @@ class TestUpsertUserToken:
             access_secret="new_secret",
         )
 
-        mock_db.execute_query_safe.assert_called_once()
+        mock_db.insert_query.assert_called_once()
         # Verify rotated_at is set to CURRENT_TIMESTAMP in the update clause
-        call_args = mock_db.execute_query_safe.call_args
+        call_args = mock_db.insert_query.call_args
         assert "CURRENT_TIMESTAMP" in call_args[0][0]
 
 
