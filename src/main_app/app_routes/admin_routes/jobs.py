@@ -54,8 +54,10 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         if jobs_worker.cancel_job(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
-        delete_job(job_id, job_type)
-        flash(f"Job {job_id} deleted successfully.", "success")
+        if delete_job(job_id, job_type):
+            flash(f"Job {job_id} deleted successfully.", "success")
+        else:
+            flash(f"Failed to delete job {job_id}", "danger")
     except Exception:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}", "danger")
