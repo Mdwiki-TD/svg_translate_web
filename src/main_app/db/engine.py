@@ -261,13 +261,15 @@ class Database:
         timeout_override: float | None = None,
     ) -> int:
         """Bulk-execute a SQL statement with retry and chunk splitting."""
-
         params_list = list(params_seq)
         if not params_list:
             return 0
 
-        def _op(cursor, sql, _params_list):
-            return self._execute_many_batches(cursor, sql, params_list, batch_size)
+        def _op(cursor, sql, params):
+            total = 0
+            for i in range(0, len(params), batch_size):
+                total += self._execute_many_batch(cursor, sql, params[i : i + batch_size])
+            return total
 
         result = self._execute_with_retry(
             _op,
@@ -277,21 +279,6 @@ class Database:
         )
         self._maybe_commit()
         return int(result)
-
-    def _execute_many_batches(
-        self,
-        cursor,
-        sql_query: str,
-        params_list: Sequence[Any],
-        batch_size: int,
-    ) -> int:
-        total = 0
-        index = 0
-        while index < len(params_list):
-            batch = params_list[index : index + batch_size]
-            total += self._execute_many_batch(cursor, sql_query, batch)
-            index += batch_size
-        return total
 
     def _execute_many_batch(self, cursor, sql_query: str, batch: Sequence[Any]) -> int:
         if not batch:
