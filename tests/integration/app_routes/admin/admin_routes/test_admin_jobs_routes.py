@@ -426,7 +426,7 @@ def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_clie
     response = client.get(f"/admin/fix_nested_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "not a fix nested main files job" in page.lower()
+    assert f"Job id {job.id} was not found" in page.lower()
 
 
 def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
@@ -438,7 +438,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
     response = client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "not a collect main files job" in page.lower()
+    assert f"Job id {job.id} was not found" in page.lower()
 
 
 def test_delete_collect_main_files_job(admin_jobs_client):
@@ -730,7 +730,7 @@ def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(admin_
     response = client.get(f"/admin/download_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
-    assert "not a download main files job" in page.lower()
+    assert f"Job id {job.id} was not found" in page.lower()
 
 
 def test_delete_download_main_files_job(admin_jobs_client):
