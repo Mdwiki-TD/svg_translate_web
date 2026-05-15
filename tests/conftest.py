@@ -36,57 +36,7 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 # Import after environment setup
 from src.main_app import create_app  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
-from src.main_app.config import DbConfig, TestingConfig  # noqa: E402
-from src.main_app.db.engine_sqlite import DatabaseSqlLite  # noqa: E402
-from src.main_app.db.sql_schema_ensure_tables import ensure_all_tables  # noqa: E402
-from src.main_app.db.sql_schema_tables import sql_tables_sqlite3  # noqa: E402
-
-
-@pytest.fixture(autouse=True)
-def mock_sqlite3_db(tmp_path):
-    db_path = str(tmp_path / "test.sqlite3")
-    db = DatabaseSqlLite(db_path=db_path)
-    ensure_all_tables(sql_tables_sqlite3, db)
-    yield db
-    db.close()
-
-
-@pytest.fixture(autouse=True)
-def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
-    def _mock(_db_class, _db):
-        database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
-        try:
-            store = _db_class(database_data, db=mock_sqlite3_db)
-        except Exception as exc:
-            raise RuntimeError("Unable to initialize charts store") from exc
-        return store
-
-    # Clear module-level store caches so each test gets a fresh DB connection
-    import src.main_app.db.services.admin_service as _ads
-    import src.main_app.db.services.jobs_service as _js
-    import src.main_app.db.services.owid_charts_service as _os
-    import src.main_app.db.services.settings_service as _ss
-    import src.main_app.db.services.template_need_update_service as _tns
-    import src.main_app.db.services.template_service as _ts
-    import src.main_app.db.services.user_token_service as _uts
-
-    _js._JOBS_STORE = None
-    _ts._TEMPLATE_STORE = None
-    _ss._SETTINGS_STORE = None
-    _os._OWID_CHARTS_STORE = None
-    _ads._ADMINS_STORE = None
-    _tns._TEMPLATE_UPDATE_STORE = None
-    _uts._db = None
-
-    monkeypatch.setattr("src.main_app.db.services.check_db.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.user_token_service.get_db", mock_sqlite3_db)
-
-    monkeypatch.setattr("src.main_app.db.services.admin_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.jobs_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.owid_charts_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.settings_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.template_need_update_service.initialize_db", _mock)
-    monkeypatch.setattr("src.main_app.db.services.template_service.initialize_db", _mock)
+from src.main_app.config import TestingConfig  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -218,7 +168,7 @@ def mock_jobs_service(monkeypatch: pytest.MonkeyPatch):
 
     mock_is_cancelled = MagicMock(return_value=False)
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.is_job_cancelled",
+        "src.main_app.sqlalchemy_db.services.jobs_service.is_job_cancelled",
         mock_is_cancelled,
     )
 

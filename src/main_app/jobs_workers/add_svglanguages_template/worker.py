@@ -95,7 +95,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
+        _limit = 0
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]

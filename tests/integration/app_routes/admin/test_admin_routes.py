@@ -5,8 +5,6 @@ from typing import Any
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.services import admin_service
-from src.main_app.db.services.admin_service import get_admins_db
 from src.main_app.sqlalchemy_db.services import admin_service as _sqlalchemy_admin_service
 
 

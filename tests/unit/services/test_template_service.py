@@ -4,15 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services import template_service
-
-
-def test_get_templates_db_caches_store():
-    """Test that get_templates_db caches the store instance."""
-    store1 = template_service.get_templates_db()
-    store2 = template_service.get_templates_db()
-
-    assert store1 is store2
+from src.main_app.sqlalchemy_db.services import template_service
 
 
 def test_list_templates_empty():

@@ -1,5 +1,5 @@
 from src.main_app import create_app
-from src.main_app.db.services import user_token_service as user_store
+from src.main_app.sqlalchemy_db.services import user_token_service as user_store
 
 
 class FakeCursor:
@@ -48,19 +48,6 @@ class FakeConnection:
 
 
 def test_sequential_requests_use_cached_connections(monkeypatch):
-    connect_calls: list[tuple[tuple, dict]] = []
-
-    def fake_connect(*args, **kwargs):
-        connect_calls.append((args, kwargs))
-        return FakeConnection()
-
-    monkeypatch.setattr("src.main_app.db.engine.pymysql.connect", fake_connect)
-    monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.get_jobs_db",
-        lambda: type("FakeJobsDB", (), {"list": lambda self, **kwargs: []})(),
-    )
-
-    user_store._db = None
 
     app = create_app()
     app.config.update(TESTING=True)

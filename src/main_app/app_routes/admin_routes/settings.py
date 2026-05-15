@@ -54,7 +54,6 @@ class SettingsRoutes:
             failed_keys, deleted_keys = settings_update_form(request.form)
             # Invalidate runtime cache only if all updates succeeded
             if not failed_keys:
-                settings.dynamic.invalidate()
                 if deleted_keys:
                     flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
 

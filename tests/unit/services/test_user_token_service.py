@@ -2,43 +2,12 @@
 
 from unittest.mock import MagicMock, patch
 
-from src.main_app.db.services.user_token_service import (
+from src.main_app.sqlalchemy_db.services.user_token_service import (
     UserTokenRecord,
     delete_user_token,
     get_user_token,
-    mark_token_used,
     upsert_user_token,
 )
-
-
-class TestMarkTokenUsed:
-    """Tests for mark_token_used function."""
-
-    @patch("src.main_app.db.services.user_token_service.get_db")
-    def test_mark_token_used_success(self, mock_get_db):
-        """Test mark_token_used updates timestamp successfully."""
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
-
-        mark_token_used(123)
-
-        mock_db.execute_query.assert_called_once_with(
-            "UPDATE user_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE user_id = %s",
-            (123,),
-        )
-
-    @patch("src.main_app.db.services.user_token_service.logger")
-    @patch("src.main_app.db.services.user_token_service.get_db")
-    def test_mark_token_used_failure(self, mock_get_db, mock_logger):
-        """Test mark_token_used logs error on failure."""
-        mock_db = MagicMock()
-        mock_db.execute_query.side_effect = Exception("DB Error")
-        mock_get_db.return_value = mock_db
-
-        mark_token_used(456)
-
-        mock_logger.exception.assert_called_once()
-        assert "Failed to update last_used_at" in mock_logger.exception.call_args[0][0]
 
 
 class TestUserTokenRecord:
@@ -80,7 +49,7 @@ class TestUserTokenRecord:
         assert record.last_used_at == "2024-01-03 00:00:00"
         assert record.rotated_at == "2024-01-04 00:00:00"
 
-    @patch("src.main_app.db.models.users.decrypt_value")
+    @patch("src.main_app.sqlalchemy_db.models.users.decrypt_value")
     def test_decrypted_success(self, mock_decrypt):
         """Test decrypted method returns decrypted credentials."""
         mock_decrypt.side_effect = ["decrypted_token", "decrypted_secret"]
@@ -103,8 +72,8 @@ class TestUserTokenRecord:
 class TestUpsertUserToken:
     """Tests for upsert_user_token function."""
 
-    @patch("src.main_app.db.services.user_token_service.encrypt_value")
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.encrypt_value")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_upsert_new_token(self, mock_get_db, mock_encrypt):
         """Test upsert_user_token inserts new token."""
         mock_encrypt.side_effect = [b"encrypted_key", b"encrypted_secret"]
@@ -126,8 +95,8 @@ class TestUpsertUserToken:
         call_args = mock_db.insert_query.call_args
         assert "ON DUPLICATE KEY UPDATE" in call_args[0][0]
 
-    @patch("src.main_app.db.services.user_token_service.encrypt_value")
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.encrypt_value")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_upsert_updates_existing(self, mock_get_db, mock_encrypt):
         """Test upsert_user_token updates existing token."""
         mock_encrypt.side_effect = [b"new_encrypted_key", b"new_encrypted_secret"]
@@ -150,7 +119,7 @@ class TestUpsertUserToken:
 class TestGetUserToken:
     """Tests for get_user_token function."""
 
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_get_user_token_found(self, mock_get_db):
         """Test get_user_token returns record when found."""
         mock_db = MagicMock()
@@ -177,7 +146,7 @@ class TestGetUserToken:
         assert result.access_secret == b"encrypted_secret"
         assert result.created_at == "2024-01-01 00:00:00"
 
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_get_user_token_not_found(self, mock_get_db):
         """Test get_user_token returns None when not found."""
         mock_db = MagicMock()
@@ -188,7 +157,7 @@ class TestGetUserToken:
 
         assert result is None
 
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_get_user_token_string_id(self, mock_get_db):
         """Test get_user_token converts string ID to int."""
         mock_db = MagicMock()
@@ -202,8 +171,8 @@ class TestGetUserToken:
         call_args = mock_db.fetch_query_safe.call_args
         assert call_args[0][1] == (456,)
 
-    @patch("src.main_app.db.services.user_token_service.coerce_bytes")
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.coerce_bytes")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_get_user_token_coerces_bytes(self, mock_get_db, mock_coerce):
         """Test get_user_token coerces bytes for token fields."""
         mock_coerce.side_effect = [b"coerced_token", b"coerced_secret"]
@@ -228,7 +197,7 @@ class TestGetUserToken:
 class TestDeleteUserToken:
     """Tests for delete_user_token function."""
 
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_delete_user_token(self, mock_get_db):
         """Test delete_user_token executes delete query."""
         mock_db = MagicMock()
@@ -241,7 +210,7 @@ class TestDeleteUserToken:
             (123,),
         )
 
-    @patch("src.main_app.db.services.user_token_service.get_db")
+    @patch("src.main_app.sqlalchemy_db.services.user_token_service.get_db")
     def test_delete_user_token_different_id(self, mock_get_db):
         """Test delete_user_token with different user ID."""
         mock_db = MagicMock()

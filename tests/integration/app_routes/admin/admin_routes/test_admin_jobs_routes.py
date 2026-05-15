@@ -57,7 +57,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
-    monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.sqlalchemy_db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     app = create_app()

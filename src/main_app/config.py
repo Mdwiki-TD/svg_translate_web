@@ -90,34 +90,6 @@ class SecurityConfig:
     secret_key_fallbacks: tuple[str, ...]  # Fallback secret keys for rotation
 
 
-class DynamicSettingsStore:
-    """Lazy loader and cacher for settings stored in the database."""
-
-    def __init__(self, db_config: DbConfig):
-        self._db_config = db_config
-        self._cache: Dict[str, Any] | None = None
-
-    def get_all(self) -> Dict[str, Any]:
-        """Get all dynamic settings, loading from db if not cached."""
-        if self._cache is not None:
-            return dict(self._cache)
-
-        # Lazy import to avoid circular dependencies
-        from .db import SettingsDB
-
-        db = SettingsDB(self._db_config)
-        self._cache = db.get_all()
-        return dict(self._cache)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get a specific dynamic setting by key."""
-        return self.get_all().get(key, default)
-
-    def invalidate(self) -> None:
-        """Clear the cache to force reload on next access."""
-        self._cache = None
-
-
 @dataclass(frozen=True)
 class Settings:
     """Main settings container."""
@@ -136,7 +108,6 @@ class Settings:
     # cors: CorsConfig
     download: DownloadConfig
     security: SecurityConfig
-    dynamic: DynamicSettingsStore
 
     disable_uploads: str
     csrf_time_limit: Optional[int]  # None means never expire
@@ -381,7 +352,6 @@ def get_settings() -> Settings:
         download=DownloadConfig(dev_limit=dev_download_limit),
         security=security,
         csrf_time_limit=csrf_time_limit,
-        dynamic=DynamicSettingsStore(database_data),
     )
 
 
@@ -389,10 +359,13 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 
-class DevelopmentConfig: ...
+class DevelopmentConfig:
+    ...
 
 
-class TestingConfig: ...
+class TestingConfig:
+    ...
 
 
-class ProductionConfig: ...
+class ProductionConfig:
+    ...

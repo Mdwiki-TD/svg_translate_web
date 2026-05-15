@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.db_Jobs import JobRecord
-from src.main_app.db.services import jobs_service
-from src.main_app.db.services.jobs_service import (
+from src.main_app.sqlalchemy_db.models import JobRecord
+from src.main_app.sqlalchemy_db.services import jobs_service
+from src.main_app.sqlalchemy_db.services.jobs_service import (
     create_job,
     delete_job,
     get_job,
-    get_jobs_db,
     list_jobs,
     update_job_status,
 )
@@ -173,14 +172,6 @@ def test_list_jobs_filtered_with_limit():
     collect_jobs = list_jobs(limit=2, job_type="collect_main_files")
     assert len(collect_jobs) == 2
     assert all(job.job_type == "collect_main_files" for job in collect_jobs)
-
-
-def test_get_jobs_db_cached():
-    """Test get_jobs_db returns cached instance."""
-    db1 = get_jobs_db()
-    db2 = get_jobs_db()
-
-    assert db1 is db2
 
 
 def test_update_job_status_nonexistent():

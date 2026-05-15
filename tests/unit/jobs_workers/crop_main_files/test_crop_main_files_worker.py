@@ -34,9 +34,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_generate_result_file_name,
     )
 
-    # Mock settings.dynamic for upload_files flag
     mock_settings = MagicMock()
-    mock_settings.dynamic = {}
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.worker.settings",
         mock_settings,

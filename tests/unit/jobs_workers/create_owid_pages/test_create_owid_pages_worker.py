@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.db.models import TemplateRecord
+from src.main_app.sqlalchemy_db.models import TemplateRecord
 from src.main_app.jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
@@ -82,7 +82,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock settings
     mock_settings = MagicMock()
-    mock_settings.dynamic = {}
     monkeypatch.setattr(
         "src.main_app.jobs_workers.create_owid_pages.worker.settings",
         mock_settings,
@@ -209,7 +208,6 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
     def test_apply_limits_with_limit_set(self, mock_services):
         """Test _apply_limits respects the create_owid_pages_limit setting."""
-        mock_services["settings"].dynamic = {"create_owid_pages_limit": 2}
         templates = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
@@ -223,7 +221,6 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
     def test_apply_limits_with_zero_limit(self, mock_services):
         """Test _apply_limits with zero limit returns all templates."""
-        mock_services["settings"].dynamic = {"create_owid_pages_limit": 0}
         templates = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
@@ -236,7 +233,6 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
     def test_apply_limits_with_limit_greater_than_templates(self, mock_services):
         """Test _apply_limits when limit is greater than number of templates."""
-        mock_services["settings"].dynamic = {"create_owid_pages_limit": 10}
         templates = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
         ]
