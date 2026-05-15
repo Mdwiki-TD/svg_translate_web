@@ -53,8 +53,28 @@ def mock_sqlite3_db(tmp_path):
 def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
-        store = _db_class(database_data, db=mock_sqlite3_db)
+        try:
+            store = _db_class(database_data, db=mock_sqlite3_db)
+        except Exception as exc:
+            raise RuntimeError("Unable to initialize charts store") from exc
         return store
+
+    # Clear module-level store caches so each test gets a fresh DB connection
+    import src.main_app.db.services.jobs_service as _js
+    import src.main_app.db.services.template_service as _ts
+    import src.main_app.db.services.settings_service as _ss
+    import src.main_app.db.services.owid_charts_service as _os
+    import src.main_app.db.services.admin_service as _ads
+    import src.main_app.db.services.template_need_update_service as _tns
+    import src.main_app.db.services.user_token_service as _uts
+
+    _js._JOBS_STORE = None
+    _ts._TEMPLATE_STORE = None
+    _ss._SETTINGS_STORE = None
+    _os._OWID_CHARTS_STORE = None
+    _ads._ADMINS_STORE = None
+    _tns._TEMPLATE_UPDATE_STORE = None
+    _uts._db = None
 
     monkeypatch.setattr("src.main_app.db.services.check_db.get_main_db", mock_sqlite3_db)
     monkeypatch.setattr("src.main_app.db.services.admin_service.initialize_db", _mock)
