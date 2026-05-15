@@ -30,9 +30,7 @@ from ..live_db.services import (
     get_job,
     list_jobs,
 )
-from ..su_services import (
-    load_job_result,
-)
+from ..su_services import load_job_result
 from ..su_services.users_service import current_user
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
