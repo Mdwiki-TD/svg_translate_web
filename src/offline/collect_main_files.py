@@ -15,8 +15,8 @@ from pathlib import Path
 
 from src.main_app.live_db.services import (
     create_job,
-    update_job_status,
     list_templates,
+    update_job_status,
 )
 
 if _path_ := Path(__file__).parent.parent.parent:

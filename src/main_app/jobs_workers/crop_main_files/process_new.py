@@ -21,8 +21,8 @@ from ...config import settings
 from ...live_db.models import TemplateRecord
 from ...live_db.services import (
     is_job_cancelled,
-    update_job_status,
     list_templates,
+    update_job_status,
 )
 from ...su_services import jobs_files_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference

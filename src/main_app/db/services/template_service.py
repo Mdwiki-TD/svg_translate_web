@@ -5,11 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from .check_db import initialize_db
-
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..db_Templates import TemplatesDB
 from ..models import TemplateRecord
+from .check_db import initialize_db
 
 logger = logging.getLogger(__name__)
 

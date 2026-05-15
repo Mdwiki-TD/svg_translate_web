@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from .check_db import initialize_db
-
 from ...core.crypto import encrypt_value
 from ...shared.decode_bytes import coerce_bytes
 from ..engine import Database
 from ..models.users import UserTokenRecord
 from ..sql_schema_tables import sql_tables
+from .check_db import initialize_db
 
 _db: Database | None = None
 
