@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from ..db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from ..db_CoordinatorsDB import CoordinatorsDB
+from ..models import AdminUserRecord
 from .check_db import initialize_db
 
 logger = logging.getLogger(__name__)

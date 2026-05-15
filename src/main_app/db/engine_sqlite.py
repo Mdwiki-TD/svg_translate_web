@@ -19,7 +19,12 @@ def _mysql_to_sqlite(sql: str) -> str:
 class DatabaseSqlLite:
     """SQLite drop-in replacement for DatabaseSqlLite — for testing only."""
 
-    def __init__(self, database_data: DbConfig | None = None, db_path: str = ":memory:"):
+    def __init__(
+        self,
+        database_data: DbConfig | None = None,
+        # db_path: str = "./memory.sqlite3",
+        db_path: str = ":memory:",
+    ):
         self._lock = threading.RLock()
         self.connection = sqlite3.connect(db_path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row  # as DictCursor
