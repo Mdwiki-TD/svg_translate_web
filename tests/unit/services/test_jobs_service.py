@@ -36,7 +36,7 @@ def coordinators_db(mock_db_instance):
     return JobsDB({})
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture#(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.database_data = MagicMock()

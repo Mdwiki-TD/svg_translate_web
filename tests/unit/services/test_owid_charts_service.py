@@ -18,7 +18,7 @@ from src.main_app.db.services.owid_charts_service import (
 )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture#(autouse=True)
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.database_data = MagicMock()
