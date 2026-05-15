@@ -744,7 +744,7 @@ def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_
     assert "Failed to start job" in page or "error" in page.lower()
 
 
-def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
+def test_delete_job_handles_exception(admin_jobs_client, jobs_db, monkeypatch):
     """Test that job deletion handles exceptions gracefully."""
 
     job = jobs_db.create("collect_main_files")
@@ -761,7 +761,7 @@ def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
     assert "Failed to delete job" in page
 
 
-def test_download_main_files_job_with_partial_results(admin_jobs_client, tmp_path):
+def test_download_main_files_job_with_partial_results(admin_jobs_client, jobs_db, tmp_path):
     """Test displaying partial results for a running job."""
 
     job = jobs_db.create("download_main_files")
