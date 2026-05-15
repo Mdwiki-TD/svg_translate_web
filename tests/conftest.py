@@ -33,15 +33,21 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 
 # Import after environment setup
 from src.main_app import create_app  # noqa: E402
+from src.main_app.db.sql_schema_ensure_tables import ensure_all_tables  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import DbConfig, TestingConfig  # noqa: E402
+from src.main_app.db.engine_sqlite import DatabaseSqlLite  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
 def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
+    ensure_all_tables(None, DatabaseSqlLite())
+
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
-        return _db_class(database_data)
+        store = _db_class(database_data, DatabaseSqlLite())
+        # store.db = DatabaseSqlLite()
+        return store
 
     # monkeypatch.setattr("src.main_app.db.services.check_db.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.admin_service.initialize_db", _mock)

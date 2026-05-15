@@ -2,7 +2,7 @@
 
 
 from .sql_schema_tables import sql_tables
-from . import Database
+from .engine import Database
 
 
 def ensure_all_tables(database_data, db: None | Database = None):

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SettingsDB:
     """MySQL-backed application settings store."""
 
-    def __init__(self, database_data: DbConfig, db: Database | None = None):
+    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
         self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
