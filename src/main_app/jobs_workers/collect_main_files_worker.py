@@ -12,7 +12,12 @@ from typing import Any, Dict
 
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..live_db.services import owid_charts_service, template_service
+from ..live_db.services import (
+    owid_charts_service,
+    update_template_data,
+    list_templates,
+    add_template_data,
+)
 from ..utils.wikitext import find_template_source
 from ..utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -96,7 +101,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             return 0
 
         # Get existing template titles
-        existing_templates = template_service.list_templates()
+        existing_templates = list_templates()
         existing_titles = {t.title for t in existing_templates}
 
         # Find new templates
@@ -116,7 +121,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                     "main_file": "",
                     "last_world_file": "",
                 }
-                template_service.add_template_data(data)
+                add_template_data(data)
                 self.result["templates_added"].append(
                     {
                         "title": title,
@@ -154,7 +159,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             return self.result
 
         # Step 2: Get all templates (including newly added)
-        templates = template_service.list_templates()
+        templates = list_templates()
         self.result["summary"]["total"] = len(templates)
         self.result["summary"]["already_had_main_file"] = len(
             [t for t in templates if t.main_file and t.last_world_file and t.source]
@@ -249,7 +254,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                     f"and source: {source}"
                 )
 
-                template_service.update_template_data(
+                update_template_data(
                     template.id,
                     template_data,
                 )

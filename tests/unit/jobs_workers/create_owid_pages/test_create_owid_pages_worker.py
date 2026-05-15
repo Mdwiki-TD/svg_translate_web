@@ -43,7 +43,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock template_service
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.template_service.list_templates",
+        "src.main_app.jobs_workers.create_owid_pages.worker.list_templates",
         mock_list_templates,
     )
 
