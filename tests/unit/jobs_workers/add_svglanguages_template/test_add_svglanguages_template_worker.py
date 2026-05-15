@@ -118,6 +118,7 @@ class TestLoadTemplates:
         assert len(templates) == 3
         assert all(t.title.startswith("Template:OWID/") for t in templates)
 
+
 class TestProcessTemplate:
     """Tests for _process_template method."""
 
