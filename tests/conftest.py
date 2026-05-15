@@ -88,14 +88,6 @@ def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
     monkeypatch.setattr("src.main_app.db.services.template_need_update_service.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.template_service.initialize_db", _mock)
 
-    monkeypatch.setattr("src.main_app.db.services.admin_service.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.jobs_service.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.owid_charts_service.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.settings_service.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.template_need_update_service.get_main_db", mock_sqlite3_db)
-    monkeypatch.setattr("src.main_app.db.services.template_service.get_main_db", mock_sqlite3_db)
-
-
 
 @pytest.fixture(autouse=True)
 def disable_network(mocker):
