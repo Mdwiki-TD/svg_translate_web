@@ -189,13 +189,9 @@ def test_get_by_key_not_found(mock_db_instance, settings_db):
 
 
 def test_create_setting_success(mock_db_instance, settings_db):
-    """Test create_setting returns True on success."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-    mock_db_instance.execute_query_safe.return_value = 1  # affected_rows > 0
-
+    mock_db_instance.fetch_query_safe.return_value = []
+    mock_db_instance.insert_query.return_value = 1
     result = settings_db.create(key="new_key", title="New Setting", value_type="boolean", value="true")
-
     assert result is True
     mock_db_instance.insert_query.assert_any_call(
         "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
@@ -214,42 +210,26 @@ def test_create_setting_failure(mock_db_instance, settings_db):
 
 
 def test_create_setting_serialize_boolean(mock_db_instance, settings_db):
-    """Test create_setting serializes boolean values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="bool_key", title="Bool Setting", value_type="boolean", value="true")
     settings_db.create(key="bool_key2", title="Bool Setting 2", value_type="boolean", value="false")
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE from __init__
-    # Second and third calls are the INSERT statements
-    assert calls[1][0][1][3] == "true"
-    assert calls[2][0][1][3] == "false"
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == "true"
+    assert calls[1][0][1][3] == "false"
 
 
 def test_create_setting_serialize_integer(mock_db_instance, settings_db):
-    """Test create_setting serializes integer values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="int_key", title="Int Setting", value_type="integer", value="42")
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE, second is INSERT
-    assert calls[1][0][1][3] == "42"
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == "42"
 
 
 def test_create_setting_serialize_json(mock_db_instance, settings_db):
-    """Test create_setting serializes JSON values correctly."""
-
-    mock_db_instance.fetch_query_safe.return_value = []  # get_by_key returns no existing key
-
+    mock_db_instance.fetch_query_safe.return_value = []
     settings_db.create(key="json_key", title="JSON Setting", value_type="json", value='{"key": "value"}')
-
-    calls = mock_db_instance.execute_query_safe.call_args_list
-    # First call is CREATE TABLE, second is INSERT
-    assert calls[1][0][1][3] == '{"key": "value"}'
+    calls = mock_db_instance.insert_query.call_args_list
+    assert calls[0][0][1][3] == '{"key": "value"}'
 
 
 class TestUpdate:
