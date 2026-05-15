@@ -3,24 +3,19 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.db_Jobs import JobRecord, JobsDB
+from src.main_app.db.db_Jobs import JobsDB
+from src.main_app.db.models import JobRecord
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_Jobs.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
 def jobs_db(mock_db_instance):
-    return JobsDB({})
+    return JobsDB(db=mock_db_instance)
 
 
 def test_JobRecord():
