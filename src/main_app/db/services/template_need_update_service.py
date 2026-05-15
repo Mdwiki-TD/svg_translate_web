@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import DbConfig
 from .. import Database
 from ..models import TemplateNeedUpdateRecord
 from .check_db import initialize_db
@@ -18,14 +17,11 @@ _TEMPLATE_UPDATE_STORE: TemplatesNeedUpdateDB | None = None
 class TemplatesNeedUpdateDB:
     """MySQL-backed"""
 
-    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to construct the underlying Database connection.
         """
-        self.db = db or Database(database_data)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateNeedUpdateRecord:
         return TemplateNeedUpdateRecord(

@@ -7,7 +7,6 @@ import logging
 from datetime import datetime
 from typing import Any, List
 
-from ..config import DbConfig
 from .engine import Database
 from .models import JobRecord
 
@@ -29,14 +28,11 @@ def _parse_dt(value: str | None) -> datetime | None:
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
         """
-        self.db = db or Database(database_data)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(
