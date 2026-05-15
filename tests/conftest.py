@@ -14,7 +14,6 @@ from flask.testing import FlaskClient
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError
 # if FLASK_SECRET_KEY is missing, so every env var must be set here first,
@@ -35,15 +34,17 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
 # Import after environment setup
-from src.main_app import create_app, ensure_all_tables  # noqa: E402
+from src.main_app import create_app  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import DbConfig, TestingConfig  # noqa: E402
 from src.main_app.db.engine_sqlite import DatabaseSqlLite  # noqa: E402
+from src.main_app.db.sql_schema_ensure_tables import ensure_all_tables  # noqa: E402
+from src.main_app.db.sql_schema_tables import sql_tables_sqlite3  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
 def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
-    ensure_all_tables(None, DatabaseSqlLite())
+    ensure_all_tables(sql_tables_sqlite3, DatabaseSqlLite())
 
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")

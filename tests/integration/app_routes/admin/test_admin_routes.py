@@ -1,128 +1,13 @@
 from html import unescape
 from types import SimpleNamespace
-from typing import Any, Iterable
-from unittest.mock import MagicMock
+from typing import Any
 
-import pymysql
 import pytest
 
 from src.main_app import create_app
-
-# from src.main_app.app_routes.admin.admin_routes import coordinators
-from src.main_app.config import settings
-from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB  # , AdminUserRecord
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.services import admin_service
-
-
-class FakeDatabase:
-    """Lightweight stub that mimics the Database helper using in-memory rows."""
-
-    def __init__(self, _db_data: dict[str, Any]):
-        self._rows: list[dict[str, Any]] = []
-        self._next_id = 1
-
-    def _normalize(self, sql: str) -> str:
-        return " ".join(sql.strip().split()).lower()
-
-    def _row_dict(self, row: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "id": row["id"],
-            "username": row["username"],
-            "is_active": row["is_active"],
-            "created_at": row.get("created_at"),
-            "updated_at": row.get("updated_at"),
-        }
-
-    def execute_query(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
-    ) -> int:
-        del timeout_override
-        params = tuple(params or ())
-        normalized = self._normalize(sql)
-
-        if normalized.startswith("create table if not exists admin_users"):
-            return 0
-
-        if normalized.startswith("insert into admin_users"):
-            username = params[0]
-            if any(row["username"] == username for row in self._rows):
-                raise pymysql.err.IntegrityError(1062, "Duplicate entry")
-
-            row = {
-                "id": self._next_id,
-                "username": username,
-                "is_active": 1,
-                "created_at": None,
-                "updated_at": None,
-            }
-            self._rows.append(row)
-            self._next_id += 1
-            return 1
-
-        if normalized.startswith("update admin_users set is_active"):
-            is_active, coordinator_id = params
-            for row in self._rows:
-                if row["id"] == coordinator_id:
-                    row["is_active"] = 1 if is_active else 0
-                    return 1
-            return 0
-
-        if normalized.startswith("delete from admin_users"):
-            coordinator_id = params[0]
-            before = len(self._rows)
-            self._rows = [row for row in self._rows if row["id"] != coordinator_id]
-            return 1 if len(self._rows) != before else 0
-
-        raise NotImplementedError(sql)
-
-    def execute_query_safe(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
-    ) -> int:
-        try:
-            return self.execute_query(sql, params, timeout_override=timeout_override)
-        except pymysql.MySQLError:
-            return 0
-
-    def fetch_query(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
-    ) -> list[dict[str, Any]]:
-        del timeout_override
-        params = tuple(params or ())
-        normalized = self._normalize(sql)
-
-        if "from admin_users" not in normalized:
-            raise NotImplementedError(sql)
-
-        if "where id = %s" in normalized:
-            coordinator_id = params[0]
-            for row in self._rows:
-                if row["id"] == coordinator_id:
-                    return [self._row_dict(row)]
-            return []
-
-        if "where username = %s" in normalized and "username in" not in normalized:
-            username = params[0]
-            for row in self._rows:
-                if row["username"] == username:
-                    return [self._row_dict(row)]
-            return []
-
-        if normalized.startswith("select username from admin_users where username in"):
-            usernames = set(params)
-            return [{"username": row["username"]} for row in self._rows if row["username"] in usernames]
-
-        if "order by id asc" in normalized:
-            return [self._row_dict(row) for row in sorted(self._rows, key=lambda row: row["id"])]
-
-        raise NotImplementedError(sql)
-
-    def fetch_query_safe(
-        self, sql: str, params: Iterable[Any] | None = None, *, timeout_override: float | None = None
-    ) -> list[dict[str, Any]]:
-        try:
-            return self.fetch_query(sql, params, timeout_override=timeout_override)
-        except pymysql.MySQLError:
-            return []
 
 
 def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
@@ -151,10 +36,10 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     # Patch Database used by CoordinatorsDB
-    monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", FakeDatabase)
+    monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", DatabaseSqlLite)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
-    store = CoordinatorsDB(settings.database_data)
+    store = CoordinatorsDB(db=DatabaseSqlLite())
     store.add("admin")
 
     # Inject this store into admin_service
@@ -174,6 +59,7 @@ def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest
 
     response = app.test_client().get("/admin/coordinators")
     assert response.status_code == 200
+    # Add multiple coordinators to the database, skipping existing ones
     page = unescape(response.get_data(as_text=True))
     assert "Coordinators" in page
     assert "Total Coordinators" in page
@@ -193,6 +79,7 @@ def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypat
     _set_current_user(monkeypatch, None)
 
     response = app.test_client().get("/admin/coordinators", follow_redirects=False)
+    # Return all coordinators in the database, ordered by ID
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
 
@@ -207,9 +94,11 @@ def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pyte
     assert "Admins" not in html
 
     # Admin should see the link
+    # Public method to get a coordinator by ID
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
     response = app.test_client().get("/")
     html = response.get_data(as_text=True)
+    # Add a new coordinator to the database
     assert "Admins" in html
 
 

@@ -25,7 +25,6 @@ class JobsDB:
         """
         self.db = db or Database(database_data)
 
-
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(
             id=int(row["id"]),

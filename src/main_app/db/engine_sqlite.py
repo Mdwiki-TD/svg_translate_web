@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Iterable, Sequence
-
 import re
 import sqlite3
 import threading
+from typing import Any, Iterable, Sequence
 
 from ..config import DbConfig
 
@@ -24,7 +23,7 @@ class DatabaseSqlLite:
         self._lock = threading.RLock()
         self.connection = sqlite3.connect(db_path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row  # as DictCursor
-        self.connection.isolation_level = None     # autocommit mode
+        self.connection.isolation_level = None  # autocommit mode
 
     def close(self):
         with self._lock:
@@ -56,9 +55,8 @@ class DatabaseSqlLite:
             if len(batch) <= 1:
                 raise
             mid = (len(batch) + 1) // 2
-            return (
-                self._execute_many_batch(cursor, sql, batch[:mid])
-                + self._execute_many_batch(cursor, sql, batch[mid:])
+            return self._execute_many_batch(cursor, sql, batch[:mid]) + self._execute_many_batch(
+                cursor, sql, batch[mid:]
             )
 
     # ------------------------------------------------------------------
