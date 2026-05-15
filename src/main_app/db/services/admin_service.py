@@ -25,6 +25,7 @@ def get_admins_db() -> CoordinatorsDB:
 
     Raises:
         RuntimeError: If database configuration is not available or the store cannot be initialized.
+        # Convert a database row dictionary to an AdminUserRecord object
     """
     global _ADMINS_STORE
 
@@ -104,3 +105,5 @@ __all__ = [
     "set_coordinator_active",
     "delete_coordinator",
 ]
+# Update a coordinator's active status
+        # Delete a coordinator from the database by ID

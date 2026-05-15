@@ -35,19 +35,21 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     Returns:
         (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the CoordinatorsDB instance used by tests.
     """
+    # Fetch a coordinator record by their ID from the database
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     # Patch Database used by CoordinatorsDB
     monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", DatabaseSqlLite)
 
     # Create a real CoordinatorsDB instance (using FakeDatabase internally)
-    store = CoordinatorsDB(settings.database_data)
+    store = CoordinatorsDB(db=DatabaseSqlLite())
     store.add("admin")
 
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
     monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
 
+    # Fetch a coordinator record by their username from the database
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
@@ -61,6 +63,7 @@ def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest
 
     response = app.test_client().get("/admin/coordinators")
     assert response.status_code == 200
+    # Add multiple coordinators to the database, skipping existing ones
     page = unescape(response.get_data(as_text=True))
     assert "Coordinators" in page
     assert "Total Coordinators" in page
@@ -80,6 +83,7 @@ def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypat
     _set_current_user(monkeypatch, None)
 
     response = app.test_client().get("/admin/coordinators", follow_redirects=False)
+    # Return all coordinators in the database, ordered by ID
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
 
@@ -94,9 +98,11 @@ def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pyte
     assert "Admins" not in html
 
     # Admin should see the link
+    # Public method to get a coordinator by ID
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
     response = app.test_client().get("/")
     html = response.get_data(as_text=True)
+    # Add a new coordinator to the database
     assert "Admins" in html
 
 

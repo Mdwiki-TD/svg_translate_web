@@ -153,3 +153,94 @@ sql_tables = TablesCreatesSql(
     templates_need_update=templates_need_update,
     owid_charts_templates=owid_charts_templates,
 )
+
+user_tokens_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS user_tokens (
+        user_id     INTEGER NOT NULL PRIMARY KEY,
+        username    TEXT NOT NULL,
+        access_token  BLOB NOT NULL,
+        access_secret BLOB NOT NULL,
+        created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_used_at DATETIME DEFAULT NULL,
+        rotated_at   DATETIME DEFAULT NULL
+    );
+"""
+
+templates_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS templates (
+        id              INTEGER PRIMARY KEY,
+        title           TEXT NOT NULL UNIQUE,
+        main_file       TEXT DEFAULT NULL,
+        last_world_file TEXT DEFAULT NULL,
+        last_world_year INTEGER DEFAULT NULL,
+        slug            TEXT NOT NULL DEFAULT '',
+        source          TEXT NOT NULL DEFAULT '',
+        created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+admin_users_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS admin_users (
+        id         INTEGER PRIMARY KEY,
+        username   TEXT NOT NULL UNIQUE,
+        is_active  INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+jobs_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS jobs (
+        id          INTEGER PRIMARY KEY,
+        job_type    TEXT NOT NULL,
+        username    TEXT DEFAULT NULL,
+        status      TEXT NOT NULL DEFAULT 'pending',
+        started_at  TIMESTAMP NULL DEFAULT NULL,
+        completed_at TIMESTAMP NULL DEFAULT NULL,
+        result_file TEXT DEFAULT NULL,
+        created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+settings_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS settings (
+        id         INTEGER PRIMARY KEY,
+        key        TEXT NOT NULL UNIQUE,
+        title      TEXT NOT NULL,
+        value      TEXT DEFAULT NULL,
+        value_type TEXT NOT NULL DEFAULT 'boolean'
+                   CHECK(value_type IN ('boolean', 'string', 'integer', 'json'))
+    );
+"""
+
+owid_charts_sqlite3 = """
+    CREATE TABLE IF NOT EXISTS owid_charts (
+        id              INTEGER PRIMARY KEY,
+        slug            TEXT NOT NULL UNIQUE,
+        title           TEXT NOT NULL,
+        has_map_tab     INTEGER DEFAULT 0,
+        max_time        INTEGER DEFAULT NULL,
+        min_time        INTEGER DEFAULT NULL,
+        default_tab     TEXT DEFAULT NULL,
+        is_published    INTEGER DEFAULT 0,
+        single_year_data INTEGER DEFAULT 0,
+        len_years       INTEGER DEFAULT NULL,
+        has_timeline    INTEGER DEFAULT 0,
+        created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+sql_tables_sqlite3 = TablesCreatesSql(
+    user_tokens=user_tokens_sqlite3,
+    templates=templates_sqlite3,
+    admin_users=admin_users_sqlite3,
+    jobs=jobs_sqlite3,
+    settings=settings_sqlite3,
+    owid_charts=owid_charts_sqlite3,
+    templates_need_update=templates_need_update,
+    owid_charts_templates=owid_charts_templates,
+)
