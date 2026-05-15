@@ -53,8 +53,6 @@ def mock_sqlite3_db(tmp_path):
 
 @pytest.fixture(autouse=True)
 def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
-    ensure_all_tables(sql_tables_sqlite3, DatabaseSqlLite())
-
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
         store = _db_class(database_data, DatabaseSqlLite())
