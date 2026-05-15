@@ -17,8 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...sqlalchemy_db.models import TemplateRecord
-from ...sqlalchemy_db.services import template_service
+from ...live_db.models import TemplateRecord
+from ...live_db.services import template_service
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
