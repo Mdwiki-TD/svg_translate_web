@@ -10,6 +10,11 @@ def mock_store():
     return MagicMock()
 
 
+@pytest.fixture
+def mock_site() -> MagicMock:
+    return MagicMock()
+
+
 def test_upload_task_disabled(mock_site):
 
     res = upload_step({}, "Main", site=mock_site)

@@ -9,9 +9,7 @@ from ...config import settings
 from ...core.crypto import encrypt_value
 from ...shared.decode_bytes import coerce_bytes
 from ..engine import Database
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models.users import UserTokenRecord
-from ..sql_schema_tables import sql_tables
 
 _db: Database | None = None
 
@@ -29,16 +27,7 @@ def get_db() -> Database:
     global _db
 
     if _db is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _db = Database(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
-
-        _db.execute_query_safe(sql_tables.user_tokens)
+        _db = Database(settings.database_data)
 
     return _db
 
@@ -62,7 +51,7 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
     db = get_db()
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
-    return db.execute_query_safe(
+    return db.insert_query(
         """
             INSERT INTO user_tokens (
                 user_id,

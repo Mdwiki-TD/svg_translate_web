@@ -1,8 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from src.main_app.config import DbConfig
 from src.main_app.db.services.admin_service import (
     active_coordinators,
     add_coordinator,
@@ -11,18 +8,6 @@ from src.main_app.db.services.admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
-
-
-@pytest.fixture(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
-    _mock.has_db_config = MagicMock(return_value=True)
-    monkeypatch.setattr(
-        "src.main_app.db.services.admin_service.settings",
-        _mock,
-    )
-    return _mock
 
 
 @patch("src.main_app.db.services.admin_service.CoordinatorsDB")

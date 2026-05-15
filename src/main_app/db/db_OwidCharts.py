@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Any, List
 
 import pymysql
 
-from ..config import DbConfig
 from .engine import Database
 from .models import OwidChartRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -16,20 +15,11 @@ logger = logging.getLogger(__name__)
 class OwidChartsDB:
     """MySQL-backed storage for OWID charts."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the OwidChartsDB with the given database configuration.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to construct the underlying Database connection.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """Ensure the owid_charts table, owid_charts_templates view exists with the required schema."""
-        self.db.execute_query_safe(sql_tables.owid_charts)
-        self.db.execute_query_safe(sql_tables.owid_charts_templates)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> OwidChartRecord:
         return OwidChartRecord(
@@ -130,7 +120,7 @@ class OwidChartsDB:
             raise ValueError("Title is required")
 
         try:
-            self.db.execute_query(
+            self.db.insert_query(
                 """
                 INSERT INTO owid_charts (
                     slug, title, has_map_tab, max_time, min_time,
@@ -151,7 +141,7 @@ class OwidChartsDB:
                     has_timeline,
                 ),
             )
-        except pymysql.err.IntegrityError:
+        except (pymysql.err.IntegrityError, sqlite3.IntegrityError):
             raise ValueError(f"Chart with slug '{slug}' already exists") from None
 
         return self.fetch_by_slug(slug)

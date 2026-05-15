@@ -10,7 +10,7 @@ from ..models.settings import SettingRecord
 logger = logging.getLogger(__name__)
 
 
-def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
+def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
     """Returns (value, success)"""
     if v_type == "boolean":
         return raw_val == "on", True
@@ -26,6 +26,21 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[any, bool]:
             return None, False
     else:
         return raw_val, True
+
+
+def _serialize_value(value: Any, value_type: str) -> str | None:
+    if value is None:
+        return None
+    if value_type == "boolean":
+        return "true" if value else "false"
+    elif value_type == "integer":
+        try:
+            return str(int(value))
+        except (ValueError, TypeError):
+            return "0"
+    elif value_type == "json":
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
 
 
 def list_settings() -> list[SettingRecord]:
@@ -67,40 +82,64 @@ def update_setting(
     """
     with get_session() as session:
         setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
-        if setting:
-            if value_type == "json":
-                setting.value = json.dumps(value)
-            else:
-                setting.value = str(value)
-            if title:
-                setting.title = title
-        else:
-            setting = SettingRecord(key=key, value=str(value), title=title or key, value_type=value_type)
-            session.add(setting)
+        if not setting:
+            return False
+
+        if not value_type:
+            value_type = setting.value_type
+
+        setting.value = _serialize_value(value, value_type)
+        if title:
+            setting.title = title
         session.commit()
-        session.refresh(setting)
         return setting
+
+
+def update_setting_bool(
+    key: str,
+    value: Any,
+    value_type: str | None = None,
+    title: str | None = None,
+) -> bool:
+    """
+    Update an existing setting.
+    """
+    with get_session() as session:
+        setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
+        if not setting:
+            return False
+
+        if not value_type:
+            value_type = setting.value_type
+
+        setting.value = _serialize_value(value, value_type)
+        if title:
+            setting.title = title
+        session.commit()
+        return True
 
 
 def create_setting(key: str, title: str, value_type: str) -> bool:
     """
     Create new setting.
     """
-    if value_type == "boolean":
-        value = False
-    elif value_type == "integer":
-        value = 0
-    elif value_type == "json":
-        value = {}
-    else:
-        value = ""
+    default_value_types = {
+        "boolean": "false",
+        "integer": "0",
+        "json": "{}",
+    }
+
+    value = default_value_types.get(value_type, "")
 
     with get_session() as session:
-        job = SettingRecord(key=key, title=title, value=value, value_type=value_type)
-        session.add(job)
-        session.commit()
-        session.refresh(job)
-        return job
+        setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
+        session.add(setting)
+        try:
+            session.commit()
+            return True
+        except Exception:
+            session.rollback()
+            return False
 
 
 def settings_update_form(request_form) -> tuple[list[str], list[str]]:

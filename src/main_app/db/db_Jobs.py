@@ -4,39 +4,35 @@ from __future__ import annotations
 
 # import json
 import logging
+from datetime import datetime
 from typing import Any, List
 
-from ..config import DbConfig
 from .engine import Database
 from .models import JobRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_dt(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        logger.exception("Failed to parse datetime: %s", value)
+        return None
 
 
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the jobs table exists in the database with the expected schema.
-
-        Creates a `jobs` table (if it does not already exist) containing columns:
-        `id`, `job_type`, `status`, `started_at`, `completed_at`, `result_file`,
-        `created_at`, `updated_at`, and `username`, and an index `idx_status_created` on
-        `(status, created_at)`.
-        """
-        self.db.execute_query_safe(sql_tables.jobs)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(
@@ -44,16 +40,16 @@ class JobsDB:
             job_type=row["job_type"],
             username=row.get("username"),
             status=row["status"],
-            started_at=row.get("started_at"),
-            completed_at=row.get("completed_at"),
+            started_at=_parse_dt(row.get("started_at")),
+            completed_at=_parse_dt(row.get("completed_at")),
             result_file=row.get("result_file"),
-            created_at=row.get("created_at"),
-            updated_at=row.get("updated_at"),
+            created_at=_parse_dt(row.get("created_at")),
+            updated_at=_parse_dt(row.get("updated_at")),
         )
 
     def create(self, job_type: str, username: str | None = None) -> JobRecord:
         """Create a new job."""
-        self.db.execute_query_safe(
+        job_id = self.db.insert_query(
             """
             INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
             """,
@@ -63,10 +59,12 @@ class JobsDB:
             """
             SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
-            WHERE id = LAST_INSERT_ID()
-            """
+            WHERE id = %s
+            """,
+            (job_id,),
         )
         if not rows:
+            logger.exception("Failed to create job")
             raise RuntimeError("Failed to create job")
         return self._row_to_record(rows[0])
 
@@ -96,6 +94,7 @@ class JobsDB:
             (job_id, job_type),
         )
         if not rows:
+            logger.exception("Failed to get job")
             raise LookupError(f"Job id {job_id} was not found")
         return self._row_to_record(rows[0])
 
@@ -146,6 +145,7 @@ class JobsDB:
 
         rowcount = self.db.execute_query_safe(query, tuple(params))
         if rowcount == 0:
+            logger.exception(f"Failed to update job id {job_id} to running status")
             raise LookupError(f"Job id {job_id} was not found or update failed")
 
         return self.get(job_id, job_type)
@@ -184,6 +184,7 @@ class JobsDB:
             )
 
         if rowcount == 0:
+            logger.exception(f"Failed to update job id {job_id} to status {status}")
             raise LookupError(f"Job id {job_id} was not found or update failed")
 
         return self.get(job_id, job_type)

@@ -137,8 +137,8 @@ class TestFixNestedJobsProcessor:
             result={"status": "running"},
             result_file="test.json",
         )
-        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_service") as mock_jobs:
-            mock_jobs.is_job_cancelled.return_value = False
+        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled") as mock_is_job_cancelled:
+            mock_is_job_cancelled.return_value = False
             assert processor._is_cancelled() is False
 
     def test_is_cancelled_with_event(self) -> None:

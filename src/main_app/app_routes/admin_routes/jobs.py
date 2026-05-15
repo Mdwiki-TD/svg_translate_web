@@ -21,10 +21,14 @@ from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
 from ...config import settings
-from ...db.services import jobs_service
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
 from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
+from ...live_db.services import (
+    delete_job,
+    get_job,
+    list_jobs,
+)
 from ...su_services import jobs_files_service
 from ...su_services.users_service import current_user
 from ..admin.admins_required import admin_required
@@ -45,17 +49,16 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
 
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
-
     try:
         # Cancel the job if it's running
         if jobs_worker.cancel_job(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
-        jobs_service.delete_job(job_id, job_type)
+        delete_job(job_id, job_type)
         flash(f"Job {job_id} deleted successfully.", "success")
-    except Exception as exc:
+    except Exception:
         logger.exception("Failed to delete job")
-        flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
+        flash(f"Failed to delete job {job_id}", "danger")
 
     return redirect(url_for("admin.jobs_list", job_type=job_type))
 
@@ -110,7 +113,7 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
-    jobs = jobs_service.list_jobs(limit=100, job_type=job_type)
+    jobs = list_jobs(limit=100, job_type=job_type)
 
     # sort jobs by created_at key
     if jobs:
@@ -131,7 +134,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
-        job = jobs_service.get_job(job_id, job_type)
+        job = get_job(job_id, job_type)
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")

@@ -5,11 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import DbConfig, settings
 from .. import Database
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import TemplateNeedUpdateRecord
-from ..sql_schema_tables import sql_tables
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +17,11 @@ _TEMPLATE_UPDATE_STORE: TemplatesNeedUpdateDB | None = None
 class TemplatesNeedUpdateDB:
     """MySQL-backed"""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to construct the underlying Database connection.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the `templates_need_update` table exists with the required schema.
-        """
-        self.db.execute_query_safe(sql_tables.templates_need_update)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateNeedUpdateRecord:
         return TemplateNeedUpdateRecord(
@@ -74,14 +62,7 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
     global _TEMPLATE_UPDATE_STORE
 
     if _TEMPLATE_UPDATE_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _TEMPLATE_UPDATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
+        _TEMPLATE_UPDATE_STORE = initialize_db(TemplatesNeedUpdateDB, get_main_db())
 
     return _TEMPLATE_UPDATE_STORE
 

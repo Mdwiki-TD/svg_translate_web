@@ -16,7 +16,7 @@ from flask import send_file
 
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
-from ..db.services import template_service
+from ..live_db.services import list_templates
 from .base_worker import BaseJobWorker
 
 # Zip file name constant
@@ -67,7 +67,7 @@ def download_file_from_commons(
 
     # Create session if not provided
     if session is None:
-        session = create_commons_session(settings.oauth.user_agent)
+        session = create_commons_session(settings.user_agent)
 
     # Use the core download function
     try:
@@ -130,7 +130,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         """Execute the download processing logic."""
 
         # Get all templates with main files
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates_with_files = [t for t in templates if t.main_file]
 
         # Apply development mode limit from settings
@@ -151,7 +151,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a shared session for all downloads
-        session = create_commons_session(settings.oauth.user_agent)
+        session = create_commons_session(settings.user_agent)
 
         per_item = self.get_priority(len(templates_with_files))
 

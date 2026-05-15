@@ -13,8 +13,6 @@ import sys
 import threading
 from pathlib import Path
 
-from src.main_app.db.services import jobs_service
-
 if _path_ := Path(__file__).parent.parent.parent:
     sys.path.append(str(_path_))
 
@@ -23,8 +21,14 @@ from datetime import datetime
 from typing import Any, Dict
 
 from src.main_app.api_services import get_category_members, get_wikitext
-from src.main_app.db.services import template_service
 from src.main_app.jobs_workers.base_worker import BaseJobWorker
+from src.main_app.live_db.services import (
+    add_template_data,
+    create_job,
+    list_templates,
+    update_job_status,
+    update_template_data,
+)
 from src.main_app.utils.wikitext import find_template_source
 from src.main_app.utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -78,7 +82,7 @@ class MainFilesWorker(BaseJobWorker):
             return 0
 
         # Get existing template titles
-        existing_templates = template_service.list_templates()
+        existing_templates = list_templates()
         existing_titles = {t.title for t in existing_templates}
 
         # Find new templates
@@ -94,7 +98,7 @@ class MainFilesWorker(BaseJobWorker):
                     "main_file": "",
                     "last_world_file": "",
                 }
-                template_service.add_template_data(data)
+                add_template_data(data)
                 self.result["templates_added"].append(
                     {
                         "title": title,
@@ -128,7 +132,7 @@ class MainFilesWorker(BaseJobWorker):
         self.result["summary"]["added"] = added_count
 
         # Step 2: Get all templates (including newly added)
-        templates = template_service.list_templates()
+        templates = list_templates()
         self.result["summary"]["total"] = len(templates)
         self.result["summary"]["already_had_main_file"] = len(
             [t for t in templates if t.main_file and t.last_world_file and t.source]
@@ -212,7 +216,7 @@ class MainFilesWorker(BaseJobWorker):
                     f"and source: {source}"
                 )
 
-                template_service.update_template_data(
+                update_template_data(
                     template.id,
                     template_data,
                 )
@@ -246,7 +250,7 @@ class MainFilesWorker(BaseJobWorker):
         Returns:
             True to continue with processing, False to abort
         """
-        jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+        update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
         return True
 
 
@@ -254,7 +258,7 @@ def start() -> None:
     user = None
     # Get auth payload for OAuth uploads
     cancel_event = threading.Event()
-    job_record = jobs_service.create_job("collect_main_files", "Background job")
+    job_record = create_job("collect_main_files", "Background job")
     job_id = job_record.id
     logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
     worker = MainFilesWorker(job_id, user, cancel_event)

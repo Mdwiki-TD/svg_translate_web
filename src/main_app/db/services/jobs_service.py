@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import logging
 
-from ...config import settings
 from ..db_Jobs import JobRecord, JobsDB
-from ..exceptions import InsufficientDatabaseConfigError
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +25,8 @@ def get_jobs_db() -> JobsDB:
         RuntimeError: If no database configuration is available or if JobsDB initialization fails.
     """
     global _JOBS_STORE
-
     if _JOBS_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _JOBS_STORE = JobsDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL jobs store")
-            raise RuntimeError("Unable to initialize jobs store") from exc
-
+        _JOBS_STORE = initialize_db(JobsDB, get_main_db())
     return _JOBS_STORE
 
 

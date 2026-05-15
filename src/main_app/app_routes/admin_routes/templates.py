@@ -17,8 +17,14 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db.models import TemplateRecord
-from ...db.services import template_service
+from ...live_db.models import TemplateRecord
+from ...live_db.services import (
+    add_template_data,
+    delete_template,
+    get_template,
+    list_templates,
+    update_template_data,
+)
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -33,7 +39,7 @@ def create_json_file() -> Tuple[Any, int]:
         string with appropriate status code (404 for no templates, 500 for errors).
     """
     try:
-        templates: List[TemplateRecord] = template_service.list_templates()
+        templates: List[TemplateRecord] = list_templates()
 
         if not templates:
             return "No templates found to export.", 404
@@ -87,7 +93,7 @@ def _add_template() -> ResponseReturnValue:
         "source": source,
     }
     try:
-        record = template_service.add_template_data(data)
+        record = add_template_data(data)
     except ValueError as exc:
         logger.exception("Unable to add template.")
         flash(str(exc), "warning")
@@ -132,7 +138,7 @@ def _update_template() -> ResponseReturnValue:
         "source": source,
     }
     try:
-        record = template_service.update_template_data(template_id, data)
+        record = update_template_data(template_id, data)
     except LookupError as exc:
         logger.exception("Unable to Update template.")
         flash(str(exc), "warning")
@@ -152,9 +158,9 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
     from_popup = request.form.get("from_popup") == "1"
 
     try:
-        template = template_service.get_template(template_id)
+        template = get_template(template_id)
         title = template.title
-        template_service.delete_template(template_id)
+        delete_template(template_id)
     except LookupError as exc:
         logger.exception("Unable to delete template.")
         flash(str(exc), "warning")
@@ -172,7 +178,7 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 def _edit_template(template_id: int) -> ResponseReturnValue:
     """Render the edit template popup page."""
     try:
-        template = template_service.get_template(template_id)
+        template = get_template(template_id)
     except LookupError:
         return render_template(
             "admins/template_edit.html",

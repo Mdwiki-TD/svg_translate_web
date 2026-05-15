@@ -25,7 +25,7 @@ def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     with get_session() as session:
         query = session.query(TemplateRecord).order_by(TemplateRecord.title)
         if limit:
-            query.limit(limit)
+            query = query.limit(limit)
         return query.all()
 
 

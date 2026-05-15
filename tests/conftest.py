@@ -1,14 +1,16 @@
-#
+"""Configuration and fixtures for pytest"""
+
 import os
 import secrets
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 from unittest.mock import MagicMock
 
 import pytest
 from cryptography.fernet import Fernet
-from flask import Flask
+from flask.app import Flask
+from flask.testing import FlaskClient
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError
@@ -29,7 +31,60 @@ _CopySVGTranslation_PATH = os.getenv(
 if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
     sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
+# Import after environment setup
+from src.main_app import create_app  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
+from src.main_app.config import DbConfig, TestingConfig  # noqa: E402
+from src.main_app.db.engine_sqlite import DatabaseSqlLite  # noqa: E402
+from src.main_app.db.sql_schema_ensure_tables import ensure_all_tables  # noqa: E402
+from src.main_app.db.sql_schema_tables import sql_tables_sqlite3  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def mock_sqlite3_db(tmp_path):
+    db_path = str(tmp_path / "test.sqlite3")
+    db = DatabaseSqlLite(db_path=db_path)
+    ensure_all_tables(sql_tables_sqlite3, db)
+    yield db
+    db.close()
+
+
+@pytest.fixture(autouse=True)
+def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
+    def _mock(_db_class, _db):
+        database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
+        try:
+            store = _db_class(database_data, db=mock_sqlite3_db)
+        except Exception as exc:
+            raise RuntimeError("Unable to initialize charts store") from exc
+        return store
+
+    # Clear module-level store caches so each test gets a fresh DB connection
+    import src.main_app.db.services.admin_service as _ads
+    import src.main_app.db.services.jobs_service as _js
+    import src.main_app.db.services.owid_charts_service as _os
+    import src.main_app.db.services.settings_service as _ss
+    import src.main_app.db.services.template_need_update_service as _tns
+    import src.main_app.db.services.template_service as _ts
+    import src.main_app.db.services.user_token_service as _uts
+
+    _js._JOBS_STORE = None
+    _ts._TEMPLATE_STORE = None
+    _ss._SETTINGS_STORE = None
+    _os._OWID_CHARTS_STORE = None
+    _ads._ADMINS_STORE = None
+    _tns._TEMPLATE_UPDATE_STORE = None
+    _uts._db = None
+
+    monkeypatch.setattr("src.main_app.db.services.check_db.get_main_db", mock_sqlite3_db)
+    monkeypatch.setattr("src.main_app.db.services.user_token_service.get_db", mock_sqlite3_db)
+
+    monkeypatch.setattr("src.main_app.db.services.admin_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.jobs_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.owid_charts_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.template_need_update_service.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.template_service.initialize_db", _mock)
 
 
 @pytest.fixture(autouse=True)
@@ -41,8 +96,16 @@ def disable_network(mocker):
 
 
 @pytest.fixture
-def mock_site():
-    return MagicMock()
+def app() -> Generator[Flask, Any]:
+    """Create and configure a test Flask application.
+
+    Yields:
+        Flask application configured for testing.
+    """
+    app = create_app(TestingConfig)
+
+    with app.app_context():
+        yield app
 
 
 @pytest.fixture
@@ -50,6 +113,19 @@ def app_mock():
     app = Flask(__name__)
     app.secret_key = "test"
     return app
+
+
+@pytest.fixture
+def client(app: Flask) -> FlaskClient:
+    """Create a test client for the app.
+
+    Args:
+        app: The Flask application fixture.
+
+    Returns:
+        Test client for making HTTP requests.
+    """
+    return app.test_client()
 
 
 @pytest.fixture

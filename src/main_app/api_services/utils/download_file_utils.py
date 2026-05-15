@@ -54,7 +54,7 @@ def download_one_file(
         return data
 
     if not session:
-        session = create_commons_session(settings.oauth.user_agent)
+        session = create_commons_session(settings.user_agent)
 
     # Use the core download function with shorter timeout
     try:

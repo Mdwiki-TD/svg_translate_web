@@ -38,7 +38,7 @@ class TestJobExceptionHandler:
 
         with (
             patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
+            patch("src.main_app.jobs_workers.base_worker.update_job_status") as mock_update,
         ):
             result = failing_func()
 
@@ -55,7 +55,7 @@ class TestJobExceptionHandler:
 
         with (
             patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status"),
+            patch("src.main_app.jobs_workers.base_worker.update_job_status"),
         ):
             failing_func()
 
@@ -88,7 +88,7 @@ class TestJobExceptionHandler:
 
         with (
             patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
+            patch("src.main_app.jobs_workers.base_worker.update_job_status") as mock_update,
         ):
             # First save fails with a generic exception
             mock_save.side_effect = Exception("Database connection failed")
@@ -110,7 +110,7 @@ class TestJobExceptionHandler:
 
         with (
             patch("src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name") as mock_save,
-            patch("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status") as mock_update,
+            patch("src.main_app.jobs_workers.base_worker.update_job_status") as mock_update,
         ):
             # Save fails with generic exception
             mock_save.side_effect = Exception("DB error")
@@ -167,7 +167,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status",
+        "src.main_app.jobs_workers.base_worker.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(

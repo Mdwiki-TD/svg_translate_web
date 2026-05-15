@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import threading
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers.crop_main_files.process_new import (
     CropMainFilesProcessor,
     FileProcessingInfo,
@@ -27,7 +25,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.jobs_service.update_job_status",
+        "src.main_app.jobs_workers.crop_main_files.process_new.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(
@@ -35,14 +33,14 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.jobs_service.is_job_cancelled",
+        "src.main_app.jobs_workers.crop_main_files.process_new.is_job_cancelled",
         mock_jobs_service,
     )
 
-    # Mock template_service
+    # Mock list_templates
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.template_service.list_templates",
+        "src.main_app.jobs_workers.crop_main_files.process_new.list_templates",
         mock_list_templates,
     )
 
@@ -124,7 +122,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
-    mock_settings.oauth.user_agent = "TestBot/1.0"
+    mock_settings.user_agent = "TestBot/1.0"
     mock_settings.dynamic = {}
     mock_settings.download.dev_limit = 0
     monkeypatch.setattr(

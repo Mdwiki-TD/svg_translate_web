@@ -3,24 +3,19 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.db_Jobs import JobRecord, JobsDB
+from src.main_app.db.db_Jobs import JobsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import JobRecord
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_Jobs.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
 def jobs_db(mock_db_instance):
-    return JobsDB({})
+    return JobsDB(db=mock_db_instance)
 
 
 def test_JobRecord():
@@ -31,12 +26,6 @@ def test_JobRecord():
     assert record.status == "pending"
     assert record.created_at == now
     assert record.started_at is None
-
-
-def test_ensure_table(mock_db_instance):
-    JobsDB({})
-    mock_db_instance.execute_query_safe.assert_called()
-    assert "CREATE TABLE IF NOT EXISTS jobs" in mock_db_instance.execute_query_safe.call_args[0][0]
 
 
 def test_create_success(jobs_db, mock_db_instance):
@@ -55,7 +44,7 @@ def test_create_success(jobs_db, mock_db_instance):
 
     record = jobs_db.create("type_a")
 
-    mock_db_instance.execute_query_safe.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         """\n            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)\n            """,
         ("type_a", "pending", None),
     )

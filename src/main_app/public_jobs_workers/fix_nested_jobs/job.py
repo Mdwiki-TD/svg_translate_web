@@ -17,7 +17,9 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...db.services import jobs_service
+from ...live_db.services import (
+    is_job_cancelled,
+)
 from ...shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
@@ -61,7 +63,7 @@ class FixNestedJobsProcessor:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
-        elif jobs_service.is_job_cancelled(self.task_id, job_type="fix_nested_jobs"):
+        elif is_job_cancelled(self.task_id, job_type="fix_nested_jobs"):
             cancelled = True
 
         if cancelled:
@@ -82,7 +84,7 @@ class FixNestedJobsProcessor:
         self.result["status"] = "running"
         self._save_progress()
 
-        self.session = create_commons_session(settings.oauth.user_agent)
+        self.session = create_commons_session(settings.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.filename:

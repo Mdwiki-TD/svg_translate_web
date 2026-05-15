@@ -20,7 +20,7 @@ def _build_site(access_key: str, access_secret: str) -> mwclient.Site:
     return mwclient.Site(
         settings.oauth.upload_host,
         scheme="https",
-        clients_useragent=settings.oauth.user_agent,
+        clients_useragent=settings.user_agent,
         consumer_token=settings.oauth.consumer_key,
         consumer_secret=settings.oauth.consumer_secret,
         access_token=access_key,

@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers import collect_main_files_worker, fix_nested_main_files_worker
 
 
@@ -21,10 +20,8 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_generate_result_file_name = MagicMock(return_value="result.json")
 
     # Mock for collect_main_files_worker (now accessed via base_worker)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
-    )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.list_templates", mock_list_templates)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name", mock_save_job_result
     )
@@ -34,9 +31,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     )
 
     # Mock for fix_nested_main_files_worker (now accessed via base_worker)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.template_service.list_templates", mock_list_templates
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files_worker.list_templates", mock_list_templates)
 
     return {
         "list_templates": mock_list_templates,
@@ -64,7 +59,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     # Mock add_template_data to avoid database calls
     mock_add_template_data = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template_data",
+        "src.main_app.jobs_workers.collect_main_files_worker.add_template_data",
         mock_add_template_data,
     )
 
@@ -85,7 +80,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         "src.main_app.jobs_workers.collect_main_files_worker.find_last_world_file_from_owidslidersrcs", lambda x: None
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_data",
+        "src.main_app.jobs_workers.collect_main_files_worker.update_template_data",
         mock_update_template,
     )
 

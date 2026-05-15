@@ -18,8 +18,12 @@ from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
-from ...db.models import TemplateRecord
-from ...db.services import jobs_service, template_service
+from ...live_db.models import TemplateRecord
+from ...live_db.services import (
+    is_job_cancelled,
+    list_templates,
+    update_job_status,
+)
 from ...su_services import jobs_files_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..utils.crop_main_files_utils import generate_cropped_filename
@@ -189,14 +193,14 @@ class CropMainFilesProcessor:
     def before_run(self) -> bool:
         """Set up job status, auth session, and site. Returns False on failure."""
         try:
-            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
+            update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
         except LookupError:
             logger.exception(
                 f"Job {self.job_id}: Could not update status to running - job record might have been deleted."
             )
             return False
 
-        self.session = create_commons_session(settings.oauth.user_agent)
+        self.session = create_commons_session(settings.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.site:
@@ -208,7 +212,7 @@ class CropMainFilesProcessor:
         return True
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates_with_files = [t for t in templates if t.last_world_file]
         return self._apply_limits(templates_with_files)
 
@@ -464,7 +468,7 @@ class CropMainFilesProcessor:
             self.result["cancelled_at"] = datetime.now().isoformat()
             return True
 
-        if jobs_service.is_job_cancelled(self.job_id, job_type="crop_main_files"):
+        if is_job_cancelled(self.job_id, job_type="crop_main_files"):
             logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
             self.result["status"] = "cancelled"
             self.result["cancelled_at"] = datetime.now().isoformat()

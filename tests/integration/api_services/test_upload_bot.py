@@ -7,6 +7,11 @@ import pytest
 from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 
 
+@pytest.fixture
+def mock_site() -> MagicMock:
+    return MagicMock()
+
+
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
     """Helper to match the expected return structure of UploadFile."""
     return {"success": False, "error": message, "error_details": error_details}

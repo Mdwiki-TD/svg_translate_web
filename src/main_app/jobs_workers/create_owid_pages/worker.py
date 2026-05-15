@@ -17,8 +17,8 @@ from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...data import get_slug_categories
-from ...db.models import TemplateRecord
-from ...db.services import template_service
+from ...live_db.models import TemplateRecord
+from ...live_db.services import list_templates
 from ...utils.wikitext.categories_utils import merge_categories, sort_categories
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
@@ -91,7 +91,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(templates)
 

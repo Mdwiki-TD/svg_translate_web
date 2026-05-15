@@ -5,25 +5,14 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import settings
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..db_Templates import TemplatesDB
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import TemplateRecord
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 
 _TEMPLATE_STORE: TemplatesDB | None = None
-
-
-def _ensure_last_world_year(template_data):
-    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
-        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
-
-    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
-        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
-
-    return template_data
 
 
 def get_templates_db() -> TemplatesDB:
@@ -40,16 +29,19 @@ def get_templates_db() -> TemplatesDB:
     global _TEMPLATE_STORE
 
     if _TEMPLATE_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _TEMPLATE_STORE = TemplatesDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
+        _TEMPLATE_STORE = initialize_db(TemplatesDB, get_main_db())
 
     return _TEMPLATE_STORE
+
+
+def _ensure_last_world_year(template_data):
+    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
+        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
+
+    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
+        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    return template_data
 
 
 def list_templates(limit: int | None = None) -> List[TemplateRecord]:
@@ -96,7 +88,6 @@ def update_template_data(
 
     store = get_templates_db()
     record = store.update_template_data(template_id, template_data)
-
     return record
 
 

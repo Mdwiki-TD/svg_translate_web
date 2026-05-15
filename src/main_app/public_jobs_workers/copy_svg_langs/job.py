@@ -18,7 +18,9 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...db.services import jobs_service
+from ...live_db.services import (
+    is_job_cancelled,
+)
 from ...su_services import jobs_files_service
 from .steps import (
     download_step,
@@ -77,7 +79,7 @@ class CopySvgLangsProcessor:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
-        elif jobs_service.is_job_cancelled(self.task_id, job_type="copy_svg_langs"):
+        elif is_job_cancelled(self.task_id, job_type="copy_svg_langs"):
             cancelled = True
 
         if cancelled:
@@ -94,7 +96,7 @@ class CopySvgLangsProcessor:
         self.result["status"] = "running"
         self._save_progress()
 
-        self.session = create_commons_session(settings.oauth.user_agent)
+        self.session = create_commons_session(settings.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.title:

@@ -1,26 +1,21 @@
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pymysql
 import pytest
 
-from src.main_app.db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import AdminUserRecord
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_CoordinatorsDB.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
 def coordinators_db(mock_db_instance):
-    return CoordinatorsDB({})
+    return CoordinatorsDB(db=mock_db_instance)
 
 
 def test_CoordinatorRecord():
@@ -28,12 +23,6 @@ def test_CoordinatorRecord():
     assert record.id == 1
     assert record.username == "test"
     assert record.is_active is True
-
-
-def test_ensure_table(mock_db_instance):
-    CoordinatorsDB({})
-    mock_db_instance.execute_query_safe.assert_called()
-    assert "CREATE TABLE IF NOT EXISTS admin_users" in mock_db_instance.execute_query_safe.call_args[0][0]
 
 
 def test_fetch_by_id_success(coordinators_db, mock_db_instance):
@@ -75,7 +64,7 @@ def test_seed(coordinators_db, mock_db_instance):
     coordinators_db.seed(["admin", "new_admin", "  "])
 
     # Verify that only new_admin was inserted
-    mock_db_instance.execute_query_safe.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("new_admin",)
     )
 
@@ -98,7 +87,7 @@ def test_add_success(coordinators_db, mock_db_instance):
 
     record = coordinators_db.add("newuser")
 
-    mock_db_instance.execute_query.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("newuser",)
     )
     assert record.username == "newuser"
@@ -110,8 +99,7 @@ def test_add_empty_username(coordinators_db):
 
 
 def test_add_duplicate(coordinators_db, mock_db_instance):
-    mock_db_instance.execute_query.side_effect = pymysql.err.IntegrityError(1062, "Duplicate entry")
-
+    mock_db_instance.insert_query.side_effect = pymysql.err.IntegrityError(1062, "Duplicate entry")
     with pytest.raises(ValueError, match="already exists"):
         coordinators_db.add("existing")
 
@@ -151,13 +139,9 @@ def test_seed_only_whitespace(coordinators_db, mock_db_instance):
 
 
 def test_seed_strips_whitespace(coordinators_db, mock_db_instance):
-    """Test seed strips whitespace from usernames."""
     mock_db_instance.fetch_query_safe.return_value = []
-
     coordinators_db.seed(["  user1  ", " user2 "])
-
-    # Should have inserted both with trimmed names (plus _ensure_table call = 3 total)
-    assert mock_db_instance.execute_query_safe.call_count >= 2
+    assert mock_db_instance.insert_query.call_count >= 2
 
 
 def test_row_to_record_with_all_fields(coordinators_db):
@@ -187,12 +171,9 @@ def test_row_to_record_is_active_falsy(coordinators_db):
 
 
 def test_add_with_whitespace_trimmed(coordinators_db, mock_db_instance):
-    """Test add trims whitespace from username."""
     mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "username": "trimmed", "is_active": 1}]
-
     coordinators_db.add("  trimmed  ")
-
-    call_args = mock_db_instance.execute_query.call_args[0][1]
+    call_args = mock_db_instance.insert_query.call_args[0][1]
     assert call_args[0] == "trimmed"
 
 

@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 from ..config import DbConfig
 from .engine import Database
 from .models import SettingRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -15,12 +14,8 @@ logger = logging.getLogger(__name__)
 class SettingsDB:
     """MySQL-backed application settings store."""
 
-    def __init__(self, database_data: DbConfig):
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        self.db.execute_query_safe(sql_tables.settings)
+    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
         value = self._parse_value(row["value"], row["value_type"])
@@ -43,7 +38,7 @@ class SettingsDB:
     def _is_key_exist(self, key: str) -> None | SettingRecord:
         rows = self.db.fetch_query_safe(
             "SELECT id, key, title, value_type, value FROM settings WHERE key = %s",
-            (key),
+            (key,),
         )
         if not rows:
             return None
@@ -72,7 +67,7 @@ class SettingsDB:
         if self._is_key_exist(key) is True:
             return False
         try:
-            affected_rows = self.db.execute_query_safe(
+            affected_rows = self.db.insert_query(
                 "INSERT INTO settings (key, title, value_type, value) VALUES (%s, %s, %s, %s)",
                 (key, title, value_type, value),
             )

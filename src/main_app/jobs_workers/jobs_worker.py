@@ -6,7 +6,10 @@ import logging
 import threading
 from typing import Any, Dict
 
-from ..db.services import jobs_service
+from ..live_db.services import cancel_job as cancel_job_db
+from ..live_db.services import (
+    create_job,
+)
 from .workers_list import jobs_targets, jobs_targets_public
 
 logger = logging.getLogger(__name__)
@@ -71,7 +74,7 @@ def cancel_job(task_id: int, job_type: str | None = None) -> bool:
         local_cancelled = True
 
     # 2. Persist cancellation to DB (for cross-process detection)
-    db_cancelled = jobs_service.cancel_job(task_id, job_type)
+    db_cancelled = cancel_job_db(task_id, job_type)
     if db_cancelled:
         logger.info(f"Database cancellation requested for job {task_id}")
 
@@ -93,7 +96,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     username = user.get("username") if user else None
 
     # Create job record
-    job = jobs_service.create_job(job_type, username)
+    job = create_job(job_type, username)
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
@@ -126,7 +129,7 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     username = user.get("username") if user else None
 
     # Create job record
-    job = jobs_service.create_job(job_type, username)
+    job = create_job(job_type, username)
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)

@@ -4,10 +4,9 @@ import json
 import logging
 from typing import Any
 
-from ...config import settings
 from ..db_Settings import SettingsDB
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import SettingRecord
+from .check_db import get_main_db, initialize_db
 
 logger = logging.getLogger(__name__)
 _SETTINGS_STORE: SettingsDB | None = None
@@ -20,14 +19,7 @@ def get_settings_db() -> SettingsDB:
     global _SETTINGS_STORE
 
     if _SETTINGS_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _SETTINGS_STORE = SettingsDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL settings store")
-            raise RuntimeError("Unable to initialize settings store") from exc
+        _SETTINGS_STORE = initialize_db(SettingsDB, get_main_db())
 
     return _SETTINGS_STORE
 

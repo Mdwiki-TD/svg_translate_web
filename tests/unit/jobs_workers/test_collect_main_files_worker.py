@@ -10,31 +10,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers import collect_main_files_worker
 
 
-@pytest.fixture(autouse=True)
-def mock_database(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    mock_database_cls = MagicMock()
-    mock_db_instance = MagicMock()
-    mock_db_instance.fetch_query_safe.return_value = []
-    mock_database_cls.return_value = mock_db_instance
-    monkeypatch.setattr(
-        "src.main_app.db.db_OwidCharts.Database",
-        mock_database_cls,
-    )
-    return mock_database_cls
-
-
-@pytest.fixture(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.database_data = MagicMock()
-    _mock.has_db_config = MagicMock(return_value=True)
-    monkeypatch.setattr(
-        "src.main_app.db.services.owid_charts_service.settings",
-        _mock,
-    )
-    return _mock
-
-
 @pytest.fixture
 def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
@@ -65,22 +40,20 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_list_templates = MagicMock()
     mock_add_template_data = MagicMock()
     mock_update_template_data = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.list_templates", mock_list_templates)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.list_templates", mock_list_templates
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.add_template_data",
+        "src.main_app.jobs_workers.collect_main_files_worker.add_template_data",
         mock_add_template_data,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.template_service.update_template_data",
+        "src.main_app.jobs_workers.collect_main_files_worker.update_template_data",
         mock_update_template_data,
     )
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name", mock_save_job_result
     )
@@ -99,6 +72,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_find_main_title = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.find_main_title", mock_find_main_title)
 
+    # Mock get_chart_by_slug so slugify_title can return a slug
+    mock_get_chart_by_slug = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug)
+
     return {
         "list_templates": mock_list_templates,
         "add_template_data": mock_add_template_data,
@@ -108,6 +85,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "get_category_members": mock_get_category_members,
         "get_wikitext": mock_get_wikitext,
         "find_main_title": mock_find_main_title,
+        "get_chart_by_slug": mock_get_chart_by_slug,
         "is_job_cancelled": mock_jobs_service,
     }
 
@@ -176,7 +154,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services, mo
     mock_services["find_main_title"].assert_called_once()
 
     # Should update template with main_file
-    mock_services["update_template_data"].assert_called_once_with(1, {"main_file": "test.svg"})
+    mock_services["update_template_data"].assert_called_once_with(1, {"main_file": "test.svg", "slug": "test"})
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -382,7 +360,9 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     mock_services["get_wikitext"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
 
     # Should update the new template with main file
-    mock_services["update_template_data"].assert_called_once_with(2, {"main_file": "newfile.svg"})
+    mock_services["update_template_data"].assert_called_once_with(
+        2, {"main_file": "newfile.svg", "slug": "newfromcategory"}
+    )
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -421,7 +401,7 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg"}
+        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg", "slug": "test"}
     )
 
     # Should save result with correct data
@@ -546,7 +526,9 @@ def test_collect_main_files_only_last_world_file(mock_services, monkeypatch: pyt
     collect_main_files_worker.collect_main_files_for_templates(1)
 
     # Should update template with only last_world_file
-    mock_services["update_template_data"].assert_called_once_with(1, {"last_world_file": "File:test, World, 2021.svg"})
+    mock_services["update_template_data"].assert_called_once_with(
+        1, {"last_world_file": "File:test, World, 2021.svg", "slug": "test"}
+    )
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]

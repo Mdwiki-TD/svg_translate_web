@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Any, Iterable, List
 
 import pymysql
 
-from ..config import DbConfig
 from .engine import Database
 from .models import AdminUserRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -16,30 +15,14 @@ logger = logging.getLogger(__name__)
 class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data=None, db: Database | None = None):
         """
         Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
 
         Parameters:
             database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the required `admin_users` table exists in the database with the expected schema.
-
-        Creates the `admin_users` table if it does not already exist with columns:
-        - `id` (INT, auto-increment primary key)
-        - `username` (VARCHAR(255), unique, not null)
-        - `is_active` (TINYINT(1), not null, default 1)
-        - `created_at` (TIMESTAMP, defaults to current timestamp)
-        - `updated_at` (TIMESTAMP, defaults to current timestamp and updates on row change)
-
-        The table uses the InnoDB engine and `utf8mb4` character set.
-        """
-        self.db.execute_query_safe(sql_tables.admin_users)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> AdminUserRecord:
         return AdminUserRecord(
@@ -90,7 +73,7 @@ class CoordinatorsDB:
         for username in clean_usernames:
             if username in existing:
                 continue
-            self.db.execute_query_safe(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
@@ -118,11 +101,11 @@ class CoordinatorsDB:
 
         try:
             # Use execute_query to allow exception to propagate
-            self.db.execute_query(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
-        except pymysql.err.IntegrityError:
+        except (pymysql.err.IntegrityError, sqlite3.IntegrityError):
             # This assumes a UNIQUE constraint on the username column
             raise ValueError(f"Coordinator '{username}' already exists") from None
 

@@ -10,8 +10,8 @@ from flask import g, redirect, request, session, url_for
 
 from ..app_routes.auth.cookie import extract_user_id
 from ..config import settings
-from ..db.models import UserTokenRecord
-from ..db.services import active_coordinators, get_user_token
+from ..live_db.models import UserTokenRecord
+from ..live_db.services import active_coordinators, get_user_token
 
 F = TypeVar("F", bound=Callable[..., Any])
 

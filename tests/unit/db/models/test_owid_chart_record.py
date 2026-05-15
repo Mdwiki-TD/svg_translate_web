@@ -1,8 +1,51 @@
 from __future__ import annotations
 
-import pytest
-
 from src.main_app.db.models.owid_charts import OwidChartRecord
+
+
+class TestOwidChartRecord:
+    """Tests for OwidChartRecord dataclass."""
+
+    def test_basic_creation(self):
+        """Test creating a record with required fields."""
+        record = OwidChartRecord(
+            chart_id=1,
+            slug="test-chart",
+            title="Test Chart",
+            has_map_tab=True,
+            max_time=2024,
+            min_time=2000,
+            default_tab=None,
+            is_published=True,
+            single_year_data=False,
+            len_years=None,
+            has_timeline=False,
+        )
+        assert record.chart_id == 1
+        assert record.slug == "test-chart"
+        assert record.title == "Test Chart"
+        assert record.has_map_tab is True
+        assert record.is_published is True
+
+    def test_optional_fields_default_none(self):
+        """Test that optional fields default to None."""
+        record = OwidChartRecord(
+            chart_id=1,
+            slug="test",
+            title="Test",
+            has_map_tab=False,
+            max_time=None,
+            min_time=None,
+            default_tab=None,
+            is_published=False,
+            single_year_data=False,
+            len_years=None,
+            has_timeline=False,
+        )
+        assert record.created_at is None
+        assert record.updated_at is None
+        assert record.template_id is None
+        assert record.template_title is None
 
 
 def test_owid_chart_record_initialization():

@@ -33,7 +33,7 @@ class TemplateNeedUpdateRecord(BaseDb):
                         t.id AS template_id,
                         t.title AS template_title,
                         t.slug AS slug,
-                        t.last_world_year AS last_world_year
+                        t.last_world_year AS last_world_year,
                         c.max_time AS max_time
                     from owid_charts c
                             join templates t on t.slug = c.slug

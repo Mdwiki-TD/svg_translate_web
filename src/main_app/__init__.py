@@ -20,6 +20,9 @@ from .app_routes import (
 )
 from .config import settings
 from .core.cookies import CookieHeaderClient
+from .db.engine import Database
+from .db.sql_schema_ensure_tables import ensure_all_tables
+from .db.sql_schema_tables import sql_tables
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -94,7 +97,7 @@ def update_app_config(app: Flask) -> None:
     )
 
 
-def create_app() -> Flask:
+def create_app(_conf=None) -> Flask:
     """
     Create and configure and return the Flask application used by the project.
 
@@ -125,7 +128,8 @@ def create_app() -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    # if settings.database_data.db_host or settings.database_data.db_user:
+    if settings.database_data.db_host or settings.database_data.db_user:
+        ensure_all_tables(sql_tables, Database(settings.database_data))
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:

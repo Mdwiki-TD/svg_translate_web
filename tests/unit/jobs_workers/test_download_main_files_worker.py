@@ -11,7 +11,6 @@ import pytest
 import requests
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers import download_main_files_worker
 
 
@@ -19,17 +18,15 @@ from src.main_app.jobs_workers import download_main_files_worker
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by download_main_files_worker."""
 
-    # Mock template_service
+    # Mock list_templates
     mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.download_main_files_worker.template_service.list_templates", mock_list_templates
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.list_templates", mock_list_templates)
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.jobs_service.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name",
         mock_save_job_result,
@@ -43,7 +40,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = "/tmp/main_files"
     mock_settings.oauth = MagicMock()
-    mock_settings.oauth.user_agent = "TestBot/1.0"
+    mock_settings.user_agent = "TestBot/1.0"
     mock_settings.download = MagicMock()
     mock_settings.download.dev_limit = 0  # No limit in tests
     monkeypatch.setattr("src.main_app.jobs_workers.download_main_files_worker.settings", mock_settings)
@@ -131,7 +128,7 @@ def test_download_file_from_commons_unexpected_error(tmp_path):
     mock_session.get.return_value = mock_response
 
     # Mock Path.write_bytes to raise an exception
-    with patch("pathlib.Path.write_bytes", side_effect=IOError("Disk full")):
+    with patch("pathlib.Path.write_bytes", side_effect=OSError("Disk full")):
         result = download_main_files_worker.download_file_from_commons(
             "test.svg",
             output_dir,
