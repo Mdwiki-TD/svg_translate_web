@@ -46,6 +46,8 @@ class TemplatesDB:
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
         """
         self.db = db
+        if not self.db:
+            raise ValueError("Either 'db' or 'database_data' must be provided")
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
         last_world_year_val: int | None = None

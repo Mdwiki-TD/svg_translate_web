@@ -15,7 +15,9 @@ class SettingsDB:
     """MySQL-backed application settings store."""
 
     def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
-        self.db = db or Database(database_data)
+        self.db = db
+        if not self.db:
+            raise ValueError("Either 'db' or 'database_data' must be provided") or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
         value = self._parse_value(row["value"], row["value_type"])

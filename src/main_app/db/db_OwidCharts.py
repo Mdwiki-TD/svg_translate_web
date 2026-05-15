@@ -20,6 +20,8 @@ class OwidChartsDB:
         Initialize the OwidChartsDB with the given database configuration.
         """
         self.db = db
+        if not self.db:
+            raise ValueError("Either 'db' or 'database_data' must be provided")
 
     def _row_to_record(self, row: dict[str, Any]) -> OwidChartRecord:
         return OwidChartRecord(
