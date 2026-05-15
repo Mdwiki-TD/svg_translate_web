@@ -12,10 +12,9 @@ def test_update_template_uses_request_form_type_parameter(app_mock):
     with app_mock.test_request_context(
         method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}
     ):
-        mock_service = Mock()
-        mock_service.update_template = Mock(return_value=Mock(title="Test Title"))
+        mock_update_template = Mock(return_value=Mock(title="Test Title"))
 
-        with patch("src.main_app.app_routes.admin_routes.templates.template_service", mock_service):
+        with patch("src.main_app.app_routes.admin_routes.templates.update_template_data", mock_update_template):
             with patch("src.main_app.app_routes.admin_routes.templates.flash"):
                 with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
                     with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
