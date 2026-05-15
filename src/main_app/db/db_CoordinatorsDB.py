@@ -5,7 +5,6 @@ from typing import Any, Iterable, List
 
 import pymysql
 
-from ..config import DbConfig
 from .engine import Database
 from .models import AdminUserRecord
 
@@ -15,14 +14,14 @@ logger = logging.getLogger(__name__)
 class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
-    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+    def __init__(self, database_data=None, db: Database | None = None):
         """
         Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
 
         Parameters:
             database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
         """
-        self.db = db or Database(database_data)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> AdminUserRecord:
         return AdminUserRecord(
@@ -73,7 +72,7 @@ class CoordinatorsDB:
         for username in clean_usernames:
             if username in existing:
                 continue
-            self.db.execute_query_safe(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )
@@ -101,7 +100,7 @@ class CoordinatorsDB:
 
         try:
             # Use execute_query to allow exception to propagate
-            self.db.execute_query(
+            self.db.insert_query(
                 "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)",
                 (username,),
             )

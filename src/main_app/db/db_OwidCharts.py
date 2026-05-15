@@ -123,7 +123,7 @@ class OwidChartsDB:
             raise ValueError("Title is required")
 
         try:
-            self.db.execute_query(
+            self.db.insert_query(
                 """
                 INSERT INTO owid_charts (
                     slug, title, has_map_tab, max_time, min_time,

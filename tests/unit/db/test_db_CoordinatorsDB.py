@@ -1,26 +1,21 @@
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pymysql
 import pytest
 
-from src.main_app.db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import AdminUserRecord
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_CoordinatorsDB.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
 def coordinators_db(mock_db_instance):
-    return CoordinatorsDB({})
+    return CoordinatorsDB(db=mock_db_instance)
 
 
 def test_CoordinatorRecord():
@@ -69,7 +64,7 @@ def test_seed(coordinators_db, mock_db_instance):
     coordinators_db.seed(["admin", "new_admin", "  "])
 
     # Verify that only new_admin was inserted
-    mock_db_instance.execute_query_safe.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("new_admin",)
     )
 
@@ -92,7 +87,7 @@ def test_add_success(coordinators_db, mock_db_instance):
 
     record = coordinators_db.add("newuser")
 
-    mock_db_instance.execute_query.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "INSERT INTO admin_users (username, is_active) VALUES (%s, 1)", ("newuser",)
     )
     assert record.username == "newuser"

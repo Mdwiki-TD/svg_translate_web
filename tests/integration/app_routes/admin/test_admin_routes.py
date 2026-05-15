@@ -5,9 +5,9 @@ from typing import Any
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.services import admin_service
+from src.main_app.db.services.admin_service import get_admins_db
 
 
 def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
@@ -38,17 +38,15 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     # Patch Database used by CoordinatorsDB
     monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", DatabaseSqlLite)
 
-    # Create a real CoordinatorsDB instance (using FakeDatabase internally)
-    store = CoordinatorsDB(db=DatabaseSqlLite())
-    store.add("admin")
-
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
-    monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
+    # monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
 
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
+
+    store = get_admins_db()
 
     yield app, store
 

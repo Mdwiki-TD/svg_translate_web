@@ -5,23 +5,17 @@ import pytest
 
 from src.main_app.db.db_Templates import TemplatesDB
 from src.main_app.db.models import TemplateRecord
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_Templates.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
-    mock_db_class.return_value = instance
-    return instance
+def mock_db_instance():
+    return MagicMock(spec=DatabaseSqlLite)
 
 
 @pytest.fixture
 def templates_db(mock_db_instance):
-    return TemplatesDB({})
+    return TemplatesDB(db=mock_db_instance)
 
 
 def test_TemplateRecord():
@@ -69,7 +63,7 @@ def test_add_success(templates_db, mock_db_instance):
     ]
     rec = templates_db.add_data({"title": "new", "main_file": "f.svg"})
 
-    mock_db_instance.execute_query.assert_called_with(
+    mock_db_instance.insert_query.assert_called_with(
         "\n                INSERT INTO templates (title, main_file)\n                VALUES (%s, %s)\n                ",
         ("new", "f.svg"),
     )
