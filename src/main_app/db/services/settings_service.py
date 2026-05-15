@@ -18,7 +18,9 @@ def get_settings_db() -> SettingsDB:
     """
     global _SETTINGS_STORE
 
-    _SETTINGS_STORE = initialize_db(_SETTINGS_STORE, SettingsDB)
+    if _SETTINGS_STORE is None:
+        _SETTINGS_STORE = initialize_db(SettingsDB)
+
     return _SETTINGS_STORE
 
 

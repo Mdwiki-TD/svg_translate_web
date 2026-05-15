@@ -27,8 +27,9 @@ def get_db() -> Database:
     """
     global _db
 
-    _db = initialize_db(_db, Database)
-    _db.execute_query_safe(sql_tables.user_tokens)
+    if _db is None:
+        _db = initialize_db(Database)
+
     return _db
 
 
