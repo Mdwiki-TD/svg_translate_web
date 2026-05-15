@@ -235,15 +235,29 @@ def setup_db(app):
         _db.metadata.create_all(_db.engine, tables=real_tables)
 
         # Create views manually (SQLite-compatible CREATE VIEW)
-        for table in _db.metadata.tables.values():
-            if table.info.get("is_view") and table.info.get("create_query"):
-                try:
-                    _db.session.execute(text(table.info["create_query"]))
-                    _db.session.commit()
-                except Exception:
-                    _db.session.rollback()
+        with _db.engine.connect() as conn:
+            for table in _db.metadata.tables.values():
+                if table.info.get("is_view") and table.info.get("create_query"):
+                    try:
+                        conn.execute(text(table.info["create_query"]))
+                        conn.commit()
+                    except Exception:
+                        conn.rollback()
 
         yield
 
         _db.session.remove()
-        _db.metadata.drop_all(_db.engine)
+
+        # Drop views first (SQLite requires DROP VIEW, not DROP TABLE)
+        with _db.engine.connect() as conn:
+            for table in _db.metadata.tables.values():
+                if table.info.get("is_view"):
+                    try:
+                        conn.execute(text(f"DROP VIEW IF EXISTS {table.name}"))
+                    except Exception:
+                        pass
+            conn.commit()
+
+        # Drop only real tables
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
