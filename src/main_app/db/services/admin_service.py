@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from ...config import settings
+from .check_db import initialize_db
 from ..db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
-from ..exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
 
@@ -29,16 +28,7 @@ def get_admins_db() -> CoordinatorsDB:
     """
     global _ADMINS_STORE
 
-    if _ADMINS_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _ADMINS_STORE = CoordinatorsDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL coordinator store")
-            raise RuntimeError("Unable to initialize coordinator store") from exc
-
+    _ADMINS_STORE = initialize_db(_ADMINS_STORE, CoordinatorsDB)
     return _ADMINS_STORE
 
 

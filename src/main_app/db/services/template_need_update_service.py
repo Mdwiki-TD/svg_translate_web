@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import DbConfig, settings
+from .check_db import initialize_db
+
+from ...config import DbConfig
 from .. import Database
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import TemplateNeedUpdateRecord
 from ..sql_schema_tables import sql_tables
 
@@ -73,16 +74,7 @@ def get_templates_need_update_db() -> TemplatesNeedUpdateDB:
     """
     global _TEMPLATE_UPDATE_STORE
 
-    if _TEMPLATE_UPDATE_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _TEMPLATE_UPDATE_STORE = TemplatesNeedUpdateDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
-
+    _TEMPLATE_UPDATE_STORE = initialize_db(_TEMPLATE_UPDATE_STORE, TemplatesNeedUpdateDB)
     return _TEMPLATE_UPDATE_STORE
 
 
