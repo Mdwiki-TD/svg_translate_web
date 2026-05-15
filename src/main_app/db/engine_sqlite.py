@@ -26,7 +26,11 @@ class DatabaseSqlLite:
         db_path: str = ":memory:",
     ):
         self._lock = threading.RLock()
-        self.connection = sqlite3.connect(db_path, check_same_thread=False)
+        self.connection = None
+        self.db_path = db_path
+
+    def _init_connection(self):
+        self.connection = sqlite3.connect(self.db_path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row  # as DictCursor
         self.connection.isolation_level = None  # autocommit mode
 
@@ -69,6 +73,8 @@ class DatabaseSqlLite:
     # ------------------------------------------------------------------
     def execute_query(self, sql_query: str, params: Any = None, **kwargs):
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -78,6 +84,8 @@ class DatabaseSqlLite:
 
     def fetch_query(self, sql_query: str, params: Any = None, **kwargs) -> list[dict]:
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -91,6 +99,8 @@ class DatabaseSqlLite:
     ) -> int:
         """Execute an INSERT and return the lastrowid."""
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -107,6 +117,8 @@ class DatabaseSqlLite:
         if not params_list:
             return 0
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             total = 0

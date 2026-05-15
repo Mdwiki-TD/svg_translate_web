@@ -52,13 +52,13 @@ def mock_sqlite3_db(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
+def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
-        store = _db_class(database_data, DatabaseSqlLite())
+        store = _db_class(database_data, db=mock_sqlite3_db)
         return store
 
-    # monkeypatch.setattr("src.main_app.db.services.check_db.initialize_db", _mock)
+    monkeypatch.setattr("src.main_app.db.services.check_db.get_main_db", mock_sqlite3_db)
     monkeypatch.setattr("src.main_app.db.services.admin_service.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.jobs_service.initialize_db", _mock)
     monkeypatch.setattr("src.main_app.db.services.owid_charts_service.initialize_db", _mock)

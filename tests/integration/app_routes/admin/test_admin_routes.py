@@ -5,7 +5,6 @@ from typing import Any
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.services import admin_service
 from src.main_app.db.services.admin_service import get_admins_db
 
@@ -33,11 +32,6 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     Returns:
         (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the CoordinatorsDB instance used by tests.
     """
-    monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
-
-    # Patch Database used by CoordinatorsDB
-    monkeypatch.setattr("src.main_app.db.db_CoordinatorsDB.Database", DatabaseSqlLite)
-
     # Inject this store into admin_service
     # We patch get_admins_db to return our store instance
     # monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)

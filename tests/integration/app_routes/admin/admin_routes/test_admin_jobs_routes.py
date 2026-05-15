@@ -5,21 +5,24 @@ from __future__ import annotations
 import json
 from html import unescape
 from types import SimpleNamespace
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
-from src.main_app.db.db_Jobs import JobsDB
-from src.main_app.db.engine_sqlite import DatabaseSqlLite
-from src.main_app.db.services import jobs_service
+from src.main_app.db.services.jobs_service import get_jobs_db
+
+
+@pytest.fixture
+def jobs_db():
+    store = get_jobs_db()
+    return store
 
 
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client paired with a fake jobs store."""
+    """Return a configured Flask test client paired with a fake jobs jobs_db."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     admin_user = SimpleNamespace(username="admin")
@@ -36,60 +39,43 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
-    fake_store = JobsDB(db=DatabaseSqlLite())
-
-    def fake_jobs_factory(_db_data: dict[str, Any]):
-        return fake_store
-
-    monkeypatch.setattr("src.main_app.db.services.jobs_service.JobsDB", fake_jobs_factory)
-    monkeypatch.setattr("src.main_app.db.db_Jobs.Database", DatabaseSqlLite())
-
-    jobs_service._JOBS_STORE = fake_store
-
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
     client = app.test_client()
 
-    try:
-        yield client, fake_store
-    finally:
-        jobs_service._JOBS_STORE = None
-        # fake_store.reset()
+    yield client
 
 
-def test_jobs_list_page_displays_jobs(admin_jobs_client):
+def test_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the jobs list page displays jobs."""
-    client, store = admin_jobs_client
 
     # Create some test jobs
-    store.create("collect_main_files")
-    store.create("collect_main_files")
+    jobs_db.create("collect_main_files")
+    jobs_db.create("collect_main_files")
 
-    response = client.get("/admin/collect_main_files/list")
+    response = admin_jobs_client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Collect Templates data Jobs" in page
 
 
-def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
+def test_jobs_list_page_shows_no_jobs_message(admin_jobs_client, jobs_db):
     """Test that the jobs list page shows a message when there are no jobs."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/collect_main_files/list")
+    response = admin_jobs_client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Collect Templates data Jobs" in page
 
 
-def test_job_detail_page_displays_job_info(admin_jobs_client):
+def test_job_detail_page_displays_job_info(admin_jobs_client, jobs_db):
     """Test that the job detail page displays job information."""
-    client, store = admin_jobs_client
 
-    job = store.create("collect_main_files")
-    store.update_status(job.id, "completed", job_type="collect_main_files")
+    job = jobs_db.create("collect_main_files")
+    jobs_db.update_status(job.id, "completed", job_type="collect_main_files")
 
-    response = client.get(f"/admin/collect_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Collect Templates data Job #{job.id}" in page
@@ -98,9 +84,8 @@ def test_job_detail_page_displays_job_info(admin_jobs_client):
 
 def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     """Test that the job detail page displays result data from JSON file."""
-    client, store = admin_jobs_client
 
-    job = store.create("collect_main_files")
+    job = jobs_db.create("collect_main_files")
 
     # Create a fake result file
     result_data = {
@@ -123,9 +108,9 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file), job_type="collect_main_files")
+    jobs_db.update_status(job.id, "completed", str(result_file), job_type="collect_main_files")
 
-    response = client.get(f"/admin/collect_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/collect_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -134,11 +119,10 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     assert "Template:Test2" in page
 
 
-def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
+def test_job_detail_page_handles_nonexistent_job(admin_jobs_client, jobs_db):
     """Test that the job detail page handles nonexistent job gracefully."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/collect_main_files/999", follow_redirects=True)
+    response = admin_jobs_client.get("/admin/collect_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -148,14 +132,13 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start collect templates data job route works."""
-    client, store = admin_jobs_client
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
     # Mock the job creation
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/collect_main_files/start", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -164,27 +147,25 @@ def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admi
     mock_load_auth.assert_called_once()
 
 
-def test_jobs_page_has_collect_button(admin_jobs_client):
+def test_jobs_page_has_collect_button(admin_jobs_client, jobs_db):
     """Test that the jobs page has a collect templates data button."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/collect_main_files/list")
+    response = admin_jobs_client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert 'action="/admin/collect_main_files/start"' in page
     assert 'type="submit"' in page
 
 
-def test_jobs_list_filters_by_job_type(admin_jobs_client):
+def test_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the jobs list only shows collect_main_files jobs."""
-    client, store = admin_jobs_client
 
     # Create jobs of different types
-    store.create("collect_main_files")
-    store.create("collect_main_files")
-    store.create("other_job_type")
+    jobs_db.create("collect_main_files")
+    jobs_db.create("collect_main_files")
+    jobs_db.create("other_job_type")
 
-    response = client.get("/admin/collect_main_files/list")
+    response = admin_jobs_client.get("/admin/collect_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
 
@@ -193,38 +174,35 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client):
     assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
-def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client):
+def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs list page displays jobs."""
-    client, store = admin_jobs_client
 
     # Create some test jobs
-    store.create("fix_nested_main_files")
-    store.create("fix_nested_main_files")
+    jobs_db.create("fix_nested_main_files")
+    jobs_db.create("fix_nested_main_files")
 
-    response = client.get("/admin/fix_nested_main_files/list")
+    response = admin_jobs_client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Fix Nested Main Files Jobs" in page
 
 
-def test_fix_nested_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
+def test_fix_nested_jobs_list_page_shows_no_jobs_message(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs list page shows a message when there are no jobs."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/fix_nested_main_files/list")
+    response = admin_jobs_client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Fix Nested Main Files Jobs" in page
 
 
-def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
+def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client, jobs_db):
     """Test that the fix nested job detail page displays job information."""
-    client, store = admin_jobs_client
 
-    job = store.create("fix_nested_main_files")
-    store.update_status(job.id, "completed", job_type="fix_nested_main_files")
+    job = jobs_db.create("fix_nested_main_files")
+    jobs_db.update_status(job.id, "completed", job_type="fix_nested_main_files")
 
-    response = client.get(f"/admin/fix_nested_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/fix_nested_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Fix Nested Main Files Job #{job.id}" in page
@@ -233,9 +211,8 @@ def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client):
 
 def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     """Test that the fix nested job detail page displays result data from JSON file."""
-    client, store = admin_jobs_client
 
-    job = store.create("fix_nested_main_files")
+    job = jobs_db.create("fix_nested_main_files")
 
     # Create a fake result file
     result_data = {
@@ -262,9 +239,9 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file), job_type="fix_nested_main_files")
+    jobs_db.update_status(job.id, "completed", str(result_file), job_type="fix_nested_main_files")
 
-    response = client.get(f"/admin/fix_nested_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/fix_nested_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -274,11 +251,10 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, tmp_pat
     assert "Template:Test3" in page
 
 
-def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
+def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client, jobs_db):
     """Test that the fix nested job detail page handles nonexistent job gracefully."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/fix_nested_main_files/999", follow_redirects=True)
+    response = admin_jobs_client.get("/admin/fix_nested_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -288,13 +264,12 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start fix nested main files job route works."""
-    client, store = admin_jobs_client
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/fix_nested_main_files/start", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/fix_nested_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -303,28 +278,26 @@ def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, a
     mock_load_auth.assert_called_once()
 
 
-def test_fix_nested_jobs_page_has_start_button(admin_jobs_client):
+def test_fix_nested_jobs_page_has_start_button(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs page has a start button."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/fix_nested_main_files/list")
+    response = admin_jobs_client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert 'type="submit"' in page
     assert 'action="/admin/fix_nested_main_files/start"' in page
 
 
-def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
+def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs list only shows fix_nested_main_files jobs."""
-    client, store = admin_jobs_client
 
     # Create jobs of different types
-    store.create("fix_nested_main_files")
-    store.create("fix_nested_main_files")
-    store.create("collect_main_files")
-    store.create("other_job_type")
+    jobs_db.create("fix_nested_main_files")
+    jobs_db.create("fix_nested_main_files")
+    jobs_db.create("collect_main_files")
+    jobs_db.create("other_job_type")
 
-    response = client.get("/admin/fix_nested_main_files/list")
+    response = admin_jobs_client.get("/admin/fix_nested_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
 
@@ -333,67 +306,63 @@ def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client):
     assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
-def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client):
+def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client, jobs_db):
     """Test that accessing a non-fix_nested job via fix_nested route redirects."""
-    client, store = admin_jobs_client
 
     # Create a collect_main_files job
-    job = store.create("collect_main_files")
+    job = jobs_db.create("collect_main_files")
 
-    response = client.get(f"/admin/fix_nested_main_files/{job.id}", follow_redirects=True)
+    response = admin_jobs_client.get(f"/admin/fix_nested_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job id {job.id} was not found" in page.lower()
 
 
-def test_job_detail_rejects_wrong_job_type(admin_jobs_client):
+def test_job_detail_rejects_wrong_job_type(admin_jobs_client, jobs_db):
     """Test that accessing detail page of non-collect_main_files job is rejected."""
-    client, store = admin_jobs_client
 
-    job = store.create("other_job_type")
+    job = jobs_db.create("other_job_type")
 
-    response = client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
+    response = admin_jobs_client.get(f"/admin/collect_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job id {job.id} was not found" in page.lower()
 
 
-def test_delete_collect_main_files_job(admin_jobs_client):
+def test_delete_collect_main_files_job(admin_jobs_client, jobs_db):
     """Test deleting a collect_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("collect_main_files")
-    assert len(store.list()) == 1
+    job = jobs_db.create("collect_main_files")
+    assert len(jobs_db.list()) == 1
 
     # Delete the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
 
     # Verify job is deleted
-    assert len(store.list()) == 0
+    assert len(jobs_db.list()) == 0
 
 
-def test_delete_fix_nested_main_files_job(admin_jobs_client):
+def test_delete_fix_nested_main_files_job(admin_jobs_client, jobs_db):
     """Test deleting a fix_nested_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("fix_nested_main_files")
-    assert len(store.list()) == 1
+    job = jobs_db.create("fix_nested_main_files")
+    assert len(jobs_db.list()) == 1
 
     # Delete the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
 
     # Verify job is deleted
-    assert len(store.list()) == 0
+    assert len(jobs_db.list()) == 0
 
 
 def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
@@ -401,10 +370,8 @@ def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
     mock_flash = Mock()
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
 
-    client, store = admin_jobs_client
-
     # Try to delete a job that doesn't exist
-    response = client.post("/admin/collect_main_files/999/delete", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/collect_main_files/999/delete", follow_redirects=True)
     if response.status_code == 200:
         # The actual message will depend on the error handling
         mock_flash.assert_called_with("Job 999 deleted successfully.", "success")
@@ -412,75 +379,71 @@ def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
         mock_flash.assert_called_with("Failed to delete job 999", "danger")
 
 
-def test_delete_job_with_wrong_type(admin_jobs_client):
+def test_delete_job_with_wrong_type(admin_jobs_client, jobs_db):
     """Test deleting a job through the wrong job type endpoint."""
-    client, store = admin_jobs_client
 
     # Create a collect_main_files job
-    job = store.create("collect_main_files")
+    job = jobs_db.create("collect_main_files")
 
     # Try to delete it via the fix_nested endpoint
-    response = client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(f"/admin/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
 
     # The job should still exist (delete should fail)
-    remaining_jobs = store.list()
+    remaining_jobs = jobs_db.list()
     assert len(remaining_jobs) == 1
 
 
-def test_delete_multiple_jobs(admin_jobs_client):
+def test_delete_multiple_jobs(admin_jobs_client, jobs_db):
     """Test deleting multiple jobs one by one."""
-    client, store = admin_jobs_client
 
     # Create multiple jobs
-    job1 = store.create("collect_main_files")
-    job2 = store.create("collect_main_files")
-    job3 = store.create("fix_nested_main_files")
-    assert len(store.list()) == 3
+    job1 = jobs_db.create("collect_main_files")
+    job2 = jobs_db.create("collect_main_files")
+    job3 = jobs_db.create("fix_nested_main_files")
+    assert len(jobs_db.list()) == 3
 
     # Delete first collect_main_files job
-    response = client.post(f"/admin/collect_main_files/{job1.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(f"/admin/collect_main_files/{job1.id}/delete", follow_redirects=True)
     assert response.status_code == 200
-    assert len(store.list()) == 2
+    assert len(jobs_db.list()) == 2
 
     # Delete second collect_main_files job
-    response = client.post(f"/admin/collect_main_files/{job2.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(f"/admin/collect_main_files/{job2.id}/delete", follow_redirects=True)
     assert response.status_code == 200
-    assert len(store.list()) == 1
+    assert len(jobs_db.list()) == 1
 
     # Delete fix_nested_main_files job
-    response = client.post(f"/admin/fix_nested_main_files/{job3.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(f"/admin/fix_nested_main_files/{job3.id}/delete", follow_redirects=True)
     assert response.status_code == 200
-    assert len(store.list()) == 0
+    assert len(jobs_db.list()) == 0
 
 
-def test_cancel_collect_main_files_job(admin_jobs_client):
+def test_cancel_collect_main_files_job(admin_jobs_client, jobs_db):
     """Test cancelling a collect_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("collect_main_files")
-    store.update_status(job.id, "running", job_type="collect_main_files")
+    job = jobs_db.create("collect_main_files")
+    jobs_db.update_status(job.id, "running", job_type="collect_main_files")
 
     # Cancel the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
-        response = client.post(f"/admin/collect_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/collect_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} cancellation requested" in page
 
 
-def test_cancel_fix_nested_main_files_job(admin_jobs_client):
+def test_cancel_fix_nested_main_files_job(admin_jobs_client, jobs_db):
     """Test cancelling a fix_nested_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("fix_nested_main_files")
-    store.update_status(job.id, "running", job_type="fix_nested_main_files")
+    job = jobs_db.create("fix_nested_main_files")
+    jobs_db.update_status(job.id, "running", job_type="fix_nested_main_files")
 
     # Cancel the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
-        response = client.post(f"/admin/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} cancellation requested" in page
@@ -491,38 +454,35 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client):
 # ================================================================================
 
 
-def test_download_main_files_jobs_list_page_displays_jobs(admin_jobs_client):
+def test_download_main_files_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the download main files jobs list page displays jobs."""
-    client, store = admin_jobs_client
 
     # Create some test jobs
-    store.create("download_main_files")
-    store.create("download_main_files")
+    jobs_db.create("download_main_files")
+    jobs_db.create("download_main_files")
 
-    response = client.get("/admin/download_main_files/list")
+    response = admin_jobs_client.get("/admin/download_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Download Main Files Jobs" in page
 
 
-def test_download_main_files_jobs_list_page_shows_no_jobs_message(admin_jobs_client):
+def test_download_main_files_jobs_list_page_shows_no_jobs_message(admin_jobs_client, jobs_db):
     """Test that the download main files jobs list page shows a message when there are no jobs."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/download_main_files/list")
+    response = admin_jobs_client.get("/admin/download_main_files/list")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Download Main Files Jobs" in page
 
 
-def test_download_main_files_job_detail_page_displays_job_info(admin_jobs_client):
+def test_download_main_files_job_detail_page_displays_job_info(admin_jobs_client, jobs_db):
     """Test that the download main files job detail page displays job information."""
-    client, store = admin_jobs_client
 
-    job = store.create("download_main_files")
-    store.update_status(job.id, "completed", job_type="download_main_files")
+    job = jobs_db.create("download_main_files")
+    jobs_db.update_status(job.id, "completed", job_type="download_main_files")
 
-    response = client.get(f"/admin/download_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/download_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Download Main Files Job #{job.id}" in page
@@ -531,9 +491,8 @@ def test_download_main_files_job_detail_page_displays_job_info(admin_jobs_client
 
 def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client, tmp_path):
     """Test that the download main files job detail page displays result data from JSON file."""
-    client, store = admin_jobs_client
 
-    job = store.create("download_main_files")
+    job = jobs_db.create("download_main_files")
 
     # Create a fake result file
     result_data = {
@@ -567,9 +526,9 @@ def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "completed", str(result_file), job_type="download_main_files")
+    jobs_db.update_status(job.id, "completed", str(result_file), job_type="download_main_files")
 
-    response = client.get(f"/admin/download_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/download_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job Summary" in page
@@ -578,11 +537,10 @@ def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client
     assert "Template:Test2" in page
 
 
-def test_download_main_files_job_detail_page_handles_nonexistent_job(admin_jobs_client):
+def test_download_main_files_job_detail_page_handles_nonexistent_job(admin_jobs_client, jobs_db):
     """Test that the download main files job detail page handles nonexistent job gracefully."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/download_main_files/999", follow_redirects=True)
+    response = admin_jobs_client.get("/admin/download_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job id 999 was not found" in page or "not found" in page.lower()
@@ -592,13 +550,12 @@ def test_download_main_files_job_detail_page_handles_nonexistent_job(admin_jobs_
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_download_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that the start download main files job route works."""
-    client, store = admin_jobs_client
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
 
-    response = client.post("/admin/download_main_files/start", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/download_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Job 1 started" in page or "started" in page.lower()
@@ -607,28 +564,26 @@ def test_start_download_main_files_job_route(mock_load_auth, mock_start_job, adm
     mock_load_auth.assert_called_once()
 
 
-def test_download_main_files_jobs_page_has_start_button(admin_jobs_client):
+def test_download_main_files_jobs_page_has_start_button(admin_jobs_client, jobs_db):
     """Test that the download main files jobs page has a start button."""
-    client, store = admin_jobs_client
 
-    response = client.get("/admin/download_main_files/list")
+    response = admin_jobs_client.get("/admin/download_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert 'type="submit"' in page
     assert 'action="/admin/download_main_files/start"' in page
 
 
-def test_download_main_files_jobs_list_filters_by_job_type(admin_jobs_client):
+def test_download_main_files_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the download main files jobs list only shows download_main_files jobs."""
-    client, store = admin_jobs_client
 
     # Create jobs of different types
-    store.create("download_main_files")
-    store.create("download_main_files")
-    store.create("collect_main_files")
-    store.create("fix_nested_main_files")
+    jobs_db.create("download_main_files")
+    jobs_db.create("download_main_files")
+    jobs_db.create("collect_main_files")
+    jobs_db.create("fix_nested_main_files")
 
-    response = client.get("/admin/download_main_files/list")
+    response = admin_jobs_client.get("/admin/download_main_files/list")
     assert response.status_code == 200
     page = response.get_data(as_text=True)
 
@@ -637,64 +592,60 @@ def test_download_main_files_jobs_list_filters_by_job_type(admin_jobs_client):
     assert page.count("btn btn-outline-primary btn-sm") == 2
 
 
-def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client):
+def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(admin_jobs_client, jobs_db):
     """Test that accessing a non-download_main_files job via download route redirects."""
-    client, store = admin_jobs_client
 
     # Create a collect_main_files job
-    job = store.create("collect_main_files")
+    job = jobs_db.create("collect_main_files")
 
-    response = client.get(f"/admin/download_main_files/{job.id}", follow_redirects=True)
+    response = admin_jobs_client.get(f"/admin/download_main_files/{job.id}", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job id {job.id} was not found" in page.lower()
 
 
-def test_delete_download_main_files_job(admin_jobs_client):
+def test_delete_download_main_files_job(admin_jobs_client, jobs_db):
     """Test deleting a download_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("download_main_files")
-    assert len(store.list()) == 1
+    job = jobs_db.create("download_main_files")
+    assert len(jobs_db.list()) == 1
 
     # Delete the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/download_main_files/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/download_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} deleted successfully" in page
 
     # Verify job is deleted
-    assert len(store.list()) == 0
+    assert len(jobs_db.list()) == 0
 
 
-def test_cancel_download_main_files_job(admin_jobs_client):
+def test_cancel_download_main_files_job(admin_jobs_client, jobs_db):
     """Test cancelling a download_main_files job."""
-    client, store = admin_jobs_client
 
     # Create a job
-    job = store.create("download_main_files")
-    store.update_status(job.id, "running", job_type="download_main_files")
+    job = jobs_db.create("download_main_files")
+    jobs_db.update_status(job.id, "running", job_type="download_main_files")
 
     # Cancel the job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
-        response = client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Job {job.id} cancellation requested" in page
 
 
-def test_cancel_job_not_running(admin_jobs_client):
+def test_cancel_job_not_running(admin_jobs_client, jobs_db):
     """Test cancelling a job that's not running shows appropriate message."""
-    client, store = admin_jobs_client
 
-    job = store.create("download_main_files")
-    store.update_status(job.id, "completed", job_type="download_main_files")
+    job = jobs_db.create("download_main_files")
+    jobs_db.update_status(job.id, "completed", job_type="download_main_files")
 
     # Try to cancel a completed job
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "is not running or already cancelled" in page
@@ -704,7 +655,6 @@ def test_cancel_job_not_running(admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.settings")
 def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
     """Test serving a downloaded main file."""
-    client, store = admin_jobs_client
 
     # Mock the settings
     mock_settings.paths.main_files_path = "/tmp/main_files"
@@ -712,7 +662,7 @@ def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
     mock_response = Response("file_content")
     mock_send.return_value = mock_response
 
-    response = client.get("/admin/download-main-files/file/test.svg")
+    response = admin_jobs_client.get("/admin/download-main-files/file/test.svg")
     assert response.status_code == 200
 
     mock_send.assert_called_once_with("/tmp/main_files", "test.svg")
@@ -721,11 +671,10 @@ def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
 def test_download_all_main_files(mock_create_zip, admin_jobs_client):
     """Test downloading all main files as zip."""
-    client, store = admin_jobs_client
 
     mock_create_zip.return_value = ("zip_content", 200)
 
-    response = client.get("/admin/download-main-files/download-all")
+    response = admin_jobs_client.get("/admin/download-main-files/download-all")
     assert response.status_code == 200
 
     mock_create_zip.assert_called_once()
@@ -738,7 +687,7 @@ def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client):
 
     mock_create_zip.return_value = ("Please run a 'Download Main Files' job first", 404)
 
-    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    response = admin_jobs_client.get("/admin/download-main-files/download-all", follow_redirects=True)
     # Should redirect to jobs list page with flash message
     assert response.status_code == 200
 
@@ -752,18 +701,18 @@ def test_download_all_main_files_error(mock_create_zip, admin_jobs_client):
 
     mock_create_zip.return_value = ("Zip file is empty or corrupted", 500)
 
-    response = client.get("/admin/download-main-files/download-all", follow_redirects=True)
+    response = admin_jobs_client.get("/admin/download-main-files/download-all", follow_redirects=True)
     # Should redirect to jobs list page with flash message
     assert response.status_code == 200
 
     mock_create_zip.assert_called_once()
 
 
-def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client):
+def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client, jobs_db):
     """Test that requesting an invalid job type returns 404."""
     client, _ = admin_jobs_client
 
-    response = client.get("/admin/invalid_job_type/list")
+    response = admin_jobs_client.get("/admin/invalid_job_type/list")
     assert response.status_code == 404
 
 
@@ -774,7 +723,7 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     # Mock current_user to return None
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", lambda: None)
 
-    response = client.post("/admin/collect_main_files/start", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "must be logged in" in page.lower()
@@ -789,7 +738,7 @@ def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.side_effect = Exception("Database error")
 
-    response = client.post("/admin/collect_main_files/start", follow_redirects=True)
+    response = admin_jobs_client.post("/admin/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Failed to start job" in page or "error" in page.lower()
@@ -797,9 +746,8 @@ def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_
 
 def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
     """Test that job deletion handles exceptions gracefully."""
-    client, store = admin_jobs_client
 
-    job = store.create("collect_main_files")
+    job = jobs_db.create("collect_main_files")
 
     # Mock delete to raise an exception
     def mock_delete_job(job_id, job_type):
@@ -807,7 +755,7 @@ def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
 
     monkeypatch.setattr("src.main_app.db.services.jobs_service.delete_job", mock_delete_job)
 
-    response = client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "Failed to delete job" in page
@@ -815,9 +763,8 @@ def test_delete_job_handles_exception(admin_jobs_client, monkeypatch):
 
 def test_download_main_files_job_with_partial_results(admin_jobs_client, tmp_path):
     """Test displaying partial results for a running job."""
-    client, store = admin_jobs_client
 
-    job = store.create("download_main_files")
+    job = jobs_db.create("download_main_files")
 
     # Create a result file with partial results
     result_data = {
@@ -845,37 +792,35 @@ def test_download_main_files_job_with_partial_results(admin_jobs_client, tmp_pat
     with open(result_file, "w") as f:
         json.dump(result_data, f)
 
-    store.update_status(job.id, "running", str(result_file), job_type="download_main_files")
+    jobs_db.update_status(job.id, "running", str(result_file), job_type="download_main_files")
 
-    response = client.get(f"/admin/download_main_files/{job.id}")
+    response = admin_jobs_client.get(f"/admin/download_main_files/{job.id}")
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "5" in page  # downloaded count
     assert "running" in page.lower()
 
 
-def test_cancel_already_cancelled_job(admin_jobs_client):
+def test_cancel_already_cancelled_job(admin_jobs_client, jobs_db):
     """Test cancelling a job that's already been cancelled."""
-    client, store = admin_jobs_client
 
-    job = store.create("download_main_files")
-    store.update_status(job.id, "cancelled", job_type="download_main_files")
+    job = jobs_db.create("download_main_files")
+    jobs_db.update_status(job.id, "cancelled", job_type="download_main_files")
 
     # Try to cancel again
     with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
-        response = client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(f"/admin/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert "not running or already cancelled" in page.lower()
 
 
-def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client):
+def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client, jobs_db):
     """Test that path traversal is handled by send_from_directory."""
-    client, store = admin_jobs_client
 
     # send_from_directory should handle path traversal attempts
     with patch("src.main_app.app_routes.admin_routes.jobs.send_from_directory") as mock_send:
         mock_send.return_value = Response("safe response")
-        _response = client.get("/admin/download-main-files/file/../../../etc/passwd")
+        _response = admin_jobs_client.get("/admin/download-main-files/file/../../../etc/passwd")
         # send_from_directory will be called with the attempted path
         mock_send.assert_called_once()
