@@ -8,12 +8,12 @@ from src.main_app.app_routes.admin_routes.templates import (
 )
 
 
-@patch("src.main_app.app_routes.admin_routes.templates.template_service")
+@patch("src.main_app.app_routes.admin_routes.templates.add_template_data")
 @patch("src.main_app.app_routes.admin_routes.templates.flash")
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service, app_mock):
-    mock_service.add_template_data.return_value = MagicMock(title="NewT")
+    mock_service.return_value = MagicMock(title="NewT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -21,7 +21,7 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
         resp = _add_template()
         assert resp == "redirected"
 
-        mock_service.add_template_data.assert_called_with(
+        mock_service.assert_called_with(
             {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""}
         )
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
@@ -40,12 +40,12 @@ def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, app_moc
         mock_flash.assert_called_with("Title is required to add a template.", "danger")
 
 
-@patch("src.main_app.app_routes.admin_routes.templates.template_service")
+@patch("src.main_app.app_routes.admin_routes.templates.update_template_data")
 @patch("src.main_app.app_routes.admin_routes.templates.flash")
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
 def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_service, app_mock):
-    mock_service.update_template_data.return_value = MagicMock(title="UpdT")
+    mock_service.return_value = MagicMock(title="UpdT")
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -53,7 +53,7 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _update_template()
         assert resp == "redirected"
 
-        mock_service.update_template_data.assert_called_with(
+        mock_service.assert_called_with(
             1, {"title": "UpdT", "main_file": "f2.svg", "last_world_file": "", "source": ""}
         )
         mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
@@ -72,13 +72,14 @@ def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, app_moc
         mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
 
 
-@patch("src.main_app.app_routes.admin_routes.templates.template_service")
+@patch("src.main_app.app_routes.admin_routes.templates.get_template")
+@patch("src.main_app.app_routes.admin_routes.templates.delete_template")
 @patch("src.main_app.app_routes.admin_routes.templates.flash")
 @patch("src.main_app.app_routes.admin_routes.templates.redirect")
 @patch("src.main_app.app_routes.admin_routes.templates.url_for")
-def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_service, app_mock):
-    mock_service.get_template.return_value = MagicMock(title="DelT")
-    mock_service.delete_template.return_value = True
+def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_delete_template, mock_get_template, app_mock):
+    mock_get_template.return_value = MagicMock(title="DelT")
+    mock_delete_template.return_value = True
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
@@ -86,8 +87,8 @@ def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_servi
         resp = _delete_template(1)
         assert resp == "redirected"
 
-        mock_service.get_template.assert_called_with(1)
-        mock_service.delete_template.assert_called_with(1)
+        mock_get_template.assert_called_with(1)
+        mock_delete_template.assert_called_with(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 
 
@@ -128,7 +129,7 @@ def test_create_json_file_success(app_mock, monkeypatch):
         ),
     ]
     monkeypatch.setattr(
-        "src.main_app.app_routes.admin_routes.templates.template_service.list_templates", lambda: templates
+        "src.main_app.app_routes.admin_routes.templates.list_templates", lambda: templates
     )
 
     with app_mock.app_context():
@@ -142,7 +143,7 @@ def test_create_json_file_success(app_mock, monkeypatch):
 
 def test_create_json_file_no_templates(app_mock, monkeypatch):
     """Test create_json_file returns 404 when no templates."""
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.template_service.list_templates", lambda: [])
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.list_templates", lambda: [])
 
     from src.main_app.app_routes.admin_routes.templates import create_json_file
 
@@ -158,7 +159,7 @@ def test_create_json_file_exception(app_mock, monkeypatch):
     def raise_error():
         raise RuntimeError("Database error")
 
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.template_service.list_templates", raise_error)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.templates.list_templates", raise_error)
 
     from src.main_app.app_routes.admin_routes.templates import create_json_file
 
@@ -183,7 +184,7 @@ def test_edit_template_found(app_mock, monkeypatch):
         source=None,
     )
     monkeypatch.setattr(
-        "src.main_app.app_routes.admin_routes.templates.template_service.get_template", lambda id: template
+        "src.main_app.app_routes.admin_routes.templates.get_template", lambda id: template
     )
 
     with app_mock.test_request_context():
@@ -202,7 +203,7 @@ def test_edit_template_not_found(app_mock, monkeypatch):
     from src.main_app.app_routes.admin_routes.templates import _edit_template
 
     monkeypatch.setattr(
-        "src.main_app.app_routes.admin_routes.templates.template_service.get_template",
+        "src.main_app.app_routes.admin_routes.templates.get_template",
         lambda id: (_ for _ in ()).throw(LookupError("Not found")),
     )
 
