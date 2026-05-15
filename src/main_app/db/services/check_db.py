@@ -16,8 +16,7 @@ _MAIN_DB: Database | None = None
 
 
 def get_main_db() -> Database:
-    """
-    """
+    """ """
     global _MAIN_DB
 
     if _MAIN_DB is None:

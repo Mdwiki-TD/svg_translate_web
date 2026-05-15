@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.db_Settings import SettingsDB
-from src.main_app.db.models import SettingRecord
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import SettingRecord
 
 
 @pytest.fixture
@@ -166,7 +166,9 @@ def test_get_raw_all(mock_db_instance, settings_db):
 def test_get_by_key_found(mock_db_instance, settings_db):
     """Test get_by_key returns value when key exists."""
 
-    mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value": "test_value", "value_type": "string"}]
+    mock_db_instance.fetch_query_safe.return_value = [
+        {"id": 1, "key": "key", "value": "test_value", "value_type": "string"}
+    ]
 
     result = settings_db.get_by_key("test_key")
 
@@ -255,7 +257,9 @@ class TestUpdate:
     def test_update_setting_success(self, mock_db_instance, settings_db):
         """Test update_setting returns True on success."""
 
-        mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "string", "value": "value"}]
+        mock_db_instance.fetch_query_safe.return_value = [
+            {"id": 1, "key": "key", "value_type": "string", "value": "value"}
+        ]
 
         result = settings_db.update("existing_key", "new_value")
 
@@ -277,7 +281,9 @@ class TestUpdate:
     def test_update_setting_failure(self, mock_db_instance, settings_db):
         """Test update_setting returns False on failure."""
 
-        mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "string", "value": "value"}]
+        mock_db_instance.fetch_query_safe.return_value = [
+            {"id": 1, "key": "key", "value_type": "string", "value": "value"}
+        ]
 
         # Set the side_effect for the update operation after init
         mock_db_instance.execute_query_safe.side_effect = Exception("DB Error")
@@ -288,7 +294,9 @@ class TestUpdate:
     def test_update_setting_preserves_type(self, mock_db_instance, settings_db):
         """Test update_setting uses existing value_type from database."""
 
-        mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "integer", "value": "0"}]
+        mock_db_instance.fetch_query_safe.return_value = [
+            {"id": 1, "key": "key", "value_type": "integer", "value": "0"}
+        ]
 
         settings_db.update("int_key", "100")
 
@@ -318,7 +326,9 @@ class TestUpdate:
     def test_update_setting_without_value_type_queries_db(self, mock_db_instance, settings_db):
         """Test update_setting performs SELECT when value_type is not provided."""
 
-        mock_db_instance.fetch_query_safe.return_value = [{"id": 1, "key": "key", "value_type": "integer", "value": "0"}]
+        mock_db_instance.fetch_query_safe.return_value = [
+            {"id": 1, "key": "key", "value_type": "integer", "value": "0"}
+        ]
 
         result = settings_db.update(key="key", value="42")
 

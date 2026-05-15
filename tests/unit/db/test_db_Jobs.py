@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.db_Jobs import JobsDB
-from src.main_app.db.models import JobRecord
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import JobRecord
 
 
 @pytest.fixture

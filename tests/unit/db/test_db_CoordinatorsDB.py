@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.models import AdminUserRecord
-from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 
 
 @pytest.fixture
