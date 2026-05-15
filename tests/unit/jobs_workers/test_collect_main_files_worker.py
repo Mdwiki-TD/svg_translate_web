@@ -74,9 +74,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock get_chart_by_slug so slugify_title can return a slug
     mock_get_chart_by_slug = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug)
 
     return {
         "list_templates": mock_list_templates,

@@ -125,6 +125,7 @@ class TestOwidChartsDB:
 
     def test_add_duplicate_slug_raises_value_error(self, mock_db_instance, owid_chart_db):
         import pymysql
+
         mock_db_instance.insert_query.side_effect = pymysql.err.IntegrityError()
         with pytest.raises(ValueError, match="Chart with slug 'existing' already exists"):
             owid_chart_db.add({"slug": "existing", "title": "Existing Chart"})
