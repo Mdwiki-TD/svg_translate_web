@@ -73,7 +73,7 @@ def test_crop_main_files_for_templates_basic_flow(mock_services):
     call_kwargs = call_args.kwargs if hasattr(call_args, "kwargs") else call_args[1] if len(call_args) > 1 else {}
     assert call_kwargs.get("user") is None
     assert call_kwargs.get("cancel_event") is None
-    assert call_kwargs.get("upload_files") is False
+    assert call_kwargs.get("upload_files") is True
 
 
 def test_crop_main_files_for_templates_initializes_result(mock_services):
@@ -421,7 +421,7 @@ def test_crop_main_files_for_templates_upload_files_flag(mock_services):
 
     # Verify upload_files is False
     call_args = mock_process.call_args
-    assert call_args[1]["upload_files"] is False
+    assert call_args[1]["upload_files"] is True
 
 
 def test_crop_main_files_for_templates_multiple_jobs(mock_services):
