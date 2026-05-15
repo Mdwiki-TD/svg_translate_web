@@ -1,9 +1,9 @@
 # SQLAlchemy to Flask-SQLAlchemy Migration Plan
 
-> **Project:** svg_translate_web  
-> **Date:** May 2026  
-> **Target:** Migrate from plain SQLAlchemy to Flask-SQLAlchemy  
-> **Database:** MySQL (PyMySQL driver)  
+> **Project:** svg_translate_web
+> **Date:** May 2026
+> **Target:** Migrate from plain SQLAlchemy to Flask-SQLAlchemy
+> **Database:** MySQL (PyMySQL driver)
 > **Risk Level:** Medium — existing app factory pattern reduces risk significantly
 
 ---
@@ -26,7 +26,6 @@
 14. [Final Deliverables](#14-final-deliverables)
 
 ---
-
 
 ## 1. Current Architecture Assessment
 
@@ -60,17 +59,17 @@ src/main_app/
 
 ### 1.2 Current Patterns in Use
 
-| Pattern | Implementation | Notes |
-|---------|---------------|-------|
-| Declarative Base | `BaseDb(DeclarativeBase)` | Custom base with `to_dict()` helper |
-| Engine Creation | `build_engine(db_url)` | pool_pre_ping, pool_size=5, max_overflow=10 |
-| Session Factory | Module-level `_SessionFactory` singleton | `sessionmaker(bind=engine, expire_on_commit=False)` |
-| Session Access | `get_session()` function | Used as context manager: `with get_session() as session:` |
-| DB Init | `init_db(db_url, create_tables=False)` | Called once in `create_app()` |
-| Models | Classic `Column()` style | No `Mapped[]` type annotations |
-| Views | `info={"is_view": True}` metadata | Auto-created via SQLAlchemy event listener |
-| Relationships | One `viewonly` relationship | `OwidChartRecord._template_info` |
-| Services | Function-based, each creates own session | No request-scoped session |
+| Pattern          | Implementation                           | Notes                                                     |
+| ---------------- | ---------------------------------------- | --------------------------------------------------------- |
+| Declarative Base | `BaseDb(DeclarativeBase)`                | Custom base with `to_dict()` helper                       |
+| Engine Creation  | `build_engine(db_url)`                   | pool_pre_ping, pool_size=5, max_overflow=10               |
+| Session Factory  | Module-level `_SessionFactory` singleton | `sessionmaker(bind=engine, expire_on_commit=False)`       |
+| Session Access   | `get_session()` function                 | Used as context manager: `with get_session() as session:` |
+| DB Init          | `init_db(db_url, create_tables=False)`   | Called once in `create_app()`                             |
+| Models           | Classic `Column()` style                 | No `Mapped[]` type annotations                            |
+| Views            | `info={"is_view": True}` metadata        | Auto-created via SQLAlchemy event listener                |
+| Relationships    | One `viewonly` relationship              | `OwidChartRecord._template_info`                          |
+| Services         | Function-based, each creates own session | No request-scoped session                                 |
 
 ### 1.3 Anti-Patterns Identified
 
@@ -96,15 +95,14 @@ src/main_app/
 
 ---
 
-
 ## 2. Migration Strategy
 
 ### 2.1 Incremental vs Full Migration
 
-| Approach | Pros | Cons | Recommendation |
-|----------|------|------|----------------|
-| **Full (Big Bang)** | Clean codebase, no dual-mode code | High risk, long freeze | ❌ Not recommended |
-| **Incremental (Phased)** | Low risk, rollback possible, testable | Temporary dual code | ✅ Recommended |
+| Approach                 | Pros                                  | Cons                   | Recommendation     |
+| ------------------------ | ------------------------------------- | ---------------------- | ------------------ |
+| **Full (Big Bang)**      | Clean codebase, no dual-mode code     | High risk, long freeze | ❌ Not recommended |
+| **Incremental (Phased)** | Low risk, rollback possible, testable | Temporary dual code    | ✅ Recommended     |
 
 ### 2.2 Recommended Phased Rollout
 
@@ -114,7 +112,7 @@ graph LR
     B --> C[Phase 3: Services]
     C --> D[Phase 4: Cleanup]
     D --> E[Phase 5: Migrate]
-    
+
     A --> |Week 1| A
     B --> |Week 2| B
     C --> |Week 3| C
@@ -123,34 +121,39 @@ graph LR
 ```
 
 **Phase 1 — Infrastructure Setup (Week 1)**
-- Install Flask-SQLAlchemy and Flask-Migrate
-- Create `extensions.py` with `db = SQLAlchemy()` instance
-- Update `create_app()` to initialize `db`
-- Keep old `engine.py` functional (backward compatibility)
+
+-   Install Flask-SQLAlchemy and Flask-Migrate
+-   Create `extensions.py` with `db = SQLAlchemy()` instance
+-   Update `create_app()` to initialize `db`
+-   Keep old `engine.py` functional (backward compatibility)
 
 **Phase 2 — Model Migration (Week 2)**
-- Migrate models from `BaseDb` to `db.Model`
-- Preserve `to_dict()` mixin
-- Handle views with custom metadata
-- Validate all relationships still work
+
+-   Migrate models from `BaseDb` to `db.Model`
+-   Preserve `to_dict()` mixin
+-   Handle views with custom metadata
+-   Validate all relationships still work
 
 **Phase 3 — Service Layer Migration (Week 3)**
-- Replace `get_session()` calls with `db.session`
-- Remove explicit session creation/closure
-- Add proper transaction boundaries
-- Test each service independently
+
+-   Replace `get_session()` calls with `db.session`
+-   Remove explicit session creation/closure
+-   Add proper transaction boundaries
+-   Test each service independently
 
 **Phase 4 — Cleanup (Week 4)**
-- Remove `engine.py` singleton pattern
-- Remove `_SessionFactory` global
-- Update all imports
-- Add Flask-Migrate for schema management
+
+-   Remove `engine.py` singleton pattern
+-   Remove `_SessionFactory` global
+-   Update all imports
+-   Add Flask-Migrate for schema management
 
 **Phase 5 — Production Validation (Week 5)**
-- Run full integration tests
-- Deploy to staging
-- Monitor connection pool and session behavior
-- Cut over to production
+
+-   Run full integration tests
+-   Deploy to staging
+-   Monitor connection pool and session behavior
+-   Cut over to production
 
 ### 2.3 Backward Compatibility
 
@@ -183,7 +186,6 @@ def get_session():
 6. **Flask-Migrate setup** (future-proofing)
 
 ---
-
 
 ## 3. Project Structure Refactor
 
@@ -250,7 +252,6 @@ This file must have **zero** application imports to prevent circular dependencie
 
 ---
 
-
 ## 4. Flask-SQLAlchemy Setup
 
 ### 4.1 Installation
@@ -262,6 +263,7 @@ pip install alembic>=1.13
 ```
 
 Add to `requirements.txt`:
+
 ```
 Flask-SQLAlchemy>=3.1.0
 Flask-Migrate>=4.0.0
@@ -275,11 +277,11 @@ Flask-Migrate>=4.0.0
 @dataclass(frozen=True)
 class FlaskSQLAlchemyConfig:
     """Flask-SQLAlchemy configuration mapped from existing DbConfig."""
-    
+
     SQLALCHEMY_DATABASE_URI: str
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_ENGINE_OPTIONS: dict = None
-    
+
     def __post_init__(self):
         if self.SQLALCHEMY_ENGINE_OPTIONS is None:
             object.__setattr__(self, 'SQLALCHEMY_ENGINE_OPTIONS', {
@@ -358,16 +360,15 @@ if settings.database_data.db_host:
 
 ### 4.5 Session Management Differences
 
-| Aspect | Current (Plain SQLAlchemy) | Flask-SQLAlchemy |
-|--------|---------------------------|-----------------|
-| Session creation | Manual via `get_session()` | Automatic via `db.session` |
-| Session scope | Per-function (no sharing) | Per-request (shared across functions) |
-| Cleanup | Manual `session.close()` | Automatic at request teardown |
-| Transaction | Explicit `session.commit()` | Explicit `db.session.commit()` |
-| Rollback | Manual in except blocks | Automatic on unhandled exceptions |
+| Aspect           | Current (Plain SQLAlchemy)  | Flask-SQLAlchemy                      |
+| ---------------- | --------------------------- | ------------------------------------- |
+| Session creation | Manual via `get_session()`  | Automatic via `db.session`            |
+| Session scope    | Per-function (no sharing)   | Per-request (shared across functions) |
+| Cleanup          | Manual `session.close()`    | Automatic at request teardown         |
+| Transaction      | Explicit `session.commit()` | Explicit `db.session.commit()`        |
+| Rollback         | Manual in except blocks     | Automatic on unhandled exceptions     |
 
 ---
-
 
 ## 5. Model Migration
 
@@ -389,7 +390,7 @@ from datetime import datetime
 
 class ToDictMixin:
     """Preserves the existing to_dict behavior from BaseDb."""
-    
+
     def to_dict(self) -> dict[str, Any]:
         data = {
             column.name: getattr(self, column.name)
@@ -405,7 +406,7 @@ class ToDictMixin:
 class TimestampMixin:
     """Common timestamp columns used across most models."""
     from sqlalchemy import Column, DateTime, func
-    
+
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(
         DateTime,
@@ -426,7 +427,7 @@ from ..engine import BaseDb
 
 class JobRecord(BaseDb):
     __tablename__ = "jobs"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_type = Column(String(255), nullable=False)
     username = Column(String(255), nullable=True)
@@ -449,7 +450,7 @@ from .base import ToDictMixin, TimestampMixin
 
 class JobRecord(ToDictMixin, TimestampMixin, db.Model):
     __tablename__ = "jobs"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_type = Column(String(255), nullable=False)
     username = Column(String(255), nullable=True)
@@ -470,10 +471,10 @@ from .base import ToDictMixin
 
 class OwidChartRecord(ToDictMixin, db.Model):
     __tablename__ = "owid_charts"
-    
+
     chart_id = Column(Integer, primary_key=True, autoincrement=True)
     # ... columns ...
-    
+
     _template_info = db.relationship(
         "OwidChartTemplateRecord",
         primaryjoin="OwidChartRecord.chart_id == OwidChartTemplateRecord.chart_id",
@@ -494,13 +495,13 @@ from .base import ToDictMixin
 
 class TemplateNeedUpdateRecord(ToDictMixin, db.Model):
     __tablename__ = "templates_need_update"
-    
+
     template_id = Column(Integer, primary_key=True)
     template_title = Column(String(255), unique=True, nullable=False)
     slug = Column(String(255), nullable=False, server_default="")
     last_world_year = Column(Integer, nullable=True)
     max_time = Column(Integer, nullable=True)
-    
+
     __table_args__ = (
         {"info": {
             "is_view": True,
@@ -560,7 +561,6 @@ class LONGTEXT(TypeDecorator):
 
 ---
 
-
 ## 6. Session & Transaction Management
 
 ### 6.1 Key Differences
@@ -587,9 +587,9 @@ class LONGTEXT(TypeDecorator):
 
 Flask-SQLAlchemy uses `scoped_session` bound to the application context. This means:
 
-- `db.session` is always the same session within a single request
-- The session is automatically removed at the end of the request
-- No need to pass sessions between functions
+-   `db.session` is always the same session within a single request
+-   The session is automatically removed at the end of the request
+-   No need to pass sessions between functions
 
 ### 6.3 Request Lifecycle Integration
 
@@ -658,6 +658,7 @@ def create_template(title: str, slug: str) -> TemplateRecord:
 ### 6.6 Migration of `with get_session() as session:` Pattern
 
 **Before:**
+
 ```python
 def get_all_templates():
     with get_session() as session:
@@ -666,6 +667,7 @@ def get_all_templates():
 ```
 
 **After:**
+
 ```python
 def get_all_templates():
     rows = db.session.query(TemplateRecord).all()
@@ -675,7 +677,6 @@ def get_all_templates():
 > **Important:** With Flask-SQLAlchemy, you do NOT wrap `db.session` in a `with` block. The session lifecycle is managed by Flask.
 
 ---
-
 
 ## 7. Alembic / Flask-Migrate Integration
 
@@ -791,7 +792,6 @@ flask db history
 
 ---
 
-
 ## 8. Application Factory Pattern
 
 ### 8.1 Updated `create_app` Implementation
@@ -815,7 +815,7 @@ logger = logging.getLogger(__name__)
 
 def create_app(config_override: dict | None = None) -> Flask:
     """Create and configure the Flask application."""
-    
+
     app = Flask(
         __name__,
         template_folder="../templates",
@@ -823,13 +823,13 @@ def create_app(config_override: dict | None = None) -> Flask:
     )
     app.url_map.strict_slashes = False
     app.secret_key = settings.secret_key
-    
+
     # --- Database Configuration ---
     if settings.database_data.db_host or settings.database_data.db_user:
         app.config['SQLALCHEMY_DATABASE_URI'] = build_sqlalchemy_uri(settings.database_data)
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
-    
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
@@ -842,38 +842,38 @@ def create_app(config_override: dict | None = None) -> Flask:
             'charset': 'utf8mb4',
         },
     }
-    
+
     # Apply any test/override configuration
     if config_override:
         app.config.update(config_override)
-    
+
     # --- Initialize Extensions ---
     db.init_app(app)
     migrate.init_app(app, db)
-    
+
     # CSRF Protection
     CSRFProtect(app)
     app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
-    
+
     # --- Register Views Event Listener ---
     _register_view_creation_listener()
-    
+
     # --- Register Blueprints ---
     _register_blueprints(app)
-    
+
     # --- Register Error Handlers ---
     _register_error_handlers(app)
-    
+
     # --- Context Processors ---
     _register_context_processors(app)
-    
+
     return app
 
 
 def _register_view_creation_listener():
     """Register SQLAlchemy event to auto-create SQL views."""
     from sqlalchemy import event, inspect, text
-    
+
     @event.listens_for(db.metadata, "after_create")
     def create_views(target, connection, **kw):
         inspector = inspect(connection)
@@ -908,11 +908,11 @@ def _register_error_handlers(app: Flask) -> None:
 def _register_context_processors(app: Flask) -> None:
     from .su_services.users_service import context_user
     from .utils import format_stage_timestamp, short_url
-    
+
     @app.context_processor
     def inject_user():
         return context_user()
-    
+
     app.jinja_env.filters['stage_timestamp'] = format_stage_timestamp
     app.jinja_env.filters['short_url'] = short_url
 ```
@@ -960,12 +960,12 @@ def test_create_app_with_sqlite():
 
 ---
 
-
 ## 9. Testing Migration
 
 ### 9.1 Refactoring Unit Tests
 
 **Current test pattern (likely):**
+
 ```python
 # Tests probably call init_db() directly with a test database
 def setup():
@@ -973,6 +973,7 @@ def setup():
 ```
 
 **New test pattern:**
+
 ```python
 import pytest
 from src.main_app import create_app
@@ -986,7 +987,7 @@ def app():
         'TESTING': True,
         'WTF_CSRF_ENABLED': False,
     })
-    
+
     with app.app_context():
         # Create only real tables (exclude views for SQLite)
         real_tables = [
@@ -1055,7 +1056,7 @@ from unittest.mock import patch
 def test_create_job_service(db_session):
     """Test service function directly with real DB session."""
     from src.main_app.services.jobs_service import create_job
-    
+
     job = create_job(job_type="test", username="user1")
     assert job.id is not None
     assert job.status == "pending"
@@ -1077,14 +1078,14 @@ Update `.github/workflows/pytest.yaml`:
 
 ```yaml
 env:
-  SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
-  FLASK_ENV: testing
+    SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
+    FLASK_ENV: testing
 
 steps:
-  - name: Run tests
-    run: |
-      pip install -r requirements-dev.txt
-      pytest --tb=short -q
+    - name: Run tests
+      run: |
+          pip install -r requirements-dev.txt
+          pytest --tb=short -q
 ```
 
 ### 9.6 conftest.py Template
@@ -1123,18 +1124,17 @@ def session(app, database):
     with app.app_context():
         connection = database.engine.connect()
         transaction = connection.begin()
-        
+
         database.session.configure(bind=connection)
-        
+
         yield database.session
-        
+
         transaction.rollback()
         connection.close()
         database.session.remove()
 ```
 
 ---
-
 
 ## 10. Performance & Scalability
 
@@ -1169,18 +1169,19 @@ SQLALCHEMY_ENGINE_OPTIONS = {
 ```
 
 **Production recommendation:**
-- `pool_size`: 10 (matches worker count)
-- `max_overflow`: 20
-- `pool_recycle`: 1800 (MySQL wait_timeout is usually 28800)
-- Monitor `pool.status()` for exhaustion
+
+-   `pool_size`: 10 (matches worker count)
+-   `max_overflow`: 20
+-   `pool_recycle`: 1800 (MySQL wait_timeout is usually 28800)
+-   Monitor `pool.status()` for exhaustion
 
 ### 10.3 Session Cleanup
 
 Flask-SQLAlchemy automatically calls `db.session.remove()` after each request via the `@app.teardown_appcontext` handler. This:
 
-- Returns the connection to the pool
-- Clears the session's identity map
-- Prevents stale data between requests
+-   Returns the connection to the pool
+-   Clears the session's identity map
+-   Prevents stale data between requests
 
 **No manual cleanup needed** (unlike the current `get_session()` pattern).
 
@@ -1207,41 +1208,42 @@ _template_info = db.relationship(
 ### 10.5 Monitoring Recommendations
 
 1. **Connection pool metrics:**
-   ```python
-   from sqlalchemy import event
-   
-   @event.listens_for(db.engine, "checkout")
-   def receive_checkout(dbapi_connection, connection_record, connection_proxy):
-       logger.debug("Connection checked out from pool. Pool size: %s",
-                    db.engine.pool.status())
-   ```
+
+    ```python
+    from sqlalchemy import event
+
+    @event.listens_for(db.engine, "checkout")
+    def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+        logger.debug("Connection checked out from pool. Pool size: %s",
+                     db.engine.pool.status())
+    ```
 
 2. **Slow query logging:**
-   ```python
-   @event.listens_for(db.engine, "before_cursor_execute")
-   def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-       conn.info.setdefault('query_start_time', []).append(time.time())
-   
-   @event.listens_for(db.engine, "after_cursor_execute")
-   def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-       total = time.time() - conn.info['query_start_time'].pop()
-       if total > 0.5:  # Log queries over 500ms
-           logger.warning("Slow query (%.3fs): %s", total, statement[:200])
-   ```
+
+    ```python
+    @event.listens_for(db.engine, "before_cursor_execute")
+    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        conn.info.setdefault('query_start_time', []).append(time.time())
+
+    @event.listens_for(db.engine, "after_cursor_execute")
+    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        total = time.time() - conn.info['query_start_time'].pop()
+        if total > 0.5:  # Log queries over 500ms
+            logger.warning("Slow query (%.3fs): %s", total, statement[:200])
+    ```
 
 3. **Health check endpoint:**
-   ```python
-   @app.route('/health/db')
-   def db_health():
-       try:
-           db.session.execute(text("SELECT 1"))
-           return jsonify({"status": "healthy", "pool": str(db.engine.pool.status())})
-       except Exception as e:
-           return jsonify({"status": "unhealthy", "error": str(e)}), 503
-   ```
+    ```python
+    @app.route('/health/db')
+    def db_health():
+        try:
+            db.session.execute(text("SELECT 1"))
+            return jsonify({"status": "healthy", "pool": str(db.engine.pool.status())})
+        except Exception as e:
+            return jsonify({"status": "unhealthy", "error": str(e)}), 503
+    ```
 
 ---
-
 
 ## 11. Common Pitfalls
 
@@ -1260,10 +1262,10 @@ from .models import JobRecord  # models imports db from extensions
 def create_app():
     app = Flask(__name__)
     db.init_app(app)
-    
+
     # Import models AFTER db is initialized (inside function)
     from . import models  # noqa: F401 — registers models with db.metadata
-    
+
     _register_blueprints(app)
     return app
 ```
@@ -1273,6 +1275,7 @@ def create_app():
 **Problem:** Using `db.session` outside request context (background tasks, CLI commands).
 
 **Solution:**
+
 ```python
 # For CLI commands or background tasks:
 with app.app_context():
@@ -1286,11 +1289,13 @@ with app.app_context():
 **Problem:** `RuntimeError: Working outside of application context`
 
 **Causes:**
-- Accessing `db.session` in module-level code
-- Using `db.session` in a thread without pushing app context
-- Importing models at module level in some configurations
+
+-   Accessing `db.session` in module-level code
+-   Using `db.session` in a thread without pushing app context
+-   Importing models at module level in some configurations
 
 **Solution:**
+
 ```python
 # Always ensure app context for DB operations outside requests:
 def background_worker(app):
@@ -1303,19 +1308,20 @@ def background_worker(app):
 **Problem:** Multiple developers generate migrations simultaneously.
 
 **Solution:**
-- Use a single migration branch
-- Run `flask db merge heads` to resolve conflicts
-- Always pull latest migrations before generating new ones
-- Add migration generation to PR checklist
+
+-   Use a single migration branch
+-   Run `flask db merge heads` to resolve conflicts
+-   Always pull latest migrations before generating new ones
+-   Add migration generation to PR checklist
 
 ### 11.5 Production Deployment Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Session behavior change breaks multi-query routes | Medium | High | Test all routes with DB operations |
-| `expire_on_commit=True` (Flask-SQLAlchemy default) breaks object access | Medium | Medium | Set in engine options or refresh after commit |
-| View creation fails on first deploy | Low | Medium | Test view creation in staging first |
-| Connection pool exhaustion under load | Low | High | Monitor pool status, tune settings |
+| Risk                                                                    | Likelihood | Impact | Mitigation                                    |
+| ----------------------------------------------------------------------- | ---------- | ------ | --------------------------------------------- |
+| Session behavior change breaks multi-query routes                       | Medium     | High   | Test all routes with DB operations            |
+| `expire_on_commit=True` (Flask-SQLAlchemy default) breaks object access | Medium     | Medium | Set in engine options or refresh after commit |
+| View creation fails on first deploy                                     | Low        | Medium | Test view creation in staging first           |
+| Connection pool exhaustion under load                                   | Low        | High   | Monitor pool status, tune settings            |
 
 ### 11.6 `expire_on_commit` Difference
 
@@ -1348,98 +1354,98 @@ db = SQLAlchemy(session_options={"expire_on_commit": False})
 
 ---
 
-
 ## 12. Step-by-Step Execution Timeline
 
 ### Week 1: Infrastructure & Setup
 
-| Day | Task | Owner | Validation |
-|-----|------|-------|------------|
-| 1 | Install Flask-SQLAlchemy, Flask-Migrate | Dev | `pip install` succeeds |
-| 1 | Create `extensions.py` with `db`, `migrate` | Dev | No import errors |
-| 2 | Update `config.py` with `SQLALCHEMY_*` settings | Dev | Config loads correctly |
-| 2 | Update `create_app()` to call `db.init_app()` | Dev | App starts without errors |
-| 3 | Run `flask db init` | Dev | `migrations/` created |
-| 3 | Run `flask db stamp head` on existing DB | Dev | Alembic version table created |
-| 4 | Create compatibility layer (`compat.py`) | Dev | Old `get_session()` still works |
-| 5 | Run existing test suite — all must pass | QA | Zero regressions |
+| Day | Task                                            | Owner | Validation                      |
+| --- | ----------------------------------------------- | ----- | ------------------------------- |
+| 1   | Install Flask-SQLAlchemy, Flask-Migrate         | Dev   | `pip install` succeeds          |
+| 1   | Create `extensions.py` with `db`, `migrate`     | Dev   | No import errors                |
+| 2   | Update `config.py` with `SQLALCHEMY_*` settings | Dev   | Config loads correctly          |
+| 2   | Update `create_app()` to call `db.init_app()`   | Dev   | App starts without errors       |
+| 3   | Run `flask db init`                             | Dev   | `migrations/` created           |
+| 3   | Run `flask db stamp head` on existing DB        | Dev   | Alembic version table created   |
+| 4   | Create compatibility layer (`compat.py`)        | Dev   | Old `get_session()` still works |
+| 5   | Run existing test suite — all must pass         | QA    | Zero regressions                |
 
 **Checkpoint:** App runs identically with both old and new DB setup coexisting.
 
 ### Week 2: Model Migration
 
-| Day | Task | Owner | Validation |
-|-----|------|-------|------------|
-| 1 | Create `models/base.py` with mixins | Dev | Unit tests pass |
-| 1-2 | Migrate `JobRecord` to `db.Model` | Dev | CRUD operations work |
-| 2 | Migrate `SettingRecord` to `db.Model` | Dev | Settings load correctly |
-| 3 | Migrate `TemplateRecord` to `db.Model` | Dev | Template operations work |
-| 3 | Migrate `AdminUserRecord`, `UserTokenRecord` | Dev | Auth still works |
-| 4 | Migrate `OwidChartRecord` (with relationship) | Dev | Relationship loads |
-| 4 | Migrate view models with `is_view` metadata | Dev | Views are queryable |
-| 5 | Full regression test suite | QA | All tests pass |
+| Day | Task                                          | Owner | Validation               |
+| --- | --------------------------------------------- | ----- | ------------------------ |
+| 1   | Create `models/base.py` with mixins           | Dev   | Unit tests pass          |
+| 1-2 | Migrate `JobRecord` to `db.Model`             | Dev   | CRUD operations work     |
+| 2   | Migrate `SettingRecord` to `db.Model`         | Dev   | Settings load correctly  |
+| 3   | Migrate `TemplateRecord` to `db.Model`        | Dev   | Template operations work |
+| 3   | Migrate `AdminUserRecord`, `UserTokenRecord`  | Dev   | Auth still works         |
+| 4   | Migrate `OwidChartRecord` (with relationship) | Dev   | Relationship loads       |
+| 4   | Migrate view models with `is_view` metadata   | Dev   | Views are queryable      |
+| 5   | Full regression test suite                    | QA    | All tests pass           |
 
 **Checkpoint:** All models use `db.Model`. Old `BaseDb` is unused.
 
 ### Week 3: Service Layer Migration
 
-| Day | Task | Owner | Validation |
-|-----|------|-------|------------|
-| 1 | Migrate `jobs_service.py` | Dev | Job CRUD works |
-| 1 | Migrate `settings_service.py` | Dev | Settings CRUD works |
-| 2 | Migrate `template_service.py` | Dev | Template operations work |
-| 2 | Migrate `admin_service.py` | Dev | Admin operations work |
-| 3 | Migrate `user_token_service.py` | Dev | Token encrypt/decrypt works |
-| 3 | Migrate `owid_charts_service.py` | Dev | Chart operations work |
-| 4 | Migrate `template_need_update_service.py` | Dev | View queries work |
-| 4-5 | Integration tests for all routes | QA | All routes function correctly |
+| Day | Task                                      | Owner | Validation                    |
+| --- | ----------------------------------------- | ----- | ----------------------------- |
+| 1   | Migrate `jobs_service.py`                 | Dev   | Job CRUD works                |
+| 1   | Migrate `settings_service.py`             | Dev   | Settings CRUD works           |
+| 2   | Migrate `template_service.py`             | Dev   | Template operations work      |
+| 2   | Migrate `admin_service.py`                | Dev   | Admin operations work         |
+| 3   | Migrate `user_token_service.py`           | Dev   | Token encrypt/decrypt works   |
+| 3   | Migrate `owid_charts_service.py`          | Dev   | Chart operations work         |
+| 4   | Migrate `template_need_update_service.py` | Dev   | View queries work             |
+| 4-5 | Integration tests for all routes          | QA    | All routes function correctly |
 
 **Checkpoint:** All services use `db.session`. No calls to `get_session()` remain.
 
 ### Week 4: Cleanup & Migration Tools
 
-| Day | Task | Owner | Validation |
-|-----|------|-------|------------|
-| 1 | Remove `engine.py` (or deprecate) | Dev | No imports from engine |
-| 1 | Remove `compat.py` bridge | Dev | Clean imports |
-| 2 | Move models from `sqlalchemy_db/models/` to `models/` | Dev | Import paths updated |
-| 2 | Move services from `sqlalchemy_db/services/` to `services/` | Dev | Import paths updated |
-| 3 | Update `conftest.py` for new test patterns | Dev | Tests pass with new fixtures |
-| 3 | Generate initial "baseline" migration | Dev | `flask db migrate` succeeds |
-| 4 | Update CI/CD pipeline | DevOps | CI passes |
-| 5 | Code review & merge | Team | PR approved |
+| Day | Task                                                        | Owner  | Validation                   |
+| --- | ----------------------------------------------------------- | ------ | ---------------------------- |
+| 1   | Remove `engine.py` (or deprecate)                           | Dev    | No imports from engine       |
+| 1   | Remove `compat.py` bridge                                   | Dev    | Clean imports                |
+| 2   | Move models from `sqlalchemy_db/models/` to `models/`       | Dev    | Import paths updated         |
+| 2   | Move services from `sqlalchemy_db/services/` to `services/` | Dev    | Import paths updated         |
+| 3   | Update `conftest.py` for new test patterns                  | Dev    | Tests pass with new fixtures |
+| 3   | Generate initial "baseline" migration                       | Dev    | `flask db migrate` succeeds  |
+| 4   | Update CI/CD pipeline                                       | DevOps | CI passes                    |
+| 5   | Code review & merge                                         | Team   | PR approved                  |
 
 **Checkpoint:** Codebase is clean. No legacy DB code remains.
 
 ### Week 5: Staging & Production
 
-| Day | Task | Owner | Validation |
-|-----|------|-------|------------|
-| 1 | Deploy to staging | DevOps | App starts, DB connects |
-| 2 | Run full QA test plan on staging | QA | All features work |
-| 2 | Load test (connection pool, session behavior) | Dev | No pool exhaustion |
-| 3 | Create production DB backup | DBA/DevOps | Backup verified |
-| 3 | Deploy to production | DevOps | Zero-downtime deploy |
-| 4 | Monitor error rates, response times | Team | Metrics normal |
-| 5 | Declare migration complete | Team Lead | Sign-off |
+| Day | Task                                          | Owner      | Validation              |
+| --- | --------------------------------------------- | ---------- | ----------------------- |
+| 1   | Deploy to staging                             | DevOps     | App starts, DB connects |
+| 2   | Run full QA test plan on staging              | QA         | All features work       |
+| 2   | Load test (connection pool, session behavior) | Dev        | No pool exhaustion      |
+| 3   | Create production DB backup                   | DBA/DevOps | Backup verified         |
+| 3   | Deploy to production                          | DevOps     | Zero-downtime deploy    |
+| 4   | Monitor error rates, response times           | Team       | Metrics normal          |
+| 5   | Declare migration complete                    | Team Lead  | Sign-off                |
 
 **Checkpoint:** Production running on Flask-SQLAlchemy. Monitoring confirms stability.
 
 ### Rollback Plan
 
 At any phase:
+
 1. Revert the merge commit on the main branch
 2. Redeploy previous version
 3. No database changes needed (schema is unchanged throughout migration)
 
 ---
 
-
 ## 13. Code Examples
 
 ### 13.1 Complete Model Example (Before/After)
 
 **BEFORE:**
+
 ```python
 # src/main_app/sqlalchemy_db/models/templates.py
 from __future__ import annotations
@@ -1449,7 +1455,7 @@ from ..engine import BaseDb
 
 class TemplateRecord(BaseDb):
     __tablename__ = "templates"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), unique=True, nullable=False)
     main_file = Column(String(255), nullable=True)
@@ -1460,7 +1466,7 @@ class TemplateRecord(BaseDb):
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(),
                         server_onupdate=func.current_timestamp())
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -1476,6 +1482,7 @@ class TemplateRecord(BaseDb):
 ```
 
 **AFTER:**
+
 ```python
 # src/main_app/models/templates.py
 from __future__ import annotations
@@ -1486,7 +1493,7 @@ from .base import TimestampMixin
 
 class TemplateRecord(TimestampMixin, db.Model):
     __tablename__ = "templates"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), unique=True, nullable=False)
     main_file = Column(String(255), nullable=True)
@@ -1494,7 +1501,7 @@ class TemplateRecord(TimestampMixin, db.Model):
     last_world_year = Column(Integer, nullable=True)
     slug = Column(String(255), nullable=False, server_default="")
     source = Column(String(255), nullable=False, server_default="")
-    
+
     def to_dict(self) -> dict[str, Any]:
         slug = self.slug
         if not self.slug and self.source and "/grapher/" in self.source:
@@ -1515,6 +1522,7 @@ class TemplateRecord(TimestampMixin, db.Model):
 ### 13.2 Complete Service Example (Before/After)
 
 **BEFORE:**
+
 ```python
 # src/main_app/sqlalchemy_db/services/jobs_service.py
 from __future__ import annotations
@@ -1553,6 +1561,7 @@ def update_job_status(job_id: int, status: str) -> None:
 ```
 
 **AFTER:**
+
 ```python
 # src/main_app/services/jobs_service.py
 from __future__ import annotations
@@ -1606,18 +1615,18 @@ def import_chart_with_template(chart_data: dict, template_title: str) -> OwidCha
         )
         db.session.add(chart)
         db.session.flush()  # Get chart_id without committing
-        
+
         # Step 2: Update template slug
         template = db.session.query(TemplateRecord).filter_by(
             title=template_title
         ).first()
         if template:
             template.slug = chart_data['slug']
-        
+
         # Step 3: Commit both changes atomically
         db.session.commit()
         return chart
-        
+
     except IntegrityError:
         db.session.rollback()
         raise ValueError(f"Chart with slug '{chart_data['slug']}' already exists")
@@ -1639,7 +1648,7 @@ bp_jobs = Blueprint('jobs', __name__, url_prefix='/admin/jobs')
 def list_jobs():
     from ...extensions import db
     from ...models import JobRecord
-    
+
     jobs = db.session.query(JobRecord).order_by(
         JobRecord.created_at.desc()
     ).limit(50).all()
@@ -1690,109 +1699,112 @@ migrate = Migrate()
 
 ---
 
-
 ## 14. Final Deliverables
 
 ### 14.1 Migration Checklist
 
-- [ ] Flask-SQLAlchemy and Flask-Migrate installed and in requirements.txt
-- [ ] `extensions.py` created with `db` and `migrate` instances
-- [ ] `config.py` updated with `SQLALCHEMY_*` configuration
-- [ ] `create_app()` calls `db.init_app(app)` and `migrate.init_app(app, db)`
-- [ ] All models inherit from `db.Model` instead of `BaseDb`
-- [ ] `ToDictMixin` and `TimestampMixin` created and applied
-- [ ] All service files use `db.session` instead of `get_session()`
-- [ ] View models have `is_view` metadata preserved
-- [ ] View creation event listener registered on `db.metadata`
-- [ ] `LONGTEXT` TypeDecorator moved to `models/types.py`
-- [ ] `flask db init` executed and `migrations/` committed
-- [ ] `flask db stamp head` executed on existing database
-- [ ] Old `sqlalchemy_db/engine.py` removed or deprecated
-- [ ] Old `sqlalchemy_db/` directory removed
-- [ ] All imports updated throughout codebase
-- [ ] Test suite updated with new fixtures (conftest.py)
-- [ ] All tests pass
-- [ ] CI/CD pipeline updated
-- [ ] Staging deployment verified
-- [ ] Production deployment completed
-- [ ] Monitoring confirms normal operation
+-   [ ] Flask-SQLAlchemy and Flask-Migrate installed and in requirements.txt
+-   [ ] `extensions.py` created with `db` and `migrate` instances
+-   [ ] `config.py` updated with `SQLALCHEMY_*` configuration
+-   [ ] `create_app()` calls `db.init_app(app)` and `migrate.init_app(app, db)`
+-   [ ] All models inherit from `db.Model` instead of `BaseDb`
+-   [ ] `ToDictMixin` and `TimestampMixin` created and applied
+-   [ ] All service files use `db.session` instead of `get_session()`
+-   [ ] View models have `is_view` metadata preserved
+-   [ ] View creation event listener registered on `db.metadata`
+-   [ ] `LONGTEXT` TypeDecorator moved to `models/types.py`
+-   [ ] `flask db init` executed and `migrations/` committed
+-   [ ] `flask db stamp head` executed on existing database
+-   [ ] Old `sqlalchemy_db/engine.py` removed or deprecated
+-   [ ] Old `sqlalchemy_db/` directory removed
+-   [ ] All imports updated throughout codebase
+-   [ ] Test suite updated with new fixtures (conftest.py)
+-   [ ] All tests pass
+-   [ ] CI/CD pipeline updated
+-   [ ] Staging deployment verified
+-   [ ] Production deployment completed
+-   [ ] Monitoring confirms normal operation
 
 ### 14.2 Risk Matrix
 
-| Risk | Probability | Impact | Score | Mitigation |
-|------|-------------|--------|-------|------------|
-| Session behavior change breaks existing logic | 30% | High | 🟡 | Set `expire_on_commit=False`, test all services |
-| Circular imports during model migration | 20% | Medium | 🟢 | Follow import hierarchy strictly |
-| View creation fails in production | 10% | High | 🟡 | Test on staging with production-like DB |
-| Connection pool config mismatch | 15% | Medium | 🟢 | Mirror existing pool settings exactly |
-| Flask-Migrate conflicts with existing schema | 10% | Low | 🟢 | Stamp head, exclude views from autogen |
-| Downtime during deployment | 5% | High | 🟢 | No schema changes; rolling deploy |
-| Background tasks lose DB access | 20% | Medium | 🟡 | Ensure app_context for non-request code |
-| Test suite breaks during migration | 40% | Low | 🟡 | Migrate tests incrementally with models |
+| Risk                                          | Probability | Impact | Score | Mitigation                                      |
+| --------------------------------------------- | ----------- | ------ | ----- | ----------------------------------------------- |
+| Session behavior change breaks existing logic | 30%         | High   | 🟡    | Set `expire_on_commit=False`, test all services |
+| Circular imports during model migration       | 20%         | Medium | 🟢    | Follow import hierarchy strictly                |
+| View creation fails in production             | 10%         | High   | 🟡    | Test on staging with production-like DB         |
+| Connection pool config mismatch               | 15%         | Medium | 🟢    | Mirror existing pool settings exactly           |
+| Flask-Migrate conflicts with existing schema  | 10%         | Low    | 🟢    | Stamp head, exclude views from autogen          |
+| Downtime during deployment                    | 5%          | High   | 🟢    | No schema changes; rolling deploy               |
+| Background tasks lose DB access               | 20%         | Medium | 🟡    | Ensure app_context for non-request code         |
+| Test suite breaks during migration            | 40%         | Low    | 🟡    | Migrate tests incrementally with models         |
 
 ### 14.3 QA Validation Checklist
 
 **Authentication & Users:**
-- [ ] Login via OAuth works
-- [ ] User tokens are encrypted/decrypted correctly
-- [ ] Admin user access control works
-- [ ] Session cookies function correctly
+
+-   [ ] Login via OAuth works
+-   [ ] User tokens are encrypted/decrypted correctly
+-   [ ] Admin user access control works
+-   [ ] Session cookies function correctly
 
 **Core Features:**
-- [ ] Template CRUD operations
-- [ ] Job creation and status updates
-- [ ] OWID chart import and listing
-- [ ] Settings read/write
-- [ ] View queries (templates_need_update, owid_charts_templates)
+
+-   [ ] Template CRUD operations
+-   [ ] Job creation and status updates
+-   [ ] OWID chart import and listing
+-   [ ] Settings read/write
+-   [ ] View queries (templates_need_update, owid_charts_templates)
 
 **API Routes:**
-- [ ] All API endpoints return correct JSON
-- [ ] Pagination works
-- [ ] Error responses are proper (404, 500)
-- [ ] CSRF protection active
+
+-   [ ] All API endpoints return correct JSON
+-   [ ] Pagination works
+-   [ ] Error responses are proper (404, 500)
+-   [ ] CSRF protection active
 
 **Performance:**
-- [ ] Response times within ±10% of pre-migration baseline
-- [ ] No connection pool warnings in logs
-- [ ] Memory usage stable under load
-- [ ] No session leak warnings
+
+-   [ ] Response times within ±10% of pre-migration baseline
+-   [ ] No connection pool warnings in logs
+-   [ ] Memory usage stable under load
+-   [ ] No session leak warnings
 
 ### 14.4 Production Readiness Checklist
 
-- [ ] All code reviewed and merged
-- [ ] Staging environment tested for 48+ hours
-- [ ] Database backup created before deploy
-- [ ] Rollback procedure documented and tested
-- [ ] Monitoring dashboards updated (pool status, query times)
-- [ ] On-call team briefed on changes
-- [ ] Health check endpoint (`/health/db`) deployed
-- [ ] Slow query logging enabled
-- [ ] Error alerting configured for new error patterns
-- [ ] Post-deploy verification script ready
+-   [ ] All code reviewed and merged
+-   [ ] Staging environment tested for 48+ hours
+-   [ ] Database backup created before deploy
+-   [ ] Rollback procedure documented and tested
+-   [ ] Monitoring dashboards updated (pool status, query times)
+-   [ ] On-call team briefed on changes
+-   [ ] Health check endpoint (`/health/db`) deployed
+-   [ ] Slow query logging enabled
+-   [ ] Error alerting configured for new error patterns
+-   [ ] Post-deploy verification script ready
 
 ---
 
 ## Appendix A: File Change Summary
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/main_app/extensions.py` | CREATE | `db`, `migrate` instances |
-| `src/main_app/models/base.py` | CREATE | Mixins (ToDictMixin, TimestampMixin) |
-| `src/main_app/models/types.py` | CREATE | LONGTEXT TypeDecorator |
-| `src/main_app/models/__init__.py` | CREATE | Re-exports all models |
-| `src/main_app/models/jobs.py` | CREATE | Migrated JobRecord |
-| `src/main_app/models/owid_charts.py` | CREATE | Migrated OwidChartRecord |
-| `src/main_app/models/settings.py` | CREATE | Migrated SettingRecord |
-| `src/main_app/models/templates.py` | CREATE | Migrated TemplateRecord |
-| `src/main_app/models/users.py` | CREATE | Migrated user models |
-| `src/main_app/models/views.py` | CREATE | Migrated view models |
-| `src/main_app/services/*.py` | MODIFY | Replace `get_session()` with `db.session` |
-| `src/main_app/__init__.py` | MODIFY | Updated create_app |
-| `src/main_app/config.py` | MODIFY | Add SQLALCHEMY config |
-| `requirements.txt` | MODIFY | Add Flask-SQLAlchemy, Flask-Migrate |
-| `src/main_app/sqlalchemy_db/` | DELETE | Remove after migration complete |
-| `tests/conftest.py` | MODIFY | New DB fixtures |
-| `migrations/` | CREATE | Flask-Migrate directory |
+| File                                 | Action | Description                               |
+| ------------------------------------ | ------ | ----------------------------------------- |
+| `src/main_app/extensions.py`         | CREATE | `db`, `migrate` instances                 |
+| `src/main_app/models/base.py`        | CREATE | Mixins (ToDictMixin, TimestampMixin)      |
+| `src/main_app/models/types.py`       | CREATE | LONGTEXT TypeDecorator                    |
+| `src/main_app/models/__init__.py`    | CREATE | Re-exports all models                     |
+| `src/main_app/models/jobs.py`        | CREATE | Migrated JobRecord                        |
+| `src/main_app/models/owid_charts.py` | CREATE | Migrated OwidChartRecord                  |
+| `src/main_app/models/settings.py`    | CREATE | Migrated SettingRecord                    |
+| `src/main_app/models/templates.py`   | CREATE | Migrated TemplateRecord                   |
+| `src/main_app/models/users.py`       | CREATE | Migrated user models                      |
+| `src/main_app/models/views.py`       | CREATE | Migrated view models                      |
+| `src/main_app/services/*.py`         | MODIFY | Replace `get_session()` with `db.session` |
+| `src/main_app/__init__.py`           | MODIFY | Updated create_app                        |
+| `src/main_app/config.py`             | MODIFY | Add SQLALCHEMY config                     |
+| `requirements.txt`                   | MODIFY | Add Flask-SQLAlchemy, Flask-Migrate       |
+| `src/main_app/sqlalchemy_db/`        | DELETE | Remove after migration complete           |
+| `tests/conftest.py`                  | MODIFY | New DB fixtures                           |
+| `migrations/`                        | CREATE | Flask-Migrate directory                   |
 
 ## Appendix B: Command Reference
 
@@ -1822,6 +1834,6 @@ flask db history
 
 ---
 
-*Document authored: May 2026*  
-*Last updated: May 2026*  
-*Status: Ready for team review*
+_Document authored: May 2026_
+_Last updated: May 2026_
+_Status: Ready for team review_
