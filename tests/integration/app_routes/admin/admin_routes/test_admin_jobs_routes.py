@@ -683,7 +683,6 @@ def test_download_all_main_files(mock_create_zip, admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
 def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client):
     """Test downloading all main files when zip doesn't exist - should redirect with flash."""
-    client, _ = admin_jobs_client
 
     mock_create_zip.return_value = ("Please run a 'Download Main Files' job first", 404)
 
@@ -697,7 +696,6 @@ def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client):
 @patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
 def test_download_all_main_files_error(mock_create_zip, admin_jobs_client):
     """Test downloading all main files when zip is corrupted - should redirect with flash."""
-    client, _ = admin_jobs_client
 
     mock_create_zip.return_value = ("Zip file is empty or corrupted", 500)
 
@@ -710,7 +708,6 @@ def test_download_all_main_files_error(mock_create_zip, admin_jobs_client):
 
 def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client, jobs_db):
     """Test that requesting an invalid job type returns 404."""
-    client, _ = admin_jobs_client
 
     response = admin_jobs_client.get("/admin/invalid_job_type/list")
     assert response.status_code == 404
@@ -718,7 +715,6 @@ def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client, jobs
 
 def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     """Test starting a job without being logged in."""
-    client, _ = admin_jobs_client
 
     # Mock current_user to return None
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", lambda: None)
@@ -733,7 +729,6 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_client):
     """Test that job start handles exceptions gracefully."""
-    client, _ = admin_jobs_client
 
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.side_effect = Exception("Database error")
@@ -753,7 +748,7 @@ def test_delete_job_handles_exception(admin_jobs_client, jobs_db, monkeypatch):
     def mock_delete_job(job_id, job_type):
         raise Exception("Database error")
 
-    monkeypatch.setattr("src.main_app.db.services.jobs_service.delete_job", mock_delete_job)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.delete_job", mock_delete_job)
 
     response = admin_jobs_client.post(f"/admin/collect_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200

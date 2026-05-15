@@ -49,7 +49,6 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
 
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
-    status_code = 200
     try:
         # Cancel the job if it's running
         if jobs_worker.cancel_job(job_id, job_type):
@@ -60,9 +59,8 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     except Exception:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}", "danger")
-        status_code = 400
 
-    return redirect(url_for("admin.jobs_list", job_type=job_type), code=status_code)
+    return redirect(url_for("admin.jobs_list", job_type=job_type))
 
 
 def _start_job(job_type: str) -> int | None:

@@ -15,7 +15,7 @@ class SettingsDB:
     """MySQL-backed application settings store."""
 
     def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
-        self.db = db
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> SettingRecord:
         value = self._parse_value(row["value"], row["value_type"])
@@ -38,7 +38,7 @@ class SettingsDB:
     def _is_key_exist(self, key: str) -> None | SettingRecord:
         rows = self.db.fetch_query_safe(
             "SELECT id, key, title, value_type, value FROM settings WHERE key = %s",
-            (key),
+            (key,),
         )
         if not rows:
             return None

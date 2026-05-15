@@ -4,26 +4,35 @@ from __future__ import annotations
 
 # import json
 import logging
+from datetime import datetime
 from typing import Any, List
 
-from ..config import DbConfig
 from .engine import Database
 from .models import JobRecord
 
 logger = logging.getLogger(__name__)
 
 
+def _parse_dt(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        logger.exception("Failed to parse datetime: %s", value)
+        return None
+
+
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+    def __init__(self, _=None, db: Database | None = None):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
-
-        Parameters:
-            database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
         """
-        self.db = db or Database(database_data)
+        self.db = db
 
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(
@@ -31,11 +40,11 @@ class JobsDB:
             job_type=row["job_type"],
             username=row.get("username"),
             status=row["status"],
-            started_at=row.get("started_at"),
-            completed_at=row.get("completed_at"),
+            started_at=_parse_dt(row.get("started_at")),
+            completed_at=_parse_dt(row.get("completed_at")),
             result_file=row.get("result_file"),
-            created_at=row.get("created_at"),
-            updated_at=row.get("updated_at"),
+            created_at=_parse_dt(row.get("created_at")),
+            updated_at=_parse_dt(row.get("updated_at")),
         )
 
     def create(self, job_type: str, username: str | None = None) -> JobRecord:
