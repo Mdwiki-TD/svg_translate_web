@@ -40,7 +40,7 @@ class JobsDB:
 
     def create(self, job_type: str, username: str | None = None) -> JobRecord:
         """Create a new job."""
-        self.db.execute_query_safe(
+        job_id = self.db.insert_query(
             """
             INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
             """,
@@ -50,10 +50,12 @@ class JobsDB:
             """
             SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
             FROM jobs
-            WHERE id = LAST_INSERT_ID()
-            """
+            WHERE id = %s
+            """,
+            (job_id)
         )
         if not rows:
+            logger.exception("Failed to create job")
             raise RuntimeError("Failed to create job")
         return self._row_to_record(rows[0])
 
@@ -83,6 +85,7 @@ class JobsDB:
             (job_id, job_type),
         )
         if not rows:
+            logger.exception("Failed to get job")
             raise LookupError(f"Job id {job_id} was not found")
         return self._row_to_record(rows[0])
 
@@ -133,6 +136,7 @@ class JobsDB:
 
         rowcount = self.db.execute_query_safe(query, tuple(params))
         if rowcount == 0:
+            logger.exception(f"Failed to update job id {job_id} to running status")
             raise LookupError(f"Job id {job_id} was not found or update failed")
 
         return self.get(job_id, job_type)
@@ -171,6 +175,7 @@ class JobsDB:
             )
 
         if rowcount == 0:
+            logger.exception(f"Failed to update job id {job_id} to status {status}")
             raise LookupError(f"Job id {job_id} was not found or update failed")
 
         return self.get(job_id, job_type)
