@@ -13,8 +13,6 @@ import sys
 import threading
 from pathlib import Path
 
-from src.main_app.live_db.services import jobs_service
-
 if _path_ := Path(__file__).parent.parent.parent:
     sys.path.append(str(_path_))
 
@@ -28,6 +26,8 @@ from src.main_app.live_db.services import (
     add_template_data,
     list_templates,
     update_template_data,
+    create_job,
+    update_job_status,
 )
 from src.main_app.utils.wikitext import find_template_source
 from src.main_app.utils.wikitext.titles_utils import (
@@ -250,7 +250,7 @@ class MainFilesWorker(BaseJobWorker):
         Returns:
             True to continue with processing, False to abort
         """
-        jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+        update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
         return True
 
 
@@ -258,7 +258,7 @@ def start() -> None:
     user = None
     # Get auth payload for OAuth uploads
     cancel_event = threading.Event()
-    job_record = jobs_service.create_job("collect_main_files", "Background job")
+    job_record = create_job("collect_main_files", "Background job")
     job_id = job_record.id
     logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
     worker = MainFilesWorker(job_id, user, cancel_event)

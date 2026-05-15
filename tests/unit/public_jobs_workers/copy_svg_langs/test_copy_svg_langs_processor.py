@@ -49,12 +49,12 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     assert "example_svg" in str(processor.output_dir) or "example.svg" in str(processor.output_dir)
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.jobs_service")
-def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initial_result, mocker):
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.is_job_cancelled")
+def test_processor_run_text_stage_fail(mock_is_job_cancelled, processor_args, initial_result, mocker):
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
-    mock_jobs_service.is_job_cancelled.return_value = False
+    mock_is_job_cancelled.return_value = False
 
     mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step")
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
@@ -75,12 +75,12 @@ def test_processor_run_text_stage_fail(mock_jobs_service, processor_args, initia
     assert result["stages"]["text"]["message"] == "Failed to get text"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.jobs_service")
-def test_processor_files_processed_tracking(mock_jobs_service, processor_args, initial_result, mocker, tmp_path):
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.is_job_cancelled")
+def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_args, initial_result, mocker, tmp_path):
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
     mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
-    mock_jobs_service.is_job_cancelled.return_value = False
+    mock_is_job_cancelled.return_value = False
 
     # Mock stages
     mocker.patch(
