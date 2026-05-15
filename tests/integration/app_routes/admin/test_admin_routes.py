@@ -7,6 +7,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.db.services import admin_service
 from src.main_app.db.services.admin_service import get_admins_db
+from src.main_app.sqlalchemy_db.services import admin_service as _sqlalchemy_admin_service
 
 
 def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
@@ -17,30 +18,32 @@ def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", _fake_current_user)
 
 
+class _AdminStore:
+    """Adapter bridging old CoordinatorsDB API to SQLAlchemy admin_service functions."""
+
+    def list(self):
+        return _sqlalchemy_admin_service.list_coordinators()
+
+    def add(self, username):
+        return _sqlalchemy_admin_service.add_coordinator(username)
+
+
 @pytest.fixture
 def app_and_store(monkeypatch: pytest.MonkeyPatch):
     """
-    Create a Flask test application and a CoordinatorsDB backed by FakeDatabase for tests.
-
-    This fixture sets FLASK_SECRET_KEY, patches the application to use FakeDatabase for coordinators,
-    forces has_db_config to True, and injects a preloaded CoordinatorsDB (containing an "admin" user)
-    into the admin_service. The returned Flask app is configured for testing with CSRF disabled.
+    Create a Flask test application and a store backed by the SQLAlchemy admin_service.
 
     Parameters:
         monkeypatch (pytest.MonkeyPatch): Pytest monkeypatch fixture used to apply environment and attribute patches.
 
     Returns:
-        (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the CoordinatorsDB instance used by tests.
+        (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the admin store instance used by tests.
     """
-    # Inject this store into admin_service
-    # We patch get_admins_db to return our store instance
-    # monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
-
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
 
-    store = get_admins_db()
+    store = _AdminStore()
     store.add("admin")
 
     yield app, store
@@ -128,7 +131,7 @@ def test_delete_coordinator(app_and_store, monkeypatch: pytest.MonkeyPatch):
     _set_current_user(monkeypatch, SimpleNamespace(username="admin"))
 
     record = store.add("to_remove")
-    admin_service.set_coordinator_active(record.id, True)
+    # Note: add_coordinator already sets is_active=True
 
     response = app.test_client().post(
         f"/admin/coordinators/{record.id}/delete",

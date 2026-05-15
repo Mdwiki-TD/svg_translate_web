@@ -11,13 +11,34 @@ import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
-from src.main_app.db.services.jobs_service import get_jobs_db
+from src.main_app.sqlalchemy_db.services import jobs_service as _sqlalchemy_jobs_service
+
+
+class _JobsStore:
+    """Adapter bridging old JobsDB API to SQLAlchemy jobs_service functions."""
+
+    def create(self, job_type, username=None):
+        return _sqlalchemy_jobs_service.create_job(job_type, username)
+
+    def list(self, limit=100, job_type=None):
+        return _sqlalchemy_jobs_service.list_jobs(limit, job_type)
+
+    def update_status(self, job_id, status, result_file=None, *, job_type):
+        return _sqlalchemy_jobs_service.update_job_status(job_id, status, result_file, job_type=job_type)
+
+    def get(self, job_id, job_type):
+        return _sqlalchemy_jobs_service.get_job(job_id, job_type)
+
+    def delete(self, job_id, job_type):
+        return _sqlalchemy_jobs_service.delete_job(job_id, job_type)
+
+    def cancel(self, job_id, job_type=None):
+        return _sqlalchemy_jobs_service.cancel_job(job_id, job_type)
 
 
 @pytest.fixture
 def jobs_db():
-    store = get_jobs_db()
-    return store
+    return _JobsStore()
 
 
 @pytest.fixture
@@ -388,11 +409,8 @@ def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
 
     # Try to delete a job that doesn't exist
     response = admin_jobs_client.post("/admin/collect_main_files/999/delete", follow_redirects=True)
-    if response.status_code == 200:
-        # The actual message will depend on the error handling
-        mock_flash.assert_called_with("Job 999 deleted successfully.", "success")
-    else:
-        mock_flash.assert_called_with("Failed to delete job 999", "danger")
+    assert response.status_code == 200
+    mock_flash.assert_called_with("Failed to delete job 999", "danger")
 
 
 def test_delete_job_with_wrong_type(admin_jobs_client, jobs_db):

@@ -9,12 +9,28 @@ import pytest
 
 from src.main_app import create_app
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
+from src.main_app.sqlalchemy_db.services import template_service as _sqlalchemy_template_service
+
+
+class _TemplatesStore:
+    """Adapter bridging old TemplatesDB API to SQLAlchemy template_service functions."""
+
+    def list(self, limit=None):
+        return _sqlalchemy_template_service.list_templates(limit)
+
+    def add_data(self, data):
+        return _sqlalchemy_template_service.add_template_data(data)
+
+    def update_data(self, template_id, data):
+        return _sqlalchemy_template_service.update_template_data(template_id, data)
+
+    def delete(self, template_id):
+        return _sqlalchemy_template_service.delete_template(template_id)
 
 
 @pytest.fixture
-def jobs_db(mock_sqlite3_db):
-    store = TemplatesDB(db=mock_sqlite3_db)
+def jobs_db():
+    store = _TemplatesStore()
     store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
     return store
 
