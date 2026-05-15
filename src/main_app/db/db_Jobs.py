@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig, db: Database | None = None):
+    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
 

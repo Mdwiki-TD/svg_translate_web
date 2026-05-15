@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
-    def __init__(self, database_data: DbConfig, db: Database | None = None):
+    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
         """
         Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
 

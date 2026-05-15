@@ -41,7 +41,7 @@ class TemplatesDB:
         "slug",
     ]
 
-    def __init__(self, database_data: DbConfig, db: Database | None = None):
+    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
 
