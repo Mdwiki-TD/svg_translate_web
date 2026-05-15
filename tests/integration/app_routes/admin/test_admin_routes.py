@@ -1,13 +1,12 @@
 from html import unescape
 from types import SimpleNamespace
 from typing import Any
+
 import pytest
 
 from src.main_app import create_app
 
-# from src.main_app.app_routes.admin.admin_routes import coordinators
-from src.main_app.config import settings
-from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB  # , AdminUserRecord
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.services import admin_service
 
@@ -35,7 +34,6 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     Returns:
         (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the CoordinatorsDB instance used by tests.
     """
-    # Fetch a coordinator record by their ID from the database
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     # Patch Database used by CoordinatorsDB
@@ -49,7 +47,6 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     # We patch get_admins_db to return our store instance
     monkeypatch.setattr("src.main_app.db.services.admin_service.get_admins_db", lambda: store)
 
-    # Fetch a coordinator record by their username from the database
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests

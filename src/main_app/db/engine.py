@@ -21,7 +21,7 @@ class Database:
     MAX_RETRIES = 3
     BASE_BACKOFF = 0.2
 
-    def __init__(self, database_data: DbConfig | None = None, db: Database | None = None):
+    def __init__(self, database_data: DbConfig):
         """
         Create a Database wrapper and store connection credentials from the provided DbConfig.
 

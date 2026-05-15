@@ -8,7 +8,6 @@ from typing import Any, List
 from ...config import DbConfig
 from .. import Database
 from ..models import TemplateNeedUpdateRecord
-from ..sql_schema_tables import sql_tables
 from .check_db import initialize_db
 
 logger = logging.getLogger(__name__)

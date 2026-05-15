@@ -1,13 +1,10 @@
 """ """
 
-
-from .sql_schema_tables import TablesCreatesSql
 from .engine import Database
+from .sql_schema_tables import TablesCreatesSql
 
 
-def ensure_all_tables(database_data, sql_tables: TablesCreatesSql, db: None | Database = None):
-    db = db or Database(database_data)
-
+def ensure_all_tables(sql_tables: TablesCreatesSql, db: Database):
     db.execute_query(sql_tables.templates_need_update)
     db.execute_query(sql_tables.templates)
     db.execute_query(sql_tables.settings)

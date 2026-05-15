@@ -105,5 +105,3 @@ __all__ = [
     "set_coordinator_active",
     "delete_coordinator",
 ]
-# Update a coordinator's active status
-        # Delete a coordinator from the database by ID

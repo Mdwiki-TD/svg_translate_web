@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 
+from ..engine import Database
 from ...config import settings
 from ..exceptions import InsufficientDatabaseConfigError
 
@@ -21,7 +22,7 @@ def initialize_db(_db_class):
         raise InsufficientDatabaseConfigError()
 
     try:
-        _store = _db_class(settings.database_data)
+        _store = _db_class(settings.database_data, Database(settings.database_data))
     except Exception as exc:
         logger.exception("Failed to initialize MySQL charts store")
         raise RuntimeError("Unable to initialize charts store") from exc

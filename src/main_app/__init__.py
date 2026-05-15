@@ -8,6 +8,11 @@ from typing import Any, Tuple
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
+from .db.engine import Database
+
+from .db.sql_schema_ensure_tables import ensure_all_tables
+
+from .db.sql_schema_tables import sql_tables
 from .app_routes import (
     bp_admin,
     bp_api,
@@ -125,7 +130,8 @@ def create_app(_conf=None) -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    # if settings.database_data.db_host or settings.database_data.db_user:
+    if settings.database_data.db_host or settings.database_data.db_user:
+        ensure_all_tables(sql_tables, Database(settings.database_data))
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
