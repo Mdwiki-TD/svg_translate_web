@@ -60,12 +60,12 @@ def mock_initialize_db(monkeypatch: pytest.MonkeyPatch, mock_sqlite3_db):
         return store
 
     # Clear module-level store caches so each test gets a fresh DB connection
-    import src.main_app.db.services.jobs_service as _js
-    import src.main_app.db.services.template_service as _ts
-    import src.main_app.db.services.settings_service as _ss
-    import src.main_app.db.services.owid_charts_service as _os
     import src.main_app.db.services.admin_service as _ads
+    import src.main_app.db.services.jobs_service as _js
+    import src.main_app.db.services.owid_charts_service as _os
+    import src.main_app.db.services.settings_service as _ss
     import src.main_app.db.services.template_need_update_service as _tns
+    import src.main_app.db.services.template_service as _ts
     import src.main_app.db.services.user_token_service as _uts
 
     _js._JOBS_STORE = None
