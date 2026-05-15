@@ -49,7 +49,7 @@ def test_get_job():
 
 def test_get_nonexistent_job():
     """Test retrieving a nonexistent job raises LookupError."""
-    with pytest.raises(LookupError, match="Job id 999 of type collect_main_files was not found"):
+    with pytest.raises(LookupError, match="Job id 999 was not found"):
         get_job(999, job_type="collect_main_files")
 
 
