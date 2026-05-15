@@ -116,8 +116,7 @@ owid_charts = """
 """
 
 owid_charts_templates = """
-
-    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
+    CREATE OR REPLACE VIEW owid_charts_templates AS
     SELECT
         c.chart_id,
         t.id AS template_id,
@@ -128,18 +127,19 @@ owid_charts_templates = """
 """
 
 templates_need_update = """
-    CREATE VIEW IF NOT EXISTS templates_need_update AS
+    CREATE OR REPLACE VIEW templates_need_update AS
     SELECT
         t.id AS template_id,
         t.title AS template_title,
         t.slug AS slug,
         c.max_time,
         t.last_world_year
-    FROM owid_charts c
-    JOIN templates t
-        ON t.slug = c.slug
-    WHERE t.last_world_year != c.max_time
-    AND t.last_world_year IS NOT NULL
+    FROM
+        owid_charts c
+        JOIN templates t ON t.slug = c.slug
+    WHERE
+        t.last_world_year != c.max_time
+        AND t.last_world_year IS NOT NULL;
 """
 
 # sql_tables
@@ -234,6 +234,33 @@ owid_charts_sqlite3 = """
     );
 """
 
+owid_charts_templates_sqlite3 = """
+    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
+    SELECT
+        c.chart_id,
+        t.id AS template_id,
+        t.title AS template_title
+    FROM owid_charts c
+    LEFT JOIN templates t
+        ON t.slug = c.slug;
+"""
+
+templates_need_update_sqlite3 = """
+    CREATE VIEW IF NOT EXISTS templates_need_update AS
+    SELECT
+        t.id AS template_id,
+        t.title AS template_title,
+        t.slug AS slug,
+        c.max_time,
+        t.last_world_year
+    FROM
+        owid_charts c
+        JOIN templates t ON t.slug = c.slug
+    WHERE
+        t.last_world_year != c.max_time
+        AND t.last_world_year IS NOT NULL;
+"""
+
 sql_tables_sqlite3 = TablesCreatesSql(
     user_tokens=user_tokens_sqlite3,
     templates=templates_sqlite3,
@@ -241,6 +268,6 @@ sql_tables_sqlite3 = TablesCreatesSql(
     jobs=jobs_sqlite3,
     settings=settings_sqlite3,
     owid_charts=owid_charts_sqlite3,
-    templates_need_update=templates_need_update,
-    owid_charts_templates=owid_charts_templates,
+    templates_need_update=templates_need_update_sqlite3,
+    owid_charts_templates=owid_charts_templates_sqlite3,
 )

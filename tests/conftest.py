@@ -5,12 +5,14 @@ import secrets
 import sys
 from pathlib import Path
 from typing import Any, Generator
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptography.fernet import Fernet
 from flask.app import Flask
 from flask.testing import FlaskClient
+from sqlalchemy import text
+from sqlalchemy.orm import sessionmaker
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError
@@ -268,3 +270,39 @@ def mock_exists_page() -> MagicMock:
 @pytest.fixture
 def mw_client(mock_site: MagicMock) -> MwClientPage:
     return MwClientPage("Test Page", mock_site)
+
+
+@pytest.fixture(autouse=True)
+def setup_db():
+    """Initialize an in-memory SQLite database for tests.
+
+    Creates a fresh SQLite in-memory engine for every test and patches
+    engine_mod._SessionFactory so all sqlalchemy_db service calls use it.
+    View-backed tables (is_view=True) are skipped since SQLite cannot run
+    the MySQL CREATE VIEW statements.
+    """
+    from src.main_app.sqlalchemy_db import engine as engine_mod
+    from src.main_app.sqlalchemy_db.engine import (
+        BaseDb,
+        build_engine,
+    )
+
+    engine = build_engine("sqlite:///:memory:")
+
+    # Create only real tables; skip view-backed mapped classes
+    for table in BaseDb.metadata.sorted_tables:
+        if not table.info.get("is_view"):
+            table.create(engine, checkfirst=True)
+
+    # Create views manually
+    for table in BaseDb.metadata.sorted_tables:
+        if table.info.get("is_view") and table.info.get("create_query"):
+            with engine.connect() as conn:
+                conn.execute(text(table.info["create_query"]))
+
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+
+    with patch.object(engine_mod, "_SessionFactory", factory):
+        yield
+
+    engine.dispose()

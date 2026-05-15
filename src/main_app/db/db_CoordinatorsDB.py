@@ -23,6 +23,8 @@ class CoordinatorsDB:
             database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
         """
         self.db = db
+        if not self.db:
+            raise ValueError("Either 'db' or 'database_data' must be provided")
 
     def _row_to_record(self, row: dict[str, Any]) -> AdminUserRecord:
         return AdminUserRecord(

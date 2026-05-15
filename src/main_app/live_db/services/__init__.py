@@ -1,4 +1,4 @@
-from ...db.services import (
+from ...sqlalchemy_db.services import (
     admin_service,
     jobs_service,
     owid_charts_service,
@@ -7,14 +7,14 @@ from ...db.services import (
     template_service,
     user_token_service,
 )
-from ...db.services.admin_service import (
+from ...sqlalchemy_db.services.admin_service import (
     active_coordinators,
     add_coordinator,
     delete_coordinator,
     list_coordinators,
     set_coordinator_active,
 )
-from ...db.services.jobs_service import (
+from ...sqlalchemy_db.services.jobs_service import (
     cancel_job,
     create_job,
     delete_job,
@@ -23,7 +23,7 @@ from ...db.services.jobs_service import (
     list_jobs,
     update_job_status,
 )
-from ...db.services.owid_charts_service import (
+from ...sqlalchemy_db.services.owid_charts_service import (
     add_chart,
     delete_chart,
     get_chart_by_id,
@@ -32,7 +32,7 @@ from ...db.services.owid_charts_service import (
     list_published_charts,
     update_chart_data,
 )
-from ...db.services.settings_service import (
+from ...sqlalchemy_db.services.settings_service import (
     create_setting,
     delete_setting,
     get_all_settings_raw,
@@ -40,10 +40,10 @@ from ...db.services.settings_service import (
     settings_update_form,
     update_setting,
 )
-from ...db.services.template_need_update_service import (
+from ...sqlalchemy_db.services.template_need_update_service import (
     list_templates_need_update,
 )
-from ...db.services.template_service import (
+from ...sqlalchemy_db.services.template_service import (
     add_template_data,
     delete_template,
     get_template,
@@ -51,7 +51,7 @@ from ...db.services.template_service import (
     list_templates,
     update_template_data,
 )
-from ...db.services.user_token_service import (
+from ...sqlalchemy_db.services.user_token_service import (
     delete_user_token,
     get_user_token,
     get_user_token_by_username,

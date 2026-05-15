@@ -1,0 +1,558 @@
+# Migration Plan: Plain SQLAlchemy to Flask-SQLAlchemy
+
+## 1. Executive Summary
+
+This plan details the migration from the current plain SQLAlchemy setup (module-level `sessionmaker` singleton, manual session management via `get_session()`) to Flask-SQLAlchemy, which provides Flask-integrated session management (`db.session`), automatic request-scoped cleanup, and the `db.Model` declarative base.
+
+**Current state:** The project already uses SQLAlchemy 2.0-style `DeclarativeBase` models under `src/main_app/sqlalchemy_db/`. Services use `get_session()` with manual `with` blocks. There is no Flask-SQLAlchemy dependency.
+
+**Target state:** Flask-SQLAlchemy manages the engine, session, and declarative base. Services use `db.session` instead of `get_session()`. Models inherit from `db.Model`. The app context manages session lifecycle automatically.
+
+---
+
+## 2. Motivation
+
+| Problem (current)                                                           | Benefit (after migration)                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Manual `get_session()` per function call — easy to forget `session.close()` | Flask-SQLAlchemy auto-cleans sessions on request teardown                |
+| Module-level `_SessionFactory` singleton — no per-request isolation         | `db.session` is scoped to the Flask app context                          |
+| No integration with Flask's `teardown_appcontext`                           | Automatic `session.remove()` on every request                            |
+| `build_db_url()` + `init_db()` boilerplate in `create_app()`                | `SQLAlchemy(app)` handles engine creation from `SQLALCHEMY_DATABASE_URI` |
+| Custom `BaseDb(DeclarativeBase)` with manual `to_dict()`                    | Can keep `to_dict()` by subclassing `db.Model`                           |
+
+---
+
+## 3. Scope
+
+### In scope
+
+-   `src/main_app/sqlalchemy_db/engine.py` — replace with Flask-SQLAlchemy `db` object
+-   `src/main_app/sqlalchemy_db/models/*.py` — migrate from `BaseDb` to `db.Model`
+-   `src/main_app/sqlalchemy_db/services/*.py` — replace `get_session()` with `db.session`
+-   `src/main_app/live_db/` — update re-exports if model base changes
+-   `src/main_app/__init__.py` — replace `init_db()` with `SQLAlchemy(app)`
+-   `requirements.txt` — add `flask-sqlalchemy`
+
+### Out of scope
+
+-   `src/main_app/db/` — the legacy PyMySQL layer (separate cleanup effort)
+-   Alembic migration tooling (not currently used)
+-   Query style modernization (`session.query()` to `select()`) — can be done later
+-   View auto-creation logic (will be preserved as-is)
+
+---
+
+## 4. Prerequisites
+
+### 4.1 Dependency addition
+
+Add to `requirements.txt`:
+
+```
+flask-sqlalchemy>=3.1
+```
+
+Flask-SQLAlchemy 3.1+ supports SQLAlchemy 2.0 `DeclarativeBase`, which this project already uses. This is critical — older versions (3.0.x) only support the legacy `declarative_base()` function.
+
+### 4.2 Pin SQLAlchemy version
+
+The current `requirements.txt` has `sqlalchemy` with no version pin. Pin to:
+
+```
+sqlalchemy>=2.0,<2.1
+```
+
+Flask-SQLAlchemy 3.1 requires SQLAlchemy >= 2.0.
+
+---
+
+## 5. Detailed Implementation Steps
+
+### Phase 1: Create the Flask-SQLAlchemy extension object
+
+**File:** `src/main_app/sqlalchemy_db/engine.py`
+
+Replace the current `BaseDb`, `init_db()`, `get_session()`, and `_SessionFactory` with a Flask-SQLAlchemy `SQLAlchemy` instance.
+
+#### 5.1.1 Define the `db` object
+
+```python
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+class BaseDb(DeclarativeBase):
+    """Base class — kept for its to_dict() method."""
+    def to_dict(self) -> dict[str, Any]:
+        # ... keep existing implementation unchanged ...
+
+db = SQLAlchemy(model_class=BaseDb)
+```
+
+The `model_class=BaseDb` parameter tells Flask-SQLAlchemy to use your custom `DeclarativeBase` subclass as the model base. This preserves the `to_dict()` method on all models.
+
+#### 5.1.2 Remove these functions/variables
+
+-   `_SessionFactory: sessionmaker | None` — no longer needed
+-   `init_db()` — replaced by `db.init_app(app)`
+-   `get_session()` — replaced by `db.session`
+-   `build_engine()` — Flask-SQLAlchemy builds the engine from config
+-   `build_db_url()` — keep temporarily for config, but the URL goes into `app.config`
+
+#### 5.1.3 Keep unchanged
+
+-   `LONGTEXT` custom type — still needed for MySQL compatibility
+-   `create_views_new_all_view()` event listener — still needed for view auto-creation
+-   `BaseDb` class — becomes the base for `db.Model`
+
+#### 5.1.4 New `engine.py` (target state)
+
+```python
+"""Flask-SQLAlchemy extension and custom types."""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Text, event, inspect, text
+from sqlalchemy.dialects.mysql import LONGTEXT as LONGTEXTSQLALCHEMY
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.types import TypeDecorator
+
+logger = logging.getLogger(__name__)
+
+
+class LONGTEXT(TypeDecorator):
+    """LONGTEXT for MySQL, Text for everything else."""
+    impl = Text
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "mysql":
+            return dialect.type_descriptor(LONGTEXTSQLALCHEMY())
+        return dialect.type_descriptor(Text())
+
+
+class BaseDb(DeclarativeBase):
+    """Base class for database models."""
+    def to_dict(self) -> dict[str, Any]:
+        data = {column.name: getattr(self, column.name) for column in self.__table__.columns}
+        # ... keep existing date serialization logic ...
+        return data
+
+
+# The Flask-SQLAlchemy extension instance
+db = SQLAlchemy(model_class=BaseDb)
+
+
+@event.listens_for(BaseDb.metadata, "after_create")
+def create_views_new_all_view(target, connection, **kw):
+    # ... keep existing view creation logic unchanged ...
+    pass
+
+
+__all__ = [
+    "BaseDb",
+    "db",
+    "LONGTEXT",
+]
+```
+
+**Key change:** `db` replaces `init_db()` and `get_session()` as the central export.
+
+---
+
+### Phase 2: Configure Flask-SQLAlchemy in `create_app()`
+
+**File:** `src/main_app/__init__.py`
+
+#### 5.2.1 Current code (lines 132-138)
+
+```python
+if settings.database_data.db_host or settings.database_data.db_user:
+    ensure_all_tables(sql_tables, Database(settings.database_data))
+    try:
+        db_url = build_db_url(settings.database_data.to_dict())
+        init_db(db_url, create_tables=False)
+    except Exception:
+        logger.exception("Failed to initialize SQLAlchemy")
+```
+
+#### 5.2.2 New code
+
+```python
+from .sqlalchemy_db.engine import db
+
+def create_app(_conf=None) -> Flask:
+    app = Flask(...)
+
+    # Configure SQLAlchemy URI from settings
+    db_cfg = settings.database_data
+    if db_cfg.db_host or db_cfg.db_user:
+        app.config["SQLALCHEMY_DATABASE_URI"] = (
+            f"mysql+pymysql://{db_cfg.db_user}:{db_cfg.db_password}"
+            f"@{db_cfg.db_host}/{db_cfg.db_name}"
+        )
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_recycle": 3600,
+            "connect_args": {
+                "connect_timeout": 5,
+                "init_command": 'SET time_zone = "+00:00"',
+                "charset": "utf8mb4",
+            },
+        }
+
+    # Initialize Flask-SQLAlchemy (creates engine + session factory)
+    db.init_app(app)
+
+    # Keep legacy PyMySQL table creation (runs raw DDL)
+    with app.app_context():
+        if db_cfg.db_host or db_cfg.db_user:
+            ensure_all_tables(sql_tables, Database(settings.database_data))
+
+    # ... rest of create_app() unchanged ...
+```
+
+**Important:** `db.init_app(app)` must be called **before** registering blueprints so that `db` is available when route modules are imported.
+
+#### 5.2.3 Teardown is automatic
+
+Flask-SQLAlchemy automatically registers `session.remove()` in `teardown_appcontext`. The existing no-op teardown handler (line 148-155) can be left as-is — Flask-SQLAlchemy's handler runs independently.
+
+---
+
+### Phase 3: Migrate model base class
+
+**Files:** All files under `src/main_app/sqlalchemy_db/models/`
+
+#### 5.3.1 Change pattern
+
+Every model currently does:
+
+```python
+from ..engine import BaseDb
+
+class SomeRecord(BaseDb):
+    __tablename__ = "some_table"
+    ...
+```
+
+Change to:
+
+```python
+from ..engine import db
+
+class SomeRecord(db.Model):
+    __tablename__ = "some_table"
+    ...
+```
+
+Since `db = SQLAlchemy(model_class=BaseDb)`, `db.Model` **is** `BaseDb`. So `to_dict()` and any other methods on `BaseDb` are preserved. The `__tablename__` convention is unchanged.
+
+#### 5.3.2 Files to update
+
+| File                    | Current import                | New import                |
+| ----------------------- | ----------------------------- | ------------------------- |
+| `models/users.py`       | `from ..engine import BaseDb` | `from ..engine import db` |
+| `models/jobs.py`        | `from ..engine import BaseDb` | `from ..engine import db` |
+| `models/settings.py`    | `from ..engine import BaseDb` | `from ..engine import db` |
+| `models/templates.py`   | `from ..engine import BaseDb` | `from ..engine import db` |
+| `models/owid_charts.py` | `from ..engine import BaseDb` | `from ..engine import db` |
+| `models/views.py`       | `from ..engine import BaseDb` | `from ..engine import db` |
+
+Each model class changes `class X(BaseDb):` to `class X(db.Model):`.
+
+#### 5.3.3 Custom types (LONGTEXT)
+
+Models that use `LONGTEXT` currently import it from `..engine`. This stays the same — `LONGTEXT` is still exported from `engine.py`.
+
+---
+
+### Phase 4: Migrate service functions
+
+**Files:** All files under `src/main_app/sqlalchemy_db/services/`
+
+This is the largest change by line count. Every `with get_session() as session:` block becomes a direct use of `db.session`.
+
+#### 5.4.1 Before/after pattern
+
+**Before:**
+
+```python
+from ..engine import get_session
+from ..models.jobs import JobRecord
+
+def create_job(job_type: str, username: str | None = None) -> JobRecord:
+    with get_session() as session:
+        job = JobRecord(job_type=job_type, username=username, status="pending")
+        session.add(job)
+        session.commit()
+        session.refresh(job)
+        return job
+```
+
+**After:**
+
+```python
+from ..engine import db
+from ..models.jobs import JobRecord
+
+def create_job(job_type: str, username: str | None = None) -> JobRecord:
+    job = JobRecord(job_type=job_type, username=username, status="pending")
+    db.session.add(job)
+    db.session.commit()
+    db.session.refresh(job)
+    return job
+```
+
+#### 5.4.2 Special cases to handle
+
+**a) Read-only queries** — no change to query syntax, just remove `with`:
+
+```python
+# Before
+with get_session() as session:
+    return session.query(JobRecord).all()
+
+# After
+return db.session.query(JobRecord).all()
+```
+
+**b) Bulk deletes:**
+
+```python
+# Before
+with get_session() as session:
+    session.query(UserTokenRecord).filter(...).delete()
+    session.commit()
+
+# After
+db.session.query(UserTokenRecord).filter(...).delete()
+db.session.commit()
+```
+
+**c) Upsert pattern (user_token_service.py):**
+
+```python
+# Before — session is explicit
+with get_session() as session:
+    orm_obj = session.query(UserTokenRecord).filter(...).first()
+    if orm_obj:
+        orm_obj.username = username
+    else:
+        orm_obj = UserTokenRecord(...)
+        session.add(orm_obj)
+    session.commit()
+
+# After — db.session is implicit
+orm_obj = db.session.query(UserTokenRecord).filter(...).first()
+if orm_obj:
+    orm_obj.username = username
+else:
+    orm_obj = UserTokenRecord(...)
+    db.session.add(orm_obj)
+db.session.commit()
+```
+
+#### 5.4.3 Complete list of service files to update
+
+| File                                       | Function count | Notes                   |
+| ------------------------------------------ | -------------- | ----------------------- |
+| `services/jobs_service.py`                 | 8 functions    | All use `get_session()` |
+| `services/admin_service.py`                | ~4 functions   | Standard CRUD           |
+| `services/settings_service.py`             | ~4 functions   | Standard CRUD           |
+| `services/template_service.py`             | ~5 functions   | Standard CRUD           |
+| `services/user_token_service.py`           | 4 functions    | Upsert pattern          |
+| `services/owid_charts_service.py`          | ~4 functions   | Uses `joinedload`       |
+| `services/template_need_update_service.py` | ~2 functions   | Read-only view queries  |
+
+**Total:** ~31 functions across 7 service files.
+
+#### 5.4.4 Update `services/__init__.py`
+
+No changes needed to the re-exports. The public API (function names) stays the same.
+
+---
+
+### Phase 5: Update `live_db` facade
+
+**Files:** `src/main_app/live_db/models/__init__.py`, `src/main_app/live_db/services/__init__.py`
+
+These files re-export from `sqlalchemy_db`. Since the model **names** and **module paths** don't change (only the base class changes), the re-exports continue to work without modification.
+
+**No changes needed** unless the model class names change (they don't).
+
+---
+
+### Phase 6: Update imports in route blueprints
+
+**Files:** All files under `src/main_app/app_routes/`
+
+Routes import from `live_db` (not directly from `sqlalchemy_db`). Since `live_db` re-exports are unchanged, route files need no changes.
+
+**Verify:** Search for any direct imports of `get_session` or `BaseDb` in route files — these should not exist, but if they do, update them.
+
+```bash
+grep -r "get_session\|BaseDb" src/main_app/app_routes/
+```
+
+---
+
+### Phase 7: Remove dead code
+
+After all services use `db.session`:
+
+1. **Delete `get_session()`** from `engine.py`
+2. **Delete `_SessionFactory`** variable from `engine.py`
+3. **Delete `build_engine()`** from `engine.py` (Flask-SQLAlchemy handles this)
+4. **Delete `init_db()`** from `engine.py`
+5. **Update `__all__`** in `engine.py` to export `db` instead of `init_db`, `get_session`
+6. **Update `__init__.py`** to stop importing `build_db_url`, `init_db`
+
+---
+
+## 6. File-by-File Change Summary
+
+| File                                                     | Change type | Description                                                           |
+| -------------------------------------------------------- | ----------- | --------------------------------------------------------------------- |
+| `requirements.txt`                                       | Modify      | Add `flask-sqlalchemy>=3.1`, pin `sqlalchemy>=2.0,<2.1`               |
+| `sqlalchemy_db/engine.py`                                | **Rewrite** | Replace session management with `db = SQLAlchemy(model_class=BaseDb)` |
+| `sqlalchemy_db/models/users.py`                          | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/models/jobs.py`                           | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/models/settings.py`                       | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/models/templates.py`                      | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/models/owid_charts.py`                    | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/models/views.py`                          | Modify      | `BaseDb` → `db.Model`                                                 |
+| `sqlalchemy_db/services/jobs_service.py`                 | Modify      | `get_session()` → `db.session` (8 functions)                          |
+| `sqlalchemy_db/services/admin_service.py`                | Modify      | `get_session()` → `db.session`                                        |
+| `sqlalchemy_db/services/settings_service.py`             | Modify      | `get_session()` → `db.session`                                        |
+| `sqlalchemy_db/services/template_service.py`             | Modify      | `get_session()` → `db.session`                                        |
+| `sqlalchemy_db/services/user_token_service.py`           | Modify      | `get_session()` → `db.session`                                        |
+| `sqlalchemy_db/services/owid_charts_service.py`          | Modify      | `get_session()` → `db.session`                                        |
+| `sqlalchemy_db/services/template_need_update_service.py` | Modify      | `get_session()` → `db.session`                                        |
+| `__init__.py` (main_app)                                 | Modify      | Replace `init_db()` with `db.init_app(app)` + config                  |
+| `live_db/models/__init__.py`                             | No change   | Re-exports unchanged                                                  |
+| `live_db/services/__init__.py`                           | No change   | Re-exports unchanged                                                  |
+| `app_routes/**`                                          | No change   | Imports via `live_db` facade                                          |
+
+---
+
+## 7. Testing Strategy
+
+### 7.1 Run existing tests after each phase
+
+```bash
+pytest -x  # Stop on first failure
+```
+
+### 7.2 Key test scenarios
+
+1. **App startup:** `create_app()` initializes without error
+2. **Session lifecycle:** Verify `db.session` is available within request context
+3. **Teardown:** Verify session is cleaned up after request (no connection leaks)
+4. **Model queries:** All existing service function tests pass unchanged
+5. **View creation:** The `after_create` event listener still fires
+
+### 7.3 Test configuration
+
+For tests that create their own app, ensure the test config uses an in-memory or test SQLite database:
+
+```python
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+```
+
+Flask-SQLAlchemy's `db.create_all()` works in test setup.
+
+### 7.4 Regression checklist
+
+-   [ ] All CRUD operations work for each model
+-   [ ] `joinedload` queries (owid_charts_service) work
+-   [ ] Bulk deletes (user_token_service) work
+-   [ ] Upsert pattern (user_token_service) works
+-   [ ] View models query correctly
+-   [ ] `to_dict()` method works on all models
+-   [ ] `expire_on_commit=False` behavior preserved (Flask-SQLAlchemy default)
+
+---
+
+## 8. Risks and Mitigations
+
+### 8.1 `expire_on_commit` behavior
+
+**Risk:** The current `sessionmaker` sets `expire_on_commit=False`. Flask-SQLAlchemy defaults to `expire_on_commit=True` (via `SQLALCHEMY_SESSION_OPTIONS`).
+
+**Mitigation:** Set in config:
+
+```python
+app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
+```
+
+This is critical because several services return ORM objects after commit and access their attributes without re-querying.
+
+### 8.2 Session scope change
+
+**Risk:** Current pattern creates a new session per function call. Flask-SQLAlchemy uses one session per request. If a service function is called outside a request context (e.g., from a background thread), `db.session` will fail.
+
+**Mitigation:**
+
+-   Identify any non-request-context database access (background workers, CLI commands)
+-   For background workers: use `with app.app_context():` wrapper
+-   For CLI: use Flask CLI's `@with_appcontext`
+
+### 8.3 Thread safety
+
+**Risk:** The current `_SessionFactory` is thread-safe because `sessionmaker` creates independent sessions. Flask-SQLAlchemy uses `scoped_session` which is also thread-safe.
+
+**Mitigation:** No issue — Flask-SQLAlchemy's `scoped_session` is thread-local by default.
+
+### 8.4 View auto-creation timing
+
+**Risk:** The `after_create` event on `BaseDb.metadata` fires when `create_all()` is called. With Flask-SQLAlchemy, this happens via `db.create_all()` in the app context. If `create_tables=False` is maintained (tables created by PyMySQL DDL), the event never fires.
+
+**Mitigation:** The current flow (PyMySQL creates tables, SQLAlchemy connects to them) stays unchanged. The view creation event is only relevant for test environments where `db.create_all()` is called. No change needed.
+
+---
+
+## 9. Rollback Plan
+
+If the migration causes issues:
+
+1. **Phase 1-2 rollback:** Revert `engine.py` and `__init__.py` to use `init_db()`/`get_session()`
+2. **Phase 3 rollback:** Revert models to `BaseDb` inheritance
+3. **Phase 4 rollback:** Revert services to `get_session()` pattern
+
+Each phase is independently reversible since the public API (function names in services) doesn't change.
+
+---
+
+## 10. Implementation Order
+
+Execute in this exact order:
+
+```
+Step 1:  Update requirements.txt (add flask-sqlalchemy, pin sqlalchemy)
+Step 2:  pip install -r requirements.txt
+Step 3:  Rewrite engine.py (keep BaseDb, LONGTEXT, view listener; replace session mgmt with db)
+Step 4:  Update all 6 model files (BaseDb → db.Model)
+Step 5:  Update all 7 service files (get_session() → db.session)
+Step 6:  Update __init__.py (db.init_app(app) + SQLALCHEMY_DATABASE_URI config)
+Step 7:  Run pytest -x
+Step 8:  Fix any test failures
+Step 9:  Remove dead code (get_session, _SessionFactory, build_engine, init_db)
+Step 10: Final test run + manual smoke test
+```
+
+---
+
+## 11. Post-Migration Cleanup (Optional)
+
+After the migration is stable:
+
+1. **Modernize query style:** Convert `session.query(Model)` to `session.execute(select(Model))` (SQLAlchemy 2.0 style). This is not required but recommended for future-proofing.
+2. **Remove `live_db/` facade:** Routes could import directly from `sqlalchemy_db/` since the migration is complete.
+3. **Add Alembic:** Flask-SQLAlchemy integrates well with Alembic for schema migrations.
+4. **Remove legacy `db/` PyMySQL layer:** Once all code paths use SQLAlchemy, the entire `db/` module tree can be deleted.

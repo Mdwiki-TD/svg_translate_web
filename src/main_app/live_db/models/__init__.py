@@ -1,9 +1,9 @@
-from ...db.models.jobs import JobRecord
-from ...db.models.owid_charts import OwidChartRecord
-from ...db.models.settings import SettingRecord
-from ...db.models.templates import TemplateRecord
-from ...db.models.users import AdminUserRecord, UserTokenRecord
-from ...db.models.views import (
+from ...sqlalchemy_db.models.jobs import JobRecord
+from ...sqlalchemy_db.models.owid_charts import OwidChartRecord
+from ...sqlalchemy_db.models.settings import SettingRecord
+from ...sqlalchemy_db.models.templates import TemplateRecord
+from ...sqlalchemy_db.models.users import AdminUserRecord, UserTokenRecord
+from ...sqlalchemy_db.models.views import (
     OwidChartTemplateRecord,
     TemplateNeedUpdateRecord,
 )

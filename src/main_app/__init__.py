@@ -23,6 +23,7 @@ from .core.cookies import CookieHeaderClient
 from .db.engine import Database
 from .db.sql_schema_ensure_tables import ensure_all_tables
 from .db.sql_schema_tables import sql_tables
+from .sqlalchemy_db.engine import build_db_url, init_db
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -130,6 +131,11 @@ def create_app(_conf=None) -> Flask:
 
     if settings.database_data.db_host or settings.database_data.db_user:
         ensure_all_tables(sql_tables, Database(settings.database_data))
+        try:
+            db_url = build_db_url(settings.database_data.to_dict())
+            init_db(db_url, create_tables=False)
+        except Exception:
+            logger.exception("Failed to initialize SQLAlchemy")
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
