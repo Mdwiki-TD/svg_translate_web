@@ -6,11 +6,30 @@ Only third-party extensions should be instantiated here.
 This prevents circular imports when models/services import `db`.
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy.model import Model
+
+
+class BaseModel(Model):
+    """Base model providing a generic to_dict() for all records."""
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column.name] = value
+        return data
+
 
 # expire_on_commit=False preserves current behavior where objects
 # remain accessible after commit without triggering new queries.
 # (The existing engine.py uses sessionmaker(expire_on_commit=False))
-db = SQLAlchemy(session_options={"expire_on_commit": False})
+db = SQLAlchemy(model_class=BaseModel, session_options={"expire_on_commit": False})
 migrate = Migrate()
