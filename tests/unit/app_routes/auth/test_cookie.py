@@ -2,25 +2,7 @@
 
 from __future__ import annotations
 
-import types
-
-import pytest
-from itsdangerous import URLSafeTimedSerializer
-
 from src.main_app.app_routes.auth import cookie
-
-
-@pytest.fixture(autouse=True)
-def configure_serializers(monkeypatch: pytest.MonkeyPatch) -> None:
-    fake_cookie = types.SimpleNamespace(max_age=3600)
-    fake_settings = types.SimpleNamespace(secret_key="secret", cookie=fake_cookie)
-    serializer = URLSafeTimedSerializer(fake_settings.secret_key, salt="svg-translate-uid")
-    state_serializer = URLSafeTimedSerializer(fake_settings.secret_key, salt="svg-translate-oauth-state")
-
-    monkeypatch.setattr(cookie, "settings", fake_settings)
-    monkeypatch.setattr(cookie, "_serializer", serializer)
-    monkeypatch.setattr(cookie, "_state_serializer", state_serializer)
-
 
 def test_sign_user_id() -> None:
     token = cookie.sign_user_id(123)
