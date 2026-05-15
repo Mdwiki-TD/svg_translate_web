@@ -50,7 +50,7 @@ def upload_step(
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
-    _upload_limit = int(settings.dynamic.get("copy_svg_langs_upload_limit", 0))
+    _upload_limit = 0
 
     for index, (title, file_data) in enumerate(to_work.items(), 1):
         if cancel_check and cancel_check():

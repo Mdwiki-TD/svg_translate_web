@@ -35,9 +35,12 @@ from .template_need_update_service import (
     list_templates_need_update,
 )
 from .template_service import (
+    add_template_data,
+    delete_template,
     get_template,
     get_template_by_title,
     list_templates,
+    update_template_data,
 )
 from .user_token_service import (
     delete_user_token,
@@ -47,6 +50,13 @@ from .user_token_service import (
 )
 
 __all__ = [
+    "admin_service",
+    "jobs_service",
+    "template_service",
+    "owid_charts_service",
+    "settings_service",
+    "template_need_update_service",
+    "user_token_service",
     # user_token_service
     "upsert_user_token",
     "get_user_token",
@@ -77,6 +87,9 @@ __all__ = [
     "get_template",
     "get_template_by_title",
     "list_templates",
+    "add_template_data",
+    "update_template_data",
+    "delete_template",
     # template_need_update_service
     "list_templates_need_update",
     # jobs_service

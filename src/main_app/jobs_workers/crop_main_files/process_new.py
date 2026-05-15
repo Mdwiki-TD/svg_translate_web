@@ -18,8 +18,8 @@ from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
-from ...live_db.models import TemplateRecord
-from ...live_db.services import (
+from ...sqlalchemy_db.models import TemplateRecord
+from ...sqlalchemy_db.services import (
     is_job_cancelled,
     list_templates,
     update_job_status,
@@ -217,7 +217,7 @@ class CropMainFilesProcessor:
         return self._apply_limits(templates_with_files)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        upload_limit = int(settings.dynamic.get("crop_newest_upload_limit", 0))
+        upload_limit = getattr(settings, "crop_newest_upload_limit", 0) or 0
         if upload_limit > 0 and len(templates) > upload_limit:
             logger.info(
                 f"Job {self.job_id}: Upload cropped files limit - "

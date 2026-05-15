@@ -151,21 +151,6 @@ src/
 │               ├── __init__.py
 │               ├── last_world_file_utils.py
 │               └── main_file.py
-├── new_app/
-│   ├── __init__.py
-│   ├── admin/
-│   │   ├── routes/
-│   │   └── services/
-│   ├── config.py
-│   ├── public/
-│   │   ├── routes/
-│   │   └── services/
-│   └── shared/
-│       ├── db/
-│       │   └── __init__.py
-│       ├── utils/
-│       │   └── __init__.py
-│       └── workers/
 ├── offline/
 │   ├── __init__.py
 │   └── collect_main_files.py

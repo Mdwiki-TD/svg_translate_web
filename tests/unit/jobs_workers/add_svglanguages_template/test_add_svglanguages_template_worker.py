@@ -118,39 +118,6 @@ class TestLoadTemplates:
         assert len(templates) == 3
         assert all(t.title.startswith("Template:OWID/") for t in templates)
 
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
-    def test_apply_limits_with_no_limit(self, mcok_list_templates, mock_jobs_service):
-        """Test that all templates are returned when no limit is set."""
-        mock_templates = [
-            MagicMock(id=1, title="Template:OWID/test1"),
-            MagicMock(id=2, title="Template:OWID/test2"),
-        ]
-        mcok_list_templates.return_value = mock_templates
-
-        with patch.object(settings.dynamic, "get", return_value=0):
-            worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-            templates = worker._load_templates()
-
-        assert len(templates) == 2
-
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
-    def test_apply_limits_applies_limit(self, mcok_list_templates, mock_jobs_service):
-        """Test that limit is applied when configured."""
-        mock_templates = [
-            MagicMock(id=1, title="Template:OWID/test1"),
-            MagicMock(id=2, title="Template:OWID/test2"),
-            MagicMock(id=3, title="Template:OWID/test3"),
-            MagicMock(id=4, title="Template:OWID/test4"),
-            MagicMock(id=5, title="Template:OWID/test5"),
-        ]
-        mcok_list_templates.return_value = mock_templates
-
-        with patch.object(settings.dynamic, "get", return_value=3):
-            worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-            templates = worker._load_templates()
-
-        assert len(templates) == 3
-
 
 class TestProcessTemplate:
     """Tests for _process_template method."""

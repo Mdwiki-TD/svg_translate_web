@@ -47,8 +47,16 @@ def add_template_data(
     """
     Add a new template.
     """
+    title = data.get("title", "")
+    if not title or not title.strip():
+        raise ValueError("Title is required")
+
     data = _ensure_last_world_year(data)
     with get_session() as session:
+        existing = session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
+        if existing:
+            raise ValueError(f"Template '{title}' already exists")
+
         chart = TemplateRecord(**data)
         session.add(chart)
         session.commit()

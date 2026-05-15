@@ -6,8 +6,8 @@ import logging
 import threading
 from typing import Any, Dict
 
-from ..live_db.services import cancel_job as cancel_job_db
-from ..live_db.services import (
+from ..sqlalchemy_db.services import cancel_job as cancel_job_db
+from ..sqlalchemy_db.services import (
     create_job,
 )
 from .workers_list import jobs_targets, jobs_targets_public

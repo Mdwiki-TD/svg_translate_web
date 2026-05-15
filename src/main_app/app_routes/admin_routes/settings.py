@@ -7,7 +7,7 @@ import re
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from ...config import settings
-from ...live_db.services import (
+from ...sqlalchemy_db.services import (
     create_setting,
     get_all_settings_raw,
     settings_update_form,
@@ -54,7 +54,6 @@ class SettingsRoutes:
             failed_keys, deleted_keys = settings_update_form(request.form)
             # Invalidate runtime cache only if all updates succeeded
             if not failed_keys:
-                settings.dynamic.invalidate()
                 if deleted_keys:
                     flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
 

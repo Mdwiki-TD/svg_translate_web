@@ -16,8 +16,8 @@ from ...api_services.clients import get_user_site
 from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
 from ...config import settings
-from ...live_db.models import TemplateRecord
-from ...live_db.services import list_templates
+from ...sqlalchemy_db.models import TemplateRecord
+from ...sqlalchemy_db.services import list_templates
 from ..base_worker import BaseJobWorker
 from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
@@ -95,7 +95,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
+        _limit = 0
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]

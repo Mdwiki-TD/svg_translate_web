@@ -17,8 +17,8 @@ from ...api_services.pages_api import create_page, is_page_exists
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...data import get_slug_categories
-from ...live_db.models import TemplateRecord
-from ...live_db.services import list_templates
+from ...sqlalchemy_db.models import TemplateRecord
+from ...sqlalchemy_db.services import list_templates
 from ...utils.wikitext.categories_utils import merge_categories, sort_categories
 from ..base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
@@ -96,7 +96,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = int(settings.dynamic.get("create_owid_pages_limit", 0))
+        _limit = getattr(settings, "create_owid_pages_limit", 0) or 0
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
