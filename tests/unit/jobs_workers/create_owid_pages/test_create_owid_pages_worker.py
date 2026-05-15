@@ -82,7 +82,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock settings
     mock_settings = MagicMock()
-    mock_settings.create_owid_pages_limit = 2
+    mock_settings.create_owid_pages_limit = 0
     monkeypatch.setattr(
         "src.main_app.jobs_workers.create_owid_pages.worker.settings",
         mock_settings,
@@ -209,6 +209,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
     def test_apply_limits_with_limit_set(self, mock_services):
         """Test _apply_limits respects the create_owid_pages_limit setting."""
+        mock_services["settings"].create_owid_pages_limit = 2
         templates = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),

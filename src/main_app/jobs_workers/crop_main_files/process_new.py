@@ -217,7 +217,7 @@ class CropMainFilesProcessor:
         return self._apply_limits(templates_with_files)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        upload_limit = 0
+        upload_limit = getattr(settings, "crop_newest_upload_limit", 0) or 0
         if upload_limit > 0 and len(templates) > upload_limit:
             logger.info(
                 f"Job {self.job_id}: Upload cropped files limit - "

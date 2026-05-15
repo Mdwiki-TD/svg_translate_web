@@ -58,14 +58,16 @@ def update_running_status(job_id: int, result_file: str | None = None, *, job_ty
     """
     with get_session() as session:
         job = session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-        if job:
-            job.status = "running"
-            if not job.started_at:
-                job.started_at = datetime.now(UTC)
-            if result_file:
-                job.result_file = result_file
-            session.commit()
-            session.refresh(job)
+        if not job:
+            raise LookupError(f"Job id {job_id} was not found")
+
+        job.status = "running"
+        if not job.started_at:
+            job.started_at = datetime.now(UTC)
+        if result_file:
+            job.result_file = result_file
+        session.commit()
+        session.refresh(job)
         return job
 
 
@@ -79,14 +81,16 @@ def _update_status(job_id: int, status: str, result_file: str, job_type: str) ->
             query = query.filter(JobRecord.job_type == job_type)
         job = query.first()
 
-        if job:
-            job.status = status
-            if status in ("completed", "failed", "cancelled"):
-                job.completed_at = datetime.now(UTC)
-            if result_file:
-                job.result_file = result_file
-            session.commit()
-            session.refresh(job)
+        if not job:
+            raise LookupError(f"Job id {job_id} was not found")
+
+        job.status = status
+        if status in ("completed", "failed", "cancelled"):
+            job.completed_at = datetime.now(UTC)
+        if result_file:
+            job.result_file = result_file
+        session.commit()
+        session.refresh(job)
 
         return job
 
@@ -128,7 +132,7 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
         return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
 
-def delete_job(job_id: int, job_type: str) -> None:
+def delete_job(job_id: int, job_type: str) -> bool:
     """
     Delete a job by ID and job type.
 
@@ -144,7 +148,7 @@ def delete_job(job_id: int, job_type: str) -> None:
     with get_session() as session:
         record = session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
         if not record:
-            raise LookupError(f"Job id {job_id} was not found")
+            return False
         session.delete(record)
         session.commit()
         return True

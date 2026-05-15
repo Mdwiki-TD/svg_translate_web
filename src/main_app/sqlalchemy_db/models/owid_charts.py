@@ -57,11 +57,23 @@ class OwidChartRecord(BaseDb):
 
     @property
     def template_id(self) -> int | None:
-        return self._template_info.template_id if hasattr(self, "_template_info") and self._template_info else None
+        if hasattr(self, "_template_info") and self._template_info:
+            return self._template_info.template_id
+        return getattr(self, "_template_id_override", None)
+
+    @template_id.setter
+    def template_id(self, value: int | None) -> None:
+        self._template_id_override = value
 
     @property
     def template_title(self) -> str | None:
-        return self._template_info.template_title if hasattr(self, "_template_info") and self._template_info else None
+        if hasattr(self, "_template_info") and self._template_info:
+            return self._template_info.template_title
+        return getattr(self, "_template_title_override", None)
+
+    @template_title.setter
+    def template_title(self, value: str | None) -> None:
+        self._template_title_override = value
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(
