@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Any, List
 
 import pymysql
@@ -147,7 +148,7 @@ class TemplatesDB:
                 """,
                 tuple(add_values),
             )
-        except pymysql.err.IntegrityError:
+        except (pymysql.err.IntegrityError, sqlite3.IntegrityError):
             # This assumes a UNIQUE constraint on the title column
             raise ValueError(f"Template '{title}' already exists") from None
 
