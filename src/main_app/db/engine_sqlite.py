@@ -131,12 +131,19 @@ class DatabaseSqlLite:
         try:
             return self.fetch_query(sql_query, params)
         except sqlite3.Error:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
             return []
+        except Exception:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
 
     def execute_query_safe(self, sql_query, params=None, **kwargs):
         try:
             return self.execute_query(sql_query, params)
         except sqlite3.Error:
-            if sql_query.strip().lower().startswith("select"):
-                return []
-            return 0
+            logger.exception("execute_query_safe failed, sql_query: %s, params: %s", sql_query, params)
+        except Exception:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
+
+        if sql_query.strip().lower().startswith("select"):
+            return []
+        return 0
