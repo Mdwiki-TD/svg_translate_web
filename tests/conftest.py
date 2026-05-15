@@ -44,7 +44,7 @@ def mock_check_db(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
         return _db_class(database_data)
 
     monkeypatch.setattr(
-        "src.main_app.db.services.owid_charts_service.settings",
+        "src.main_app.db.services.check_db.settings",
         _mock,
     )
     return _mock
