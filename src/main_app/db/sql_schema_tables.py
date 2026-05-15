@@ -116,7 +116,6 @@ owid_charts = """
 """
 
 owid_charts_templates = """
-
     CREATE VIEW IF NOT EXISTS owid_charts_templates AS
     SELECT
         c.chart_id,
@@ -135,11 +134,12 @@ templates_need_update = """
         t.slug AS slug,
         c.max_time,
         t.last_world_year
-    FROM owid_charts c
-    JOIN templates t
-        ON t.slug = c.slug
-    WHERE t.last_world_year != c.max_time
-    AND t.last_world_year IS NOT NULL
+    FROM
+        owid_charts c
+        JOIN templates t ON t.slug = c.slug
+    WHERE
+        t.last_world_year != c.max_time
+        AND t.last_world_year IS NOT NULL;
 """
 
 # sql_tables
