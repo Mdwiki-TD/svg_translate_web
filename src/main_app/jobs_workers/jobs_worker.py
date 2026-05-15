@@ -7,7 +7,7 @@ import threading
 from typing import Any, Dict
 
 from ..live_db.services import (
-    cancel_job,
+    cancel_job as cancel_job_db,
     create_job,
 )
 from .workers_list import jobs_targets, jobs_targets_public
@@ -74,7 +74,7 @@ def cancel_job(task_id: int, job_type: str | None = None) -> bool:
         local_cancelled = True
 
     # 2. Persist cancellation to DB (for cross-process detection)
-    db_cancelled = cancel_job(task_id, job_type)
+    db_cancelled = cancel_job_db(task_id, job_type)
     if db_cancelled:
         logger.info(f"Database cancellation requested for job {task_id}")
 
