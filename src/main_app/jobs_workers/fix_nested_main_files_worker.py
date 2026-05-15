@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from ..live_db.services import template_service
+from ..live_db.services import list_templates
 from ..shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
@@ -163,7 +163,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         """Execute the fix nested tags processing logic."""
         # Get all templates
-        templates = template_service.list_templates()
+        templates = list_templates()
         self.result["summary"]["total"] = len(templates)
 
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")

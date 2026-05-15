@@ -17,7 +17,7 @@ from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
 from ...config import settings
 from ...live_db.models import TemplateRecord
-from ...live_db.services import template_service
+from ...live_db.services import list_templates
 from ..base_worker import BaseJobWorker
 from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
@@ -90,7 +90,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # ------------------------------------------------------------------
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(templates)
 

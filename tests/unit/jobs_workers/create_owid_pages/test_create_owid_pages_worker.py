@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import threading
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
@@ -43,7 +41,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock template_service
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.template_service.list_templates",
+        "src.main_app.jobs_workers.create_owid_pages.worker.list_templates",
         mock_list_templates,
     )
 

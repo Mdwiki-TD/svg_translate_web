@@ -7,8 +7,9 @@ from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+from flask.testing import FlaskClient
 import pytest
 from werkzeug.wrappers import Response
 
@@ -479,16 +480,20 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client):
     assert len(store.list()) == 0
 
 
-def test_delete_nonexistent_job(admin_jobs_client):
+def test_delete_nonexistent_job(monkeypatch, admin_jobs_client: tuple[FlaskClient, FakeJobsDB]):
     """Test deleting a non-existent job shows appropriate error."""
+    mock_flash = Mock()
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+
     client, store = admin_jobs_client
 
     # Try to delete a job that doesn't exist
     response = client.post("/admin/collect_main_files/999/delete", follow_redirects=True)
-    assert response.status_code == 200
-    page = unescape(response.get_data(as_text=True))
-    # The actual message will depend on the error handling
-    assert "Failed to delete job" in page or "deleted successfully" in page
+    if response.status_code == 200:
+        # The actual message will depend on the error handling
+        mock_flash.assert_called_with("Job 999 deleted successfully.", "success")
+    else:
+        mock_flash.assert_called_with("Failed to delete job 999", "danger")
 
 
 def test_delete_job_with_wrong_type(admin_jobs_client):
