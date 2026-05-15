@@ -3,24 +3,11 @@
 from __future__ import annotations
 
 from typing import Any, Iterable
-from unittest.mock import MagicMock
 
 import pymysql
 import pytest
 
 from src.main_app.db.services import template_service
-
-
-@pytest.fixture#(autouse=True)
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.database_data = MagicMock()
-    _mock.has_db_config = MagicMock(return_value=True)
-    monkeypatch.setattr(
-        "src.main_app.db.services.template_service.settings",
-        _mock,
-    )
-    return _mock
 
 
 class FakeDatabase:
