@@ -129,16 +129,17 @@ def create_app(_conf=None) -> Flask:
     # --- Flask-SQLAlchemy configuration ---
     if settings.database_data.db_host or settings.database_data.db_user:
         app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_recycle": 3600,
+        }
     else:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 10,
-        "pool_recycle": 3600,
-    }
 
     # Initialize Flask-SQLAlchemy and Flask-Migrate
     db.init_app(app)
