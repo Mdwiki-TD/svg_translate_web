@@ -23,7 +23,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_service.update_job_status",
+        "src.main_app.jobs_workers.base_worker.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(

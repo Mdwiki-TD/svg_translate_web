@@ -37,7 +37,7 @@ def clean_cancel_events():
         jobs_worker.JOBS_CANCEL_EVENTS.clear()
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_collect_main_files_job(mock_thread, mock_create_job):
     """Test starting a collect templates data job."""
@@ -63,7 +63,7 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
     assert jobs_worker.get_jobs_cancel_event(1) is not None
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
     """Test starting a fix nested main files job."""
@@ -120,7 +120,7 @@ def test_runner_calls_target_and_cleans_up():
     assert jobs_worker.get_jobs_cancel_event(job_id) is None
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.jobs_service.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 def test_start_download_main_files_job(mock_thread, mock_create_job):
     """Test starting a download main files job."""
