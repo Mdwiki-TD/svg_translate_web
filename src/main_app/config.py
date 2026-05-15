@@ -359,6 +359,18 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 
+def build_sqlalchemy_uri(db_config: DbConfig) -> str:
+    """Build a SQLAlchemy database URI from a DbConfig dataclass.
+
+    Used by Flask-SQLAlchemy configuration in create_app().
+    Compatible with the existing build_db_url() in engine.py.
+    """
+    return (
+        f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}"
+        f"@{db_config.db_host}/{db_config.db_name}"
+    )
+
+
 class DevelopmentConfig: ...
 
 

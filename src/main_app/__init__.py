@@ -18,8 +18,9 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
 )
-from .config import settings
+from .config import build_sqlalchemy_uri, settings
 from .core.cookies import CookieHeaderClient
+from .extensions import db, migrate
 from .sqlalchemy_db.engine import build_db_url, init_db
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
@@ -126,6 +127,25 @@ def create_app(_conf=None) -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
+    # --- Flask-SQLAlchemy configuration (Phase 1: coexists with legacy engine) ---
+    if settings.database_data.db_host or settings.database_data.db_user:
+        app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_recycle": 3600,
+    }
+
+    # Initialize Flask-SQLAlchemy and Flask-Migrate
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    # --- Legacy engine init (kept for backward compatibility during migration) ---
     if settings.database_data.db_host or settings.database_data.db_user:
         try:
             db_url = build_db_url(settings.database_data.to_dict())
