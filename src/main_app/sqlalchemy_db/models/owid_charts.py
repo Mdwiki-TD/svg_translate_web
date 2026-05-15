@@ -5,12 +5,12 @@ import logging
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
 
-from ..engine import BaseDb
+from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(BaseDb):
+class OwidChartRecord(db.Model):
     """
     CREATE TABLE `owid_charts` (
       `chart_id` int(11) NOT NULL AUTO_INCREMENT,

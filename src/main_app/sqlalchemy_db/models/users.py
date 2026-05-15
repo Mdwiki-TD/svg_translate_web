@@ -6,13 +6,13 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, 
 from sqlalchemy.orm import validates
 
 from ...core.crypto import decrypt_value
+from ...extensions import db
 from ...shared.decode_bytes import coerce_bytes
-from ..engine import BaseDb
 
 logger = logging.getLogger(__name__)
 
 
-class AdminUserRecord(BaseDb):
+class AdminUserRecord(db.Model):
     """
     CREATE TABLE `admin_users` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,7 +40,7 @@ class AdminUserRecord(BaseDb):
     )
 
 
-class UserTokenRecord(BaseDb):
+class UserTokenRecord(db.Model):
     """
     CREATE TABLE IF NOT EXISTS user_tokens (
         user_id int NOT NULL,

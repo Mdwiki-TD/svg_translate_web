@@ -5,12 +5,12 @@ from typing import Any
 
 from sqlalchemy import Column, Integer, String
 
-from ..engine import BaseDb
+from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateNeedUpdateRecord(BaseDb):
+class TemplateNeedUpdateRecord(db.Model):
     """ """
 
     __tablename__ = "templates_need_update"
@@ -60,7 +60,7 @@ class TemplateNeedUpdateRecord(BaseDb):
         }
 
 
-class OwidChartTemplateRecord(BaseDb):
+class OwidChartTemplateRecord(db.Model):
     """ """
 
     __tablename__ = "owid_charts_templates"

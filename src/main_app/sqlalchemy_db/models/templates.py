@@ -5,13 +5,13 @@ from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 
+from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
-from ..engine import BaseDb
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateRecord(BaseDb):
+class TemplateRecord(db.Model):
     """
     CREATE TABLE `templates` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
