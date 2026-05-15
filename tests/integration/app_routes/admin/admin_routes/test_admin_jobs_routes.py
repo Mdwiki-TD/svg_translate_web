@@ -10,7 +10,6 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from flask.testing import FlaskClient
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
@@ -480,7 +479,7 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client):
     assert len(store.list()) == 0
 
 
-def test_delete_nonexistent_job(monkeypatch, admin_jobs_client: tuple[FlaskClient, FakeJobsDB]):
+def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
     """Test deleting a non-existent job shows appropriate error."""
     mock_flash = Mock()
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
