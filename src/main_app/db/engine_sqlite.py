@@ -12,8 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 def _mysql_to_sqlite(sql: str) -> str:
-    """Convert %s placeholders to ? for SQLite."""
-    return re.sub(r"%s", "?", sql)
+    """Convert MySQL-specific syntax to SQLite-compatible syntax."""
+    sql = re.sub(r"%s", "?", sql)
+    sql = re.sub(r"\bNOW\s*\(\s*\)", "CURRENT_TIMESTAMP", sql, flags=re.IGNORECASE)
+    return sql
 
 
 class DatabaseSqlLite:
@@ -26,7 +28,11 @@ class DatabaseSqlLite:
         db_path: str = ":memory:",
     ):
         self._lock = threading.RLock()
-        self.connection = sqlite3.connect(db_path, check_same_thread=False)
+        self.connection = None
+        self.db_path = db_path
+
+    def _init_connection(self):
+        self.connection = sqlite3.connect(self.db_path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row  # as DictCursor
         self.connection.isolation_level = None  # autocommit mode
 
@@ -69,6 +75,8 @@ class DatabaseSqlLite:
     # ------------------------------------------------------------------
     def execute_query(self, sql_query: str, params: Any = None, **kwargs):
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -78,6 +86,8 @@ class DatabaseSqlLite:
 
     def fetch_query(self, sql_query: str, params: Any = None, **kwargs) -> list[dict]:
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -91,6 +101,8 @@ class DatabaseSqlLite:
     ) -> int:
         """Execute an INSERT and return the lastrowid."""
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             cur.execute(sql, params or [])
@@ -107,6 +119,8 @@ class DatabaseSqlLite:
         if not params_list:
             return 0
         sql = _mysql_to_sqlite(sql_query)
+        if not self.connection:
+            self._init_connection()
         with self._lock:
             cur = self.connection.cursor()
             total = 0
@@ -119,12 +133,19 @@ class DatabaseSqlLite:
         try:
             return self.fetch_query(sql_query, params)
         except sqlite3.Error:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
             return []
+        except Exception:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
 
     def execute_query_safe(self, sql_query, params=None, **kwargs):
         try:
             return self.execute_query(sql_query, params)
         except sqlite3.Error:
-            if sql_query.strip().lower().startswith("select"):
-                return []
-            return 0
+            logger.exception("execute_query_safe failed, sql_query: %s, params: %s", sql_query, params)
+        except Exception:
+            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
+
+        if sql_query.strip().lower().startswith("select"):
+            return []
+        return 0

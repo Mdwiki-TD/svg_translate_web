@@ -5,8 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Any, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -235,7 +234,7 @@ class TestAddChart:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.add_chart.return_value = sample_chart_record
 
-        response = flask_client.post(
+        _response = flask_client.post(
             "/admin/owid-charts/add",
             data={
                 "slug": "full-chart",
