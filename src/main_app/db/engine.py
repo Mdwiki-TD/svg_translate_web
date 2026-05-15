@@ -94,7 +94,7 @@ class Database:
         """Close the underlying PyMySQL connection."""
         self._close_connection()
 
-    def __enter__(self) -> "Database":
+    def __enter__(self) -> Database:
         return self
 
     def __exit__(self, exc_type, exc, exc_tb) -> None:
@@ -162,7 +162,7 @@ class Database:
                         if timeout_override is not None:
                             self._reset_query_timeout(cursor)
                         cursor.close()
-            except Exception as exc:  # noqa: PERF203 - retries require broad catch
+            except Exception as exc:
                 elapsed_ms = int((time.monotonic() - start) * 1000)
                 if self._should_retry(exc) and attempt < self.MAX_RETRIES:
                     self._log_retry("db_retry", attempt, exc, elapsed_ms)

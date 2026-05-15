@@ -165,15 +165,15 @@ class FakeDatabase:
 @pytest.fixture
 def _mock_templates_store(monkeypatch: pytest.MonkeyPatch):
     """Create a mock TemplatesDB with FakeDatabase."""
-    monkeypatch.setattr("src.main_app.db.db_Templates.Database", FakeDatabase)
+    # monkeypatch.setattr("src.main_app.db.db_Templates.Database", FakeDatabase)
 
     # Reset the global store
-    template_service._TEMPLATE_STORE = None
+    # template_service._TEMPLATE_STORE = None
 
     yield
 
     # Clean up
-    template_service._TEMPLATE_STORE = None
+    # template_service._TEMPLATE_STORE = None
 
 
 def test_get_templates_db_caches_store(_mock_templates_store):

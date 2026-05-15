@@ -13,7 +13,7 @@ import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
-from src.main_app.db.db_Jobs import JobRecord
+from src.main_app.db.db_Jobs import JobRecord, JobsDB
 from src.main_app.db.services import jobs_service
 
 
@@ -120,7 +120,8 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
-    fake_store = FakeJobsDB({})
+    fake_store = JobsDB({})
+    # fake_store = FakeJobsDB({})
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
