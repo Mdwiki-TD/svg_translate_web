@@ -47,6 +47,11 @@ from ...sqlalchemy_db.services.template_service import (
     get_template,
     get_template_by_title,
     list_templates,
+    add_template_data,
+    update_template_data,
+    list_templates,
+    delete_template,
+    get_template,
 )
 from ...sqlalchemy_db.services.user_token_service import (
     delete_user_token,
@@ -93,6 +98,11 @@ __all__ = [
     "get_template",
     "get_template_by_title",
     "list_templates",
+    "add_template_data",
+    "update_template_data",
+    "list_templates",
+    "delete_template",
+    "get_template",
     # template_need_update_service
     "list_templates_need_update",
     # jobs_service

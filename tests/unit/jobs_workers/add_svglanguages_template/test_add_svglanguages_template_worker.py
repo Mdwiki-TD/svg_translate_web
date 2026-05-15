@@ -103,8 +103,8 @@ class TestAddSvgSVGLanguagesTemplateInit:
 class TestLoadTemplates:
     """Tests for _load_templates and _apply_limits methods."""
 
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_load_templates_filters_owid_templates(self, mock_template_service, mock_jobs_service):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
+    def test_load_templates_filters_owid_templates(self, mcok_list_templates, mock_jobs_service):
         """Test that only OWID templates are loaded."""
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
@@ -112,7 +112,7 @@ class TestLoadTemplates:
             MagicMock(id=3, title="Template:Other/not_owid"),
             MagicMock(id=4, title="Template:OWID/test3"),
         ]
-        mock_template_service.list_templates.return_value = mock_templates
+        mcok_list_templates.return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         templates = worker._load_templates()
@@ -120,14 +120,14 @@ class TestLoadTemplates:
         assert len(templates) == 3
         assert all(t.title.startswith("Template:OWID/") for t in templates)
 
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_apply_limits_with_no_limit(self, mock_template_service, mock_jobs_service):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
+    def test_apply_limits_with_no_limit(self, mcok_list_templates, mock_jobs_service):
         """Test that all templates are returned when no limit is set."""
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
             MagicMock(id=2, title="Template:OWID/test2"),
         ]
-        mock_template_service.list_templates.return_value = mock_templates
+        mcok_list_templates.return_value = mock_templates
 
         with patch.object(settings.dynamic, "get", return_value=0):
             worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
@@ -135,8 +135,8 @@ class TestLoadTemplates:
 
         assert len(templates) == 2
 
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_apply_limits_applies_limit(self, mock_template_service, mock_jobs_service):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
+    def test_apply_limits_applies_limit(self, mcok_list_templates, mock_jobs_service):
         """Test that limit is applied when configured."""
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
@@ -145,7 +145,7 @@ class TestLoadTemplates:
             MagicMock(id=4, title="Template:OWID/test4"),
             MagicMock(id=5, title="Template:OWID/test5"),
         ]
-        mock_template_service.list_templates.return_value = mock_templates
+        mcok_list_templates.return_value = mock_templates
 
         with patch.object(settings.dynamic, "get", return_value=3):
             worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
@@ -442,14 +442,14 @@ class TestProcessMethod:
     """Tests for the main process() method."""
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.get_user_site")
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_process_success(self, mock_template_service, mock_get_user_site, mock_jobs_service):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
+    def test_process_success(self, mcok_list_templates, mock_get_user_site, mock_jobs_service):
         """Test successful processing of all templates."""
         mock_site = MagicMock()
         mock_get_user_site.return_value = mock_site
 
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
-        mock_template_service.list_templates.return_value = mock_templates
+        mcok_list_templates.return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
@@ -474,8 +474,8 @@ class TestProcessMethod:
         assert "failed_at" in result
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.get_user_site")
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.template_service")
-    def test_process_handles_cancellation(self, mock_template_service, mock_get_user_site, mock_jobs_service):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.list_templates")
+    def test_process_handles_cancellation(self, mcok_list_templates, mock_get_user_site, mock_jobs_service):
         """Test that process stops when cancelled."""
         mock_site = MagicMock()
         mock_get_user_site.return_value = mock_site
@@ -485,7 +485,7 @@ class TestProcessMethod:
             MagicMock(id=2, title="Template:OWID/test2"),
             MagicMock(id=3, title="Template:OWID/test3"),
         ]
-        mock_template_service.list_templates.return_value = mock_templates
+        mcok_list_templates.return_value = mock_templates
 
         cancel_event = threading.Event()
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"}, cancel_event=cancel_event)

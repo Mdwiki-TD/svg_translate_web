@@ -16,7 +16,7 @@ from flask import send_file
 
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
-from ..live_db.services import template_service
+from ..live_db.services import list_templates
 from .base_worker import BaseJobWorker
 
 # Zip file name constant
@@ -130,7 +130,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         """Execute the download processing logic."""
 
         # Get all templates with main files
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates_with_files = [t for t in templates if t.main_file]
 
         # Apply development mode limit from settings
