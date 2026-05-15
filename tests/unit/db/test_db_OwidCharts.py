@@ -106,13 +106,9 @@ class TestOwidChartsDB:
         assert results[0].is_published is True
 
     def test_add_success(self, mock_db_instance, owid_chart_db, sample_row):
-        """Test adding a new chart."""
-
         mock_db_instance.fetch_query_safe.return_value = [sample_row]
-
         result = owid_chart_db.add({"slug": "new-chart", "title": "New Chart"})
-
-        mock_db_instance.execute_query.assert_called_once()
+        mock_db_instance.insert_query.assert_called_once()
         assert isinstance(result, OwidChartRecord)
 
     def test_add_missing_slug_raises_value_error(self, mock_db_instance, owid_chart_db):
@@ -128,11 +124,8 @@ class TestOwidChartsDB:
             owid_chart_db.add({"slug": "new-chart", "title": ""})
 
     def test_add_duplicate_slug_raises_value_error(self, mock_db_instance, owid_chart_db):
-        """Test adding a chart with duplicate slug raises ValueError."""
         import pymysql
-
-        mock_db_instance.execute_query.side_effect = pymysql.err.IntegrityError()
-
+        mock_db_instance.insert_query.side_effect = pymysql.err.IntegrityError()
         with pytest.raises(ValueError, match="Chart with slug 'existing' already exists"):
             owid_chart_db.add({"slug": "existing", "title": "Existing Chart"})
 
