@@ -41,13 +41,19 @@ from src.main_app.db.sql_schema_tables import sql_tables_sqlite3  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
-    ensure_all_tables(sql_tables_sqlite3, DatabaseSqlLite())
+def mock_sqlite3_db(tmp_path):
+    db_path = str(tmp_path / "test.sqlite3")
+    db = DatabaseSqlLite(db_path=db_path)
+    ensure_all_tables(sql_tables_sqlite3, db)
+    yield db
+    db.close()
 
+
+@pytest.fixture(autouse=True)
+def mock_initialize_db(monkeypatch: pytest.MonkeyPatch):
     def _mock(_db_class):
         database_data = DbConfig(db_host="localhost", db_name="test", db_user="user", db_password="pass")
         store = _db_class(database_data, DatabaseSqlLite())
-        # store.db = DatabaseSqlLite()
         return store
 
     # monkeypatch.setattr("src.main_app.db.services.check_db.initialize_db", _mock)

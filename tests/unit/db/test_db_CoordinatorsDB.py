@@ -1,26 +1,25 @@
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pymysql
 import pytest
 
-from src.main_app.db.db_CoordinatorsDB import AdminUserRecord, CoordinatorsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.db.models import AdminUserRecord
+from src.main_app.db.db_CoordinatorsDB import CoordinatorsDB
 
 
 @pytest.fixture
-def mock_db_class(mocker):
-    return mocker.patch("src.main_app.db.db_CoordinatorsDB.Database")
-
-
-@pytest.fixture
-def mock_db_instance(mock_db_class):
-    instance = MagicMock()
+def mock_db_instance(tmp_path):
+    db_path = str(tmp_path / "test.sqlite3")
+    instance = DatabaseSqlLite(db_path=db_path)
+    mock_db_class = MagicMock()
     mock_db_class.return_value = instance
     return instance
 
 
 @pytest.fixture
-def coordinators_db(mock_db_instance):
-    return CoordinatorsDB({})
+def coordinators_db(mock_db_instance,):
+    return CoordinatorsDB(db=mock_db_instance)
 
 
 def test_CoordinatorRecord():

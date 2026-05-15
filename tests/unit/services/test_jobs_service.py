@@ -101,8 +101,8 @@ def test_delete_job():
     assert len(jobs_service.list_jobs()) == 1
 
     delete_job(job.id, "collect_main_files")
-
-    assert len(jobs_service.list_jobs()) == 0
+    jobs_len = len(jobs_service.list_jobs())
+    assert jobs_len == 0
 
 
 def test_delete_job_with_correct_type():

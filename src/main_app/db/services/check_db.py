@@ -12,8 +12,21 @@ from ..exceptions import InsufficientDatabaseConfigError
 
 logger = logging.getLogger(__name__)
 
+_MAIN_DB: Database | None = None
 
-def initialize_db(_db_class):
+
+def get_main_db() -> Database:
+    """
+    """
+    global _MAIN_DB
+
+    if _MAIN_DB is None:
+        _MAIN_DB = Database(settings.database_data)
+
+    return _MAIN_DB
+
+
+def initialize_db(_db_class, db: Database | None = None):
     """
     Return the module's cached instance, initializing it on first use.
     """
@@ -22,7 +35,7 @@ def initialize_db(_db_class):
         raise InsufficientDatabaseConfigError()
 
     try:
-        _store = _db_class(settings.database_data, Database(settings.database_data))
+        _store = _db_class(settings.database_data, db or get_main_db())
     except Exception as exc:
         logger.exception("Failed to initialize MySQL charts store")
         raise RuntimeError("Unable to initialize charts store") from exc
