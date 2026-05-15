@@ -10,19 +10,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers import collect_main_files_worker
 
 
-@pytest.fixture(autouse=True)
-def mock_database(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    mock_database_cls = MagicMock()
-    mock_db_instance = MagicMock()
-    mock_db_instance.fetch_query_safe.return_value = []
-    mock_database_cls.return_value = mock_db_instance
-    monkeypatch.setattr(
-        "src.main_app.db.db_OwidCharts.Database",
-        mock_database_cls,
-    )
-    return mock_database_cls
-
-
 @pytest.fixture
 def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
