@@ -9,8 +9,8 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import Mock, patch
 
-from flask.testing import FlaskClient
 import pytest
+from flask.testing import FlaskClient
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app

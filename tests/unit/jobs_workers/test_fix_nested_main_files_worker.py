@@ -16,9 +16,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock template_service
     mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.list_templates", mock_list_templates
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files_worker.list_templates", mock_list_templates)
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
@@ -48,9 +46,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service)
     """Mock the services used by fix_nested_main_files_for_templates."""
     # Mock template_service
     mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files_worker.list_templates", mock_list_templates
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files_worker.list_templates", mock_list_templates)
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()

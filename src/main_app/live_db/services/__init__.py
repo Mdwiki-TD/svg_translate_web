@@ -44,12 +44,12 @@ from ...db.services.template_need_update_service import (
     list_templates_need_update,
 )
 from ...db.services.template_service import (
+    add_template_data,
+    delete_template,
     get_template,
     get_template_by_title,
     list_templates,
-    add_template_data,
     update_template_data,
-    delete_template,
 )
 from ...db.services.user_token_service import (
     delete_user_token,

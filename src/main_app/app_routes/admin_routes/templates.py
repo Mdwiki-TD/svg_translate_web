@@ -19,11 +19,11 @@ from flask.typing import ResponseReturnValue
 
 from ...live_db.models import TemplateRecord
 from ...live_db.services import (
-    list_templates,
-    update_template_data,
     add_template_data,
     delete_template,
     get_template,
+    list_templates,
+    update_template_data,
 )
 from ..admin.admins_required import admin_required
 
