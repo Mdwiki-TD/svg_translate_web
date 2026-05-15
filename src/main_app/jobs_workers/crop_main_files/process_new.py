@@ -19,7 +19,7 @@ from ...api_services.pages_api import is_pages_exists, update_file_text, update_
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...live_db.models import TemplateRecord
-from ...live_db.services import jobs_service, template_service
+from ...live_db.services import jobs_service, list_templates
 from ...su_services import jobs_files_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..utils.crop_main_files_utils import generate_cropped_filename
@@ -208,7 +208,7 @@ class CropMainFilesProcessor:
         return True
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = template_service.list_templates()
+        templates = list_templates()
         templates_with_files = [t for t in templates if t.last_world_file]
         return self._apply_limits(templates_with_files)
 

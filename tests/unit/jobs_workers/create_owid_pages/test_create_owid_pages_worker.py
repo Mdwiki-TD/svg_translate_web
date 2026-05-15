@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import threading
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,

@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-# from src.main_app.db.services.template_service import TemplatesDB
 from src.main_app.jobs_workers import fix_nested_main_files_worker
 
 
