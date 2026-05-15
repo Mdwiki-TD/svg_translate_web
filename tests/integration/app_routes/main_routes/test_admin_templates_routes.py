@@ -4,24 +4,17 @@ from __future__ import annotations
 
 from html import unescape
 from typing import Iterable
-from unittest.mock import MagicMock
 
 import pytest
 
 from src.main_app import create_app
-from src.main_app.db.engine_sqlite import DatabaseSqlLite
 from src.main_app.db.models import TemplateRecord
 from src.main_app.db.services.template_service import TemplatesDB
 
 
 @pytest.fixture
-def mock_db_instance():
-    return MagicMock(spec=DatabaseSqlLite)
-
-
-@pytest.fixture
-def jobs_db(mock_db_instance):
-    store = TemplatesDB(db=mock_db_instance)
+def jobs_db(mock_sqlite3_db):
+    store = TemplatesDB(db=mock_sqlite3_db)
     store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
     return store
 

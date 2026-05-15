@@ -72,6 +72,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_find_main_title = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.find_main_title", mock_find_main_title)
 
+    # Mock get_chart_by_slug so slugify_title can return a slug
+    mock_get_chart_by_slug = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug
+    )
+
     return {
         "list_templates": mock_list_templates,
         "add_template_data": mock_add_template_data,
@@ -81,6 +87,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "get_category_members": mock_get_category_members,
         "get_wikitext": mock_get_wikitext,
         "find_main_title": mock_find_main_title,
+        "get_chart_by_slug": mock_get_chart_by_slug,
         "is_job_cancelled": mock_jobs_service,
     }
 
