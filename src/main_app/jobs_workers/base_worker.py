@@ -9,7 +9,10 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from ..live_db.services import jobs_service
+from ..live_db.services import (
+    is_job_cancelled,
+    update_job_status,
+)
 from ..su_services import jobs_files_service
 from .utils import generate_result_file_name
 
@@ -57,7 +60,7 @@ def job_exception_handler(
 
                 try:
                     jobs_files_service.save_job_result_by_name(result_file, error_result)
-                    jobs_service.update_job_status(job_id, "failed", result_file, job_type=job_type)
+                    update_job_status(job_id, "failed", result_file, job_type=job_type)
                 except LookupError:
                     logger.exception(
                         f"Job {job_id}: Could not update status to failed, job record might have been deleted."
@@ -65,7 +68,7 @@ def job_exception_handler(
                 except Exception:
                     logger.exception(f"Job {job_id}: Failed to save error result")
                     try:
-                        jobs_service.update_job_status(job_id, "failed", job_type=job_type)
+                        update_job_status(job_id, "failed", job_type=job_type)
                     except LookupError:
                         pass
 
@@ -148,7 +151,7 @@ class BaseJobWorker(ABC):
             True to continue with processing, False to abort
         """
         try:
-            jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+            update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             return True
         except LookupError:
             logger.exception(
@@ -167,7 +170,7 @@ class BaseJobWorker(ABC):
 
         # Update final status
         try:
-            jobs_service.update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
+            update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except LookupError:
             logger.exception(f"Job {self.job_id}: Could not update final status, job record might have been deleted.")
 
@@ -190,7 +193,7 @@ class BaseJobWorker(ABC):
             self._mark_as_cancelled_in_result()
             return True
 
-        if jobs_service.is_job_cancelled(self.job_id, job_type=self.job_type):
+        if is_job_cancelled(self.job_id, job_type=self.job_type):
             logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
             self._mark_as_cancelled_in_result()
             return True
