@@ -145,7 +145,7 @@ class DatabaseSqlLite:
         except sqlite3.Error:
             logger.exception("execute_query_safe failed, sql_query: %s, params: %s", sql_query, params)
         except Exception:
-            logger.exception("fetch_query_safe failed, sql_query: %s, params: %s", sql_query, params)
+            logger.exception("execute_query_safe failed, sql_query: %s, params: %s", sql_query, params)
 
         if sql_query.strip().lower().startswith("select"):
             return []
