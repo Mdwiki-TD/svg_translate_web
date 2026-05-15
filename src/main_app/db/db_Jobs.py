@@ -4,9 +4,8 @@ from __future__ import annotations
 
 # import json
 import logging
-from typing import Any, List
-
 from datetime import datetime
+from typing import Any, List
 
 from ..config import DbConfig
 from .engine import Database
