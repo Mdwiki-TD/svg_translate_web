@@ -78,6 +78,19 @@ class DatabaseSqlLite:
             cur.execute(sql, params or [])
             return self._dict_rows(cur)
 
+    def insert_query(
+        self,
+        sql_query: str,
+        params: Any = None,
+        **kwargs,
+    ) -> int:
+        """Execute an INSERT and return the lastrowid."""
+        sql = _mysql_to_sqlite(sql_query)
+        with self._lock:
+            cur = self.connection.cursor()
+            cur.execute(sql, params or [])
+            return cur.lastrowid
+
     def execute_many(
         self,
         sql_query: str,

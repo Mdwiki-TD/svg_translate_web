@@ -252,6 +252,27 @@ class Database:
         )
         return list(result or [])
 
+    def insert_query(
+        self,
+        sql_query: str,
+        params: Any = None,
+        *,
+        timeout_override: float | None = None,
+    ) -> int:
+        """Execute an INSERT and return the lastrowid."""
+
+        def _op(cursor, sql, op_params):
+            cursor.execute(sql, op_params)
+            self._maybe_commit()
+            return cursor.lastrowid
+
+        return self._execute_with_retry(
+            _op,
+            sql_query,
+            params,
+            timeout_override=timeout_override,
+        )
+
     def execute_many(
         self,
         sql_query: str,
