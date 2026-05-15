@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from .check_db import initialize_db
+
 from ...config import settings
 from ...core.crypto import encrypt_value
 from ...shared.decode_bytes import coerce_bytes
@@ -28,18 +30,8 @@ def get_db() -> Database:
     """
     global _db
 
-    if _db is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _db = Database(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
-
-        _db.execute_query_safe(sql_tables.user_tokens)
-
+    _db = initialize_db(_db, Database)
+    _db.execute_query_safe(sql_tables.user_tokens)
     return _db
 
 

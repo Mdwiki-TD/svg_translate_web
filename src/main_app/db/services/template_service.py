@@ -5,10 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import settings
+from .check_db import initialize_db
+
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..db_Templates import TemplatesDB
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import TemplateRecord
 
 logger = logging.getLogger(__name__)
@@ -39,16 +39,7 @@ def get_templates_db() -> TemplatesDB:
     """
     global _TEMPLATE_STORE
 
-    if _TEMPLATE_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _TEMPLATE_STORE = TemplatesDB(settings.database_data)
-        except Exception as exc:  # pragma: no cover - defensive guard for startup failures
-            logger.exception("Failed to initialize MySQL template store")
-            raise RuntimeError("Unable to initialize template store") from exc
-
+    _TEMPLATE_STORE = initialize_db(_TEMPLATE_STORE, TemplatesDB)
     return _TEMPLATE_STORE
 
 

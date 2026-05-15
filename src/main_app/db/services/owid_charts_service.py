@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ...config import settings
+from .check_db import initialize_db
 from ..db_OwidCharts import OwidChartsDB
-from ..exceptions import InsufficientDatabaseConfigError
 from ..models import OwidChartRecord
 
 logger = logging.getLogger(__name__)
@@ -28,16 +27,7 @@ def get_owid_charts_db() -> OwidChartsDB:
     """
     global _OWID_CHARTS_STORE
 
-    if _OWID_CHARTS_STORE is None:
-        if not settings.has_db_config():
-            raise InsufficientDatabaseConfigError()
-
-        try:
-            _OWID_CHARTS_STORE = OwidChartsDB(settings.database_data)
-        except Exception as exc:
-            logger.exception("Failed to initialize MySQL charts store")
-            raise RuntimeError("Unable to initialize charts store") from exc
-
+    _OWID_CHARTS_STORE = initialize_db(_OWID_CHARTS_STORE, OwidChartsDB)
     return _OWID_CHARTS_STORE
 
 
