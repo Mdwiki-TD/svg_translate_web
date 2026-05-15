@@ -82,6 +82,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock settings
     mock_settings = MagicMock()
+    mock_settings.create_owid_pages_limit = 2
     monkeypatch.setattr(
         "src.main_app.jobs_workers.create_owid_pages.worker.settings",
         mock_settings,

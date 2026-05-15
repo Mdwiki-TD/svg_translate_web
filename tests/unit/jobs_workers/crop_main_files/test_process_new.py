@@ -124,6 +124,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
     mock_settings.user_agent = "TestBot/1.0"
     mock_settings.download.dev_limit = 0
+    mock_settings.crop_newest_upload_limit = 2
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.process_new.settings",
         mock_settings,
