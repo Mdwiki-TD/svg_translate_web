@@ -9,7 +9,6 @@ from typing import Any, List
 from ..config import DbConfig
 from .engine import Database
 from .models import JobRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -17,26 +16,14 @@ logger = logging.getLogger(__name__)
 class JobsDB:
     """MySQL-backed job store."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, db: Database | None = None):
         """
         Initialize the JobsDB with the provided database configuration and ensure the jobs table exists.
 
         Parameters:
             database_data (DbConfig): Configuration used to instantiate the Database wrapper (connection details, credentials, and options).
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the jobs table exists in the database with the expected schema.
-
-        Creates a `jobs` table (if it does not already exist) containing columns:
-        `id`, `job_type`, `status`, `started_at`, `completed_at`, `result_file`,
-        `created_at`, `updated_at`, and `username`, and an index `idx_status_created` on
-        `(status, created_at)`.
-        """
-        self.db.execute_query_safe(sql_tables.jobs)
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> JobRecord:
         return JobRecord(

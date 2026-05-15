@@ -8,7 +8,6 @@ import pymysql
 from ..config import DbConfig
 from .engine import Database
 from .models import AdminUserRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -16,30 +15,14 @@ logger = logging.getLogger(__name__)
 class CoordinatorsDB:
     """MySQL-backed coordinator persistence using the shared Database helper."""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, db: Database | None = None):
         """
         Initialize CoordinatorsDB with the provided database configuration and ensure the coordinators table exists.
 
         Parameters:
             database_data (DbConfig): Database connection/configuration used to instantiate the underlying Database helper.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the required `admin_users` table exists in the database with the expected schema.
-
-        Creates the `admin_users` table if it does not already exist with columns:
-        - `id` (INT, auto-increment primary key)
-        - `username` (VARCHAR(255), unique, not null)
-        - `is_active` (TINYINT(1), not null, default 1)
-        - `created_at` (TIMESTAMP, defaults to current timestamp)
-        - `updated_at` (TIMESTAMP, defaults to current timestamp and updates on row change)
-
-        The table uses the InnoDB engine and `utf8mb4` character set.
-        """
-        self.db.execute_query_safe(sql_tables.admin_users)
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> AdminUserRecord:
         return AdminUserRecord(

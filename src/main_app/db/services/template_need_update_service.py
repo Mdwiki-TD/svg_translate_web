@@ -19,21 +19,14 @@ _TEMPLATE_UPDATE_STORE: TemplatesNeedUpdateDB | None = None
 class TemplatesNeedUpdateDB:
     """MySQL-backed"""
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, db: Database | None = None):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
 
         Parameters:
             database_data (DbConfig): Configuration used to construct the underlying Database connection.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the `templates_need_update` table exists with the required schema.
-        """
-        self.db.execute_query_safe(sql_tables.templates_need_update)
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateNeedUpdateRecord:
         return TemplateNeedUpdateRecord(
