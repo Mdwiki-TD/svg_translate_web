@@ -8,6 +8,8 @@ from typing import Any, Tuple
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
+from .db.sql_schema_ensure_tables import ensure_all_tables
+
 from .app_routes import (
     bp_admin,
     bp_api,
@@ -127,6 +129,7 @@ def create_app(_conf=None) -> Flask:
     csrf = CSRFProtect(app)  # noqa: F841
 
     if settings.database_data.db_host or settings.database_data.db_user:
+        ensure_all_tables(settings.database_data)
         try:
             db_url = build_db_url(settings.database_data.to_dict())
             init_db(db_url, create_tables=False)

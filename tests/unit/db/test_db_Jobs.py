@@ -33,12 +33,6 @@ def test_JobRecord():
     assert record.started_at is None
 
 
-def test_ensure_table(mock_db_instance):
-    JobsDB({})
-    mock_db_instance.execute_query_safe.assert_called()
-    assert "CREATE TABLE IF NOT EXISTS jobs" in mock_db_instance.execute_query_safe.call_args[0][0]
-
-
 def test_create_success(jobs_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {

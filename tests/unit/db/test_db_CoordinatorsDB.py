@@ -30,12 +30,6 @@ def test_CoordinatorRecord():
     assert record.is_active is True
 
 
-def test_ensure_table(mock_db_instance):
-    CoordinatorsDB({})
-    mock_db_instance.execute_query_safe.assert_called()
-    assert "CREATE TABLE IF NOT EXISTS admin_users" in mock_db_instance.execute_query_safe.call_args[0][0]
-
-
 def test_fetch_by_id_success(coordinators_db, mock_db_instance):
     mock_db_instance.fetch_query_safe.return_value = [
         {"id": 1, "username": "admin", "is_active": 1, "created_at": None, "updated_at": None}
@@ -156,7 +150,7 @@ def test_seed_strips_whitespace(coordinators_db, mock_db_instance):
 
     coordinators_db.seed(["  user1  ", " user2 "])
 
-    # Should have inserted both with trimmed names (plus _ensure_table call = 3 total)
+    # Should have inserted both with trimmed names
     assert mock_db_instance.execute_query_safe.call_count >= 2
 
 

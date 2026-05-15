@@ -8,7 +8,6 @@ import pymysql
 from ..config import DbConfig
 from .engine import Database
 from .models import TemplateRecord
-from .sql_schema_tables import sql_tables
 
 logger = logging.getLogger(__name__)
 
@@ -42,31 +41,14 @@ class TemplatesDB:
         "slug",
     ]
 
-    def __init__(self, database_data: DbConfig):
+    def __init__(self, database_data: DbConfig, db: Database | None = None):
         """
         Initialize the TemplatesDB with the given database configuration and ensure the templates table exists.
 
         Parameters:
             database_data (DbConfig): Configuration used to construct the underlying Database connection.
         """
-        self.db = Database(database_data)
-        self._ensure_table()
-
-    def _ensure_table(self) -> None:
-        """
-        Ensure the `templates` table exists with the required schema.
-
-        Creates the table if it does not already exist with these columns:
-        - `id`: auto-incrementing primary key
-        - `title`: unique non-null string (up to 255 chars)
-        - `main_file`: nullable string (up to 255 chars)
-        - `last_world_file`: nullable string (up to 255 chars)
-        - `source`: non-null string (up to 255 chars), defaults to empty string
-        - `slug`: non-null string (up to 255 chars), defaults to empty string
-        - `created_at`: timestamp defaulting to the current time
-        - `updated_at`: timestamp defaulting to the current time and auto-updating on row changes
-        """
-        self.db.execute_query_safe(sql_tables.templates)
+        self.db = db or Database(database_data)
 
     def _row_to_record(self, row: dict[str, Any]) -> TemplateRecord:
         last_world_year_val: int | None = None

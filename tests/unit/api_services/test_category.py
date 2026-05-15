@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import types
-
 import pytest
 
 from src.main_app.api_services import category

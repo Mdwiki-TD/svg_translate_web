@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import replace
 from html import unescape
 from types import SimpleNamespace
 from typing import Any
@@ -13,92 +12,10 @@ import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
-from src.main_app.db.db_Jobs import JobRecord, JobsDB
+from src.main_app.db.engine_sqlite import DatabaseSqlLite
+from src.main_app.config import DbConfig
+from src.main_app.db.db_Jobs import JobsDB
 from src.main_app.db.services import jobs_service
-
-
-class FakeJobsDB:
-    """In-memory replacement for the MySQL-backed JobsDB helper."""
-
-    def __init__(self, _db_data: dict[str, Any] | None = None):
-        del _db_data
-        self._records: list[JobRecord] = []
-        self._next_id = 1
-
-    # -- helpers -----------------------------------------------------------------
-    def reset(self) -> None:
-        self._records.clear()
-        self._next_id = 1
-
-    def _find_index(self, job_id: int, job_type: str) -> int:
-        for index, record in enumerate(self._records):
-            if record.id == job_id:
-                if record.job_type == job_type:
-                    return index
-                else:
-                    raise LookupError(f"Job id {job_id} is not a {job_type.replace('_', ' ')} job")
-        raise LookupError(f"Job id {job_id} was not found")
-
-    def create(self, job_type: str) -> JobRecord:
-        """Create a new job."""
-        record = JobRecord(
-            id=self._next_id,
-            job_type=job_type,
-            status="pending",
-        )
-        self._records.append(record)
-        self._next_id += 1
-        return record
-
-    def get(self, job_id: int, job_type: str) -> JobRecord:
-        """Get a job by ID."""
-        index = self._find_index(job_id, job_type)
-        return self._records[index]
-
-    def list(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-        """List recent jobs, optionally filtered by job_type."""
-        if job_type:
-            return [r for r in self._records if r.job_type == job_type][:limit]
-        return list(self._records[:limit])
-
-    def update_status(self, job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
-        """Update job status."""
-        index = self._find_index(job_id, job_type)
-        updated = replace(
-            self._records[index],
-            status=status,
-            result_file=result_file,
-        )
-        self._records[index] = updated
-        return updated
-
-    def delete(self, job_id: int, job_type: str) -> bool:
-        """Delete a job by ID and job type."""
-        try:
-            index = self._find_index(job_id, job_type)
-            self._records.pop(index)
-            return True
-        except LookupError:
-            return False
-
-    def cancel(self, job_id: int, job_type: str | None = None) -> bool:
-        """Mark a job as cancelled."""
-        for index, record in enumerate(self._records):
-            if record.id == job_id:
-                if job_type and record.job_type != job_type:
-                    continue
-                if record.status in ["pending", "running"]:
-                    self._records[index] = replace(record, status="cancelled")
-                    return True
-        return False
-
-    def is_cancelled(self, job_id: int, job_type: str) -> bool:
-        """Check if a job is marked as cancelled."""
-        try:
-            index = self._find_index(job_id, job_type)
-            return self._records[index].status == "cancelled"
-        except LookupError:
-            return False
 
 
 @pytest.fixture
@@ -120,13 +37,13 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
-    fake_store = JobsDB({})
-    # fake_store = FakeJobsDB({})
+    fake_store = JobsDB(database_data=None, db=DatabaseSqlLite())
 
     def fake_jobs_factory(_db_data: dict[str, Any]):
         return fake_store
 
     monkeypatch.setattr("src.main_app.db.services.jobs_service.JobsDB", fake_jobs_factory)
+    monkeypatch.setattr("src.main_app.db.db_Jobs.Database", DatabaseSqlLite())
 
     jobs_service._JOBS_STORE = fake_store
 
@@ -139,7 +56,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         yield client, fake_store
     finally:
         jobs_service._JOBS_STORE = None
-        fake_store.reset()
+        # fake_store.reset()
 
 
 def test_jobs_list_page_displays_jobs(admin_jobs_client):
