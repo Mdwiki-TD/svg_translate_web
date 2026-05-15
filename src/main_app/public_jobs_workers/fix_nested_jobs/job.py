@@ -17,7 +17,7 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...db.services import jobs_service
+from ...live_db.services import jobs_service
 from ...shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,

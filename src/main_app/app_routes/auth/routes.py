@@ -24,7 +24,7 @@ from flask import (
 )
 
 from ...config import settings
-from ...db.services import delete_user_token, upsert_user_token
+from ...live_db.services import delete_user_token, upsert_user_token
 from ...su_services.users_service import CurrentUser
 from .cookie import extract_user_id, sign_state_token, sign_user_id, verify_state_token
 from .oauth import (

@@ -6,7 +6,7 @@ import logging
 import threading
 from typing import Any, Dict
 
-from ..db.services import jobs_service
+from ..live_db.services import jobs_service
 from .workers_list import jobs_targets, jobs_targets_public
 
 logger = logging.getLogger(__name__)
