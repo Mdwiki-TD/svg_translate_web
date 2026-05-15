@@ -116,7 +116,7 @@ owid_charts = """
 """
 
 owid_charts_templates = """
-    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
+    CREATE OR REPLACE VIEW owid_charts_templates AS
     SELECT
         c.chart_id,
         t.id AS template_id,
@@ -127,7 +127,7 @@ owid_charts_templates = """
 """
 
 templates_need_update = """
-    CREATE VIEW IF NOT EXISTS templates_need_update AS
+    CREATE OR REPLACE VIEW templates_need_update AS
     SELECT
         t.id AS template_id,
         t.title AS template_title,
