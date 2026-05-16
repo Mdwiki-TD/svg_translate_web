@@ -12,11 +12,11 @@ from flask import (
 )
 
 from ..admin_routes import (
-    bp_coordinators,
-    Jobs,
+    bp_jobs,
     OwidCharts,
     SettingsRoutes,
     Templates,
+    bp_coordinators,
 )
 from .admins_required import admin_required
 from .sidebar import create_side
@@ -45,7 +45,7 @@ def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(bp_coordinators)
     Templates(bp_admin)
     SettingsRoutes(bp_admin)
-    Jobs(bp_admin)
+    bp_admin.register_blueprint(bp_jobs)
     OwidCharts(bp_admin)
 
 

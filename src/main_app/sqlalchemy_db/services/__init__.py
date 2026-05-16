@@ -2,9 +2,9 @@ from .admin_service import (
     active_coordinators,
     add_coordinator,
     delete_coordinator,
+    get_coordinator_by_id,
     list_coordinators,
     set_coordinator_active,
-    get_coordinator_by_id,
 )
 from .jobs_service import (
     cancel_job,

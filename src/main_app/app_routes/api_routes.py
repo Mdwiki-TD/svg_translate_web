@@ -6,9 +6,9 @@ from flask import Blueprint, jsonify, request
 
 from ..sqlalchemy_db.models import OwidChartRecord, TemplateRecord
 from ..sqlalchemy_db.services import (
+    list_charts,
     list_templates,
     list_templates_need_update,
-    list_charts,
 )
 
 logger = logging.getLogger(__name__)
