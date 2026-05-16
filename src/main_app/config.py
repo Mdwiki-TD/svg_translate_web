@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
-import logging
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional
-
+from typing import Any, Optional
 # --- Data Classes for Configuration Sections ---
+
+
+def build_sqlalchemy_uri(db_config: DbConfig) -> str:
+    """Build a SQLAlchemy database URI from a DbConfig dataclass.
+
+    Used by Flask-SQLAlchemy configuration in create_app().
+    Compatible with the existing build_db_url() in engine.py.
+    """
+    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
 
 
 @dataclass(frozen=True)
@@ -104,15 +111,13 @@ class Settings:
     paths: Paths
     cookie: CookieConfig
     oauth: OAuthConfig
-    # sessions: SessionConfig
+    sessions: SessionConfig
     # cors: CorsConfig
     download: DownloadConfig
     security: SecurityConfig
 
     disable_uploads: str
     csrf_time_limit: Optional[int]  # None means never expire
-    STATE_SESSION_KEY: str
-    REQUEST_TOKEN_SESSION_KEY: str
 
 
 # --- Helper Functions ---
@@ -294,8 +299,11 @@ def get_settings() -> Settings:
     if not secret_key:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
-    STATE_SESSION_KEY = os.getenv("STATE_SESSION_KEY", "oauth_state_nonce")
-    REQUEST_TOKEN_SESSION_KEY = os.getenv("REQUEST_TOKEN_SESSION_KEY", "state")
+    sessions = SessionConfig(
+        state_key=os.getenv("STATE_SESSION_KEY", "oauth_state_nonce"),
+        request_token_key=os.getenv("REQUEST_TOKEN_SESSION_KEY", "state"),
+
+    )
 
     oauth_config = _load_oauth_config()
 
@@ -343,8 +351,6 @@ def get_settings() -> Settings:
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
-        STATE_SESSION_KEY=STATE_SESSION_KEY,
-        REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
         secret_key=secret_key,
         cookie=cookie_config,
         oauth=oauth_config,
@@ -352,20 +358,12 @@ def get_settings() -> Settings:
         download=DownloadConfig(dev_limit=dev_download_limit),
         security=security,
         csrf_time_limit=csrf_time_limit,
+        sessions=sessions,
     )
 
 
 # Singleton settings instance
 settings = get_settings()
-
-
-def build_sqlalchemy_uri(db_config: DbConfig) -> str:
-    """Build a SQLAlchemy database URI from a DbConfig dataclass.
-
-    Used by Flask-SQLAlchemy configuration in create_app().
-    Compatible with the existing build_db_url() in engine.py.
-    """
-    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
 
 
 class DevelopmentConfig:

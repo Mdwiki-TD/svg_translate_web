@@ -11,6 +11,7 @@ from src.main_app.config import (
     OAuthConfig,
     Paths,
     SecurityConfig,
+    SessionConfig,
     Settings,
     _env_bool,
     _env_int,
@@ -99,15 +100,19 @@ def test_Settings():
         secret_key_fallbacks=(),
     )
 
+    sessions = SessionConfig(
+        state_key="state",
+        request_token_key="request",
+    )
+
     settings = Settings(
         is_localhost=lambda x: x == "localhost",
         user_agent="user_agent",
         has_db_config=lambda: True,
         database_data=db_config,
-        STATE_SESSION_KEY="state",
-        REQUEST_TOKEN_SESSION_KEY="request",
         secret_key="secret",
         cookie=cookie_config,
+        sessions=sessions,
         oauth=None,
         paths=paths,
         disable_uploads="",
@@ -267,8 +272,8 @@ def test_get_settings():
     assert settings.secret_key == "test-secret-key"
     assert settings.cookie.name == "test-cookie"
     assert settings.cookie.max_age == 7200
-    assert settings.STATE_SESSION_KEY == "test-state"
-    assert settings.REQUEST_TOKEN_SESSION_KEY == "test-request"
+    assert settings.sessions.state_key == "test-state"
+    assert settings.sessions.request_token_key == "test-request"
 
     # Clean up cache
     get_settings.cache_clear()
