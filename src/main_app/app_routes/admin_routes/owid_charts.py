@@ -241,9 +241,9 @@ def _edit_chart(chart_id: int) -> ResponseReturnValue:
 class OwidCharts:
     def __init__(self, bp_owidcharts: Blueprint):
         @bp_owidcharts.get("/")
+        @bp_owidcharts.get("/<string:template_filter>")
         @admin_required
-        def dashboard():
-            template_filter = request.args.get("template", "").strip()
+        def dashboard(template_filter: str = ""):
             return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
         @bp_owidcharts.get("/add")

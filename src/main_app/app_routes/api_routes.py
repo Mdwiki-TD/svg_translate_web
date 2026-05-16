@@ -44,7 +44,8 @@ def templates_need_update_list():
 
 
 @bp_api.get("/owid-charts")
-def owid_charts_list():
+@bp_api.get("/owid-charts/<string:template_filter>")
+def owid_charts_list(template_filter: str = ""):
     template_filter = request.args.get("template", "").strip()
     all_charts: list[OwidChartRecord] = list_charts()
 

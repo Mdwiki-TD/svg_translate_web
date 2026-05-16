@@ -35,7 +35,7 @@ def generate_list_item(href, title, icon=None, target=None):
     return link.strip()
 
 
-def create_side(active_route, path: str|None=None):
+def create_side(active_route, path: str | None = None):
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
@@ -149,13 +149,9 @@ def create_side(active_route, path: str|None=None):
                 continue
 
             css_class = "active" if item.href in css_class_full else ""
+
             if not css_class_full:
-                if (
-                    active_route == item.href or
-                    path == item.href or
-                    (path and path.startswith(item.href)) or
-                    item.href.startswith(f"{active_route}/")
-                ):
+                if path == item.href or (path and path.startswith(item.href)):
                     css_class = "active"
 
             href_full = item.href if item.target else f"/admin/{item.href}"

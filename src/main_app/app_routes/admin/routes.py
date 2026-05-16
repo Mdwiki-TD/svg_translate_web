@@ -12,11 +12,11 @@ from flask import (
 )
 
 from ..admin_routes import (
+    bp_coordinators,
     bp_jobs,
     bp_owidcharts,
     bp_settings,
     bp_templates,
-    bp_coordinators,
 )
 from .admins_required import admin_required
 from .sidebar import create_side
