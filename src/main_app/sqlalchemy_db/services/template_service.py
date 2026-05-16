@@ -23,7 +23,7 @@ def _ensure_last_world_year(template_data):
 def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     """Return all templates"""
     query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
-    if limit:
+    if limit is not None:
         query = query.limit(limit)
     return query.all()
 

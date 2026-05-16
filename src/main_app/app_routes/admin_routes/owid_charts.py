@@ -128,7 +128,7 @@ def _add_chart() -> ResponseReturnValue:
         flash(f"Chart '{record.title}' added.", "success")
 
     if from_popup and save_error:
-        return redirect(url_for("admin.owidcharts.add_chart"))
+        return redirect(url_for("admin.owidcharts.add_chart_popup"))
 
     if from_popup:
         return render_template("admins/popup_action.html")

@@ -1584,15 +1584,23 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
         raise LookupError(f"Job id {job_id} was not found")
     return job
 
-def update_job_status(job_id: int, status: str) -> None:
-    job = db.session.get(JobRecord, job_id)
-    if job:
-        job.status = status
-        if status == "running":
+def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
+    job = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+    if not job:
+        raise LookupError(f"Job id {job_id} was not found")
+    job.status = status
+    if status == "running":
+        if not job.started_at:
             job.started_at = datetime.now(UTC)
-        elif status in ("completed", "failed"):
-            job.completed_at = datetime.now(UTC)
-        db.session.commit()
+    elif status in ("completed", "failed", "cancelled"):
+        job.completed_at = datetime.now(UTC)
+
+    if result_file:
+        job.result_file = result_file
+
+    db.session.commit()
+    db.session.refresh(job)
+    return job
 ```
 
 ### 13.3 Transaction Example (Multi-step operation)
