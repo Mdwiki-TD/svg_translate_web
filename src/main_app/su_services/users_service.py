@@ -24,7 +24,7 @@ class CurrentUser:
     username: str
 
 
-def _resolve_user_id() -> Optional[int]:
+def _resolve_user_id() -> int | None:
     uid = session.get("uid")
     if isinstance(uid, int):
         return uid

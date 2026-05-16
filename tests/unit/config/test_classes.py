@@ -79,7 +79,11 @@ def test_Settings():
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
-    download_config = JobsConfig(dev_limit=0)
+
+    jobs_config = JobsConfig(
+        dev_limit=0,
+        disable_uploads="",
+    )
 
     security_config = SecurityConfig(
         secret_key="secret",
@@ -102,8 +106,7 @@ def test_Settings():
         sessions=sessions,
         oauth=None,
         paths=paths,
-        disable_uploads="",
-        download=download_config,
+        jobs=jobs_config,
         security=security_config,
         csrf_time_limit=3600,
     )
@@ -112,6 +115,6 @@ def test_Settings():
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
-    assert settings.download.dev_limit == 0
+    assert settings.jobs.dev_limit == 0
     assert settings.security.max_content_length == 100 * 1024 * 1024
     assert settings.csrf_time_limit == 3600

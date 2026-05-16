@@ -134,7 +134,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
 
         # Apply development mode limit from settings
-        dev_limit = settings.download.dev_limit
+        dev_limit = settings.jobs.dev_limit
         if dev_limit > 0 and len(templates_with_files) > dev_limit:
             logger.info(
                 f"Job {self.job_id}: Development mode - limiting download from "

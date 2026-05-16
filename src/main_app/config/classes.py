@@ -60,7 +60,7 @@ class OAuthConfig:
     mw_uri: str
     consumer_key: str
     consumer_secret: str
-    encryption_key: Optional[str]
+    encryption_key: str | None
     upload_host: str
 
 
@@ -74,6 +74,7 @@ class JobsConfig:
     """Configuration for jobs."""
 
     dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
+    disable_uploads: str
 
 
 @dataclass(frozen=True)
@@ -101,8 +102,7 @@ class Settings:
     oauth: OAuthConfig
     sessions: SessionConfig
     # cors: CorsConfig
-    download: JobsConfig
     security: SecurityConfig
+    jobs: JobsConfig
 
-    disable_uploads: str
-    csrf_time_limit: Optional[int]  # None means never expire
+    csrf_time_limit: int | None  # None means never expire

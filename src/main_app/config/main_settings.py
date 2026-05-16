@@ -240,6 +240,10 @@ def get_settings() -> Settings:
     # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
     dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
 
+    jobs_config = JobsConfig(
+        dev_limit=dev_download_limit,
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+    )
     database_data = _load_database_config()
 
     user_agent = os.getenv(
@@ -254,11 +258,10 @@ def get_settings() -> Settings:
         database_data=database_data,
         cookie=cookie_config,
         oauth=oauth_config,
-        download=JobsConfig(dev_limit=dev_download_limit),
+        jobs=jobs_config,
         security=security_config,
         sessions=sessions,
         csrf_time_limit=csrf_time_limit,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
     )
 
 

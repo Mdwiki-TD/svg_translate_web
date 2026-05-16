@@ -225,7 +225,7 @@ class CropMainFilesProcessor:
             )
             return templates[:upload_limit]
 
-        dev_limit = settings.download.dev_limit
+        dev_limit = settings.jobs.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
             logger.info(f"Job {self.job_id}: Development mode - limiting from {len(templates)} to {dev_limit} files")
             return templates[:dev_limit]
