@@ -1,7 +1,7 @@
 import os
 
-from . import settings
 from .classes import DbConfig
+from .main_settings import settings
 
 
 def build_sqlalchemy_uri(db_config: DbConfig) -> str:
