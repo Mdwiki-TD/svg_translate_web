@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Tuple
+from typing import Any, Tuple, Type
 
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
@@ -96,6 +96,7 @@ def update_app_config(app: Flask) -> None:
         SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
         SESSION_COOKIE_SECURE=settings.cookie.secure,
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
+
         # Flask 3.1+ security configurations
         MAX_CONTENT_LENGTH=settings.security.max_content_length,
         MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
@@ -104,18 +105,16 @@ def update_app_config(app: Flask) -> None:
     )
 
 
-def create_app(_conf=None) -> Flask:
+def create_app(config_class: Type | None = None) -> Flask:
     """
-    Create and configure and return the Flask application used by the project.
+    Instantiate and configure the Flask application.
 
-    The returned app is configured with custom template and static folders, session cookie
-    settings from project settings, CSRF protection, registered
-    application blueprints, a user context processor, a Jinja filter for stage timestamps,
-    teardown handlers that close cached connections and task store, and handlers for 404
-    and 500 errors.
+    Args:
+        config_class: Optional configuration class to use. If not provided,
+                     uses environment-based settings.
 
     Returns:
-        Flask: The fully configured Flask application instance.
+        Configured Flask application instance.
     """
 
     app = Flask(
