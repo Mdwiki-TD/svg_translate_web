@@ -102,13 +102,13 @@ def test_Templates():
     assert bp.post.call_count == 3
 
     # Check endpoints
-    bp.get.assert_any_call("/templates")
-    bp.get.assert_any_call("/templates/<int:template_id>/edit")
+    bp.get.assert_any_call("/")
+    bp.get.assert_any_call("/<int:template_id>/edit")
     bp.get.assert_any_call("/templates-need-update")
-    bp.get.assert_any_call("/templates/download-json")
-    bp.post.assert_any_call("/templates/add")
-    bp.post.assert_any_call("/templates/update")
-    bp.post.assert_any_call("/templates/<int:template_id>/delete")
+    bp.get.assert_any_call("/download-json")
+    bp.post.assert_any_call("/add")
+    bp.post.assert_any_call("/update")
+    bp.post.assert_any_call("/<int:template_id>/delete")
 
 
 def test_create_json_file_success(app_mock, monkeypatch):
