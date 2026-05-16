@@ -1,5 +1,7 @@
 import os
 
+from sqlalchemy import URL
+
 from .classes import DbConfig
 from .main_settings import settings
 
@@ -10,7 +12,14 @@ def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     Used by Flask-SQLAlchemy configuration in create_app().
     Compatible with the existing build_db_url() in engine.py.
     """
-    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
+    url = URL.create(
+        "mysql+pymysql",
+        username=db_config.db_user,
+        password=db_config.db_password,
+        host=db_config.db_host,
+        database=db_config.db_name,
+    ).render_as_string(hide_password=False)
+    return url
 
 
 class Config:
@@ -165,6 +174,9 @@ class TestingConfig(Config):
 
     # Disable CORS for testing
     CORS_DISABLED: bool = True
+
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
