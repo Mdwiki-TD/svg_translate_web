@@ -107,15 +107,18 @@ def test_runner_calls_target_and_cleans_up():
     job_id = 456
     user = {"name": "test"}
     event = threading.Event()
+    flask_app = MagicMock()
+    flask_app.app_context = MagicMock()
 
     jobs_worker._register_cancel_event(job_id, event)
     assert jobs_worker.get_jobs_cancel_event(job_id) == event
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
-    _runner(job_id, user, event, mock_target)
+    _runner(job_id, user, event, mock_target, flask_app)
 
     mock_target.assert_called_once_with(job_id, user, cancel_event=event)
+    flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_jobs_cancel_event(job_id) is None
 
