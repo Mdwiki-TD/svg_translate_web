@@ -42,7 +42,9 @@ class Config:
 
     # CSRF protection settings
     WTF_CSRF_ENABLED: bool = True
+    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     WTF_CSRF_TIME_LIMIT: int | None = None  # None = tokens don't expire
+
     WTF_CSRF_SSL_STRICT: bool = True
     WTF_CSRF_CHECK_DEFAULT: bool = True  # default value
     WTF_CSRF_FIELD_NAME: str = "csrf_token"  # default value
@@ -50,8 +52,10 @@ class Config:
     WTF_CSRF_METHODS: list[str] = ["POST", "PUT", "PATCH", "DELETE"]  # default value
     # WTF_CSRF_SECRET_KEY: str = settings.security.secret_key # default value
 
-    # Request handling
-    MAX_CONTENT_LENGTH: int | None = 16 * 1024 * 1024  # 16MB default
+    # Flask 3.1+ security configurations
+    MAX_CONTENT_LENGTH: int | None = 16 * 1024 * 1024  # Maximum form data in memory (default 16MB)
+    MAX_FORM_MEMORY_SIZE: int = 16 * 1024 * 1024  # Maximum form data in memory in bytes (default 16MB)
+    MAX_FORM_PARTS: int = 1000  # Maximum number of form fields (default 1000)
 
     SQLALCHEMY_DATABASE_URI: str
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
@@ -61,16 +65,13 @@ class Config:
         """Initialize configuration with values from environment-based settings."""
         # Sync with the dataclass-based settings for backward compatibility
         self.SECRET_KEY = settings.security.secret_key
+
         self.SESSION_COOKIE_HTTPONLY = settings.cookie.httponly
         self.SESSION_COOKIE_SECURE = settings.cookie.secure
         self.SESSION_COOKIE_SAMESITE = settings.cookie.samesite
 
-        # Load SECRET_KEY_FALLBACKS from environment for key rotation support
-        # Format: comma-separated list of fallback keys
-        # Example: FLASK_SECRET_KEY_FALLBACKS="old-key-1,old-key-2"
-        fallbacks_str = os.getenv("FLASK_SECRET_KEY_FALLBACKS", "")
-        if fallbacks_str:
-            self.SECRET_KEY_FALLBACKS = [key.strip() for key in fallbacks_str.split(",") if key.strip()]
+        if settings.security.secret_key_fallbacks:
+            self.SECRET_KEY_FALLBACKS = list(settings.security.secret_key_fallbacks)
 
     def __post_init__(self):
         if self.SQLALCHEMY_ENGINE_OPTIONS is None:

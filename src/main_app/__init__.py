@@ -84,6 +84,7 @@ def register_error_pages(app: Flask):
 
 def update_app_config(app: Flask) -> None:
     app.config.update(
+        SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
         SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
         SESSION_COOKIE_SECURE=settings.cookie.secure,
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
@@ -91,7 +92,6 @@ def update_app_config(app: Flask) -> None:
         MAX_CONTENT_LENGTH=settings.security.max_content_length,
         MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
         MAX_FORM_PARTS=settings.security.max_form_parts,
-        SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
     )
 
     # --- Flask-SQLAlchemy configuration ---
@@ -119,7 +119,8 @@ def create_app(config_class: Type | None = None) -> Flask:
 
     Args:
         config_class: Optional configuration class to use. If not provided,
-                     uses environment-based settings.
+            uses environment-based settings.
+            app.config.from_object(config_class)
 
     Returns:
         Configured Flask application instance.
