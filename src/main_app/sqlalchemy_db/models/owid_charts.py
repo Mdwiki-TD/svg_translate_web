@@ -48,6 +48,14 @@ class OwidChartRecord(db.Model):
     len_years = Column(Integer, nullable=True)
     has_timeline = Column(Boolean, server_default="0")
 
+    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        server_onupdate=func.current_timestamp(),
+    )
+
     _template_info = relationship(
         "OwidChartTemplateRecord",
         primaryjoin="OwidChartRecord.chart_id == OwidChartTemplateRecord.chart_id",
@@ -76,13 +84,6 @@ class OwidChartRecord(db.Model):
     def template_title(self, value: str | None) -> None:
         self._template_title_override = value
 
-    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-    )
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
