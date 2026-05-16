@@ -19,6 +19,7 @@ from sqlalchemy import text
 # before any import that pulls in src.main_app.
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
 os.environ.setdefault("FLASK_ENV", "testing")
+os.environ.setdefault("APP_ENV", "testing")
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")

@@ -48,16 +48,26 @@ class Config:
 
     # CSRF protection settings
     WTF_CSRF_ENABLED: bool = True
+    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
+    # None = tokens don't expire
     WTF_CSRF_TIME_LIMIT: int | None = settings.csrf_time_limit
+
     WTF_CSRF_SSL_STRICT: bool = True
     WTF_CSRF_CHECK_DEFAULT: bool = True
     WTF_CSRF_FIELD_NAME: str = "csrf_token"
     WTF_CSRF_HEADERS: list[str] = ["X-CSRFToken", "X-CSRF-Token"]
     WTF_CSRF_METHODS: list[str] = ["POST", "PUT", "PATCH", "DELETE"]
+    # WTF_CSRF_SECRET_KEY: str = settings.security.secret_key
 
     # Flask 3.1+ security configurations
+
+    # Maximum form data in memory (default 16MB)
     MAX_CONTENT_LENGTH: int | None = settings.security.max_content_length
+
+    # Maximum form data in memory in bytes (default 16MB)
     MAX_FORM_MEMORY_SIZE: int = settings.security.max_form_memory_size
+
+    # Maximum number of form fields (default 1000)
     MAX_FORM_PARTS: int = settings.security.max_form_parts
 
     # Flask-SQLAlchemy
@@ -89,6 +99,11 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Production configuration with strict security settings."""
+
+    # Production should always use secure cookies
+    SESSION_COOKIE_SECURE: bool = True
+    SESSION_COOKIE_HTTPONLY: bool = True
+    SESSION_COOKIE_SAMESITE: str = "Lax"
 
     CORS_DISABLED: bool = False
 
