@@ -1,5 +1,3 @@
-import os
-
 from sqlalchemy import URL
 
 from .classes import DbConfig
@@ -22,98 +20,50 @@ def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     return url
 
 
+def _resolve_db_uri() -> str:
+    """Return MySQL URI when DB is configured, sqlite in-memory otherwise."""
+    if settings.database_data.db_host or settings.database_data.db_user:
+        return build_sqlalchemy_uri(settings.database_data)
+    return "sqlite:///:memory:"
+
+
 class Config:
     """Base configuration class for Flask applications.
 
-    This class provides Flask-standard configuration attributes that can be
-    used with app.config.from_object(). It wraps the dataclass-based settings.
+    All attributes are class-level so ``app.config.from_object()`` can read them.
+    Values are pulled from the environment-based ``settings`` singleton at
+    module import time.
     """
 
     # Flask core settings
     DEBUG: bool = False
     TESTING: bool = False
-    SECRET_KEY: str | None = None
-    SECRET_KEY_FALLBACKS: list[str] | None = None
+    SECRET_KEY: str = settings.security.secret_key
+    SECRET_KEY_FALLBACKS: list[str] = list(settings.security.secret_key_fallbacks or [])
 
-    # Session cookie settings (populated from settings by default)
-    SESSION_COOKIE_HTTPONLY: bool = True
-    SESSION_COOKIE_SECURE: bool = True
-    SESSION_COOKIE_SAMESITE: str = "Lax"
+    # Session cookie settings
+    SESSION_COOKIE_HTTPONLY: bool = settings.cookie.httponly
+    SESSION_COOKIE_SECURE: bool = settings.cookie.secure
+    SESSION_COOKIE_SAMESITE: str = settings.cookie.samesite
 
     # CSRF protection settings
     WTF_CSRF_ENABLED: bool = True
-    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
-    WTF_CSRF_TIME_LIMIT: int | None = None  # None = tokens don't expire
-
+    WTF_CSRF_TIME_LIMIT: int | None = settings.csrf_time_limit
     WTF_CSRF_SSL_STRICT: bool = True
-    WTF_CSRF_CHECK_DEFAULT: bool = True  # default value
-    WTF_CSRF_FIELD_NAME: str = "csrf_token"  # default value
-    WTF_CSRF_HEADERS: list[str] = ["X-CSRFToken", "X-CSRF-Token"]  # default value
-    WTF_CSRF_METHODS: list[str] = ["POST", "PUT", "PATCH", "DELETE"]  # default value
-    # WTF_CSRF_SECRET_KEY: str = settings.security.secret_key # default value
+    WTF_CSRF_CHECK_DEFAULT: bool = True
+    WTF_CSRF_FIELD_NAME: str = "csrf_token"
+    WTF_CSRF_HEADERS: list[str] = ["X-CSRFToken", "X-CSRF-Token"]
+    WTF_CSRF_METHODS: list[str] = ["POST", "PUT", "PATCH", "DELETE"]
 
     # Flask 3.1+ security configurations
-    MAX_CONTENT_LENGTH: int | None = 16 * 1024 * 1024  # Maximum form data in memory (default 16MB)
-    MAX_FORM_MEMORY_SIZE: int = 16 * 1024 * 1024  # Maximum form data in memory in bytes (default 16MB)
-    MAX_FORM_PARTS: int = 1000  # Maximum number of form fields (default 1000)
+    MAX_CONTENT_LENGTH: int | None = settings.security.max_content_length
+    MAX_FORM_MEMORY_SIZE: int = settings.security.max_form_memory_size
+    MAX_FORM_PARTS: int = settings.security.max_form_parts
 
-    SQLALCHEMY_DATABASE_URI: str
+    # Flask-SQLAlchemy
+    SQLALCHEMY_DATABASE_URI: str = _resolve_db_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
-    SQLALCHEMY_ENGINE_OPTIONS: dict = None
-
-    def __init__(self) -> None:
-        """Initialize configuration with values from environment-based settings."""
-        # Sync with the dataclass-based settings for backward compatibility
-        self.SECRET_KEY = settings.security.secret_key
-
-        self.SESSION_COOKIE_HTTPONLY = settings.cookie.httponly
-        self.SESSION_COOKIE_SECURE = settings.cookie.secure
-        self.SESSION_COOKIE_SAMESITE = settings.cookie.samesite
-
-        if settings.security.secret_key_fallbacks:
-            self.SECRET_KEY_FALLBACKS = list(settings.security.secret_key_fallbacks)
-
-    def __post_init__(self):
-        if self.SQLALCHEMY_ENGINE_OPTIONS is None:
-            object.__setattr__(
-                self,
-                "SQLALCHEMY_ENGINE_OPTIONS",
-                {
-                    "pool_pre_ping": True,
-                    "pool_size": 5,
-                    "max_overflow": 10,
-                    "pool_recycle": 3600,
-                    "connect_args": {
-                        "connect_timeout": 5,
-                        "init_command": 'SET time_zone = "+00:00"',
-                        "charset": "utf8mb4",
-                    },
-                },
-            )
-
-
-class DevelopmentConfig(Config):
-    """Development configuration with debugging enabled."""
-
-    DEBUG: bool = True
-    TESTING: bool = True
-    WTF_CSRF_ENABLED: bool = True
-    WTF_CSRF_SSL_STRICT: bool = True
-
-    # Production should always use secure cookies
-    SESSION_COOKIE_SECURE: bool = True
-    SESSION_COOKIE_HTTPONLY: bool = True
-    SESSION_COOKIE_SAMESITE: str = "Lax"
-
-    # Configure CSRF token lifetime
-    WTF_CSRF_TIME_LIMIT = settings.csrf_time_limit
-
-    # Disable CORS for testing
-    CORS_DISABLED: bool = True
-    SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = True  # Log SQL in development
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {
         "pool_pre_ping": True,
         "pool_size": 5,
         "max_overflow": 10,
@@ -126,46 +76,28 @@ class DevelopmentConfig(Config):
     }
 
 
+class DevelopmentConfig(Config):
+    """Development configuration with debugging enabled."""
+
+    DEBUG: bool = True
+    TESTING: bool = True
+    SQLALCHEMY_ECHO: bool = True  # Log SQL in development
+
+    # Disable CORS for testing
+    CORS_DISABLED: bool = True
+
+
 class ProductionConfig(Config):
     """Production configuration with strict security settings."""
 
-    DEBUG: bool = False
-    TESTING: bool = False
-    WTF_CSRF_ENABLED: bool = True
-    WTF_CSRF_SSL_STRICT: bool = True
-
-    # Production should always use secure cookies
-    SESSION_COOKIE_SECURE: bool = True
-    SESSION_COOKIE_HTTPONLY: bool = True
-    SESSION_COOKIE_SAMESITE: str = "Lax"
-
-    # Configure CSRF token lifetime
-    WTF_CSRF_TIME_LIMIT = settings.csrf_time_limit
-
     CORS_DISABLED: bool = False
-    SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_size": 10,
-        "max_overflow": 20,
-        "pool_recycle": 1800,
-        "connect_args": {
-            "connect_timeout": 5,
-            "init_command": 'SET time_zone = "+00:00"',
-            "charset": "utf8mb4",
-        },
-    }
 
 
 class TestingConfig(Config):
     """Testing configuration with CSRF disabled for easier form testing."""
 
-    # Prevent pytest from collecting this as a test class
-    __test__ = False
+    __test__ = False  # prevent pytest collection
 
-    DEBUG: bool = False
     TESTING: bool = True
     WTF_CSRF_ENABLED: bool = False  # Disable CSRF for test requests
     SESSION_COOKIE_SECURE: bool = False
@@ -175,9 +107,6 @@ class TestingConfig(Config):
 
     # Disable CORS for testing
     CORS_DISABLED: bool = True
-
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    SQLALCHEMY_ENGINE_OPTIONS = {}
-
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = False
+    SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}
+    SQLALCHEMY_ECHO: bool = False
