@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
@@ -82,6 +83,19 @@ class OwidChartRecord(db.Model):
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
     )
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column.name] = value
+
+        data["template_id"] = self._template_info.template_id
+        data["template_title"] = self._template_info.template_title
+
+        return data
 
 
 __all__ = [
