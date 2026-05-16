@@ -18,13 +18,22 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
 )
-from .config import build_sqlalchemy_uri, settings
+from .config import DbConfig, settings
 from .core.cookies import CookieHeaderClient
 from .extensions import db, migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
 logger = logging.getLogger(__name__)
+
+
+def build_sqlalchemy_uri(db_config: DbConfig) -> str:
+    """Build a SQLAlchemy database URI from a DbConfig dataclass.
+
+    Used by Flask-SQLAlchemy configuration in create_app().
+    Compatible with the existing build_db_url() in engine.py.
+    """
+    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
 
 
 def register_blueprints(app: Flask) -> None:
