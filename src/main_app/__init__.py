@@ -94,6 +94,24 @@ def update_app_config(app: Flask) -> None:
         SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
     )
 
+    # --- Flask-SQLAlchemy configuration ---
+    if settings.database_data.db_host or settings.database_data.db_user:
+        app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_recycle": 3600,
+        }
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
+
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    # Configure CSRF token lifetime
+    app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
+
 
 def create_app(config_class: Type | None = None) -> Flask:
     """
@@ -119,26 +137,8 @@ def create_app(config_class: Type | None = None) -> Flask:
 
     update_app_config(app)
 
-    # Configure CSRF token lifetime
-    app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
-
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
-
-    # --- Flask-SQLAlchemy configuration ---
-    if settings.database_data.db_host or settings.database_data.db_user:
-        app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "pool_pre_ping": True,
-            "pool_size": 5,
-            "max_overflow": 10,
-            "pool_recycle": 3600,
-        }
-    else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
-
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Initialize Flask-SQLAlchemy and Flask-Migrate
     db.init_app(app)
