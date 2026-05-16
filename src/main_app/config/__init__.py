@@ -18,15 +18,16 @@ from .flask_config import (
     TestingConfig,
     build_sqlalchemy_uri,
 )
-from .settings import settings
+from .main_settings import settings
 
 __all__ = [
     "Config",
+    "Settings",
     "DevelopmentConfig",
     "ProductionConfig",
     "TestingConfig",
     "build_sqlalchemy_uri",
-    "settings",
+    "main_settings",
     "CookieConfig",
     "CorsConfig",
     "DbConfig",
@@ -35,5 +36,5 @@ __all__ = [
     "Paths",
     "SecurityConfig",
     "SessionConfig",
-    "Settings",
+    "settings",
 ]
