@@ -49,9 +49,9 @@ def owid_charts_list():
     all_charts: list[OwidChartRecord] = owid_charts_service.list_charts()
 
     if template_filter == "has_template":
-        charts = [c for c in all_charts if c.template_title]
+        charts = [c for c in all_charts if c.template_title is not None]
     elif template_filter == "no_template":
-        charts = [c for c in all_charts if not c.template_title]
+        charts = [c for c in all_charts if c.template_title is None]
     else:
         charts = all_charts
 
@@ -63,8 +63,8 @@ def owid_charts_list():
             "without": sum(1 for c in all_charts if not c.is_published),
         },
         "template": {
-            "with": sum(1 for c in all_charts if c.template_id),
-            "without": sum(1 for c in all_charts if not c.template_id),
+            "with": sum(1 for c in all_charts if c.template_title is not None),
+            "without": sum(1 for c in all_charts if c.template_title is None),
         },
         "map_tab": {
             "with": sum(1 for c in all_charts if c.has_map_tab),

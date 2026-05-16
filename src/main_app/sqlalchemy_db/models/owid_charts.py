@@ -70,10 +70,6 @@ class OwidChartRecord(db.Model):
             return self._template_info.template_id
         return getattr(self, "_template_id_override", None)
 
-    @template_id.setter
-    def template_id(self, value: int | None) -> None:
-        self._template_id_override = value
-
     @property
     def template_title(self) -> str | None:
         if hasattr(self, "_template_info") and self._template_info:
@@ -84,6 +80,9 @@ class OwidChartRecord(db.Model):
     def template_title(self, value: str | None) -> None:
         self._template_title_override = value
 
+    @template_id.setter
+    def template_id(self, value: int | None) -> None:
+        self._template_id_override = value
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
@@ -93,8 +92,8 @@ class OwidChartRecord(db.Model):
                 value = value.isoformat()
             data[column.name] = value
 
-        data["template_id"] = self._template_info.template_id
-        data["template_title"] = self._template_info.template_title
+        data["template_id"] = self.template_id or None
+        data["template_title"] = self.template_title or None
 
         return data
 
