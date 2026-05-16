@@ -116,7 +116,6 @@ DISABLE_UPLOADS=0
 UPLOAD_END_POINT=commons.wikimedia.org
 # Replace with your actual contact email
 USER_AGENT="Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; your-contact-email@example.org)"
-ADMINS=user1,user2,user3
 ```
 
 For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
@@ -136,7 +135,7 @@ For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
 
 ### Admin Features
 
-Administrators (configured via `ADMINS` environment variable) have access to:
+Administrators have access to:
 
 -   Template management interface
 -   Task overview and management

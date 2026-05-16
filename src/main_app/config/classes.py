@@ -61,7 +61,6 @@ class OAuthConfig:
     consumer_key: str
     consumer_secret: str
     encryption_key: str | None
-    upload_host: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +74,7 @@ class JobsConfig:
 
     dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
     disable_uploads: str
+    upload_host: str
 
 
 @dataclass(frozen=True)

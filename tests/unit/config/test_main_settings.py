@@ -125,7 +125,6 @@ def test_load_oauth_config():
     assert result.mw_uri == "https://example.com"
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
-    assert result.upload_host == "upload.example.com"
 
 
 @patch.dict(
@@ -216,8 +215,6 @@ def test_load_oauth_config_with_defaults():
     assert result.mw_uri == "https://example.com"
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
-    # Check defaults
-    assert result.upload_host == "commons.wikimedia.org"
 
 
 class TestConfig:

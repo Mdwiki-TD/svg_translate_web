@@ -63,14 +63,12 @@ def test_OAuthConfig():
         mw_uri="https://example.com",
         consumer_key="key",
         consumer_secret="secret",
-        upload_host="upload.example.com",
         encryption_key="encryption_key",
     )
 
     assert oauth_config.mw_uri == "https://example.com"
     assert oauth_config.consumer_key == "key"
     assert oauth_config.consumer_secret == "secret"
-    assert oauth_config.upload_host == "upload.example.com"
 
 
 def test_Settings():
@@ -83,6 +81,7 @@ def test_Settings():
     jobs_config = JobsConfig(
         dev_limit=0,
         disable_uploads="",
+        upload_host="upload.example.com",
     )
 
     security_config = SecurityConfig(
@@ -101,6 +100,7 @@ def test_Settings():
     settings = Settings(
         user_agent="user_agent",
         has_db_config=lambda: True,
+        csrf_time_limit=3600,
         database_data=db_config,
         cookie=cookie_config,
         sessions=sessions,
@@ -108,9 +108,9 @@ def test_Settings():
         paths=paths,
         jobs=jobs_config,
         security=security_config,
-        csrf_time_limit=3600,
     )
 
+    assert settings.jobs.upload_host == "upload.example.com"
     assert settings.database_data.db_host == "localhost"
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"

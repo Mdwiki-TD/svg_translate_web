@@ -122,7 +122,6 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
         mw_uri=mw_uri,
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
         encryption_key=encryption_key,
     )
 
@@ -243,6 +242,7 @@ def get_settings() -> Settings:
     jobs_config = JobsConfig(
         dev_limit=dev_download_limit,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
     )
     database_data = _load_database_config()
 
