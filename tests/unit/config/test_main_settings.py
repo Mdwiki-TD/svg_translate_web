@@ -160,7 +160,7 @@ def test_get_settings():
     settings = get_settings()
 
     assert isinstance(settings, Settings)
-    assert settings.secret_key == "test-secret-key"
+    assert settings.security.secret_key == "test-secret-key"
     assert settings.cookie.name == "test-cookie"
     assert settings.cookie.max_age == 7200
     assert settings.sessions.state_key == "test-state"

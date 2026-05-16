@@ -80,6 +80,7 @@ class DownloadConfig:
 class SecurityConfig:
     """Security configuration for Flask 3.1+ features."""
 
+    secret_key: str
     max_content_length: int  # Maximum request size in bytes
     max_form_memory_size: int  # Maximum form data in memory in bytes
     max_form_parts: int  # Maximum number of form fields
@@ -90,7 +91,6 @@ class SecurityConfig:
 class Settings:
     """Main settings container."""
 
-    secret_key: str
     user_agent: str
     is_localhost: Callable[[str], bool]
     has_db_config: callable

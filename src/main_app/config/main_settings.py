@@ -50,6 +50,30 @@ def resolve_path(_path) -> Path:
 # --- Configuration Loaders ---
 
 
+def _load_security_config() -> SecurityConfig:
+    # Load security configuration (Flask 3.1+ features)
+    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
+    max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
+    # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
+    max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
+    # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
+    max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
+    # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
+    secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
+    secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
+
+    secret_key = os.getenv("FLASK_SECRET_KEY", "")
+
+    security_config = SecurityConfig(
+        secret_key=secret_key,
+        max_content_length=max_content_length,
+        max_form_memory_size=max_form_memory_size,
+        max_form_parts=max_form_parts,
+        secret_key_fallbacks=secret_key_fallbacks,
+    )
+    return security_config
+
+
 def _load_database_config() -> DbConfig:
     """
     Construct a DbConfig populated from environment variables.
@@ -193,14 +217,14 @@ def get_settings() -> Settings:
         RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
         RuntimeError: If the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
     """
-    secret_key = os.getenv("FLASK_SECRET_KEY", "")
-    if not secret_key:
-        raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
-
     sessions = SessionConfig(
         state_key=os.getenv("STATE_SESSION_KEY", "oauth_state_nonce"),
         request_token_key=os.getenv("REQUEST_TOKEN_SESSION_KEY", "state"),
     )
+    security_config = _load_security_config()
+
+    if not security_config.secret_key:
+        raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
     oauth_config = _load_oauth_config()
 
@@ -221,41 +245,26 @@ def get_settings() -> Settings:
     # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
     dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
 
-    # Load security configuration (Flask 3.1+ features)
-    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
-    max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
-    # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
-    max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
-    # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
-    max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
-    # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
-    secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
-    secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
-
-    security = SecurityConfig(
-        max_content_length=max_content_length,
-        max_form_memory_size=max_form_memory_size,
-        max_form_parts=max_form_parts,
-        secret_key_fallbacks=secret_key_fallbacks,
-    )
     database_data = _load_database_config()
+
+    user_agent = os.getenv(
+        "USER_AGENT",
+        "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
+    )
+
     return Settings(
         is_localhost=is_localhost,
-        user_agent=os.getenv(
-            "USER_AGENT",
-            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-        ),
+        user_agent=user_agent,
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
-        secret_key=secret_key,
         cookie=cookie_config,
         oauth=oauth_config,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
         download=DownloadConfig(dev_limit=dev_download_limit),
-        security=security,
-        csrf_time_limit=csrf_time_limit,
+        security=security_config,
         sessions=sessions,
+        csrf_time_limit=csrf_time_limit,
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
     )
 
 

@@ -39,7 +39,7 @@ class Config:
     WTF_CSRF_FIELD_NAME: str = "csrf_token"  # default value
     WTF_CSRF_HEADERS: list[str] = ["X-CSRFToken", "X-CSRF-Token"]  # default value
     WTF_CSRF_METHODS: list[str] = ["POST", "PUT", "PATCH", "DELETE"]  # default value
-    # WTF_CSRF_SECRET_KEY: str = settings.secret_key # default value
+    # WTF_CSRF_SECRET_KEY: str = settings.security.secret_key # default value
 
     # Request handling
     MAX_CONTENT_LENGTH: int | None = 16 * 1024 * 1024  # 16MB default
@@ -51,7 +51,7 @@ class Config:
     def __init__(self) -> None:
         """Initialize configuration with values from environment-based settings."""
         # Sync with the dataclass-based settings for backward compatibility
-        self.SECRET_KEY = settings.secret_key
+        self.SECRET_KEY = settings.security.secret_key
         self.SESSION_COOKIE_HTTPONLY = settings.cookie.httponly
         self.SESSION_COOKIE_SECURE = settings.cookie.secure
         self.SESSION_COOKIE_SAMESITE = settings.cookie.samesite
@@ -95,6 +95,9 @@ class DevelopmentConfig(Config):
     SESSION_COOKIE_HTTPONLY: bool = True
     SESSION_COOKIE_SAMESITE: str = "Lax"
 
+    # Configure CSRF token lifetime
+    WTF_CSRF_TIME_LIMIT = settings.csrf_time_limit
+
     # Disable CORS for testing
     CORS_DISABLED: bool = True
     SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)
@@ -125,6 +128,9 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE: bool = True
     SESSION_COOKIE_HTTPONLY: bool = True
     SESSION_COOKIE_SAMESITE: str = "Lax"
+
+    # Configure CSRF token lifetime
+    WTF_CSRF_TIME_LIMIT = settings.csrf_time_limit
 
     CORS_DISABLED: bool = False
     SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)

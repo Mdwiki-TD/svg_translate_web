@@ -115,7 +115,7 @@ def create_app(config_class: Type | None = None) -> Flask:
 
     app.url_map.strict_slashes = False
     app.test_client_class = CookieHeaderClient
-    app.secret_key = settings.secret_key
+    app.secret_key = settings.security.secret_key
 
     update_app_config(app)
 
