@@ -98,25 +98,32 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     return redirect(url_for("admin.coordinators.dashboard"))
 
 
-@bp_coordinators.get("/")
-@admin_required
-def dashboard():
-    return _coordinators_dashboard()
+class Coordinators:
+    def __init__(self, bp_coordinators: Blueprint) -> None:
+        @bp_coordinators.get("/")
+        @admin_required
+        def dashboard():
+            return _coordinators_dashboard()
+
+        @bp_coordinators.post("/add")
+        @admin_required
+        def add() -> ResponseReturnValue:
+            return _add_coordinator()
+
+        @bp_coordinators.post("/<int:coordinator_id>/active")
+        @admin_required
+        def update_active(coordinator_id: int) -> ResponseReturnValue:
+            return _update_coordinator_active(coordinator_id)
+
+        @bp_coordinators.post("/<int:coordinator_id>/delete")
+        @admin_required
+        def delete(coordinator_id: int) -> ResponseReturnValue:
+            return _delete_coordinator(coordinator_id)
 
 
-@bp_coordinators.post("/add")
-@admin_required
-def add() -> ResponseReturnValue:
-    return _add_coordinator()
+Coordinators(bp_coordinators)
 
 
-@bp_coordinators.post("/<int:coordinator_id>/active")
-@admin_required
-def update_active(coordinator_id: int) -> ResponseReturnValue:
-    return _update_coordinator_active(coordinator_id)
-
-
-@bp_coordinators.post("/<int:coordinator_id>/delete")
-@admin_required
-def delete(coordinator_id: int) -> ResponseReturnValue:
-    return _delete_coordinator(coordinator_id)
+__all__ = [
+    "bp_coordinators",
+]

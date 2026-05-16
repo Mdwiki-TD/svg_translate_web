@@ -180,7 +180,8 @@ class Jobs:
         # Jobs List routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>/list")
+        # @bp_jobs.get("/<string:job_type>/list")
+        @bp_jobs.get("/<string:job_type>")
         @admin_required
         def jobs_list(job_type: str) -> str:
             return _jobs_list(job_type)

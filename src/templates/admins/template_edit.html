@@ -27,7 +27,7 @@
             <h5 class="mb-0">Edit Template: {{ template.title }}</h5>
         </div>
         <div class="card-body">
-            <form id="updateForm" method="post" action="{{ url_for('admin.update_template') }}">
+            <form id="updateForm" method="post" action="{{ url_for('admin.templates.update_template') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="id" value="{{ template.id }}" />
                 <input type="hidden" name="from_popup" value="1" />
@@ -57,7 +57,7 @@
                 </div>
             </form>
 
-            <form id="deleteForm" method="post" action="{{ url_for('admin.delete_template', template_id=template.id) }}"
+            <form id="deleteForm" method="post" action="{{ url_for('admin.templates.delete_template', template_id=template.id) }}"
                 class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ template.title }}?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="from_popup" value="1" />
