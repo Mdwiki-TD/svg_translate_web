@@ -7,7 +7,6 @@ from src.main_app.app_routes.admin import sidebar
 
 def test_generate_list_item() -> None:
     html = sidebar.generate_list_item("/home", "Home", icon="bi-house", target=True)
-
     assert "href='/home'" in html
     assert "bi-house" in html
     assert "target='_blank'" in html
