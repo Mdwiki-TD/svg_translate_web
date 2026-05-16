@@ -104,7 +104,7 @@ def test_create_app_jinja_env_configured(monkeypatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     from src.main_app import create_app
-    from src.main_app.config import get_settings
+    from src.main_app.config.main_settings import get_settings
 
     get_settings.cache_clear()
     app = create_app()
