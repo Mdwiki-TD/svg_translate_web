@@ -81,14 +81,14 @@ def test_create_side_with_active_item():
 
 def test_sidebar_contains_jobs_section():
     """Test that sidebar contains the Jobs section."""
-    result = sidebar.create_side("collect_main_files/list")
+    result = sidebar.create_side("collect_main_files")
     assert "Jobs" in result
     assert "bi-gear-fill" in result
 
 
 def test_sidebar_contains_collect_main_files_job_link():
     """Test that sidebar contains Collect Templates data job link."""
-    result = sidebar.create_side("collect_main_files/list")
+    result = sidebar.create_side("collect_main_files")
     assert "Collect Templates data" in result
     assert "collect_main_files/list" in result
     assert "bi-kanban" in result
@@ -96,7 +96,7 @@ def test_sidebar_contains_collect_main_files_job_link():
 
 def test_sidebar_contains_fix_nested_main_files_job_link():
     """Test that sidebar contains Fix Nested Main Files job link."""
-    result = sidebar.create_side("fix_nested_main_files/list")
+    result = sidebar.create_side("fix_nested_main_files")
     assert "Fix Nested Main Files" in result
     assert "fix_nested_main_files/list" in result
     assert "bi-tools" in result
@@ -104,13 +104,13 @@ def test_sidebar_contains_fix_nested_main_files_job_link():
 
 def test_sidebar_marks_collect_main_files_as_active():
     """Test that Collect Templates data is marked as active when selected."""
-    result = sidebar.create_side("collect_main_files/list")
+    result = sidebar.create_side("collect_main_files")
     # The link should have an active class
     assert "id='collect_main_files' class='active'" in result
 
 
 def test_sidebar_marks_fix_nested_main_files_as_active():
     """Test that Fix Nested Main Files is marked as active when selected."""
-    result = sidebar.create_side("fix_nested_main_files/list")
+    result = sidebar.create_side("fix_nested_main_files")
     # The link should have an active class
     assert "id='fix_nested_main_files' class='active'" in result

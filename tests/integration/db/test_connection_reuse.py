@@ -66,7 +66,7 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     response = client.get("/logout")
     assert response.status_code == 302
 
-    response = client.get("/jobs/copy_svg_langs/list")
+    response = client.get("/jobs/copy_svg_langs")
     assert response.status_code == 200
 
     # TODO: FAILED tests/test_connection_reuse.py::test_sequential_requests_use_cached_connections - AssertionError: assert 4 <= 3

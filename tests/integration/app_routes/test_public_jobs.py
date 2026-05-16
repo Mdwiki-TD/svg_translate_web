@@ -82,7 +82,7 @@ class TestJobsPublicRoutesInit:
         mock_bp = MagicMock()
         JobsPublicRoutes(mock_bp)
 
-        mock_bp.get.assert_any_call("/<string:job_type>/list")
+        mock_bp.get.assert_any_call("/<string:job_type>")
 
     def test_registers_job_detail_route(self):
         """Test job detail route is registered."""
