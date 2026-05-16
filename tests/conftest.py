@@ -12,13 +12,14 @@ from cryptography.fernet import Fernet
 from flask.app import Flask
 from flask.testing import FlaskClient
 from sqlalchemy import text
-from sqlalchemy.orm import sessionmaker
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError
 # if FLASK_SECRET_KEY is missing, so every env var must be set here first,
 # before any import that pulls in src.main_app.
 os.environ.setdefault("FLASK_SECRET_KEY", secrets.token_hex(16))
+os.environ.setdefault("FLASK_ENV", "testing")
+os.environ.setdefault("APP_ENV", "testing")
 os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
@@ -37,6 +38,7 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 from src.main_app import create_app  # noqa: E402
 from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import TestingConfig  # noqa: E402
+from src.main_app.extensions import db as _db  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -223,36 +225,41 @@ def mw_client(mock_site: MagicMock) -> MwClientPage:
 
 
 @pytest.fixture(autouse=True)
-def setup_db():
-    """Initialize an in-memory SQLite database for tests.
+def setup_db(app):
+    """Initialize an in-memory SQLite database for tests using Flask-SQLAlchemy.
 
-    Creates a fresh SQLite in-memory engine for every test and patches
-    engine_mod._SessionFactory so all sqlalchemy_db service calls use it.
-    View-backed tables (is_view=True) are skipped since SQLite cannot run
-    the MySQL CREATE VIEW statements.
+    Creates all real tables (skipping views) and creates views manually.
+    The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
-    from src.main_app.sqlalchemy_db import engine as engine_mod
-    from src.main_app.sqlalchemy_db.engine import (
-        BaseDb,
-        build_engine,
-    )
+    with app.app_context():
+        # Create only real tables; skip view-backed mapped classes
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
 
-    engine = build_engine("sqlite:///:memory:")
+        # Create views manually (SQLite-compatible CREATE VIEW)
+        with _db.engine.connect() as conn:
+            for table in _db.metadata.tables.values():
+                if table.info.get("is_view") and table.info.get("create_query"):
+                    try:
+                        conn.execute(text(table.info["create_query"]))
+                        conn.commit()
+                    except Exception:
+                        conn.rollback()
 
-    # Create only real tables; skip view-backed mapped classes
-    for table in BaseDb.metadata.sorted_tables:
-        if not table.info.get("is_view"):
-            table.create(engine, checkfirst=True)
-
-    # Create views manually
-    for table in BaseDb.metadata.sorted_tables:
-        if table.info.get("is_view") and table.info.get("create_query"):
-            with engine.connect() as conn:
-                conn.execute(text(table.info["create_query"]))
-
-    factory = sessionmaker(bind=engine, expire_on_commit=False)
-
-    with patch.object(engine_mod, "_SessionFactory", factory):
         yield
 
-    engine.dispose()
+        _db.session.remove()
+
+        # Drop views first (SQLite requires DROP VIEW, not DROP TABLE)
+        with _db.engine.connect() as conn:
+            for table in _db.metadata.tables.values():
+                if table.info.get("is_view"):
+                    try:
+                        conn.execute(text(f"DROP VIEW IF EXISTS {table.name}"))
+                    except Exception:
+                        pass
+            conn.commit()
+
+        # Drop only real tables
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.drop_all(_db.engine, tables=real_tables)

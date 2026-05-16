@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from flask import url_for
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,7 +35,7 @@ def generate_list_item(href, title, icon=None, target=None):
     return link.strip()
 
 
-def create_side(active_route):
+def create_side(active_route, path: str | None = None):
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
@@ -50,28 +52,28 @@ def create_side(active_route):
             SidebarItem(
                 id="admins",
                 admin=1,
-                href="coordinators",
+                href=url_for("admin.coordinators.dashboard"),
                 title="Coordinators",
                 icon="bi-person-gear",
             ),
             SidebarItem(
                 id="templates",
                 admin=1,
-                href="templates",
+                href=url_for("admin.templates.dashboard"),
                 title="Templates",
                 icon="bi-list-columns",
             ),
             SidebarItem(
                 id="templates_need_update",
                 admin=1,
-                href="templates-need-update",
+                href=url_for("admin.templates.templates_need_update"),
                 title="Templates Need Update",
                 icon="bi-arrow-repeat",
             ),
             SidebarItem(
                 id="owid_charts",
                 admin=1,
-                href="owid-charts",
+                href=url_for("admin.owidcharts.dashboard"),
                 title="OWID Charts",
                 icon="bi-graph-up",
             ),
@@ -80,42 +82,42 @@ def create_side(active_route):
             SidebarItem(
                 id="collect_main_files",
                 admin=1,
-                href="collect_main_files/list",
+                href=url_for("admin.jobs.jobs_list", job_type="collect_main_files"),
                 title="Collect Templates data",
                 icon="bi-kanban",
             ),
             SidebarItem(
                 id="crop_main_files",
                 admin=1,
-                href="crop_main_files/list",
+                href=url_for("admin.jobs.jobs_list", job_type="crop_main_files"),
                 title="Crop Newest World Files",
                 icon="bi-crop",
             ),
             SidebarItem(
                 id="create_owid_pages",
                 admin=1,
-                href="create_owid_pages/list",
+                href=url_for("admin.jobs.jobs_list", job_type="create_owid_pages"),
                 title="Create OWID Pages",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="add_svglanguages_template",
                 admin=1,
-                href="add_svglanguages_template/list",
+                href=url_for("admin.jobs.jobs_list", job_type="add_svglanguages_template"),
                 title="Add {{SVGLanguages}}",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="fix_nested_main_files",
                 admin=1,
-                href="fix_nested_main_files/list",
+                href=url_for("admin.jobs.jobs_list", job_type="fix_nested_main_files"),
                 title="Fix Nested Main Files",
                 icon="bi-tools",
             ),
             SidebarItem(
                 id="download_main_files",
                 admin=1,
-                href="download_main_files/list",
+                href=url_for("admin.jobs.jobs_list", job_type="download_main_files"),
                 title="Download Main Files",
                 icon="bi-download",
                 disabled=True,
@@ -125,7 +127,7 @@ def create_side(active_route):
             SidebarItem(
                 id="settings",
                 admin=1,
-                href="settings",
+                href=url_for("admin.settings.dashboard"),
                 title="Settings",
                 icon="bi-gear",
             ),
@@ -140,12 +142,25 @@ def create_side(active_route):
         lis = []
         group_is_active = True
         key_id = key.lower().replace(" ", "_")
+        css_class_full = [item.href for item in items if path == item.href]
+
         for item in items:
             if item.disabled:
                 continue
 
-            css_class = "active" if (active_route == item.href or item.href.startswith(f"{active_route}/")) else ""
+            css_class = "active" if item.href in css_class_full else ""
+
+            if not css_class_full:
+                if path == item.href or (path and path.startswith(item.href)):
+                    css_class = "active"
+
+                if not css_class and active_route == item.id:
+                    css_class = "active"
+
             href_full = item.href if item.target else f"/admin/{item.href}"
+            if item.href.startswith("/admin/"):
+                href_full = item.href
+
             link = generate_list_item(href_full, item.title, item.icon, item.target)
             lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
 

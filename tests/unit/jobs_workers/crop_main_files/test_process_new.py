@@ -123,7 +123,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_settings = MagicMock()
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
     mock_settings.user_agent = "TestBot/1.0"
-    mock_settings.download.dev_limit = 0
+    mock_settings.jobs.dev_limit = 0
     mock_settings.crop_newest_upload_limit = 0
     monkeypatch.setattr(
         "src.main_app.jobs_workers.crop_main_files.process_new.settings",
@@ -424,7 +424,7 @@ class TestCropMainFilesProcessorLoadTemplates:
 
     def test_apply_limits_with_dev_limit(self, mock_services):
         """Test _apply_limits respects dev_limit setting."""
-        mock_services["settings"].download.dev_limit = 2
+        mock_services["settings"].jobs.dev_limit = 2
         templates = [
             TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
             TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg"),

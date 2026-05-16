@@ -1,15 +1,9 @@
 """Unit tests for args parsing utilities."""
 
-import types
-
 import pytest
 from werkzeug.datastructures import MultiDict
 
 from src.main_app.app_routes.utils import args_utils
-
-
-def _make_settings(disable_uploads: str) -> types.SimpleNamespace:
-    return types.SimpleNamespace(disable_uploads=disable_uploads)
 
 
 def test_parse_args_upload_disabled_by_config(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -90,7 +90,7 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 ### Configuration
 
 -   Environment variables loaded via `src/svg_config.py` using python-dotenv (expects `.env` file in `src/`)
--   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `DownloadConfig`, `SecurityConfig`
+-   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `SecurityConfig`
 -   Settings cached via `@lru_cache` in `src/main_app/config.py`
 
 #### Required Environment Variables
@@ -115,7 +115,6 @@ OAUTH_ENCRYPTION_KEY=       # Generate: python -c "from cryptography.fernet impo
 MAIN_DIR=/path/to/data      # Root for svg_data/, logs/, etc.
 
 # Optional
-ADMINS=user1,user2          # Comma-separated admin usernames
 DISABLE_UPLOADS=0           # Set to 1 to disable uploads
 DEV_DOWNLOAD_LIMIT=10       # Limit downloads in dev (0 = unlimited)
 ```

@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Any
 
-from ..engine import get_session
+from ...extensions import db
 from ..models.settings import SettingRecord
 
 logger = logging.getLogger(__name__)
@@ -45,8 +45,7 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
 
 def list_settings() -> list[SettingRecord]:
     """List all settings."""
-    with get_session() as session:
-        return session.query(SettingRecord).all()
+    return db.session.query(SettingRecord).all()
 
 
 def get_all_settings_raw() -> list[dict[str, Any]]:
@@ -56,19 +55,17 @@ def get_all_settings_raw() -> list[dict[str, Any]]:
 
 def get_setting_by_key(key: str) -> SettingRecord:
     """Fetch a setting by key."""
-    with get_session() as session:
-        return session.query(SettingRecord).filter(SettingRecord.key == key).first()
+    return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
 
 def delete_setting(key: str) -> bool:
     """delete a setting by key."""
-    with get_session() as session:
-        record = session.query(SettingRecord).filter(SettingRecord.key == key).first()
-        if record:
-            session.delete(record)
-            session.commit()
-            return True
-        return False
+    record = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
+    if record:
+        db.session.delete(record)
+        db.session.commit()
+        return True
+    return False
 
 
 def update_setting(
@@ -80,19 +77,18 @@ def update_setting(
     """
     Update an existing setting.
     """
-    with get_session() as session:
-        setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
-        if not setting:
-            return False
+    setting = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
+    if not setting:
+        return False
 
-        if not value_type:
-            value_type = setting.value_type
+    if not value_type:
+        value_type = setting.value_type
 
-        setting.value = _serialize_value(value, value_type)
-        if title:
-            setting.title = title
-        session.commit()
-        return setting
+    setting.value = _serialize_value(value, value_type)
+    if title:
+        setting.title = title
+    db.session.commit()
+    return setting
 
 
 def update_setting_bool(
@@ -104,19 +100,18 @@ def update_setting_bool(
     """
     Update an existing setting.
     """
-    with get_session() as session:
-        setting = session.query(SettingRecord).filter(SettingRecord.key == key).first()
-        if not setting:
-            return False
+    setting = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
+    if not setting:
+        return False
 
-        if not value_type:
-            value_type = setting.value_type
+    if not value_type:
+        value_type = setting.value_type
 
-        setting.value = _serialize_value(value, value_type)
-        if title:
-            setting.title = title
-        session.commit()
-        return True
+    setting.value = _serialize_value(value, value_type)
+    if title:
+        setting.title = title
+    db.session.commit()
+    return True
 
 
 def create_setting(key: str, title: str, value_type: str) -> bool:
@@ -131,15 +126,14 @@ def create_setting(key: str, title: str, value_type: str) -> bool:
 
     value = default_value_types.get(value_type, "")
 
-    with get_session() as session:
-        setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
-        session.add(setting)
-        try:
-            session.commit()
-            return True
-        except Exception:
-            session.rollback()
-            return False
+    setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
+    db.session.add(setting)
+    try:
+        db.session.commit()
+        return True
+    except Exception:
+        db.session.rollback()
+        return False
 
 
 def settings_update_form(request_form) -> tuple[list[str], list[str]]:

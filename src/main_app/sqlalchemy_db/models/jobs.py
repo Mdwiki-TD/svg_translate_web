@@ -4,12 +4,12 @@ import logging
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 
-from ..engine import BaseDb
+from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class JobRecord(BaseDb):
+class JobRecord(db.Model):
     """
     CREATE TABLE `jobs` (
       `id` int(11) NOT NULL AUTO_INCREMENT,

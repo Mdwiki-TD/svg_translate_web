@@ -23,6 +23,8 @@ from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
 
+bp_owidcharts = Blueprint("owidcharts", __name__, url_prefix="/owid-charts")
+
 
 def create_json_file() -> Tuple[Any, int]:
     """Create a JSON file containing all charts data.
@@ -88,8 +90,8 @@ def _add_chart() -> ResponseReturnValue:
     if not slug or not title:
         flash("Slug and Title are required.", "danger")
         if from_popup:
-            return redirect(url_for("admin.add_chart"))
-        return redirect(url_for("admin.owid_charts_dashboard"))
+            return redirect(url_for("admin.owidcharts.add_chart"))
+        return redirect(url_for("admin.owidcharts.dashboard"))
 
     has_map_tab = request.form.get("has_map_tab") == "on"
     max_time = request.form.get("max_time", type=int)
@@ -126,11 +128,11 @@ def _add_chart() -> ResponseReturnValue:
         flash(f"Chart '{record.title}' added.", "success")
 
     if from_popup and save_error:
-        return redirect(url_for("admin.add_chart"))
+        return redirect(url_for("admin.owidcharts.add_chart_popup"))
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.owid_charts_dashboard"))
+    return redirect(url_for("admin.owidcharts.dashboard"))
 
 
 def _update_chart() -> ResponseReturnValue:
@@ -145,8 +147,8 @@ def _update_chart() -> ResponseReturnValue:
     if not slug or not title:
         flash("Slug and Title are required.", "danger")
         if from_popup:
-            return redirect(url_for("admin.edit_chart", chart_id=chart_id))
-        return redirect(url_for("admin.owid_charts_dashboard"))
+            return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
+        return redirect(url_for("admin.owidcharts.dashboard"))
 
     has_map_tab = request.form.get("has_map_tab") == "on"
     max_time = request.form.get("max_time", type=int)
@@ -191,11 +193,11 @@ def _update_chart() -> ResponseReturnValue:
         flash(f"Chart '{record.title}' updated.", "success")
 
     if from_popup and save_error:
-        return redirect(url_for("admin.edit_chart", chart_id=chart_id))
+        return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.owid_charts_dashboard"))
+    return redirect(url_for("admin.owidcharts.dashboard"))
 
 
 def _delete_chart(chart_id: int) -> ResponseReturnValue:
@@ -215,7 +217,7 @@ def _delete_chart(chart_id: int) -> ResponseReturnValue:
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.owid_charts_dashboard"))
+    return redirect(url_for("admin.owidcharts.dashboard"))
 
 
 def _edit_chart(chart_id: int) -> ResponseReturnValue:
@@ -237,24 +239,24 @@ def _edit_chart(chart_id: int) -> ResponseReturnValue:
 
 
 class OwidCharts:
-    def __init__(self, bp_admin: Blueprint):
-        @bp_admin.get("/owid-charts")
+    def __init__(self, bp_owidcharts: Blueprint):
+        @bp_owidcharts.get("/")
+        @bp_owidcharts.get("/<string:template_filter>")
         @admin_required
-        def owid_charts_dashboard():
-            template_filter = request.args.get("template", "").strip()
+        def dashboard(template_filter: str = ""):
             return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
-        @bp_admin.get("/owid-charts/add")
+        @bp_owidcharts.get("/add")
         @admin_required
         def add_chart_popup() -> ResponseReturnValue:
             return _add_chart_popup()
 
-        @bp_admin.post("/owid-charts/add")
+        @bp_owidcharts.post("/add")
         @admin_required
         def add_chart() -> ResponseReturnValue:
             return _add_chart()
 
-        @bp_admin.post("/owid-charts/update")
+        @bp_owidcharts.post("/update")
         @admin_required
         def update_chart_data() -> ResponseReturnValue:
             chart_id = request.form.get("chart_id", default=0, type=int)
@@ -263,22 +265,22 @@ class OwidCharts:
             if not chart_id:
                 flash("Chart ID is required.", "danger")
                 if from_popup:
-                    return redirect(url_for("admin.edit_chart", chart_id=chart_id))
-                return redirect(url_for("admin.owid_charts_dashboard"))
+                    return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
+                return redirect(url_for("admin.owidcharts.dashboard"))
 
             return _update_chart()
 
-        @bp_admin.post("/owid-charts/<int:chart_id>/delete")
+        @bp_owidcharts.post("/<int:chart_id>/delete")
         @admin_required
         def delete_chart(chart_id: int) -> ResponseReturnValue:
             return _delete_chart(chart_id)
 
-        @bp_admin.get("/owid-charts/<int:chart_id>/edit")
+        @bp_owidcharts.get("/<int:chart_id>/edit")
         @admin_required
         def edit_chart(chart_id: int) -> ResponseReturnValue:
             return _edit_chart(chart_id)
 
-        @bp_admin.get("/owid-charts/download-json")
+        @bp_owidcharts.get("/download-json")
         @admin_required
         def download_owid_charts_json() -> ResponseReturnValue:
             """Download all charts as a JSON file."""
@@ -286,6 +288,14 @@ class OwidCharts:
 
             if status_code != 200:
                 flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.owid_charts_dashboard"))
+                return redirect(url_for("admin.owidcharts.dashboard"))
 
             return response
+
+
+OwidCharts(bp_owidcharts)
+
+
+__all__ = [
+    "bp_owidcharts",
+]

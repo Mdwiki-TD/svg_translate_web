@@ -4,12 +4,12 @@ import logging
 
 from sqlalchemy import Column, Enum, Integer, String, Text
 
-from ..engine import BaseDb
+from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class SettingRecord(BaseDb):
+class SettingRecord(db.Model):
     """
     CREATE TABLE `settings` (
       `id` int(11) NOT NULL AUTO_INCREMENT,

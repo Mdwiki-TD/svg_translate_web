@@ -18,7 +18,7 @@ def _build_site(access_key: str, access_secret: str) -> mwclient.Site:
         raise RuntimeError("MediaWiki OAuth consumer not configured")
 
     return mwclient.Site(
-        settings.oauth.upload_host,
+        settings.jobs.upload_host,
         scheme="https",
         clients_useragent=settings.user_agent,
         consumer_token=settings.oauth.consumer_key,

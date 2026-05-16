@@ -211,7 +211,7 @@ class JobsPublicRoutes:
         # Jobs List routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>/list")
+        @bp_jobs.get("/<string:job_type>")
         def jobs_list(job_type: str) -> str:
             return _jobs_list(job_type)
 

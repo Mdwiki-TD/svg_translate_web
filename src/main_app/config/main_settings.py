@@ -2,118 +2,21 @@
 
 from __future__ import annotations
 
-import logging
 import os
-from collections.abc import Callable
-from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 
-# --- Data Classes for Configuration Sections ---
-
-
-@dataclass(frozen=True)
-class DbConfig:
-    db_name: str
-    db_host: str
-    db_user: str | None
-    db_password: str | None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "db_name": self.db_name,
-            "db_host": self.db_host,
-            "db_user": self.db_user,
-            "db_password": self.db_password,
-        }
-
-
-@dataclass(frozen=True)
-class Paths:
-    svg_data: str
-    svg_data_thumb: str
-    log_dir: str
-    fix_nested_data: str
-    svg_jobs_path: str
-    main_files_path: str
-    crop_main_files_path: str
-
-
-@dataclass(frozen=True)
-class CookieConfig:
-    name: str
-    max_age: int
-    secure: bool
-    httponly: bool
-    samesite: str
-
-
-@dataclass(frozen=True)
-class SessionConfig:
-    """Keys used for storing data in Flask session."""
-
-    state_key: str
-    request_token_key: str
-
-
-@dataclass(frozen=True)
-class OAuthConfig:
-    """MediaWiki OAuth specific configuration."""
-
-    mw_uri: str
-    consumer_key: str
-    consumer_secret: str
-    encryption_key: Optional[str]
-    upload_host: str
-
-
-@dataclass(frozen=True)
-class CorsConfig:
-    allowed_domains: list[str]
-
-
-@dataclass(frozen=True)
-class DownloadConfig:
-    """Configuration for download jobs."""
-
-    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
-
-
-@dataclass(frozen=True)
-class SecurityConfig:
-    """Security configuration for Flask 3.1+ features."""
-
-    max_content_length: int  # Maximum request size in bytes
-    max_form_memory_size: int  # Maximum form data in memory in bytes
-    max_form_parts: int  # Maximum number of form fields
-    secret_key_fallbacks: tuple[str, ...]  # Fallback secret keys for rotation
-
-
-@dataclass(frozen=True)
-class Settings:
-    """Main settings container."""
-
-    secret_key: str
-    user_agent: str
-    is_localhost: Callable[[str], bool]
-    has_db_config: callable
-
-    # Nested configurations
-    database_data: DbConfig
-    paths: Paths
-    cookie: CookieConfig
-    oauth: OAuthConfig
-    # sessions: SessionConfig
-    # cors: CorsConfig
-    download: DownloadConfig
-    security: SecurityConfig
-
-    disable_uploads: str
-    csrf_time_limit: Optional[int]  # None means never expire
-    STATE_SESSION_KEY: str
-    REQUEST_TOKEN_SESSION_KEY: str
-
+from .classes import (  # CorsConfig,
+    CookieConfig,
+    DbConfig,
+    JobsConfig,
+    OAuthConfig,
+    Paths,
+    SecurityConfig,
+    SessionConfig,
+    Settings,
+)
 
 # --- Helper Functions ---
 
@@ -145,6 +48,35 @@ def resolve_path(_path) -> Path:
 
 
 # --- Configuration Loaders ---
+
+
+def _load_security_config() -> SecurityConfig:
+    """
+    Load security configuration (Flask 3.1+ features)
+    """
+    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
+    max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
+
+    # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
+    max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
+
+    # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
+    max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
+
+    # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
+    secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
+    secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
+
+    secret_key = os.getenv("FLASK_SECRET_KEY", "")
+
+    security_config = SecurityConfig(
+        secret_key=secret_key,
+        max_content_length=max_content_length,
+        max_form_memory_size=max_form_memory_size,
+        max_form_parts=max_form_parts,
+        secret_key_fallbacks=secret_key_fallbacks,
+    )
+    return security_config
 
 
 def _load_database_config() -> DbConfig:
@@ -190,7 +122,6 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
         mw_uri=mw_uri,
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
         encryption_key=encryption_key,
     )
 
@@ -234,16 +165,6 @@ def _get_paths() -> Paths:
         Path(dir_name).mkdir(parents=True, exist_ok=True)
 
     return Paths(**_dirs)
-
-
-def is_localhost(host: str) -> bool:
-    """Check if the host refers to a local environment."""
-    local_hosts = [
-        "localhost",
-        "127.0.0.1",
-    ]
-
-    return any(x in host for x in local_hosts)
 
 
 def has_db_config(db_settings) -> bool:
@@ -290,12 +211,14 @@ def get_settings() -> Settings:
         RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
         RuntimeError: If the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
     """
-    secret_key = os.getenv("FLASK_SECRET_KEY", "")
-    if not secret_key:
-        raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
+    sessions = SessionConfig(
+        state_key=os.getenv("STATE_SESSION_KEY", "oauth_state_nonce"),
+        request_token_key=os.getenv("REQUEST_TOKEN_SESSION_KEY", "state"),
+    )
+    security_config = _load_security_config()
 
-    STATE_SESSION_KEY = os.getenv("STATE_SESSION_KEY", "oauth_state_nonce")
-    REQUEST_TOKEN_SESSION_KEY = os.getenv("REQUEST_TOKEN_SESSION_KEY", "state")
+    if not security_config.secret_key:
+        raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
     oauth_config = _load_oauth_config()
 
@@ -316,53 +239,31 @@ def get_settings() -> Settings:
     # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
     dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
 
-    # Load security configuration (Flask 3.1+ features)
-    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
-    max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
-    # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
-    max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
-    # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
-    max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
-    # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
-    secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
-    secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
-
-    security = SecurityConfig(
-        max_content_length=max_content_length,
-        max_form_memory_size=max_form_memory_size,
-        max_form_parts=max_form_parts,
-        secret_key_fallbacks=secret_key_fallbacks,
+    jobs_config = JobsConfig(
+        dev_limit=dev_download_limit,
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
     )
     database_data = _load_database_config()
+
+    user_agent = os.getenv(
+        "USER_AGENT",
+        "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
+    )
+
     return Settings(
-        is_localhost=is_localhost,
-        user_agent=os.getenv(
-            "USER_AGENT",
-            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-        ),
+        user_agent=user_agent,
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
-        STATE_SESSION_KEY=STATE_SESSION_KEY,
-        REQUEST_TOKEN_SESSION_KEY=REQUEST_TOKEN_SESSION_KEY,
-        secret_key=secret_key,
         cookie=cookie_config,
         oauth=oauth_config,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
-        download=DownloadConfig(dev_limit=dev_download_limit),
-        security=security,
+        jobs=jobs_config,
+        security=security_config,
+        sessions=sessions,
         csrf_time_limit=csrf_time_limit,
     )
 
 
 # Singleton settings instance
 settings = get_settings()
-
-
-class DevelopmentConfig: ...
-
-
-class TestingConfig: ...
-
-
-class ProductionConfig: ...

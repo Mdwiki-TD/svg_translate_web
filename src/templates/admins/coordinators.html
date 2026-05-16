@@ -39,7 +39,7 @@
 
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <form method="post" action="{{ url_for('admin.add_coordinator') }}" class="row g-2 align-items-end">
+                <form method="post" action="{{ url_for('admin.coordinators.add') }}" class="row g-2 align-items-end">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="col-sm-8 col-md-6 col-lg-4">
                         <label class="form-label" for="new-coordinator-username">Add coordinator</label>
@@ -72,7 +72,7 @@
                         <td>{{ coordinator.username }}</td>
                         <td class="text-center">
                             <form method="post"
-                                action="{{ url_for('admin.update_coordinator_active', coordinator_id=coordinator.id) }}"
+                                action="{{ url_for('admin.coordinators.update_active', coordinator_id=coordinator.id) }}"
                                 class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="form-check form-switch d-inline-flex align-items-center">
@@ -90,7 +90,7 @@
                         </td>
                         <td class="text-center">
                             <form method="post"
-                                action="{{ url_for('admin.delete_coordinator', coordinator_id=coordinator.id) }}"
+                                action="{{ url_for('admin.coordinators.delete', coordinator_id=coordinator.id) }}"
                                 class="d-inline"
                                 onsubmit="return confirm('Remove {{ coordinator.username }} from coordinators?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

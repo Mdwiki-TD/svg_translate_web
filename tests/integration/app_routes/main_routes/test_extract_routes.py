@@ -12,13 +12,14 @@ from pytest_mock import MockerFixture
 
 from src.main_app import create_app
 from src.main_app.app_routes.main_routes import extract_routes
+from src.main_app.config import TestingConfig
 
 
 @pytest.fixture
 def app_client(monkeypatch: pytest.MonkeyPatch):
     """Provide a Flask test client for extract routes."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
-    app = create_app()
+    app = create_app(TestingConfig)
     app.config["TESTING"] = True
     yield app, app.test_client()
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Tuple
+from typing import Any, Tuple, Type
 
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
@@ -18,9 +18,8 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
 )
-from .config import settings
 from .core.cookies import CookieHeaderClient
-from .sqlalchemy_db.engine import build_db_url, init_db
+from .extensions import db, migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -82,56 +81,37 @@ def register_error_pages(app: Flask):
         return render_template("index.html", title="Session Expired"), 400
 
 
-def update_app_config(app: Flask) -> None:
-    app.config.update(
-        SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
-        SESSION_COOKIE_SECURE=settings.cookie.secure,
-        SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
-        # Flask 3.1+ security configurations
-        MAX_CONTENT_LENGTH=settings.security.max_content_length,
-        MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
-        MAX_FORM_PARTS=settings.security.max_form_parts,
-        SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
-    )
+def create_app(config_class: Type) -> Flask:
+    """Instantiate and configure the Flask application.
 
-
-def create_app(_conf=None) -> Flask:
-    """
-    Create and configure and return the Flask application used by the project.
-
-    The returned app is configured with custom template and static folders, session cookie
-    settings from project settings, CSRF protection, registered
-    application blueprints, a user context processor, a Jinja filter for stage timestamps,
-    teardown handlers that close cached connections and task store, and handlers for 404
-    and 500 errors.
+    Args:
+        config_class: Configuration class for ``app.config.from_object()``.
+            When *None*, auto-detected from the ``FLASK_ENV`` environment
+            variable (defaults to ``ProductionConfig``).
 
     Returns:
-        Flask: The fully configured Flask application instance.
+        Configured Flask application instance.
     """
+
+    if config_class is None:
+        raise ValueError("config_class must be provided")
 
     app = Flask(
         __name__,
         template_folder="../templates",
         static_folder="../static",
     )
+
     app.url_map.strict_slashes = False
     app.test_client_class = CookieHeaderClient
-    app.secret_key = settings.secret_key
-
-    update_app_config(app)
-
-    # Configure CSRF token lifetime
-    app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
+    app.config.from_object(config_class)
 
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    if settings.database_data.db_host or settings.database_data.db_user:
-        try:
-            db_url = build_db_url(settings.database_data.to_dict())
-            init_db(db_url, create_tables=False)
-        except Exception:
-            logger.exception("Failed to initialize SQLAlchemy")
+    # Initialize Flask-SQLAlchemy and Flask-Migrate
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:

@@ -5,12 +5,13 @@ from unittest.mock import patch
 from flask import Flask
 
 from src.main_app import create_app
+from src.main_app.config import TestingConfig
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_basic():
     """Test create_app creates a Flask application."""
-    app = create_app()
+    app = create_app(TestingConfig)
     assert isinstance(app, Flask)
     assert app.secret_key is not None
     assert len(app.secret_key) > 0
@@ -19,7 +20,7 @@ def test_create_app_basic():
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_sets_session_cookie_config():
     """Test create_app sets session cookie configuration."""
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert "SESSION_COOKIE_HTTPONLY" in app.config
     assert "SESSION_COOKIE_SECURE" in app.config
@@ -29,14 +30,14 @@ def test_create_app_sets_session_cookie_config():
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_jinja_filter_registered():
     """Test create_app registers the format_stage_timestamp Jinja filter."""
-    app = create_app()
+    app = create_app(TestingConfig)
     assert "format_stage_timestamp" in app.jinja_env.filters
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_error_handlers():
     """Test create_app registers error handlers."""
-    app = create_app()
+    app = create_app(TestingConfig)
 
     # Test 404 error handler
     with app.test_request_context():
@@ -52,7 +53,7 @@ def test_create_app_error_handlers():
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_404_handler():
     """Test the 404 error handler."""
-    app = create_app()
+    app = create_app(TestingConfig)
     app.config["TESTING"] = True
 
     with app.test_client() as client:
@@ -63,19 +64,19 @@ def test_create_app_404_handler():
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_url_map_strict_slashes():
     """Test create_app disables strict slashes."""
-    app = create_app()
+    app = create_app(TestingConfig)
     assert app.url_map.strict_slashes is False
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_template_folder():
     """Test create_app sets custom template folder."""
-    app = create_app()
+    app = create_app(TestingConfig)
     assert app.template_folder.endswith("templates")
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_static_folder():
     """Test create_app sets custom static folder."""
-    app = create_app()
+    app = create_app(TestingConfig)
     assert app.static_folder.endswith("static")

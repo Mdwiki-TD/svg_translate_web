@@ -5,6 +5,8 @@ from typing import Any
 import pytest
 
 from src.main_app import create_app
+from src.main_app.config import TestingConfig
+from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.services import admin_service as _sqlalchemy_admin_service
 
 
@@ -37,14 +39,21 @@ def app_and_store(monkeypatch: pytest.MonkeyPatch):
     Returns:
         (app, store) (tuple): A tuple where `app` is the configured Flask application and `store` is the admin store instance used by tests.
     """
-    app = create_app()
+    app = create_app(TestingConfig)
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for tests
 
-    store = _AdminStore()
-    store.add("admin")
+    with app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
 
-    yield app, store
+        store = _AdminStore()
+        store.add("admin")
+
+        yield app, store
+
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 def test_coordinator_dashboard_access_granted(app_and_store, monkeypatch: pytest.MonkeyPatch):

@@ -19,6 +19,8 @@ from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
 
+bp_coordinators = Blueprint("coordinators", __name__, url_prefix="/coordinators")
+
 
 def _coordinators_dashboard():
     """Render the coordinator management dashboard."""
@@ -42,7 +44,7 @@ def _add_coordinator() -> ResponseReturnValue:
     username = request.form.get("username", "").strip()
     if not username:
         flash("Username is required to add a coordinator.", "danger")
-        return redirect(url_for("admin.coordinators_dashboard"))
+        return redirect(url_for("admin.coordinators.dashboard"))
 
     try:
         record = admin_service.add_coordinator(username)
@@ -55,7 +57,7 @@ def _add_coordinator() -> ResponseReturnValue:
     else:
         flash(f"Coordinator '{record.username}' added.", "success")
 
-    return redirect(url_for("admin.coordinators_dashboard"))
+    return redirect(url_for("admin.coordinators.dashboard"))
 
 
 def _update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
@@ -74,7 +76,7 @@ def _update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
         state = "activated" if record.is_active else "deactivated"
         flash(f"Coordinator '{record.username}' {state}.", "success")
 
-    return redirect(url_for("admin.coordinators_dashboard"))
+    return redirect(url_for("admin.coordinators.dashboard"))
 
 
 def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
@@ -93,27 +95,35 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     else:
         flash(f"Coordinator '{username}' removed.", "success")
 
-    return redirect(url_for("admin.coordinators_dashboard"))
+    return redirect(url_for("admin.coordinators.dashboard"))
 
 
 class Coordinators:
-    def __init__(self, bp_admin: Blueprint):
-        @bp_admin.get("/coordinators")
+    def __init__(self, bp_coordinators: Blueprint) -> None:
+        @bp_coordinators.get("/")
         @admin_required
-        def coordinators_dashboard():
+        def dashboard():
             return _coordinators_dashboard()
 
-        @bp_admin.post("/coordinators/add")
+        @bp_coordinators.post("/add")
         @admin_required
-        def add_coordinator() -> ResponseReturnValue:
+        def add() -> ResponseReturnValue:
             return _add_coordinator()
 
-        @bp_admin.post("/coordinators/<int:coordinator_id>/active")
+        @bp_coordinators.post("/<int:coordinator_id>/active")
         @admin_required
-        def update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
+        def update_active(coordinator_id: int) -> ResponseReturnValue:
             return _update_coordinator_active(coordinator_id)
 
-        @bp_admin.post("/coordinators/<int:coordinator_id>/delete")
+        @bp_coordinators.post("/<int:coordinator_id>/delete")
         @admin_required
-        def delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
+        def delete(coordinator_id: int) -> ResponseReturnValue:
             return _delete_coordinator(coordinator_id)
+
+
+Coordinators(bp_coordinators)
+
+
+__all__ = [
+    "bp_coordinators",
+]

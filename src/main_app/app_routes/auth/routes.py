@@ -37,8 +37,8 @@ from .rate_limit import callback_rate_limiter, login_rate_limiter
 logger = logging.getLogger(__name__)
 bp_auth = Blueprint("auth", __name__)
 
-oauth_state_nonce = settings.STATE_SESSION_KEY
-request_token_key = settings.REQUEST_TOKEN_SESSION_KEY
+oauth_state_nonce = settings.sessions.state_key
+request_token_key = settings.sessions.request_token_key
 
 
 def _client_key() -> str:

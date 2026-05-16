@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.config import TestingConfig
 from src.main_app.sqlalchemy_db.models import OwidChartRecord
 
 
@@ -57,7 +58,7 @@ def owid_charts_client(sample_chart, sample_unpublished_chart):
 
         from src.main_app import create_app
 
-        flask_app = create_app()
+        flask_app = create_app(TestingConfig)
         flask_app.config["TESTING"] = True
         flask_app.config["WTF_CSRF_ENABLED"] = False
 

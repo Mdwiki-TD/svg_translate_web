@@ -6,7 +6,6 @@ import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from ...config import settings
 from ...sqlalchemy_db.services import (
     create_setting,
     get_all_settings_raw,
@@ -14,17 +13,19 @@ from ...sqlalchemy_db.services import (
 )
 from ..admin.admins_required import admin_required
 
+bp_settings = Blueprint("settings", __name__, url_prefix="/settings")
+
 
 class SettingsRoutes:
     def __init__(self, bp_admin: Blueprint):
 
-        @bp_admin.get("/settings")
+        @bp_admin.get("/")
         @admin_required
-        def settings_view():
+        def dashboard():
             all_settings = get_all_settings_raw()
             return render_template("admins/settings.html", settings_list=all_settings)
 
-        @bp_admin.post("/settings/create")
+        @bp_admin.post("/create")
         @admin_required
         def settings_create():
             key = request.form.get("key", "").strip()
@@ -36,7 +37,7 @@ class SettingsRoutes:
                     "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
                     "danger",
                 )
-                return redirect(url_for("admin.settings_view"))
+                return redirect(url_for("admin.settings.dashboard"))
             if key and title:
                 success = create_setting(key, title, value_type)
                 if success:
@@ -46,9 +47,9 @@ class SettingsRoutes:
             else:
                 flash("Key and Title are required.", "danger")
 
-            return redirect(url_for("admin.settings_view"))
+            return redirect(url_for("admin.settings.dashboard"))
 
-        @bp_admin.post("/settings/update")
+        @bp_admin.post("/update")
         @admin_required
         def settings_update():
             failed_keys, deleted_keys = settings_update_form(request.form)
@@ -60,4 +61,12 @@ class SettingsRoutes:
                 flash("Settings updated successfully.", "success")
             else:
                 flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
-            return redirect(url_for("admin.settings_view"))
+            return redirect(url_for("admin.settings.dashboard"))
+
+
+SettingsRoutes(bp_settings)
+
+
+__all__ = [
+    "bp_settings",
+]

@@ -9,11 +9,11 @@
             <a class="btn btn-outline-success" onclick="copy_data()">
                 <i class="bi bi-copy"></i> Copy data
             </a>
-            <button type="button" class="btn btn-outline-primary" pup-target="{{ url_for('admin.add_chart_popup') }}"
-                onclick="pup_window_new(this)">
+            <button type="button" class="btn btn-outline-primary"
+                pup-target="{{ url_for('admin.owidcharts.add_chart_popup') }}" onclick="pup_window_new(this)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
-            <a href="{{ url_for('admin.download_owid_charts_json') }}" class="btn btn-outline-success">
+            <a href="{{ url_for('admin.owidcharts.download_owid_charts_json') }}" class="btn btn-outline-success">
                 <i class="bi bi-download"></i> Download Json
             </a>
         </div>
@@ -87,21 +87,21 @@
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == '' %}active{% endif %}" id="tabAll"
-                            href="{{ url_for('admin.owid_charts_dashboard') }}">
+                            href="{{ url_for('admin.owidcharts.dashboard') }}">
                             All <span id="tabTotal"></span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
                             id="tabWithTemplate"
-                            href="{{ url_for('admin.owid_charts_dashboard', template='has_template') }}">
+                            href="{{ url_for('admin.owidcharts.dashboard', template_filter='has_template') }}">
                             With Templates <span id="tabWithTemplateTotal"></span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
                             id="tabWithoutTemplate"
-                            href="{{ url_for('admin.owid_charts_dashboard', template='no_template') }}">
+                            href="{{ url_for('admin.owidcharts.dashboard', template_filter='no_template') }}">
                             Without Templates <span id="tabWithoutTemplateTotal"></span>
                         </a>
                     </li>
@@ -149,17 +149,11 @@
         });
     }
     $(document).ready(function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const templateFilter = urlParams.get('template') || '';
 
         const table = $("#chartsTable").DataTable({
             ajax: {
-                url: "/api/owid-charts",
+                url: `/api/owid-charts/{{ selected_template }}`,
                 type: "GET",
-                data: function (d) {
-                    d.template = templateFilter;
-                    return d;
-                },
                 dataSrc: function (json) {
                     if (json.summary) {
                         $("#totalCount").text(json.summary.total);

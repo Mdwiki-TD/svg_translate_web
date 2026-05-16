@@ -4,125 +4,20 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.config import (
-    CookieConfig,
+from src.main_app.config.classes import (
     DbConfig,
-    DownloadConfig,
     OAuthConfig,
     Paths,
-    SecurityConfig,
     Settings,
+)
+from src.main_app.config.main_settings import (
     _env_bool,
     _env_int,
     _get_paths,
     _load_database_config,
     _load_oauth_config,
     get_settings,
-    is_localhost,
 )
-
-
-def test_DbConfig():
-    """Test the DbConfig dataclass."""
-    db_config = DbConfig(
-        db_name="test_db",
-        db_host="localhost",
-        db_user="user",
-        db_password="password",
-    )
-
-    assert db_config.db_name == "test_db"
-    assert db_config.db_host == "localhost"
-    assert db_config.db_user == "user"
-    assert db_config.db_password == "password"
-
-
-def test_Paths():
-    """Test the Paths dataclass."""
-    paths = Paths(
-        svg_data="/svg/data",
-        svg_data_thumb="/svg/thumb",
-        log_dir="/logs",
-        fix_nested_data="/fix/nested",
-        svg_jobs_path="/jobs",
-        main_files_path="/main_files",
-        crop_main_files_path="/crop_main_files",
-    )
-
-    assert paths.svg_data == "/svg/data"
-    assert paths.svg_data_thumb == "/svg/thumb"
-    assert paths.log_dir == "/logs"
-    assert paths.fix_nested_data == "/fix/nested"
-    assert paths.svg_jobs_path == "/jobs"
-    assert paths.main_files_path == "/main_files"
-    assert paths.crop_main_files_path == "/crop_main_files"
-
-
-def test_CookieConfig():
-    """Test the CookieConfig dataclass."""
-    cookie_config = CookieConfig(name="test_cookie", max_age=3600, secure=True, httponly=True, samesite="Lax")
-
-    assert cookie_config.name == "test_cookie"
-    assert cookie_config.max_age == 3600
-    assert cookie_config.secure is True
-    assert cookie_config.httponly is True
-    assert cookie_config.samesite == "Lax"
-
-
-def test_OAuthConfig():
-    """Test the OAuthConfig dataclass."""
-    oauth_config = OAuthConfig(
-        mw_uri="https://example.com",
-        consumer_key="key",
-        consumer_secret="secret",
-        upload_host="upload.example.com",
-        encryption_key="encryption_key",
-    )
-
-    assert oauth_config.mw_uri == "https://example.com"
-    assert oauth_config.consumer_key == "key"
-    assert oauth_config.consumer_secret == "secret"
-    assert oauth_config.upload_host == "upload.example.com"
-
-
-def test_Settings():
-    """Test the Settings dataclass."""
-    # Create a minimal settings object for testing
-    db_config = DbConfig("test", "localhost", "user", "pass")
-    cookie_config = CookieConfig("test", 3600, True, True, "Lax")
-    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
-    download_config = DownloadConfig(dev_limit=0)
-    security_config = SecurityConfig(
-        max_content_length=100 * 1024 * 1024,
-        max_form_memory_size=16 * 1024 * 1024,
-        max_form_parts=1000,
-        secret_key_fallbacks=(),
-    )
-
-    settings = Settings(
-        is_localhost=lambda x: x == "localhost",
-        user_agent="user_agent",
-        has_db_config=lambda: True,
-        database_data=db_config,
-        STATE_SESSION_KEY="state",
-        REQUEST_TOKEN_SESSION_KEY="request",
-        secret_key="secret",
-        cookie=cookie_config,
-        oauth=None,
-        paths=paths,
-        disable_uploads="",
-        download=download_config,
-        security=security_config,
-        csrf_time_limit=3600,
-    )
-
-    assert settings.database_data.db_host == "localhost"
-    assert settings.database_data.db_name == "test"
-    assert settings.cookie.name == "test"
-    assert settings.paths.svg_data == "/svg"
-    assert settings.download.dev_limit == 0
-    assert settings.security.max_content_length == 100 * 1024 * 1024
-    assert settings.csrf_time_limit == 3600
 
 
 @patch.dict(
@@ -230,16 +125,6 @@ def test_load_oauth_config():
     assert result.mw_uri == "https://example.com"
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
-    assert result.upload_host == "upload.example.com"
-
-
-def test_is_localhost():
-    """Test is_localhost function."""
-    assert is_localhost("localhost") is True
-    assert is_localhost("127.0.0.1") is True
-    assert is_localhost("example.com") is False
-    assert is_localhost("sub.localhost.com") is True  # Contains localhost
-    assert is_localhost("0.0.0.0") is False
 
 
 @patch.dict(
@@ -264,11 +149,11 @@ def test_get_settings():
     settings = get_settings()
 
     assert isinstance(settings, Settings)
-    assert settings.secret_key == "test-secret-key"
+    assert settings.security.secret_key == "test-secret-key"
     assert settings.cookie.name == "test-cookie"
     assert settings.cookie.max_age == 7200
-    assert settings.STATE_SESSION_KEY == "test-state"
-    assert settings.REQUEST_TOKEN_SESSION_KEY == "test-request"
+    assert settings.sessions.state_key == "test-state"
+    assert settings.sessions.request_token_key == "test-request"
 
     # Clean up cache
     get_settings.cache_clear()
@@ -319,18 +204,6 @@ def test_env_int_edge_cases():
         assert _env_int("TEST_INT", default=0) == 999999
 
 
-def test_is_localhost_partial_match():
-    """Test is_localhost with partial string matches."""
-    # Should match as 127.0.0.1 is in the string
-    assert is_localhost("http://127.0.0.1:5000") is True
-
-    # Should match as localhost is in the string
-    assert is_localhost("http://localhost:8080") is True
-
-    # Should not match
-    assert is_localhost("production.example.com") is False
-
-
 @patch.dict(
     os.environ, {"OAUTH_MWURI": "https://example.com", "OAUTH_CONSUMER_KEY": "key", "OAUTH_CONSUMER_SECRET": "secret"}
 )
@@ -342,8 +215,6 @@ def test_load_oauth_config_with_defaults():
     assert result.mw_uri == "https://example.com"
     assert result.consumer_key == "key"
     assert result.consumer_secret == "secret"
-    # Check defaults
-    assert result.upload_host == "commons.wikimedia.org"
 
 
 class TestConfig:

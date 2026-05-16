@@ -1,4 +1,6 @@
 from src.main_app import create_app
+from src.main_app.config import TestingConfig
+from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.services import user_token_service as user_store
 
 
@@ -49,8 +51,13 @@ class FakeConnection:
 
 def test_sequential_requests_use_cached_connections(monkeypatch):
 
-    app = create_app()
+    app = create_app(TestingConfig)
     app.config.update(TESTING=True)
+
+    with app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+
     client = app.test_client()
 
     with client.session_transaction() as session:
@@ -59,8 +66,9 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     response = client.get("/logout")
     assert response.status_code == 302
 
-    response = client.get("/jobs/copy_svg_langs/list")
+    response = client.get("/jobs/copy_svg_langs")
     assert response.status_code == 200
 
-    # TODO: FAILED tests/test_connection_reuse.py::test_sequential_requests_use_cached_connections - AssertionError: assert 4 <= 3
-    # assert len(connect_calls) <= 3
+    with app.app_context():
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)

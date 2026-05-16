@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
 
-from ..engine import BaseDb
+from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(BaseDb):
+class OwidChartRecord(db.Model):
     """
     CREATE TABLE `owid_charts` (
       `chart_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -47,6 +48,14 @@ class OwidChartRecord(BaseDb):
     len_years = Column(Integer, nullable=True)
     has_timeline = Column(Boolean, server_default="0")
 
+    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        server_onupdate=func.current_timestamp(),
+    )
+
     _template_info = relationship(
         "OwidChartTemplateRecord",
         primaryjoin="OwidChartRecord.chart_id == OwidChartTemplateRecord.chart_id",
@@ -61,10 +70,6 @@ class OwidChartRecord(BaseDb):
             return self._template_info.template_id
         return getattr(self, "_template_id_override", None)
 
-    @template_id.setter
-    def template_id(self, value: int | None) -> None:
-        self._template_id_override = value
-
     @property
     def template_title(self) -> str | None:
         if hasattr(self, "_template_info") and self._template_info:
@@ -75,13 +80,22 @@ class OwidChartRecord(BaseDb):
     def template_title(self, value: str | None) -> None:
         self._template_title_override = value
 
-    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-    )
+    @template_id.setter
+    def template_id(self, value: int | None) -> None:
+        self._template_id_override = value
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column.name] = value
+
+        data["template_id"] = self.template_id or None
+        data["template_title"] = self.template_title or None
+
+        return data
 
 
 __all__ = [

@@ -80,7 +80,7 @@ def _add_template() -> ResponseReturnValue:
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title is required to add a template.", "danger")
-        return redirect(url_for("admin.templates_dashboard"))
+        return redirect(url_for("admin.templates.dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
@@ -106,7 +106,7 @@ def _add_template() -> ResponseReturnValue:
     else:
         flash(f"Template '{record.title}' added.", "success")
 
-    return redirect(url_for("admin.templates_dashboard"))
+    return redirect(url_for("admin.templates.dashboard"))
 
 
 def _update_template() -> ResponseReturnValue:
@@ -118,14 +118,14 @@ def _update_template() -> ResponseReturnValue:
         flash("Template ID is required to update a template.", "danger")
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.templates_dashboard"))
+        return redirect(url_for("admin.templates.dashboard"))
 
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title is required to update a template.", "danger")
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.templates_dashboard"))
+        return redirect(url_for("admin.templates.dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
@@ -150,7 +150,7 @@ def _update_template() -> ResponseReturnValue:
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.templates_dashboard"))
+    return redirect(url_for("admin.templates.dashboard"))
 
 
 def _delete_template(template_id: int) -> ResponseReturnValue:
@@ -172,7 +172,7 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.templates_dashboard"))
+    return redirect(url_for("admin.templates.dashboard"))
 
 
 def _edit_template(template_id: int) -> ResponseReturnValue:
@@ -193,16 +193,19 @@ def _edit_template(template_id: int) -> ResponseReturnValue:
     )
 
 
+bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
+
+
 class Templates:
-    def __init__(self, bp_admin: Blueprint):
-        @bp_admin.get("/templates")
+    def __init__(self, bp_templates: Blueprint):
+        @bp_templates.get("/")
         @admin_required
-        def templates_dashboard():
+        def dashboard():
             return render_template(
                 "admins/templates.html",
             )
 
-        @bp_admin.get("/templates-need-update")
+        @bp_templates.get("/templates-need-update")
         @admin_required
         def templates_need_update() -> ResponseReturnValue:
             """Show templates that need year update based on OWID charts."""
@@ -210,27 +213,27 @@ class Templates:
                 "admins/templates_need_update.html",
             )
 
-        @bp_admin.post("/templates/add")
+        @bp_templates.post("/add")
         @admin_required
         def add_template() -> ResponseReturnValue:
             return _add_template()
 
-        @bp_admin.post("/templates/update")
+        @bp_templates.post("/update")
         @admin_required
         def update_template() -> ResponseReturnValue:
             return _update_template()
 
-        @bp_admin.post("/templates/<int:template_id>/delete")
+        @bp_templates.post("/<int:template_id>/delete")
         @admin_required
         def delete_template(template_id: int) -> ResponseReturnValue:
             return _delete_template(template_id)
 
-        @bp_admin.get("/templates/<int:template_id>/edit")
+        @bp_templates.get("/<int:template_id>/edit")
         @admin_required
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
 
-        @bp_admin.get("/templates/download-json")
+        @bp_templates.get("/download-json")
         @admin_required
         def download_templates_json() -> ResponseReturnValue:
             """Download all templates as a json file."""
@@ -240,6 +243,14 @@ class Templates:
             # If the response is an error message (not a file), flash it and redirect
             if status_code != 200:
                 flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.templates_dashboard"))
+                return redirect(url_for("admin.templates.dashboard"))
 
             return response
+
+
+Templates(bp_templates)
+
+
+__all__ = [
+    "bp_templates",
+]

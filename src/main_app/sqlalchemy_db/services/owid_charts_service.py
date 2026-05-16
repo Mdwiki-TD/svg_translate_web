@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 
 from sqlalchemy.orm import joinedload
 
-from ..engine import get_session
+from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
 
 # from ..models.views import OwidChartTemplateRecord
@@ -22,15 +22,14 @@ def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
         WHERE oct.chart_id = oc.chart_id
         ORDER BY oc.chart_id ASC
     """
-    with get_session() as session:
-        query = (
-            session.query(OwidChartRecord)
-            .options(joinedload(OwidChartRecord._template_info))
-            .order_by(OwidChartRecord.chart_id.asc())
-        )
-        if limit is not None:
-            query = query.limit(limit)
-        return query.all()
+    query = (
+        db.session.query(OwidChartRecord)
+        .options(joinedload(OwidChartRecord._template_info))
+        .order_by(OwidChartRecord.chart_id.asc())
+    )
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 def list_published_charts() -> List[OwidChartRecord]:
@@ -43,15 +42,14 @@ def list_published_charts() -> List[OwidChartRecord]:
         AND oc.is_published = 1
         ORDER BY oc.chart_id ASC
     """
-    with get_session() as session:
-        query = (
-            session.query(OwidChartRecord)
-            .filter(OwidChartRecord.is_published == 1)
-            .options(joinedload(OwidChartRecord._template_info))
-            .order_by(OwidChartRecord.chart_id.asc())
-        )
-        records = query.all()
-        return records
+    query = (
+        db.session.query(OwidChartRecord)
+        .filter(OwidChartRecord.is_published == 1)
+        .options(joinedload(OwidChartRecord._template_info))
+        .order_by(OwidChartRecord.chart_id.asc())
+    )
+    records = query.all()
+    return records
 
 
 def get_chart_by_id(chart_id: int) -> OwidChartRecord:
@@ -63,13 +61,12 @@ def get_chart_by_id(chart_id: int) -> OwidChartRecord:
         WHERE oct.chart_id = %s
         and oct.chart_id = oc.chart_id
     """
-    with get_session() as session:
-        return (
-            session.query(OwidChartRecord)
-            .filter(OwidChartRecord.chart_id == chart_id)
-            .options(joinedload(OwidChartRecord._template_info))
-            .first()
-        )
+    return (
+        db.session.query(OwidChartRecord)
+        .filter(OwidChartRecord.chart_id == chart_id)
+        .options(joinedload(OwidChartRecord._template_info))
+        .first()
+    )
 
 
 def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
@@ -81,13 +78,11 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
         WHERE oc.slug = %s
         and oct.chart_id = oc.chart_id
     """
-    with get_session() as session:
-        return (
-            session.query(OwidChartRecord)
-            .filter(OwidChartRecord.slug == slug)
-            .options(joinedload(OwidChartRecord._template_info))
-            .first()
-        )
+    return (
+        db.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug)
+        # .options(joinedload(OwidChartRecord._template_info))
+        .first()
+    )
 
 
 def add_chart(
@@ -104,12 +99,11 @@ def add_chart(
             "has_timeline": 1 if chart_data.get("has_timeline") else 0,
         }
     )
-    with get_session() as session:
-        chart = OwidChartRecord(**chart_data)
-        session.add(chart)
-        session.commit()
-        session.refresh(chart)
-        return chart
+    chart = OwidChartRecord(**chart_data)
+    db.session.add(chart)
+    db.session.commit()
+    db.session.refresh(chart)
+    return chart
 
 
 def update_chart_data(
@@ -119,27 +113,25 @@ def update_chart_data(
     """
     Update chart fields if they are not None.
     """
-    with get_session() as session:
-        chart = session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
-        if chart:
-            for key, value in chart_data.items():
-                if value is not None:
-                    setattr(chart, key, value)
-        session.commit()
-        session.refresh(chart)
-        return chart
+    chart = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+    if chart:
+        for key, value in chart_data.items():
+            if value is not None:
+                setattr(chart, key, value)
+    db.session.commit()
+    db.session.refresh(chart)
+    return chart
 
 
 def delete_chart(chart_id: int) -> bool:
     """Delete a chart."""
-    with get_session() as session:
-        record = session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+    record = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
 
-        if record:
-            session.delete(record)
-            session.commit()
-            return True
-        return False
+    if record:
+        db.session.delete(record)
+        db.session.commit()
+        return True
+    return False
 
 
 __all__ = [

@@ -2,6 +2,7 @@ from .admin_service import (
     active_coordinators,
     add_coordinator,
     delete_coordinator,
+    get_coordinator_by_id,
     list_coordinators,
     set_coordinator_active,
 )
@@ -50,13 +51,6 @@ from .user_token_service import (
 )
 
 __all__ = [
-    "admin_service",
-    "jobs_service",
-    "template_service",
-    "owid_charts_service",
-    "settings_service",
-    "template_need_update_service",
-    "user_token_service",
     # user_token_service
     "upsert_user_token",
     "get_user_token",
@@ -67,6 +61,7 @@ __all__ = [
     "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",
+    "get_coordinator_by_id",
     "delete_coordinator",
     # owid_charts_service
     "get_chart_by_id",
