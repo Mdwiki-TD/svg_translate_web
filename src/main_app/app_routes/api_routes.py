@@ -6,9 +6,9 @@ from flask import Blueprint, jsonify, request
 
 from ..sqlalchemy_db.models import OwidChartRecord, TemplateRecord
 from ..sqlalchemy_db.services import (
+    list_templates,
     list_templates_need_update,
     owid_charts_service,
-    template_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ bp_api = Blueprint("api", __name__, url_prefix="/api")
 
 @bp_api.get("/templates")
 def templates_list():
-    templates: list[TemplateRecord] = template_service.list_templates()
+    templates: list[TemplateRecord] = list_templates()
 
     data = [t.to_dict() for t in templates]
 
