@@ -6,6 +6,8 @@ import logging
 import threading
 from typing import Any, Dict
 
+from flask import Flask, current_app
+
 from ..sqlalchemy_db.services import cancel_job as cancel_job_db
 from ..sqlalchemy_db.services import (
     create_job,
@@ -39,11 +41,13 @@ def _runner(
     user: Dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
+    flask_app: Flask,
 ) -> None:
-    try:
-        target_func(task_id, user, cancel_event=cancel_event)
-    finally:
-        _pop_cancel_event(task_id)
+    with flask_app.app_context():
+        try:
+            target_func(task_id, user, cancel_event=cancel_event)
+        finally:
+            _pop_cancel_event(task_id)
 
 
 def _runner_with_args(
@@ -52,11 +56,13 @@ def _runner_with_args(
     user: Dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
+    flask_app: Flask,
 ) -> None:
-    try:
-        target_func(task_id, args, user, cancel_event=cancel_event)
-    finally:
-        _pop_cancel_event(task_id)
+    with flask_app.app_context():
+        try:
+            target_func(task_id, args, user, cancel_event=cancel_event)
+        finally:
+            _pop_cancel_event(task_id)
 
 
 def cancel_job(task_id: int, job_type: str | None = None) -> bool:
@@ -101,10 +107,13 @@ def start_job(user: Dict[str, Any] | None, job_type: str) -> int:
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
+    # Capture the Flask app for the background thread (requires app context)
+    flask_app = current_app._get_current_object()
+
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, job_func),
+        args=(job.id, user, cancel_event, job_func, flask_app),
         daemon=True,
     )
     thread.start()
@@ -134,10 +143,13 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
+    # Capture the Flask app for the background thread (requires app context)
+    flask_app = current_app._get_current_object()
+
     # Start background thread
     thread = threading.Thread(
         target=_runner_with_args,
-        args=(job.id, args, user, cancel_event, job_func),
+        args=(job.id, args, user, cancel_event, job_func, flask_app),
         daemon=True,
     )
     thread.start()

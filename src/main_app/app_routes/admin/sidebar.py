@@ -3,9 +3,15 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from flask import url_for
+from flask import has_request_context, url_for
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_url_for(endpoint: str, fallback: str, **values: str) -> str:
+    if has_request_context():
+        return url_for(endpoint, **values)
+    return fallback
 
 
 @dataclass
@@ -52,28 +58,28 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="admins",
                 admin=1,
-                href=url_for("admin.coordinators.dashboard"),
+                href=_safe_url_for("admin.coordinators.dashboard", "/admin/coordinators/"),
                 title="Coordinators",
                 icon="bi-person-gear",
             ),
             SidebarItem(
                 id="templates",
                 admin=1,
-                href=url_for("admin.templates.dashboard"),
+                href=_safe_url_for("admin.templates.dashboard", "/admin/templates/"),
                 title="Templates",
                 icon="bi-list-columns",
             ),
             SidebarItem(
                 id="templates_need_update",
                 admin=1,
-                href=url_for("admin.templates.templates_need_update"),
+                href=_safe_url_for("admin.templates.templates_need_update", "/admin/templates/templates-need-update"),
                 title="Templates Need Update",
                 icon="bi-arrow-repeat",
             ),
             SidebarItem(
                 id="owid_charts",
                 admin=1,
-                href=url_for("admin.owidcharts.dashboard"),
+                href=_safe_url_for("admin.owidcharts.dashboard", "/admin/owid-charts/"),
                 title="OWID Charts",
                 icon="bi-graph-up",
             ),
@@ -82,42 +88,42 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="collect_main_files",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="collect_main_files"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/collect_main_files", job_type="collect_main_files"),
                 title="Collect Templates data",
                 icon="bi-kanban",
             ),
             SidebarItem(
                 id="crop_main_files",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="crop_main_files"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/crop_main_files", job_type="crop_main_files"),
                 title="Crop Newest World Files",
                 icon="bi-crop",
             ),
             SidebarItem(
                 id="create_owid_pages",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="create_owid_pages"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/create_owid_pages", job_type="create_owid_pages"),
                 title="Create OWID Pages",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="add_svglanguages_template",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="add_svglanguages_template"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/add_svglanguages_template", job_type="add_svglanguages_template"),
                 title="Add {{SVGLanguages}}",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="fix_nested_main_files",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="fix_nested_main_files"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/fix_nested_main_files", job_type="fix_nested_main_files"),
                 title="Fix Nested Main Files",
                 icon="bi-tools",
             ),
             SidebarItem(
                 id="download_main_files",
                 admin=1,
-                href=url_for("admin.jobs.jobs_list", job_type="download_main_files"),
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/download_main_files", job_type="download_main_files"),
                 title="Download Main Files",
                 icon="bi-download",
                 disabled=True,
@@ -127,7 +133,7 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="settings",
                 admin=1,
-                href=url_for("admin.settings.dashboard"),
+                href=_safe_url_for("admin.settings.dashboard", "/admin/settings/"),
                 title="Settings",
                 icon="bi-gear",
             ),

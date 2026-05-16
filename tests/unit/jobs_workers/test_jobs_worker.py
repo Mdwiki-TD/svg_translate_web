@@ -39,10 +39,14 @@ def clean_cancel_events():
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_collect_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a collect templates data job."""
     mock_job = JobRecord(id=1, job_type="collect_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
@@ -65,10 +69,14 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_fix_nested_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a fix nested main files job."""
     mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
@@ -107,25 +115,32 @@ def test_runner_calls_target_and_cleans_up():
     job_id = 456
     user = {"name": "test"}
     event = threading.Event()
+    flask_app = MagicMock()
+    flask_app.app_context = MagicMock()
 
     jobs_worker._register_cancel_event(job_id, event)
     assert jobs_worker.get_jobs_cancel_event(job_id) == event
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
-    _runner(job_id, user, event, mock_target)
+    _runner(job_id, user, event, mock_target, flask_app)
 
     mock_target.assert_called_once_with(job_id, user, cancel_event=event)
+    flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_jobs_cancel_event(job_id) is None
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_download_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_download_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a download main files job."""
     mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance

@@ -33,9 +33,10 @@ except ImportError:
 from main_app import create_app  # noqa: E402
 from main_app.config import DevelopmentConfig  # noqa: E402
 
-from logger_config import configure_logging  # noqa: E402
+from logger_config import configure_logging, setup_logging  # noqa: E402
 
 configure_logging(logging.DEBUG)
+setup_logging(level=logging.WARNING, name="sqlalchemy")
 
 app = create_app(DevelopmentConfig)
 
