@@ -154,6 +154,9 @@ def create_side(active_route, path: str | None = None):
                 if path == item.href or (path and path.startswith(item.href)):
                     css_class = "active"
 
+                if not css_class and active_route == item.id:
+                    css_class = "active"
+
             href_full = item.href if item.target else f"/admin/{item.href}"
             if item.href.startswith("/admin/"):
                 href_full = item.href

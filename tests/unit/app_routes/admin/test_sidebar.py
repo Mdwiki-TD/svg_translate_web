@@ -15,9 +15,9 @@ def test_generate_list_item() -> None:
 
 
 def test_create_side_marks_active_item() -> None:
-    html = sidebar.create_side("coordinators")
+    html = sidebar.create_side("admins")
 
-    assert "coordinators" in html
+    assert "Coordinators" in html
     assert "active" in html
     assert html.count("<ul") >= 2
 
@@ -90,7 +90,7 @@ def test_sidebar_contains_collect_main_files_job_link():
     """Test that sidebar contains Collect Templates data job link."""
     result = sidebar.create_side("collect_main_files")
     assert "Collect Templates data" in result
-    assert "collect_main_files/list" in result
+    assert "/admin/jobs/collect_main_files" in result
     assert "bi-kanban" in result
 
 
@@ -98,7 +98,7 @@ def test_sidebar_contains_fix_nested_main_files_job_link():
     """Test that sidebar contains Fix Nested Main Files job link."""
     result = sidebar.create_side("fix_nested_main_files")
     assert "Fix Nested Main Files" in result
-    assert "fix_nested_main_files/list" in result
+    assert "/admin/jobs/fix_nested_main_files" in result
     assert "bi-tools" in result
 
 
