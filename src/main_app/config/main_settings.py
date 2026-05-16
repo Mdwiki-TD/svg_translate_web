@@ -10,7 +10,7 @@ from typing import Optional
 from .classes import (  # CorsConfig,
     CookieConfig,
     DbConfig,
-    DownloadConfig,
+    JobsConfig,
     OAuthConfig,
     Paths,
     SecurityConfig,
@@ -51,13 +51,18 @@ def resolve_path(_path) -> Path:
 
 
 def _load_security_config() -> SecurityConfig:
-    # Load security configuration (Flask 3.1+ features)
+    """
+    Load security configuration (Flask 3.1+ features)
+    """
     # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
     max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
+
     # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
     max_form_memory_size = _env_int("MAX_FORM_MEMORY_SIZE", 16 * 1024 * 1024)
+
     # MAX_FORM_PARTS: Maximum number of form fields (default 1000)
     max_form_parts = _env_int("MAX_FORM_PARTS", 1000)
+
     # SECRET_KEY_FALLBACKS: Comma-separated list of fallback secret keys for rotation
     secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
     secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
@@ -163,16 +168,6 @@ def _get_paths() -> Paths:
     return Paths(**_dirs)
 
 
-def is_localhost(host: str) -> bool:
-    """Check if the host refers to a local environment."""
-    local_hosts = [
-        "localhost",
-        "127.0.0.1",
-    ]
-
-    return any(x in host for x in local_hosts)
-
-
 def has_db_config(db_settings) -> bool:
     """
     Return whether the application has database connection settings configured.
@@ -253,14 +248,13 @@ def get_settings() -> Settings:
     )
 
     return Settings(
-        is_localhost=is_localhost,
         user_agent=user_agent,
         has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
         cookie=cookie_config,
         oauth=oauth_config,
-        download=DownloadConfig(dev_limit=dev_download_limit),
+        download=JobsConfig(dev_limit=dev_download_limit),
         security=security_config,
         sessions=sessions,
         csrf_time_limit=csrf_time_limit,

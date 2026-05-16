@@ -70,8 +70,8 @@ class CorsConfig:
 
 
 @dataclass(frozen=True)
-class DownloadConfig:
-    """Configuration for download jobs."""
+class JobsConfig:
+    """Configuration for jobs."""
 
     dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
 
@@ -92,7 +92,6 @@ class Settings:
     """Main settings container."""
 
     user_agent: str
-    is_localhost: Callable[[str], bool]
     has_db_config: callable
 
     # Nested configurations
@@ -102,7 +101,7 @@ class Settings:
     oauth: OAuthConfig
     sessions: SessionConfig
     # cors: CorsConfig
-    download: DownloadConfig
+    download: JobsConfig
     security: SecurityConfig
 
     disable_uploads: str

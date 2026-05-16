@@ -90,7 +90,7 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 ### Configuration
 
 -   Environment variables loaded via `src/svg_config.py` using python-dotenv (expects `.env` file in `src/`)
--   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `DownloadConfig`, `SecurityConfig`
+-   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `SecurityConfig`
 -   Settings cached via `@lru_cache` in `src/main_app/config.py`
 
 #### Required Environment Variables

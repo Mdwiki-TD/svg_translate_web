@@ -17,7 +17,6 @@ from src.main_app.config.main_settings import (
     _load_database_config,
     _load_oauth_config,
     get_settings,
-    is_localhost,
 )
 
 
@@ -129,15 +128,6 @@ def test_load_oauth_config():
     assert result.upload_host == "upload.example.com"
 
 
-def test_is_localhost():
-    """Test is_localhost function."""
-    assert is_localhost("localhost") is True
-    assert is_localhost("127.0.0.1") is True
-    assert is_localhost("example.com") is False
-    assert is_localhost("sub.localhost.com") is True  # Contains localhost
-    assert is_localhost("0.0.0.0") is False
-
-
 @patch.dict(
     os.environ,
     {
@@ -213,18 +203,6 @@ def test_env_int_edge_cases():
     # Test large number
     with patch.dict(os.environ, {"TEST_INT": "999999"}):
         assert _env_int("TEST_INT", default=0) == 999999
-
-
-def test_is_localhost_partial_match():
-    """Test is_localhost with partial string matches."""
-    # Should match as 127.0.0.1 is in the string
-    assert is_localhost("http://127.0.0.1:5000") is True
-
-    # Should match as localhost is in the string
-    assert is_localhost("http://localhost:8080") is True
-
-    # Should not match
-    assert is_localhost("production.example.com") is False
 
 
 @patch.dict(

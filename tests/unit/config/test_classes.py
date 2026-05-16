@@ -1,7 +1,7 @@
 from src.main_app.config.classes import (
     CookieConfig,
     DbConfig,
-    DownloadConfig,
+    JobsConfig,
     OAuthConfig,
     Paths,
     SecurityConfig,
@@ -79,8 +79,10 @@ def test_Settings():
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
-    download_config = DownloadConfig(dev_limit=0)
+    download_config = JobsConfig(dev_limit=0)
+
     security_config = SecurityConfig(
+        secret_key="secret",
         max_content_length=100 * 1024 * 1024,
         max_form_memory_size=16 * 1024 * 1024,
         max_form_parts=1000,
@@ -93,11 +95,9 @@ def test_Settings():
     )
 
     settings = Settings(
-        is_localhost=lambda x: x == "localhost",
         user_agent="user_agent",
         has_db_config=lambda: True,
         database_data=db_config,
-        secret_key="secret",
         cookie=cookie_config,
         sessions=sessions,
         oauth=None,
