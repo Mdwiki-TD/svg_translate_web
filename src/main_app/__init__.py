@@ -18,22 +18,13 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
 )
-from .config import DbConfig, settings
+from .config import build_sqlalchemy_uri, settings
 from .core.cookies import CookieHeaderClient
 from .extensions import db, migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
 logger = logging.getLogger(__name__)
-
-
-def build_sqlalchemy_uri(db_config: DbConfig) -> str:
-    """Build a SQLAlchemy database URI from a DbConfig dataclass.
-
-    Used by Flask-SQLAlchemy configuration in create_app().
-    Compatible with the existing build_db_url() in engine.py.
-    """
-    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
 
 
 def register_blueprints(app: Flask) -> None:
@@ -96,7 +87,6 @@ def update_app_config(app: Flask) -> None:
         SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
         SESSION_COOKIE_SECURE=settings.cookie.secure,
         SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
-
         # Flask 3.1+ security configurations
         MAX_CONTENT_LENGTH=settings.security.max_content_length,
         MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
@@ -122,6 +112,7 @@ def create_app(config_class: Type | None = None) -> Flask:
         template_folder="../templates",
         static_folder="../static",
     )
+
     app.url_map.strict_slashes = False
     app.test_client_class = CookieHeaderClient
     app.secret_key = settings.secret_key
