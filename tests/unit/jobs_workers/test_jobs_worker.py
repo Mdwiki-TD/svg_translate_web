@@ -39,10 +39,14 @@ def clean_cancel_events():
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_collect_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a collect templates data job."""
     mock_job = JobRecord(id=1, job_type="collect_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
@@ -65,10 +69,14 @@ def test_start_collect_main_files_job(mock_thread, mock_create_job):
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_fix_nested_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_fix_nested_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a fix nested main files job."""
     mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
@@ -125,10 +133,14 @@ def test_runner_calls_target_and_cleans_up():
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-def test_start_download_main_files_job(mock_thread, mock_create_job):
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_download_main_files_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a download main files job."""
     mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
     mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
