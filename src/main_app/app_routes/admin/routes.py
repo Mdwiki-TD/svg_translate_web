@@ -12,7 +12,7 @@ from flask import (
 )
 
 from ..admin_routes import (
-    Coordinators,
+    bp_coordinators,
     Jobs,
     OwidCharts,
     SettingsRoutes,
@@ -42,7 +42,7 @@ def admin_dashboard():
 
 
 def register_blueprints(bp_admin) -> None:
-    Coordinators(bp_admin)
+    bp_admin.register_blueprint(bp_coordinators)
     Templates(bp_admin)
     SettingsRoutes(bp_admin)
     Jobs(bp_admin)

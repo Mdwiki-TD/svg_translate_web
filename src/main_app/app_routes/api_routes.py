@@ -8,7 +8,7 @@ from ..sqlalchemy_db.models import OwidChartRecord, TemplateRecord
 from ..sqlalchemy_db.services import (
     list_templates,
     list_templates_need_update,
-    owid_charts_service,
+    list_charts,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def templates_need_update_list():
 @bp_api.get("/owid-charts")
 def owid_charts_list():
     template_filter = request.args.get("template", "").strip()
-    all_charts: list[OwidChartRecord] = owid_charts_service.list_charts()
+    all_charts: list[OwidChartRecord] = list_charts()
 
     if template_filter == "has_template":
         charts = [c for c in all_charts if c.template_title is not None]

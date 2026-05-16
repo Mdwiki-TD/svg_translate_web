@@ -19,6 +19,8 @@ from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
 
+bp_coordinators = Blueprint("coordinators", __name__, url_prefix="/coordinators")
+
 
 def _coordinators_dashboard():
     """Render the coordinator management dashboard."""
@@ -96,24 +98,25 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     return redirect(url_for("admin.coordinators_dashboard"))
 
 
-class Coordinators:
-    def __init__(self, bp_admin: Blueprint):
-        @bp_admin.get("/coordinators")
-        @admin_required
-        def coordinators_dashboard():
-            return _coordinators_dashboard()
+@bp_coordinators.get("/")
+@admin_required
+def coordinators_dashboard():
+    return _coordinators_dashboard()
 
-        @bp_admin.post("/coordinators/add")
-        @admin_required
-        def add_coordinator() -> ResponseReturnValue:
-            return _add_coordinator()
 
-        @bp_admin.post("/coordinators/<int:coordinator_id>/active")
-        @admin_required
-        def update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
-            return _update_coordinator_active(coordinator_id)
+@bp_coordinators.post("/add")
+@admin_required
+def add_coordinator() -> ResponseReturnValue:
+    return _add_coordinator()
 
-        @bp_admin.post("/coordinators/<int:coordinator_id>/delete")
-        @admin_required
-        def delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
-            return _delete_coordinator(coordinator_id)
+
+@bp_coordinators.post("/<int:coordinator_id>/active")
+@admin_required
+def update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
+    return _update_coordinator_active(coordinator_id)
+
+
+@bp_coordinators.post("/<int:coordinator_id>/delete")
+@admin_required
+def delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
+    return _delete_coordinator(coordinator_id)
