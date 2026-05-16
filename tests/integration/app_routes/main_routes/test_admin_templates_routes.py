@@ -8,6 +8,7 @@ from typing import Iterable
 import pytest
 
 from src.main_app import create_app
+from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.models import TemplateRecord
 from src.main_app.sqlalchemy_db.services import template_service as _sqlalchemy_template_service
@@ -49,7 +50,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
-    flask_app = create_app()
+    flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 

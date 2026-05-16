@@ -1,4 +1,5 @@
 from src.main_app import create_app
+from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
 from src.main_app.sqlalchemy_db.services import user_token_service as user_store
 
@@ -50,7 +51,7 @@ class FakeConnection:
 
 def test_sequential_requests_use_cached_connections(monkeypatch):
 
-    app = create_app()
+    app = create_app(TestingConfig)
     app.config.update(TESTING=True)
 
     with app.app_context():

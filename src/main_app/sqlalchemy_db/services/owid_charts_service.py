@@ -79,8 +79,7 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
         and oct.chart_id = oc.chart_id
     """
     return (
-        db.session.query(OwidChartRecord)
-        .filter(OwidChartRecord.slug == slug)
+        db.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug)
         # .options(joinedload(OwidChartRecord._template_info))
         .first()
     )

@@ -18,7 +18,6 @@ from .app_routes import (
     bp_main,
     bp_owid_charts,
 )
-from .config import build_sqlalchemy_uri, settings
 from .core.cookies import CookieHeaderClient
 from .extensions import db, migrate
 from .su_services.users_service import context_user
@@ -82,49 +81,20 @@ def register_error_pages(app: Flask):
         return render_template("index.html", title="Session Expired"), 400
 
 
-def update_app_config(app: Flask) -> None:
-    app.config.update(
-        SECRET_KEY_FALLBACKS=list(settings.security.secret_key_fallbacks),
-        SESSION_COOKIE_HTTPONLY=settings.cookie.httponly,
-        SESSION_COOKIE_SECURE=settings.cookie.secure,
-        SESSION_COOKIE_SAMESITE=settings.cookie.samesite,
-        # Flask 3.1+ security configurations
-        MAX_CONTENT_LENGTH=settings.security.max_content_length,
-        MAX_FORM_MEMORY_SIZE=settings.security.max_form_memory_size,
-        MAX_FORM_PARTS=settings.security.max_form_parts,
-    )
-
-    # --- Flask-SQLAlchemy configuration ---
-    if settings.database_data.db_host or settings.database_data.db_user:
-        app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "pool_pre_ping": True,
-            "pool_size": 5,
-            "max_overflow": 10,
-            "pool_recycle": 3600,
-        }
-    else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
-
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-    # Configure CSRF token lifetime
-    app.config["WTF_CSRF_TIME_LIMIT"] = settings.csrf_time_limit
-
-
-def create_app(config_class: Type | None = None) -> Flask:
-    """
-    Instantiate and configure the Flask application.
+def create_app(config_class: Type) -> Flask:
+    """Instantiate and configure the Flask application.
 
     Args:
-        config_class: Optional configuration class to use. If not provided,
-            uses environment-based settings.
-            app.config.from_object(config_class)
+        config_class: Configuration class for ``app.config.from_object()``.
+            When *None*, auto-detected from the ``FLASK_ENV`` environment
+            variable (defaults to ``ProductionConfig``).
 
     Returns:
         Configured Flask application instance.
     """
+
+    if config_class is None:
+        raise ValueError("config_class must be provided")
 
     app = Flask(
         __name__,
@@ -134,9 +104,7 @@ def create_app(config_class: Type | None = None) -> Flask:
 
     app.url_map.strict_slashes = False
     app.test_client_class = CookieHeaderClient
-    app.secret_key = settings.security.secret_key
-
-    update_app_config(app)
+    app.config.from_object(config_class)
 
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841

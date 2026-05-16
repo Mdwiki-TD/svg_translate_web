@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from src.main_app import create_app
 from src.main_app.app_routes.auth import oauth as oauth_helpers
+from src.main_app.config import TestingConfig
 
 
 class StubConsumerToken:
@@ -36,7 +37,7 @@ class StubMWOAuth(SimpleNamespace):
 
 def test_start_login_returns_redirect_and_request_token(monkeypatch):
     monkeypatch.setattr(oauth_helpers, "mwoauth", StubMWOAuth())
-    app = create_app()
+    app = create_app(TestingConfig)
     with app.test_request_context("/"):
         redirect_url, request_token = oauth_helpers.start_login("signed-state")
         assert redirect_url.startswith("https://example.org/redirect")

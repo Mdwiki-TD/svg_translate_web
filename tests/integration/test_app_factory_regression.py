@@ -5,6 +5,8 @@ from __future__ import annotations
 from importlib import reload
 from unittest.mock import patch
 
+from src.main_app.config import TestingConfig
+
 
 def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     """Ensure the app factory can run without MySQL credentials."""
@@ -13,7 +15,7 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
 
     reload(app_module)
 
-    app = app_module.create_app()
+    app = app_module.create_app(TestingConfig)
 
     assert app is not None
 
@@ -23,7 +25,7 @@ def test_create_app_registers_blueprints():
     """Test create_app registers all blueprints."""
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     blueprint_names = [bp.name for bp in app.blueprints.values()]
 
@@ -46,7 +48,7 @@ def test_create_app_sets_secret_key(monkeypatch):
 
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert app.secret_key is not None
     assert len(app.secret_key) > 0
@@ -58,7 +60,7 @@ def test_create_app_configures_cookie_settings(monkeypatch):
 
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert "SESSION_COOKIE_HTTPONLY" in app.config
     assert "SESSION_COOKIE_SECURE" in app.config
@@ -71,7 +73,7 @@ def test_create_app_registers_context_processor(monkeypatch):
 
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert len(app.template_context_processors[None]) > 0
 
@@ -82,7 +84,7 @@ def test_create_app_registers_error_handlers(monkeypatch):
 
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert 404 in app.error_handler_spec[None]
     assert 500 in app.error_handler_spec[None]
@@ -94,7 +96,7 @@ def test_create_app_strict_slashes_disabled(monkeypatch):
 
     from src.main_app import create_app
 
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert app.url_map.strict_slashes is False
 
@@ -107,7 +109,7 @@ def test_create_app_jinja_env_configured(monkeypatch):
     from src.main_app.config.main_settings import get_settings
 
     get_settings.cache_clear()
-    app = create_app()
+    app = create_app(TestingConfig)
 
     assert "format_stage_timestamp" in app.jinja_env.filters
 
