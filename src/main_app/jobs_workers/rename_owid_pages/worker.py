@@ -111,6 +111,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 "to_rename": 0,
                 "renamed": 0,
                 "skipped_target_exists": 0,
+                "need_action": 0,
                 "failed": 0,
             },
             "pages_processed": [],
@@ -201,17 +202,33 @@ class RenameOwidPagesWorker(BaseJobWorker):
             )
 
         if target_exists:
-            # If the target is a redirect (e.g. left behind by a previous move),
-            # the move API will overwrite it — so we can proceed. But if it's a
-            # real (non-redirect) page, we skip the move and just update the DB
-            # title since the page already has the correct name on the wiki.
-            if not is_redirect(new_title, self.site):
+            # Both old_title and new_title exist on the wiki.
+            # Check redirect relationships to decide what to do:
+            target_is_redirect = is_redirect(new_title, self.site)
+            source_is_redirect = is_redirect(old_title, self.site)
+
+            if target_is_redirect:
+                # Target is a redirect (e.g. left behind by a previous move),
+                # the move API will overwrite it — proceed with the move below.
+                pass
+            elif source_is_redirect:
+                # The old page is already a redirect to the new one — just
+                # update the DB title to match the capitalized version.
                 info.status = "skipped_target_exists"
-                info.msg = f"Target page already exists (not a redirect): {new_title}"
+                info.msg = f"Old page redirects to target, updating DB only: {new_title}"
                 self.result["summary"]["skipped_target_exists"] += 1
-                # The target already exists with the correct capitalized name,
-                # so update the DB to reflect that.
                 self._update_template_title(old_title, new_title)
+                self.result["pages_processed"].append(info.to_dict())
+                return
+            else:
+                # Neither page redirects to the other — both are real pages.
+                # This is a conflict that requires manual intervention.
+                info.status = "need_action"
+                info.msg = (
+                    f"Both '{old_title}' and '{new_title}' exist as real pages "
+                    f"(neither redirects to the other). Manual action required."
+                )
+                self.result["summary"]["need_action"] += 1
                 self.result["pages_processed"].append(info.to_dict())
                 return
 
