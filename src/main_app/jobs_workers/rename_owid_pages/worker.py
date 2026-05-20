@@ -243,7 +243,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
         """Check if *title* is a redirect page on the wiki."""
         try:
             page = self.site.pages[title]
-            return page.redirect
+            target = page.redirects_to()
+            return target is not None
         except Exception as exc:
             logger.warning(
                 f"Job {self.job_id}: Could not check redirect status of '{title}': {exc}"
