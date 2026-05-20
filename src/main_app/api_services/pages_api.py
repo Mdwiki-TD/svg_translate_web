@@ -17,8 +17,52 @@ def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).check_exists()
 
 
+def is_redirect(page_title: str, site: mwclient.Site) -> bool:
+    return MwClientPage(page_title, site).is_redirect()
+
+
 def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, any]:
     return MwClientPage(title, site).edit_page(text, summary)
+
+
+def move_page(
+    site: mwclient.Site | None,
+    title: str,
+    new_title: str,
+    reason: str = "",
+    move_talk: bool = True,
+    no_redirect: bool = False,
+) -> dict[str, any]:
+    """
+    Move (rename) a page on Wikimedia Commons.
+
+    Args:
+        site: Authenticated mwclient.Site object for Commons.
+        title: Current page title (e.g. "Template:OWID/foo").
+        new_title: Target page title (e.g. "Template:OWID/Foo").
+        reason: Move reason / log summary on the wiki.
+        move_talk: Also move the associated talk page.
+        no_redirect: Do not leave a redirect at the old title (requires
+            the ``suppressredirect`` user right).
+
+    Returns:
+        A dictionary with ``success`` (bool) and ``error``/``details`` on failure,
+        matching the shape returned by :func:`create_page` / :func:`edit_page`.
+    """
+    missing_fields = verify_required_fields(
+        {"title": title, "new_title": new_title, "site": site}
+    )
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for move_page: {list_str}")
+        return {"success": False, "error": f"Missing required fields: {list_str}"}
+
+    return MwClientPage(title, site).move_page(
+        new_title,
+        reason=reason,
+        move_talk=move_talk,
+        no_redirect=no_redirect,
+    )
 
 
 def create_page(
@@ -141,6 +185,8 @@ __all__ = [
     "create_page",
     "is_page_exists",
     "is_pages_exists",
+    "is_redirect",
+    "move_page",
     "update_file_text",
     "update_page_text",
 ]

@@ -142,14 +142,53 @@ src/
     __init__.py          # Flask app factory
     config.py            # Settings dataclasses
     app_routes/          # Flask blueprints
+      admin/             # Admin panel (sidebar, routes, auth)
+      admin_routes/      # Admin sub-routes (coordinators, jobs, etc.)
+      auth/              # OAuth authentication
+      main_routes/       # Public routes
     api_services/        # MediaWiki API clients
-    db/                  # Database layer
-    tasks/               # Task pipeline stages
-    threads/             # Background task execution
+      clients/           # mwclient site builders (wiki_client, commons_client)
+      mwclient_page.py   # MwClientPage class (edit, move, redirect check with retry)
+      pages_api.py       # Thin wrappers: is_page_exists, is_redirect, edit_page, move_page
+      text_api.py        # Fetch page/file wikitext
+      category.py        # Category member listing
+    sqlalchemy_db/       # SQLAlchemy models & services
+    jobs_workers/        # Background job workers (BaseJobWorker pattern)
+      base_worker.py     # Abstract base with lifecycle, retry, cancellation
+      workers_list.py    # Job registry (jobs_targets, JOB_TYPE_TEMPLATES)
+      create_owid_pages/ # Create OWID gallery pages from templates
+      rename_owid_pages/ # Capitalize OWID subpage first letter (move/redirect)
+      crop_main_files/   # Crop newest world files
     utils/               # Helper utilities
+  templates/             # Jinja2 templates
+    admins/jobs_templates/  # Job-specific detail/list templates
   app.py                 # WSGI entry point
 tests/                   # Test files (mirror src structure)
+_works_files/            # Offline CLI tools (not part of Flask app)
+  rename_owid_pages.py   # Standalone OWID rename script (uses .env credentials)
 ```
+
+## Background Jobs
+
+### Adding a New Job
+
+1. Create `src/main_app/jobs_workers/<job_name>/worker.py` with a class extending `BaseJobWorker`
+2. Implement: `get_job_type()`, `get_initial_result()`, `process()`
+3. Create `__init__.py` exporting the entry-point function
+4. Register in `workers_list.py`: add to `jobs_targets`, `JOB_TYPE_TEMPLATES`, `JOB_TYPE_LIST_TEMPLATES`
+5. Add sidebar item in `app_routes/admin/sidebar.py`
+6. Create templates: `src/templates/admins/jobs_templates/<job_name>/list.html` and `details.html`
+
+### MwClientPage Pattern
+
+All mwclient operations go through `MwClientPage` which provides:
+- `load_page()` — load page object, cache it
+- `check_exists()` — check page existence
+- `is_redirect()` — check if page is redirect using `page.redirects_to()`
+- `edit_page(text, summary)` — edit with rate-limit retry
+- `move_page(new_title, reason, ...)` — move/rename with rate-limit retry
+
+Rate-limit retry: on `ratelimited` error, retries after 5s, 15s, 30s delays.
 
 ## Testing
 
