@@ -302,35 +302,22 @@ class CollectMainFilesWorker(BaseJobWorker):
 def collect_main_files_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
-) -> None:
-    """
-    Background worker to collect templates data for templates that don't have one.
-
-    This function:
-    1. Fetches all templates from the database
-    2. For each template without a main_file:
-       - Fetches the wikitext from Commons
-       - Extracts the main file using find_main_title
-       - Updates the template in the database
-    3. Saves a detailed report to a JSON file
-    """
-    logger.info(f"Starting job {job_id}: collect templates data for templates")
-    worker = CollectMainFilesWorker(job_id, user, cancel_event)
-    worker.run()
-
-
-def collect_main_files_for_templates_with_args(
-    job_id: int,
     args: Dict[str, Any] | None = None,
-    user: Dict[str, Any] | None = None,
-    cancel_event: threading.Event | None = None,
 ) -> None:
     """
-    Background worker to collect/update templates data with arguments.
+    Background worker to collect templates data.
 
-    Supports args:
-        update_all: "true" to update all templates, not just those missing data.
+    By default only processes templates missing data. Pass args={"update_all": "true"}
+    to re-fetch and update ALL templates.
+
+    Args:
+        job_id: The job ID
+        user: User authentication data
+        cancel_event: Threading event for cancellation
+        args: Optional arguments dict. Supports:
+            - update_all: "true" to update all templates, not just those missing data.
     """
     update_all = False
     if args and args.get("update_all", "").lower() == "true":
@@ -343,6 +330,5 @@ def collect_main_files_for_templates_with_args(
 
 __all__ = [
     "collect_main_files_for_templates",
-    "collect_main_files_for_templates_with_args",
     "CollectMainFilesWorker",
 ]

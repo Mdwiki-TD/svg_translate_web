@@ -237,22 +237,18 @@ class DownloadMainFilesWorker(BaseJobWorker):
 def download_main_files_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to download main files for all templates.
-
-    This function:
-    1. Fetches all templates from the database
-    2. For each template with a main_file:
-       - Downloads the file from Commons
-       - Saves it to settings.paths.main_files_path
-    3. Saves a detailed report to a JSON file
 
     Args:
         job_id: The job ID
         user: User authentication data (not used for downloads, but kept for consistency)
         cancel_event: Optional event to check for cancellation
+        args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
     worker = DownloadMainFilesWorker(job_id, user, cancel_event)

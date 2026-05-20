@@ -61,7 +61,9 @@ class CropMainFilesWorker(BaseJobWorker):
 def crop_main_files_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
     Entry point for crop newest world files background job.
@@ -70,6 +72,7 @@ def crop_main_files_for_templates(
         job_id: The job ID
         user: User authentication data for OAuth uploads
         cancel_event: Threading event for cancellation
+        args: Optional arguments dict (unused, for unified signature)
     """
     worker = CropMainFilesWorker(job_id, user, cancel_event)
     worker.run()
