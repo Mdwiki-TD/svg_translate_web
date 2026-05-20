@@ -624,3 +624,20 @@ class TestCreateOwidPagesForTemplates:
             create_owid_pages_for_templates(job_id=1, cancel_event=cancel_event)
 
         mock_run.assert_called_once()
+
+    def test_entry_point_accepts_args_keyword_param(self, mock_services):
+        """Test that the entry point accepts args= keyword-only param (unified signature)."""
+        with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+            mock_run.return_value = {"status": "completed"}
+            # Should not raise TypeError; args is accepted but unused
+            create_owid_pages_for_templates(job_id=1, args={"some_key": "value"})
+
+        mock_run.assert_called_once()
+
+    def test_entry_point_args_defaults_to_none(self, mock_services):
+        """Test that args defaults to None and the entry point works without it."""
+        with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+            mock_run.return_value = {"status": "completed"}
+            create_owid_pages_for_templates(job_id=99)
+
+        mock_run.assert_called_once()
