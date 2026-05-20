@@ -107,6 +107,13 @@ def create_side(active_route, path: str | None = None):
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
+                id="rename_owid_pages",
+                admin=1,
+                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/rename_owid_pages", job_type="rename_owid_pages"),
+                title="Rename OWID Pages",
+                icon="bi-fonts",
+            ),
+            SidebarItem(
                 id="add_svglanguages_template",
                 admin=1,
                 href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/add_svglanguages_template", job_type="add_svglanguages_template"),

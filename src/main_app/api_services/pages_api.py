@@ -21,6 +21,69 @@ def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[
     return MwClientPage(title, site).edit_page(text, summary)
 
 
+def move_page(
+    site: mwclient.Site | None,
+    title: str,
+    new_title: str,
+    reason: str = "",
+    move_talk: bool = True,
+    no_redirect: bool = False,
+) -> dict[str, any]:
+    """
+    Move (rename) a page on Wikimedia Commons.
+
+    Args:
+        site: Authenticated mwclient.Site object for Commons.
+        title: Current page title (e.g. "Template:OWID/foo").
+        new_title: Target page title (e.g. "Template:OWID/Foo").
+        reason: Move reason / log summary on the wiki.
+        move_talk: Also move the associated talk page.
+        no_redirect: Do not leave a redirect at the old title (requires
+            the ``suppressredirect`` user right).
+
+    Returns:
+        A dictionary with ``success`` (bool) and ``error``/``details`` on failure,
+        matching the shape returned by :func:`create_page` / :func:`edit_page`.
+    """
+    missing_fields = verify_required_fields(
+        {"title": title, "new_title": new_title, "site": site}
+    )
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for move_page: {list_str}")
+        return {"success": False, "error": f"Missing required fields: {list_str}"}
+
+    try:
+        page = site.pages[title]
+    except mwclient.errors.InvalidPageTitle:
+        logger.exception(f"Title {title} is invalid")
+        return {"success": False, "error": "invalidpagetitle"}
+    except Exception as exc:
+        logger.exception(f"Failed to load page {title}", exc_info=exc)
+        return {"success": False, "error": str(exc)}
+
+    if not page.exists:
+        return {"success": False, "error": "missing"}
+
+    try:
+        page.move(
+            new_title,
+            reason=reason,
+            move_talk=move_talk,
+            no_redirect=no_redirect,
+        )
+        return {"success": True}
+    except mwclient.errors.AssertUserFailedError:
+        return {"success": False, "error": "assertuserfailed"}
+    except mwclient.errors.UserBlocked:
+        return {"success": False, "error": "userblocked"}
+    except mwclient.errors.APIError as exc:
+        return {"success": False, "error": exc.code, "details": str(exc)}
+    except Exception as exc:
+        logger.exception(f"Failed to move page {title} -> {new_title}", exc_info=exc)
+        return {"success": False, "error": str(exc)}
+
+
 def create_page(
     page_name: str,
     wikitext: str,
@@ -141,6 +204,7 @@ __all__ = [
     "create_page",
     "is_page_exists",
     "is_pages_exists",
+    "move_page",
     "update_file_text",
     "update_page_text",
 ]

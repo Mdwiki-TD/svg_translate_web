@@ -1,0 +1,112 @@
+{% extends "admins/jobs_templates/base_details.html" %}
+{% from "_macros.html" import card_header %}
+
+{% set job_type = 'rename_owid_pages' %}
+
+{% block detail_title %}Rename OWID Pages{% endblock %}
+{% block detail_headline %}Rename OWID Pages{% endblock %}
+
+{% block job_summary %}
+{% if result_data.summary %}
+<div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+    <div class="col">
+        <div class="card h-100 border">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.checked or 0 }}</h4>
+                <small class="text-muted">Checked</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-primary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.to_rename or 0 }}</h4>
+                <small>Need rename</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-success">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.renamed or 0 }}</h4>
+                <small>Renamed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-secondary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.skipped_target_exists or 0 }}</h4>
+                <small>Skipped (target exists)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-danger">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.failed or 0 }}</h4>
+                <small>Failed</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block job_details %}
+{% if result_data.pages_processed %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Pages Processed (" ~ result_data.pages_processed|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm DataTable">
+                <thead>
+                    <tr>
+                        <th style="width: 4%">#</th>
+                        <th>Old title</th>
+                        <th>New title</th>
+                        <th style="width: 15%">Status</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in result_data.pages_processed %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ item.old_title }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.new_title %}
+                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ item.new_title }}
+                            </a>
+                            {% else %} - {% endif %}
+                        </td>
+                        <td>
+                            {% if item.status == 'renamed' %}
+                            <span class="badge bg-success">renamed</span>
+                            {% elif item.status == 'skipped_target_exists' %}
+                            <span class="badge bg-secondary">skipped</span>
+                            {% elif item.status == 'failed' %}
+                            <span class="badge bg-danger">failed</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ item.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ item.msg }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
