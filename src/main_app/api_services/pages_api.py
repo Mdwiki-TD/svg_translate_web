@@ -53,35 +53,12 @@ def move_page(
         logger.error(f"Missing required fields for move_page: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    try:
-        page = site.pages[title]
-    except mwclient.errors.InvalidPageTitle:
-        logger.exception(f"Title {title} is invalid")
-        return {"success": False, "error": "invalidpagetitle"}
-    except Exception as exc:
-        logger.exception(f"Failed to load page {title}", exc_info=exc)
-        return {"success": False, "error": str(exc)}
-
-    if not page.exists:
-        return {"success": False, "error": "missing"}
-
-    try:
-        page.move(
-            new_title,
-            reason=reason,
-            move_talk=move_talk,
-            no_redirect=no_redirect,
-        )
-        return {"success": True}
-    except mwclient.errors.AssertUserFailedError:
-        return {"success": False, "error": "assertuserfailed"}
-    except mwclient.errors.UserBlocked:
-        return {"success": False, "error": "userblocked"}
-    except mwclient.errors.APIError as exc:
-        return {"success": False, "error": exc.code, "details": str(exc)}
-    except Exception as exc:
-        logger.exception(f"Failed to move page {title} -> {new_title}", exc_info=exc)
-        return {"success": False, "error": str(exc)}
+    return MwClientPage(title, site).move_page(
+        new_title,
+        reason=reason,
+        move_talk=move_talk,
+        no_redirect=no_redirect,
+    )
 
 
 def create_page(

@@ -105,3 +105,85 @@ class MwClientPage:
                 return edit_result
 
         return {"success": False, "error": "ratelimited"}
+
+    # ------------------------------------------------------------------
+    # Move (rename) page
+    # ------------------------------------------------------------------
+
+    def _move_page(
+        self,
+        page: mwclient.page.Page,
+        new_title: str,
+        reason: str,
+        move_talk: bool,
+        no_redirect: bool,
+    ) -> dict[str, any]:
+        try:
+            page.move(
+                new_title,
+                reason=reason,
+                move_talk=move_talk,
+                no_redirect=no_redirect,
+            )
+            return {"success": True}
+
+        except mwclient.errors.AssertUserFailedError:
+            return {"success": False, "error": "assertuserfailed"}
+
+        except mwclient.errors.UserBlocked:
+            return {"success": False, "error": "userblocked"}
+
+        except mwclient.errors.APIError as exc:
+            if exc.code == "ratelimited":
+                return {"success": False, "error": "ratelimited"}
+            return {"success": False, "error": exc.code, "details": str(exc)}
+
+        except Exception as exc:
+            logger.exception(f"Failed to move page {self.title} -> {new_title}", exc_info=exc)
+            return {"success": False, "error": str(exc)}
+
+    def move_page(
+        self,
+        new_title: str,
+        reason: str = "",
+        move_talk: bool = True,
+        no_redirect: bool = False,
+    ) -> dict[str, any]:
+        """Move (rename) the page, with rate-limit retry handling."""
+        page = self.load_page()
+
+        if not page:
+            return {"success": False, "error": self.load_page_error}
+
+        if not page.exists:
+            return {"success": False, "error": "missing"}
+
+        move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
+
+        if move_result.get("error") != "ratelimited":
+            return move_result
+
+        # handle retry
+        return self._move_with_retry(page, new_title, reason, move_talk, no_redirect)
+
+    def _move_with_retry(
+        self,
+        page: mwclient.page.Page,
+        new_title: str,
+        reason: str,
+        move_talk: bool,
+        no_redirect: bool,
+    ) -> dict[str, any]:
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+            logger.warning(
+                f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
+                f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+
+            move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
+
+            if move_result.get("error") != "ratelimited":
+                return move_result
+
+        return {"success": False, "error": "ratelimited"}
