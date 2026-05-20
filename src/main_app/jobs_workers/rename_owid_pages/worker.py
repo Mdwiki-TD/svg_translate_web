@@ -293,9 +293,18 @@ class RenameOwidPagesWorker(BaseJobWorker):
 def rename_owid_pages_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
-    """Background worker entry-point."""
+    """Background worker entry-point.
+
+    Args:
+        job_id: The job ID
+        user: User authentication data
+        cancel_event: Threading event for cancellation
+        args: Optional arguments dict (unused, for unified signature)
+    """
     logger.info(f"Starting job {job_id}: rename OWID pages (capitalize first letter)")
     worker = RenameOwidPagesWorker(
         job_id=job_id,

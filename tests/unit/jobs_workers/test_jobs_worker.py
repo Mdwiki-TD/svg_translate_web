@@ -125,7 +125,7 @@ def test_runner_calls_target_and_cleans_up():
 
     _runner(job_id, user, event, mock_target, flask_app)
 
-    mock_target.assert_called_once_with(job_id, user, cancel_event=event)
+    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=None)
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_jobs_cancel_event(job_id) is None

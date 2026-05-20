@@ -241,22 +241,18 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 def fix_nested_main_files_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
-
-    This function:
-    1. Fetches all templates from the database
-    2. For each template with a main_file:
-       - Runs the fix_nested process (download, fix, upload)
-       - Uses the user's OAuth credentials for file uploads
-    3. Saves a detailed report to a JSON file
 
     Args:
         job_id: The job ID
         user: User authentication data for OAuth uploads
         cancel_event: Optional event to check for cancellation
+        args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: fix nested tags for template main files")
     worker = FixNestedMainFilesWorker(job_id, user, cancel_event)

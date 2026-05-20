@@ -327,10 +327,18 @@ class CreateOwidPagesWorker(BaseJobWorker):
 def create_owid_pages_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker
+
+    Args:
+        job_id: The job ID
+        user: User authentication data
+        cancel_event: Threading event for cancellation
+        args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: create OWID pages for templates")
     worker = CreateOwidPagesWorker(

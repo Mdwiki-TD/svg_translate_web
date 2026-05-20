@@ -60,6 +60,16 @@ def slugify_title(title: str) -> str:
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
+    def __init__(
+        self,
+        job_id: int,
+        user: Dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
+        update_all: bool = False,
+    ) -> None:
+        super().__init__(job_id, user, cancel_event)
+        self.update_all = update_all
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "collect_main_files"
@@ -165,8 +175,14 @@ class CollectMainFilesWorker(BaseJobWorker):
             [t for t in templates if t.main_file and t.last_world_file and t.source]
         )
 
-        templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
+        if self.update_all:
+            templates_to_process = templates
+            logger.info(f"Job {self.job_id}: Update all mode - processing all {len(templates_to_process)} templates")
+        else:
+            templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
+            logger.info(
+                f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing"
+            )
 
         per_item = self.get_priority(len(templates_to_process))
 
@@ -286,21 +302,29 @@ class CollectMainFilesWorker(BaseJobWorker):
 def collect_main_files_for_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
-    Background worker to collect templates data for templates that don't have one.
+    Background worker to collect templates data.
 
-    This function:
-    1. Fetches all templates from the database
-    2. For each template without a main_file:
-       - Fetches the wikitext from Commons
-       - Extracts the main file using find_main_title
-       - Updates the template in the database
-    3. Saves a detailed report to a JSON file
+    By default only processes templates missing data. Pass args={"update_all": "true"}
+    to re-fetch and update ALL templates.
+
+    Args:
+        job_id: The job ID
+        user: User authentication data
+        cancel_event: Threading event for cancellation
+        args: Optional arguments dict. Supports:
+            - update_all: "true" to update all templates, not just those missing data.
     """
-    logger.info(f"Starting job {job_id}: collect templates data for templates")
-    worker = CollectMainFilesWorker(job_id, user, cancel_event)
+    update_all = False
+    if args and args.get("update_all", "").lower() == "true":
+        update_all = True
+
+    logger.info(f"Starting job {job_id}: collect templates data (update_all={update_all})")
+    worker = CollectMainFilesWorker(job_id, user, cancel_event, update_all=update_all)
     worker.run()
 
 

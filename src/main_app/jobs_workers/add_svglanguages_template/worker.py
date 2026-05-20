@@ -278,10 +278,18 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 def add_svglanguages_template_to_templates(
     job_id: int,
     user: Dict[str, Any] | None = None,
+    *,
     cancel_event: threading.Event | None = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker
+
+    Args:
+        job_id: The job ID
+        user: User authentication data
+        cancel_event: Threading event for cancellation
+        args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
     worker = AddSvgSVGLanguagesTemplate(
