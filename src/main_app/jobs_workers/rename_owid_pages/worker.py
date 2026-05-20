@@ -25,7 +25,7 @@ from typing import Any, Dict, Iterable
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import is_page_exists, is_redirect, move_page
+from ...api_services.pages_api import edit_page, is_page_exists, is_redirect, move_page
 from ...sqlalchemy_db.services import get_template_by_title, update_template_data
 from ..base_worker import BaseJobWorker
 
@@ -111,7 +111,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 "to_rename": 0,
                 "renamed": 0,
                 "skipped_target_exists": 0,
-                "need_action": 0,
+                "redirected": 0,
                 "failed": 0,
             },
             "pages_processed": [],
@@ -222,14 +222,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 return
             else:
                 # Neither page redirects to the other — both are real pages.
-                # This is a conflict that requires manual intervention.
-                info.status = "need_action"
-                info.msg = (
-                    f"Both '{old_title}' and '{new_title}' exist as real pages "
-                    f"(neither redirects to the other). Manual action required."
-                )
-                self.result["summary"]["need_action"] += 1
-                self.result["pages_processed"].append(info.to_dict())
+                # Redirect the old (lowercase) page to the new (capitalized) one.
+                self._redirect_old_to_new(info, old_title, new_title)
                 return
 
         res = move_page(
@@ -252,6 +246,27 @@ class RenameOwidPagesWorker(BaseJobWorker):
             details = res.get("details")
             info.status = "failed"
             info.msg = f"{err}: {details}" if details else str(err)
+            self.result["summary"]["failed"] += 1
+
+        self.result["pages_processed"].append(info.to_dict())
+
+    def _redirect_old_to_new(self, info: RenameInfo, old_title: str, new_title: str) -> None:
+        """Turn the old (lowercase) page into a redirect to the new (capitalized) page."""
+        redirect_text = f"#REDIRECT [[{new_title}]]"
+        summary = f"Redirecting to [[{new_title}]] (capitalize first letter of OWID subpage)"
+
+        res = edit_page(self.site, old_title, redirect_text, summary)
+
+        if res.get("success"):
+            info.status = "redirected"
+            info.msg = f"Redirected {old_title} -> {new_title}"
+            self.result["summary"]["redirected"] += 1
+            self._update_template_title(old_title, new_title)
+        else:
+            err = res.get("error", "Unknown error")
+            details = res.get("details")
+            info.status = "failed"
+            info.msg = f"Failed to redirect: {err}: {details}" if details else f"Failed to redirect: {err}"
             self.result["summary"]["failed"] += 1
 
         self.result["pages_processed"].append(info.to_dict())
