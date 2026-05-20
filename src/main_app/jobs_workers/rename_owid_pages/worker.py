@@ -25,7 +25,7 @@ from typing import Any, Dict, Iterable
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import is_page_exists, move_page
+from ...api_services.pages_api import is_page_exists, is_redirect, move_page
 from ...sqlalchemy_db.services import get_template_by_title, update_template_data
 from ..base_worker import BaseJobWorker
 
@@ -205,7 +205,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             # the move API will overwrite it — so we can proceed. But if it's a
             # real (non-redirect) page, we skip the move and just update the DB
             # title since the page already has the correct name on the wiki.
-            if not self._is_redirect(new_title):
+            if not is_redirect(new_title, self.site):
                 info.status = "skipped_target_exists"
                 info.msg = f"Target page already exists (not a redirect): {new_title}"
                 self.result["summary"]["skipped_target_exists"] += 1
@@ -238,18 +238,6 @@ class RenameOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["failed"] += 1
 
         self.result["pages_processed"].append(info.to_dict())
-
-    def _is_redirect(self, title: str) -> bool:
-        """Check if *title* is a redirect page on the wiki."""
-        try:
-            page = self.site.pages[title]
-            target = page.redirects_to()
-            return target is not None
-        except Exception as exc:
-            logger.warning(
-                f"Job {self.job_id}: Could not check redirect status of '{title}': {exc}"
-            )
-            return False
 
     def _update_template_title(self, old_title: str, new_title: str) -> None:
         """Update TemplateRecord.title in the database after a successful move."""

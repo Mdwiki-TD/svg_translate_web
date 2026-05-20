@@ -17,6 +17,10 @@ def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).check_exists()
 
 
+def is_redirect(page_title: str, site: mwclient.Site) -> bool:
+    return MwClientPage(page_title, site).is_redirect()
+
+
 def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, any]:
     return MwClientPage(title, site).edit_page(text, summary)
 
@@ -181,6 +185,7 @@ __all__ = [
     "create_page",
     "is_page_exists",
     "is_pages_exists",
+    "is_redirect",
     "move_page",
     "update_file_text",
     "update_page_text",

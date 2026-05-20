@@ -47,6 +47,20 @@ class MwClientPage:
         logger.info(f"Title {self.title} exists")
         return True
 
+    def is_redirect(self) -> bool:
+        """Check if the page is a redirect using page.redirects_to()."""
+        page = self.load_page()
+
+        if not page or not page.exists:
+            return False
+
+        try:
+            target = page.redirects_to()
+            return target is not None
+        except Exception as exc:
+            logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
+            return False
+
     def _edit_page(self, page: mwclient.page.Page, text: str, summary: str) -> dict[str, any]:
 
         try:
