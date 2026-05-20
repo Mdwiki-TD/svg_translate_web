@@ -201,11 +201,19 @@ class RenameOwidPagesWorker(BaseJobWorker):
             )
 
         if target_exists:
-            info.status = "skipped_target_exists"
-            info.msg = f"Target page already exists: {new_title}"
-            self.result["summary"]["skipped_target_exists"] += 1
-            self.result["pages_processed"].append(info.to_dict())
-            return
+            # If the target is a redirect (e.g. left behind by a previous move),
+            # the move API will overwrite it — so we can proceed. But if it's a
+            # real (non-redirect) page, we skip the move and just update the DB
+            # title since the page already has the correct name on the wiki.
+            if not self._is_redirect(new_title):
+                info.status = "skipped_target_exists"
+                info.msg = f"Target page already exists (not a redirect): {new_title}"
+                self.result["summary"]["skipped_target_exists"] += 1
+                # The target already exists with the correct capitalized name,
+                # so update the DB to reflect that.
+                self._update_template_title(old_title, new_title)
+                self.result["pages_processed"].append(info.to_dict())
+                return
 
         res = move_page(
             self.site,
@@ -230,6 +238,17 @@ class RenameOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["failed"] += 1
 
         self.result["pages_processed"].append(info.to_dict())
+
+    def _is_redirect(self, title: str) -> bool:
+        """Check if *title* is a redirect page on the wiki."""
+        try:
+            page = self.site.pages[title]
+            return page.redirect
+        except Exception as exc:
+            logger.warning(
+                f"Job {self.job_id}: Could not check redirect status of '{title}': {exc}"
+            )
+            return False
 
     def _update_template_title(self, old_title: str, new_title: str) -> None:
         """Update TemplateRecord.title in the database after a successful move."""
