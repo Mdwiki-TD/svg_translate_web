@@ -12,7 +12,7 @@ from ..sqlalchemy_db.services import cancel_job as cancel_job_db
 from ..sqlalchemy_db.services import (
     create_job,
 )
-from .workers_list import jobs_targets, jobs_targets_public
+from .workers_list import jobs_targets, jobs_targets_public, jobs_targets_with_args
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     Args:
         user: User authentication data for OAuth uploads
     """
-    job_func = jobs_targets.get(job_type) or jobs_targets_public.get(job_type)
+    job_func = jobs_targets_with_args.get(job_type) or jobs_targets_public.get(job_type)
     if not job_func:
         raise ValueError(f"Unknown job type: {job_type}")
 

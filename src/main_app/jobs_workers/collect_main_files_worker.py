@@ -60,6 +60,16 @@ def slugify_title(title: str) -> str:
 class CollectMainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
+    def __init__(
+        self,
+        job_id: int,
+        user: Dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
+        update_all: bool = False,
+    ) -> None:
+        super().__init__(job_id, user, cancel_event)
+        self.update_all = update_all
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "collect_main_files"
@@ -165,8 +175,14 @@ class CollectMainFilesWorker(BaseJobWorker):
             [t for t in templates if t.main_file and t.last_world_file and t.source]
         )
 
-        templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing")
+        if self.update_all:
+            templates_to_process = templates
+            logger.info(f"Job {self.job_id}: Update all mode - processing all {len(templates_to_process)} templates")
+        else:
+            templates_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
+            logger.info(
+                f"Job {self.job_id}: Found {len(templates)} templates, {len(templates_to_process)} need processing"
+            )
 
         per_item = self.get_priority(len(templates_to_process))
 
@@ -304,7 +320,29 @@ def collect_main_files_for_templates(
     worker.run()
 
 
+def collect_main_files_for_templates_with_args(
+    job_id: int,
+    args: Dict[str, Any] | None = None,
+    user: Dict[str, Any] | None = None,
+    cancel_event: threading.Event | None = None,
+) -> None:
+    """
+    Background worker to collect/update templates data with arguments.
+
+    Supports args:
+        update_all: "true" to update all templates, not just those missing data.
+    """
+    update_all = False
+    if args and args.get("update_all", "").lower() == "true":
+        update_all = True
+
+    logger.info(f"Starting job {job_id}: collect templates data (update_all={update_all})")
+    worker = CollectMainFilesWorker(job_id, user, cancel_event, update_all=update_all)
+    worker.run()
+
+
 __all__ = [
     "collect_main_files_for_templates",
+    "collect_main_files_for_templates_with_args",
     "CollectMainFilesWorker",
 ]

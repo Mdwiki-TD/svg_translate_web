@@ -1,7 +1,7 @@
 from ..public_jobs_workers.copy_svg_langs.worker import copy_svg_langs_worker_entry
 from ..public_jobs_workers.fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 from .add_svglanguages_template import add_svglanguages_template_to_templates
-from .collect_main_files_worker import collect_main_files_for_templates
+from .collect_main_files_worker import collect_main_files_for_templates, collect_main_files_for_templates_with_args
 from .create_owid_pages import create_owid_pages_for_templates
 from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
@@ -21,6 +21,10 @@ jobs_targets = {
     "rename_owid_pages": rename_owid_pages_for_templates,
     "add_svglanguages_template": add_svglanguages_template_to_templates,
     "download_main_files": download_main_files_for_templates,
+}
+
+jobs_targets_with_args = {
+    "collect_main_files": collect_main_files_for_templates_with_args,
 }
 
 
@@ -60,6 +64,7 @@ JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
 
 __all__ = [
     "jobs_targets",
+    "jobs_targets_with_args",
     "jobs_targets_public",
     "JOB_TYPE_TEMPLATES",
     "JOB_TYPE_LIST_TEMPLATES",
