@@ -1,5 +1,6 @@
 """Configuration and fixtures for pytest"""
 
+import logging
 import os
 import secrets
 import sys
@@ -234,17 +235,30 @@ def setup_db(app):
     with app.app_context():
         # Create only real tables; skip view-backed mapped classes
         real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables)
+        _db.metadata.create_all(_db.engine, tables=real_tables, checkfirst=True)
 
+        from sqlalchemy import inspect as sa_inspect
+
+        existing_views = set(sa_inspect(_db.engine).get_view_names())
         # Create views manually (SQLite-compatible CREATE VIEW)
         with _db.engine.connect() as conn:
             for table in _db.metadata.tables.values():
-                if table.info.get("is_view") and table.info.get("create_query"):
-                    try:
-                        conn.execute(text(table.info["create_query"]))
-                        conn.commit()
-                    except Exception:
-                        conn.rollback()
+                if not table.info.get("is_view"):
+                    continue
+
+                if not table.info.get("create_query"):
+                    logging.warning("View %s has no create_query, skipping", table.name)
+                    continue
+
+                if table.name in existing_views:
+                    continue
+                try:
+                    create_sql = table.info["create_query"]
+                    conn.execute(text(create_sql))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+                    logging.exception("Failed to create view %s", table.name)
 
         yield
 
