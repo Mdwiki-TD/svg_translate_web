@@ -8,13 +8,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.crop_main_files.process_new import (
     CropMainFilesProcessor,
     FileProcessingInfo,
     is_cropped_file_existing,
     process_crops,
 )
-from src.main_app.db.models import TemplateRecord
 
 
 @pytest.fixture

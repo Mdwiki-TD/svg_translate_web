@@ -100,7 +100,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     """
     if not title.startswith(full_prefix):
         return False, title
-    rest = title[len(full_prefix):]
+    rest = title[len(full_prefix) :]
     if not rest:
         return False, title
     first = rest[0]

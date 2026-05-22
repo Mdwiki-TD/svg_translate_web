@@ -6,8 +6,8 @@ import pytest
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.extensions import db as _db
 from src.main_app.db.services import admin_service as _sqlalchemy_admin_service
+from src.main_app.extensions import db as _db
 
 
 def _set_current_user(monkeypatch: pytest.MonkeyPatch, user: Any) -> None:

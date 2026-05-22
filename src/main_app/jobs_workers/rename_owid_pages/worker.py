@@ -72,7 +72,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     """
     if not title.startswith(full_prefix):
         return False, title
-    rest = title[len(full_prefix):]
+    rest = title[len(full_prefix) :]
     if not rest:
         return False, title
     first = rest[0]
@@ -133,9 +133,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             if self.is_cancelled():
                 return self.result
 
-            logger.info(
-                f"Job {self.job_id}: Listing pages with prefix '{full_prefix}' (ns={namespace})"
-            )
+            logger.info(f"Job {self.job_id}: Listing pages with prefix '{full_prefix}' (ns={namespace})")
             ns_count = 0
             for page in self._iter_owid_pages(namespace, prefix):
                 ns_count += 1
@@ -197,9 +195,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             target_exists = is_page_exists(new_title, self.site)
         except Exception as exc:
             target_exists = False
-            logger.exception(
-                f"Job {self.job_id}: Failed to check existence of {new_title}", exc_info=exc
-            )
+            logger.exception(f"Job {self.job_id}: Failed to check existence of {new_title}", exc_info=exc)
 
         if target_exists:
             # Both old_title and new_title exist on the wiki.
@@ -277,17 +273,11 @@ class RenameOwidPagesWorker(BaseJobWorker):
             record = get_template_by_title(old_title)
             if record:
                 update_template_data(record.id, {"title": new_title})
-                logger.info(
-                    f"Job {self.job_id}: Updated DB template title: {old_title} -> {new_title}"
-                )
+                logger.info(f"Job {self.job_id}: Updated DB template title: {old_title} -> {new_title}")
             else:
-                logger.debug(
-                    f"Job {self.job_id}: No TemplateRecord found for '{old_title}', skipping DB update"
-                )
+                logger.debug(f"Job {self.job_id}: No TemplateRecord found for '{old_title}', skipping DB update")
         except Exception as exc:
-            logger.warning(
-                f"Job {self.job_id}: Failed to update DB title for '{old_title}': {exc}"
-            )
+            logger.warning(f"Job {self.job_id}: Failed to update DB title for '{old_title}': {exc}")
 
 
 def rename_owid_pages_for_templates(
