@@ -13,7 +13,7 @@ from werkzeug.wrappers import Response
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
-from src.main_app.sqlalchemy_db.services import jobs_service as _sqlalchemy_jobs_service
+from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 
 
 class _JobsStore:
@@ -60,7 +60,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr(
-        "src.main_app.sqlalchemy_db.services.admin_service.active_coordinators", lambda: {admin_user.username}
+        "src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 

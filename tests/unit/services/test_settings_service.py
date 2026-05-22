@@ -1,4 +1,4 @@
-from src.main_app.sqlalchemy_db.services.settings_service import (
+from src.main_app.db.services.settings_service import (
     _serialize_value,
 )
 

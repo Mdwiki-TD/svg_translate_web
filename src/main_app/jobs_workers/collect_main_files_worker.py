@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 from ..api_services.category import get_category_members
 from ..api_services.text_bot import get_wikitext
-from ..sqlalchemy_db.services import (
+from ..db.services import (
     add_template_data,
     get_chart_by_slug,
     list_templates,

@@ -18,7 +18,7 @@ import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...sqlalchemy_db.services import (
+from ...db.services import (
     is_job_cancelled,
 )
 from ...su_services import jobs_files_service

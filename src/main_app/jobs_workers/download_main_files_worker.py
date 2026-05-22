@@ -16,7 +16,7 @@ from flask import send_file
 
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
-from ..sqlalchemy_db.services import list_templates
+from ..db.services import list_templates
 from .base_worker import BaseJobWorker
 
 # Zip file name constant

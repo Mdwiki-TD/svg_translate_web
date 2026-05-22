@@ -19,8 +19,8 @@ from .app_routes import (
     bp_owid_charts,
 )
 from .core.cookies import CookieHeaderClient
-from .extensions import db, migrate
-from .sqlalchemy_db import init_db
+from .extensions import db as _db, migrate
+from .db import init_db
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
@@ -111,8 +111,8 @@ def create_app(config_class: Type) -> Flask:
     csrf = CSRFProtect(app)  # noqa: F841
 
     # Initialize Flask-SQLAlchemy and Flask-Migrate
-    db.init_app(app)
-    migrate.init_app(app, db)
+    _db.init_app(app)
+    migrate.init_app(app, _db)
 
     # Create database tables and views if they don't exist
     init_db(app)

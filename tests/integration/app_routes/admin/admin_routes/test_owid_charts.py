@@ -11,7 +11,7 @@ import pytest
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.sqlalchemy_db.models import OwidChartRecord
+from src.main_app.db.models import OwidChartRecord
 
 
 @dataclass
@@ -55,7 +55,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr(
-        "src.main_app.sqlalchemy_db.services.admin_service.active_coordinators", lambda: {admin_user.username}
+        "src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 

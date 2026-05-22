@@ -22,7 +22,7 @@ from typing import Any, Dict
 
 from src.main_app.api_services import get_category_members, get_wikitext
 from src.main_app.jobs_workers.base_worker import BaseJobWorker
-from src.main_app.sqlalchemy_db.services import (
+from src.main_app.db.services import (
     add_template_data,
     create_job,
     list_templates,

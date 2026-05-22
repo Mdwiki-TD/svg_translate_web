@@ -17,8 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...sqlalchemy_db.models import OwidChartRecord
-from ...sqlalchemy_db.services import owid_charts_service
+from ...db.models import OwidChartRecord
+from ...db.services import owid_charts_service
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)

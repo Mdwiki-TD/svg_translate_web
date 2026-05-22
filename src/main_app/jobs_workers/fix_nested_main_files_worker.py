@@ -18,7 +18,7 @@ from ..shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
-from ..sqlalchemy_db.services import list_templates
+from ..db.services import list_templates
 from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)

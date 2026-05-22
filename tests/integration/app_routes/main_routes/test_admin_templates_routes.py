@@ -10,8 +10,8 @@ import pytest
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
-from src.main_app.sqlalchemy_db.models import TemplateRecord
-from src.main_app.sqlalchemy_db.services import template_service as _sqlalchemy_template_service
+from src.main_app.db.models import TemplateRecord
+from src.main_app.db.services import template_service as _sqlalchemy_template_service
 
 
 class _TemplatesStore:
@@ -46,7 +46,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr(
-        "src.main_app.sqlalchemy_db.services.admin_service.active_coordinators", lambda: {admin_user.username}
+        "src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username}
     )
     monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 

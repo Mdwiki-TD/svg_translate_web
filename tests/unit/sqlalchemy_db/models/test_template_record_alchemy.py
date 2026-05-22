@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.main_app.sqlalchemy_db.models.templates import TemplateRecord
+from src.main_app.db.models.templates import TemplateRecord
 
 
 def test_template_record_initialization():

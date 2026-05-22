@@ -24,7 +24,7 @@ from ...shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
-from ...sqlalchemy_db.services import (
+from ...db.services import (
     is_job_cancelled,
 )
 from ...su_services import jobs_files_service

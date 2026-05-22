@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Final, TypeVar
 
-from ..sqlalchemy_db.services import (
+from ..db.services import (
     is_job_cancelled,
     update_job_status,
 )

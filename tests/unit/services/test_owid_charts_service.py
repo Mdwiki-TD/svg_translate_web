@@ -1,4 +1,4 @@
-"""Tests for src.main_app.sqlalchemy_db.services.owid_charts_service."""
+"""Tests for src.main_app.db.services.owid_charts_service."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.sqlalchemy_db.services.owid_charts_service import (
+from src.main_app.db.services.owid_charts_service import (
     add_chart,
     delete_chart,
     get_chart_by_id,
@@ -20,7 +20,7 @@ from src.main_app.sqlalchemy_db.services.owid_charts_service import (
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
-    from src.main_app.sqlalchemy_db.models import OwidChartRecord
+    from src.main_app.db.models import OwidChartRecord
 
     return OwidChartRecord(
         chart_id=1,
