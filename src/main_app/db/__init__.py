@@ -18,8 +18,8 @@ def init_db(app: Flask) -> None:
     Args:
         app: Flask application instance with ``db.init_app()`` already called.
     """
-    from . import models  # noqa: F401 - register models on db.metadata
     from ..extensions import db as _db
+    from . import models  # noqa: F401 - register models on db.metadata
 
     with app.app_context():
         # Create only real tables; skip view-backed mapped classes

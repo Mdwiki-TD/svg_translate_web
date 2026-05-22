@@ -88,7 +88,9 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="collect_main_files",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/collect_main_files", job_type="collect_main_files"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/collect_main_files", job_type="collect_main_files"
+                ),
                 title="Collect Templates data",
                 icon="bi-kanban",
             ),
@@ -102,35 +104,47 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="create_owid_pages",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/create_owid_pages", job_type="create_owid_pages"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/create_owid_pages", job_type="create_owid_pages"
+                ),
                 title="Create OWID Pages",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="rename_owid_pages",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/rename_owid_pages", job_type="rename_owid_pages"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/rename_owid_pages", job_type="rename_owid_pages"
+                ),
                 title="Rename OWID Pages",
                 icon="bi-fonts",
             ),
             SidebarItem(
                 id="add_svglanguages_template",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/add_svglanguages_template", job_type="add_svglanguages_template"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list",
+                    "/admin/jobs/add_svglanguages_template",
+                    job_type="add_svglanguages_template",
+                ),
                 title="Add {{SVGLanguages}}",
                 icon="bi-file-earmark-text",
             ),
             SidebarItem(
                 id="fix_nested_main_files",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/fix_nested_main_files", job_type="fix_nested_main_files"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/fix_nested_main_files", job_type="fix_nested_main_files"
+                ),
                 title="Fix Nested Main Files",
                 icon="bi-tools",
             ),
             SidebarItem(
                 id="download_main_files",
                 admin=1,
-                href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/download_main_files", job_type="download_main_files"),
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/download_main_files", job_type="download_main_files"
+                ),
                 title="Download Main Files",
                 icon="bi-download",
                 disabled=True,

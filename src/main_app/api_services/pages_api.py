@@ -49,9 +49,7 @@ def move_page(
         A dictionary with ``success`` (bool) and ``error``/``details`` on failure,
         matching the shape returned by :func:`create_page` / :func:`edit_page`.
     """
-    missing_fields = verify_required_fields(
-        {"title": title, "new_title": new_title, "site": site}
-    )
+    missing_fields = verify_required_fields({"title": title, "new_title": new_title, "site": site})
     if missing_fields:
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for move_page: {list_str}")

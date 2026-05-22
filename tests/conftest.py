@@ -1,9 +1,9 @@
 """Configuration and fixtures for pytest"""
 
+import logging
 import os
 import secrets
 import sys
-import logging
 from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import MagicMock, patch

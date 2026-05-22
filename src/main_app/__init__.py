@@ -19,8 +19,9 @@ from .app_routes import (
     bp_owid_charts,
 )
 from .core.cookies import CookieHeaderClient
-from .extensions import db as _db, migrate
 from .db import init_db
+from .extensions import db as _db
+from .extensions import migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 
