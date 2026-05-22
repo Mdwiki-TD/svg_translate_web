@@ -6,7 +6,7 @@ import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from ...sqlalchemy_db.services import (
+from ...db.services import (
     create_setting,
     get_all_settings_raw,
     settings_update_form,

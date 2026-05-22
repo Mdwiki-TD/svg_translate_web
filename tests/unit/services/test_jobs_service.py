@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.sqlalchemy_db.models import JobRecord
-from src.main_app.sqlalchemy_db.services import jobs_service
-from src.main_app.sqlalchemy_db.services.jobs_service import (
+from src.main_app.db.models import JobRecord
+from src.main_app.db.services import jobs_service
+from src.main_app.db.services.jobs_service import (
     create_job,
     delete_job,
     get_job,

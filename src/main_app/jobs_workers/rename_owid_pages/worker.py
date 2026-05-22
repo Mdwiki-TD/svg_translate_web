@@ -26,7 +26,7 @@ import mwclient
 
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import edit_page, is_page_exists, is_redirect, move_page
-from ...sqlalchemy_db.services import get_template_by_title, update_template_data
+from ...db.services import get_template_by_title, update_template_data
 from ..base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)

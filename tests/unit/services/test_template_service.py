@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.sqlalchemy_db.services import template_service
+from src.main_app.db.services import template_service
 
 
 def test_list_templates_empty():

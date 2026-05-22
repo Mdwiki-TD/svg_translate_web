@@ -18,8 +18,8 @@ from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import is_pages_exists, update_file_text, update_page_text
 from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
-from ...sqlalchemy_db.models import TemplateRecord
-from ...sqlalchemy_db.services import (
+from ...db.models import TemplateRecord
+from ...db.services import (
     is_job_cancelled,
     list_templates,
     update_job_status,

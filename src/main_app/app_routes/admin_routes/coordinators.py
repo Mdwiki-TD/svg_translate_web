@@ -14,7 +14,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...sqlalchemy_db.services import admin_service
+from ...db.services import admin_service
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)

@@ -17,8 +17,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...sqlalchemy_db.models import TemplateRecord
-from ...sqlalchemy_db.services import (
+from ...db.models import TemplateRecord
+from ...db.services import (
     add_template_data,
     delete_template,
     get_template,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.main_app.sqlalchemy_db.models.views import TemplateNeedUpdateRecord
+from src.main_app.db.models.views import TemplateNeedUpdateRecord
 
 
 def test_template_need_update_record_initialization():

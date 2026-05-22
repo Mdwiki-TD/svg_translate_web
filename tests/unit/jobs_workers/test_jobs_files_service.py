@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.main_app.jobs_workers.utils import generate_result_file_name
-from src.main_app.sqlalchemy_db.models.jobs import JobRecord
+from src.main_app.db.models.jobs import JobRecord
 from src.main_app.su_services.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
