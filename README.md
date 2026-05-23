@@ -82,10 +82,10 @@ MAIN_DIR=/path/to/svg/storage
 #### Database Configuration
 
 ```bash
-DB_NAME=svg_langs
-DB_HOST=127.0.0.1
-TOOL_REPLICA_USER=your_db_user
-TOOL_REPLICA_PASSWORD=your_db_password
+TOOL_TOOLSDB_DBNAME=svg_langs
+TOOL_TOOLSDB_HOST=127.0.0.1
+TOOL_TOOLSDB_USER=your_db_user
+TOOL_TOOLSDB_PASSWORD=your_db_password
 ```
 
 #### OAuth Configuration

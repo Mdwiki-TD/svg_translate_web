@@ -100,10 +100,10 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 FLASK_SECRET_KEY=           # Generate: python -c "import secrets; print(secrets.token_hex(16))"
 
 # Database
-DB_NAME=svg_langs
-DB_HOST=127.0.0.1
-TOOL_REPLICA_USER=
-TOOL_REPLICA_PASSWORD=
+TOOL_TOOLSDB_DBNAME=svg_langs
+TOOL_TOOLSDB_HOST=127.0.0.1
+TOOL_TOOLSDB_USER=
+TOOL_TOOLSDB_PASSWORD=
 
 # OAuth
 OAUTH_MWURI=https://commons.wikimedia.org/w/index.php

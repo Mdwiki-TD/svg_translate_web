@@ -5,17 +5,17 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
-from .classes import (  # CorsConfig,
+from .classes import (
     CookieConfig,
+    # CorsConfig,
     DbConfig,
-    JobsConfig,
     OAuthConfig,
     Paths,
     SecurityConfig,
     SessionConfig,
     Settings,
+    JobsConfig,
 )
 
 # --- Helper Functions ---
@@ -83,27 +83,25 @@ def _load_database_config() -> DbConfig:
     """
     Construct a DbConfig populated from environment variables.
 
-    Reads DB_NAME and DB_HOST (defaulting to empty string) and TOOL_REPLICA_USER and TOOL_REPLICA_PASSWORD (defaulting to None) and returns a DbConfig with those values.
-
+    Reads TOOL_TOOLSDB_DBNAME and TOOL_TOOLSDB_HOST (defaulting to empty string) and TOOL_TOOLSDB_USER and TOOL_TOOLSDB_PASSWORD (defaulting to None) and returns a DbConfig with those values.
     Returns:
         DbConfig: Configuration with fields:
-            - db_name: from DB_NAME (default "").
-            - db_host: from DB_HOST (default "").
-            - db_user: from TOOL_REPLICA_USER (or None).
-            - db_password: from TOOL_REPLICA_PASSWORD (or None).
+            - db_name: from TOOL_TOOLSDB_DBNAME (default "").
+            - db_host: from TOOL_TOOLSDB_HOST (default "").
+            - db_user: from TOOL_TOOLSDB_USER (or None).
+            - db_password: from TOOL_TOOLSDB_PASSWORD (or None).
     """
     return DbConfig(
-        db_name=os.getenv("DB_NAME", ""),
-        db_host=os.getenv("DB_HOST", ""),
-        db_user=os.getenv("TOOL_REPLICA_USER", None),
-        db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
+        db_name=os.getenv("TOOL_TOOLSDB_DBNAME", ""),
+        db_host=os.getenv("TOOL_TOOLSDB_HOST", ""),
+        db_user=os.getenv("TOOL_TOOLSDB_USER", None),
+        db_password=os.getenv("TOOL_TOOLSDB_PASSWORD", None),
     )
 
 
-def _load_oauth_config() -> Optional[OAuthConfig]:
+def _load_oauth_config() -> OAuthConfig:
     """
     Loads OAuth settings and validates them if enabled.
-    Returns None if USE_MW_OAUTH is disabled.
 
     Raises:
         RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
@@ -111,10 +109,14 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
     mw_uri = os.getenv("OAUTH_MWURI", "")
     consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
     consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
-    if not (mw_uri and consumer_key and consumer_secret):
-        return None
-
     encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
+
+    # Validate mandatory fields for OAuth
+    if not all([mw_uri, consumer_key, consumer_secret]):
+        raise RuntimeError(
+            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
+        )
+
     if not encryption_key:
         raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
 
@@ -167,19 +169,6 @@ def _get_paths() -> Paths:
     return Paths(**_dirs)
 
 
-def has_db_config(db_settings) -> bool:
-    """
-    Return whether the application has database connection settings configured.
-
-    Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
-
-    Returns:
-        `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
-    """
-
-    return bool(db_settings.db_host or db_settings.db_user)
-
-
 def load_cookie_config() -> CookieConfig:
     session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
     session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
@@ -222,11 +211,6 @@ def get_settings() -> Settings:
 
     oauth_config = _load_oauth_config()
 
-    if oauth_config is None:
-        raise RuntimeError(
-            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
-        )
-
     cookie_config = load_cookie_config()
 
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
@@ -253,17 +237,20 @@ def get_settings() -> Settings:
 
     return Settings(
         user_agent=user_agent,
-        has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
         cookie=cookie_config,
         oauth=oauth_config,
-        jobs=jobs_config,
         security=security_config,
         sessions=sessions,
+        jobs=jobs_config,
         csrf_time_limit=csrf_time_limit,
     )
 
 
 # Singleton settings instance
 settings = get_settings()
+
+__all__ = [
+    "settings",
+]

@@ -99,7 +99,6 @@ def test_Settings():
 
     settings = Settings(
         user_agent="user_agent",
-        has_db_config=lambda: True,
         csrf_time_limit=3600,
         database_data=db_config,
         cookie=cookie_config,

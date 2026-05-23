@@ -1,3 +1,8 @@
+"""Application configuration helpers."""
+
+from __future__ import annotations
+from urllib.parse import quote_plus
+
 from sqlalchemy import URL
 
 from .classes import DbConfig
@@ -6,25 +11,19 @@ from .main_settings import settings
 
 def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     """Build a SQLAlchemy database URI from a DbConfig dataclass.
-
     Used by Flask-SQLAlchemy configuration in create_app().
     Compatible with the existing build_db_url() in engine.py.
     """
+    password = quote_plus(db_config.db_password or "")
     url = URL.create(
         "mysql+pymysql",
         username=db_config.db_user,
-        password=db_config.db_password,
+        password=password,
         host=db_config.db_host,
         database=db_config.db_name,
+        query={"charset": "utf8mb4"},
     ).render_as_string(hide_password=False)
     return url
-
-
-def _resolve_db_uri() -> str:
-    """Return MySQL URI when DB is configured, sqlite in-memory otherwise."""
-    if settings.database_data.db_host or settings.database_data.db_user:
-        return build_sqlalchemy_uri(settings.database_data)
-    return "sqlite:///:memory:"
 
 
 class Config:
@@ -71,19 +70,43 @@ class Config:
     MAX_FORM_PARTS: int = settings.security.max_form_parts
 
     # Flask-SQLAlchemy
-    SQLALCHEMY_DATABASE_URI: str = _resolve_db_uri()
+    SQLALCHEMY_DATABASE_URI: str | None = None
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
-    SQLALCHEMY_ENGINE_OPTIONS: dict = {
-        "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 10,
-        "pool_recycle": 3600,
-        "connect_args": {
-            "connect_timeout": 5,
-            "init_command": 'SET time_zone = "+00:00"',
-            "charset": "utf8mb4",
-        },
-    }
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}
+
+    SQLALCHEMY_ECHO: bool = False
+
+    def __init__(self) -> None:
+        """Initialize configuration with values from environment-based settings."""
+        # Sync with the dataclass-based settings for backward compatibility
+        self.SECRET_KEY = settings.security.secret_key
+        self.SESSION_COOKIE_HTTPONLY = settings.cookie.httponly
+        self.SESSION_COOKIE_SECURE = settings.cookie.secure
+        self.SESSION_COOKIE_SAMESITE = settings.cookie.samesite
+
+        # Only set DB URI and engine options if not already defined by subclass
+        # (e.g., TestingConfig sets SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:")
+        if self.SQLALCHEMY_DATABASE_URI is None:
+            # Build SQLAlchemy database URI from environment config
+            db_cfg = settings.database_data
+            if db_cfg.db_host:
+                self.SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(db_cfg)
+
+        # Only set MySQL-specific engine options if URI is MySQL (not SQLite)
+        uri = self.SQLALCHEMY_DATABASE_URI or ""
+        if uri.startswith("mysql") and not self.SQLALCHEMY_ENGINE_OPTIONS:
+            self.SQLALCHEMY_ENGINE_OPTIONS = {
+                "pool_pre_ping": True,
+                "pool_size": 5,
+                "max_overflow": 10,
+                "pool_recycle": 3600,
+                "connect_args": {
+                    "connect_timeout": 5,
+                    "init_command": 'SET time_zone = "+00:00"',
+                    "charset": "utf8mb4",
+                    "collation": "utf8mb4_unicode_ci",
+                },
+            }
 
 
 class DevelopmentConfig(Config):
@@ -92,6 +115,11 @@ class DevelopmentConfig(Config):
     DEBUG: bool = True
     TESTING: bool = True
     SQLALCHEMY_ECHO: bool = True  # Log SQL in development
+
+    # Production should always use secure cookies
+    SESSION_COOKIE_SECURE: bool = True
+    SESSION_COOKIE_HTTPONLY: bool = True
+    SESSION_COOKIE_SAMESITE: str = "Lax"
 
     # Disable CORS for testing
     CORS_DISABLED: bool = True
@@ -113,6 +141,7 @@ class TestingConfig(Config):
 
     __test__ = False  # prevent pytest collection
 
+    DEBUG: bool = False
     TESTING: bool = True
     WTF_CSRF_ENABLED: bool = False  # Disable CSRF for test requests
     SESSION_COOKIE_SECURE: bool = False
@@ -122,6 +151,7 @@ class TestingConfig(Config):
 
     # Disable CORS for testing
     CORS_DISABLED: bool = True
+
+    # Use SQLite in-memory for tests (no MySQL dependency)
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
-    SQLALCHEMY_ENGINE_OPTIONS: dict = {}
-    SQLALCHEMY_ECHO: bool = False
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}  # SQLite doesn't need MySQL options

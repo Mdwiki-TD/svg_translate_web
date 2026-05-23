@@ -82,10 +82,10 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
     Returns:
         tuple: (number of inserted charts, number of updated charts, number of failed charts)
     """
-    db_name = os.getenv("DB_NAME", "")
+    db_name = os.getenv("TOOL_TOOLSDB_DBNAME", "")
 
     if not db_name:
-        raise RuntimeError("DB_NAME environment variable is not set")
+        raise RuntimeError("TOOL_TOOLSDB_DBNAME environment variable is not set")
 
     try:
         import pymysql
@@ -95,10 +95,10 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
     logger.info(f"Connecting to database: {db_name}")
 
     connection = pymysql.connect(
-        host=os.getenv("DB_HOST", "localhost"),
+        host=os.getenv("TOOL_TOOLSDB_HOST", "localhost"),
         database=db_name,
-        user=os.getenv("TOOL_REPLICA_USER", None),
-        password=os.getenv("TOOL_REPLICA_PASSWORD", None),
+        user=os.getenv("TOOL_TOOLSDB_USER", None),
+        password=os.getenv("TOOL_TOOLSDB_PASSWORD", None),
         charset="utf8mb4",
         autocommit=True,
     )
@@ -177,8 +177,8 @@ def main():
     print("OWID Charts CSV Import")
     print("=" * 70)
     print(f"CSV File: {csv_file}")
-    print(f"Database: {os.getenv('DB_NAME', 'Not set')}")
-    print(f"Host: {os.getenv('DB_HOST', 'localhost')}")
+    print(f"Database: {os.getenv('TOOL_TOOLSDB_DBNAME', 'Not set')}")
+    print(f"Host: {os.getenv('TOOL_TOOLSDB_HOST', 'localhost')}")
     print("-" * 70)
 
     try:
