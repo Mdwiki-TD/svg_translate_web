@@ -1,4 +1,6 @@
-"""Flask application factory."""
+"""
+Flask application factory.
+"""
 
 from __future__ import annotations
 
