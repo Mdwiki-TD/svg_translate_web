@@ -487,3 +487,26 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event)
         mock_worker_instance.run.assert_called_once()
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_accepts_args_keyword_param(self, mock_worker_class, mock_jobs_service):
+        """Test that the entry point accepts args= keyword-only param (unified signature)."""
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        # Should not raise TypeError; args is accepted but unused
+        add_svglanguages_template_to_templates(job_id=1, args={"some_key": "some_value"})
+
+        mock_worker_instance.run.assert_called_once()
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_args_defaults_to_none(self, mock_worker_class, mock_jobs_service):
+        """Test that args defaults to None and the entry point works without it."""
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        # Call with no args param at all
+        add_svglanguages_template_to_templates(job_id=2, user=None)
+
+        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None)
+        mock_worker_instance.run.assert_called_once()

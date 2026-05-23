@@ -396,3 +396,25 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["failed"] == 1
     assert len(result["templates_failed"]) == 1
+
+
+def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix_nested_services):
+    """Test that fix_nested_main_files_for_templates accepts args= keyword-only param (unified signature)."""
+    mock_fix_nested_services["list_templates"].return_value = []
+
+    # Should not raise TypeError; args is accepted but unused
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, args={"some_key": "value"})
+
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["total"] == 0
+
+
+def test_fix_nested_main_files_for_templates_args_defaults_to_none(mock_fix_nested_services):
+    """Test that args defaults to None and entry point works without it."""
+    mock_fix_nested_services["list_templates"].return_value = []
+
+    # Call without args param - should use None default
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(99)
+
+    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["total"] == 0

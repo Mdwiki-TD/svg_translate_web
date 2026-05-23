@@ -186,3 +186,113 @@ def test_multiple_jobs_can_be_cancelled_independently():
     # Cancel job 3
     assert jobs_worker.cancel_job(3) is True
     assert event3.is_set()
+
+
+def test_runner_passes_args_to_target():
+    """Test that _runner forwards the args parameter to the target function."""
+    mock_target = MagicMock()
+    job_id = 789
+    user = {"name": "test"}
+    event = threading.Event()
+    flask_app = MagicMock()
+    args = {"update_all": "true"}
+
+    jobs_worker._register_cancel_event(job_id, event)
+
+    from src.main_app.jobs_workers.jobs_worker import _runner
+
+    _runner(job_id, user, event, mock_target, flask_app, args=args)
+
+    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=args)
+
+
+def test_runner_passes_none_args_by_default():
+    """Test that _runner passes args=None to target when args not provided."""
+    mock_target = MagicMock()
+    job_id = 790
+    user = None
+    event = threading.Event()
+    flask_app = MagicMock()
+
+    jobs_worker._register_cancel_event(job_id, event)
+
+    from src.main_app.jobs_workers.jobs_worker import _runner
+
+    _runner(job_id, user, event, mock_target, flask_app)
+
+    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=None)
+
+
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_job):
+    """Test that start_job passes args to the background thread."""
+    mock_job = JobRecord(id=10, job_type="collect_main_files", status="pending")
+    mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
+
+    mock_thread_instance = MagicMock()
+    mock_thread.return_value = mock_thread_instance
+
+    args = {"update_all": "true"}
+    job_id = jobs_worker.start_job(None, "collect_main_files", args=args)
+
+    assert job_id == 10
+    mock_thread.assert_called_once()
+    thread_args = mock_thread.call_args[1]["args"]
+    # args tuple: (job_id, user, cancel_event, job_func, flask_app, args)
+    assert thread_args[5] is args
+
+
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_create_job):
+    """Test that start_job passes args=None to the thread when no args given."""
+    mock_job = JobRecord(id=11, job_type="collect_main_files", status="pending")
+    mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
+
+    mock_thread_instance = MagicMock()
+    mock_thread.return_value = mock_thread_instance
+
+    job_id = jobs_worker.start_job(None, "collect_main_files")
+
+    assert job_id == 11
+    thread_args = mock_thread.call_args[1]["args"]
+    # args tuple: (job_id, user, cancel_event, job_func, flask_app, args)
+    assert thread_args[5] is None
+
+
+def test_start_job_with_args_is_alias_for_start_job():
+    """Test that start_job_with_args is the same callable as start_job."""
+    assert jobs_worker.start_job_with_args is jobs_worker.start_job
+
+
+@patch("src.main_app.jobs_workers.jobs_worker.create_job")
+@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
+@patch("src.main_app.jobs_workers.jobs_worker.current_app")
+def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_create_job):
+    """Test that the start_job_with_args alias behaves identically to start_job."""
+    mock_job = JobRecord(id=12, job_type="collect_main_files", status="pending")
+    mock_create_job.return_value = mock_job
+
+    mock_app = MagicMock()
+    mock_current_app._get_current_object.return_value = mock_app
+
+    mock_thread_instance = MagicMock()
+    mock_thread.return_value = mock_thread_instance
+
+    args = {"update_all": "true"}
+    user = {"username": "alias_user"}
+    job_id = jobs_worker.start_job_with_args(user, "collect_main_files", args)
+
+    assert job_id == 12
+    mock_create_job.assert_called_once_with("collect_main_files", "alias_user")
+    thread_args = mock_thread.call_args[1]["args"]
+    assert thread_args[5] is args
