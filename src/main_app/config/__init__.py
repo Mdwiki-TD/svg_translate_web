@@ -27,7 +27,6 @@ __all__ = [
     "ProductionConfig",
     "TestingConfig",
     "build_sqlalchemy_uri",
-    "main_settings",
     "CookieConfig",
     "CorsConfig",
     "DbConfig",

@@ -1,8 +1,7 @@
 """Application configuration helpers."""
 
 from __future__ import annotations
-
-import os
+from urllib.parse import quote_plus
 
 from sqlalchemy import URL
 
@@ -12,25 +11,19 @@ from .main_settings import settings
 
 def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     """Build a SQLAlchemy database URI from a DbConfig dataclass.
-
     Used by Flask-SQLAlchemy configuration in create_app().
     Compatible with the existing build_db_url() in engine.py.
     """
+    password = quote_plus(db_config.db_password or "")
     url = URL.create(
         "mysql+pymysql",
         username=db_config.db_user,
-        password=db_config.db_password,
+        password=password,
         host=db_config.db_host,
         database=db_config.db_name,
+        query={"charset": "utf8mb4"},
     ).render_as_string(hide_password=False)
     return url
-
-
-def _resolve_db_uri() -> str:
-    """Return MySQL URI when DB is configured, sqlite in-memory otherwise."""
-    if settings.database_data.db_host or settings.database_data.db_user:
-        return build_sqlalchemy_uri(settings.database_data)
-    return "sqlite:///:memory:"
 
 
 class Config:
@@ -91,27 +84,13 @@ class Config:
         self.SESSION_COOKIE_SECURE = settings.cookie.secure
         self.SESSION_COOKIE_SAMESITE = settings.cookie.samesite
 
-        # Load SECRET_KEY_FALLBACKS from environment for key rotation support
-        # Format: comma-separated list of fallback keys
-        # Example: FLASK_SECRET_KEY_FALLBACKS="old-key-1,old-key-2"
-        fallbacks_str = os.getenv("FLASK_SECRET_KEY_FALLBACKS", "")
-        if fallbacks_str:
-            self.SECRET_KEY_FALLBACKS = [key.strip() for key in fallbacks_str.split(",") if key.strip()]
-
         # Only set DB URI and engine options if not already defined by subclass
         # (e.g., TestingConfig sets SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:")
         if self.SQLALCHEMY_DATABASE_URI is None:
             # Build SQLAlchemy database URI from environment config
             db_cfg = settings.database_data
             if db_cfg.db_host:
-                from urllib.parse import quote_plus
-
-                password = quote_plus(db_cfg.db_password or "")
-                self.SQLALCHEMY_DATABASE_URI = (
-                    f"mysql+pymysql://{db_cfg.db_user}:{password}"
-                    f"@{db_cfg.db_host}/{db_cfg.db_name}"
-                    f"?charset=utf8mb4"
-                )
+                self.SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(db_cfg)
 
         # Only set MySQL-specific engine options if URI is MySQL (not SQLite)
         uri = self.SQLALCHEMY_DATABASE_URI or ""
