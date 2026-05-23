@@ -23,10 +23,10 @@ from src.main_app.config.main_settings import (
 @patch.dict(
     os.environ,
     {
-        "DB_NAME": "test_db",
-        "DB_HOST": "test_host",
-        "TOOL_REPLICA_USER": "test_user",
-        "TOOL_REPLICA_PASSWORD": "test_pass",
+        "TOOL_TOOLSDB_DBNAME": "test_db",
+        "TOOL_TOOLSDB_HOST": "test_host",
+        "TOOL_TOOLSDB_USER": "test_user",
+        "TOOL_TOOLSDB_PASSWORD": "test_pass",
     },
     clear=True,
 )
@@ -170,7 +170,7 @@ def test_get_settings_missing_secret_key():
     get_settings.cache_clear()
 
 
-@patch.dict(os.environ, {"DB_NAME": "", "DB_HOST": ""}, clear=True)
+@patch.dict(os.environ, {"TOOL_TOOLSDB_DBNAME": "", "TOOL_TOOLSDB_HOST": ""}, clear=True)
 def test_load_database_config_empty_values():
     """Test _load_database_config with empty environment variables."""
     result = _load_database_config()

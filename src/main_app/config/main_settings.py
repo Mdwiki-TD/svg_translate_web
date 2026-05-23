@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -84,20 +83,19 @@ def _load_database_config() -> DbConfig:
     """
     Construct a DbConfig populated from environment variables.
 
-    Reads DB_NAME and DB_HOST (defaulting to empty string) and TOOL_REPLICA_USER and TOOL_REPLICA_PASSWORD (defaulting to None) and returns a DbConfig with those values.
-
+    Reads TOOL_TOOLSDB_DBNAME and TOOL_TOOLSDB_HOST (defaulting to empty string) and TOOL_TOOLSDB_USER and TOOL_TOOLSDB_PASSWORD (defaulting to None) and returns a DbConfig with those values.
     Returns:
         DbConfig: Configuration with fields:
-            - db_name: from DB_NAME (default "").
-            - db_host: from DB_HOST (default "").
-            - db_user: from TOOL_REPLICA_USER (or None).
-            - db_password: from TOOL_REPLICA_PASSWORD (or None).
+            - db_name: from TOOL_TOOLSDB_DBNAME (default "").
+            - db_host: from TOOL_TOOLSDB_HOST (default "").
+            - db_user: from TOOL_TOOLSDB_USER (or None).
+            - db_password: from TOOL_TOOLSDB_PASSWORD (or None).
     """
     return DbConfig(
-        db_name=os.getenv("DB_NAME", ""),
-        db_host=os.getenv("DB_HOST", ""),
-        db_user=os.getenv("TOOL_REPLICA_USER", None),
-        db_password=os.getenv("TOOL_REPLICA_PASSWORD", None),
+        db_name=os.getenv("TOOL_TOOLSDB_DBNAME", ""),
+        db_host=os.getenv("TOOL_TOOLSDB_HOST", ""),
+        db_user=os.getenv("TOOL_TOOLSDB_USER", None),
+        db_password=os.getenv("TOOL_TOOLSDB_PASSWORD", None),
     )
 
 
@@ -243,12 +241,16 @@ def get_settings() -> Settings:
         database_data=database_data,
         cookie=cookie_config,
         oauth=oauth_config,
-        jobs=jobs_config,
         security=security_config,
         sessions=sessions,
+        jobs=jobs_config,
         csrf_time_limit=csrf_time_limit,
     )
 
 
 # Singleton settings instance
 settings = get_settings()
+
+__all__ = [
+    "settings",
+]

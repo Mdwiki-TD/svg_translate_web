@@ -205,7 +205,7 @@ Key variables (see CLAUDE.md for full list):
 -   `FLASK_SECRET_KEY` - Required for sessions
 -   `OAUTH_ENCRYPTION_KEY` - Required for OAuth
 -   `OAUTH_CONSUMER_KEY/SECRET` - MediaWiki OAuth credentials
--   `DB_NAME/DB_HOST` - Database configuration
+-   `TOOL_TOOLSDB_DBNAME/TOOL_TOOLSDB_HOST` - Database configuration
 -   `MAIN_DIR` - Data storage path
 
 ## Important Notes
