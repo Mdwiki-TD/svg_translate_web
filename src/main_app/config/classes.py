@@ -92,16 +92,26 @@ class Settings:
     """Main settings container."""
 
     user_agent: str
-    has_db_config: callable
 
     # Nested configurations
     database_data: DbConfig
     paths: Paths
     cookie: CookieConfig
-    oauth: OAuthConfig
     sessions: SessionConfig
+    oauth: OAuthConfig
     # cors: CorsConfig
     security: SecurityConfig
     jobs: JobsConfig
 
     csrf_time_limit: int | None  # None means never expire
+
+
+__all__ = [
+    "DbConfig",
+    "Paths",
+    "CookieConfig",
+    "SessionConfig",
+    "OAuthConfig",
+    "CorsConfig",
+    "Settings",
+]

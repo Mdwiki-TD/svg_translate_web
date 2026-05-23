@@ -49,7 +49,6 @@ def resolve_path(_path) -> Path:
 
 # --- Configuration Loaders ---
 
-
 def _load_security_config() -> SecurityConfig:
     """
     Load security configuration (Flask 3.1+ features)
@@ -103,7 +102,6 @@ def _load_database_config() -> DbConfig:
 def _load_oauth_config() -> Optional[OAuthConfig]:
     """
     Loads OAuth settings and validates them if enabled.
-    Returns None if USE_MW_OAUTH is disabled.
 
     Raises:
         RuntimeError: If OAUTH_ENCRYPTION_KEY is missing.
@@ -165,19 +163,6 @@ def _get_paths() -> Paths:
         Path(dir_name).mkdir(parents=True, exist_ok=True)
 
     return Paths(**_dirs)
-
-
-def has_db_config(db_settings) -> bool:
-    """
-    Return whether the application has database connection settings configured.
-
-    Checks settings.database_data and returns whether either `db_host` or `db_user` is present.
-
-    Returns:
-        `True` if `db_host` or `db_user` is set in `settings.database_data`, `False` otherwise.
-    """
-
-    return bool(db_settings.db_host or db_settings.db_user)
 
 
 def load_cookie_config() -> CookieConfig:
@@ -253,7 +238,6 @@ def get_settings() -> Settings:
 
     return Settings(
         user_agent=user_agent,
-        has_db_config=lambda: has_db_config(database_data),
         paths=_get_paths(),
         database_data=database_data,
         cookie=cookie_config,
