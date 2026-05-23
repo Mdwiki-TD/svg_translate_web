@@ -599,3 +599,169 @@ def test_worker_class_get_initial_result(mock_services):
     assert "summary" in result
     assert result["summary"]["total"] == 0
     assert result["summary"]["added"] == 0
+
+
+# --- Tests for new update_all functionality (added in this PR) ---
+
+
+def test_worker_init_update_all_defaults_to_false(mock_services):
+    """Test CollectMainFilesWorker initializes update_all=False by default."""
+    import threading
+
+    worker = collect_main_files_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    assert worker.update_all is False
+
+
+def test_worker_init_update_all_can_be_set_true(mock_services):
+    """Test CollectMainFilesWorker accepts update_all=True."""
+    import threading
+
+    worker = collect_main_files_worker.CollectMainFilesWorker(
+        job_id=1, user=None, cancel_event=threading.Event(), update_all=True
+    )
+    assert worker.update_all is True
+
+
+def test_collect_main_files_update_all_processes_all_templates(mock_services, mock_find_source):
+    """Test that update_all=True processes templates that already have all fields."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="src1"
+        ),
+        TemplateRecord(
+            id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg", source="src2"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+    mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
+    mock_services["find_main_title"].return_value = "newfile.svg"
+
+    # With update_all=True, both templates should be processed even though they have data
+    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+
+    # Both templates should have had their wikitext fetched
+    assert mock_services["get_wikitext"].call_count == 2
+
+
+def test_collect_main_files_default_skips_complete_templates(mock_services):
+    """Test that without update_all, templates with all fields are skipped."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="src1"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+
+    # Without args (update_all=False by default), complete templates are skipped
+    collect_main_files_worker.collect_main_files_for_templates(1)
+
+    # No wikitext should be fetched for a complete template
+    mock_services["get_wikitext"].assert_not_called()
+
+
+def test_collect_main_files_for_templates_with_update_all_true_string(mock_services, mock_find_source):
+    """Test args parsing: args={'update_all': 'true'} enables update_all mode."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+    mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
+    mock_services["find_main_title"].return_value = "newfile.svg"
+
+    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+
+    # Should process the template even though it already has data
+    mock_services["get_wikitext"].assert_called_once()
+
+
+def test_collect_main_files_for_templates_with_update_all_false_string(mock_services):
+    """Test args parsing: args={'update_all': 'false'} does not enable update_all mode."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+
+    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "false"})
+
+    # Template is complete, should not be fetched
+    mock_services["get_wikitext"].assert_not_called()
+
+
+def test_collect_main_files_for_templates_with_args_none(mock_services):
+    """Test that args=None means update_all=False."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+
+    collect_main_files_worker.collect_main_files_for_templates(1, args=None)
+
+    # Template is complete, should not be fetched
+    mock_services["get_wikitext"].assert_not_called()
+
+
+def test_collect_main_files_for_templates_update_all_case_insensitive(mock_services, mock_find_source):
+    """Test that update_all parsing is case-insensitive (e.g. 'TRUE', 'True')."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
+        ),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+    mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
+    mock_services["find_main_title"].return_value = "newfile.svg"
+
+    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "TRUE"})
+
+    # Should process even with uppercase "TRUE"
+    mock_services["get_wikitext"].assert_called_once()
+
+
+def test_collect_main_files_for_templates_cancel_event_is_keyword_only(mock_services):
+    """Test that cancel_event is keyword-only in collect_main_files_for_templates."""
+    import threading
+
+    cancel_event = threading.Event()
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = []
+
+    # Should not raise a TypeError - cancel_event must be passed as keyword arg
+    collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
+
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["total"] == 0
+
+
+def test_collect_main_files_for_templates_update_all_summary_counts(mock_services, mock_find_source):
+    """Test that update_all mode processes all templates including those already complete."""
+    templates = [
+        TemplateRecord(
+            id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="src1"
+        ),
+        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None, source=""),
+    ]
+    mock_services["get_category_members"].return_value = []
+    mock_services["list_templates"].return_value = templates
+    mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
+    mock_services["find_main_title"].return_value = "newfile.svg"
+
+    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    # Total is 2, 1 already had all data
+    assert result["summary"]["total"] == 2
+    assert result["summary"]["already_had_main_file"] == 1
+    # With update_all, both templates are processed
+    assert mock_services["get_wikitext"].call_count == 2

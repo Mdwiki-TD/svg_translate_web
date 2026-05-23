@@ -19,6 +19,7 @@ from .app_routes import (
     bp_owid_charts,
 )
 from .core.cookies import CookieHeaderClient
+from .db import init_db
 from .extensions import db as _db, migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
@@ -112,6 +113,9 @@ def create_app(config_class: Type) -> Flask:
     # Initialize Flask-SQLAlchemy and Flask-Migrate
     _db.init_app(app)
     migrate.init_app(app, _db)
+
+    # Create database tables and views if they don't exist
+    init_db(app)
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:

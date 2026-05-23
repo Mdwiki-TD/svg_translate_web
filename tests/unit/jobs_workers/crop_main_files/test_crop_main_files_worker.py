@@ -504,3 +504,47 @@ def test_crop_main_files_for_templates_completed_status_default(mock_services):
     # Verify final status defaults to completed
     final_call = mock_services["update_job_status"].call_args
     assert final_call[0][1] == "completed"
+
+
+def test_crop_main_files_for_templates_accepts_args_keyword_param(mock_services):
+    """Test that crop_main_files_for_templates accepts args= keyword-only param (unified signature)."""
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
+        mock_process.return_value = {
+            "status": "completed",
+            "summary": {
+                "total": 0,
+                "processed": 0,
+                "cropped": 0,
+                "uploaded": 0,
+                "failed": 0,
+                "skipped": 0,
+            },
+            "files_processed": [],
+        }
+
+        # Should not raise TypeError; args is accepted but unused
+        worker.crop_main_files_for_templates(1, args={"some_key": "value"})
+
+    mock_process.assert_called_once()
+
+
+def test_crop_main_files_for_templates_args_defaults_to_none(mock_services):
+    """Test that args defaults to None and entry point works without it."""
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
+        mock_process.return_value = {
+            "status": "completed",
+            "summary": {
+                "total": 0,
+                "processed": 0,
+                "cropped": 0,
+                "uploaded": 0,
+                "failed": 0,
+                "skipped": 0,
+            },
+            "files_processed": [],
+        }
+
+        # Call without args param - should use None default
+        worker.crop_main_files_for_templates(2)
+
+    mock_process.assert_called_once()

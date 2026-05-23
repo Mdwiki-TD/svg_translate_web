@@ -807,3 +807,25 @@ def test_download_main_files_no_zip_on_failure(mock_services, tmp_path):
     # Verify zip file was NOT generated (job failed)
     zip_path = tmp_path / "main_files.zip"
     assert not zip_path.exists()
+
+
+def test_download_main_files_for_templates_accepts_args_keyword_param(mock_services):
+    """Test that download_main_files_for_templates accepts args= keyword-only param (unified signature)."""
+    mock_services["list_templates"].return_value = []
+
+    # Should not raise TypeError; args is accepted but unused
+    download_main_files_worker.download_main_files_for_templates(1, args={"some_key": "value"})
+
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["total"] == 0
+
+
+def test_download_main_files_for_templates_args_defaults_to_none(mock_services):
+    """Test that args defaults to None and entry point works without it."""
+    mock_services["list_templates"].return_value = []
+
+    # Call without args param - should use None default
+    download_main_files_worker.download_main_files_for_templates(99)
+
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
+    assert result["summary"]["total"] == 0
