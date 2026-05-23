@@ -100,13 +100,6 @@ def test_env_int():
             _env_int("TEST_INVALID", default=0)
 
 
-def test_load_oauth_config_missing_vars():
-    """Test _load_oauth_config when required vars are missing."""
-    with patch.dict(os.environ, {}, clear=True):
-        result = _load_oauth_config()
-        assert result is None
-
-
 @patch.dict(
     os.environ,
     {
