@@ -107,7 +107,7 @@ def create_app(config_class: Type) -> Flask:
 
     app.url_map.strict_slashes = False
     app.test_client_class = CookieHeaderClient
-    app.config.from_object(config_class)
+    app.config.from_object(config_class())
 
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
