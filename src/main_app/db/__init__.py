@@ -8,7 +8,7 @@ from sqlalchemy import text
 logger = logging.getLogger(__name__)
 
 
-def init_db(app: Flask) -> None:
+def init_db(app: Flask, _db) -> None:
     """Initialize database tables and views if they don't exist.
 
     Creates all real tables (skipping views) and creates views manually
@@ -18,7 +18,6 @@ def init_db(app: Flask) -> None:
     Args:
         app: Flask application instance with ``db.init_app()`` already called.
     """
-    from ..extensions import db as _db
     from . import models  # noqa: F401 - register models on db.metadata
 
     with app.app_context():
