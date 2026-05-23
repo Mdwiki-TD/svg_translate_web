@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
-from .classes import (  # CorsConfig,
+from .classes import (
     CookieConfig,
+    # CorsConfig,
     DbConfig,
-    JobsConfig,
     OAuthConfig,
     Paths,
     SecurityConfig,
     SessionConfig,
     Settings,
+    JobsConfig,
 )
 
 # --- Helper Functions ---
@@ -48,6 +49,7 @@ def resolve_path(_path) -> Path:
 
 
 # --- Configuration Loaders ---
+
 
 def _load_security_config() -> SecurityConfig:
     """
@@ -99,7 +101,7 @@ def _load_database_config() -> DbConfig:
     )
 
 
-def _load_oauth_config() -> Optional[OAuthConfig]:
+def _load_oauth_config() -> OAuthConfig:
     """
     Loads OAuth settings and validates them if enabled.
 
@@ -109,10 +111,14 @@ def _load_oauth_config() -> Optional[OAuthConfig]:
     mw_uri = os.getenv("OAUTH_MWURI", "")
     consumer_key = os.getenv("OAUTH_CONSUMER_KEY", "")
     consumer_secret = os.getenv("OAUTH_CONSUMER_SECRET", "")
-    if not (mw_uri and consumer_key and consumer_secret):
-        return None
-
     encryption_key = os.getenv("OAUTH_ENCRYPTION_KEY", "")
+
+    # Validate mandatory fields for OAuth
+    if not all([mw_uri, consumer_key, consumer_secret]):
+        raise RuntimeError(
+            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
+        )
+
     if not encryption_key:
         raise RuntimeError("OAUTH_ENCRYPTION_KEY environment variable is required")
 
@@ -206,11 +212,6 @@ def get_settings() -> Settings:
         raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
     oauth_config = _load_oauth_config()
-
-    if oauth_config is None:
-        raise RuntimeError(
-            "MediaWiki OAuth configuration is incomplete. Set OAUTH_MWURI, OAUTH_CONSUMER_KEY, and OAUTH_CONSUMER_SECRET."
-        )
 
     cookie_config = load_cookie_config()
 
