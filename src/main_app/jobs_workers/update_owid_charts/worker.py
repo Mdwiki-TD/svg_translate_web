@@ -15,12 +15,12 @@ Skipped reasons:
 """
 
 from __future__ import annotations
-
+import re
 import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import requests
 
@@ -46,15 +46,13 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
 
     Returns ``(min_time, max_time, len_years)`` or ``None`` if unparseable.
     """
-    parts = timespan.strip().split("-")
+
+    match = re.match(r"^(-?\d+)(?:-(-?\d+))?$", timespan.strip())
+    if not match:
+        return None
     try:
-        if len(parts) == 2:  # "2000-2022"
-            min_t = int(parts[0])
-            max_t = int(parts[1])
-        elif len(parts) == 1:  # single year "2022"
-            min_t = max_t = int(parts[0])
-        else:
-            return None
+        min_t = int(match.group(1))
+        max_t = int(match.group(2)) if match.group(2) is not None else min_t
     except ValueError:
         return None
 
