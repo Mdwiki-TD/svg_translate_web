@@ -22,7 +22,8 @@ from .app_routes import (
 )
 from .core.cookies import CookieHeaderClient
 from .db import init_db
-from .extensions import db as _db, migrate
+from .extensions import db as _db
+from .extensions import migrate
 from .su_services.users_service import context_user
 from .utils import format_stage_timestamp, short_url
 

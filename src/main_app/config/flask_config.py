@@ -1,6 +1,7 @@
 """Application configuration helpers."""
 
 from __future__ import annotations
+
 from urllib.parse import quote_plus
 
 from sqlalchemy import URL

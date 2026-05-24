@@ -24,8 +24,8 @@ from typing import Any, Dict, Optional
 
 import requests
 
-from ...db.services import owid_charts_service
 from ...db.models.owid_charts import OwidChartRecord
+from ...db.services import owid_charts_service
 from ..base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ REQUEST_TIMEOUT = 15
 # ---------------------------------------------------------------------------
 # Timespan helpers
 # ---------------------------------------------------------------------------
+
 
 def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     """Parse a ``"YYYY-YYYY"`` or ``"YYYY"`` timespan string.
@@ -73,11 +74,12 @@ def _first_timespan(columns: dict) -> str | None:
 # Per-chart result dataclass
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ChartUpdateInfo:
     chart_id: int
     slug: str
-    status: str = "pending"   # updated | skipped | failed
+    status: str = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -112,6 +114,7 @@ class ChartUpdateInfo:
 # ---------------------------------------------------------------------------
 # Worker
 # ---------------------------------------------------------------------------
+
 
 class UpdateOwidChartsWorker(BaseJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
@@ -253,6 +256,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 # ---------------------------------------------------------------------------
 # Entry-point (called by the thread runner)
 # ---------------------------------------------------------------------------
+
 
 def update_owid_charts_worker_entry(
     job_id: int,
