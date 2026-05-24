@@ -84,8 +84,8 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
-                               target="_blank" rel="noopener noreferrer">
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
+                                rel="noopener noreferrer">
                                 {{ item.slug }}
                             </a>
                         </td>
@@ -104,10 +104,12 @@
                             <strong>{{ item.new_max_time if item.new_max_time is not none else '—' }}</strong>
                         </td>
                         {# len_years #}
-                        <td class="text-center {% if item.old_len_years != item.new_len_years %}table-warning{% endif %}">
+                        <td
+                            class="text-center {% if item.old_len_years != item.new_len_years %}table-warning{% endif %}">
                             {{ item.old_len_years if item.old_len_years is not none else '—' }}
                         </td>
-                        <td class="text-center {% if item.old_len_years != item.new_len_years %}table-success{% endif %}">
+                        <td
+                            class="text-center {% if item.old_len_years != item.new_len_years %}table-success{% endif %}">
                             <strong>{{ item.new_len_years if item.new_len_years is not none else '—' }}</strong>
                         </td>
                     </tr>
@@ -143,8 +145,8 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
-                               target="_blank" rel="noopener noreferrer">
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
+                                rel="noopener noreferrer">
                                 {{ item.slug }}
                             </a>
                         </td>
@@ -182,8 +184,8 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
-                               target="_blank" rel="noopener noreferrer">
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
+                                rel="noopener noreferrer">
                                 {{ item.slug }}
                             </a>
                         </td>
