@@ -168,7 +168,12 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
             self.result["summary"]["failed"] += 1
-            self.result["charts_processed"].append(info.to_dict())
+            # self.result["charts_processed"].append(info.to_dict())
+            self.result["charts_processed"].append({
+                "status": "failed",
+                "slug": chart.slug,
+                "error": "Could not fetch metadata JSON",
+            })
             return
 
         # 2. Find a timespan
@@ -179,7 +184,12 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.status = "skipped"
             info.skip_reason = "no_timespan"
             self.result["summary"]["skipped"] += 1
-            self.result["charts_processed"].append(info.to_dict())
+            # self.result["charts_processed"].appenkd(info.to_dict())
+            self.result["charts_processed"].append({
+                "status": "skipped",
+                "slug": chart.slug,
+                "skip_reason": "no_timespan",
+            })
             return
 
         # 3. Parse timespan
@@ -188,7 +198,12 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.status = "failed"
             info.error = f"Could not parse timespan: '{timespan_raw}'"
             self.result["summary"]["failed"] += 1
-            self.result["charts_processed"].append(info.to_dict())
+            # self.result["charts_processed"].append(info.to_dict())
+            self.result["charts_processed"].append({
+                "status": "failed",
+                "slug": chart.slug,
+                "error": f"Could not parse timespan: '{timespan_raw}'",
+            })
             return
 
         min_t, max_t, len_y = parsed
@@ -201,7 +216,12 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.status = "skipped"
             info.skip_reason = "no_change"
             self.result["summary"]["skipped"] += 1
-            self.result["charts_processed"].append(info.to_dict())
+            # self.result["charts_processed"].append(info.to_dict())
+            self.result["charts_processed"].append({
+                "status": "skipped",
+                "slug": chart.slug,
+                "skip_reason": "no_change",
+            })
             return
 
         # 5. Update DB
