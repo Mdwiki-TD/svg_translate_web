@@ -81,8 +81,12 @@ def test_create_side_with_active_item():
 def test_sidebar_contains_jobs_section():
     """Test that sidebar contains the Jobs section."""
     result = sidebar.create_side("collect_main_files")
-    assert "Jobs" in result
-    assert "bi-gear-fill" in result
+    assert "DB jobs" in result
+    assert "Files jobs" in result
+    assert "OWID Templates/Pages" in result
+    assert "bi-database-fill" in result
+    assert "bi-files" in result
+    assert "bi-file-earmark-richtext" in result
 
 
 def test_sidebar_contains_collect_main_files_job_link():

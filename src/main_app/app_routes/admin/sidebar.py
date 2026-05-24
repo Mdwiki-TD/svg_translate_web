@@ -49,7 +49,9 @@ def create_side(active_route, path: str | None = None):
         "Fix Nested Tasks": "bi-database",
         "Others": "bi-three-dots",
         "Tools": "bi-tools",
-        "Jobs": "bi-gear-fill",
+        "DB jobs": "bi-database-fill",
+        "Files jobs": "bi-files",
+        "OWID Templates/Pages": "bi-file-earmark-richtext",
         "Settings": "bi-sliders",
     }
 
@@ -84,7 +86,7 @@ def create_side(active_route, path: str | None = None):
                 icon="bi-graph-up",
             ),
         ],
-        "Jobs": [
+        "DB jobs": [
             SidebarItem(
                 id="collect_main_files",
                 admin=1,
@@ -95,12 +97,44 @@ def create_side(active_route, path: str | None = None):
                 icon="bi-kanban",
             ),
             SidebarItem(
+                id="update_owid_charts",
+                admin=1,
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/update_owid_charts", job_type="update_owid_charts"
+                ),
+                title="Update OWID Charts",
+                icon="bi-arrow-repeat",
+            ),
+        ],
+        "Files jobs": [
+            SidebarItem(
                 id="crop_main_files",
                 admin=1,
                 href=_safe_url_for("admin.jobs.jobs_list", "/admin/jobs/crop_main_files", job_type="crop_main_files"),
                 title="Crop Newest World Files",
                 icon="bi-crop",
             ),
+            SidebarItem(
+                id="fix_nested_main_files",
+                admin=1,
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/fix_nested_main_files", job_type="fix_nested_main_files"
+                ),
+                title="Fix Nested Main Files",
+                icon="bi-tools",
+            ),
+            SidebarItem(
+                id="download_main_files",
+                admin=1,
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/download_main_files", job_type="download_main_files"
+                ),
+                title="Download Main Files",
+                icon="bi-download",
+                disabled=True,
+            ),
+        ],
+        "OWID Templates/Pages": [
             SidebarItem(
                 id="create_owid_pages",
                 admin=1,
@@ -129,34 +163,6 @@ def create_side(active_route, path: str | None = None):
                 ),
                 title="Add {{SVGLanguages}}",
                 icon="bi-file-earmark-text",
-            ),
-            SidebarItem(
-                id="fix_nested_main_files",
-                admin=1,
-                href=_safe_url_for(
-                    "admin.jobs.jobs_list", "/admin/jobs/fix_nested_main_files", job_type="fix_nested_main_files"
-                ),
-                title="Fix Nested Main Files",
-                icon="bi-tools",
-            ),
-            SidebarItem(
-                id="download_main_files",
-                admin=1,
-                href=_safe_url_for(
-                    "admin.jobs.jobs_list", "/admin/jobs/download_main_files", job_type="download_main_files"
-                ),
-                title="Download Main Files",
-                icon="bi-download",
-                disabled=True,
-            ),
-            SidebarItem(
-                id="update_owid_charts",
-                admin=1,
-                href=_safe_url_for(
-                    "admin.jobs.jobs_list", "/admin/jobs/update_owid_charts", job_type="update_owid_charts"
-                ),
-                title="Update OWID Charts",
-                icon="bi-arrow-repeat",
             ),
         ],
         "Settings": [

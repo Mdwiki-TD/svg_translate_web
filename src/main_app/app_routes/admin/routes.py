@@ -6,11 +6,11 @@ import logging
 
 from flask import (
     Blueprint,
-    redirect,
+    render_template,
     request,
-    url_for,
 )
 
+from ...db.services import list_jobs
 from ..admin_routes import (
     bp_coordinators,
     bp_jobs,
@@ -38,7 +38,20 @@ def inject_sidebar():
 @bp_admin.get("/")
 @admin_required
 def admin_dashboard():
-    return redirect(url_for("admin.templates.dashboard"))
+    jobs = list_jobs(limit=100)
+    job_type_names = {
+        "collect_main_files": "Collect Templates data",
+        "update_owid_charts": "Update OWID Charts",
+        "crop_main_files": "Crop Newest World Files",
+        "fix_nested_main_files": "Fix Nested Main Files",
+        "create_owid_pages": "Create OWID Pages",
+        "rename_owid_pages": "Rename OWID Pages",
+        "add_svglanguages_template": "Add {{SVGLanguages}}",
+        "download_main_files": "Download Main Files",
+        "copy_svg_langs": "Copy SVG Translation",
+        "fix_nested_jobs": "Fix Nested Tasks",
+    }
+    return render_template("admins/admin.html", jobs=jobs, job_type_names=job_type_names)
 
 
 def register_blueprints(bp_admin) -> None:
