@@ -7,6 +7,7 @@ from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
 from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 from .rename_owid_pages import rename_owid_pages_for_templates
+from .update_owid_charts.worker import update_owid_charts_worker_entry
 
 jobs_targets_public = {
     "copy_svg_langs": copy_svg_langs_worker_entry,
@@ -21,6 +22,7 @@ jobs_targets = {
     "rename_owid_pages": rename_owid_pages_for_templates,
     "add_svglanguages_template": add_svglanguages_template_to_templates,
     "download_main_files": download_main_files_for_templates,
+    "update_owid_charts": update_owid_charts_worker_entry,
 }
 
 
@@ -32,6 +34,7 @@ JOB_TYPE_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
     "download_main_files": "admins/jobs_templates/download_main_files/details.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/details.html",
+    "update_owid_charts": "admins/jobs_templates/update_owid_charts/details.html",
 }
 
 
@@ -43,6 +46,7 @@ JOB_TYPE_LIST_TEMPLATES = {
     "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
     "download_main_files": "admins/jobs_templates/download_main_files/list.html",
     "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/list.html",
+    "update_owid_charts": "admins/jobs_templates/update_owid_charts/list.html",
 }
 
 

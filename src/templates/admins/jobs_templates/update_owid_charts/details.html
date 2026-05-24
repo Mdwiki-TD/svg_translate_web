@@ -1,0 +1,208 @@
+{% extends "admins/jobs_templates/base_details.html" %}
+{% from "_macros.html" import card_header %}
+
+{% set job_type = 'update_owid_charts' %}
+
+{% block detail_title %}Update OWID Charts{% endblock %}
+{% block detail_headline %}Update OWID Charts{% endblock %}
+
+{% block job_summary %}
+{% if result_data.summary %}
+<div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
+    <div class="col">
+        <div class="card h-100 border">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.total }}</h4>
+                <small class="text-muted">Total</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-primary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.processed }}</h4>
+                <small>Processed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-success">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.updated }}</h4>
+                <small>Updated</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-secondary">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
+                <small>Skipped</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-danger">
+            <div class="card-body p-2">
+                <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
+                <small>Failed</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block job_details %}
+
+{# ------------------------------------------------------------------ #}
+{# Updated charts — with old/new comparison                           #}
+{# ------------------------------------------------------------------ #}
+{% set updated_charts = result_data.charts_processed | selectattr("status", "equalto", "updated") | list %}
+{% if updated_charts %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Updated Charts (" ~ updated_charts | length ~ ")") }}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Slug</th>
+                        <th class="text-center">Old min_time</th>
+                        <th class="text-center">New min_time</th>
+                        <th class="text-center">Old max_time</th>
+                        <th class="text-center">New max_time</th>
+                        <th class="text-center">Old len_years</th>
+                        <th class="text-center">New len_years</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in updated_charts %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
+                               target="_blank" rel="noopener noreferrer">
+                                {{ item.slug }}
+                            </a>
+                        </td>
+                        {# min_time #}
+                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-warning{% endif %}">
+                            {{ item.old_min_time if item.old_min_time is not none else '—' }}
+                        </td>
+                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-success{% endif %}">
+                            <strong>{{ item.new_min_time if item.new_min_time is not none else '—' }}</strong>
+                        </td>
+                        {# max_time #}
+                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-warning{% endif %}">
+                            {{ item.old_max_time if item.old_max_time is not none else '—' }}
+                        </td>
+                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-success{% endif %}">
+                            <strong>{{ item.new_max_time if item.new_max_time is not none else '—' }}</strong>
+                        </td>
+                        {# len_years #}
+                        <td class="text-center {% if item.old_len_years != item.new_len_years %}table-warning{% endif %}">
+                            {{ item.old_len_years if item.old_len_years is not none else '—' }}
+                        </td>
+                        <td class="text-center {% if item.old_len_years != item.new_len_years %}table-success{% endif %}">
+                            <strong>{{ item.new_len_years if item.new_len_years is not none else '—' }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ------------------------------------------------------------------ #}
+{# Failed charts                                                        #}
+{# ------------------------------------------------------------------ #}
+{% set failed_charts = result_data.charts_processed | selectattr("status", "equalto", "failed") | list %}
+{% if failed_charts %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Failed Charts (" ~ failed_charts | length ~ ")") }}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Slug</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in failed_charts %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
+                               target="_blank" rel="noopener noreferrer">
+                                {{ item.slug }}
+                            </a>
+                        </td>
+                        <td><span class="text-danger">{{ item.error or '—' }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ------------------------------------------------------------------ #}
+{# Skipped charts                                                       #}
+{# ------------------------------------------------------------------ #}
+{% set skipped_charts = result_data.charts_processed | selectattr("status", "equalto", "skipped") | list %}
+{% if skipped_charts %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        {{ card_header("Skipped Charts (" ~ skipped_charts | length ~ ")") }}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Slug</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in skipped_charts %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://ourworldindata.org/grapher/{{ item.slug }}"
+                               target="_blank" rel="noopener noreferrer">
+                                {{ item.slug }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.skip_reason == 'no_timespan' %}
+                            <span class="badge bg-secondary">no timespan</span>
+                            {% elif item.skip_reason == 'no_change' %}
+                            <span class="badge bg-light text-dark border">no change</span>
+                            {% else %}
+                            {{ item.skip_reason or '—' }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
