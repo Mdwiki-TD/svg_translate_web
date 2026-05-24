@@ -117,6 +117,10 @@ class ChartUpdateInfo:
 class UpdateOwidChartsWorker(BaseJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.session = requests.Session()
+
     def get_job_type(self) -> str:
         return "update_owid_charts"
 
@@ -144,7 +148,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
         url = METADATA_URL.format(slug=slug)
         try:
-            resp = requests.get(url, timeout=REQUEST_TIMEOUT)
+            resp = self.session.get(url, timeout=REQUEST_TIMEOUT)
             resp.raise_for_status()
             return resp.json()
         except Exception as exc:
