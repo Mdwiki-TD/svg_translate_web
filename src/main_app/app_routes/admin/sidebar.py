@@ -149,6 +149,15 @@ def create_side(active_route, path: str | None = None):
                 icon="bi-download",
                 disabled=True,
             ),
+            SidebarItem(
+                id="update_owid_charts",
+                admin=1,
+                href=_safe_url_for(
+                    "admin.jobs.jobs_list", "/admin/jobs/update_owid_charts", job_type="update_owid_charts"
+                ),
+                title="Update OWID Charts",
+                icon="bi-arrow-repeat",
+            ),
         ],
         "Settings": [
             SidebarItem(
