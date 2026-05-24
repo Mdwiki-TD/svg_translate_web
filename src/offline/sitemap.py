@@ -2,9 +2,11 @@ import requests
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import time
+import json
 
 
 output_dir = Path(__file__).parent / "owid_metadata"
+json_sitemap = Path(__file__).parent / "sitemap.json"
 
 # Create the output directory if it doesn't exist
 if not output_dir.exists():
@@ -52,6 +54,9 @@ def download_owid_grapher_metadata(limit=None):
             grapher_urls.append(url)
 
     print(f"Filtered {len(grapher_urls)} 'grapher' URLs.")
+
+    with open(json_sitemap, "w", encoding="utf-8") as f:
+        json.dump(grapher_urls, f, ensure_ascii=False, indent=4)
 
     # Process and download metadata
     count = 0

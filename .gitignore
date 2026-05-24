@@ -19,3 +19,5 @@ start_bot copy.py
 coverage.xml
 /MagicMock
 memory.sqlite3
+/src/offline/owid_metadata
+src/offline/sitemap.json
