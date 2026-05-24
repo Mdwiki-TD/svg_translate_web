@@ -11,6 +11,7 @@ from flask import (
 )
 
 from ...db.services import list_jobs
+from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
 from ..admin_routes import (
     bp_coordinators,
     bp_jobs,
@@ -18,6 +19,7 @@ from ..admin_routes import (
     bp_settings,
     bp_templates,
 )
+from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required
 from .sidebar import create_side
 
@@ -39,19 +41,25 @@ def inject_sidebar():
 @admin_required
 def admin_dashboard():
     jobs = list_jobs(limit=100)
-    job_type_names = {
-        "collect_main_files": "Collect Templates data",
-        "update_owid_charts": "Update OWID Charts",
-        "crop_main_files": "Crop Newest World Files",
-        "fix_nested_main_files": "Fix Nested Main Files",
-        "create_owid_pages": "Create OWID Pages",
-        "rename_owid_pages": "Rename OWID Pages",
-        "add_svglanguages_template": "Add {{SVGLanguages}}",
-        "download_main_files": "Download Main Files",
-        "copy_svg_langs": "Copy SVG Translation",
-        "fix_nested_jobs": "Fix Nested Tasks",
-    }
-    return render_template("admins/admin.html", jobs=jobs, job_type_names=job_type_names)
+
+    # Enhance jobs with display names and detail URLs
+    enhanced_jobs = []
+    for job in jobs:
+        enhanced_jobs.append(
+            {
+                "id": job.id,
+                "status": job.status,
+                "job_type": job.job_type,
+                "display_name": JOB_TYPE_DISPLAY_NAMES.get(job.job_type, job.job_type),
+                "detail_url": get_job_detail_url(job.id, job.job_type),
+                "username": job.username,
+                "created_at": job.created_at,
+                "started_at": job.started_at,
+                "completed_at": job.completed_at,
+            }
+        )
+
+    return render_template("admins/admin.html", jobs=enhanced_jobs)
 
 
 def register_blueprints(bp_admin) -> None:
