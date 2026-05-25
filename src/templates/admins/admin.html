@@ -42,8 +42,8 @@
                         <td>{{ job.display_name }}</td>
                         <td>{{ job.username if job.username else '-' }}</td>
                         <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>
-                        <td>{{ job.started_at.strftime('%H:%M:%S') if job.started_at else '-' }}</td>
-                        <td>{{ job.completed_at.strftime('%H:%M:%S') if job.completed_at else '-' }}</td>
+                        <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}</td>
+                        <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}</td>
                         <td class="text-center">
                             <a href="{{ job.detail_url }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye"></i> View
