@@ -78,3 +78,10 @@ def context_user() -> dict[str, Any]:
         "is_admin": bool(user and user.username in active_coordinators()),
         "username": user.username if user else None,
     }
+
+__all__ = [
+    "CurrentUser",
+    "current_user",
+    "oauth_required",
+    "context_user",
+]

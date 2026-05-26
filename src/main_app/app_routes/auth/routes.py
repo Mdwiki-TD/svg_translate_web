@@ -7,8 +7,7 @@ from __future__ import annotations
 import logging
 import secrets
 from collections.abc import Sequence
-from functools import wraps
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlencode
 
 from flask import (
@@ -58,19 +57,6 @@ def _load_request_token(raw: Sequence[Any] | None):
         raise ValueError("Invalid OAuth request token")
 
     return RequestToken(raw[0], raw[1])
-
-
-def login_required(fn: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator that redirects anonymous users to the index page."""
-
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        if not getattr(g, "is_authenticated", False):
-            flash("You must be logged in to view this page", "warning")
-            return redirect(url_for("main.index"))
-        return fn(*args, **kwargs)
-
-    return wrapper
 
 
 @bp_auth.get("/login")
@@ -219,7 +205,6 @@ def callback() -> Response:
 
 
 @bp_auth.get("/logout")
-# @login_required
 # Users with stale cookies will be redirected with a "login-required" error instead of being able to clean up their authentication state
 def logout() -> Response:
     user_id = session.pop("uid", None)
@@ -258,5 +243,4 @@ def logout() -> Response:
 
 __all__ = [
     "bp_auth",
-    "login_required",
 ]
