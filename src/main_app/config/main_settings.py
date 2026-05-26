@@ -141,7 +141,7 @@ def _get_paths() -> Paths:
             - svg_data_thumb: path for SVG thumbnails
             - log_dir: path for log files
             - fix_nested_data: path for nested-fix data
-            - svg_jobs_path: path for SVG job files
+            - jobs_path: path for SVG job files
             - main_files_path: path for main files
     """
     main_dir = os.getenv("MAIN_DIR", "~/data")
@@ -159,7 +159,7 @@ def _get_paths() -> Paths:
         "svg_data_thumb": f"{main_dir}/svg_data_thumb",
         "log_dir": f"{main_dir}/logs",
         "fix_nested_data": f"{main_dir}/fix_nested_data",
-        "svg_jobs_path": f"{main_dir}/svg_jobs",
+        "jobs_path": f"{main_dir}/svg_jobs",
         "main_files_path": f"{main_dir}/main_files",
         "crop_main_files_path": crop_main_files_path,
     }

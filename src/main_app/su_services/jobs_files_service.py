@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 @functools.lru_cache(maxsize=1)
 def get_jobs_data_dir() -> Path:
     """Get the directory for storing job data files."""
-    # Use svg_jobs_path from settings paths
-    jobs_dir = getattr(settings.paths, "svg_jobs_path", None)
+    # Use jobs_path from settings paths
+    jobs_dir = getattr(settings.paths, "jobs_path", None)
     if not jobs_dir:
         raise RuntimeError("MAIN_DIR/svg_jobs environment variable is required for job result storage")
     jobs_dir = Path(jobs_dir)

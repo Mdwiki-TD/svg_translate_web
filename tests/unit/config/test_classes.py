@@ -33,7 +33,7 @@ def test_Paths():
         svg_data_thumb="/svg/thumb",
         log_dir="/logs",
         fix_nested_data="/fix/nested",
-        svg_jobs_path="/jobs",
+        jobs_path="/jobs",
         main_files_path="/main_files",
         crop_main_files_path="/crop_main_files",
     )
@@ -42,7 +42,7 @@ def test_Paths():
     assert paths.svg_data_thumb == "/svg/thumb"
     assert paths.log_dir == "/logs"
     assert paths.fix_nested_data == "/fix/nested"
-    assert paths.svg_jobs_path == "/jobs"
+    assert paths.jobs_path == "/jobs"
     assert paths.main_files_path == "/main_files"
     assert paths.crop_main_files_path == "/crop_main_files"
 

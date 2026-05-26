@@ -43,7 +43,7 @@ class DbConfig:
 @dataclass(frozen=True)
 class Paths:
     log_dir: str
-    svg_jobs_path: str
+    jobs_path: str
     main_files_path: str
     svg_data: str
     svg_data_thumb: str
