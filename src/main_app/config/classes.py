@@ -98,19 +98,16 @@ class SecurityConfig:
 class Settings:
     """Main settings container."""
 
-    user_agent: str
-
     # Nested configurations
     database_data: DbConfig
     paths: Paths
     cookie: CookieConfig
     sessions: SessionConfig
     oauth: OAuthConfig
-    # cors: CorsConfig
     security: SecurityConfig
+    other: OtherConfig
     jobs: JobsConfig
-
-    csrf_time_limit: int | None  # None means never expire
+    # cors: CorsConfig
 
 
 __all__ = [
@@ -121,6 +118,7 @@ __all__ = [
     "OAuthConfig",
     "JobsConfig",
     "Settings",
-    "CorsConfig",
     "OtherConfig",
+    "SecurityConfig",
+    "CorsConfig",
 ]
