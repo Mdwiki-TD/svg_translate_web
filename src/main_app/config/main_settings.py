@@ -7,11 +7,11 @@ from functools import lru_cache
 from pathlib import Path
 
 from .classes import (
-    OtherConfig,
     CookieConfig,
     DbConfig,
     JobsConfig,
     OAuthConfig,
+    OtherConfig,
     Paths,
     SecurityConfig,
     SessionConfig,

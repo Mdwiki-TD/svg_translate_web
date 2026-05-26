@@ -11,6 +11,7 @@ from typing import Any, Optional
 @dataclass(frozen=True)
 class OtherConfig:
     """configs not in specific sections"""
+
     csrf_time_limit: Optional[int]  # None means never expire
     user_agent: str
 
