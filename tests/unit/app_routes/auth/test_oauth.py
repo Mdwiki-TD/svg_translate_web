@@ -18,7 +18,9 @@ def fake_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     settings = types.SimpleNamespace(
         oauth=oauth_config,
-        user_agent="agent",
+        other=types.SimpleNamespace(
+            user_agent="agent",
+        ),
     )
     monkeypatch.setattr("src.main_app.app_routes.auth.oauth.settings", settings)
 

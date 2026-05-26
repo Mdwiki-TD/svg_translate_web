@@ -77,7 +77,15 @@ def test_Settings():
     # Create a minimal settings object for testing
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
-    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
+    paths = Paths(
+        log_dir="/logs",
+        jobs_path="/jobs",
+        main_files_path="/main_files",
+        svg_data="/svg",
+        svg_data_thumb="/thumb",
+        fix_nested_data="/fix",
+        crop_main_files_path="/crop_main_files",
+        )
 
     jobs_config = JobsConfig(
         dev_limit=0,
