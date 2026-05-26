@@ -1,21 +1,6 @@
-{% macro nav_link(endpoint, icon, text, url, title="") %}
-{% set is_active = request and request.endpoint and request.endpoint.startswith(endpoint) %}
-<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
-    {% endif %} title="{{ title }}">
-    <i class="bi {{ icon }}"></i> {{ text }}
-</a>
-{% endmacro %}
-
-
-{% macro nav_link_with_args(endpoint, icon, text, url, path) %}
-{# check endpoint and job_type in URL #}
-{% set is_active = request and request.path and request.path.startswith(path) %}
-<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
-    {% endif %} title="{{ text }}">
-    <i class="bi {{ icon }}"></i> {{ text }}
-</a>
-{% endmacro %}
-
+{% from "_macros.html" import nav_link %}
+{% from "_macros.html" import nav_link_with_args %}
+{% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
 
 <header>
     <nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
@@ -33,7 +18,6 @@
             </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
-                    {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
                     <li class="{{ nav_item_class }}">
                         {{ nav_link_with_args(
                             'public_jobs.jobs_list',
