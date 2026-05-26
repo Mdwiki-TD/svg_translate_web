@@ -3,9 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 # --- Data Classes for Configuration Sections ---
+
+
+@dataclass(frozen=True)
+class OtherConfig:
+    """configs not in specific sections"""
+    csrf_time_limit: Optional[int]  # None means never expire
+    user_agent: str
+
+
+@dataclass(frozen=True)
+class JobsConfig:
+    """Configuration for jobs."""
+
+    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
+    disable_uploads: str
+    upload_host: str
 
 
 @dataclass(frozen=True)
@@ -26,12 +42,12 @@ class DbConfig:
 
 @dataclass(frozen=True)
 class Paths:
-    svg_data: str
-    svg_data_thumb: str
     log_dir: str
-    fix_nested_data: str
     svg_jobs_path: str
     main_files_path: str
+    svg_data: str
+    svg_data_thumb: str
+    fix_nested_data: str
     crop_main_files_path: str
 
 
@@ -65,15 +81,6 @@ class OAuthConfig:
 @dataclass(frozen=True)
 class CorsConfig:
     allowed_domains: list[str]
-
-
-@dataclass(frozen=True)
-class JobsConfig:
-    """Configuration for jobs."""
-
-    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
-    disable_uploads: str
-    upload_host: str
 
 
 @dataclass(frozen=True)
@@ -112,6 +119,8 @@ __all__ = [
     "CookieConfig",
     "SessionConfig",
     "OAuthConfig",
-    "CorsConfig",
+    "JobsConfig",
     "Settings",
+    "CorsConfig",
+    "OtherConfig",
 ]

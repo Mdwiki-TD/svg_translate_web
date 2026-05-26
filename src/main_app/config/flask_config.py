@@ -50,7 +50,7 @@ class Config:
     WTF_CSRF_ENABLED: bool = True
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     # None = tokens don't expire
-    WTF_CSRF_TIME_LIMIT: int | None = settings.csrf_time_limit
+    WTF_CSRF_TIME_LIMIT: int | None = settings.other.csrf_time_limit
 
     WTF_CSRF_SSL_STRICT: bool = True
     WTF_CSRF_CHECK_DEFAULT: bool = True
@@ -156,3 +156,11 @@ class TestingConfig(Config):
     # Use SQLite in-memory for tests (no MySQL dependency)
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
     SQLALCHEMY_ENGINE_OPTIONS: dict = {}  # SQLite doesn't need MySQL options
+
+
+__all__ = [
+    "Config",
+    "DevelopmentConfig",
+    "ProductionConfig",
+    "TestingConfig",
+]

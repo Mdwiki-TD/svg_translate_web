@@ -5,7 +5,10 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from flask import url_for
+
 from ...db.models import UserTokenRecord
+from ...jobs_workers.workers_list import JOB_TYPE_TEMPLATES_PUBLIC
 
 logger = logging.getLogger(__name__)
 
@@ -99,3 +102,10 @@ def format_task(task: dict) -> dict:
         "results": results,
         "stages": stages,
     }
+
+
+def get_job_detail_url(job_id: int, job_type: str) -> str:
+    """Returns the correct job detail URL based on job type."""
+    if job_type in JOB_TYPE_TEMPLATES_PUBLIC:
+        return url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id)
+    return url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id)

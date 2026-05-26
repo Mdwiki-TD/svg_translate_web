@@ -6,11 +6,12 @@ import logging
 
 from flask import (
     Blueprint,
-    redirect,
+    render_template,
     request,
-    url_for,
 )
 
+from ...db.services import list_jobs
+from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
 from ..admin_routes import (
     bp_coordinators,
     bp_jobs,
@@ -18,6 +19,7 @@ from ..admin_routes import (
     bp_settings,
     bp_templates,
 )
+from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required
 from .sidebar import create_side
 
@@ -38,7 +40,26 @@ def inject_sidebar():
 @bp_admin.get("/")
 @admin_required
 def admin_dashboard():
-    return redirect(url_for("admin.templates.dashboard"))
+    jobs = list_jobs(limit=100)
+
+    # Enhance jobs with display names and detail URLs
+    enhanced_jobs = []
+    for job in jobs:
+        enhanced_jobs.append(
+            {
+                "id": job.id,
+                "status": job.status,
+                "job_type": job.job_type,
+                "display_name": JOB_TYPE_DISPLAY_NAMES.get(job.job_type, job.job_type),
+                "detail_url": get_job_detail_url(job.id, job.job_type),
+                "username": job.username,
+                "created_at": job.created_at,
+                "started_at": job.started_at,
+                "completed_at": job.completed_at,
+            }
+        )
+
+    return render_template("admins/admin.html", jobs=enhanced_jobs)
 
 
 def register_blueprints(bp_admin) -> None:

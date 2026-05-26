@@ -67,7 +67,7 @@ def download_file_from_commons(
 
     # Create session if not provided
     if session is None:
-        session = create_commons_session(settings.user_agent)
+        session = create_commons_session(settings.other.user_agent)
 
     # Use the core download function
     try:
@@ -151,7 +151,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a shared session for all downloads
-        session = create_commons_session(settings.user_agent)
+        session = create_commons_session(settings.other.user_agent)
 
         per_item = self.get_priority(len(templates_with_files))
 

@@ -62,6 +62,20 @@ JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
 }
 
 
+JOB_TYPE_DISPLAY_NAMES = {
+    "collect_main_files": "Collect Templates data",
+    "update_owid_charts": "Update OWID Charts",
+    "crop_main_files": "Crop Newest World Files",
+    "fix_nested_main_files": "Fix Nested Main Files",
+    "create_owid_pages": "Create OWID Pages",
+    "rename_owid_pages": "Rename OWID Pages",
+    "add_svglanguages_template": "Add {{SVGLanguages}}",
+    "download_main_files": "Download Main Files",
+    "copy_svg_langs": "Copy SVG Translation",
+    "fix_nested_jobs": "Fix Nested Tasks",
+}
+
+
 __all__ = [
     "jobs_targets",
     "jobs_targets_public",
@@ -69,4 +83,5 @@ __all__ = [
     "JOB_TYPE_LIST_TEMPLATES",
     "JOB_TYPE_TEMPLATES_PUBLIC",
     "JOB_TYPE_LIST_TEMPLATES_PUBLIC",
+    "JOB_TYPE_DISPLAY_NAMES",
 ]
