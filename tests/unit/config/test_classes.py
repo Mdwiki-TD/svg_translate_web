@@ -109,6 +109,7 @@ def test_Settings():
     other_config = OtherConfig(
         user_agent="user_agent",
         csrf_time_limit=3600,
+        static_server="static_server",
     )
 
     settings = Settings(
