@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, text
 
 from ...extensions import db
 
@@ -17,7 +17,7 @@ class TemplateNeedUpdateRecord(db.Model):
 
     template_id = Column(Integer, primary_key=True, autoincrement=True)
     template_title = Column(String(255), unique=True, nullable=False)
-    slug = Column(String(255), nullable=False, server_default="")
+    slug = Column(String(255), nullable=False, server_default=text(""))
     last_world_year = Column(Integer, nullable=True)
     max_time = Column(Integer, nullable=True)
 

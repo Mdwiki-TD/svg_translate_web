@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Column, Enum, Integer, String, Text
+from sqlalchemy import Column, Enum, Integer, String, Text, text
 
 from ...extensions import db
 
@@ -28,7 +28,7 @@ class SettingRecord(db.Model):
     key = Column(String(190), unique=True, nullable=False)
     title = Column(String(500), nullable=False)
 
-    value_type = Column(Enum("boolean", "string", "integer", "json"), nullable=False, server_default="boolean")
+    value_type = Column(Enum("boolean", "string", "integer", "json"), nullable=False, server_default=text("boolean"))
 
     value = Column(Text, nullable=True)
 

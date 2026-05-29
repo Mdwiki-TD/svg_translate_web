@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import Column, DateTime, Integer, String, func, text
 
 from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
@@ -40,8 +40,8 @@ class TemplateRecord(db.Model):
     main_file = Column(String(255), nullable=True)
     last_world_file = Column(String(255), nullable=True)
     last_world_year = Column(Integer, nullable=True)
-    slug = Column(String(255), nullable=False, server_default="")
-    source = Column(String(255), nullable=False, server_default="")
+    slug = Column(String(255), nullable=False, server_default=text(""))
+    source = Column(String(255), nullable=False, server_default=text(""))
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(
