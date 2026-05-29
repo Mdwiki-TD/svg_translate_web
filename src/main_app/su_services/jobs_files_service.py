@@ -20,7 +20,7 @@ def get_jobs_data_dir() -> Path:
     # Use jobs_path from settings paths
     jobs_dir = getattr(settings.paths, "jobs_path", None)
     if not jobs_dir:
-        raise RuntimeError("MAIN_DIR/svg_jobs environment variable is required for job result storage")
+        raise RuntimeError("jobs_path configuration is required for job result storage")
     jobs_dir = Path(jobs_dir)
     jobs_dir.mkdir(parents=True, exist_ok=True)
     return jobs_dir
