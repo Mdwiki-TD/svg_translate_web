@@ -1,4 +1,4 @@
-"""Flask application factory for the SVG Translate web interface."""
+"""Flask application factory for the web interface."""
 
 from __future__ import annotations
 
