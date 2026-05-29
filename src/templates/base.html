@@ -64,6 +64,10 @@
                 responsive: true,
                 pageLength: 100,
             });
+
+            const WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php";
+
+            setupWikiAutocomplete(".wiki-autocomplete", WIKIMEDIA_API_URL);
         });
     </script>
 </body>

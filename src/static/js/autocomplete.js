@@ -1,14 +1,15 @@
-const WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php";
+
 const API_USER_AGENT = "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)";
 
-$(document).ready(function () {
-    $("#title").autocomplete({
+function setupWikiAutocomplete(inputSelector, wikimedia_api_url) {
+    // attach autocomplete behavior to input field
+    $(inputSelector).autocomplete({
         delay: 300,
         minLength: 2,
         source: function (request, response) {
             // make AJAX request to Wikipedia API
             $.ajax({
-                url: WIKIMEDIA_API_URL,
+                url: wikimedia_api_url,
                 headers: {
                     'Api-User-Agent': API_USER_AGENT
                 },
@@ -36,4 +37,4 @@ $(document).ready(function () {
             });
         }
     });
-});
+}
