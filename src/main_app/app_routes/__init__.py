@@ -14,10 +14,11 @@ from .public_jobs import bp_jobs
 
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(bp_main)
-    app.register_blueprint(bp_explorer)
-    app.register_blueprint(bp_jobs)
-    app.register_blueprint(bp_admin)
     app.register_blueprint(bp_auth)
+    app.register_blueprint(bp_admin)
+
+    app.register_blueprint(bp_jobs)
+    app.register_blueprint(bp_explorer)
     app.register_blueprint(bp_extract)
     app.register_blueprint(bp_owid_charts)
     app.register_blueprint(bp_api)

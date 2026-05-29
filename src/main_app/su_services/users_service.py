@@ -83,6 +83,7 @@ def context_user() -> dict[str, Any]:
         "is_authenticated": user is not None,
         "is_admin": bool(user and user.username in active_coordinators()),
         "username": user.username if user else None,
+        "static_server": settings.other.static_server,
     }
 
 

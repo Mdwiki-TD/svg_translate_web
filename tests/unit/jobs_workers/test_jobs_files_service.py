@@ -84,7 +84,7 @@ def test_get_jobs_data_dir_not_configured(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.settings", mock_settings)
     get_jobs_data_dir.cache_clear()
 
-    with pytest.raises(RuntimeError, match="MAIN_DIR/svg_jobs environment variable is required"):
+    with pytest.raises(RuntimeError, match="jobs_path configuration is required for job result storage"):
         get_jobs_data_dir()
 
     get_jobs_data_dir.cache_clear()

@@ -1,3 +1,10 @@
+{# Shared Jinja macros. #}
+
+
+{%- macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro -%}
+
 {%- macro flash_messages() -%}
 {% with messages = get_flashed_messages(with_categories=True) %}
 {% if messages %}
