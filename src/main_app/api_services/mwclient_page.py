@@ -48,7 +48,7 @@ class MwClientPage:
             logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             return {"success": False, "error": str(exc)}
 
-    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str) -> dict[str, any]:
+    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
 
             logger.warning(
@@ -57,7 +57,7 @@ class MwClientPage:
             )
             time.sleep(delay)
 
-            edit_result = self._edit_page(page, text, summary=summary)
+            edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
 
             if edit_result.get("error") != "ratelimited":
                 return edit_result
@@ -180,7 +180,7 @@ class MwClientPage:
             return edit_result
 
         # handle retry
-        return self._edit_with_retry(page, text, summary)
+        return self._edit_with_retry(page, text, summary, nocreate=nocreate)
 
     def move_page(
         self,
