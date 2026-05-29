@@ -40,8 +40,8 @@ class TemplateRecord(db.Model):
     main_file = Column(String(255), nullable=True)
     last_world_file = Column(String(255), nullable=True)
     last_world_year = Column(Integer, nullable=True)
-    slug = Column(String(255), nullable=False, server_default=text(""))
-    source = Column(String(255), nullable=False, server_default=text(""))
+    slug = Column(String(255), nullable=False, server_default="")
+    source = Column(String(255), nullable=False, server_default="")
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(

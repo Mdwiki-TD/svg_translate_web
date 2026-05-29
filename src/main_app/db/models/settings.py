@@ -28,7 +28,7 @@ class SettingRecord(db.Model):
     key = Column(String(190), unique=True, nullable=False)
     title = Column(String(500), nullable=False)
 
-    value_type = Column(Enum("boolean", "string", "integer", "json"), nullable=False, server_default=text("boolean"))
+    value_type = Column(Enum("boolean", "string", "integer", "json"), nullable=False, server_default="boolean")
 
     value = Column(Text, nullable=True)
 

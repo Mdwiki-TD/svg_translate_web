@@ -24,7 +24,13 @@ def get_category_members_api(category, project, limit=500):
     session = requests.Session()
     session.headers.update({"User-Agent": settings.other.user_agent})
 
-    params = {"action": "query", "list": "categorymembers", "cmtitle": category, "cmlimit": limit, "format": "json"}
+    params = {
+        "action": "query",
+        "list": "categorymembers",
+        "cmtitle": category,
+        "cmlimit": limit,
+        "format": "json",
+    }
 
     pages = []
     try:

@@ -152,37 +152,42 @@ def update_page_text(
     return edit_page(site, page_name, updated_text, summary)
 
 
-def is_pages_exists(
-    titles: list[str],
-    site: mwclient.Site,
-) -> dict[str, bool]:
-    result = {}
+def get_page_text(
+    page_title: str,
+    site: mwclient.Site | None,
+) -> str:
+    """
+    Get the wikitext of any page.
 
-    for i in range(0, len(titles), 50):
-        group = titles[i : i + 50]
+    Args:
+        page_title: The name of the page (e.g., "Barley yields").
+        site: Authenticated mwclient.Site object.
 
-        group = [f"File:{file.removeprefix('File:')}" for file in group]
+    Returns:
+        The wikitext of the page, or an empty string if it cannot be retrieved.
+    """
+    missing_fields = verify_required_fields(
+        {
+            "page_title": page_title,
+            "site": site,
+        }
+    )
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for get_page_text: {list_str}")
+        return ""
 
-        json1 = site.get("query", titles="|".join(group))
-
-        query = json1.get("query", {})
-
-        normalized = {red["to"]: red["from"] for red in query.get("normalized", [])}
-
-        query_pages = query.get("pages", {})
-        for _, kk in query_pages.items():
-            title = kk.get("title", "")
-            if title:
-                original_title = normalized.get(title, title)
-                result[original_title] = "missing" not in kk
-
-    return result
+    try:
+        page = site.pages[page_title]
+        return page.text()
+    except Exception as exc:
+        logger.exception(f"Failed to retrieve wikitext for {page_title}", exc_info=exc)
+        return ""
 
 
 __all__ = [
     "create_page",
     "is_page_exists",
-    "is_pages_exists",
     "is_redirect",
     "move_page",
     "update_file_text",

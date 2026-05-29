@@ -39,14 +39,14 @@ class OwidChartRecord(db.Model):
     chart_id = Column(Integer, primary_key=True, autoincrement=True)
     slug = Column(String(255), unique=True, nullable=False)
     title = Column(String(500), nullable=False)
-    has_map_tab = Column(Boolean, server_default=text("0"))
+    has_map_tab = Column(Boolean, server_default="0")
     max_time = Column(Integer, nullable=True)
     min_time = Column(Integer, nullable=True)
     default_tab = Column(String(50), nullable=True)
-    is_published = Column(Boolean, server_default=text("0"))
-    single_year_data = Column(Boolean, server_default=text("0"))
+    is_published = Column(Boolean, server_default="0")
+    single_year_data = Column(Boolean, server_default="0")
     len_years = Column(Integer, nullable=True)
-    has_timeline = Column(Boolean, server_default=text("0"))
+    has_timeline = Column(Boolean, server_default="0")
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(
