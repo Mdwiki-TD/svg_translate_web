@@ -1,4 +1,7 @@
-#
+""" """
+
+from flask import Flask
+
 from .admin.routes import bp_admin
 from .api_routes import bp_api
 from .auth.routes import bp_auth
@@ -8,13 +11,18 @@ from .main_routes.owid_charts_routes import bp_owid_charts
 from .main_routes.routes import bp_main
 from .public_jobs import bp_jobs
 
+
+def register_blueprints(app: Flask) -> None:
+    app.register_blueprint(bp_main)
+    app.register_blueprint(bp_explorer)
+    app.register_blueprint(bp_jobs)
+    app.register_blueprint(bp_admin)
+    app.register_blueprint(bp_auth)
+    app.register_blueprint(bp_extract)
+    app.register_blueprint(bp_owid_charts)
+    app.register_blueprint(bp_api)
+
+
 __all__ = [
-    "bp_api",
-    "bp_auth",
-    "bp_jobs",
-    "bp_main",
-    "bp_explorer",
-    "bp_admin",
-    "bp_extract",
-    "bp_owid_charts",
+    "register_blueprints",
 ]

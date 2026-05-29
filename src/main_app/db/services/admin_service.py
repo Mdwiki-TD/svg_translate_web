@@ -1,4 +1,6 @@
-"""Utilities for managing administrator (coordinator) accounts."""
+"""
+SQLAlchemy-based service for managing coordinators.
+"""
 
 from __future__ import annotations
 

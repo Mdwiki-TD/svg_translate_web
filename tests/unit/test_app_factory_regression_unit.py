@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from src.main_app.utils.jinja_filters import format_stage_timestamp
+
 
 def test_format_stage_timestamp_valid():
     """Test format_stage_timestamp with valid timestamp."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T04:41:07")
 
@@ -15,7 +16,6 @@ def test_format_stage_timestamp_valid():
 
 def test_format_stage_timestamp_empty():
     """Test format_stage_timestamp with empty string."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("")
 
@@ -24,7 +24,6 @@ def test_format_stage_timestamp_empty():
 
 def test_format_stage_timestamp_invalid():
     """Test format_stage_timestamp with invalid timestamp."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("invalid-timestamp")
 
@@ -33,7 +32,6 @@ def test_format_stage_timestamp_invalid():
 
 def test_format_stage_timestamp_afternoon():
     """Test format_stage_timestamp with PM time."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T16:41:07")
 
@@ -43,7 +41,6 @@ def test_format_stage_timestamp_afternoon():
 
 def test_format_stage_timestamp_noon():
     """Test format_stage_timestamp with noon."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T12:00:00")
 
@@ -53,7 +50,6 @@ def test_format_stage_timestamp_noon():
 
 def test_format_stage_timestamp_midnight():
     """Test format_stage_timestamp with midnight."""
-    from src.main_app import format_stage_timestamp
 
     result = format_stage_timestamp("2025-10-27T00:00:00")
 

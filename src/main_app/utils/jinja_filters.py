@@ -50,3 +50,13 @@ def short_url(value: str) -> str:
     # Remove query string
     url = url.split("?")[0].strip()
     return url
+
+
+filters = {
+    "format_stage_timestamp": format_stage_timestamp,
+    "short_url": short_url,
+}
+
+__all__ = [
+    "filters",
+]
