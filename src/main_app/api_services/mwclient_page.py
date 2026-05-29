@@ -22,7 +22,7 @@ class MwClientPage:
     def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
 
         try:
-            save = page.edit(text, summary=summary, nocreate=nocreate)
+            save = page.edit(text, summary=summary, nocreate=nocreate) or {}
             return {"success": True, **save}
 
         except mwclient.errors.ProtectedPageError as exc:
