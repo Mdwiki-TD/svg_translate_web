@@ -184,7 +184,7 @@ class TestEditPageRateLimit:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# edit_with_retry (direct)
+# _edit_with_retry (direct)
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -192,13 +192,13 @@ class TestEditWithRetry:
     def test_succeeds_on_first_retry(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = [None]  # succeeds immediately
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client.edit_with_retry(mock_exists_page, "text", "summary")
+            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
         assert result == {"success": True}
 
     def test_returns_ratelimited_after_all_retries(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = make_api_error("ratelimited")
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client.edit_with_retry(mock_exists_page, "text", "summary")
+            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
         assert result == {"success": False, "error": "ratelimited"}
         assert mock_exists_page.edit.call_count == len(_RETRY_DELAYS)
 
@@ -208,6 +208,6 @@ class TestEditWithRetry:
             mwclient.errors.AssertUserFailedError(),
         ]
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client.edit_with_retry(mock_exists_page, "text", "summary")
+            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
         assert result == {"success": False, "error": "assertuserfailed"}
         assert mock_exists_page.edit.call_count == 2
