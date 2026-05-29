@@ -27,6 +27,7 @@ def active_coordinators() -> list[str]:
         logger.exception("Failed to fetch active coordinators: %s", e)
         return []
 
+
 def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
     """
     Get a coordinator by ID.

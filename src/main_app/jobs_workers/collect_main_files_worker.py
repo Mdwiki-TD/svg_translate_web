@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from ..api_services.category import get_category_members
-from ..api_services.text_bot import get_wikitext
+from ..api_services.query_api import get_wikitext
 from ..db.services import (
     add_template_data,
     get_chart_by_slug,

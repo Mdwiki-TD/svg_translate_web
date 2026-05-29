@@ -65,6 +65,14 @@ def create_side(active_route, path: str | None = None):
                 icon="bi-person-gear",
             ),
             SidebarItem(
+                id="users",
+                admin=1,
+                href=_safe_url_for("admin.users_dashboard", "/admin/users_dashboard/"),
+                title="Users",
+                icon="bi-person",
+                disabled=False,
+            ),
+            SidebarItem(
                 id="templates",
                 admin=1,
                 href=_safe_url_for("admin.templates.dashboard", "/admin/templates/"),

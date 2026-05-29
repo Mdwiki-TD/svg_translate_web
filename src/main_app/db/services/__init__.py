@@ -47,6 +47,7 @@ from .user_token_service import (
     delete_user_token,
     get_user_token,
     get_user_token_by_username,
+    list_users,
     upsert_user_token,
 )
 
@@ -56,6 +57,7 @@ __all__ = [
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",
+    "list_users",
     # admin_service
     "list_coordinators",
     "active_coordinators",

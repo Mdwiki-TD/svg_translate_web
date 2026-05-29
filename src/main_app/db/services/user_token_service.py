@@ -8,12 +8,23 @@ import logging
 from typing import Optional
 
 from sqlalchemy import func
+from sqlalchemy.orm import defer
 
 from ...core.crypto import encrypt_value
 from ...extensions import db
 from ..models import UserTokenRecord
 
 logger = logging.getLogger(__name__)
+
+
+def list_users() -> list[UserTokenRecord]:
+    """Return all users."""
+    records = (
+        db.session.query(UserTokenRecord)
+        .options(defer(UserTokenRecord.access_token), defer(UserTokenRecord.access_secret))
+        .all()
+    )
+    return records
 
 
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
@@ -82,6 +93,7 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
 
 
 __all__ = [
+    "list_users",
     "upsert_user_token",
     "get_user_token",
     "delete_user_token",

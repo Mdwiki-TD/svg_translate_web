@@ -11,7 +11,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="col-sm-12 col-md-4">
             <label for="title" class="form-label">Template Title</label>
-            <input type="text" class="form-control" id="title" name="title"
+            <input type="text" class="form-control wiki-autocomplete" id="title" name="title"
                 value="{{ form.title if form and form.title else 'Template:OWID/death rate from obesity'}}" required>
         </div>
         <div class="col-sm-12 col-md-4">

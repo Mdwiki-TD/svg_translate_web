@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....api_services.text_bot import get_wikitext
+from ....api_services.query_api import get_wikitext
 
 logger = logging.getLogger(__name__)
 

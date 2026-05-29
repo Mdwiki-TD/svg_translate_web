@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 class AdminUserRecord(db.Model):
     """
     CREATE TABLE `admin_users` (
-      `id` int(11) NOT NULL AUTO_INCREMENT,
-      `username` varchar(255) NOT NULL,
-      `is_active` tinyint(1) NOT NULL DEFAULT 1,
-      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-      PRIMARY KEY (`id`),
-      UNIQUE KEY `username` (`username`)
+        `id` int NOT NULL AUTO_INCREMENT,
+        `username` varchar(255) NOT NULL,
+        `is_active` tinyint(1) NOT NULL DEFAULT '0',
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `username` (`username`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
 
@@ -29,7 +29,7 @@ class AdminUserRecord(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(255), unique=True, nullable=False)
-    is_active = Column(Boolean, nullable=False, default=True)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="0")
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(
