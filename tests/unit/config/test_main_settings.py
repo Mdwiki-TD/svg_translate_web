@@ -53,7 +53,7 @@ def test_get_paths():
     assert Path(result.svg_data_thumb) == Path("/tmp/main/svg_data_thumb")
     assert Path(result.log_dir) == Path("/tmp/main/logs")
     assert Path(result.fix_nested_data) == Path("/tmp/main/fix_nested_data")
-    assert Path(result.svg_jobs_path) == Path("/tmp/main/svg_jobs")
+    assert Path(result.jobs_path) == Path("/tmp/main/svg_jobs")
 
 
 def test_env_bool():

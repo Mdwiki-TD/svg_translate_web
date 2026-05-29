@@ -84,7 +84,7 @@ class FixNestedJobsProcessor:
         self.result["status"] = "running"
         self._save_progress()
 
-        self.session = create_commons_session(settings.user_agent)
+        self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.filename:

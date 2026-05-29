@@ -39,18 +39,6 @@ def app_mock(monkeypatch: pytest.MonkeyPatch) -> Flask:
     return app
 
 
-def test_login_required_redirects_when_anonymous(app_mock: Flask) -> None:
-    @routes.login_required
-    def protected() -> str:
-        return "protected"
-
-    with app_mock.test_request_context("/protected"):
-        g.is_authenticated = False
-        response = protected()
-
-    assert response.status_code == 302
-
-
 def test_login_success_flow(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyLimiter:
         def __init__(self) -> None:

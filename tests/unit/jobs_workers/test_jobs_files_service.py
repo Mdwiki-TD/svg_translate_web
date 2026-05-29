@@ -76,7 +76,7 @@ def test_load_job_result_with_invalid_json(tmp_path):
 
 
 def test_get_jobs_data_dir_not_configured(monkeypatch: pytest.MonkeyPatch):
-    """Test get_jobs_data_dir raises error when svg_jobs_path is not configured."""
+    """Test get_jobs_data_dir raises error when jobs_path is not configured."""
     from types import SimpleNamespace
 
     mock_settings = SimpleNamespace(paths=SimpleNamespace())
@@ -97,7 +97,7 @@ def test_get_jobs_data_dir_creates_directory(tmp_path, monkeypatch: pytest.Monke
     jobs_dir = tmp_path / "jobs"
     assert not jobs_dir.exists()
 
-    mock_settings = SimpleNamespace(paths=SimpleNamespace(svg_jobs_path=str(jobs_dir)))
+    mock_settings = SimpleNamespace(paths=SimpleNamespace(jobs_path=str(jobs_dir)))
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.settings", mock_settings)
     get_jobs_data_dir.cache_clear()
 

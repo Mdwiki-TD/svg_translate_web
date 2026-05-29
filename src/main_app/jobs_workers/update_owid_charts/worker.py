@@ -15,8 +15,9 @@ Skipped reasons:
 """
 
 from __future__ import annotations
-import re
+
 import logging
+import re
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -171,11 +172,13 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.error = "Could not fetch metadata JSON"
             self.result["summary"]["failed"] += 1
             # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append({
-                "status": "failed",
-                "slug": chart.slug,
-                "error": "Could not fetch metadata JSON",
-            })
+            self.result["charts_processed"].append(
+                {
+                    "status": "failed",
+                    "slug": chart.slug,
+                    "error": "Could not fetch metadata JSON",
+                }
+            )
             return
 
         # 2. Find a timespan
@@ -187,11 +190,13 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.skip_reason = "no_timespan"
             self.result["summary"]["skipped"] += 1
             # self.result["charts_processed"].appenkd(info.to_dict())
-            self.result["charts_processed"].append({
-                "status": "skipped",
-                "slug": chart.slug,
-                "skip_reason": "no_timespan",
-            })
+            self.result["charts_processed"].append(
+                {
+                    "status": "skipped",
+                    "slug": chart.slug,
+                    "skip_reason": "no_timespan",
+                }
+            )
             return
 
         # 3. Parse timespan
@@ -201,11 +206,13 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.error = f"Could not parse timespan: '{timespan_raw}'"
             self.result["summary"]["failed"] += 1
             # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append({
-                "status": "failed",
-                "slug": chart.slug,
-                "error": f"Could not parse timespan: '{timespan_raw}'",
-            })
+            self.result["charts_processed"].append(
+                {
+                    "status": "failed",
+                    "slug": chart.slug,
+                    "error": f"Could not parse timespan: '{timespan_raw}'",
+                }
+            )
             return
 
         min_t, max_t, len_y = parsed
@@ -219,11 +226,13 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.skip_reason = "no_change"
             self.result["summary"]["skipped"] += 1
             # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append({
-                "status": "skipped",
-                "slug": chart.slug,
-                "skip_reason": "no_change",
-            })
+            self.result["charts_processed"].append(
+                {
+                    "status": "skipped",
+                    "slug": chart.slug,
+                    "skip_reason": "no_change",
+                }
+            )
             return
 
         # 5. Update DB

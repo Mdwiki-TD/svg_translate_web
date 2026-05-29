@@ -21,8 +21,8 @@ def is_redirect(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).is_redirect()
 
 
-def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, any]:
-    return MwClientPage(title, site).edit_page(text, summary)
+def edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
+    return MwClientPage(title, site).edit_page(text, summary, nocreate=nocreate)
 
 
 def move_page(

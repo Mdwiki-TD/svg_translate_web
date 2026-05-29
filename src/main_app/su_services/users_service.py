@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar, cast
@@ -13,7 +14,8 @@ from ..config import settings
 from ..db.models import UserTokenRecord
 from ..db.services import active_coordinators, get_user_token
 
-F = TypeVar("F", bound=Callable[..., Any])
+FuncType = TypeVar("FuncType", bound=Callable[..., Any])
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -45,8 +47,12 @@ def current_user() -> Optional[UserTokenRecord]:
             user_id = extract_user_id(signed)
             if user_id is not None:
                 session["uid"] = user_id
+    try:
+        user = get_user_token(user_id) if user_id is not None else None
+    except Exception as e:
+        logger.error("Error loading user token: %s", e)
+        user = None
 
-    user = get_user_token(user_id) if user_id is not None else None
     if user and session.get("username") != user.username:
         session["username"] = user.username
 
@@ -54,7 +60,7 @@ def current_user() -> Optional[UserTokenRecord]:
     return user
 
 
-def oauth_required(func: F) -> F:  # noqa: UP047
+def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
     """Decorator that requires a full OAuth credential bundle."""
 
     @wraps(func)
@@ -64,7 +70,7 @@ def oauth_required(func: F) -> F:  # noqa: UP047
             return redirect(url_for("auth.login"))
         return func(*args, **kwargs)
 
-    return cast(F, wrapper)
+    return cast(FuncType, wrapper)
 
 
 def context_user() -> dict[str, Any]:
@@ -78,3 +84,11 @@ def context_user() -> dict[str, Any]:
         "is_admin": bool(user and user.username in active_coordinators()),
         "username": user.username if user else None,
     }
+
+
+__all__ = [
+    "CurrentUser",
+    "current_user",
+    "oauth_required",
+    "context_user",
+]

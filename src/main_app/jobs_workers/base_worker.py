@@ -18,14 +18,14 @@ from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
 
-F = TypeVar("F", bound=Callable[..., Any])
+FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
 
 def job_exception_handler(
     result_file: str,
     job_id: int,
     job_type: str,
-) -> Callable[[F], F]:
+) -> Callable[[FuncType], FuncType]:
     """Decorator that wraps job execution with standardized exception handling.
 
     This decorator provides:
@@ -42,7 +42,7 @@ def job_exception_handler(
         Decorated function with exception handling
     """
 
-    def decorator(func: F) -> F:
+    def decorator(func: FuncType) -> FuncType:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:

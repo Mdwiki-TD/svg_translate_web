@@ -3,6 +3,7 @@ from src.main_app.config.classes import (
     DbConfig,
     JobsConfig,
     OAuthConfig,
+    OtherConfig,
     Paths,
     SecurityConfig,
     SessionConfig,
@@ -32,7 +33,7 @@ def test_Paths():
         svg_data_thumb="/svg/thumb",
         log_dir="/logs",
         fix_nested_data="/fix/nested",
-        svg_jobs_path="/jobs",
+        jobs_path="/jobs",
         main_files_path="/main_files",
         crop_main_files_path="/crop_main_files",
     )
@@ -41,7 +42,7 @@ def test_Paths():
     assert paths.svg_data_thumb == "/svg/thumb"
     assert paths.log_dir == "/logs"
     assert paths.fix_nested_data == "/fix/nested"
-    assert paths.svg_jobs_path == "/jobs"
+    assert paths.jobs_path == "/jobs"
     assert paths.main_files_path == "/main_files"
     assert paths.crop_main_files_path == "/crop_main_files"
 
@@ -76,7 +77,15 @@ def test_Settings():
     # Create a minimal settings object for testing
     db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
-    paths = Paths("/svg", "/thumb", "/logs", "/fix", "/jobs", "/main_files", "/crop_main_files")
+    paths = Paths(
+        log_dir="/logs",
+        jobs_path="/jobs",
+        main_files_path="/main_files",
+        svg_data="/svg",
+        svg_data_thumb="/thumb",
+        fix_nested_data="/fix",
+        crop_main_files_path="/crop_main_files",
+    )
 
     jobs_config = JobsConfig(
         dev_limit=0,
@@ -97,9 +106,12 @@ def test_Settings():
         request_token_key="request",
     )
 
-    settings = Settings(
+    other_config = OtherConfig(
         user_agent="user_agent",
         csrf_time_limit=3600,
+    )
+
+    settings = Settings(
         database_data=db_config,
         cookie=cookie_config,
         sessions=sessions,
@@ -107,6 +119,7 @@ def test_Settings():
         paths=paths,
         jobs=jobs_config,
         security=security_config,
+        other=other_config,
     )
 
     assert settings.jobs.upload_host == "upload.example.com"
@@ -116,4 +129,4 @@ def test_Settings():
     assert settings.paths.svg_data == "/svg"
     assert settings.jobs.dev_limit == 0
     assert settings.security.max_content_length == 100 * 1024 * 1024
-    assert settings.csrf_time_limit == 3600
+    assert settings.other.csrf_time_limit == 3600

@@ -324,7 +324,6 @@ class JobsPublicRoutes:
             )
 
         @bp_jobs.get("/read-job-result-file/<path:result_file>")
-        # @login_required
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
             result_data = load_job_result(result_file)

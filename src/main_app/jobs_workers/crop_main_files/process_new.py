@@ -200,7 +200,7 @@ class CropMainFilesProcessor:
             )
             return False
 
-        self.session = create_commons_session(settings.user_agent)
+        self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.site:

@@ -3,9 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 # --- Data Classes for Configuration Sections ---
+
+
+@dataclass(frozen=True)
+class OtherConfig:
+    """configs not in specific sections"""
+
+    csrf_time_limit: Optional[int]  # None means never expire
+    user_agent: str
+
+
+@dataclass(frozen=True)
+class JobsConfig:
+    """Configuration for jobs."""
+
+    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
+    disable_uploads: str
+    upload_host: str
 
 
 @dataclass(frozen=True)
@@ -26,12 +43,12 @@ class DbConfig:
 
 @dataclass(frozen=True)
 class Paths:
+    log_dir: str
+    jobs_path: str
+    main_files_path: str
     svg_data: str
     svg_data_thumb: str
-    log_dir: str
     fix_nested_data: str
-    svg_jobs_path: str
-    main_files_path: str
     crop_main_files_path: str
 
 
@@ -68,15 +85,6 @@ class CorsConfig:
 
 
 @dataclass(frozen=True)
-class JobsConfig:
-    """Configuration for jobs."""
-
-    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
-    disable_uploads: str
-    upload_host: str
-
-
-@dataclass(frozen=True)
 class SecurityConfig:
     """Security configuration for Flask 3.1+ features."""
 
@@ -91,19 +99,16 @@ class SecurityConfig:
 class Settings:
     """Main settings container."""
 
-    user_agent: str
-
     # Nested configurations
     database_data: DbConfig
     paths: Paths
     cookie: CookieConfig
     sessions: SessionConfig
     oauth: OAuthConfig
-    # cors: CorsConfig
     security: SecurityConfig
+    other: OtherConfig
     jobs: JobsConfig
-
-    csrf_time_limit: int | None  # None means never expire
+    # cors: CorsConfig
 
 
 __all__ = [
@@ -112,6 +117,9 @@ __all__ = [
     "CookieConfig",
     "SessionConfig",
     "OAuthConfig",
-    "CorsConfig",
+    "JobsConfig",
     "Settings",
+    "OtherConfig",
+    "SecurityConfig",
+    "CorsConfig",
 ]

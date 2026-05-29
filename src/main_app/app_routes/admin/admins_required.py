@@ -15,10 +15,10 @@ from flask.typing import ResponseReturnValue
 from ...db.services import active_coordinators
 from ...su_services.users_service import current_user
 
-F = TypeVar("F", bound=Callable[..., ResponseReturnValue])
+FuncType = TypeVar("FuncType", bound=Callable[..., ResponseReturnValue])
 
 
-def admin_required(view: F) -> F:  # noqa: UP047
+def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
     """Decorator enforcing that the current user is an administrator."""
 
     @wraps(view)
@@ -30,4 +30,4 @@ def admin_required(view: F) -> F:  # noqa: UP047
             abort(403)
         return view(*args, **kwargs)
 
-    return cast(F, wrapped)
+    return cast(FuncType, wrapped)

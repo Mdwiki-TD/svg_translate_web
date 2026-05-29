@@ -7,38 +7,19 @@ from __future__ import annotations
 import logging
 from typing import Any, Tuple, Type
 
+import sqlalchemy
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
-from .app_routes import (
-    bp_admin,
-    bp_api,
-    bp_auth,
-    bp_explorer,
-    bp_extract,
-    bp_jobs,
-    bp_main,
-    bp_owid_charts,
-)
+from .app_routes import register_blueprints
 from .core.cookies import CookieHeaderClient
 from .db import init_db
 from .extensions import db as _db
 from .extensions import migrate
 from .su_services.users_service import context_user
-from .utils import format_stage_timestamp, short_url
+from .utils.jinja_filters import filters
 
 logger = logging.getLogger(__name__)
-
-
-def register_blueprints(app: Flask) -> None:
-    app.register_blueprint(bp_main)
-    app.register_blueprint(bp_explorer)
-    app.register_blueprint(bp_jobs)
-    app.register_blueprint(bp_admin)
-    app.register_blueprint(bp_auth)
-    app.register_blueprint(bp_extract)
-    app.register_blueprint(bp_owid_charts)
-    app.register_blueprint(bp_api)
 
 
 def register_error_pages(app: Flask):
@@ -85,6 +66,23 @@ def register_error_pages(app: Flask):
         return render_template("index.html", title="Session Expired"), 400
 
 
+def init_app_and_db(app, _db) -> bool:
+    _db.init_app(app)
+    migrate.init_app(app, _db)
+
+    try:
+        with app.app_context():
+            # Create database tables and views if they don't exist
+            init_db(_db)
+        return True
+    except sqlalchemy.exc.OperationalError as exc:
+        logger.error("Failed to create tables: %s", exc)
+    except Exception as e:
+        logger.error("Failed to create tables: %s", e)
+
+    return False
+
+
 def create_app(config_class: Type) -> Flask:
     """Instantiate and configure the Flask application.
 
@@ -113,20 +111,11 @@ def create_app(config_class: Type) -> Flask:
     # Initialize CSRF protection
     csrf = CSRFProtect(app)  # noqa: F841
 
-    # Initialize Flask-SQLAlchemy and Flask-Migrate
-    if app.config.get("SQLALCHEMY_DATABASE_URI"):
-        _db.init_app(app)
-        migrate.init_app(app, _db)
-
-        # Create database tables and views if they don't exist
-        init_db(app, _db)
-
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
         return context_user()
 
-    app.jinja_env.filters["format_stage_timestamp"] = format_stage_timestamp
-    app.jinja_env.filters["short_url"] = short_url
+    app.jinja_env.filters.update(filters)
 
     @app.teardown_appcontext
     def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
@@ -138,7 +127,23 @@ def create_app(config_class: Type) -> Flask:
         #     logger.debug("Failed to close cached DB during teardown", exc_info=True)
         pass
 
+    db_is_ok = True
+    # Initialize Flask-SQLAlchemy and Flask-Migrate
+    if app.config.get("SQLALCHEMY_DATABASE_URI"):
+        db_is_ok = init_app_and_db(app, _db)
+
     register_error_pages(app)
-    register_blueprints(app)
+
+    if db_is_ok:
+        register_blueprints(app)
+    else:
+
+        @app.before_request
+        def db_error_fallback():
+            from flask import request
+
+            if request.endpoint == "static":
+                return None
+            return render_template("index_db_error.html"), 503
 
     return app

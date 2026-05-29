@@ -22,7 +22,7 @@ def get_category_members_api(category, project, limit=500):
 
     api_url = f"https://{project}/w/api.php"
     session = requests.Session()
-    session.headers.update({"User-Agent": settings.user_agent})
+    session.headers.update({"User-Agent": settings.other.user_agent})
 
     params = {"action": "query", "list": "categorymembers", "cmtitle": category, "cmlimit": limit, "format": "json"}
 

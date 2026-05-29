@@ -80,9 +80,9 @@ def copy_svg_langs_worker_entry(
     """Entry point for the background job."""
     worker = CopySvgLangsWorker(
         task_id=task_id,
-        args=args,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 

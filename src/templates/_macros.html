@@ -1,3 +1,21 @@
+{%- macro flash_messages() -%}
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
+<div class="container">
+    <div class="alert-stack mb-4">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+{%- endmacro -%}
+
+
 {# Card header macro for collapsible cards #}
 {% macro card_header(title) %}
 <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
@@ -8,4 +26,22 @@
         </button>
     </div>
 </div>
+{% endmacro %}
+
+{% macro nav_link(endpoint, icon, text, url, title="") %}
+{% set is_active = request and request.endpoint and request.endpoint.startswith(endpoint) %}
+<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
+    {% endif %} title="{{ title }}">
+    <i class="bi {{ icon }}"></i> {{ text }}
+</a>
+{% endmacro %}
+
+
+{% macro nav_link_with_args(endpoint, icon, text, url, path) %}
+{# check endpoint and job_type in URL #}
+{% set is_active = request and request.path and request.path.startswith(path) %}
+<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
+    {% endif %} title="{{ text }}">
+    <i class="bi {{ icon }}"></i> {{ text }}
+</a>
 {% endmacro %}

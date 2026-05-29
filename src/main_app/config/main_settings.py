@@ -6,11 +6,12 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from .classes import (  # CorsConfig,
+from .classes import (
     CookieConfig,
     DbConfig,
     JobsConfig,
     OAuthConfig,
+    OtherConfig,
     Paths,
     SecurityConfig,
     SessionConfig,
@@ -83,6 +84,7 @@ def _load_database_config() -> DbConfig:
     Construct a DbConfig populated from environment variables.
 
     Reads TOOL_TOOLSDB_DBNAME and TOOL_TOOLSDB_HOST (defaulting to empty string) and TOOL_TOOLSDB_USER and TOOL_TOOLSDB_PASSWORD (defaulting to None) and returns a DbConfig with those values.
+
     Returns:
         DbConfig: Configuration with fields:
             - db_name: from TOOL_TOOLSDB_DBNAME (default "").
@@ -139,7 +141,7 @@ def _get_paths() -> Paths:
             - svg_data_thumb: path for SVG thumbnails
             - log_dir: path for log files
             - fix_nested_data: path for nested-fix data
-            - svg_jobs_path: path for SVG job files
+            - jobs_path: path for SVG job files
             - main_files_path: path for main files
     """
     main_dir = os.getenv("MAIN_DIR", "~/data")
@@ -157,7 +159,7 @@ def _get_paths() -> Paths:
         "svg_data_thumb": f"{main_dir}/svg_data_thumb",
         "log_dir": f"{main_dir}/logs",
         "fix_nested_data": f"{main_dir}/fix_nested_data",
-        "svg_jobs_path": f"{main_dir}/svg_jobs",
+        "jobs_path": f"{main_dir}/svg_jobs",
         "main_files_path": f"{main_dir}/main_files",
         "crop_main_files_path": crop_main_files_path,
     }
@@ -166,6 +168,25 @@ def _get_paths() -> Paths:
         Path(dir_name).mkdir(parents=True, exist_ok=True)
 
     return Paths(**_dirs)
+
+
+def load_other_config() -> OtherConfig:
+    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
+    # Set to 0 or None to disable expiration (not recommended for production).
+    csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
+    if not csrf_time_limit or csrf_time_limit <= 0:
+        csrf_time_limit = 3600
+
+    user_agent = os.getenv(
+        "USER_AGENT",
+        "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
+    )
+    _config = OtherConfig(
+        csrf_time_limit=csrf_time_limit,
+        user_agent=user_agent,
+    )
+
+    return _config
 
 
 def load_cookie_config() -> CookieConfig:
@@ -182,6 +203,20 @@ def load_cookie_config() -> CookieConfig:
     )
 
     return cookie
+
+
+def _load_jobs_config() -> JobsConfig:
+    # Load download configuration
+    # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
+    dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
+
+    _config = JobsConfig(
+        dev_limit=dev_download_limit,
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
+    )
+
+    return _config
 
 
 @lru_cache(maxsize=1)
@@ -212,30 +247,12 @@ def get_settings() -> Settings:
 
     cookie_config = load_cookie_config()
 
-    # CSRF token lifetime (in seconds). Default 3600 (1 hour).
-    # Set to 0 or None to disable expiration (not recommended for production).
-    csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
-    if not csrf_time_limit or csrf_time_limit <= 0:
-        csrf_time_limit = 3600
+    other_config = load_other_config()
 
-    # Load download configuration
-    # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
-    dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
-
-    jobs_config = JobsConfig(
-        dev_limit=dev_download_limit,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
-    )
     database_data = _load_database_config()
-
-    user_agent = os.getenv(
-        "USER_AGENT",
-        "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-    )
+    jobs_config = _load_jobs_config()
 
     return Settings(
-        user_agent=user_agent,
         paths=_get_paths(),
         database_data=database_data,
         cookie=cookie_config,
@@ -243,7 +260,7 @@ def get_settings() -> Settings:
         security=security_config,
         sessions=sessions,
         jobs=jobs_config,
-        csrf_time_limit=csrf_time_limit,
+        other=other_config,
     )
 
 

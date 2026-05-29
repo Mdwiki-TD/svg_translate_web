@@ -1,9 +1,9 @@
-import requests
+import json
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-import time
-import json
 
+import requests
 
 output_dir = Path(__file__).parent / "owid_metadata"
 json_sitemap = Path(__file__).parent / "sitemap.json"
@@ -36,13 +36,13 @@ def download_owid_grapher_metadata(limit=None):
         return
 
     # Define XML namespaces used in standard sitemaps
-    namespaces = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+    namespaces = {"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 
     # Extract all <loc> tags
-    loc_elements = root.findall('.//ns:loc', namespaces)
+    loc_elements = root.findall(".//ns:loc", namespaces)
     if not loc_elements:
         # Fallback if no namespace is matched
-        loc_elements = root.findall('.//loc')
+        loc_elements = root.findall(".//loc")
 
     print(f"Found {len(loc_elements)} total URLs in sitemap.")
 
@@ -95,6 +95,6 @@ def download_owid_grapher_metadata(limit=None):
     print(f"\nProcess completed! Successfully saved {count} files to '{output_dir}' directory.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Change limit to None to download all available files without restriction
     download_owid_grapher_metadata(limit=10)

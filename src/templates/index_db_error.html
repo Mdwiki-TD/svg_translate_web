@@ -1,4 +1,6 @@
-<!doctype html>
+{%- from "_macros.html" import flash_messages -%}
+
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 
 {% set cdn_base = "https://tools-static.wmflabs.org/cdnjs/ajax/libs" %}
@@ -21,32 +23,49 @@
         html {
             font-size: 16px;
         }
-
-        a {
-            text-decoration: none;
-        }
     </style>
-    {% block extra_css %}{% endblock %}
 </head>
 
-{% set status_classes = {
-    "Completed": "success",
-    "Failed": "danger",
-    "Skipped": "warning",
-    "Running": "primary",
-    "Pending": "secondary",
-    "Cancelled": "warning",
-    "error": "danger"
-} %}
-
-{%- from "_macros.html" import flash_messages -%}
-
 <body>
-    {% include "_navbar.html" %}
+    {% from "_macros.html" import nav_link %}
+    {% from "_macros.html" import nav_link_with_args %}
+    {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
+
+    <header>
+        <nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Copy SVG Translation</a>
+                <div class="d-flex align-items-center order-lg-last">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm ms-2" id="darkModeToggle" type="button"
+                        aria-label="Toggle dark mode">
+                        <i class="bi bi-moon-stars-fill"></i>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                </div>
+            </div>
+        </nav>
+    </header>
+
     {{ flash_messages() }}
 
-    <div class="py-1">
-        {% block content %}{% endblock %}
+    <div class="container">
+        <div class="card">
+            <div class="card-header" style="font-weight:bold;">
+                <h3>{{ title or "Svg tools" }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="flash-messages mt-2 mb-2">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Database Error!</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src='{{ cdn_base }}/jquery/3.7.1/jquery.min.js'></script>
@@ -61,16 +80,8 @@
     <!-- Dark mode toggle script -->
     <script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/card-tools.js') }}"></script>
-
-    {% block extra_js %}{% endblock %}
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script>
-        $(document).ready(function () {
-            $('.DataTable').DataTable({
-                responsive: true,
-                pageLength: 100,
-            });
-        });
     </script>
 </body>
 

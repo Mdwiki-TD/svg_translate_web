@@ -15,7 +15,6 @@ start_bot copy.py
 .claude/settings.local.json
 .coverage
 .claude/settings.json
-/.claude/skills/mwclient
 coverage.xml
 /MagicMock
 memory.sqlite3
