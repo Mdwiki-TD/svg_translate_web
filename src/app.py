@@ -15,7 +15,7 @@ from main_app import create_app  # noqa: E402
 from main_app.config import ProductionConfig  # noqa: E402
 from logger_config import configure_logging  # noqa: E402
 
-configure_logging(logging.WARNING)
+configure_logging(logging.WARNING, use_colorlog=False)
 
 app = create_app(ProductionConfig)
 
