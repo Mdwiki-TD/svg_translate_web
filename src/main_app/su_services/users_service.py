@@ -79,6 +79,7 @@ def context_user() -> dict[str, Any]:
         "username": user.username if user else None,
     }
 
+
 __all__ = [
     "CurrentUser",
     "current_user",

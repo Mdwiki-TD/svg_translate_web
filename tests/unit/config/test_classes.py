@@ -85,7 +85,7 @@ def test_Settings():
         svg_data_thumb="/thumb",
         fix_nested_data="/fix",
         crop_main_files_path="/crop_main_files",
-        )
+    )
 
     jobs_config = JobsConfig(
         dev_limit=0,
