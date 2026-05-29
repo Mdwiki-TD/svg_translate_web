@@ -10,7 +10,7 @@ from flask import (
     request,
 )
 
-from ...db.services import list_jobs
+from ...db.services import list_jobs, list_users
 from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
 from ..admin_routes import (
     bp_coordinators,
@@ -60,6 +60,21 @@ def admin_dashboard():
         )
 
     return render_template("admins/admin.html", jobs=enhanced_jobs)
+
+
+@bp_admin.get("/users")
+@admin_required
+def users_dashboard() -> str:
+    """Render the coordinator management dashboard."""
+
+    users = list_users()
+    total = len(users)
+
+    return render_template(
+        "admins/users.html",
+        users=users,
+        total_users=total,
+    )
 
 
 def register_blueprints(bp_admin) -> None:

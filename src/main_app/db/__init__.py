@@ -19,7 +19,11 @@ def init_db(_db) -> None:
 
     # Create only real tables; skip view-backed mapped classes
     real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-    _db.metadata.create_all(_db.engine, tables=real_tables, checkfirst=True)
+    _db.metadata.create_all(
+        _db.engine,
+        tables=real_tables,
+        checkfirst=True,
+    )
 
     from sqlalchemy import inspect as sa_inspect
 
@@ -31,15 +35,14 @@ def init_db(_db) -> None:
                 continue
 
             if not table.info.get("create_query"):
-                logger.warning("View %s has no create_query, skipping", table.name)
+                logger.warning(f"View {table.name} has no create_query, skipping")
                 continue
 
             if table.name in existing_views:
                 continue
             try:
-                create_sql = table.info["create_query"]
-                conn.execute(text(create_sql))
-                conn.commit()
+                with conn.begin():
+                    create_sql = table.info["create_query"]
+                    conn.execute(text(create_sql))
             except Exception:
-                conn.rollback()
                 logger.exception("Failed to create view %s", table.name)
