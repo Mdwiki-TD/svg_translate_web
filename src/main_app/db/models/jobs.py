@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Column, DateTime, Integer, String, func, text
+from sqlalchemy import Column, DateTime, Integer, String, func
 
 from ...extensions import db
 

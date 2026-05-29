@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Column, Enum, Integer, String, Text, text
+from sqlalchemy import Column, Enum, Integer, String, Text
 
 from ...extensions import db
 

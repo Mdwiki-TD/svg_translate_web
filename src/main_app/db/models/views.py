@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Column, Integer, String, text
+from sqlalchemy import Column, Integer, String
 
 from ...extensions import db
 

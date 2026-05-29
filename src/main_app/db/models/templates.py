@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Integer, String, func, text
+from sqlalchemy import Column, DateTime, Integer, String, func
 
 from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
