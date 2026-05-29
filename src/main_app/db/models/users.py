@@ -29,7 +29,7 @@ class AdminUserRecord(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(255), unique=True, nullable=False)
-    is_active = Column(Boolean, nullable=False, default=True, server_default=text("0"))
+    is_active = Column(Boolean, nullable=False, default=True, server_default="0")
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(

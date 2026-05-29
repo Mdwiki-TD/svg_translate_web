@@ -31,7 +31,7 @@ class JobRecord(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_type = Column(String(255), nullable=False)
     username = Column(String(255), nullable=True)
-    status = Column(String(50), nullable=False, server_default=text("pending"))
+    status = Column(String(50), nullable=False, server_default="pending")
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     result_file = Column(String(500), nullable=True)
