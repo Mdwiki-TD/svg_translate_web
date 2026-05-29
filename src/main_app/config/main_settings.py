@@ -177,6 +177,8 @@ def load_other_config() -> OtherConfig:
     if not csrf_time_limit or csrf_time_limit <= 0:
         csrf_time_limit = 3600
 
+    static_server = os.getenv("STATIC_SERVER") or "https://tools-static.wmflabs.org/cdnjs"
+
     user_agent = os.getenv(
         "USER_AGENT",
         "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
@@ -184,6 +186,7 @@ def load_other_config() -> OtherConfig:
     _config = OtherConfig(
         csrf_time_limit=csrf_time_limit,
         user_agent=user_agent,
+        static_server=static_server,
     )
 
     return _config
