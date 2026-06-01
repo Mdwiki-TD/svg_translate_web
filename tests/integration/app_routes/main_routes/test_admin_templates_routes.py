@@ -40,7 +40,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user():
         return admin_user
 
-    monkeypatch.setattr("src.main_app.su_services.users_service.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
