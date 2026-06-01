@@ -7,23 +7,23 @@ from __future__ import annotations
 import logging
 from typing import Any, Tuple, Type
 
-import sqlalchemy
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import register_blueprints
-from .app_routes.utils.routes_utils import context_user
-from .config import settings
+from .app_routes.utils import context_user
+from .config import ensure_directories, settings
 from .core.cookies import CookieHeaderClient
+from .core.jinja_filters import filters
 from .db import init_db
+from .db.exceptions import DatabaseInitError
 from .extensions import db as _db
 from .extensions import migrate
-from .utils.jinja_filters import filters
 
 logger = logging.getLogger(__name__)
 
 
-def register_error_pages(app: Flask):
+def register_error_pages(app: Flask) -> None:
     @app.errorhandler(400)
     def bad_request(e: Exception) -> Tuple[str, int]:
         """Handle 400 errors"""
@@ -76,8 +76,8 @@ def init_app_and_db(app, _db) -> bool:
             # Create database tables and views if they don't exist
             init_db(_db)
         return True
-    except sqlalchemy.exc.OperationalError as exc:
-        logger.error("Failed to create tables: %s", exc)
+    except DatabaseInitError as exc:
+        logger.error("%s", exc)
     except Exception as e:
         logger.error("Failed to create tables: %s", e)
 
@@ -114,7 +114,7 @@ def create_app(config_class: Type) -> Flask:
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
-        return context_user(None, settings.other.static_server)
+        return context_user(settings.other.wiki_domain, settings.other.static_server)
 
     app.jinja_env.filters.update(filters)
 
@@ -133,6 +133,7 @@ def create_app(config_class: Type) -> Flask:
     if app.config.get("SQLALCHEMY_DATABASE_URI"):
         db_is_ok = init_app_and_db(app, _db)
 
+    ensure_directories()
     register_error_pages(app)
 
     if db_is_ok:
@@ -148,3 +149,10 @@ def create_app(config_class: Type) -> Flask:
             return render_template("index_db_error.html"), 503
 
     return app
+
+
+__all__ = [
+    "register_error_pages",
+    "init_app_and_db",
+    "create_app",
+]
