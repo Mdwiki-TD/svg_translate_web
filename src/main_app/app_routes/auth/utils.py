@@ -15,6 +15,7 @@ from ...su_services.users_service import UserService
 from .cookie import extract_user_id
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
+
 logger = logging.getLogger(__name__)
 
 
