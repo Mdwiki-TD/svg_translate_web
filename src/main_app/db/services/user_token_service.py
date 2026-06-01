@@ -17,36 +17,7 @@ from ..models import UserTokenRecord
 logger = logging.getLogger(__name__)
 
 
-def create_user(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
-    """Create a user identity row. Idempotent — returns existing if present."""
-    username = (username or "").strip()
-
-    existing = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
-    if existing:
-        return existing
-
-    encrypted_token = encrypt_value(access_key)
-    encrypted_secret = encrypt_value(access_secret)
-
-    now = func.current_timestamp()
-
-    record = UserTokenRecord(
-        username=username,
-        access_token=encrypted_token,
-        access_secret=encrypted_secret,
-        created_at=now,
-        updated_at=now,
-        last_used_at=now,
-        rotated_at=None,
-    )
-    db.session.add(record)
-    try:
-        db.session.commit()
-        db.session.refresh(record)
-    except Exception:
-        db.session.rollback()
-        raise
-    return record
+# ── SELECT ───────────────────────────────────────────────
 
 
 def list_users() -> list[UserTokenRecord]:
@@ -88,9 +59,46 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
     return orm_obj
 
 
-def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
-    """Insert or update the encrypted OAuth credentials for a user."""
+# ── INSERT, UPDATE, SET ──────────────────────────────────
 
+
+def create_user(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
+    """Create a user identity row. Idempotent — returns existing if present."""
+    username = (username or "").strip()
+
+    existing = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
+    if existing:
+        return existing
+
+    encrypted_token = encrypt_value(access_key)
+    encrypted_secret = encrypt_value(access_secret)
+
+    now = func.current_timestamp()
+
+    record = UserTokenRecord(
+        username=username,
+        access_token=encrypted_token,
+        access_secret=encrypted_secret,
+        created_at=now,
+        updated_at=now,
+        last_used_at=now,
+        rotated_at=None,
+    )
+    db.session.add(record)
+    try:
+        db.session.commit()
+        db.session.refresh(record)
+    except Exception:
+        db.session.rollback()
+        raise
+    return record
+
+
+
+def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+    """
+    update the encrypted OAuth credentials for a user.
+    """
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
     now = func.current_timestamp()
@@ -103,8 +111,13 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
         orm_obj.last_used_at = now
         orm_obj.rotated_at = now
 
-    db.session.commit()
+        db.session.commit()
+        db.session.refresh(orm_obj)
     return orm_obj
+
+
+
+# ── DELETE ───────────────────────────────────────────────
 
 
 def delete_user_token(user_id: int) -> bool:
