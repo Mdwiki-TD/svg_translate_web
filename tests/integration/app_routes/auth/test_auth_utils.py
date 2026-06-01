@@ -1,6 +1,6 @@
 from flask import session
 
-from src.main_app.su_services.users_service import (
+from src.main_app.app_routes.auth.utils import (
     _resolve_user_id,
 )
 

@@ -17,6 +17,8 @@ class CurrentUser:
     user_id: str
     username: str
 
+class UserService:
+    ...
 
 __all__ = [
     "UserService",

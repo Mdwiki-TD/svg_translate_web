@@ -1,5 +1,7 @@
 """
+
 SQLAlchemy-based service for managing coordinators.
+
 """
 
 from __future__ import annotations
@@ -7,16 +9,34 @@ from __future__ import annotations
 import logging
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from ...extensions import db
+from ..exceptions import UserNotFoundError
 from ..models import AdminUserRecord
 
 logger = logging.getLogger(__name__)
 
+# ── SELECT ───────────────────────────────────────────────
+
+
+def is_active_coordinator(username: str) -> bool:
+    """Check whether a single username is an active coordinator."""
+    return (
+        db.session.query(AdminUserRecord)
+        .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
+        .first()
+        is not None
+    )
+
 
 def list_coordinators() -> List[AdminUserRecord]:
-    """Return all coordinators."""
-    return db.session.query(AdminUserRecord).all()
+    """
+    Return all coordinators from the database.
 
+    Returns a list of records, or an empty list on failure.
+    """
+    return db.session.query(AdminUserRecord).all()
 
 def active_coordinators() -> list[str]:
     """Get a list of active coordinator usernames from the database."""
@@ -38,6 +58,9 @@ def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
     return record
 
 
+# ── INSERT, UPDATE, SET ──────────────────────────────────
+
+
 def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
 
@@ -51,7 +74,13 @@ def add_coordinator(username: str) -> AdminUserRecord:
 
     record = AdminUserRecord(username=username, is_active=True)
     db.session.add(record)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError as exc:
+        db.session.rollback()
+        if "a foreign key constraint fails" in str(exc):
+            raise UserNotFoundError(f"User '{username}' does not exist") from exc
+        raise
     db.session.refresh(record)
     return record
 
@@ -67,23 +96,28 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
         return record
 
 
-def delete_coordinator(coordinator_id: int) -> bool:
-    """Delete a coordinator."""
-    # record = get_coordinator_by_id(coordinator_id)
-    record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
+# ── DELETE ───────────────────────────────────────────────
 
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
+
+def delete_coordinator(coordinator_id: int) -> bool:
+    """
+    Delete a coordinator efficiently.
+
+    Returns True if rows were affected, False otherwise (or on failure).
+    """
+    affected_rows = (
+        db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).delete(synchronize_session=False)
+    )
+    db.session.commit()
+    return affected_rows > 0
 
 
 __all__ = [
-    "get_coordinator_by_id",
-    "list_coordinators",
-    "active_coordinators",
     "add_coordinator",
-    "set_coordinator_active",
     "delete_coordinator",
+    "get_coordinator_by_id",
+    "is_active_coordinator",
+    "list_coordinators",
+    "set_coordinator_active",
+    "active_coordinators",
 ]
