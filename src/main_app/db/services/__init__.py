@@ -1,4 +1,5 @@
 from .admin_service import (
+    is_active_coordinator,
     active_coordinators,
     add_coordinator,
     delete_coordinator,
@@ -44,6 +45,7 @@ from .template_service import (
     update_template_data,
 )
 from .user_token_service import (
+    get_authenticated_user_token,
     delete_user_token,
     get_user_token,
     get_user_token_by_username,
@@ -55,11 +57,13 @@ __all__ = [
     # user_token_service
     "upsert_user_token",
     "get_user_token",
+    "get_authenticated_user_token",
     "delete_user_token",
     "get_user_token_by_username",
     "list_users",
     # admin_service
     "list_coordinators",
+    "is_active_coordinator",
     "active_coordinators",
     "add_coordinator",
     "set_coordinator_active",

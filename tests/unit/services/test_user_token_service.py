@@ -61,10 +61,8 @@ class TestUserTokenRecord:
             access_secret=b"encrypted_secret",
         )
 
-        token, secret = record.decrypted()
-
-        assert token == "decrypted_token"
-        assert secret == "decrypted_secret"
+        assert record.access_token == b"decrypted_token"
+        assert record.access_secret == b"decrypted_secret"
         mock_decrypt.assert_any_call(b"encrypted_token")
         mock_decrypt.assert_any_call(b"encrypted_secret")
 

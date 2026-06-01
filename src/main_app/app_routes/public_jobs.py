@@ -23,7 +23,6 @@ from werkzeug.wrappers.response import Response
 
 from ..config import settings
 from ..db.services import (
-    active_coordinators,
     delete_job,
     get_job,
     list_jobs,
@@ -49,7 +48,7 @@ def _can_manage_job(job: Any, user: Any) -> bool:
     """
     if not user:
         return False
-    if user.username in active_coordinators():
+    if getattr(user, "is_active_admin", False):
         return True
     if job.username and job.username == user.username:
         return True

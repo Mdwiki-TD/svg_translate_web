@@ -27,6 +27,36 @@ def list_users() -> list[UserTokenRecord]:
     return records
 
 
+def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
+    """Fetch the encrypted OAuth credentials for a user."""
+    if not user_id:
+        return None
+
+    user_id = int(user_id)
+    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+    if not orm_obj:
+        return None
+    return orm_obj
+
+
+def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
+    """Fetch the CurrentUser composite for session restoration."""
+    return get_user_token(user_id)
+
+
+
+def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
+    """Fetch the encrypted OAuth credentials for a user by username."""
+    username = username.strip()
+    if not username:
+        return None
+
+    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
+    if not orm_obj:
+        return None
+    return orm_obj
+
+
 def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
     """Insert or update the encrypted OAuth credentials for a user."""
     username = (username or "").strip()
@@ -59,37 +89,16 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
     db.session.commit()
 
 
-def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
-    """Fetch the encrypted OAuth credentials for a user."""
+def delete_user_token(user_id: int) -> bool:
+    """Delete the stored OAuth token only. User identity row persists."""
     if not user_id:
-        return None
+        return False
 
-    user_id = int(user_id)
-    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
-    if not orm_obj:
-        return None
-    return orm_obj
-
-
-def delete_user_token(user_id: int) -> None:
-    """Remove the stored OAuth credentials for the given user id."""
-    if not user_id:
-        return
-
-    db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).delete()
+    affected_rows = (
+        db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).delete(synchronize_session=False)
+    )
     db.session.commit()
-
-
-def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
-    """Fetch the encrypted OAuth credentials for a user by username."""
-    username = username.strip()
-    if not username:
-        return None
-
-    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
-    if not orm_obj:
-        return None
-    return orm_obj
+    return affected_rows > 0
 
 
 __all__ = [

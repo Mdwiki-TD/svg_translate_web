@@ -274,7 +274,15 @@ def ensure_directories() -> None:
 
     Call this once at app startup (in the factory), not at import time.
     """
-    for dir_name in [settings.paths.log_dir, settings.paths.jobs_path, settings.paths.new_jobs_path]:
+    for dir_name in [
+        settings.paths.log_dir,
+        settings.paths.jobs_path,
+        settings.paths.main_files_path,
+        settings.paths.svg_data,
+        settings.paths.svg_data_thumb,
+        settings.paths.fix_nested_data,
+        settings.paths.crop_main_files_path,
+    ]:
         Path(dir_name).mkdir(parents=True, exist_ok=True)
 
 

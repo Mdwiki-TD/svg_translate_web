@@ -11,8 +11,6 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
-
-from ...db.services import active_coordinators
 from ..auth.utils import load_user
 
 FuncType = TypeVar("FuncType", bound=Callable[..., ResponseReturnValue])
@@ -26,8 +24,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
         user = load_user()
         if not user:
             return redirect(url_for("auth.login"))
-        # if not user.is_active_admin:
-        if user.username not in active_coordinators():
+        if not user.is_active_admin:
             abort(403)
         return view(*args, **kwargs)
 

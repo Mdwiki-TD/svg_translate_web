@@ -14,12 +14,14 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import AdminUserRecord
+from .utils import db_guard
 
 logger = logging.getLogger(__name__)
 
 # ── SELECT ───────────────────────────────────────────────
 
 
+@db_guard(default_return=False, msg="Failed to check coordinator status")
 def is_active_coordinator(username: str) -> bool:
     """Check whether a single username is an active coordinator."""
     return (
