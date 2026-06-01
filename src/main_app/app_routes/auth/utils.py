@@ -55,6 +55,13 @@ def load_logged_in_user() -> None:
     # 3. Fetch from Service Layer if user_id exists
     if user_id is not None:
         user_id = _resolve_user_id(user_id)
+        # Short-circuit when _resolve_user_id() returns None
+        if user_id is None:
+            session.pop("uid", None)
+            session.pop("username", None)
+            g._current_user = None
+            return
+
         user = UserService.get_authenticated_user(user_id)
         g._current_user = user
         if user and session.get("username") != user.username:
