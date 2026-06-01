@@ -209,7 +209,7 @@ def callback() -> Response:
     )
 
     g._current_user = None
-    g.current_user = CurrentUser(str(user_id), str(username))
+    # g.current_user = CurrentUser(str(user_id), str(username))
     g.is_authenticated = True
     g.authenticated_user_id = str(user_id)
     g.oauth_credentials = {
