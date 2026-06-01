@@ -29,7 +29,7 @@ from ..db.services import (
 )
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
-from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
+from ..jobs_workers.workers_list import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
@@ -138,7 +138,8 @@ def _jobs_list(job_type: str) -> str:
     if jobs:
         jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
 
-    template = JOB_TYPE_LIST_TEMPLATES_PUBLIC.get(job_type)
+    job_data = jobs_data_public.get(job_type)
+    template = job_data.job_list_template if job_data else None
     if not template:
         abort(404)
 
@@ -164,7 +165,8 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
-    template = JOB_TYPE_TEMPLATES_PUBLIC.get(job_type)
+    job_data = jobs_data_public.get(job_type)
+    template = job_data.job_details_template if job_data else None
     if not template:
         abort(404)
 
@@ -186,7 +188,7 @@ class JobsPublicRoutes:
 
         @bp_jobs.post("/<string:job_type>/<int:job_id>/cancel")
         def cancel_job(job_type: str, job_id: int) -> Response:
-            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
+            if job_type not in jobs_data_public:
                 abort(404)
 
             user = getattr(g, "_current_user", None)
@@ -228,7 +230,7 @@ class JobsPublicRoutes:
 
         @bp_jobs.post("/<string:job_type>/start")
         def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
+            if job_type not in jobs_data_public:
                 abort(404)
             job_id = _start_job(job_type)
             if not job_id:
@@ -237,7 +239,7 @@ class JobsPublicRoutes:
 
         @bp_jobs.post("/<string:job_type>/start_with_args")
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
-            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
+            if job_type not in jobs_data_public:
                 abort(404)
 
             args = request.form.to_dict()
@@ -253,7 +255,7 @@ class JobsPublicRoutes:
         @bp_jobs.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
-            if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
+            if job_type not in jobs_data_public:
                 abort(404)
             return _delete_job(job_id, job_type)
 

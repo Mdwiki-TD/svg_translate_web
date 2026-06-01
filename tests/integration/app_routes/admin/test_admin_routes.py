@@ -86,6 +86,7 @@ def test_coordinator_dashboard_redirects_when_anonymous(app_and_store, monkeypat
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
 
+
 @pytest.mark.skip(reason="should mock flask")
 def test_navbar_shows_admin_link_only_for_admin(app_and_store, monkeypatch: pytest.MonkeyPatch):
     app, _store = app_and_store

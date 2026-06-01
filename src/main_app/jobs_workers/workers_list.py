@@ -12,6 +12,7 @@ from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 from .rename_owid_pages import rename_owid_pages_for_templates
 from .update_owid_charts.worker import update_owid_charts_worker_entry
 
+
 @dataclass
 class JobData:
     job_type: str
@@ -38,30 +39,6 @@ jobs_data_public = {
         job_callable=fix_nested_jobs_worker_entry,
     ),
 }
-
-jobs_targets_public = {
-    "copy_svg_langs": copy_svg_langs_worker_entry,
-    "fix_nested_jobs": fix_nested_jobs_worker_entry,
-}
-
-JOB_TYPE_TEMPLATES_PUBLIC = {
-    "copy_svg_langs": "jobs_templates/copy_svg_langs/details.html",
-    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/details.html",
-}
-
-
-JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
-    "copy_svg_langs": "jobs_templates/copy_svg_langs/list.html",
-    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/list.html",
-}
-
-
-JOB_TYPE_DISPLAY_NAMES = {
-    "copy_svg_langs": "Copy SVG Translation",
-    "fix_nested_jobs": "Fix Nested Tasks",
-}
-
-# ------------------
 
 jobs_data = {
     "collect_main_files": JobData(
@@ -122,64 +99,10 @@ jobs_data = {
     ),
 }
 
-JOB_TYPE_DISPLAY_NAMES = {
-    "collect_main_files": "Collect Templates data",
-    "update_owid_charts": "Update OWID Charts",
-    "crop_main_files": "Crop Newest World Files",
-    "fix_nested_main_files": "Fix Nested Main Files",
-    "create_owid_pages": "Create OWID Pages",
-    "rename_owid_pages": "Rename OWID Pages",
-    "add_svglanguages_template": "Add {{SVGLanguages}}",
-    "download_main_files": "Download Main Files",
-}
-
-jobs_targets = {
-    "fix_nested_main_files": fix_nested_main_files_for_templates,
-    "collect_main_files": collect_main_files_for_templates,
-    "crop_main_files": crop_main_files_for_templates,
-    "create_owid_pages": create_owid_pages_for_templates,
-    "rename_owid_pages": rename_owid_pages_for_templates,
-    "add_svglanguages_template": add_svglanguages_template_to_templates,
-    "download_main_files": download_main_files_for_templates,
-    "update_owid_charts": update_owid_charts_worker_entry,
-}
-
-
-JOB_TYPE_TEMPLATES = {
-    "collect_main_files": "admins/jobs_templates/collect_main_files/details.html",
-    "crop_main_files": "admins/jobs_templates/crop_main_files/details.html",
-    "create_owid_pages": "admins/jobs_templates/create_owid_pages/details.html",
-    "rename_owid_pages": "admins/jobs_templates/rename_owid_pages/details.html",
-    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/details.html",
-    "download_main_files": "admins/jobs_templates/download_main_files/details.html",
-    "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/details.html",
-    "update_owid_charts": "admins/jobs_templates/update_owid_charts/details.html",
-}
-
-
-JOB_TYPE_LIST_TEMPLATES = {
-    "collect_main_files": "admins/jobs_templates/collect_main_files/list.html",
-    "crop_main_files": "admins/jobs_templates/crop_main_files/list.html",
-    "create_owid_pages": "admins/jobs_templates/create_owid_pages/list.html",
-    "rename_owid_pages": "admins/jobs_templates/rename_owid_pages/list.html",
-    "fix_nested_main_files": "admins/jobs_templates/fix_nested_main_files/list.html",
-    "download_main_files": "admins/jobs_templates/download_main_files/list.html",
-    "add_svglanguages_template": "admins/jobs_templates/add_svglanguages_template/list.html",
-    "update_owid_charts": "admins/jobs_templates/update_owid_charts/list.html",
-}
-
 
 # ------------------
 
 __all__ = [
     "jobs_data",
     "jobs_data_public",
-
-    "jobs_targets",
-    "jobs_targets_public",
-    "JOB_TYPE_TEMPLATES",
-    "JOB_TYPE_LIST_TEMPLATES",
-    "JOB_TYPE_TEMPLATES_PUBLIC",
-    "JOB_TYPE_LIST_TEMPLATES_PUBLIC",
-    "JOB_TYPE_DISPLAY_NAMES",
 ]
