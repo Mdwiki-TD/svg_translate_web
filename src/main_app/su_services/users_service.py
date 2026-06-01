@@ -46,6 +46,9 @@ class UserService:
                     access_secret=access_secret,
                 )
 
+            if not user:
+                return None
+
             user_id = user.user_id
 
         except Exception as e:

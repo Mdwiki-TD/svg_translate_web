@@ -40,6 +40,11 @@ logger = logging.getLogger(__name__)
 bp_jobs = Blueprint("public_jobs", __name__, url_prefix="/jobs")
 
 
+def load_user():
+    user = getattr(g, "_current_user", None)
+    return user
+
+
 def _can_manage_job(job: Any, user: Any) -> bool:
     """Check if the current user can manage (cancel/delete) a job.
 
@@ -84,7 +89,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
 def _start_job(job_type: str) -> int | None:
     """Start a job."""
-    user = getattr(g, "_current_user", None)
+    load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -105,7 +110,7 @@ def _start_job(job_type: str) -> int | None:
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
-    user = getattr(g, "_current_user", None)
+    load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -191,7 +196,7 @@ class JobsPublicRoutes:
             if job_type not in jobs_data_public:
                 abort(404)
 
-            user = getattr(g, "_current_user", None)
+            load_user()
             if not user:
                 flash("You must be logged in to cancel jobs.", "danger")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
