@@ -188,6 +188,18 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     return False
 
 
+def has_active_job(job_type: str) -> bool:
+    """
+    Check if there is an active (pending or running) job of the given type.
+    """
+    return (
+        db.session.query(JobRecord)
+        .filter(JobRecord.job_type == job_type, JobRecord.status.in_(["pending", "running"]))
+        .first()
+        is not None
+    )
+
+
 __all__ = [
     "create_job",
     "get_job",
@@ -196,5 +208,6 @@ __all__ = [
     "update_running_status",
     "cancel_job",
     "is_job_cancelled",
+    "has_active_job",
     "delete_job",
 ]
