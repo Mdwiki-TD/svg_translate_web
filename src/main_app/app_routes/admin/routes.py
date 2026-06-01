@@ -13,7 +13,7 @@ from flask import (
 from ...db.services import list_jobs, list_users
 from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
 from ..admin_routes import (
-    bp_coordinators,
+    coordinators_module,
     bp_jobs,
     bp_owidcharts,
     bp_settings,
@@ -78,7 +78,7 @@ def users_dashboard() -> str:
 
 
 def register_blueprints(bp_admin) -> None:
-    bp_admin.register_blueprint(bp_coordinators)
+    bp_admin.register_blueprint(coordinators_module.bp)
     bp_admin.register_blueprint(bp_templates)
     bp_admin.register_blueprint(bp_settings)
     bp_admin.register_blueprint(bp_jobs)

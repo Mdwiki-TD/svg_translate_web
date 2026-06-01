@@ -47,7 +47,7 @@ def get_category_members_api(category, project, limit=500):
             else:
                 break
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error: get_category_members : {e}")
+        logger.error("Failed to fetch category members: %s", e)
     else:
         logger.debug(f"Found {len(pages)} pages in category {category}")
 
@@ -62,3 +62,8 @@ def get_category_members(category="Category:Pages using gadget owidslider", proj
     EXCLUDED_TEMPLATES = {"template:owidslider", "template:owid"}
     result = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
     return result
+
+__all__ = [
+    "get_category_members_api",
+    "get_category_members",
+]

@@ -21,6 +21,7 @@ from flask import (
     session,
     url_for,
 )
+from mwoauth import RequestToken
 
 from ...config import settings
 from ...db.services import delete_user_token, upsert_user_token
@@ -48,8 +49,6 @@ def _client_key() -> str:
 
 
 def _load_request_token(raw: Sequence[Any] | None):
-    from mwoauth import RequestToken
-
     if not raw:
         raise ValueError("Missing OAuth request token")
 
@@ -57,6 +56,14 @@ def _load_request_token(raw: Sequence[Any] | None):
         raise ValueError("Invalid OAuth request token")
 
     return RequestToken(raw[0], raw[1])
+
+# ---------------------------------------------------------
+# Hooks
+# ---------------------------------------------------------
+
+# ---------------------------------------------------------
+# Routes
+# ---------------------------------------------------------
 
 
 @bp_auth.get("/login")
