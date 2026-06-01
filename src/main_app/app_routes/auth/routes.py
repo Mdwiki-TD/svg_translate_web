@@ -24,13 +24,10 @@ from flask import (
 from mwoauth import RequestToken
 
 from ...config import settings
-from ...db.services import delete_user_token, upsert_user_token
+from ...db.services import delete_user_token
+from ...su_services.auth_service import OAuthCallbackError, complete_oauth_callback
 from .cookie import extract_user_id, sign_state_token, sign_user_id, verify_state_token
-from .oauth import (
-    OAuthIdentityError,
-    complete_login,
-    start_login,
-)
+from .oauth import OAuthIdentityError, start_login
 from .rate_limit import callback_rate_limiter, login_rate_limiter
 from .utils import load_logged_in_user
 
@@ -39,6 +36,23 @@ bp_auth = Blueprint("auth", __name__)
 
 oauth_state_nonce = settings.sessions.state_key
 request_token_key = settings.sessions.request_token_key
+
+
+# ---------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------
+
+
+def _set_response_cookies(user_id, response) -> None:
+    response.set_cookie(
+        settings.cookie.name,
+        sign_user_id(user_id),
+        httponly=settings.cookie.httponly,
+        secure=settings.cookie.secure,
+        samesite=settings.cookie.samesite,
+        max_age=settings.cookie.max_age,
+        path="/",
+    )
 
 
 def _client_key() -> str:
@@ -142,87 +156,39 @@ def callback() -> Response:
     # ------------------
     # access_token, identity
     try:
-        query_string = urlencode(request.args)
-        access_token, identity = complete_login(request_token, query_string)
+        user_record = complete_oauth_callback(request_token, urlencode(request.args))
     except OAuthIdentityError:
         logger.exception("OAuth identity verification failed")
         flash("Failed to verify OAuth identity", "danger")
         return redirect(url_for("main.index"))
-
-    # ------------------
-    # access_key, access_secret
-    token_key = getattr(access_token, "key", None)
-    token_secret = getattr(access_token, "secret", None)
-
-    if not (token_key and token_secret) and isinstance(access_token, Sequence):
-        token_key = access_token[0]
-        token_secret = access_token[1]
-
-    if not (token_key and token_secret):
-        logger.error("OAuth access token missing key/secret")
-        flash("Missing OAuth credentials", "danger")
+    except OAuthCallbackError as exc:
+        logger.error("OAuth callback failed: %s", exc)
+        flash(str(exc), exc.flash_category)
         return redirect(url_for("main.index"))
 
-    # ------------------
-    # user info
-    user_identifier = identity.get("sub") or identity.get("id") or identity.get("central_id") or identity.get("user_id")
-    if not user_identifier:
-        flash("Missing user id", "danger")
-        return redirect(url_for("main.index"))
+    user_id = user_record.user_id
 
-    try:
-        user_id = int(user_identifier)
-    except (TypeError, ValueError):
-        logger.exception("Invalid user identifier")
-        flash("Invalid user identifier", "danger")
-        return redirect(url_for("main.index"))
-
-    username = identity.get("username") or identity.get("name")
-    if not username:
-        flash("Missing username", "danger")
-        return redirect(url_for("main.index"))
-
-    # ------------------
-    # upsert credentials
-    upsert_user_token(
-        user_id=user_id,
-        username=username,
-        access_key=str(token_key),
-        access_secret=str(token_secret),
-    )
-
+    # Set sessions
     session["uid"] = user_id
-    session["username"] = username
+    session["username"] = user_record.username
 
-    # ------------------
-    # set cookies
+    # Set response and cookies
     response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
-    response.set_cookie(
-        settings.cookie.name,
-        sign_user_id(user_id),
-        httponly=settings.cookie.httponly,
-        secure=settings.cookie.secure,
-        samesite=settings.cookie.samesite,
-        max_age=settings.cookie.max_age,
-        path="/",
-    )
 
-    g._current_user = None
-    g.is_authenticated = True
-    g.authenticated_user_id = str(user_id)
-    g.oauth_credentials = {
-        "consumer_key": settings.oauth.consumer_key,
-        "consumer_secret": settings.oauth.consumer_secret,
-        "access_token": str(token_key),
-        "access_secret": str(token_secret),
-    }
+    _set_response_cookies(user_id, response)
+
+    # Cache in g for the remainder of THIS request only
+    g._current_user = user_record
 
     return response
 
 
 @bp_auth.get("/logout")
-# Users with stale cookies will be redirected with a "login-required" error instead of being able to clean up their authentication state
 def logout() -> Response:
+    """
+    TODO: Users with stale cookies will be redirected with a "login-required" error
+    instead of being able to clean up their authentication state
+    """
     user_id = session.pop("uid", None)
     session.pop(request_token_key, None)
     session.pop(oauth_state_nonce, None)
@@ -245,15 +211,10 @@ def logout() -> Response:
     else:
         flash("Session cleared.", "info")
 
-    flash("Logout successful.", "success")
     response = make_response(redirect(url_for("main.index")))
     response.delete_cookie(settings.cookie.name, path="/")
 
     g._current_user = None
-    g.is_authenticated = False
-    g.oauth_credentials = None
-    g.authenticated_user_id = None
-
     return response
 
 
