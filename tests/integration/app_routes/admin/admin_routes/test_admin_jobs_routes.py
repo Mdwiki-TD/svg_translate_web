@@ -19,7 +19,7 @@ from src.main_app.extensions import db as _db
 class _JobsStore:
     """Adapter bridging old JobsDB API to SQLAlchemy jobs_service functions."""
 
-    def create(self, job_type, username=None):
+    def create(self, job_type, username="z"):
         return _sqlalchemy_jobs_service.create_job(job_type, username)
 
     def list(self, limit=100, job_type=None):
@@ -48,7 +48,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     """Return a configured Flask test client paired with a fake jobs jobs_db."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin")
+    admin_user = SimpleNamespace(username="admin", is_active_admin=True)
 
     def fake_current_user() -> SimpleNamespace:
         return admin_user
