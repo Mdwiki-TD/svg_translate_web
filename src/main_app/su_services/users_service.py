@@ -6,9 +6,9 @@ import logging
 from typing import Optional
 
 from ..db.services import (
-    get_user_token_by_username,
     get_authenticated_user_token,
     get_user_token,
+    get_user_token_by_username,
     is_active_coordinator,
     upsert_user_token,
 )

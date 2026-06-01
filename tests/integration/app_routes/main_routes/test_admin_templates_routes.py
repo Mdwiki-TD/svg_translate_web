@@ -35,18 +35,13 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
     """Return a configured Flask test client with mocked templates service."""
     from types import SimpleNamespace
 
-    admin_user = SimpleNamespace(username="admin_user")
+    admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
 
     def fake_current_user():
         return admin_user
 
     monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True

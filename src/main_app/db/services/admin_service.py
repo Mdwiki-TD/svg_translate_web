@@ -40,15 +40,6 @@ def list_coordinators() -> List[AdminUserRecord]:
     """
     return db.session.query(AdminUserRecord).all()
 
-def active_coordinators() -> list[str]:
-    """Get a list of active coordinator usernames from the database."""
-    try:
-        records = db.session.query(AdminUserRecord).filter(AdminUserRecord.is_active).all()
-        return [u.username for u in records]
-    except Exception as e:
-        logger.exception("Failed to fetch active coordinators: %s", e)
-        return []
-
 
 def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
     """
@@ -121,5 +112,4 @@ __all__ = [
     "is_active_coordinator",
     "list_coordinators",
     "set_coordinator_active",
-    "active_coordinators",
 ]

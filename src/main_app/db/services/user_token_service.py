@@ -44,7 +44,6 @@ def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
     return get_user_token(user_id)
 
 
-
 def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
     """Fetch the encrypted OAuth credentials for a user by username."""
     username = username.strip()

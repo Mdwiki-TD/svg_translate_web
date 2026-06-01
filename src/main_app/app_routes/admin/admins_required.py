@@ -11,6 +11,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+
 from ..auth.utils import load_user
 
 FuncType = TypeVar("FuncType", bound=Callable[..., ResponseReturnValue])
