@@ -20,7 +20,6 @@ class MwClientPage:
         self.page = None
 
     def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
-
         try:
             save = page.edit(text, summary=summary, nocreate=nocreate) or {}
             return {"success": True, **save}
@@ -50,7 +49,6 @@ class MwClientPage:
 
     def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-
             logger.warning(
                 f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}'. Retrying in {delay}s..."

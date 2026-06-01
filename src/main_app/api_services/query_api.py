@@ -11,34 +11,6 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-
-def get_template_pages_newapi(
-    title,
-    namespace="*",
-) -> list[str]:
-    # ---
-    logger.debug(f"get_template_pages for template: {title=}, {namespace=}")
-    # ---
-    params = {
-        "action": "query",
-        "titles": title,
-        "generator": "transcludedin",
-        "gtinamespace": namespace,
-        "gtilimit": "max",
-        "formatversion": "2",
-    }
-    # ---
-    api = None  # get_api()
-    results = api.NewApi().post_continue(params, "query", _p_="pages", p_empty=[])
-    # ---
-    # { "pageid": 2973452, "ns": 100, "title": "بوابة:سباق الدراجات الهوائية" }
-    pages = [x["title"] for x in results]
-    # ---
-    logger.info(f"mdwiki_api.py : find {len(pages)} pages.")
-    # ---
-    return pages
-
-
 def get_template_pages(
     title,
     namespace="*",
