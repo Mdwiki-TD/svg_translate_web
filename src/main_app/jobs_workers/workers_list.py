@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Callable
+
 from ..public_jobs_workers.copy_svg_langs.worker import copy_svg_langs_worker_entry
 from ..public_jobs_workers.fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 from .add_svglanguages_template import add_svglanguages_template_to_templates
@@ -9,9 +12,77 @@ from .fix_nested_main_files_worker import fix_nested_main_files_for_templates
 from .rename_owid_pages import rename_owid_pages_for_templates
 from .update_owid_charts.worker import update_owid_charts_worker_entry
 
+@dataclass
+class JobData:
+    job_type: str
+    job_name: str
+    job_callable: Callable
+
+    job_list_template: str
+    job_details_template: str
+
+
+jobs_data_public = {
+    "copy_svg_langs": JobData(
+        job_type="copy_svg_langs",
+        job_name="Copy SVG Translation",
+        job_details_template="jobs_templates/copy_svg_langs/details.html",
+        job_list_template="jobs_templates/copy_svg_langs/list.html",
+        job_callable=copy_svg_langs_worker_entry,
+    ),
+    "fix_nested_jobs": JobData(
+        job_type="fix_nested_jobs",
+        job_name="Fix Nested Tasks",
+        job_details_template="jobs_templates/fix_nested_jobs/details.html",
+        job_list_template="jobs_templates/fix_nested_jobs/list.html",
+        job_callable=fix_nested_jobs_worker_entry,
+    ),
+}
+
 jobs_targets_public = {
     "copy_svg_langs": copy_svg_langs_worker_entry,
     "fix_nested_jobs": fix_nested_jobs_worker_entry,
+}
+
+JOB_TYPE_TEMPLATES_PUBLIC = {
+    "copy_svg_langs": "jobs_templates/copy_svg_langs/details.html",
+    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/details.html",
+}
+
+
+JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
+    "copy_svg_langs": "jobs_templates/copy_svg_langs/list.html",
+    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/list.html",
+}
+
+
+JOB_TYPE_DISPLAY_NAMES = {
+    "copy_svg_langs": "Copy SVG Translation",
+    "fix_nested_jobs": "Fix Nested Tasks",
+}
+
+# ------------------
+
+
+jobs_data = {
+    "collect_main_files": JobData(
+        job_type="collect_main_files",
+        job_name="Collect Templates data",
+        job_details_template="admins/jobs_templates/collect_main_files/details.html",
+        job_list_template="admins/jobs_templates/collect_main_files/list.html",
+        job_callable=collect_main_files_for_templates,
+    ),
+}
+
+JOB_TYPE_DISPLAY_NAMES = {
+    "collect_main_files": "Collect Templates data",
+    "update_owid_charts": "Update OWID Charts",
+    "crop_main_files": "Crop Newest World Files",
+    "fix_nested_main_files": "Fix Nested Main Files",
+    "create_owid_pages": "Create OWID Pages",
+    "rename_owid_pages": "Rename OWID Pages",
+    "add_svglanguages_template": "Add {{SVGLanguages}}",
+    "download_main_files": "Download Main Files",
 }
 
 jobs_targets = {
@@ -50,33 +121,12 @@ JOB_TYPE_LIST_TEMPLATES = {
 }
 
 
-JOB_TYPE_TEMPLATES_PUBLIC = {
-    "copy_svg_langs": "jobs_templates/copy_svg_langs/details.html",
-    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/details.html",
-}
-
-
-JOB_TYPE_LIST_TEMPLATES_PUBLIC = {
-    "copy_svg_langs": "jobs_templates/copy_svg_langs/list.html",
-    "fix_nested_jobs": "jobs_templates/fix_nested_jobs/list.html",
-}
-
-
-JOB_TYPE_DISPLAY_NAMES = {
-    "collect_main_files": "Collect Templates data",
-    "update_owid_charts": "Update OWID Charts",
-    "crop_main_files": "Crop Newest World Files",
-    "fix_nested_main_files": "Fix Nested Main Files",
-    "create_owid_pages": "Create OWID Pages",
-    "rename_owid_pages": "Rename OWID Pages",
-    "add_svglanguages_template": "Add {{SVGLanguages}}",
-    "download_main_files": "Download Main Files",
-    "copy_svg_langs": "Copy SVG Translation",
-    "fix_nested_jobs": "Fix Nested Tasks",
-}
-
+# ------------------
 
 __all__ = [
+    "jobs_data",
+    "jobs_data_public",
+
     "jobs_targets",
     "jobs_targets_public",
     "JOB_TYPE_TEMPLATES",
