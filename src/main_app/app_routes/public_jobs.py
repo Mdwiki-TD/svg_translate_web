@@ -10,6 +10,7 @@ from flask import (
     Blueprint,
     abort,
     flash,
+    g,
     jsonify,
     redirect,
     render_template,
@@ -31,7 +32,6 @@ from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
 from ..jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES_PUBLIC, JOB_TYPE_TEMPLATES_PUBLIC
 from ..su_services import load_job_result
-from ..su_services.users_service import current_user
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
 
@@ -85,7 +85,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
 def _start_job(job_type: str) -> int | None:
     """Start a job."""
-    user = current_user()
+    user = getattr(g, "_current_user", None)
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -106,7 +106,7 @@ def _start_job(job_type: str) -> int | None:
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
-    user = current_user()
+    user = getattr(g, "_current_user", None)
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -190,7 +190,7 @@ class JobsPublicRoutes:
             if job_type not in JOB_TYPE_TEMPLATES_PUBLIC:
                 abort(404)
 
-            user = current_user()
+            user = getattr(g, "_current_user", None)
             if not user:
                 flash("You must be logged in to cancel jobs.", "danger")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))

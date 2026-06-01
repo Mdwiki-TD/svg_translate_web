@@ -58,6 +58,7 @@ def _load_request_token(raw: Sequence[Any] | None):
 
     return RequestToken(raw[0], raw[1])
 
+
 # ---------------------------------------------------------
 # Hooks
 # ---------------------------------------------------------
@@ -207,6 +208,7 @@ def callback() -> Response:
         path="/",
     )
 
+    g._current_user = None
     g.current_user = CurrentUser(str(user_id), str(username))
     g.is_authenticated = True
     g.authenticated_user_id = str(user_id)
@@ -249,7 +251,7 @@ def logout() -> Response:
     response = make_response(redirect(url_for("main.index")))
     response.delete_cookie(settings.cookie.name, path="/")
 
-    g.current_user = None
+    g._current_user = None
     g.is_authenticated = False
     g.oauth_credentials = None
     g.authenticated_user_id = None

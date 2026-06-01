@@ -7,7 +7,6 @@ from src.main_app.app_routes.utils.routes_utils import (
 )
 
 
-
 def test_load_auth_payload_happy_path():
     class U:
         user_id = 9

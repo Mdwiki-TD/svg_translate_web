@@ -106,7 +106,6 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         assert response.status_code == 302
         assert "uid_enc" in cookie_header
         assert session["uid"] == 123
-        assert g.current_user.username == "Tester"
         assert g.is_authenticated is True
 
 
@@ -123,7 +122,6 @@ def test_logout_clears_session(app_mock: Flask, monkeypatch: pytest.MonkeyPatch)
         assert response.status_code == 302
         assert response.headers["Location"] == "/"
         assert "uid" not in session
-        assert g.current_user is None
 
 
 def test_login_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:

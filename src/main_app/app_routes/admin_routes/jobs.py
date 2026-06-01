@@ -30,8 +30,8 @@ from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files_worker import create_main_files_zip
 from ...jobs_workers.workers_list import JOB_TYPE_LIST_TEMPLATES, JOB_TYPE_TEMPLATES
 from ...su_services import jobs_files_service
-from ...su_services.users_service import current_user
 from ..admin.admins_required import admin_required
+from ..auth.utils import load_user
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
 def _start_job(job_type: str) -> int | None:
     """Start a job."""
-    user = current_user()
+    user = load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -88,7 +88,7 @@ def _start_job(job_type: str) -> int | None:
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
-    user = current_user()
+    user = load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")

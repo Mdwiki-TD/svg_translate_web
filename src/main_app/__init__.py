@@ -12,11 +12,12 @@ from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import register_blueprints
+from .app_routes.utils.routes_utils import context_user
+from .config import settings
 from .core.cookies import CookieHeaderClient
 from .db import init_db
 from .extensions import db as _db
 from .extensions import migrate
-from .su_services.users_service import context_user
 from .utils.jinja_filters import filters
 
 logger = logging.getLogger(__name__)
@@ -113,7 +114,7 @@ def create_app(config_class: Type) -> Flask:
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
-        return context_user()
+        return context_user(None, settings.other.static_server)
 
     app.jinja_env.filters.update(filters)
 

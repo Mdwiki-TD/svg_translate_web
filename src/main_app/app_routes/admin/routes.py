@@ -13,11 +13,11 @@ from flask import (
 from ...db.services import list_jobs, list_users
 from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
 from ..admin_routes import (
-    coordinators_module,
     bp_jobs,
     bp_owidcharts,
     bp_settings,
     bp_templates,
+    coordinators_module,
 )
 from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required

@@ -49,8 +49,8 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
         return admin_user
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    monkeypatch.setattr("src.main_app.su_services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.su_services.users_service.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )

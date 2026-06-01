@@ -53,9 +53,9 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.main_app.su_services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.su_services.users_service.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
     )
@@ -784,7 +784,7 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
 
     # Mock current_user to return None
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", lambda: None)
 
     response = admin_jobs_client.post("/admin/jobs/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200
