@@ -3,7 +3,10 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
+from sqlalchemy import text
+
 from ...extensions import db
+from ..exceptions import JobAlreadyRunningError
 from ..models.jobs import JobRecord
 
 logger = logging.getLogger(__name__)
@@ -11,16 +14,40 @@ logger = logging.getLogger(__name__)
 
 def create_job(job_type: str, username: str | None = None) -> JobRecord:
     """
-    Create a new job record.
-
-    Query to match:
-        INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
-        (job_type, "pending", username),
+    Create a new job record atomically to prevent concurrent jobs of the same type.
     """
-    job = JobRecord(job_type=job_type, username=username, status="pending")
-    db.session.add(job)
+    # Use an atomic insert to prevent race conditions.
+    # This works for both MariaDB and SQLite (used in tests).
+    sql = text("""
+        INSERT INTO jobs (job_type, username, status)
+        SELECT :job_type, :username, 'pending'
+        FROM (SELECT 1) AS dummy
+        WHERE NOT EXISTS (
+            SELECT 1 FROM jobs
+            WHERE job_type = :job_type AND status IN ('pending', 'running')
+        )
+    """)
+
+    result = db.session.execute(sql, {"job_type": job_type, "username": username})
+
+    if result.rowcount == 0:
+        raise JobAlreadyRunningError(f"A job of type {job_type} is already running.")
+
     db.session.commit()
-    db.session.refresh(job)
+
+    # Get the inserted job. Since we just inserted it and it's the only active one,
+    # we can find it by querying the latest pending job of this type.
+    job = (
+        db.session.query(JobRecord)
+        .filter(JobRecord.job_type == job_type, JobRecord.status == "pending")
+        .order_by(JobRecord.id.desc())
+        .first()
+    )
+
+    if not job:
+        # This shouldn't happen if rowcount > 0, but for safety:
+        raise RuntimeError(f"Failed to retrieve newly created job of type {job_type}")
+
     return job
 
 
@@ -188,18 +215,6 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     return False
 
 
-def has_active_job(job_type: str) -> bool:
-    """
-    Check if there is an active (pending or running) job of the given type.
-    """
-    return (
-        db.session.query(JobRecord)
-        .filter(JobRecord.job_type == job_type, JobRecord.status.in_(["pending", "running"]))
-        .first()
-        is not None
-    )
-
-
 __all__ = [
     "create_job",
     "get_job",
@@ -208,6 +223,5 @@ __all__ = [
     "update_running_status",
     "cancel_job",
     "is_job_cancelled",
-    "has_active_job",
     "delete_job",
 ]

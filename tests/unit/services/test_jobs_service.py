@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from src.main_app.db.exceptions import JobAlreadyRunningError
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services import jobs_service
 from src.main_app.db.services.jobs_service import (
@@ -36,6 +37,31 @@ def test_create_job_with_username():
     assert job.username == "test_user"
 
 
+def test_create_job_blocks_concurrent_active_jobs():
+    """Test that create_job raises JobAlreadyRunningError if an active job already exists."""
+    # Create first job - status is 'pending' by default
+    create_job("collect_main_files", username="user1")
+
+    # Try to create second job of same type
+    with pytest.raises(JobAlreadyRunningError, match="A job of type collect_main_files is already running."):
+        create_job("collect_main_files", username="user2")
+
+    # Update first job to 'running'
+    update_job_status(1, "running", job_type="collect_main_files")
+
+    # Try again - still blocked
+    with pytest.raises(JobAlreadyRunningError, match="A job of type collect_main_files is already running."):
+        create_job("collect_main_files", username="user3")
+
+    # Finish first job
+    update_job_status(1, "completed", job_type="collect_main_files")
+
+    # Now we can create a new one
+    job2 = create_job("collect_main_files", username="user4")
+    assert job2.id == 2
+    assert job2.username == "user4"
+
+
 def test_get_job():
     """Test retrieving a job by ID."""
     created_job = create_job("collect_main_files", username="z")
@@ -54,8 +80,10 @@ def test_get_nonexistent_job():
 
 def test_list_jobs():
     """Test listing jobs."""
-    create_job("collect_main_files", username="z")
-    create_job("collect_main_files", username="z")
+    j1 = create_job("collect_main_files", username="z")
+    update_job_status(j1.id, "completed", job_type="collect_main_files")
+    j2 = create_job("collect_main_files", username="z")
+    update_job_status(j2.id, "completed", job_type="collect_main_files")
     create_job("other_job", username="z")
 
     jobs = list_jobs()
@@ -67,7 +95,8 @@ def test_list_jobs():
 def test_list_jobs_with_limit():
     """Test listing jobs with a limit."""
     for _ in range(5):
-        create_job("collect_main_files", username="z")
+        j = create_job("collect_main_files", username="z")
+        update_job_status(j.id, "completed", job_type="collect_main_files")
 
     jobs = list_jobs(limit=2)
 
@@ -141,8 +170,10 @@ def test_delete_nonexistent_job():
 
 def test_list_jobs_filtered_by_type():
     """Test listing jobs filtered by job_type."""
-    create_job("collect_main_files", username="z")
-    create_job("collect_main_files", username="z")
+    j1 = create_job("collect_main_files", username="z")
+    update_job_status(j1.id, "completed", job_type="collect_main_files")
+    j2 = create_job("collect_main_files", username="z")
+    update_job_status(j2.id, "completed", job_type="collect_main_files")
     create_job("fix_nested_main_files", username="z")
     create_job("other_job_type", username="z")
 
@@ -164,9 +195,11 @@ def test_list_jobs_filtered_by_type():
 def test_list_jobs_filtered_with_limit():
     """Test listing jobs filtered by job_type with a limit."""
     for _ in range(5):
-        create_job("collect_main_files", username="z")
+        j = create_job("collect_main_files", username="z")
+        update_job_status(j.id, "completed", job_type="collect_main_files")
     for _ in range(3):
-        create_job("fix_nested_main_files", username="z")
+        j = create_job("fix_nested_main_files", username="z")
+        update_job_status(j.id, "completed", job_type="fix_nested_main_files")
 
     # Filter by type with limit
     collect_jobs = list_jobs(limit=2, job_type="collect_main_files")

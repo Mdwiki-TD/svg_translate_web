@@ -8,11 +8,9 @@ from typing import Any, Dict
 
 from flask import Flask, current_app
 
-from ..db.exceptions import JobAlreadyRunningError
 from ..db.services import cancel_job as cancel_job_db
 from ..db.services import (
     create_job,
-    has_active_job,
 )
 from .workers_list import jobs_data, jobs_data_public
 
@@ -92,12 +90,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] |
 
     username = user.get("username") if user else None
 
-    # Check for already running job of the same type
-    if has_active_job(job_type):
-        logger.warning(f"Job of type {job_type} is already running.")
-        raise JobAlreadyRunningError(f"A job of type {job_type} is already running.")
-
-    # Create job record
+    # Create job record (atomic check and create)
     job = create_job(job_type, username)
 
     cancel_event = threading.Event()

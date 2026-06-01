@@ -11,7 +11,6 @@ from .jobs_service import (
     create_job,
     delete_job,
     get_job,
-    has_active_job,
     is_job_cancelled,
     list_jobs,
     update_job_status,
@@ -102,5 +101,4 @@ __all__ = [
     "update_job_status",
     "cancel_job",
     "is_job_cancelled",
-    "has_active_job",
 ]

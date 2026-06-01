@@ -17,7 +17,6 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
     """Mock jobs_service functions to avoid database calls."""
     mock_is_cancelled = MagicMock(return_value=False)
     mock_cancel_job = MagicMock(return_value=False)
-    mock_has_active_job = MagicMock(return_value=False)
     monkeypatch.setattr(
         "src.main_app.db.services.jobs_service.is_job_cancelled",
         mock_is_cancelled,
@@ -26,14 +25,9 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.db.services.jobs_service.cancel_job",
         mock_cancel_job,
     )
-    monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.has_active_job",
-        mock_has_active_job,
-    )
     return {
         "is_job_cancelled": mock_is_cancelled,
         "cancel_job": mock_cancel_job,
-        "has_active_job": mock_has_active_job,
     }
 
 
@@ -308,18 +302,15 @@ def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_cre
     assert thread_args[5] is args
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.has_active_job")
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_blocks_if_already_running(
-    mock_current_app, mock_thread, mock_create_job, mock_has_active_job, mock_jobs_service_for_jobs_worker
-):
-    """Test that start_job raises JobAlreadyRunningError if a job of the same type is active."""
-    mock_has_active_job.return_value = True
+def test_start_job_blocks_if_already_running(mock_current_app, mock_thread, mock_create_job):
+    """Test that start_job raises JobAlreadyRunningError if create_job raises it."""
+    mock_create_job.side_effect = JobAlreadyRunningError("A job of type collect_main_files is already running.")
 
     with pytest.raises(JobAlreadyRunningError, match="A job of type collect_main_files is already running."):
         jobs_worker.start_job(None, "collect_main_files")
 
-    mock_create_job.assert_not_called()
+    mock_create_job.assert_called_once()
     mock_thread.assert_not_called()
