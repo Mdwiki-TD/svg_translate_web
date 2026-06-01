@@ -14,8 +14,9 @@ from src.main_app.app_routes.admin.admins_required import admin_required
 
 
 class MockUser:
-    def __init__(self, username):
+    def __init__(self, username, is_active_admin):
         self.username = username
+        self.is_active_admin = is_active_admin
 
 
 def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -35,7 +36,7 @@ def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyP
 def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.load_user",
-        lambda: types.SimpleNamespace(username="user", is_active_admin=True),
+        lambda: types.SimpleNamespace(username="user", is_active_admin=False),
     )
 
     class AbortCalled(Exception):  # noqa: N818
@@ -105,7 +106,7 @@ def test_admin_required_not_admin():
         return "This should not be returned"
 
     # Mock user who is not in the admin list
-    mock_user = MockUser(username="testuser")
+    mock_user = MockUser(username="testuser", is_active_admin=False)
 
     with (patch("src.main_app.app_routes.admin.admins_required.load_user", return_value=mock_user),):
         # Expect a Forbidden (403) exception to be raised
