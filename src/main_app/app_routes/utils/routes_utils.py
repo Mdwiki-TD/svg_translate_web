@@ -26,9 +26,8 @@ def context_user(wiki_domain: str, static_server: str) -> dict[str, Any]:
     username = user.username if user else None
 
     return {
-        "current_user": user,
         "is_authenticated": user is not None,
-        "username": username,
+        "current_username": username,
         "is_admin": _is_admin(user),
         "wiki_domain": wiki_domain,
         "static_server": static_server,
