@@ -21,6 +21,7 @@ from flask import (
     session,
     url_for,
 )
+from mwoauth import RequestToken
 
 from ...config import settings
 from ...db.services import delete_user_token, upsert_user_token
@@ -32,6 +33,7 @@ from .oauth import (
     start_login,
 )
 from .rate_limit import callback_rate_limiter, login_rate_limiter
+from .utils import load_logged_in_user
 
 logger = logging.getLogger(__name__)
 bp_auth = Blueprint("auth", __name__)
@@ -48,8 +50,6 @@ def _client_key() -> str:
 
 
 def _load_request_token(raw: Sequence[Any] | None):
-    from mwoauth import RequestToken
-
     if not raw:
         raise ValueError("Missing OAuth request token")
 
@@ -57,6 +57,22 @@ def _load_request_token(raw: Sequence[Any] | None):
         raise ValueError("Invalid OAuth request token")
 
     return RequestToken(raw[0], raw[1])
+
+# ---------------------------------------------------------
+# Hooks
+# ---------------------------------------------------------
+
+
+# Register the hook right after defining the blueprint
+@bp_auth.before_app_request
+def before_request():
+    """Automatically load the user before any route is processed."""
+    load_logged_in_user()
+
+
+# ---------------------------------------------------------
+# Routes
+# ---------------------------------------------------------
 
 
 @bp_auth.get("/login")
