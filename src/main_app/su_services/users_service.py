@@ -25,14 +25,18 @@ class UserService:
         access_secret: str,
     ) -> Optional[CurrentUser]:
         """Upsert OAuth credentials and return a CurrentUser composite."""
-        try:
-            username = (username or "").strip()
+        username = (username or "").strip()
 
+        try:
             # Ensure user identity row exists
             user = get_user_token_by_username(username)
-
             user_id = user.user_id
 
+        except Exception as e:
+            logger.exception("Failed to upsert or fetch user credentials: %s", e)
+            return None
+
+        try:
             # 1. Update or insert into database via repository
             upsert_user_token(
                 user_id=user_id,
@@ -41,21 +45,27 @@ class UserService:
                 access_secret=access_secret,
             )
 
+        except Exception as e:
+            logger.exception("Failed to upsert or fetch user credentials: %s", e)
+            return None
+
+        try:
             # 2. Get the fresh record
             token = get_user_token(user_id)
             if not token:
                 return None
 
-            return CurrentUser(
-                user_id=user_id,
-                username=username,
-                access_token=token.access_token,
-                access_secret=token.access_secret,
-                is_active_admin=is_active_coordinator(username),
-            )
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
+
+        return CurrentUser(
+            user_id=user_id,
+            username=username,
+            access_token=token.access_token,
+            access_secret=token.access_secret,
+            is_active_admin=is_active_coordinator(username),
+        )
 
     @staticmethod
     def get_authenticated_user(user_id: int) -> Optional[CurrentUser]:

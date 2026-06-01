@@ -93,10 +93,8 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         return access, identity
 
     monkeypatch.setattr("src.main_app.su_services.auth_service.complete_login", fake_complete)
-    monkeypatch.setattr("src.main_app.su_services.auth_service.complete_oauth_callback", fake_complete)
-    # monkeypatch.setattr("src.main_app.app_routes.auth.routes.upsert_user_token", lambda **kwargs: kwargs)
+    monkeypatch.setattr("src.main_app.su_services.users_service.upsert_user_token", lambda **kwargs: kwargs)
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
-
     with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
         session["req_token"] = ["k", "s"]
