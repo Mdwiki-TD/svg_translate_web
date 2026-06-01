@@ -53,7 +53,7 @@ def _add_coordinator() -> ResponseReturnValue:
     try:
         record = admin_service.add_coordinator(username)
     except UserNotFoundError as exc:
-        logger.error("IntegrityError: %s", exc)
+        logger.error("UserNotFoundError: %s", exc)
         flash(str(exc), "warning")
     except (LookupError, ValueError) as exc:
         logger.exception("Unable to Add coordinator.")
