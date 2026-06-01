@@ -33,7 +33,6 @@ from .oauth import (
     start_login,
 )
 from .rate_limit import callback_rate_limiter, login_rate_limiter
-from .utils import load_logged_in_user
 
 logger = logging.getLogger(__name__)
 bp_auth = Blueprint("auth", __name__)
@@ -61,14 +60,6 @@ def _load_request_token(raw: Sequence[Any] | None):
 # ---------------------------------------------------------
 # Hooks
 # ---------------------------------------------------------
-
-
-# Register the hook right after defining the blueprint
-@bp_auth.before_app_request
-def before_request():
-    """Automatically load the user before any route is processed."""
-    load_logged_in_user()
-
 
 # ---------------------------------------------------------
 # Routes
