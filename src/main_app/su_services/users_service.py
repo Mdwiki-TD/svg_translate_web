@@ -1,95 +1,98 @@
-"""Helpers for loading the current authenticated user."""
+"""User authentication service — bridges OAuth callbacks to the DB layer."""
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from functools import wraps
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Optional
 
-from flask import g, redirect, request, session, url_for
+from ..db.services import (
+    create_user,
+    get_authenticated_user_token,
+    get_user_token,
+    get_user_token_by_username,
+    is_active_coordinator,
+    update_user_token,
+)
+from .current_user import CurrentUser
 
-from ..app_routes.auth.cookie import extract_user_id
-from ..config import settings
-from ..db.models import UserTokenRecord
-from ..db.services import active_coordinators, get_user_token
-
-FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class CurrentUser:
-    """Lightweight representation of the authenticated user."""
+class UserService:
+    @staticmethod
+    def save_and_get_user(
+        username: str,
+        access_key: str,
+        access_secret: str,
+    ) -> Optional[CurrentUser]:
+        """Upsert OAuth credentials and return a CurrentUser composite."""
+        username = (username or "").strip()
 
-    user_id: str
-    username: str
+        try:
+            # Ensure user identity row exists
+            user = get_user_token_by_username(username)
 
+            if user:
+                # 1. Update or insert into database via repository
+                update_user_token(
+                    user_id=user.user_id,
+                    access_key=access_key,
+                    access_secret=access_secret,
+                )
+            else:
+                user = create_user(
+                    username=username,
+                    access_key=access_key,
+                    access_secret=access_secret,
+                )
 
-def _resolve_user_id() -> int | None:
-    uid = session.get("uid")
-    if isinstance(uid, int):
-        return uid
-    try:
-        return int(uid) if uid is not None else None
-    except (TypeError, ValueError):
-        return None
+            if not user:
+                return None
 
+            user_id = user.user_id
 
-def current_user() -> Optional[UserTokenRecord]:
-    if hasattr(g, "_current_user"):
-        return g._current_user  # type: ignore[attr-defined]
+        except Exception as e:
+            logger.exception("Failed to upsert or fetch user credentials: %s", e)
+            return None
 
-    user_id = _resolve_user_id()
-    if user_id is None:
-        signed = request.cookies.get(settings.cookie.name)
-        if signed:
-            user_id = extract_user_id(signed)
-            if user_id is not None:
-                session["uid"] = user_id
-    try:
-        user = get_user_token(user_id) if user_id is not None else None
-    except Exception as e:
-        logger.error("Error loading user token: %s", e)
-        user = None
+        try:
+            # 2. Get the fresh record
+            token = get_user_token(user_id)
+            if not token:
+                return None
 
-    if user and session.get("username") != user.username:
-        session["username"] = user.username
+        except Exception as e:
+            logger.exception("Failed to upsert or fetch user credentials: %s", e)
+            return None
 
-    g._current_user = user  # type: ignore[attr-defined]
-    return user
+        return CurrentUser(
+            user_id=user_id,
+            username=username,
+            access_token=token.access_token,
+            access_secret=token.access_secret,
+            is_active_admin=is_active_coordinator(username),
+        )
 
-
-def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
-    """Decorator that requires a full OAuth credential bundle."""
-
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any):
-        if not current_user():
-            session["post_login_redirect"] = request.url
-            return redirect(url_for("auth.login"))
-        return func(*args, **kwargs)
-
-    return cast(FuncType, wrapper)
-
-
-def context_user() -> dict[str, Any]:
-    """
-    used in @app.context_processor
-    """
-    user = current_user()
-    return {
-        "current_user": user,
-        "is_authenticated": user is not None,
-        "is_admin": bool(user and user.username in active_coordinators()),
-        "username": user.username if user else None,
-        "static_server": settings.other.static_server,
-    }
+    @staticmethod
+    def get_authenticated_user(user_id: int) -> Optional[CurrentUser]:
+        """Fetch the CurrentUser composite for session restoration."""
+        try:
+            token = get_authenticated_user_token(user_id)
+            if not token:
+                return None
+            username = token.username
+            return CurrentUser(
+                user_id=user_id,
+                username=username,
+                access_token=token.access_token,
+                access_secret=token.access_secret,
+                is_active_admin=is_active_coordinator(username),
+            )
+        except Exception as e:
+            logger.error("Error loading user for ID %s: %s", user_id, e)
+            return None
 
 
 __all__ = [
-    "CurrentUser",
-    "current_user",
-    "oauth_required",
-    "context_user",
+    "UserService",
 ]

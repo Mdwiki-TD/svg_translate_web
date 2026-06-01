@@ -14,12 +14,13 @@ from src.main_app.app_routes.admin.admins_required import admin_required
 
 
 class MockUser:
-    def __init__(self, username):
+    def __init__(self, username, is_active_admin):
         self.username = username
+        self.is_active_admin = is_active_admin
 
 
 def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", lambda: None)
     monkeypatch.setattr(
         "src.main_app.app_routes.admin.admins_required.redirect", lambda location: f"redirect:{location}"
     )
@@ -34,11 +35,11 @@ def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyP
 
 def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.admin.admins_required.current_user", lambda: types.SimpleNamespace(username="user")
+        "src.main_app.app_routes.admin.admins_required.load_user",
+        lambda: types.SimpleNamespace(username="user", is_active_admin=False),
     )
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: [])
 
-    class AbortCalled(Exception):
+    class AbortCalled(Exception):  # noqa: N818
         pass
 
     def fake_abort(code: int) -> None:
@@ -58,9 +59,9 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
 
 def test_admin_required_allows_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "src.main_app.app_routes.admin.admins_required.current_user", lambda: types.SimpleNamespace(username="boss")
+        "src.main_app.app_routes.admin.admins_required.load_user",
+        lambda: types.SimpleNamespace(username="boss", is_active_admin=True),
     )
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: ["boss"])
 
     @admin_required
     def view() -> str:
@@ -80,7 +81,7 @@ def test_admin_required_not_logged_in():
         return "This should not be returned"
 
     with (
-        patch("src.main_app.app_routes.admin.admins_required.current_user", return_value=None),
+        patch("src.main_app.app_routes.admin.admins_required.load_user", return_value=None),
         patch("src.main_app.app_routes.admin.admins_required.redirect") as mock_redirect,
         patch("src.main_app.app_routes.admin.admins_required.url_for", return_value="/login") as mock_url_for,
     ):
@@ -105,12 +106,9 @@ def test_admin_required_not_admin():
         return "This should not be returned"
 
     # Mock user who is not in the admin list
-    mock_user = MockUser(username="testuser")
+    mock_user = MockUser(username="testuser", is_active_admin=False)
 
-    with (
-        patch("src.main_app.app_routes.admin.admins_required.current_user", return_value=mock_user),
-        patch("src.main_app.app_routes.admin.admins_required.active_coordinators", return_value=["admin1", "admin2"]),
-    ):
+    with (patch("src.main_app.app_routes.admin.admins_required.load_user", return_value=mock_user),):
         # Expect a Forbidden (403) exception to be raised
         with pytest.raises(Forbidden):
             dummy_view()
@@ -127,12 +125,9 @@ def test_admin_required_is_admin():
         return "Success"
 
     # Mock user who is in the admin list
-    mock_user = MockUser(username="admin1")
+    mock_user = MockUser(username="admin1", is_active_admin=True)
 
-    with (
-        patch("src.main_app.app_routes.admin.admins_required.current_user", return_value=mock_user),
-        patch("src.main_app.app_routes.admin.admins_required.active_coordinators", return_value=["admin1", "admin2"]),
-    ):
+    with (patch("src.main_app.app_routes.admin.admins_required.load_user", return_value=mock_user),):
         # The view should be executed and return its value
         response = dummy_view()
         assert response == "Success"

@@ -14,6 +14,7 @@ class OtherConfig:
 
     csrf_time_limit: Optional[int]  # None means never expire
     user_agent: str
+    wiki_domain: str
     static_server: str
 
 

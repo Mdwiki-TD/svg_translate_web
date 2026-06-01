@@ -11,13 +11,13 @@ from flask import (
 )
 
 from ...db.services import list_jobs, list_users
-from ...jobs_workers.workers_list import JOB_TYPE_DISPLAY_NAMES
+from ...jobs_workers.workers_list import jobs_data, jobs_data_public
 from ..admin_routes import (
-    coordinators_module,
     bp_jobs,
     bp_owidcharts,
     bp_settings,
     bp_templates,
+    coordinators_module,
 )
 from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required
@@ -26,6 +26,11 @@ from .sidebar import create_side
 logger = logging.getLogger(__name__)
 
 bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
+
+
+def _get_display_name(job_type: str) -> str:
+    job_data = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    return job_data.job_name if job_data else job_type
 
 
 @bp_admin.app_context_processor
@@ -50,7 +55,7 @@ def admin_dashboard():
                 "id": job.id,
                 "status": job.status,
                 "job_type": job.job_type,
-                "display_name": JOB_TYPE_DISPLAY_NAMES.get(job.job_type, job.job_type),
+                "display_name": _get_display_name(job.job_type),
                 "detail_url": get_job_detail_url(job.id, job.job_type),
                 "username": job.username,
                 "created_at": job.created_at,

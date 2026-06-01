@@ -63,6 +63,7 @@ def get_category_members(category="Category:Pages using gadget owidslider", proj
     result = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
     return result
 
+
 __all__ = [
     "get_category_members_api",
     "get_category_members",

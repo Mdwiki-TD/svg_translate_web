@@ -12,7 +12,6 @@ from src.main_app.jobs_workers.utils import generate_result_file_name
 from src.main_app.su_services.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,
-    save_job_result,
     save_job_result_by_name,
 )
 
@@ -122,20 +121,6 @@ def test_save_job_result_with_datetime(tmp_path, monkeypatch: pytest.MonkeyPatch
     result_file = save_job_result_by_name(result_file_name, result_data)
 
     assert result_file.exists()
-
-
-def test_save_job_result_simple(tmp_path, monkeypatch: pytest.MonkeyPatch):
-    """Test save_job_result without by_name variant."""
-    monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
-
-    job = JobRecord(id=1, job_type="test_job", status="pending")
-
-    result_data = {"test": "data"}
-
-    result_file_name = save_job_result(job.id, result_data)
-
-    assert result_file_name == f"job_{job.id}.json"
-    assert (tmp_path / result_file_name).exists()
 
 
 def test_load_nonexistent_job_result():

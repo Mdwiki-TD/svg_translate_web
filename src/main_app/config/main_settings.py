@@ -163,10 +163,6 @@ def _get_paths() -> Paths:
         "main_files_path": f"{main_dir}/main_files",
         "crop_main_files_path": crop_main_files_path,
     }
-    # Ensure directories exist
-    for dir_name in _dirs.values():
-        Path(dir_name).mkdir(parents=True, exist_ok=True)
-
     return Paths(**_dirs)
 
 
@@ -177,6 +173,7 @@ def load_other_config() -> OtherConfig:
     if not csrf_time_limit or csrf_time_limit <= 0:
         csrf_time_limit = 3600
 
+    wiki_domain = os.getenv("WIKI_DOMAIN") or "commons.wikimedia.org"
     static_server = os.getenv("STATIC_SERVER") or "https://tools-static.wmflabs.org/cdnjs"
 
     user_agent = os.getenv(
@@ -186,6 +183,7 @@ def load_other_config() -> OtherConfig:
     _config = OtherConfig(
         csrf_time_limit=csrf_time_limit,
         user_agent=user_agent,
+        wiki_domain=wiki_domain,
         static_server=static_server,
     )
 
@@ -270,6 +268,25 @@ def get_settings() -> Settings:
 # Singleton settings instance
 settings = get_settings()
 
+
+def ensure_directories() -> None:
+    """Create application directories if they don't exist.
+
+    Call this once at app startup (in the factory), not at import time.
+    """
+    for dir_name in [
+        settings.paths.log_dir,
+        settings.paths.jobs_path,
+        settings.paths.main_files_path,
+        settings.paths.svg_data,
+        settings.paths.svg_data_thumb,
+        settings.paths.fix_nested_data,
+        settings.paths.crop_main_files_path,
+    ]:
+        Path(dir_name).mkdir(parents=True, exist_ok=True)
+
+
 __all__ = [
+    "ensure_directories",
     "settings",
 ]
