@@ -26,6 +26,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
         user = load_user()
         if not user:
             return redirect(url_for("auth.login"))
+        # if not user.is_active_admin:
         if user.username not in active_coordinators():
             abort(403)
         return view(*args, **kwargs)
