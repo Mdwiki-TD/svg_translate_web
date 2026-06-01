@@ -17,6 +17,38 @@ from ..models import UserTokenRecord
 logger = logging.getLogger(__name__)
 
 
+def create_user(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
+    """Create a user identity row. Idempotent — returns existing if present."""
+    username = (username or "").strip()
+
+    existing = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
+    if existing:
+        return existing
+
+    encrypted_token = encrypt_value(access_key)
+    encrypted_secret = encrypt_value(access_secret)
+
+    now = func.current_timestamp()
+
+    record = UserTokenRecord(
+        username=username,
+        access_token=encrypted_token,
+        access_secret=encrypted_secret,
+        created_at=now,
+        updated_at=now,
+        last_used_at=now,
+        rotated_at=None,
+    )
+    db.session.add(record)
+    try:
+        db.session.commit()
+        db.session.refresh(record)
+    except Exception:
+        db.session.rollback()
+        raise
+    return record
+
+
 def list_users() -> list[UserTokenRecord]:
     """Return all users."""
     records = (
@@ -56,9 +88,8 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
     return orm_obj
 
 
-def upsert_user_token(*, user_id: int, username: str, access_key: str, access_secret: str) -> None:
+def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
     """Insert or update the encrypted OAuth credentials for a user."""
-    username = (username or "").strip()
 
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
@@ -66,26 +97,14 @@ def upsert_user_token(*, user_id: int, username: str, access_key: str, access_se
 
     orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
     if orm_obj:
-        orm_obj.username = username
         orm_obj.access_token = encrypted_token
         orm_obj.access_secret = encrypted_secret
         orm_obj.updated_at = now
         orm_obj.last_used_at = now
         orm_obj.rotated_at = now
-    else:
-        orm_obj = UserTokenRecord(
-            user_id=user_id,
-            username=username,
-            access_token=encrypted_token,
-            access_secret=encrypted_secret,
-            created_at=now,
-            updated_at=now,
-            last_used_at=now,
-            rotated_at=None,
-        )
-        db.session.add(orm_obj)
 
     db.session.commit()
+    return orm_obj
 
 
 def delete_user_token(user_id: int) -> bool:
@@ -102,7 +121,7 @@ def delete_user_token(user_id: int) -> bool:
 
 __all__ = [
     "list_users",
-    "upsert_user_token",
+    "update_user_token",
     "get_user_token",
     "delete_user_token",
     "get_user_token_by_username",

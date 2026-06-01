@@ -6,7 +6,6 @@ from src.main_app.db.services.user_token_service import (
     UserTokenRecord,
     delete_user_token,
     get_user_token,
-    upsert_user_token,
 )
 
 
@@ -61,7 +60,3 @@ class TestUserTokenRecord:
 
         assert record.access_token == b"encrypted_token"
         assert record.access_secret == b"encrypted_secret"
-
-
-class TestUpsertUserToken:
-    """Tests for upsert_user_token function."""

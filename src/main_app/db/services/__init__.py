@@ -44,18 +44,20 @@ from .template_service import (
     update_template_data,
 )
 from .user_token_service import (
+    create_user,
     delete_user_token,
     get_authenticated_user_token,
     get_user_token,
     get_user_token_by_username,
     list_users,
-    upsert_user_token,
+    update_user_token,
 )
 
 __all__ = [
     # user_token_service
-    "upsert_user_token",
+    "update_user_token",
     "get_user_token",
+    "create_user",
     "get_authenticated_user_token",
     "delete_user_token",
     "get_user_token_by_username",

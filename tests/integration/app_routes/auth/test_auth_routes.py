@@ -93,7 +93,7 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         return access, identity
 
     monkeypatch.setattr("src.main_app.su_services.auth_service.complete_login", fake_complete)
-    monkeypatch.setattr("src.main_app.su_services.users_service.upsert_user_token", lambda **kwargs: kwargs)
+    monkeypatch.setattr("src.main_app.su_services.users_service.update_user_token", lambda **kwargs: kwargs)
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
     with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
@@ -139,7 +139,7 @@ def test_login_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) ->
     with app_mock.test_request_context("/login"):
         response = routes.login()
         assert response.status_code == 302
-        location = response.headers["Location"]
+        _location = response.headers["Location"]
         # URL is URL-encoded, check for error param
 
 
