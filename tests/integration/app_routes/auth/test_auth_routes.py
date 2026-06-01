@@ -93,7 +93,12 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         return access, identity
 
     monkeypatch.setattr("src.main_app.su_services.auth_service.complete_login", fake_complete)
-    monkeypatch.setattr("src.main_app.su_services.users_service.update_user_token", lambda **kwargs: kwargs)
+
+    fake_user = types.SimpleNamespace(user_id=123, username="Tester")
+    monkeypatch.setattr(
+        "src.main_app.su_services.users_service.UserService.save_and_get_user",
+        staticmethod(lambda **kwargs: fake_user),
+    )
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
     with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
@@ -105,7 +110,7 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         assert response.status_code == 302
         assert "uid_enc" in cookie_header
         assert session["uid"] == 123
-        assert g.is_authenticated is True
+        assert g._current_user is not None
 
 
 def test_logout_clears_session(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
