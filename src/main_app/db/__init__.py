@@ -5,7 +5,6 @@ import sqlite3
 
 from sqlalchemy import event, text
 from sqlalchemy.exc import SQLAlchemyError
-
 from .exceptions import DatabaseInitError
 
 logger = logging.getLogger(__name__)
