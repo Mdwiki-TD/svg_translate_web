@@ -74,16 +74,13 @@ def _update_running_status(job_id: int, result_file: str | None = None, *, job_t
 def is_job_cancelled(job_id: int, job_type: str) -> bool:
     """
     Check if a job is marked as cancelled.
-
-    Query to match:
-        SELECT status FROM jobs WHERE id = %s AND job_type = %s
     """
-    record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-    if record:
-        # Refresh from database to ensure we don't use a stale cached status
-        db.session.refresh(record)
-        return record.status == "cancelled"
-    return False
+    status = (
+        db.session.query(JobRecord.status)
+        .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
+        .scalar()
+    )
+    return status == "cancelled"
 
 
 def get_job(job_id: int, job_type: str) -> JobRecord:
@@ -181,7 +178,11 @@ def has_active_job(job_type: str) -> bool:
     """
     result = (
         db.session.query(JobRecord.id)
-        .filter(JobRecord.job_type == job_type, JobRecord.status.in_(["pending", "running"]))
+        .filter(
+            JobRecord.job_type == job_type,
+            JobRecord.status.in_(["pending", "running"]),
+            JobRecord.is_running == 1,
+        )
         .first()
     )
     return result is not None
@@ -246,7 +247,10 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
         if job_type:
             query = query.filter(JobRecord.job_type == job_type)
 
-        job = query.filter(JobRecord.status.in_(["pending", "running"])).first()
+        job = query.filter(
+                JobRecord.status.in_(["pending", "running"]),
+                JobRecord.is_running == 1,
+            ).first()
 
         if job:
             job.status = "cancelled"
