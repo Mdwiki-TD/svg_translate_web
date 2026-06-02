@@ -9,7 +9,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="headline mb-0">{% block detail_headline %}{% endblock %} Job #{{ job.id }}</h3>
             <div class="d-flex gap-2">
-                {% if (current_user.username == job.username) and (job.status == 'running' or job.status == 'pending') %}
+                {% if (current_username == job.username) and (job.status == 'running' or job.status == 'pending') %}
                 <form method="POST" action="{{ url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id) }}"
                     onsubmit="return confirm('Are you sure you want to cancel this job?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

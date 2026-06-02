@@ -19,7 +19,7 @@ from src.main_app.extensions import db as _db
 class _JobsStore:
     """Adapter bridging old JobsDB API to SQLAlchemy jobs_service functions."""
 
-    def create(self, job_type, username=None):
+    def create(self, job_type, username="z"):
         return _sqlalchemy_jobs_service.create_job(job_type, username)
 
     def list(self, limit=100, job_type=None):
@@ -48,19 +48,15 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     """Return a configured Flask test client paired with a fake jobs jobs_db."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin")
+    admin_user = SimpleNamespace(username="admin", is_active_admin=True)
 
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.main_app.su_services.users_service.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.current_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.main_app.app_routes.admin.admins_required.active_coordinators", lambda: {admin_user.username}
-    )
-    monkeypatch.setattr("src.main_app.db.services.admin_service.active_coordinators", lambda: {admin_user.username})
-    monkeypatch.setattr("src.main_app.su_services.users_service.active_coordinators", lambda: {admin_user.username})
+    monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.utils.routes_utils._is_admin", lambda x: True)
 
     app = create_app(TestingConfig)
     app.config["TESTING"] = True
@@ -784,7 +780,7 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
 
     # Mock current_user to return None
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.current_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", lambda: None)
 
     response = admin_jobs_client.post("/admin/jobs/collect_main_files/start", follow_redirects=True)
     assert response.status_code == 200

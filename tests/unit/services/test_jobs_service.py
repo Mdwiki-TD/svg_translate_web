@@ -17,7 +17,7 @@ from src.main_app.db.services.jobs_service import (
 
 def test_create_job():
     """Test creating a new job."""
-    job = create_job("collect_main_files")
+    job = create_job("collect_main_files", username="test_user")
 
     assert job is not None
     assert job.id == 1
@@ -38,7 +38,7 @@ def test_create_job_with_username():
 
 def test_get_job():
     """Test retrieving a job by ID."""
-    created_job = create_job("collect_main_files")
+    created_job = create_job("collect_main_files", username="z")
 
     retrieved_job = get_job(created_job.id, job_type="collect_main_files")
 
@@ -54,9 +54,9 @@ def test_get_nonexistent_job():
 
 def test_list_jobs():
     """Test listing jobs."""
-    create_job("collect_main_files")
-    create_job("collect_main_files")
-    create_job("other_job")
+    create_job("collect_main_files", username="z")
+    create_job("collect_main_files", username="z")
+    create_job("other_job", username="z")
 
     jobs = list_jobs()
 
@@ -67,7 +67,7 @@ def test_list_jobs():
 def test_list_jobs_with_limit():
     """Test listing jobs with a limit."""
     for _ in range(5):
-        create_job("collect_main_files")
+        create_job("collect_main_files", username="z")
 
     jobs = list_jobs(limit=2)
 
@@ -76,7 +76,7 @@ def test_list_jobs_with_limit():
 
 def test_update_job_status():
     """Test updating a job's status."""
-    job = create_job("collect_main_files")
+    job = create_job("collect_main_files", username="z")
 
     updated_job = update_job_status(job.id, "running", job_type="collect_main_files")
 
@@ -85,7 +85,7 @@ def test_update_job_status():
 
 def test_update_job_status_with_result_file():
     """Test updating a job's status with a result file."""
-    job = create_job("collect_main_files")
+    job = create_job("collect_main_files", username="z")
 
     updated_job = update_job_status(job.id, "completed", "/path/to/result.json", job_type="collect_main_files")
 
@@ -95,7 +95,7 @@ def test_update_job_status_with_result_file():
 
 def test_delete_job():
     """Test deleting a job."""
-    job = create_job("collect_main_files")
+    job = create_job("collect_main_files", username="z")
     assert len(jobs_service.list_jobs()) == 1
 
     delete_job(job.id, "collect_main_files")
@@ -105,8 +105,8 @@ def test_delete_job():
 
 def test_delete_job_with_correct_type():
     """Test deleting a job with correct job type."""
-    job1 = create_job("collect_main_files")
-    job2 = create_job("fix_nested_main_files")
+    job1 = create_job("collect_main_files", username="z")
+    job2 = create_job("fix_nested_main_files", username="z")
     assert len(jobs_service.list_jobs()) == 2
 
     delete_job(job1.id, "collect_main_files")
@@ -118,7 +118,7 @@ def test_delete_job_with_correct_type():
 
 def test_delete_job_with_wrong_type():
     """Test deleting a job with wrong job type doesn't delete it."""
-    job = create_job("collect_main_files")
+    job = create_job("collect_main_files", username="z")
     assert len(jobs_service.list_jobs()) == 1
 
     # Try to delete with wrong job type
@@ -141,10 +141,10 @@ def test_delete_nonexistent_job():
 
 def test_list_jobs_filtered_by_type():
     """Test listing jobs filtered by job_type."""
-    create_job("collect_main_files")
-    create_job("collect_main_files")
-    create_job("fix_nested_main_files")
-    create_job("other_job_type")
+    create_job("collect_main_files", username="z")
+    create_job("collect_main_files", username="z")
+    create_job("fix_nested_main_files", username="z")
+    create_job("other_job_type", username="z")
 
     # Filter by collect_main_files
     collect_jobs = list_jobs(job_type="collect_main_files")
@@ -164,9 +164,9 @@ def test_list_jobs_filtered_by_type():
 def test_list_jobs_filtered_with_limit():
     """Test listing jobs filtered by job_type with a limit."""
     for _ in range(5):
-        create_job("collect_main_files")
+        create_job("collect_main_files", username="z")
     for _ in range(3):
-        create_job("fix_nested_main_files")
+        create_job("fix_nested_main_files", username="z")
 
     # Filter by type with limit
     collect_jobs = list_jobs(limit=2, job_type="collect_main_files")

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import functools
 import logging
 import threading
 from abc import ABC, abstractmethod
@@ -19,64 +18,6 @@ from .utils import generate_result_file_name
 logger = logging.getLogger(__name__)
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
-
-
-def job_exception_handler(
-    result_file: str,
-    job_id: int,
-    job_type: str,
-) -> Callable[[FuncType], FuncType]:
-    """Decorator that wraps job execution with standardized exception handling.
-
-    This decorator provides:
-    - Exception catching and logging
-    - Automatic result saving on failure
-    - Job status updates on failure
-
-    Args:
-        result_file: The name of the result file to save
-        job_id: The job ID for logging and status updates
-        job_type: The type of job for status updates
-
-    Returns:
-        Decorated function with exception handling
-    """
-
-    def decorator(func: FuncType) -> FuncType:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                logger.exception(f"Job {job_id}: Fatal error during {func.__name__}")
-
-                # Save error result
-                error_result = {
-                    "job_id": job_id,
-                    "completed_at": datetime.now().isoformat(),
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                }
-
-                try:
-                    jobs_files_service.save_job_result_by_name(result_file, error_result)
-                    update_job_status(job_id, "failed", result_file, job_type=job_type)
-                except LookupError:
-                    logger.exception(
-                        f"Job {job_id}: Could not update status to failed, job record might have been deleted."
-                    )
-                except Exception:
-                    logger.exception(f"Job {job_id}: Failed to save error result")
-                    try:
-                        update_job_status(job_id, "failed", job_type=job_type)
-                    except LookupError:
-                        pass
-
-                return None
-
-        return wrapper  # type: ignore[return-value]
-
-    return decorator
 
 
 class BaseJobWorker(ABC):
@@ -260,5 +201,4 @@ class BaseJobWorker(ABC):
 
 __all__ = [
     "BaseJobWorker",
-    "job_exception_handler",
 ]

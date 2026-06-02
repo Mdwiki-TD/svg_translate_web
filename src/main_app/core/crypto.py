@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import threading
+
 from cryptography.fernet import Fernet, InvalidToken
 
 from ..config import settings
 
 _fernet: Fernet | None = None
+_fernet_lock = threading.Lock()
 
 
 def _require_fernet() -> Fernet:
@@ -15,23 +18,26 @@ def _require_fernet() -> Fernet:
     if _fernet is not None:
         return _fernet
 
-    if not settings.oauth.encryption_key:
-        raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
+    with _fernet_lock:
+        if _fernet is not None:
+            return _fernet
 
-    key_bytes = (
-        settings.oauth.encryption_key.encode()
-        if isinstance(settings.oauth.encryption_key, str)
-        else settings.oauth.encryption_key
-    )
-    # with _fernet_lock:
+        if not settings.oauth.encryption_key:
+            raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
-    try:
-        _fernet = Fernet(key_bytes)
-    except ValueError as exc:
-        # Key must be a 32‑byte urlsafe base64‑encoded string
-        raise RuntimeError("Invalid OAUTH_ENCRYPTION_KEY format") from exc
+        key_bytes = (
+            settings.oauth.encryption_key.encode()
+            if isinstance(settings.oauth.encryption_key, str)
+            else settings.oauth.encryption_key
+        )
 
-    return _fernet
+        try:
+            _fernet = Fernet(key_bytes)
+        except ValueError as exc:
+            # Key must be a 32‑byte urlsafe base64‑encoded string
+            raise RuntimeError("Invalid OAUTH_ENCRYPTION_KEY format") from exc
+
+        return _fernet
 
 
 def encrypt_value(value: str) -> bytes:

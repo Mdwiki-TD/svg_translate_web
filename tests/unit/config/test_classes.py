@@ -110,6 +110,7 @@ def test_Settings():
         user_agent="user_agent",
         csrf_time_limit=3600,
         static_server="static_server",
+        wiki_domain="wiki_domain",
     )
 
     settings = Settings(

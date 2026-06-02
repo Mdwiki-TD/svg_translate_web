@@ -22,7 +22,7 @@ and updates the database record when values have changed.
 
 | #   | File                                        | Change                                                                              |
 | --- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1   | `src/main_app/jobs_workers/workers_list.py` | Register new job in `jobs_targets`, `JOB_TYPE_TEMPLATES`, `JOB_TYPE_LIST_TEMPLATES` |
+| 1   | `src/main_app/jobs_workers/workers_list.py` | Register new job in `jobs_data` |
 | 2   | `src/main_app/app_routes/admin/sidebar.py`  | Add `Update OWID Charts` menu item under `"Jobs"` group                             |
 
 ---
@@ -178,14 +178,14 @@ Add three entries:
 # Import (top)
 from .update_owid_charts import update_owid_charts_for_templates
 
-# jobs_targets dict
-"update_owid_charts": update_owid_charts_for_templates,
-
-# JOB_TYPE_TEMPLATES
-"update_owid_charts": "admins/jobs_templates/update_owid_charts/details.html",
-
-# JOB_TYPE_LIST_TEMPLATES
-"update_owid_charts": "admins/jobs_templates/update_owid_charts/list.html",
+# jobs_data dict entry
+"update_owid_charts": JobData(
+    job_type="update_owid_charts",
+    job_name="Update OWID Charts",
+    job_details_template="admins/jobs_templates/update_owid_charts/details.html",
+    job_list_template="admins/jobs_templates/update_owid_charts/list.html",
+    job_callable=update_owid_charts_for_templates,
+),
 ```
 
 ### 4.2 `sidebar.py`

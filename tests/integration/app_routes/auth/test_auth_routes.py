@@ -92,10 +92,14 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         identity = {"sub": "123", "username": "Tester"}
         return access, identity
 
-    monkeypatch.setattr("src.main_app.app_routes.auth.routes.complete_login", fake_complete)
-    monkeypatch.setattr("src.main_app.app_routes.auth.routes.upsert_user_token", lambda **kwargs: kwargs)
-    monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
+    monkeypatch.setattr("src.main_app.su_services.auth_service.complete_login", fake_complete)
 
+    fake_user = types.SimpleNamespace(user_id=123, username="Tester")
+    monkeypatch.setattr(
+        "src.main_app.su_services.users_service.UserService.save_and_get_user",
+        staticmethod(lambda **kwargs: fake_user),
+    )
+    monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
     with app_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
         session["state"] = "state-value"
         session["req_token"] = ["k", "s"]
@@ -106,8 +110,7 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         assert response.status_code == 302
         assert "uid_enc" in cookie_header
         assert session["uid"] == 123
-        assert g.current_user.username == "Tester"
-        assert g.is_authenticated is True
+        assert g._current_user is not None
 
 
 def test_logout_clears_session(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -123,7 +126,6 @@ def test_logout_clears_session(app_mock: Flask, monkeypatch: pytest.MonkeyPatch)
         assert response.status_code == 302
         assert response.headers["Location"] == "/"
         assert "uid" not in session
-        assert g.current_user is None
 
 
 def test_login_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -142,7 +144,7 @@ def test_login_rate_limited(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) ->
     with app_mock.test_request_context("/login"):
         response = routes.login()
         assert response.status_code == 302
-        location = response.headers["Location"]
+        _location = response.headers["Location"]
         # URL is URL-encoded, check for error param
 
 

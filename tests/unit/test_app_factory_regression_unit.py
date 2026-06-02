@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.utils.jinja_filters import format_stage_timestamp
+from src.main_app.core.jinja_filters import format_stage_timestamp
 
 
 def test_format_stage_timestamp_valid():

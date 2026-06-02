@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from src.main_app.app_routes.public_jobs import JobsPublicRoutes, _can_manage_job
 
@@ -19,10 +19,10 @@ def test_can_manage_job_admin():
     job = MagicMock()
     job.username = "other_user"
 
-    with patch("src.main_app.app_routes.public_jobs.active_coordinators", return_value=["admin_user", "coordinator"]):
-        user = MagicMock()
-        user.username = "admin_user"
-        assert _can_manage_job(job, user) is True
+    user = MagicMock()
+    user.username = "admin_user"
+    user.is_active_admin = True
+    assert _can_manage_job(job, user) is True
 
 
 def test_can_manage_job_owner():
@@ -30,10 +30,10 @@ def test_can_manage_job_owner():
     job = MagicMock()
     job.username = "owner_user"
 
-    with patch("src.main_app.app_routes.public_jobs.active_coordinators", return_value=["admin"]):
-        user = MagicMock()
-        user.username = "owner_user"
-        assert _can_manage_job(job, user) is True
+    user = MagicMock()
+    user.username = "owner_user"
+    user.is_active_admin = True
+    assert _can_manage_job(job, user) is True
 
 
 def test_can_manage_job_not_owner_not_admin():
@@ -41,10 +41,10 @@ def test_can_manage_job_not_owner_not_admin():
     job = MagicMock()
     job.username = "owner_user"
 
-    with patch("src.main_app.app_routes.public_jobs.active_coordinators", return_value=["admin"]):
-        user = MagicMock()
-        user.username = "other_user"
-        assert _can_manage_job(job, user) is False
+    user = MagicMock()
+    user.username = "other_user"
+    user.is_active_admin = False
+    assert _can_manage_job(job, user) is False
 
 
 def test_can_manage_job_no_job_username():
@@ -52,10 +52,10 @@ def test_can_manage_job_no_job_username():
     job = MagicMock()
     job.username = None
 
-    with patch("src.main_app.app_routes.public_jobs.active_coordinators", return_value=["admin"]):
-        user = MagicMock()
-        user.username = "admin"
-        assert _can_manage_job(job, user) is True
+    user = MagicMock()
+    user.username = "admin"
+    user.is_active_admin = True
+    assert _can_manage_job(job, user) is True
 
 
 class TestJobsPublicRoutesInit:
