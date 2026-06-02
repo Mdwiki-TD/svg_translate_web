@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from flask import Flask, current_app
 
-from ..db.services import cancel_job as cancel_job_db
+from ..db.services import cancel_job_db
 from ..db.services import (
     create_job,
 )
