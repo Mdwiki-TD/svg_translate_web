@@ -214,6 +214,7 @@ def create_job(job_type: str, username: str) -> JobRecord:
     db.session.refresh(job)
     return job
 
+
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """
     Update job status and optional result file.

@@ -14,7 +14,7 @@ class UserNotFoundError(LookupError):
 
 
 class DuplicateJobError(Exception):
-    """Raised when a job of the same type is already running."""
+    """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
 
 
 class InsufficientDatabaseConfigError(RuntimeError):
