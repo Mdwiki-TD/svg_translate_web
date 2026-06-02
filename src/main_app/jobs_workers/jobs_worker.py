@@ -89,6 +89,8 @@ def start_job(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] |
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
+    if not username:
+        raise ValueError("User authentication data is required")
 
     # Create job record
     job = create_job(job_type, username)
