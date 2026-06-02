@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import Column, DateTime, Index, Integer, String, func
 
 from ...extensions import db
 
@@ -33,6 +33,7 @@ class JobRecord(db.Model):
     job_type = Column(String(255), nullable=False)
     username = Column(String(255), nullable=False)
     status = Column(String(50), nullable=False, server_default="pending")
+    is_running = Column(Integer, nullable=True)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     result_file = Column(String(500), nullable=True)
@@ -44,6 +45,8 @@ class JobRecord(db.Model):
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
     )
+
+    __table_args__ = (Index("uq_job_type_is_running", "job_type", "is_running", unique=True),)
 
 
 __all__ = [
