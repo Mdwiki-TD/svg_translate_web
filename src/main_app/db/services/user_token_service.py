@@ -94,7 +94,6 @@ def create_user(username: str, access_key: str, access_secret: str) -> UserToken
     return record
 
 
-
 def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
     """
     update the encrypted OAuth credentials for a user.
@@ -114,7 +113,6 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
         db.session.commit()
         db.session.refresh(orm_obj)
     return orm_obj
-
 
 
 # ── DELETE ───────────────────────────────────────────────

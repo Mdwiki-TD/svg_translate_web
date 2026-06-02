@@ -49,6 +49,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
 
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
+
     try:
         # Cancel the job if it's running
         if jobs_worker.cancel_job(job_id, job_type):
@@ -111,8 +112,6 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 # Jobs handlers
 # ================================
 
-bp_jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
-
 
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
@@ -166,12 +165,17 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
 class Jobs:
     """Collect Templates data Jobs management routes."""
 
-    def __init__(self, bp_jobs: Blueprint) -> None:
+    def __init__(self):
+        self.bp = Blueprint("jobs", __name__, url_prefix="/jobs")
+        self._setup_routes()
+
+    def _setup_routes(self):
+
         # ================================
         # Cancel Jobs routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/<int:job_id>/cancel")
+        @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         @admin_required
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data:
@@ -182,7 +186,7 @@ class Jobs:
         # Jobs List routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>")
+        @self.bp.get("/<string:job_type>")
         @admin_required
         def jobs_list(job_type: str) -> str:
             return _jobs_list(job_type)
@@ -191,7 +195,7 @@ class Jobs:
         # Job Detail routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>/<int:job_id>")
+        @self.bp.get("/<string:job_type>/<int:job_id>")
         @admin_required
         def job_detail(job_type: str, job_id: int) -> Response | str:
             return _job_detail(job_id, job_type)
@@ -200,7 +204,7 @@ class Jobs:
         # Start Job routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/start")
+        @self.bp.post("/<string:job_type>/start")
         @admin_required
         def start_job(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data:
@@ -210,7 +214,7 @@ class Jobs:
                 return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
             return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
-        @bp_jobs.post("/<string:job_type>/start_with_args")
+        @self.bp.post("/<string:job_type>/start_with_args")
         @admin_required
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data:
@@ -226,7 +230,7 @@ class Jobs:
         # Delete Job routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/<int:job_id>/delete")
+        @self.bp.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data:
@@ -237,7 +241,7 @@ class Jobs:
         # download-main-files routes
         # ================================
 
-        @bp_jobs.get("/download-main-files/file/<path:filename>")
+        @self.bp.get("/download-main-files/file/<path:filename>")
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """
@@ -248,7 +252,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/download-main-files/download-all")
+        @self.bp.get("/download-main-files/download-all")
         @admin_required
         def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
@@ -266,7 +270,7 @@ class Jobs:
         # crop-main-files routes
         # ================================
 
-        @bp_jobs.get("/crop-main-files/original/<path:filename>")
+        @self.bp.get("/crop-main-files/original/<path:filename>")
         @admin_required
         def serve_crop_original_file(filename: str) -> Response:
             """
@@ -278,7 +282,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/crop-main-files/cropped/<path:filename>")
+        @self.bp.get("/crop-main-files/cropped/<path:filename>")
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
@@ -290,7 +294,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/crop-main-files/compare/<path:original>/<path:cropped>")
+        @self.bp.get("/crop-main-files/compare/<path:original>/<path:cropped>")
         @admin_required
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
@@ -303,7 +307,7 @@ class Jobs:
                 file_cropped=cropped,
             )
 
-        @bp_jobs.get("/read-job-result-file/<path:result_file>")
+        @self.bp.get("/read-job-result-file/<path:result_file>")
         @admin_required
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
@@ -311,8 +315,8 @@ class Jobs:
             return jsonify(result_data)
 
 
-Jobs(bp_jobs)
+jobs_module = Jobs()
 
 __all__ = [
-    "bp_jobs",
+    "jobs_module",
 ]

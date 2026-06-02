@@ -1,15 +1,15 @@
 """Admin blueprint package."""
 
 from .coordinators import coordinators_module
-from .jobs import bp_jobs
-from .owid_charts import bp_owidcharts
-from .settings import bp_settings
-from .templates import bp_templates
+from .jobs import jobs_module
+from .owid_charts import owidcharts_module
+from .settings import settings_module
+from .templates import templates_module
 
 __all__ = [
     "coordinators_module",
-    "bp_jobs",
-    "bp_owidcharts",
-    "bp_settings",
-    "bp_templates",
+    "jobs_module",
+    "owidcharts_module",
+    "settings_module",
+    "templates_module",
 ]

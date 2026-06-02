@@ -23,8 +23,6 @@ from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
 
-bp_owidcharts = Blueprint("owidcharts", __name__, url_prefix="/owid-charts")
-
 
 def create_json_file() -> Tuple[Any, int]:
     """Create a JSON file containing all charts data.
@@ -239,24 +237,29 @@ def _edit_chart(chart_id: int) -> ResponseReturnValue:
 
 
 class OwidCharts:
-    def __init__(self, bp_owidcharts: Blueprint):
-        @bp_owidcharts.get("/")
-        @bp_owidcharts.get("/<string:template_filter>")
+
+    def __init__(self):
+        self.bp = Blueprint("owidcharts", __name__, url_prefix="/owid-charts")
+        self._setup_routes()
+
+    def _setup_routes(self):
+        @self.bp.get("/")
+        @self.bp.get("/<string:template_filter>")
         @admin_required
         def dashboard(template_filter: str = ""):
             return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
-        @bp_owidcharts.get("/add")
+        @self.bp.get("/add")
         @admin_required
         def add_chart_popup() -> ResponseReturnValue:
             return _add_chart_popup()
 
-        @bp_owidcharts.post("/add")
+        @self.bp.post("/add")
         @admin_required
         def add_chart() -> ResponseReturnValue:
             return _add_chart()
 
-        @bp_owidcharts.post("/update")
+        @self.bp.post("/update")
         @admin_required
         def update_chart_data() -> ResponseReturnValue:
             chart_id = request.form.get("chart_id", default=0, type=int)
@@ -270,17 +273,17 @@ class OwidCharts:
 
             return _update_chart()
 
-        @bp_owidcharts.post("/<int:chart_id>/delete")
+        @self.bp.post("/<int:chart_id>/delete")
         @admin_required
         def delete_chart(chart_id: int) -> ResponseReturnValue:
             return _delete_chart(chart_id)
 
-        @bp_owidcharts.get("/<int:chart_id>/edit")
+        @self.bp.get("/<int:chart_id>/edit")
         @admin_required
         def edit_chart(chart_id: int) -> ResponseReturnValue:
             return _edit_chart(chart_id)
 
-        @bp_owidcharts.get("/download-json")
+        @self.bp.get("/download-json")
         @admin_required
         def download_owid_charts_json() -> ResponseReturnValue:
             """Download all charts as a JSON file."""
@@ -293,9 +296,8 @@ class OwidCharts:
             return response
 
 
-OwidCharts(bp_owidcharts)
-
+owidcharts_module = OwidCharts()
 
 __all__ = [
-    "bp_owidcharts",
+    "owidcharts_module",
 ]

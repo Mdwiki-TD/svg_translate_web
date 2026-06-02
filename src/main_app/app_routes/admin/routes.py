@@ -13,11 +13,11 @@ from flask import (
 from ...db.services import list_jobs, list_users
 from ...jobs_workers.workers_list import jobs_data, jobs_data_public
 from ..admin_routes import (
-    bp_jobs,
-    bp_owidcharts,
-    bp_settings,
-    bp_templates,
     coordinators_module,
+    jobs_module,
+    owidcharts_module,
+    settings_module,
+    templates_module,
 )
 from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required
@@ -84,10 +84,10 @@ def users_dashboard() -> str:
 
 def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(coordinators_module.bp)
-    bp_admin.register_blueprint(bp_templates)
-    bp_admin.register_blueprint(bp_settings)
-    bp_admin.register_blueprint(bp_jobs)
-    bp_admin.register_blueprint(bp_owidcharts)
+    bp_admin.register_blueprint(templates_module.bp)
+    bp_admin.register_blueprint(settings_module.bp)
+    bp_admin.register_blueprint(jobs_module.bp)
+    bp_admin.register_blueprint(owidcharts_module.bp)
 
 
 register_blueprints(bp_admin)

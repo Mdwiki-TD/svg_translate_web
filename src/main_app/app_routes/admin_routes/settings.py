@@ -13,19 +13,22 @@ from ...db.services import (
 )
 from ..admin.admins_required import admin_required
 
-bp_settings = Blueprint("settings", __name__, url_prefix="/settings")
-
 
 class SettingsRoutes:
-    def __init__(self, bp_admin: Blueprint):
 
-        @bp_admin.get("/")
+    def __init__(self):
+        self.bp = Blueprint("settings", __name__, url_prefix="/settings")
+        self._setup_routes()
+
+    def _setup_routes(self):
+
+        @self.bp.get("/")
         @admin_required
         def dashboard():
             all_settings = get_all_settings_raw()
             return render_template("admins/settings.html", settings_list=all_settings)
 
-        @bp_admin.post("/create")
+        @self.bp.post("/create")
         @admin_required
         def settings_create():
             key = request.form.get("key", "").strip()
@@ -49,7 +52,7 @@ class SettingsRoutes:
 
             return redirect(url_for("admin.settings.dashboard"))
 
-        @bp_admin.post("/update")
+        @self.bp.post("/update")
         @admin_required
         def settings_update():
             failed_keys, deleted_keys = settings_update_form(request.form)
@@ -64,9 +67,8 @@ class SettingsRoutes:
             return redirect(url_for("admin.settings.dashboard"))
 
 
-SettingsRoutes(bp_settings)
-
+settings_module = SettingsRoutes()
 
 __all__ = [
-    "bp_settings",
+    "settings_module",
 ]

@@ -37,9 +37,6 @@ from .utils.routes_utils import load_auth_payload
 logger = logging.getLogger(__name__)
 
 
-bp_jobs = Blueprint("public_jobs", __name__, url_prefix="/jobs")
-
-
 def load_user():
     user = getattr(g, "_current_user", None)
     return user
@@ -78,18 +75,20 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         if jobs_worker.cancel_job(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
-        delete_job(job_id, job_type)
-        flash(f"Job {job_id} deleted successfully.", "success")
-    except Exception as exc:
+        if delete_job(job_id, job_type):
+            flash(f"Job {job_id} deleted successfully.", "success")
+        else:
+            flash(f"Failed to delete job {job_id}", "danger")
+    except Exception:
         logger.exception("Failed to delete job")
-        flash(f"Failed to delete job {job_id}: {str(exc)}", "danger")
+        flash(f"Failed to delete job {job_id}", "danger")
 
     return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
 
 def _start_job(job_type: str) -> int | None:
     """Start a job."""
-    load_user()
+    user = load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -110,7 +109,7 @@ def _start_job(job_type: str) -> int | None:
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
-    load_user()
+    user = load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
@@ -186,17 +185,21 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
 class JobsPublicRoutes:
     """Collect Templates data Jobs management routes."""
 
-    def __init__(self, bp_jobs: Blueprint) -> None:
+    def __init__(self):
+        self.bp = Blueprint("public_jobs", __name__, url_prefix="/jobs")
+        self._setup_routes()
+
+    def _setup_routes(self):
         # ================================
         # Cancel Jobs routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/<int:job_id>/cancel")
+        @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data_public:
                 abort(404)
 
-            load_user()
+            user = load_user()
             if not user:
                 flash("You must be logged in to cancel jobs.", "danger")
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
@@ -217,7 +220,7 @@ class JobsPublicRoutes:
         # Jobs List routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>")
+        @self.bp.get("/<string:job_type>")
         def jobs_list(job_type: str) -> str:
             return _jobs_list(job_type)
 
@@ -225,7 +228,7 @@ class JobsPublicRoutes:
         # Job Detail routes
         # ================================
 
-        @bp_jobs.get("/<string:job_type>/<int:job_id>")
+        @self.bp.get("/<string:job_type>/<int:job_id>")
         def job_detail(job_type: str, job_id: int) -> Response | str:
             return _job_detail(job_id, job_type)
 
@@ -233,7 +236,7 @@ class JobsPublicRoutes:
         # Start Job routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/start")
+        @self.bp.post("/<string:job_type>/start")
         def start_job(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data_public:
                 abort(404)
@@ -242,7 +245,7 @@ class JobsPublicRoutes:
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
             return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
-        @bp_jobs.post("/<string:job_type>/start_with_args")
+        @self.bp.post("/<string:job_type>/start_with_args")
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data_public:
                 abort(404)
@@ -257,7 +260,7 @@ class JobsPublicRoutes:
         # Delete Job routes
         # ================================
 
-        @bp_jobs.post("/<string:job_type>/<int:job_id>/delete")
+        @self.bp.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data_public:
@@ -268,7 +271,7 @@ class JobsPublicRoutes:
         # download-main-files routes
         # ================================
 
-        @bp_jobs.get("/download-main-files/file/<path:filename>")
+        @self.bp.get("/download-main-files/file/<path:filename>")
         def serve_download_main_file(filename: str) -> Response:
             """
             Serve a downloaded main file from the main_files_path directory.
@@ -278,7 +281,7 @@ class JobsPublicRoutes:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/download-main-files/download-all")
+        @self.bp.get("/download-main-files/download-all")
         def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
 
@@ -295,7 +298,7 @@ class JobsPublicRoutes:
         # crop-main-files routes
         # ================================
 
-        @bp_jobs.get("/crop-main-files/original/<path:filename>")
+        @self.bp.get("/crop-main-files/original/<path:filename>")
         def serve_crop_original_file(filename: str) -> Response:
             """
             Serve an original file from the crop_main_files_path/original directory.
@@ -306,7 +309,7 @@ class JobsPublicRoutes:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/crop-main-files/cropped/<path:filename>")
+        @self.bp.get("/crop-main-files/cropped/<path:filename>")
         def serve_crop_cropped_file(filename: str) -> Response:
             """
             Serve a cropped file from the crop_main_files_path/cropped directory.
@@ -317,7 +320,7 @@ class JobsPublicRoutes:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @bp_jobs.get("/crop-main-files/compare/<path:original>/<path:cropped>")
+        @self.bp.get("/crop-main-files/compare/<path:original>/<path:cropped>")
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
 
@@ -329,11 +332,15 @@ class JobsPublicRoutes:
                 file_cropped=cropped,
             )
 
-        @bp_jobs.get("/read-job-result-file/<path:result_file>")
+        @self.bp.get("/read-job-result-file/<path:result_file>")
         def read_job_result_file(result_file: str) -> ResponseReturnValue:
             """ """
             result_data = load_job_result(result_file)
             return jsonify(result_data)
 
 
-JobsPublicRoutes(bp_jobs)
+jobs_public_module = JobsPublicRoutes()
+
+__all__ = [
+    "jobs_public_module",
+]
