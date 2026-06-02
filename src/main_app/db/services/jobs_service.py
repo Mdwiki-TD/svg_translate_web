@@ -83,28 +83,6 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     return False
 
 
-def create_job(job_type: str, username: str | None = None) -> JobRecord:
-    """
-    Create a new job record.
-
-    Query to match:
-        INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
-        (job_type, "pending", username),
-
-    Raises:
-        DuplicateJobError: If a job of the same type is already running.
-    """
-    job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
-    db.session.add(job)
-    try:
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        raise DuplicateJobError(f"A job of type '{job_type}' is already running.")
-    db.session.refresh(job)
-    return job
-
-
 def get_job(job_id: int, job_type: str) -> JobRecord:
     """
     Get a job by ID.
@@ -131,18 +109,6 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
     return job
 
 
-def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
-    """
-    Update job status and optional result file.
-
-    Query to match:
-
-    """
-    if status == "running":
-        return _update_running_status(job_id, result_file, job_type=job_type)
-
-    return _update_status(job_id, status, result_file, job_type)
-
 
 def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     """
@@ -167,28 +133,49 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
 
-def delete_job(job_id: int, job_type: str) -> bool:
+
+
+# ── INSERT, UPDATE, SET ──────────────────────────────────
+
+
+def create_job(job_type: str, username: str) -> JobRecord:
     """
-    Delete a job by ID and job type.
+    Create a new job record.
 
-    Code to match:
-        query = "DELETE FROM jobs WHERE id = %s AND job_type = %s"
-        try:
-            self.db.execute_query_safe(query, (job_id, job_type))
-            return True
-        except Exception as e:
-            logger.exception(f"Failed to delete job id {job_id} of type {job_type}: {e}")
-            return False
+    Query to match:
+        INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
+        (job_type, "pending", username),
+
+    Raises:
+        DuplicateJobError: If a job of the same type is already running.
     """
-    record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-    if not record:
-        return False
-    db.session.delete(record)
-    db.session.commit()
-    return True
+    job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+    db.session.add(job)
+    try:
+        db.session.commit()
+    except IntegrityError as exc:
+        db.session.rollback()
+        if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
+            logger.warning("Duplicate active job detected for job_type=%s", job_type)
+            raise DuplicateJobError(f"A job of type '{job_type}' is already active (pending or running).") from exc
+        raise  # Re-raise unexpected IntegrityError
+    db.session.refresh(job)
+    return job
+
+def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
+    """
+    Update job status and optional result file.
+
+    Query to match:
+
+    """
+    if status == "running":
+        return _update_running_status(job_id, result_file, job_type=job_type)
+
+    return _update_status(job_id, status, result_file, job_type)
 
 
-def cancel_job(job_id: int, job_type: str | None = None) -> bool:
+def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
     """
     Mark a job as cancelled.
         query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
@@ -216,13 +203,27 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
     return False
 
 
+# ── DELETE ───────────────────────────────────────────────
+
+
+def delete_job(job_id: int, job_type: str) -> bool:
+    """Delete a job by ID and job type efficiently."""
+    affected_rows = (
+        db.session.query(JobRecord)
+        .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
+        .delete(synchronize_session=False)
+    )
+    db.session.commit()
+    return affected_rows > 0
+
+
 __all__ = [
     "create_job",
     "get_job",
     "list_jobs",
     "update_job_status",
     "_update_running_status",
-    "cancel_job",
+    "cancel_job_db",
     "is_job_cancelled",
     "delete_job",
 ]
