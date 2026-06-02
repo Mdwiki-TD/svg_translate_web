@@ -51,7 +51,11 @@ class AdminUserRecord(db.Model):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(255), unique=True, nullable=False)
+    username = Column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
     is_active = Column(Boolean, nullable=False, default=True, server_default="1")
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
@@ -83,7 +87,10 @@ class UserTokenRecord(db.Model):
 
     __tablename__ = "user_tokens"
 
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(
+        Integer,
+        primary_key=True,
+    )
     username = Column(String(255), unique=True, nullable=False)
     access_token = Column(LargeBinary(1024), nullable=False)
     access_secret = Column(LargeBinary(1024), nullable=False)
