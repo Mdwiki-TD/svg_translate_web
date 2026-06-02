@@ -32,7 +32,6 @@ def test_can_manage_job_owner():
 
     user = MagicMock()
     user.username = "owner_user"
-    user.is_active_admin = True
     assert _can_manage_job(job, user) is True
 
 

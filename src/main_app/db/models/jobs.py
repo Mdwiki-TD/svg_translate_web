@@ -14,7 +14,7 @@ class JobRecord(db.Model):
     CREATE TABLE `jobs` (
         `id` int NOT NULL AUTO_INCREMENT,
         `job_type` varchar(255) NOT NULL,
-        `username` varchar(255) DEFAULT NULL,
+        `username` varchar(255) NOT NULL,
         `status` varchar(50) NOT NULL DEFAULT 'pending',
         `started_at` datetime DEFAULT NULL,
         `completed_at` datetime DEFAULT NULL,

@@ -25,9 +25,14 @@ def extract_token_credentials(access_token: Any) -> Tuple[str, str]:
     token_key = getattr(access_token, "key", None)
     token_secret = getattr(access_token, "secret", None)
 
-    if not (token_key and token_secret) and isinstance(access_token, Sequence):
-        token_key = access_token[0]
-        token_secret = access_token[1]
+    if (
+        not (token_key and token_secret)
+        and isinstance(access_token, Sequence)
+        and not isinstance(access_token, (str, bytes, bytearray))
+    ):
+        if len(access_token) >= 2:
+            token_key = access_token[0]
+            token_secret = access_token[1]
 
     if not (token_key and token_secret):
         raise OAuthCallbackError("Missing OAuth credentials")

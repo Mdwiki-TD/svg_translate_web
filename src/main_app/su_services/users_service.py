@@ -27,6 +27,9 @@ class UserService:
     ) -> Optional[CurrentUser]:
         """Upsert OAuth credentials and return a CurrentUser composite."""
         username = (username or "").strip()
+        if not username:
+            logger.warning("OAuth callback received an empty username")
+            return None
 
         try:
             # Ensure user identity row exists
@@ -61,6 +64,7 @@ class UserService:
             if not token:
                 return None
 
+            is_active_admin = is_active_coordinator(username)
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
@@ -70,7 +74,7 @@ class UserService:
             username=username,
             access_token=token.access_token,
             access_secret=token.access_secret,
-            is_active_admin=is_active_coordinator(username),
+            is_active_admin=is_active_admin,
         )
 
     @staticmethod
