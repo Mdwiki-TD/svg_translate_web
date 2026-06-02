@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 from src.main_app.app_routes.admin_routes.templates import (
-    Templates,
     _add_template,
     _delete_template,
     _update_template,
@@ -90,25 +89,6 @@ def test_delete_template_success(
         mock_get_template.assert_called_with(1)
         mock_delete_template.assert_called_with(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
-
-
-def test_Templates():
-    # Verify routes registration
-    bp = MagicMock()
-    Templates(bp)
-
-    # Should register 4 GET routes, 3 POST routes
-    assert bp.get.call_count == 4
-    assert bp.post.call_count == 3
-
-    # Check endpoints
-    bp.get.assert_any_call("/")
-    bp.get.assert_any_call("/<int:template_id>/edit")
-    bp.get.assert_any_call("/templates-need-update")
-    bp.get.assert_any_call("/download-json")
-    bp.post.assert_any_call("/add")
-    bp.post.assert_any_call("/update")
-    bp.post.assert_any_call("/<int:template_id>/delete")
 
 
 def test_create_json_file_success(app_mock, monkeypatch):

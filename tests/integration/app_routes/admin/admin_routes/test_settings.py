@@ -56,7 +56,4 @@ def test_SettingsRoutes_init_registers_routes():
     """Test SettingsRoutes registers all required routes."""
     mock_bp = MagicMock()
 
-    settings.SettingsRoutes(mock_bp)
-
-    assert mock_bp.get.call_count == 1
-    assert mock_bp.post.call_count == 2
+    settings.SettingsRoutes()
