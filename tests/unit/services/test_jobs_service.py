@@ -144,7 +144,8 @@ def test_delete_nonexistent_job():
 
 def test_list_jobs_filtered_by_type():
     """Test listing jobs filtered by job_type."""
-    create_job("collect_main_files", username="z")
+    job1 = create_job("collect_main_files", username="z")
+    update_job_status(job1.id, "completed", job_type="collect_main_files")
     create_job("collect_main_files", username="z")
     create_job("fix_nested_main_files", username="z")
     create_job("other_job_type", username="z")
@@ -166,10 +167,14 @@ def test_list_jobs_filtered_by_type():
 
 def test_list_jobs_filtered_with_limit():
     """Test listing jobs filtered by job_type with a limit."""
-    for _ in range(5):
-        create_job("collect_main_files", username="z")
-    for _ in range(3):
-        create_job("fix_nested_main_files", username="z")
+    for i in range(5):
+        job = create_job("collect_main_files", username="z")
+        if i < 4:
+            update_job_status(job.id, "completed", job_type="collect_main_files")
+    for i in range(3):
+        job = create_job("fix_nested_main_files", username="z")
+        if i < 2:
+            update_job_status(job.id, "completed", job_type="fix_nested_main_files")
 
     # Filter by type with limit
     collect_jobs = list_jobs(limit=2, job_type="collect_main_files")
