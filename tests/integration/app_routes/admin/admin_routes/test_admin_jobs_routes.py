@@ -35,7 +35,7 @@ class _JobsStore:
         return _sqlalchemy_jobs_service.delete_job(job_id, job_type)
 
     def cancel(self, job_id, job_type=None):
-        return _sqlalchemy_jobs_service.cancel_job(job_id, job_type)
+        return _sqlalchemy_jobs_service.cancel_job_db(job_id, job_type)
 
 
 @pytest.fixture
@@ -76,8 +76,9 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
 def test_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the jobs list page displays jobs."""
 
-    # Create some test jobs
-    jobs_db.create("collect_main_files")
+    # Create some test jobs (complete first before creating second of same type)
+    job1 = jobs_db.create("collect_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="collect_main_files")
     jobs_db.create("collect_main_files")
 
     response = admin_jobs_client.get("/admin/jobs/collect_main_files")
@@ -191,7 +192,8 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the jobs list only shows collect_main_files jobs."""
 
     # Create jobs of different types
-    jobs_db.create("collect_main_files")
+    job1 = jobs_db.create("collect_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="collect_main_files")
     jobs_db.create("collect_main_files")
     jobs_db.create("other_job_type")
 
@@ -207,8 +209,9 @@ def test_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
 def test_fix_nested_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs list page displays jobs."""
 
-    # Create some test jobs
-    jobs_db.create("fix_nested_main_files")
+    # Create some test jobs (complete first before creating second of same type)
+    job1 = jobs_db.create("fix_nested_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="fix_nested_main_files")
     jobs_db.create("fix_nested_main_files")
 
     response = admin_jobs_client.get("/admin/jobs/fix_nested_main_files")
@@ -325,8 +328,9 @@ def test_fix_nested_jobs_page_has_start_button(admin_jobs_client, jobs_db):
 def test_fix_nested_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the fix nested jobs list only shows fix_nested_main_files jobs."""
 
-    # Create jobs of different types
-    jobs_db.create("fix_nested_main_files")
+    # Create jobs of different types (complete first before creating second of same type)
+    job1 = jobs_db.create("fix_nested_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="fix_nested_main_files")
     jobs_db.create("fix_nested_main_files")
     jobs_db.create("collect_main_files")
     jobs_db.create("other_job_type")
@@ -436,8 +440,9 @@ def test_delete_job_with_wrong_type(admin_jobs_client, jobs_db):
 def test_delete_multiple_jobs(admin_jobs_client, jobs_db):
     """Test deleting multiple jobs one by one."""
 
-    # Create multiple jobs
+    # Create multiple jobs (complete first before creating second of same type)
     job1 = jobs_db.create("collect_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="collect_main_files")
     job2 = jobs_db.create("collect_main_files")
     job3 = jobs_db.create("fix_nested_main_files")
     assert len(jobs_db.list()) == 3
@@ -500,8 +505,9 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
 def test_download_main_files_jobs_list_page_displays_jobs(admin_jobs_client, jobs_db):
     """Test that the download main files jobs list page displays jobs."""
 
-    # Create some test jobs
-    jobs_db.create("download_main_files")
+    # Create some test jobs (complete first before creating second of same type)
+    job1 = jobs_db.create("download_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="download_main_files")
     jobs_db.create("download_main_files")
 
     response = admin_jobs_client.get("/admin/jobs/download_main_files")
@@ -624,8 +630,9 @@ def test_download_main_files_jobs_page_has_start_button(admin_jobs_client, jobs_
 def test_download_main_files_jobs_list_filters_by_job_type(admin_jobs_client, jobs_db):
     """Test that the download main files jobs list only shows download_main_files jobs."""
 
-    # Create jobs of different types
-    jobs_db.create("download_main_files")
+    # Create jobs of different types (complete first before creating second of same type)
+    job1 = jobs_db.create("download_main_files")
+    jobs_db.update_status(job1.id, "completed", job_type="download_main_files")
     jobs_db.create("download_main_files")
     jobs_db.create("collect_main_files")
     jobs_db.create("fix_nested_main_files")

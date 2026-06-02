@@ -21,7 +21,7 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
         mock_is_cancelled,
     )
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.cancel_job",
+        "src.main_app.db.services.jobs_service.cancel_job_db",
         mock_cancel_job,
     )
     return {"is_job_cancelled": mock_is_cancelled, "cancel_job": mock_cancel_job}
