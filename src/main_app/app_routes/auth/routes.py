@@ -162,7 +162,7 @@ def callback() -> Response:
         flash("Failed to verify OAuth identity", "danger")
         return redirect(url_for("main.index"))
     except OAuthCallbackError as exc:
-        logger.error("OAuth callback failed: %s", exc)
+        logger.exception("OAuth callback failed: %s", exc)
         flash(str(exc), exc.flash_category)
         return redirect(url_for("main.index"))
 

@@ -21,7 +21,7 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
         mock_is_cancelled,
     )
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.cancel_job",
+        "src.main_app.db.services.jobs_service.cancel_job_db",
         mock_cancel_job,
     )
     return {"is_job_cancelled": mock_is_cancelled, "cancel_job": mock_cancel_job}
@@ -51,15 +51,15 @@ def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job(None, "collect_main_files")
+    job_id = jobs_worker.start_job({"username":"22"}, "collect_main_files")
 
     assert job_id == 1
-    mock_create_job.assert_called_once_with("collect_main_files", None)
+    mock_create_job.assert_called_once_with("collect_main_files", '22')
     mock_thread.assert_called_once()
     # Verify the thread was started with correct arguments
     args = mock_thread.call_args[1]["args"]
     assert args[0] == 1  # job_id
-    assert args[1] is None  # user
+    assert args[1] == {"username":"22"}   # user
     assert isinstance(args[2], threading.Event)
     mock_thread_instance.start.assert_called_once()
 
@@ -159,7 +159,7 @@ def test_start_download_main_files_job(mock_current_app, mock_thread, mock_creat
 def test_start_job_with_invalid_job_type():
     """Test that starting a job with an invalid job type raises an error."""
     with pytest.raises(ValueError, match="Unknown job type"):
-        jobs_worker.start_job(None, "invalid_job_type")
+        jobs_worker.start_job({"username":"22"}, "invalid_job_type")
 
 
 def test_multiple_jobs_can_be_cancelled_independently():
@@ -238,7 +238,7 @@ def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_jo
     mock_thread.return_value = mock_thread_instance
 
     args = {"update_all": "true"}
-    job_id = jobs_worker.start_job(None, "collect_main_files", args=args)
+    job_id = jobs_worker.start_job({"username":"22"}, "collect_main_files", args=args)
 
     assert job_id == 10
     mock_thread.assert_called_once()
@@ -261,7 +261,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job(None, "collect_main_files")
+    job_id = jobs_worker.start_job({"username":"22"}, "collect_main_files")
 
     assert job_id == 11
     thread_args = mock_thread.call_args[1]["args"]
