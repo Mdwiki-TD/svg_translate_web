@@ -3,10 +3,84 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
+from sqlalchemy.exc import IntegrityError
+
 from ...extensions import db
+from ..exceptions import DuplicateJobError
 from ..models.jobs import JobRecord
 
 logger = logging.getLogger(__name__)
+
+
+# ------------------
+# private API
+# ------------------
+
+
+def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
+    """
+    Update job status and result file.
+    """
+    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+    if job_type:
+        query = query.filter(JobRecord.job_type == job_type)
+    job = query.first()
+
+    if not job:
+        raise LookupError(f"Job id {job_id} was not found")
+
+    job.status = status
+
+    if status in ("completed", "failed", "cancelled"):
+        job.completed_at = datetime.now(UTC)
+        job.is_running = None
+
+    if result_file:
+        job.result_file = result_file
+
+    db.session.commit()
+    db.session.refresh(job)
+
+    return job
+
+
+def _update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
+    """
+    Update running job status and optional result file.
+    """
+    job = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+    if not job:
+        raise LookupError(f"Job id {job_id} was not found")
+
+    job.status = "running"
+    if not job.started_at:
+        job.started_at = datetime.now(UTC)
+    if result_file:
+        job.result_file = result_file
+    db.session.commit()
+    db.session.refresh(job)
+    return job
+
+
+# ------------------
+# public API
+# ------------------
+
+
+# ── SELECT ───────────────────────────────────────────────
+
+
+def is_job_cancelled(job_id: int, job_type: str) -> bool:
+    """
+    Check if a job is marked as cancelled.
+
+    Query to match:
+        SELECT status FROM jobs WHERE id = %s AND job_type = %s
+    """
+    record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+    if record:
+        return record.status == "cancelled"
+    return False
 
 
 def create_job(job_type: str, username: str | None = None) -> JobRecord:
@@ -16,10 +90,17 @@ def create_job(job_type: str, username: str | None = None) -> JobRecord:
     Query to match:
         INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
         (job_type, "pending", username),
+
+    Raises:
+        DuplicateJobError: If a job of the same type is already running.
     """
-    job = JobRecord(job_type=job_type, username=username, status="pending")
+    job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
     db.session.add(job)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise DuplicateJobError(f"A job of type '{job_type}' is already running.")
     db.session.refresh(job)
     return job
 
@@ -50,47 +131,6 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
     return job
 
 
-def update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
-    """
-    Update running job status and optional result file.
-    """
-    job = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-    if not job:
-        raise LookupError(f"Job id {job_id} was not found")
-
-    job.status = "running"
-    if not job.started_at:
-        job.started_at = datetime.now(UTC)
-    if result_file:
-        job.result_file = result_file
-    db.session.commit()
-    db.session.refresh(job)
-    return job
-
-
-def _update_status(job_id: int, status: str, result_file: str, job_type: str) -> JobRecord:
-    """
-    Update job status and result file.
-    """
-    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-    job = query.first()
-
-    if not job:
-        raise LookupError(f"Job id {job_id} was not found")
-
-    job.status = status
-    if status in ("completed", "failed", "cancelled"):
-        job.completed_at = datetime.now(UTC)
-    if result_file:
-        job.result_file = result_file
-    db.session.commit()
-    db.session.refresh(job)
-
-    return job
-
-
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """
     Update job status and optional result file.
@@ -99,7 +139,7 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
 
     """
     if status == "running":
-        return update_running_status(job_id, result_file, job_type=job_type)
+        return _update_running_status(job_id, result_file, job_type=job_type)
 
     return _update_status(job_id, status, result_file, job_type)
 
@@ -169,22 +209,10 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
     if job:
         job.status = "cancelled"
         job.completed_at = datetime.now(UTC)
+        job.is_running = None
         db.session.commit()
         db.session.refresh(job)
         return True
-    return False
-
-
-def is_job_cancelled(job_id: int, job_type: str) -> bool:
-    """
-    Check if a job is marked as cancelled.
-
-    Query to match:
-        SELECT status FROM jobs WHERE id = %s AND job_type = %s
-    """
-    record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-    if record:
-        return record.status == "cancelled"
     return False
 
 
@@ -193,7 +221,7 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
-    "update_running_status",
+    "_update_running_status",
     "cancel_job",
     "is_job_cancelled",
     "delete_job",
