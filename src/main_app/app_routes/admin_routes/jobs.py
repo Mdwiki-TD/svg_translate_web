@@ -21,6 +21,7 @@ from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
 from ...config import settings
+from ...db.exceptions import DuplicateJobError
 from ...db.services import (
     delete_job,
     get_job,
@@ -80,6 +81,8 @@ def _start_job(job_type: str) -> int | None:
         job_id = jobs_worker.start_job(auth_payload, job_type)
         flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
         return job_id
+    except DuplicateJobError as exc:
+        flash(str(exc), "warning")
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
@@ -101,6 +104,8 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
         job_id = jobs_worker.start_job_with_args(auth_payload, job_type, args)
         flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
         return job_id
+    except DuplicateJobError as exc:
+        flash(str(exc), "warning")
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
