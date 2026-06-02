@@ -8,8 +8,8 @@ from typing import Any, Dict
 
 from flask import Flask, current_app
 
-from ..db.services import cancel_job_db
 from ..db.services import (
+    cancel_job_db,
     create_job,
 )
 from .workers_list import jobs_data, jobs_data_public
