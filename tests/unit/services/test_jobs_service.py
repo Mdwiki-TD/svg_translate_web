@@ -54,7 +54,8 @@ def test_get_nonexistent_job():
 
 def test_list_jobs():
     """Test listing jobs."""
-    create_job("collect_main_files", username="z")
+    job1 = create_job("collect_main_files", username="z")
+    update_job_status(job1.id, "completed", job_type="collect_main_files")
     create_job("collect_main_files", username="z")
     create_job("other_job", username="z")
 
@@ -66,8 +67,10 @@ def test_list_jobs():
 
 def test_list_jobs_with_limit():
     """Test listing jobs with a limit."""
-    for _ in range(5):
-        create_job("collect_main_files", username="z")
+    for i in range(5):
+        job = create_job("collect_main_files", username="z")
+        if i < 4:
+            update_job_status(job.id, "completed", job_type="collect_main_files")
 
     jobs = list_jobs(limit=2)
 

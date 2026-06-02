@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
@@ -79,6 +80,8 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     """
     record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
     if record:
+        # Refresh from database to ensure we don't use a stale cached status
+        db.session.refresh(record)
         return record.status == "cancelled"
     return False
 
@@ -109,7 +112,6 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
     return job
 
 
-
 def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     """
     list recent jobs, optionally filtered by job_type.
@@ -133,6 +135,56 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
 
+def get_user_jobs_stats(username: str) -> dict[str, dict[str, int] | list[JobRecord]]:
+    """
+    Get user jobs
+    """
+
+    base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
+
+    status_counts = dict(
+        db.session.query(JobRecord.status, func.count(JobRecord.id))
+        .filter(JobRecord.username == username)
+        .group_by(JobRecord.status)
+        .all()
+    )
+
+    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(50).all()
+
+    total_jobs = sum(status_counts.values())
+
+    stats = {
+        "total": total_jobs,
+        "completed": status_counts.get("completed", 0),
+        "failed": status_counts.get("failed", 0),
+        "cancelled": status_counts.get("cancelled", 0),
+        # "running": status_counts.get("running", 0),
+        # "pending": status_counts.get("pending", 0),
+    }
+
+    data = {
+        "stats": stats,
+        "recent_jobs": recent_jobs,
+    }
+
+    return data
+
+
+def has_active_job(job_type: str) -> bool:
+    """
+    Check if there is an active (pending or running) job of the given type.
+
+    This is an auxiliary application-level check that works on all database backends
+    (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
+    preventing duplicate concurrent jobs is the database-level unique constraint
+    idx_unique_active_job.
+    """
+    result = (
+        db.session.query(JobRecord.id)
+        .filter(JobRecord.job_type == job_type, JobRecord.status.in_(["pending", "running"]))
+        .first()
+    )
+    return result is not None
 
 
 # ── INSERT, UPDATE, SET ──────────────────────────────────
@@ -187,19 +239,26 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
         rowcount = self.db.execute_query_safe(query, tuple(params))
         return rowcount > 0
     """
-    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
 
-    job = query.filter(JobRecord.status.in_(["pending", "running"])).first()
+    try:
+        query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
 
-    if job:
-        job.status = "cancelled"
-        job.completed_at = datetime.now(UTC)
-        job.is_running = None
-        db.session.commit()
-        db.session.refresh(job)
-        return True
+        job = query.filter(JobRecord.status.in_(["pending", "running"])).first()
+
+        if job:
+            job.status = "cancelled"
+            job.completed_at = datetime.now(UTC)
+            job.is_running = None
+            db.session.commit()
+            db.session.refresh(job)
+            return True
+
+    except Exception:  # pragma: no cover - defensive guard
+        logger.exception("Failed to cancel job %s in database.", job_id)
+        db.session.rollback()
+
     return False
 
 
@@ -220,10 +279,11 @@ def delete_job(job_id: int, job_type: str) -> bool:
 __all__ = [
     "create_job",
     "get_job",
+    "has_active_job",
     "list_jobs",
     "update_job_status",
-    "_update_running_status",
     "cancel_job_db",
     "is_job_cancelled",
     "delete_job",
+    "get_user_jobs_stats",
 ]
