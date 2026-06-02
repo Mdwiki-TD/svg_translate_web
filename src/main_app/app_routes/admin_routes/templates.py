@@ -193,19 +193,22 @@ def _edit_template(template_id: int) -> ResponseReturnValue:
     )
 
 
-bp_templates = Blueprint("templates", __name__, url_prefix="/templates")
-
-
 class Templates:
-    def __init__(self, bp_templates: Blueprint):
-        @bp_templates.get("/")
+
+    def __init__(self):
+        self.bp = Blueprint("templates", __name__, url_prefix="/templates")
+        self._setup_routes()
+
+    def _setup_routes(self) -> None:
+
+        @self.bp.get("/")
         @admin_required
         def dashboard():
             return render_template(
                 "admins/templates.html",
             )
 
-        @bp_templates.get("/templates-need-update")
+        @self.bp.get("/templates-need-update")
         @admin_required
         def templates_need_update() -> ResponseReturnValue:
             """Show templates that need year update based on OWID charts."""
@@ -213,27 +216,27 @@ class Templates:
                 "admins/templates_need_update.html",
             )
 
-        @bp_templates.post("/add")
+        @self.bp.post("/add")
         @admin_required
         def add_template() -> ResponseReturnValue:
             return _add_template()
 
-        @bp_templates.post("/update")
+        @self.bp.post("/update")
         @admin_required
         def update_template() -> ResponseReturnValue:
             return _update_template()
 
-        @bp_templates.post("/<int:template_id>/delete")
+        @self.bp.post("/<int:template_id>/delete")
         @admin_required
         def delete_template(template_id: int) -> ResponseReturnValue:
             return _delete_template(template_id)
 
-        @bp_templates.get("/<int:template_id>/edit")
+        @self.bp.get("/<int:template_id>/edit")
         @admin_required
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
 
-        @bp_templates.get("/download-json")
+        @self.bp.get("/download-json")
         @admin_required
         def download_templates_json() -> ResponseReturnValue:
             """Download all templates as a json file."""
@@ -248,9 +251,8 @@ class Templates:
             return response
 
 
-Templates(bp_templates)
-
+templates_module = Templates()
 
 __all__ = [
-    "bp_templates",
+    "templates_module",
 ]

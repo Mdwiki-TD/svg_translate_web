@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -15,8 +15,8 @@ class CurrentUser:
 
     user_id: int
     username: str
-    access_token: bytes
-    access_secret: bytes
+    access_token: bytes = field(repr=False)
+    access_secret: bytes = field(repr=False)
     is_active_admin: bool = False
 
     def to_auth_payload(self) -> dict[str, int | str | bytes]:

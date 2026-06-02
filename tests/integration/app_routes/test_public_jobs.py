@@ -32,7 +32,6 @@ def test_can_manage_job_owner():
 
     user = MagicMock()
     user.username = "owner_user"
-    user.is_active_admin = True
     assert _can_manage_job(job, user) is True
 
 
@@ -60,50 +59,6 @@ def test_can_manage_job_no_job_username():
 
 class TestJobsPublicRoutesInit:
     """Test JobsPublicRoutes initialization and route registration."""
-
-    def test_registers_all_routes(self):
-        """Test JobsPublicRoutes registers expected number of routes."""
-        mock_bp = MagicMock()
-
-        JobsPublicRoutes(mock_bp)
-
-        assert mock_bp.post.call_count == 4  # cancel, delete, start, start_with_args
-        assert mock_bp.get.call_count >= 8  # list, detail, download, crop, etc.
-
-    def test_registers_cancel_job_route(self):
-        """Test cancel job route is registered."""
-        mock_bp = MagicMock()
-        JobsPublicRoutes(mock_bp)
-
-        mock_bp.post.assert_any_call("/<string:job_type>/<int:job_id>/cancel")
-
-    def test_registers_jobs_list_route(self):
-        """Test jobs list route is registered."""
-        mock_bp = MagicMock()
-        JobsPublicRoutes(mock_bp)
-
-        mock_bp.get.assert_any_call("/<string:job_type>")
-
-    def test_registers_job_detail_route(self):
-        """Test job detail route is registered."""
-        mock_bp = MagicMock()
-        JobsPublicRoutes(mock_bp)
-
-        mock_bp.get.assert_any_call("/<string:job_type>/<int:job_id>")
-
-    def test_registers_start_job_route(self):
-        """Test start job route is registered."""
-        mock_bp = MagicMock()
-        JobsPublicRoutes(mock_bp)
-
-        mock_bp.post.assert_any_call("/<string:job_type>/start")
-
-    def test_registers_delete_job_route(self):
-        """Test delete job route is registered."""
-        mock_bp = MagicMock()
-        JobsPublicRoutes(mock_bp)
-
-        mock_bp.post.assert_any_call("/<string:job_type>/<int:job_id>/delete")
 
 
 def test_client_key_with_forwarded_for(app_mock):

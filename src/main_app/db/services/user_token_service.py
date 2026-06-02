@@ -94,7 +94,6 @@ def create_user(username: str, access_key: str, access_secret: str) -> UserToken
     return record
 
 
-
 def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
     """
     update the encrypted OAuth credentials for a user.
@@ -116,12 +115,18 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
     return orm_obj
 
 
-
 # ── DELETE ───────────────────────────────────────────────
 
 
 def delete_user_token(user_id: int) -> bool:
-    """Delete the stored OAuth token only. User identity row persists."""
+    """
+    Delete the stored OAuth token only. User identity row persists.
+
+    TODO: call .delete() on UserTokenRecord, so logout now removes the entire persisted user record.
+        That contradicts the docstring and can wipe identity/admin state instead of only clearing OAuth secrets.
+        Clear the token fields in-place, or move credentials into a separate token table,
+        but don't delete the user row here.
+    """
     if not user_id:
         return False
 

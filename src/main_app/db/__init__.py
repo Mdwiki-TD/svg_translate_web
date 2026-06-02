@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 
 from sqlalchemy import event, text
 from sqlalchemy.exc import SQLAlchemyError
-
 from .exceptions import DatabaseInitError
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,9 @@ def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys = ON")
         cursor.close()
-    except Exception:
-        pass
+    except sqlite3.DatabaseError as exc:
+        logger.exception("Failed to enable SQLite foreign keys")
+        raise DatabaseInitError("Failed to enable SQLite foreign key enforcement") from exc
 
 
 def init_db(_db) -> None:

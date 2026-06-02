@@ -56,16 +56,15 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
         return None
 
 
-def create_job_cancelled_file(filename: str) -> Path:
+def create_job_cancelled_file(filename: str) -> Path | None:
     jobs_dir = get_jobs_data_dir()
-    # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
     filepath = jobs_dir / filename
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write("cancelled")
         return filepath
-    except Exception as e:
-        logger.error(f"Error creating job cancelled file {filepath}: {e}")
+    except OSError:
+        logger.exception(f"Error creating job cancelled file {filepath}")
         return None
 
 
@@ -75,8 +74,8 @@ def is_job_cancelled_file_exist(filename: str) -> bool:
         filepath = jobs_dir / filename
 
         return filepath.exists()
-    except Exception as e:
-        logger.error(f"Error checking job cancelled file {filename}: {e}")
+    except OSError:
+        logger.exception(f"Error checking job cancelled file {filename}")
         return False
 
 
