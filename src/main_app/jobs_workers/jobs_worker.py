@@ -51,7 +51,7 @@ def _load_job_args(job_args) -> dict:
 
 def _runner(
     job_id: int,
-    user: Dict[str, Any] | None,
+    user: dict[str, Any],
     cancel_event: threading.Event,
     target_func: Any,
     flask_app: Flask,
@@ -95,10 +95,10 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
 
 
 def start_job_with_args(
-        user: Dict[str, Any] | None,
-        job_type: str,
-        args: Dict[str, Any] | None = None,
-    ) -> int:
+    user: Dict[str, Any],
+    job_type: str,
+    args: Dict[str, Any] | None = None,
+) -> int:
     """
     Start a background job.
     Returns the job ID.

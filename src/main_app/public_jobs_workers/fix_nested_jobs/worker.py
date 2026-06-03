@@ -73,7 +73,7 @@ class FixNestedJobsWorker(BaseJobWorker):
 def fix_nested_jobs_worker_entry(
     *,
     job_id: str,
-    user: Dict[str, str] | None,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

@@ -77,7 +77,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 def copy_svg_langs_worker_entry(
     *,
     job_id: str,
-    user: Dict[str, str] | None,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

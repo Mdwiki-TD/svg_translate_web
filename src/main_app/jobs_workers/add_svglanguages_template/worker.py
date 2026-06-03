@@ -72,7 +72,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
@@ -280,7 +280,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 def add_svglanguages_template_to_templates(
     *,
     job_id: int,
-    user: dict[str, Any] | None = None,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

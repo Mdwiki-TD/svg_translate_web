@@ -40,7 +40,7 @@ class FixNestedJobsProcessor:
 
     job_id: str | int
     args: Any
-    user: dict[str, Any] | None
+    user: dict[str, Any]
     result: dict[str, Any]
     result_file: str
     cancel_event: threading.Event | None = None

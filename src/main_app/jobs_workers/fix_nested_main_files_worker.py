@@ -251,7 +251,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 def fix_nested_main_files_for_templates(
     *,
     job_id: int,
-    user: dict[str, Any] | None = None,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:
