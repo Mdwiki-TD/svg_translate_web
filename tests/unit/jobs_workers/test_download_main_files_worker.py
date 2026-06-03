@@ -162,7 +162,7 @@ def test_download_main_files_with_no_templates(mock_services):
     """Test download_main_files_for_templates when there are no templates."""
     mock_services["list_templates"].return_value = []
 
-    download_main_files_worker.download_main_files_for_templates(job_id=1)
+    download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should update status to running, then completed
     assert mock_services["update_job_status"].call_count == 2
@@ -184,7 +184,7 @@ def test_download_main_files_skips_templates_without_main_file(mock_services):
     ]
     mock_services["list_templates"].return_value = templates
 
-    download_main_files_worker.download_main_files_for_templates(job_id=1)
+    download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with 0 downloads
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -209,7 +209,7 @@ def test_download_main_files_downloads_template_with_main_file(mock_services, tm
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with downloaded file
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -233,7 +233,7 @@ def test_download_main_files_handles_download_failure(mock_services, tmp_path):
         mock_session.get.side_effect = requests.RequestException("404 Not Found")
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with failed file
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -257,7 +257,7 @@ def test_download_main_files_handles_exception(mock_services, tmp_path):
         mock_session.get.side_effect = Exception("Unexpected error")
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with failed file
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -292,7 +292,7 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
         mock_session.get.side_effect = get_side_effect
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -316,7 +316,7 @@ def test_download_main_files_respects_cancellation(mock_services, tmp_path):
     cancel_event.set()  # Set immediately to cancel
 
     with patch("src.main_app.jobs_workers.download_main_files_worker.requests.Session"):
-        download_main_files_worker.download_main_files_for_templates(job_id=1, cancel_event=cancel_event)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should save result with cancelled status
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -342,7 +342,7 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should download with cleaned filename
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -372,7 +372,7 @@ def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should count as exists
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -385,7 +385,7 @@ def test_download_main_files_fatal_error_handling(mock_services):
     # Make list_templates raise an exception
     mock_services["list_templates"].side_effect = Exception("Database error")
 
-    download_main_files_worker.download_main_files_for_templates(job_id=1)
+    download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should update status to failed
     final_call = mock_services["update_job_status"].call_args
@@ -641,7 +641,7 @@ def test_download_main_files_saves_progress_periodically(mock_services, tmp_path
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Should save progress at least twice (at n=1 and n=10)
     assert mock_services["save_job_result_by_name"].call_count >= 2
@@ -709,7 +709,7 @@ def test_download_main_files_creates_output_directory(mock_services, tmp_path):
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Verify the directory was created
     assert output_dir.exists()
@@ -741,7 +741,7 @@ def test_download_main_files_handles_job_deletion_during_final_status_update(moc
         mock_session_class.return_value = mock_session
 
         # Should not raise an exception
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
 
 def test_download_file_from_commons_with_special_characters(tmp_path):
@@ -784,7 +784,7 @@ def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
 
-        download_main_files_worker.download_main_files_for_templates(job_id=1)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Verify zip file was generated
     zip_path = tmp_path / "main_files.zip"
@@ -801,7 +801,7 @@ def test_download_main_files_no_zip_on_failure(mock_services, tmp_path):
     mock_services["list_templates"].side_effect = Exception("Database error")
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
-    download_main_files_worker.download_main_files_for_templates(job_id=1)
+    download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
     # Verify zip file was NOT generated (job failed)
     zip_path = tmp_path / "main_files.zip"
@@ -813,7 +813,7 @@ def test_download_main_files_for_templates_accepts_args_keyword_param(mock_servi
     mock_services["list_templates"].return_value = []
 
     # Should not raise TypeError; args is accepted but unused
-    download_main_files_worker.download_main_files_for_templates(job_id=1, args={"some_key": "value"})
+    download_main_files_worker.download_main_files_for_templates(job_id=1, user=None, args={"some_key": "value"})
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
@@ -998,7 +998,7 @@ class TestDownloadMainFilesEntryPointArgsMapping:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            download_main_files_worker.download_main_files_for_templates(job_id=1, args=None)
+            download_main_files_worker.download_main_files_for_templates(job_id=1, user=None, args=None)
 
         passed_args = MockWorker.call_args[0][3]
         assert passed_args is None

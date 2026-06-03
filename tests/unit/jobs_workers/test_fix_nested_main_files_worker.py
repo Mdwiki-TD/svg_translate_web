@@ -404,7 +404,7 @@ def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix
     mock_fix_nested_services["list_templates"].return_value = []
 
     # Should not raise TypeError; args is accepted but unused
-    fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=1, args={"some_key": "value"})
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=1, user=None, args={"some_key": "value"})
 
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
