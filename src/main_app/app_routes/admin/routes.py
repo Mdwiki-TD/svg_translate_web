@@ -12,7 +12,6 @@ from flask import (
 
 from ...db.services import list_jobs, list_users
 from ...jobs_workers.workers_list import jobs_data
-from ...public_jobs_workers.workers_list_public import jobs_data_public
 from ..admin_routes import (
     coordinators_module,
     jobs_module,
@@ -30,7 +29,7 @@ bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 def _get_display_name(job_type: str) -> str:
-    job_data = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    job_data = jobs_data.get(job_type)
     return job_data.job_name if job_data else job_type
 
 
