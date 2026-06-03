@@ -43,7 +43,6 @@ class TemplateInfo:
     source: str
     status: str = "processing"
     reason: str = ""
-    wikitext_length: int | None = None
     error_type: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -57,8 +56,6 @@ class TemplateInfo:
             "status": self.status,
             "reason": self.reason,
         }
-        if self.wikitext_length is not None:
-            result["wikitext_length"] = self.wikitext_length
         if self.error_type is not None:
             result["error_type"] = self.error_type
         return result
@@ -294,7 +291,6 @@ class CollectMainFilesWorker(BaseJobWorker):
             if not main_file and not last_world_file and not source:
                 template_info.status = "failed"
                 template_info.reason = "Could not find (main file or last world file or source) in wikitext"
-                template_info.wikitext_length = len(wikitext)
                 self.result["templates_failed"].append(template_info.to_dict())
                 self.result["summary"]["failed"] += 1
                 logger.warning(
