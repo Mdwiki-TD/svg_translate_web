@@ -639,7 +639,7 @@ class TestCreateOwidPagesForTemplates:
 
         with patch.object(CreateOwidPagesWorker, "run") as mock_run:
             mock_run.return_value = {"status": "completed"}
-            create_owid_pages_for_templates(job_id=1, cancel_event=cancel_event)
+            create_owid_pages_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
         mock_run.assert_called_once()
 
@@ -648,7 +648,7 @@ class TestCreateOwidPagesForTemplates:
         with patch.object(CreateOwidPagesWorker, "run") as mock_run:
             mock_run.return_value = {"status": "completed"}
             # Should not raise TypeError; args is accepted but unused
-            create_owid_pages_for_templates(job_id=1, args={"some_key": "value"})
+            create_owid_pages_for_templates(job_id=1, user=None, args={"some_key": "value"})
 
         mock_run.assert_called_once()
 
@@ -656,7 +656,7 @@ class TestCreateOwidPagesForTemplates:
         """Test that args defaults to None and the entry point works without it."""
         with patch.object(CreateOwidPagesWorker, "run") as mock_run:
             mock_run.return_value = {"status": "completed"}
-            create_owid_pages_for_templates(job_id=99)
+            create_owid_pages_for_templates(job_id=99, user=None)
 
         mock_run.assert_called_once()
 
@@ -667,6 +667,7 @@ class TestCreateOwidPagesForTemplates:
                 mock_run.return_value = {"status": "completed"}
                 create_owid_pages_for_templates(
                     job_id=1,
+                    user=None,
                     args={"create_owid_pages_limit": 5},
                 )
 
@@ -680,6 +681,7 @@ class TestCreateOwidPagesForTemplates:
                 mock_run.return_value = {"status": "completed"}
                 create_owid_pages_for_templates(
                     job_id=1,
+                    user=None,
                     args={"other_key": "value"},
                 )
 
@@ -694,6 +696,7 @@ class TestCreateOwidPagesForTemplates:
                     mock_run.return_value = {"status": "completed"}
                     create_owid_pages_for_templates(
                         job_id=1,
+                        user=None,
                         args={"create_owid_pages_limit": falsy_value},
                     )
 
@@ -705,7 +708,7 @@ class TestCreateOwidPagesForTemplates:
         with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
             with patch.object(CreateOwidPagesWorker, "run") as mock_run:
                 mock_run.return_value = {"status": "completed"}
-                create_owid_pages_for_templates(job_id=1, args=None)
+                create_owid_pages_for_templates(job_id=1, user=None, args=None)
 
         call_kwargs = mock_init.call_args.kwargs
         assert call_kwargs["args"] is None

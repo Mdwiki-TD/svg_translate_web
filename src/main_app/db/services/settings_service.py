@@ -50,21 +50,24 @@ def get_all_settings_ready() -> list[dict[str, Any]]:
     records = {}
 
     for x in list_settings():
-        value = None
+        val = None
         if x.value_type == "boolean":
-            value = x.value == "true"
+            val = x.value == "true"
         elif x.value_type == "integer":
             if isinstance(x.value, int):
-                value = x.value
+                val = x.value
             else:
                 try:
-                    value = int(value)
+                    val = int(x.value)
                 except (ValueError, TypeError):
-                    value = 0
+                    val = None
         elif x.value_type == "string":
-            value = str(x.value)
+            val = str(x.value)
 
-        records[x.key] = value
+        if val is None or (not val and val != x.value):
+            logger.warning(f"Could not parse setting {x.key} with value {x.value}")
+
+        records[x.key] = val
 
     return records
 
@@ -130,7 +133,7 @@ def update_setting_bool(
     return True
 
 
-def create_setting(key: str, title: str, value_type: str) -> bool:
+def create_setting(key: str, title: str, value_type: str, value: str | None = None) -> bool:
     """
     Create new setting.
     """
@@ -139,7 +142,7 @@ def create_setting(key: str, title: str, value_type: str) -> bool:
         "integer": "0",
     }
 
-    value = default_value_types.get(value_type, "")
+    value = value or default_value_types.get(value_type, "")
 
     setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
     db.session.add(setting)

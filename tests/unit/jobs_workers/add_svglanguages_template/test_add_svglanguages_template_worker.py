@@ -523,7 +523,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.return_value = mock_worker_instance
 
         # Should not raise TypeError; args is accepted but unused
-        add_svglanguages_template_to_templates(job_id=1, args={"some_key": "some_value"})
+        add_svglanguages_template_to_templates(job_id=1, user=None, args={"some_key": "some_value"})
 
         mock_worker_instance.run.assert_called_once()
 
@@ -547,6 +547,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         add_svglanguages_template_to_templates(
             job_id=1,
+            user=None,
             args={"add_svglanguages_limit_items": 10},
         )
 
@@ -561,6 +562,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         add_svglanguages_template_to_templates(
             job_id=1,
+            user=None,
             args={"other_key": "value"},
         )
 
@@ -577,6 +579,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
             add_svglanguages_template_to_templates(
                 job_id=1,
+                user=None,
                 args={"add_svglanguages_limit_items": falsy_value},
             )
 
@@ -589,7 +592,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_instance = MagicMock()
         mock_worker_class.return_value = mock_worker_instance
 
-        add_svglanguages_template_to_templates(job_id=1, args=None)
+        add_svglanguages_template_to_templates(job_id=1, user=None, args=None)
 
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"] is None
