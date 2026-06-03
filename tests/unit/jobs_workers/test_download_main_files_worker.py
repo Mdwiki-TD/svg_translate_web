@@ -828,3 +828,163 @@ def test_download_main_files_for_templates_args_defaults_to_none(mock_services):
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
+
+
+class TestDownloadMainFilesWorkerInitialization:
+    """Tests for DownloadMainFilesWorker initialization."""
+
+    def test_worker_reads_limit_items_from_args(self, mock_services):
+        """Test worker reads limit_items from args."""
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": 5},
+        )
+
+        assert worker.limit_items == 5
+
+    def test_worker_defaults_limit_items_when_args_none(self, mock_services):
+        """Test worker defaults limit_items to 0 when args is None."""
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1, user=None, cancel_event=None, args=None,
+        )
+
+        assert worker.limit_items == 0
+
+    def test_worker_limit_items_none_when_key_missing(self, mock_services):
+        """Test worker sets limit_items to None when args has no limit_items key."""
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"other_key": "value"},
+        )
+
+        assert worker.limit_items is None
+
+
+class TestDownloadMainFilesWorkerApplyLimits:
+    """Tests for _apply_limits method."""
+
+    def test_apply_limits_with_limit_set(self, mock_services):
+        """Test _apply_limits truncates list when limit is set."""
+        templates = [
+            TemplateRecord(id=i, title=f"Template:T{i}", main_file=f"f{i}.svg", last_world_file=None)
+            for i in range(1, 4)
+        ]
+
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1, user=None, cancel_event=None, args={"limit_items": 2},
+        )
+        result = worker._apply_limits(templates)
+
+        assert len(result) == 2
+
+    def test_apply_limits_with_zero_limit(self, mock_services):
+        """Test _apply_limits returns all items when limit is 0."""
+        templates = [
+            TemplateRecord(id=1, title="Template:T1", main_file="f1.svg", last_world_file=None),
+            TemplateRecord(id=2, title="Template:T2", main_file="f2.svg", last_world_file=None),
+        ]
+
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1, user=None, cancel_event=None,
+        )
+        result = worker._apply_limits(templates)
+
+        assert len(result) == 2
+
+    def test_apply_limits_with_limit_greater_than_list(self, mock_services):
+        """Test _apply_limits returns all items when limit exceeds list size."""
+        templates = [
+            TemplateRecord(id=1, title="Template:T1", main_file="f1.svg", last_world_file=None),
+        ]
+
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1, user=None, cancel_event=None, args={"limit_items": 10},
+        )
+        result = worker._apply_limits(templates)
+
+        assert len(result) == 1
+
+    def test_apply_limits_with_non_integer_limit(self, mock_services):
+        """Test _apply_limits treats non-integer limit as 0."""
+        templates = [
+            TemplateRecord(id=1, title="Template:T1", main_file="f1.svg", last_world_file=None),
+            TemplateRecord(id=2, title="Template:T2", main_file="f2.svg", last_world_file=None),
+        ]
+
+        worker = download_main_files_worker.DownloadMainFilesWorker(
+            job_id=1, user=None, cancel_event=None, args={"limit_items": "not_int"},
+        )
+        result = worker._apply_limits(templates)
+
+        assert len(result) == 2
+
+
+class TestDownloadMainFilesEntryPointArgsMapping:
+    """Tests for download_main_files_limit_items -> limit_items mapping in entry point."""
+
+    def test_entry_point_maps_download_main_files_limit_items(self, mock_services):
+        """Test that download_main_files_limit_items is mapped to limit_items."""
+        mock_services["list_templates"].return_value = []
+
+        with patch("src.main_app.jobs_workers.download_main_files_worker.DownloadMainFilesWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            download_main_files_worker.download_main_files_for_templates(
+                job_id=1,
+                args={"download_main_files_limit_items": 10},
+            )
+
+        # args is the 4th positional arg: (job_id, user, cancel_event, args)
+        passed_args = MockWorker.call_args[0][3]
+        assert passed_args["limit_items"] == 10
+
+    def test_entry_point_does_not_map_when_key_absent(self, mock_services):
+        """Test that args are passed unchanged when key is absent."""
+        mock_services["list_templates"].return_value = []
+
+        with patch("src.main_app.jobs_workers.download_main_files_worker.DownloadMainFilesWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            download_main_files_worker.download_main_files_for_templates(
+                job_id=1,
+                args={"other_key": "value"},
+            )
+
+        passed_args = MockWorker.call_args[0][3]
+        assert "limit_items" not in passed_args
+
+    def test_entry_point_does_not_map_when_value_falsy(self, mock_services):
+        """Test that mapping is skipped when value is falsy."""
+        mock_services["list_templates"].return_value = []
+
+        for falsy_value in [0, None, "", False]:
+            with patch("src.main_app.jobs_workers.download_main_files_worker.DownloadMainFilesWorker") as MockWorker:
+                mock_instance = MagicMock()
+                MockWorker.return_value = mock_instance
+
+                download_main_files_worker.download_main_files_for_templates(
+                    job_id=1,
+                    args={"download_main_files_limit_items": falsy_value},
+                )
+
+            passed_args = MockWorker.call_args[0][3]
+            assert "limit_items" not in passed_args, f"Should not map for falsy value: {falsy_value!r}"
+
+    def test_entry_point_does_not_modify_args_when_none(self, mock_services):
+        """Test that entry point works correctly when args is None."""
+        mock_services["list_templates"].return_value = []
+
+        with patch("src.main_app.jobs_workers.download_main_files_worker.DownloadMainFilesWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            download_main_files_worker.download_main_files_for_templates(job_id=1, args=None)
+
+        passed_args = MockWorker.call_args[0][3]
+        assert passed_args is None

@@ -46,7 +46,7 @@ def upload_cropped_file(
         return result
 
     # Get clean filename (remove File: prefix)
-    clean_cropped_name = cropped_filename[5:] if cropped_filename.startswith("File:") else cropped_filename
+    clean_cropped_name = cropped_filename.removeprefix("File:")
 
     # Prepare upload summary
     original_file = clean_cropped_name.replace(" (cropped).svg", ".svg")
