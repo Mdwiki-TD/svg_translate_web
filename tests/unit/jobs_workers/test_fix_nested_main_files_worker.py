@@ -414,7 +414,7 @@ def test_fix_nested_main_files_for_templates_args_defaults_to_none(mock_fix_nest
     mock_fix_nested_services["list_templates"].return_value = []
 
     # Call without args param - should use None default
-    fix_nested_main_files_worker.fix_nested_main_files_for_templates(99)
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=99)
 
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0

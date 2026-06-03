@@ -128,7 +128,7 @@ def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.Mo
     mock_common_services["update_job_status"].side_effect = LookupError("Job not found")
 
     # Should not raise exception
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1)
     fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=2, user=None)
 
     assert mock_common_services["update_job_status"].call_count >= 2
