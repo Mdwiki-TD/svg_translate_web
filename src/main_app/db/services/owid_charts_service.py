@@ -4,6 +4,7 @@ import logging
 from typing import Any, Optional
 
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
@@ -106,8 +107,16 @@ def add_chart(
     }
     chart = OwidChartRecord(**chart_data)
     db.session.add(chart)
-    db.session.commit()
-    db.session.refresh(chart)
+    try:
+        db.session.commit()
+        db.session.refresh(chart)
+    except IntegrityError as exc:
+        db.session.rollback()
+        raise exc
+    except Exception as exc:
+        db.session.rollback()
+        raise exc
+
     return chart
 
 

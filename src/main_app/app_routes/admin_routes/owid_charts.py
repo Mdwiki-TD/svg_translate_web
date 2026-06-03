@@ -16,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord
 from ...db.services import owid_charts_service
@@ -117,6 +118,10 @@ def _add_chart() -> ResponseReturnValue:
     except ValueError as exc:
         logger.exception("Unable to add chart.")
         flash(str(exc), "warning")
+        save_error = True
+    except IntegrityError:
+        logger.exception("Unable to add chart.")
+        flash("Chart with this slug already exists.", "danger")
         save_error = True
     except Exception:
         logger.exception("Unable to add chart.")
