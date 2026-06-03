@@ -5,6 +5,7 @@ Worker module for collecting main files for templates.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 import threading
 from datetime import datetime
@@ -26,6 +27,41 @@ from ..utils.wikitext.titles_utils import (
 from .base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class TemplateInfo:
+    """
+    Holds all state for a single template being processed.
+    template_info = {
+        "id": template.id,
+        "title": template.title,
+        "timestamp": datetime.now().isoformat(),
+        "new_main_file": "",
+        "last_world_file": "",
+        "source": "",
+    }
+    """
+
+    id: int
+    title: str
+    timestamp: str
+    new_main_file: str
+    last_world_file: str
+    source: str
+    status: str = "processing"
+    reason: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "new_main_file": self.new_main_file,
+            "last_world_file": self.last_world_file,
+            "source": self.source,
+            "status": self.status,
+            "reason": self.reason,
+        }
 
 
 def slugify_title(title: str) -> str:
