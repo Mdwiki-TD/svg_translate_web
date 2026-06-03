@@ -220,7 +220,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                     continue
 
                 template_data = {}
-
+                skip_msg = "No changes needed"
                 # Extract main file using find_main_title
                 main_file = find_main_title(wikitext)
                 if main_file and main_file != template.main_file:
@@ -236,10 +236,12 @@ class CollectMainFilesWorker(BaseJobWorker):
                 source = find_template_source(wikitext, check_grapher=False)
                 if source and source != template.source:
                     template_info["source"] = source
-                    template_data["source"] = source
                     if "/grapher/" in source:
+                        template_data["source"] = source
                         slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
                         template_data["slug"] = slug or None
+                    else:
+                        skip_msg = "source url does not have /grapher/“
 
                 if not template.slug and not template_data.get("slug"):
                     _slug = slugify_title(template.title)
@@ -259,7 +261,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 if not template_data:
                     template_info["status"] = "skipped"
-                    template_info["reason"] = "No changes needed"
+                    template_info["reason"] = skip_msg
                     self.result["templates_skipped"].append(template_info)
                     self.result["summary"]["skipped"] += 1
                     logger.info(f"Job {self.job_id}: No changes for {template.title}")
