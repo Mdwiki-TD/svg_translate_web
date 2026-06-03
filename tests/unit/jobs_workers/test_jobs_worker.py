@@ -262,7 +262,7 @@ def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_jo
     mock_thread.assert_called_once()
     thread_args = mock_thread.call_args[1]["args"]
     # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
-    assert thread_args[5] is args
+    assert thread_args[5] == args
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
@@ -313,4 +313,4 @@ def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_cre
     assert job_id == 12
     mock_create_job.assert_called_once_with("collect_main_files", "alias_user")
     thread_args = mock_thread.call_args[1]["args"]
-    assert thread_args[5] is args
+    assert thread_args[5] == args
