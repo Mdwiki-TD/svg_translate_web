@@ -15,10 +15,11 @@ from .update_owid_charts.worker import update_owid_charts_worker_entry
 class JobData:
     job_type: str
     job_name: str
-    job_callable: Callable
-
-    job_list_template: str
     job_details_template: str
+    job_list_template: str
+
+    job_callable: Callable
+    job_args: list | None = None
 
 
 jobs_data = {
@@ -42,6 +43,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/crop_main_files/details.html",
         job_list_template="admins/jobs_templates/crop_main_files/list.html",
         job_callable=crop_main_files_for_templates,
+        job_args=["crop_newest_upload_limit"],
     ),
     "fix_nested_main_files": JobData(
         job_type="fix_nested_main_files",
@@ -56,6 +58,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/create_owid_pages/details.html",
         job_list_template="admins/jobs_templates/create_owid_pages/list.html",
         job_callable=create_owid_pages_for_templates,
+        job_args=["create_owid_pages_limit"],
     ),
     "rename_owid_pages": JobData(
         job_type="rename_owid_pages",

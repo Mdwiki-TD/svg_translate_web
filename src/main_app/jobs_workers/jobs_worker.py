@@ -11,6 +11,7 @@ from flask import Flask, current_app
 from ..db.services import (
     cancel_job_db,
     create_job,
+    get_all_settings_ready,
 )
 from ..public_jobs_workers.workers_list_public import jobs_data_public
 from .workers_list import jobs_data
@@ -35,6 +36,17 @@ def _pop_cancel_event(job_id: int) -> threading.Event | None:
 def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
     with JOBS_CANCEL_EVENTS_LOCK:
         return JOBS_CANCEL_EVENTS.get(job_id)
+
+
+def _load_job_args(job_args) -> dict:
+    settings_ready = get_all_settings_ready()
+    _args = {}
+    for x in job_args:
+        arg_value = settings_ready.get(x)
+        if arg_value is not None:
+            _args[x] = arg_value
+
+    return _args
 
 
 def _runner(
@@ -94,12 +106,17 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     """
     job_data = jobs_data.get(job_type) or jobs_data_public.get(job_type)
     target_func = job_data.job_callable if job_data else None
+
     if not target_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
     if not username:
         raise ValueError("User authentication data is required")
+
+    # Parse job arguments
+    if job_data.job_args:
+        args.update(_load_job_args(job_data.job_args))
 
     # Create job record
     job = create_job(job_type, username)

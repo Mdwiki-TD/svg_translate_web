@@ -9,6 +9,7 @@ jobs_data_public = {
         job_details_template="jobs_templates/copy_svg_langs/details.html",
         job_list_template="jobs_templates/copy_svg_langs/list.html",
         job_callable=copy_svg_langs_worker_entry,
+        job_args=["copy_svg_langs_upload_limit"],
     ),
     "fix_nested_jobs": JobData(
         job_type="fix_nested_jobs",
@@ -16,6 +17,7 @@ jobs_data_public = {
         job_details_template="jobs_templates/fix_nested_jobs/details.html",
         job_list_template="jobs_templates/fix_nested_jobs/list.html",
         job_callable=fix_nested_jobs_worker_entry,
+        job_args=[],
     ),
 }
 
