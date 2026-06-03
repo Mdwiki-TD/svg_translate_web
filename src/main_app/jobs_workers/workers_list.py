@@ -29,6 +29,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/collect_main_files/details.html",
         job_list_template="admins/jobs_templates/collect_main_files/list.html",
         job_callable=collect_main_files_for_templates,
+        job_args=[],
     ),
     "update_owid_charts": JobData(
         job_type="update_owid_charts",
@@ -36,6 +37,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/update_owid_charts/details.html",
         job_list_template="admins/jobs_templates/update_owid_charts/list.html",
         job_callable=update_owid_charts_worker_entry,
+        job_args=["owid_charts_limit_items"],
     ),
     "crop_main_files": JobData(
         job_type="crop_main_files",
@@ -51,6 +53,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/fix_nested_main_files/details.html",
         job_list_template="admins/jobs_templates/fix_nested_main_files/list.html",
         job_callable=fix_nested_main_files_for_templates,
+        job_args=[],
     ),
     "create_owid_pages": JobData(
         job_type="create_owid_pages",
@@ -66,6 +69,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/rename_owid_pages/details.html",
         job_list_template="admins/jobs_templates/rename_owid_pages/list.html",
         job_callable=rename_owid_pages_for_templates,
+        job_args=[],
     ),
     "add_svglanguages_template": JobData(
         job_type="add_svglanguages_template",
@@ -73,6 +77,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/add_svglanguages_template/details.html",
         job_list_template="admins/jobs_templates/add_svglanguages_template/list.html",
         job_callable=add_svglanguages_template_to_templates,
+        job_args=["add_svglanguages_limit_items"],
     ),
     "download_main_files": JobData(
         job_type="download_main_files",
@@ -80,6 +85,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/download_main_files/details.html",
         job_list_template="admins/jobs_templates/download_main_files/list.html",
         job_callable=download_main_files_for_templates,
+        job_args=[],
     ),
 }
 

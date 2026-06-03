@@ -80,6 +80,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         self.user = user
         self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+        self.limit_items = args.get("limit_items") if args else 0
         self.args = args
 
         self.result = {}
@@ -96,8 +97,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        # _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
-        _limit = 0
+        _limit = self.limit_items
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
@@ -294,6 +294,10 @@ def add_svglanguages_template_to_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
+
+    if args and args.get("add_svglanguages_limit_items"):
+        args.update({"limit_items": args.get("add_svglanguages_limit_items")})
+
     worker = AddSvgSVGLanguagesTemplate(
         job_id=job_id,
         user=user,

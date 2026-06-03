@@ -57,11 +57,10 @@ def get_all_settings_ready() -> list[dict[str, Any]]:
             try:
                 value = int(value)
             except (ValueError, TypeError):
-                value = None
+                value = 0
         elif x.value_type == "string":
             value = str(x.value)
-        else:
-            value = None
+
         records[x.key] = value
 
     return records
