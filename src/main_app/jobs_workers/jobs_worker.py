@@ -114,6 +114,9 @@ def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[s
     if not username:
         raise ValueError("User authentication data is required")
 
+    if not args:
+        args = {}
+
     # Parse job arguments
     if job_data.job_args:
         args.update(_load_job_args(job_data.job_args))

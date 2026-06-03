@@ -847,7 +847,10 @@ class TestDownloadMainFilesWorkerInitialization:
     def test_worker_defaults_limit_items_when_args_none(self, mock_services):
         """Test worker defaults limit_items to 0 when args is None."""
         worker = download_main_files_worker.DownloadMainFilesWorker(
-            job_id=1, user=None, cancel_event=None, args=None,
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args=None,
         )
 
         assert worker.limit_items == 0
@@ -875,7 +878,10 @@ class TestDownloadMainFilesWorkerApplyLimits:
         ]
 
         worker = download_main_files_worker.DownloadMainFilesWorker(
-            job_id=1, user=None, cancel_event=None, args={"limit_items": 2},
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": 2},
         )
         result = worker._apply_limits(templates)
 
@@ -889,7 +895,9 @@ class TestDownloadMainFilesWorkerApplyLimits:
         ]
 
         worker = download_main_files_worker.DownloadMainFilesWorker(
-            job_id=1, user=None, cancel_event=None,
+            job_id=1,
+            user=None,
+            cancel_event=None,
         )
         result = worker._apply_limits(templates)
 
@@ -902,7 +910,10 @@ class TestDownloadMainFilesWorkerApplyLimits:
         ]
 
         worker = download_main_files_worker.DownloadMainFilesWorker(
-            job_id=1, user=None, cancel_event=None, args={"limit_items": 10},
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": 10},
         )
         result = worker._apply_limits(templates)
 
@@ -916,7 +927,10 @@ class TestDownloadMainFilesWorkerApplyLimits:
         ]
 
         worker = download_main_files_worker.DownloadMainFilesWorker(
-            job_id=1, user=None, cancel_event=None, args={"limit_items": "not_int"},
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": "not_int"},
         )
         result = worker._apply_limits(templates)
 

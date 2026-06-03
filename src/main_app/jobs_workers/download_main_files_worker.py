@@ -14,10 +14,9 @@ from typing import Any, Dict
 import requests
 from flask import send_file
 
-from ..db.models import TemplateRecord
-
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
+from ..db.models import TemplateRecord
 from ..db.services import list_templates
 from .base_worker import BaseJobWorker
 

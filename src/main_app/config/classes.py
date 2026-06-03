@@ -21,6 +21,7 @@ class OtherConfig:
 @dataclass(frozen=True)
 class JobsConfig:
     """Configuration for jobs."""
+
     disable_uploads: str
     upload_host: str
 

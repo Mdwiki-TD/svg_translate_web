@@ -20,6 +20,7 @@ def test_serialize_value_integer():
     assert _serialize_value(42, "integer") == "42"
     assert _serialize_value(-10, "integer") == "-10"
 
+
 def test_serialize_value_string():
     """Test _serialize_value handles strings."""
     assert _serialize_value("hello", "string") == "hello"

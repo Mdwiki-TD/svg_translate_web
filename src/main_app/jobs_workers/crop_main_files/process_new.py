@@ -222,7 +222,7 @@ class CropMainFilesProcessor:
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.upload_limit if isinstance(self.upload_limit, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info( f"Job {self.job_id} limiting from {len(templates)} to {_limit} item" )
+            logger.info(f"Job {self.job_id} limiting from {len(templates)} to {_limit} item")
             return templates[:_limit]
 
         return templates
