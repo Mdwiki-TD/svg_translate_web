@@ -194,7 +194,6 @@ class MainFilesWorker(BaseJobWorker):
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
-                    template_info["wikitext_length"] = len(wikitext)
                     self.result["templates_failed"].append(template_info)
                     self.result["summary"]["failed"] += 1
                     logger.warning(

@@ -239,6 +239,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 "new_main_file": "",
                 "last_world_file": "",
                 "source": "",
+                "status": "",
             }
             logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
             # Fetch wikitext from Commons
