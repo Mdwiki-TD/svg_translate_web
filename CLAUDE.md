@@ -116,7 +116,6 @@ MAIN_DIR=/path/to/data      # Root for svg_data/, logs/, etc.
 
 # Optional
 DISABLE_UPLOADS=0           # Set to 1 to disable uploads
-DEV_DOWNLOAD_LIMIT=10       # Limit downloads in dev (0 = unlimited)
 ```
 
 ### Background Jobs (Admin)

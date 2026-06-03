@@ -21,8 +21,6 @@ class OtherConfig:
 @dataclass(frozen=True)
 class JobsConfig:
     """Configuration for jobs."""
-
-    dev_limit: int  # Limit for downloads in development mode (0 = unlimited)
     disable_uploads: str
     upload_host: str
 

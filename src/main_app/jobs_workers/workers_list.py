@@ -85,7 +85,7 @@ jobs_data = {
         job_details_template="admins/jobs_templates/download_main_files/details.html",
         job_list_template="admins/jobs_templates/download_main_files/list.html",
         job_callable=download_main_files_for_templates,
-        job_args=[],
+        job_args=["download_main_files_limit_items"],
     ),
 }
 

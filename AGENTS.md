@@ -211,6 +211,5 @@ Key variables (see CLAUDE.md for full list):
 ## Important Notes
 
 -   Never commit secrets or .env files
--   Use `DEV_DOWNLOAD_LIMIT=10` in development to limit downloads
 -   Always run tests before committing changes
 -   Maintain test coverage for new code
