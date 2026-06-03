@@ -74,7 +74,7 @@ def cancel_job(task_id: int, job_type: str | None = None) -> bool:
     return local_cancelled or db_cancelled
 
 
-def start_job(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] | None = None) -> int:
+def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] | None = None) -> int:
     """
     Start a background job.
     Returns the job ID.
@@ -114,13 +114,7 @@ def start_job(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] |
 
     return job.id
 
-
-# Keep backward-compatible alias
-start_job_with_args = start_job
-
-
 __all__ = [
-    "start_job",
     "start_job_with_args",
     "cancel_job",
 ]

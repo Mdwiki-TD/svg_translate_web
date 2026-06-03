@@ -78,7 +78,7 @@ def _start_job(job_type: str) -> int | None:
     try:
         # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_job(auth_payload, job_type)
+        job_id = jobs_worker.start_job_with_args(auth_payload, job_type)
         flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
         return job_id
     except DuplicateJobError as exc:
@@ -208,16 +208,6 @@ class Jobs:
         # ================================
         # Start Job routes
         # ================================
-
-        @self.bp.post("/<string:job_type>/start")
-        @admin_required
-        def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in jobs_data:
-                abort(404)
-            job_id = _start_job(job_type)
-            if not job_id:
-                return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
-            return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
         @self.bp.post("/<string:job_type>/start_with_args")
         @admin_required
