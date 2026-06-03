@@ -63,12 +63,14 @@ class CollectMainFilesWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: Dict[str, Any] | None = None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        update_all: bool = False,
+        args: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
-        self.update_all = update_all
+        self.update_all = False
+        if args and str(args.get("update_all", "")).lower() == "true":
+            self.update_all = True
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -300,11 +302,11 @@ class CollectMainFilesWorker(BaseJobWorker):
 
 
 def collect_main_files_for_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to collect templates data.
@@ -319,12 +321,14 @@ def collect_main_files_for_templates(
         args: Optional arguments dict. Supports:
             - update_all: "true" to update all templates, not just those missing data.
     """
-    update_all = False
-    if args and args.get("update_all", "").lower() == "true":
-        update_all = True
 
-    logger.info(f"Starting job {job_id}: collect templates data (update_all={update_all})")
-    worker = CollectMainFilesWorker(job_id, user, cancel_event, update_all=update_all)
+    logger.info(f"Starting job {job_id}: collect templates data")
+    worker = CollectMainFilesWorker(
+        job_id=job_id,
+        user=user,
+        cancel_event=cancel_event,
+        args=args,
+    )
     worker.run()
 
 

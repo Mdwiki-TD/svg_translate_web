@@ -15,7 +15,6 @@ import mwclient
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
-from ...config import settings
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
 from ..base_worker import BaseJobWorker
@@ -73,13 +72,16 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
         self.user = user
         self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+        self.limit_items = args.get("limit_items") if args else 0
+        self.args = args or {}
 
         self.result = {}
 
@@ -95,7 +97,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = 0
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
             return templates[:_limit]
@@ -276,11 +278,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
 
 def add_svglanguages_template_to_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker
@@ -292,10 +294,15 @@ def add_svglanguages_template_to_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
+
+    if args and args.get("add_svglanguages_limit_items"):
+        args.update({"limit_items": args.get("add_svglanguages_limit_items")})
+
     worker = AddSvgSVGLanguagesTemplate(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 

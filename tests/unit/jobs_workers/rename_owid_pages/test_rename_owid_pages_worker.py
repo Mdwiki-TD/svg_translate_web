@@ -36,7 +36,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         mock_worker_class.return_value = mock_worker_instance
 
         # Should not raise TypeError; args is accepted but unused
-        rename_owid_pages_for_templates(job_id=1, args={"some_key": "some_value"})
+        rename_owid_pages_for_templates(job_id=1, user=None, args={"some_key": "some_value"})
 
         mock_worker_instance.run.assert_called_once()
 
@@ -47,7 +47,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         mock_worker_class.return_value = mock_worker_instance
 
         # Call without args param - should use None default
-        rename_owid_pages_for_templates(job_id=2)
+        rename_owid_pages_for_templates(job_id=2, user=None)
 
         mock_worker_class.assert_called_once_with(
             job_id=2,
@@ -63,7 +63,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         mock_worker_class.return_value = mock_worker_instance
 
         cancel_event = threading.Event()
-        rename_owid_pages_for_templates(job_id=3, cancel_event=cancel_event)
+        rename_owid_pages_for_templates(job_id=3, user=None, cancel_event=cancel_event)
 
         mock_worker_class.assert_called_once_with(
             job_id=3,
@@ -78,7 +78,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         mock_worker_instance = MagicMock()
         mock_worker_class.return_value = mock_worker_instance
 
-        rename_owid_pages_for_templates(job_id=4, args={"update_all": "true"})
+        rename_owid_pages_for_templates(job_id=4, user=None, args={"update_all": "true"})
 
         # Worker should be created WITHOUT args (it doesn't accept it)
         mock_worker_class.assert_called_once_with(

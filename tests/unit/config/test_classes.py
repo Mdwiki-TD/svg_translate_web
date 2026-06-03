@@ -88,7 +88,6 @@ def test_Settings():
     )
 
     jobs_config = JobsConfig(
-        dev_limit=0,
         disable_uploads="",
         upload_host="upload.example.com",
     )
@@ -129,6 +128,5 @@ def test_Settings():
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"
     assert settings.paths.svg_data == "/svg"
-    assert settings.jobs.dev_limit == 0
     assert settings.security.max_content_length == 100 * 1024 * 1024
     assert settings.other.csrf_time_limit == 3600

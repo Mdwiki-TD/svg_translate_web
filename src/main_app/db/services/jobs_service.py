@@ -251,9 +251,9 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
             query = query.filter(JobRecord.job_type == job_type)
 
         job = query.filter(
-                JobRecord.status.in_(["pending", "running"]),
-                JobRecord.is_running == 1,
-            ).first()
+            JobRecord.status.in_(["pending", "running"]),
+            JobRecord.is_running == 1,
+        ).first()
 
         if job:
             job.status = "cancelled"

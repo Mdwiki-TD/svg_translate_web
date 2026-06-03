@@ -75,6 +75,34 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert "status" in worker.result
         assert worker.result["status"] == "pending"
 
+    def test_worker_reads_limit_items_from_args(self, mock_jobs_service):
+        """Test worker reads limit_items from args."""
+        worker = AddSvgSVGLanguagesTemplate(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": 10},
+        )
+
+        assert worker.limit_items == 10
+
+    def test_worker_defaults_limit_items_when_args_none(self, mock_jobs_service):
+        """Test worker defaults limit_items to 0 when args is None."""
+        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None, cancel_event=None, args=None)
+
+        assert worker.limit_items == 0
+
+    def test_worker_limit_items_none_when_key_missing(self, mock_jobs_service):
+        """Test worker sets limit_items to None when args has no limit_items key."""
+        worker = AddSvgSVGLanguagesTemplate(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"other_key": "value"},
+        )
+
+        assert worker.limit_items is None
+
     def test_get_job_type(self, mock_jobs_service):
         """Test get_job_type returns correct job type."""
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
@@ -485,7 +513,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         add_svglanguages_template_to_templates(job_id=1, user=user, cancel_event=cancel_event)
 
-        mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event)
+        mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
         mock_worker_instance.run.assert_called_once()
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
@@ -495,7 +523,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.return_value = mock_worker_instance
 
         # Should not raise TypeError; args is accepted but unused
-        add_svglanguages_template_to_templates(job_id=1, args={"some_key": "some_value"})
+        add_svglanguages_template_to_templates(job_id=1, user=None, args={"some_key": "some_value"})
 
         mock_worker_instance.run.assert_called_once()
 
@@ -508,5 +536,63 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         # Call with no args param at all
         add_svglanguages_template_to_templates(job_id=2, user=None)
 
-        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None)
+        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_maps_add_svglanguages_limit_items_to_limit_items(self, mock_worker_class, mock_jobs_service):
+        """Test that add_svglanguages_limit_items is mapped to limit_items in args."""
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        add_svglanguages_template_to_templates(
+            job_id=1,
+            user=None,
+            args={"add_svglanguages_limit_items": 10},
+        )
+
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"]["limit_items"] == 10
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_does_not_map_when_key_absent(self, mock_worker_class, mock_jobs_service):
+        """Test that args are passed unchanged when add_svglanguages_limit_items is absent."""
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        add_svglanguages_template_to_templates(
+            job_id=1,
+            user=None,
+            args={"other_key": "value"},
+        )
+
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert "limit_items" not in call_kwargs["args"]
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_does_not_map_when_value_falsy(self, mock_worker_class, mock_jobs_service):
+        """Test that mapping is skipped when add_svglanguages_limit_items value is falsy."""
+        for falsy_value in [0, None, "", False]:
+            mock_worker_class.reset_mock()
+            mock_worker_instance = MagicMock()
+            mock_worker_class.return_value = mock_worker_instance
+
+            add_svglanguages_template_to_templates(
+                job_id=1,
+                user=None,
+                args={"add_svglanguages_limit_items": falsy_value},
+            )
+
+            call_kwargs = mock_worker_class.call_args.kwargs
+            assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
+
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_does_not_modify_args_when_args_is_none(self, mock_worker_class, mock_jobs_service):
+        """Test that entry point works correctly when args is None."""
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        add_svglanguages_template_to_templates(job_id=1, user=None, args=None)
+
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"] is None

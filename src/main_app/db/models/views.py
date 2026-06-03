@@ -33,12 +33,14 @@ class TemplateNeedUpdateRecord(db.Model):
                         t.id AS template_id,
                         t.title AS template_title,
                         t.slug AS slug,
-                        t.last_world_year AS last_world_year,
-                        c.max_time AS max_time
-                    from owid_charts c
-                            join templates t on t.slug = c.slug
+                        c.max_time AS max_time,
+                        t.last_world_year AS last_world_year
+                    from
+                        owid_charts c
+                        join templates t on t.slug = c.slug
                     where
-                        t.last_world_year <> c.max_time
+                        t.last_world_year < c.max_time
+                        AND c.max_time <= YEAR(now())
                         and t.last_world_year is not null
                     ;
                     """,

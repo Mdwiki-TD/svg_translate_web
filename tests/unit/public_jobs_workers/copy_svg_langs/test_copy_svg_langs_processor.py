@@ -39,7 +39,7 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     mock_settings.paths.svg_data = "/tmp/svg_data"
     processor_args_with_title = {**processor_args, "title": "File:Test Path/Example.svg"}
     processor = CopySvgLangsProcessor(
-        task_id=1,
+        job_id=1,
         args=processor_args_with_title,
         user=None,
         result=initial_result,
@@ -61,7 +61,7 @@ def test_processor_run_text_stage_fail(mock_is_job_cancelled, processor_args, in
 
     processor_args_with_title = {**processor_args, "title": "Test"}
     processor = CopySvgLangsProcessor(
-        task_id=1,
+        job_id=1,
         args=processor_args_with_title,
         user=None,
         result=initial_result,
@@ -149,7 +149,7 @@ def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_arg
     processor_args_with_title = {**processor_args, "upload": False, "title": "Test"}
 
     processor = CopySvgLangsProcessor(
-        task_id=1,
+        job_id=1,
         args=processor_args_with_title,
         user=None,
         result=initial_result,

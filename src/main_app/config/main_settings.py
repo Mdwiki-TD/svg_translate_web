@@ -208,11 +208,8 @@ def load_cookie_config() -> CookieConfig:
 
 def _load_jobs_config() -> JobsConfig:
     # Load download configuration
-    # DEV_DOWNLOAD_LIMIT: Limit number of downloads in development mode (0 = unlimited)
-    dev_download_limit = _env_int("DEV_DOWNLOAD_LIMIT", 0)
 
     _config = JobsConfig(
-        dev_limit=dev_download_limit,
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
         upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
     )

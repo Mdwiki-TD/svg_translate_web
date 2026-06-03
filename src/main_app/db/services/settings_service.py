@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -19,11 +18,6 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
             return int(raw_val), True
         except ValueError:
             return 0, True
-    elif v_type == "json":
-        try:
-            return json.loads(raw_val), True
-        except Exception:
-            return None, False
     else:
         return raw_val, True
 
@@ -38,8 +32,6 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
             return str(int(value))
         except (ValueError, TypeError):
             return "0"
-    elif value_type == "json":
-        return json.dumps(value, ensure_ascii=False)
     return str(value)
 
 
@@ -51,6 +43,33 @@ def list_settings() -> list[SettingRecord]:
 def get_all_settings_raw() -> list[dict[str, Any]]:
     """Fetch a setting by key."""
     return [x.to_dict() for x in list_settings()]
+
+
+def get_all_settings_ready() -> dict[str, Any]:
+    """Fetch all settings parsed into their respective Python types."""
+    records = {}
+
+    for x in list_settings():
+        val = None
+        if x.value_type == "boolean":
+            val = x.value == "true"
+        elif x.value_type == "integer":
+            if isinstance(x.value, int):
+                val = x.value
+            else:
+                try:
+                    val = int(x.value)
+                except (ValueError, TypeError):
+                    val = None
+        elif x.value_type == "string":
+            val = str(x.value)
+
+        if val is None:
+            logger.warning(f"Could not parse setting {x.key} with value {x.value}")
+
+        records[x.key] = val
+
+    return records
 
 
 def get_setting_by_key(key: str) -> SettingRecord:
@@ -114,17 +133,16 @@ def update_setting_bool(
     return True
 
 
-def create_setting(key: str, title: str, value_type: str) -> bool:
+def create_setting(key: str, title: str, value_type: str, value: str | None = None) -> bool:
     """
     Create new setting.
     """
     default_value_types = {
         "boolean": "false",
         "integer": "0",
-        "json": "{}",
     }
 
-    value = default_value_types.get(value_type, "")
+    value = value or default_value_types.get(value_type, "")
 
     setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
     db.session.add(setting)
@@ -177,4 +195,5 @@ __all__ = [
     "create_setting",
     "settings_update_form",
     "list_settings",
+    "get_all_settings_ready",
 ]

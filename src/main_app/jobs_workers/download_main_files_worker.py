@@ -16,6 +16,7 @@ from flask import send_file
 
 from ..api_services.clients import create_commons_session, download_commons_file_core
 from ..config import settings
+from ..db.models import TemplateRecord
 from ..db.services import list_templates
 from .base_worker import BaseJobWorker
 
@@ -60,7 +61,7 @@ def download_file_from_commons(
         return result
 
     # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename[5:] if filename.startswith("File:") else filename
+    clean_filename = filename.removeprefix("File:")
 
     # Determine output path - maintain original filename
     out_path = output_dir / clean_filename
@@ -100,10 +101,13 @@ class DownloadMainFilesWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: Dict[str, Any] | None = None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-    ):
+        args: dict[str, Any] | None = None,
+    ) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
+        self.limit_items = args.get("limit_items") if args else 0
+
         super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
@@ -126,21 +130,22 @@ class DownloadMainFilesWorker(BaseJobWorker):
             },
         }
 
-    def process(self) -> Dict[str, Any]:
-        """Execute the download processing logic."""
+    def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
+        if _limit > 0 and len(templates_with_files) > _limit:
+            logger.info(f"Job {self.job_id}: limiting from {len(templates_with_files)} to {_limit} page")
+            return templates_with_files[:_limit]
+        return templates_with_files
 
+    def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files
         templates = list_templates()
         templates_with_files = [t for t in templates if t.main_file]
+        return self._apply_limits(templates_with_files)
 
-        # Apply development mode limit from settings
-        dev_limit = settings.jobs.dev_limit
-        if dev_limit > 0 and len(templates_with_files) > dev_limit:
-            logger.info(
-                f"Job {self.job_id}: Development mode - limiting download from "
-                f"{len(templates_with_files)} to {dev_limit} files"
-            )
-            templates_with_files = templates_with_files[:dev_limit]
+    def process(self) -> Dict[str, Any]:
+        """Execute the download processing logic."""
+        templates_with_files = self._load_templates()
 
         self.result["summary"]["total"] = len(templates_with_files)
         self.result["output_path"] = str(self.output_dir)
@@ -176,8 +181,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
             # Extract just the filename part (remove "File:" prefix if present)
             clean_filename = template.main_file
-            if clean_filename.startswith("File:"):
-                clean_filename = clean_filename[5:]
+            clean_filename = clean_filename.removeprefix("File:")
 
             try:
                 # Check if the file already exists
@@ -235,11 +239,11 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
 
 def download_main_files_for_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to download main files for all templates.
@@ -251,7 +255,11 @@ def download_main_files_for_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
-    worker = DownloadMainFilesWorker(job_id, user, cancel_event)
+
+    if args and args.get("download_main_files_limit_items"):
+        args.update({"limit_items": args.get("download_main_files_limit_items")})
+
+    worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
 
 

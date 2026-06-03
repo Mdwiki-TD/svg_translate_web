@@ -34,11 +34,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_generate_result_file_name,
     )
 
-    mock_settings = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.worker.settings",
-        mock_settings,
-    )
+    # mock_settings = MagicMock()
+    # monkeypatch.setattr(
+    #     "src.main_app.jobs_workers.crop_main_files.worker.settings",
+    #     mock_settings,
+    # )
 
     return {
         "update_job_status": mock_update_job_status,
@@ -63,7 +63,7 @@ def test_crop_main_files_for_templates_basic_flow(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify process_crops was called
     mock_process.assert_called_once()
@@ -97,7 +97,7 @@ def test_crop_main_files_for_templates_initializes_result(mock_services):
 
         mock_process.side_effect = capture_result
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
 
 def test_crop_main_files_for_templates_with_user(mock_services):
@@ -118,7 +118,7 @@ def test_crop_main_files_for_templates_with_user(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1, user=user)
+        worker.crop_main_files_for_templates(job_id=1, user=user)
 
     # Verify user was passed to process_crops
     call_args = mock_process.call_args
@@ -144,7 +144,7 @@ def test_crop_main_files_for_templates_with_cancel_event(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1, cancel_event=cancel_event)
+        worker.crop_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     # Verify cancel_event was passed to process_crops
     call_args = mock_process.call_args
@@ -156,7 +156,7 @@ def test_crop_main_files_for_templates_handles_exception(mock_services):
     with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
         mock_process.side_effect = RuntimeError("Database connection failed")
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify final result was saved with error details
     final_result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -181,7 +181,7 @@ def test_crop_main_files_for_templates_sets_completed_timestamp(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify completed_at was set
     final_result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -206,7 +206,7 @@ def test_crop_main_files_for_templates_saves_final_result(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify save was called
     mock_services["save_job_result_by_name"].assert_called()
@@ -230,7 +230,7 @@ def test_crop_main_files_for_templates_updates_final_status(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify final status update was called
     final_call = mock_services["update_job_status"].call_args
@@ -259,7 +259,7 @@ def test_crop_main_files_for_templates_handles_save_failure(mock_services):
         }
 
         # Should not raise exception
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
 
 def test_crop_main_files_for_templates_handles_status_update_failure(mock_services):
@@ -281,7 +281,7 @@ def test_crop_main_files_for_templates_handles_status_update_failure(mock_servic
         }
 
         # Should not raise exception
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
 
 def test_crop_main_files_for_templates_generates_correct_result_file_name(
@@ -302,7 +302,7 @@ def test_crop_main_files_for_templates_generates_correct_result_file_name(
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify generate_result_file_name was called correctly
     mock_services["generate_result_file_name"].assert_called_once_with(1, "crop_main_files")
@@ -324,7 +324,7 @@ def test_crop_main_files_for_templates_passes_result_file_to_process(mock_servic
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify result_file was passed to process_crops
     call_args = mock_process.call_args
@@ -348,7 +348,7 @@ def test_crop_main_files_for_templates_preserves_cancelled_status(mock_services)
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify final status is cancelled
     final_call = mock_services["update_job_status"].call_args
@@ -372,7 +372,7 @@ def test_crop_main_files_for_templates_preserves_failed_status(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify final status is failed
     final_call = mock_services["update_job_status"].call_args
@@ -394,7 +394,7 @@ def test_crop_main_files_for_templates_different_exception_types(mock_services):
         with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
             mock_process.side_effect = exception
 
-            worker.crop_main_files_for_templates(1)
+            worker.crop_main_files_for_templates(job_id=1, user=None)
 
         # Verify error_type is set correctly
         final_result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -417,7 +417,7 @@ def test_crop_main_files_for_templates_upload_files_flag(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify upload_files is False
     call_args = mock_process.call_args
@@ -440,9 +440,9 @@ def test_crop_main_files_for_templates_multiple_jobs(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
-        worker.crop_main_files_for_templates(2)
-        worker.crop_main_files_for_templates(3)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
+        worker.crop_main_files_for_templates(job_id=2, user=None)
+        worker.crop_main_files_for_templates(job_id=3, user=None)
 
     # Verify correct result file names were generated
     assert mock_services["generate_result_file_name"].call_count == 3
@@ -464,7 +464,7 @@ def test_crop_main_files_for_templates_started_at_timestamp(mock_services):
 
         mock_process.side_effect = capture_result
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
 
 def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(
@@ -477,7 +477,7 @@ def test_crop_main_files_for_templates_exception_includes_traceback_in_logs(
     ):
         mock_process.side_effect = RuntimeError("Test error")
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify logger.exception was called (logs with traceback)
     mock_logger.exception.assert_called_once()
@@ -499,7 +499,7 @@ def test_crop_main_files_for_templates_completed_status_default(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(1)
+        worker.crop_main_files_for_templates(job_id=1, user=None)
 
     # Verify final status defaults to completed
     final_call = mock_services["update_job_status"].call_args
@@ -523,9 +523,40 @@ def test_crop_main_files_for_templates_accepts_args_keyword_param(mock_services)
         }
 
         # Should not raise TypeError; args is accepted but unused
-        worker.crop_main_files_for_templates(1, args={"some_key": "value"})
+        worker.crop_main_files_for_templates(job_id=1, user=None, args={"some_key": "value"})
 
     mock_process.assert_called_once()
+
+
+def test_crop_main_files_worker_reads_upload_limit_from_args(mock_services):
+    """Test CropMainFilesWorker reads upload_limit from args."""
+    w = worker.CropMainFilesWorker(
+        job_id=1,
+        user=None,
+        cancel_event=None,
+        args={"upload_limit": 5},
+    )
+
+    assert w.upload_limit == 5
+
+
+def test_crop_main_files_worker_defaults_upload_limit_when_args_none(mock_services):
+    """Test CropMainFilesWorker defaults upload_limit to None when args is None."""
+    w = worker.CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args=None)
+
+    assert w.upload_limit is None
+
+
+def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_services):
+    """Test CropMainFilesWorker defaults upload_limit to None when key is missing."""
+    w = worker.CropMainFilesWorker(
+        job_id=1,
+        user=None,
+        cancel_event=None,
+        args={"other_key": "value"},
+    )
+
+    assert w.upload_limit is None
 
 
 def test_crop_main_files_for_templates_args_defaults_to_none(mock_services):
@@ -545,6 +576,72 @@ def test_crop_main_files_for_templates_args_defaults_to_none(mock_services):
         }
 
         # Call without args param - should use None default
-        worker.crop_main_files_for_templates(2)
+        worker.crop_main_files_for_templates(job_id=2, user=None)
 
     mock_process.assert_called_once()
+
+
+def test_crop_main_files_for_templates_maps_crop_newest_upload_limit(mock_services):
+    """Test that crop_newest_upload_limit is mapped to upload_limit in args."""
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+        mock_instance = MagicMock()
+        MockWorker.return_value = mock_instance
+
+        worker.crop_main_files_for_templates(
+            job_id=1,
+            user=None,
+            args={"crop_newest_upload_limit": 3},
+        )
+
+        call_args = MockWorker.call_args
+        passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
+        assert passed_args is not None
+        assert passed_args["upload_limit"] == 3
+
+
+def test_crop_main_files_for_templates_does_not_map_when_key_absent(mock_services):
+    """Test that args are passed unchanged when crop_newest_upload_limit is absent."""
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+        mock_instance = MagicMock()
+        MockWorker.return_value = mock_instance
+
+        worker.crop_main_files_for_templates(
+            job_id=1,
+            user=None,
+            args={"other_key": "value"},
+        )
+
+        call_args = MockWorker.call_args
+        passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
+        assert "upload_limit" not in passed_args
+
+
+def test_crop_main_files_for_templates_does_not_map_when_value_falsy(mock_services):
+    """Test that mapping is skipped when crop_newest_upload_limit value is falsy."""
+    for falsy_value in [0, None, "", False]:
+        with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            worker.crop_main_files_for_templates(
+                job_id=1,
+                user=None,
+                args={"crop_newest_upload_limit": falsy_value},
+            )
+
+            call_args = MockWorker.call_args
+            passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
+            assert "upload_limit" not in passed_args, f"Should not map for falsy value: {falsy_value!r}"
+
+
+def test_crop_main_files_for_templates_does_not_modify_args_when_none(mock_services):
+    """Test that entry point works correctly when args is None."""
+    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+        mock_instance = MagicMock()
+        MockWorker.return_value = mock_instance
+
+        worker.crop_main_files_for_templates(job_id=1, user=None, args=None)
+
+        call_args = MockWorker.call_args
+        passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
+        assert passed_args is None

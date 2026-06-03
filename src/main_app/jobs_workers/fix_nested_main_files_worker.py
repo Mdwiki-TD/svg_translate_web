@@ -99,6 +99,16 @@ def repair_nested_svg_tags(
 class FixNestedMainFilesWorker(BaseJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        self.args = args or {}
+        super().__init__(job_id, user, cancel_event)
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "fix_nested_main_files"
@@ -195,7 +205,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
             fix_result = {}
             try:
-                # Process without task_id and db_store since we're tracking in the job
+                # Process without job_id and db_store since we're tracking in the job
                 fix_result = repair_nested_svg_tags(
                     filename=template.main_file,
                     user=self.user,
@@ -239,11 +249,11 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
 
 def fix_nested_main_files_for_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.

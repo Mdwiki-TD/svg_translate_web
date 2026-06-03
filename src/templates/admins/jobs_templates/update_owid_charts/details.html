@@ -28,7 +28,13 @@
     <div class="col">
         <div class="card h-100 border-success">
             <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.updated }}</h4>
+                <h4 class="mb-0">
+                    {% if result_data.updated_charts %}
+                        {{ result_data.updated_charts | length }}
+                    {% else %}
+                        {{ result_data.summary.updated }}
+                    {% endif %}
+                </h4>
                 <small>Updated</small>
             </div>
         </div>
@@ -36,7 +42,13 @@
     <div class="col">
         <div class="card h-100 border-secondary">
             <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.skipped }}</h4>
+                <h4 class="mb-0">
+                    {% if result_data.skipped_charts %}
+                        {{ result_data.skipped_charts | length }}
+                    {% else %}
+                        {{ result_data.summary.skipped }}
+                    {% endif %}
+                </h4>
                 <small>Skipped</small>
             </div>
         </div>
@@ -44,7 +56,13 @@
     <div class="col">
         <div class="card h-100 border-danger">
             <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.failed }}</h4>
+                <h4 class="mb-0">
+                    {% if result_data.failed_charts %}
+                        {{ result_data.failed_charts | length }}
+                    {% else %}
+                        {{ result_data.summary.failed }}
+                    {% endif %}
+                </h4>
                 <small>Failed</small>
             </div>
         </div>
@@ -58,7 +76,7 @@
 {# ------------------------------------------------------------------ #}
 {# Updated charts — with old/new comparison                           #}
 {# ------------------------------------------------------------------ #}
-{% set updated_charts = result_data.charts_processed | selectattr("status", "equalto", "updated") | list %}
+{% set updated_charts = result_data.updated_charts or (result_data.charts_processed | selectattr("status", "equalto", "updated") | list) %}
 {% if updated_charts %}
 <div class="card mb-3">
     <div class="card-header">
@@ -71,12 +89,13 @@
                     <tr>
                         <th>#</th>
                         <th>Slug</th>
-                        <th class="text-center">Old min_time</th>
-                        <th class="text-center">New min_time</th>
-                        <th class="text-center">Old max_time</th>
-                        <th class="text-center">New max_time</th>
-                        <th class="text-center">Old len_years</th>
-                        <th class="text-center">New len_years</th>
+                        <!-- <th class="text-center">Old min_time</th> -->
+                        <th class="text-center">min_time</th>
+                        <!-- <th class="text-center">Old max_time</th> -->
+                        <th class="text-center">max_time</th>
+                        <!-- <th class="text-center">Old len_years</th> -->
+                        <th class="text-center">len_years</th>
+                        <th class="text-center">Owid Variable id</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,27 +109,29 @@
                             </a>
                         </td>
                         {# min_time #}
-                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-warning{% endif %}">
-                            {{ item.old_min_time if item.old_min_time is not none else '—' }}
-                        </td>
-                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-success{% endif %}">
-                            <strong>{{ item.new_min_time if item.new_min_time is not none else '—' }}</strong>
+                        <!-- <td class="text-center"> {{ item.old_min_time or '—' }} </td> -->
+                        <td class="text-center">
+                            <strong>{{ item.new_min_time or '—' }}</strong>
                         </td>
                         {# max_time #}
-                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-warning{% endif %}">
-                            {{ item.old_max_time if item.old_max_time is not none else '—' }}
-                        </td>
-                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-success{% endif %}">
-                            <strong>{{ item.new_max_time if item.new_max_time is not none else '—' }}</strong>
+                        <!-- <td class="text-center"> {{ item.old_max_time or '—' }} </td> -->
+                        <td class="text-center">
+                            <strong>{{ item.new_max_time or '—' }}</strong>
                         </td>
                         {# len_years #}
-                        <td
-                            class="text-center {% if item.old_len_years != item.new_len_years %}table-warning{% endif %}">
-                            {{ item.old_len_years if item.old_len_years is not none else '—' }}
+                        <!-- <td class="text-center"> {{ item.old_len_years or '—' }} </td> -->
+                        <td class="text-center">
+                            <strong>{{ item.new_len_years or '—' }}</strong>
                         </td>
-                        <td
-                            class="text-center {% if item.old_len_years != item.new_len_years %}table-success{% endif %}">
-                            <strong>{{ item.new_len_years if item.new_len_years is not none else '—' }}</strong>
+                        <td class="text-center">
+                            {% if item.owid_variable_id %}
+                            <a href="https://api.ourworldindata.org/v1/indicators/{{ item.owid_variable_id }}.metadata.json"
+                                target="_blank" rel="noopener noreferrer">
+                                {{ item.owid_variable_id }}
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -122,9 +143,9 @@
 {% endif %}
 
 {# ------------------------------------------------------------------ #}
-{# Failed charts                                                        #}
+{# Failed charts                                                      #}
 {# ------------------------------------------------------------------ #}
-{% set failed_charts = result_data.charts_processed | selectattr("status", "equalto", "failed") | list %}
+{% set failed_charts = result_data.failed_charts or (result_data.charts_processed | selectattr("status", "equalto", "failed") | list ) %}
 {% if failed_charts %}
 <div class="card mb-3">
     <div class="card-header">
@@ -161,12 +182,12 @@
 {% endif %}
 
 {# ------------------------------------------------------------------ #}
-{# Skipped charts                                                       #}
+{# Skipped charts                                                     #}
 {# ------------------------------------------------------------------ #}
-{% set skipped_charts = result_data.charts_processed | selectattr("status", "equalto", "skipped") | list %}
+{% set skipped_charts = result_data.skipped_charts or (result_data.charts_processed | selectattr("status", "equalto", "skipped") | list ) %}
 {% if skipped_charts %}
 <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header">
         {{ card_header("Skipped Charts (" ~ skipped_charts | length ~ ")") }}
     </div>
     <div class="card-body p-0">
@@ -190,13 +211,7 @@
                             </a>
                         </td>
                         <td>
-                            {% if item.skip_reason == 'no_timespan' %}
-                            <span class="badge bg-secondary">no timespan</span>
-                            {% elif item.skip_reason == 'no_change' %}
-                            <span class="badge bg-light text-dark border">no change</span>
-                            {% else %}
                             {{ item.skip_reason or '—' }}
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

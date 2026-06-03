@@ -87,8 +87,9 @@ class RenameOwidPagesWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.site: mwclient.Site | None = None
         super().__init__(job_id, user, cancel_event)
@@ -281,11 +282,11 @@ class RenameOwidPagesWorker(BaseJobWorker):
 
 
 def rename_owid_pages_for_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point.
 

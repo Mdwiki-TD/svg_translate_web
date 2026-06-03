@@ -45,7 +45,7 @@ def _make_processor(
     if result is None:
         result = _make_result()
     return FixNestedJobsProcessor(
-        task_id=42,
+        job_id=42,
         args=args,
         user=user or {"username": "testuser"},
         result=result,

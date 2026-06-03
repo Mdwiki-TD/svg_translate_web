@@ -90,7 +90,7 @@ class TestBaseJobWorker:
 
     def test_successful_run(self, mock_base_services):
         """Test successful job run."""
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         result = worker.run()
 
         assert result["status"] == "completed"
@@ -113,7 +113,7 @@ class TestBaseJobWorker:
     def test_is_cancelled(self, mock_base_services):
         """Test cancellation detection."""
         cancel_event = threading.Event()
-        worker = ConcreteTestWorker(job_id=1, cancel_event=cancel_event)
+        worker = ConcreteTestWorker(job_id=1, user=None, cancel_event=cancel_event)
 
         assert worker.is_cancelled() is False
 
@@ -125,14 +125,14 @@ class TestBaseJobWorker:
         """Test that before_run returns False when job not found."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
 
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         result = worker.before_run()
 
         assert result is False
 
     def test_handle_error(self, mock_base_services):
         """Test error handling method."""
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         worker.handle_error(ValueError("Test error"), context="test context")
 
         assert worker.result["status"] == "failed"
@@ -143,7 +143,7 @@ class TestBaseJobWorker:
         """Test that after_run handles save exceptions gracefully."""
         mock_base_services["save_job_result_by_name"].side_effect = Exception("DB error")
 
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         worker.after_run()  # Should not raise
 
         # Update should still be called
@@ -153,14 +153,14 @@ class TestBaseJobWorker:
         """Test that after_run handles LookupError when updating status."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
 
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         worker.after_run()  # Should not raise
 
     def test_run_returns_early_when_before_run_fails(self, mock_base_services):
         """Test that run returns early when before_run returns False."""
         mock_base_services["update_job_status"].side_effect = LookupError("Job not found")
 
-        worker = ConcreteTestWorker(job_id=1)
+        worker = ConcreteTestWorker(job_id=1, user=None)
         result = worker.run()
 
         # Should return initial result without processing

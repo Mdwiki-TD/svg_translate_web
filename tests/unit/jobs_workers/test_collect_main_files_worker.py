@@ -95,7 +95,7 @@ def test_collect_main_files_with_no_templates(mock_services):
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = []
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should update status to running, then completed
     assert mock_services["update_job_status"].call_count == 2
@@ -123,7 +123,7 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services, mock_f
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should not fetch wikitext for templates that have all three fields
     mock_services["get_wikitext"].assert_not_called()
@@ -145,7 +145,7 @@ def test_collect_main_files_updates_template_without_main_file(mock_services, mo
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should fetch wikitext
     mock_services["get_wikitext"].assert_called_once_with("Template:Test", project="commons.wikimedia.org")
@@ -173,7 +173,7 @@ def test_collect_main_files_handles_missing_wikitext(mock_services):
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].return_value = None
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should not try to find main title
     mock_services["find_main_title"].assert_not_called()
@@ -196,7 +196,7 @@ def test_collect_main_files_handles_missing_main_title(mock_services):
     mock_services["get_wikitext"].return_value = "some wikitext without SVGLanguages"
     mock_services["find_main_title"].return_value = None
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should not update template
     mock_services["update_template_data"].assert_not_called()
@@ -218,7 +218,7 @@ def test_collect_main_files_handles_exception(mock_services):
     mock_services["list_templates"].return_value = templates
     mock_services["get_wikitext"].side_effect = Exception("Network error")
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -257,7 +257,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
     mock_services["get_wikitext"].side_effect = get_wikitext_side_effect
     mock_services["find_main_title"].side_effect = find_main_title_side_effect
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should update two templates
     assert mock_services["update_template_data"].call_count == 2
@@ -285,7 +285,7 @@ def test_collect_main_files_adds_new_templates_from_category(mock_services):
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should add 2 new templates
     assert mock_services["add_template_data"].call_count == 2
@@ -319,7 +319,7 @@ def test_collect_main_files_handles_add_template_value_error(mock_services):
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should continue processing without error
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -349,7 +349,7 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should add new template
     mock_services["add_template_data"].assert_called_once_with(
@@ -397,7 +397,7 @@ def test_collect_main_files_with_last_world_file(mock_services, monkeypatch: pyt
         mock_find_last_world,
     )
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
@@ -422,7 +422,7 @@ def test_collect_main_files_cancellation_during_template_addition(mock_services)
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = []
 
-    collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should stop early and not add all templates
     # The exact behavior depends on when the cancellation is checked
@@ -460,7 +460,7 @@ def test_collect_main_files_cancellation_during_processing(mock_services):
     mock_services["get_wikitext"].side_effect = get_wikitext_side_effect
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should have processed at least one template before cancellation
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -490,7 +490,7 @@ def test_collect_main_files_progress_saving_frequency(mock_services, monkeypatch
 
     mock_services["save_job_result_by_name"].side_effect = track_save
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Progress should be saved at: 1, 10, 20, and final
     # Expecting at least 3 saves (n=1, n=10, n=20, plus final)
@@ -523,7 +523,7 @@ def test_collect_main_files_only_last_world_file(mock_services, monkeypatch: pyt
         mock_find_last_world,
     )
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should update template with only last_world_file
     mock_services["update_template_data"].assert_called_once_with(
@@ -545,7 +545,7 @@ def test_collect_main_files_template_with_existing_main_file_only(mock_services)
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should process template because last_world_file is missing
     mock_services["get_wikitext"].assert_called_once()
@@ -564,7 +564,7 @@ def test_collect_main_files_add_template_generic_exception(mock_services):
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should track in templates_failed but not increment summary["failed"] (that's for processing phase)
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -613,13 +613,18 @@ def test_worker_init_update_all_defaults_to_false(mock_services):
 
 
 def test_worker_init_update_all_can_be_set_true(mock_services):
-    """Test CollectMainFilesWorker accepts update_all=True."""
+    """Test CollectMainFilesWorker accepts update_all='true' or update_all=True."""
     import threading
 
     worker = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), update_all=True
+        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"}
     )
     assert worker.update_all is True
+
+    worker2 = collect_main_files_worker.CollectMainFilesWorker(
+        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True}
+    )
+    assert worker2.update_all is True
 
 
 def test_collect_main_files_update_all_processes_all_templates(mock_services, mock_find_source):
@@ -638,7 +643,7 @@ def test_collect_main_files_update_all_processes_all_templates(mock_services, mo
     mock_services["find_main_title"].return_value = "newfile.svg"
 
     # With update_all=True, both templates should be processed even though they have data
-    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args={"update_all": "true"})
 
     # Both templates should have had their wikitext fetched
     assert mock_services["get_wikitext"].call_count == 2
@@ -655,7 +660,7 @@ def test_collect_main_files_default_skips_complete_templates(mock_services):
     mock_services["list_templates"].return_value = templates
 
     # Without args (update_all=False by default), complete templates are skipped
-    collect_main_files_worker.collect_main_files_for_templates(1)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # No wikitext should be fetched for a complete template
     mock_services["get_wikitext"].assert_not_called()
@@ -673,7 +678,7 @@ def test_collect_main_files_for_templates_with_update_all_true_string(mock_servi
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args={"update_all": "true"})
 
     # Should process the template even though it already has data
     mock_services["get_wikitext"].assert_called_once()
@@ -689,7 +694,7 @@ def test_collect_main_files_for_templates_with_update_all_false_string(mock_serv
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "false"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args={"update_all": "false"})
 
     # Template is complete, should not be fetched
     mock_services["get_wikitext"].assert_not_called()
@@ -705,7 +710,7 @@ def test_collect_main_files_for_templates_with_args_none(mock_services):
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_main_files_worker.collect_main_files_for_templates(1, args=None)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args=None)
 
     # Template is complete, should not be fetched
     mock_services["get_wikitext"].assert_not_called()
@@ -723,7 +728,7 @@ def test_collect_main_files_for_templates_update_all_case_insensitive(mock_servi
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "TRUE"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args={"update_all": "TRUE"})
 
     # Should process even with uppercase "TRUE"
     mock_services["get_wikitext"].assert_called_once()
@@ -738,7 +743,7 @@ def test_collect_main_files_for_templates_cancel_event_is_keyword_only(mock_serv
     mock_services["list_templates"].return_value = []
 
     # Should not raise a TypeError - cancel_event must be passed as keyword arg
-    collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
@@ -757,7 +762,7 @@ def test_collect_main_files_for_templates_update_all_summary_counts(mock_service
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(1, args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None, args={"update_all": "true"})
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Total is 2, 1 already had all data

@@ -23,18 +23,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
-import requests
-
+from ...api_services.clients.owid_client import fetch_grapher_metadata
 from ...db.models.owid_charts import OwidChartRecord
 from ...db.services import owid_charts_service
 from ..base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
-
-METADATA_URL = "https://ourworldindata.org/grapher/{slug}.metadata.json"
-
-# Seconds to wait for each HTTP request
-REQUEST_TIMEOUT = 15
 
 
 # ---------------------------------------------------------------------------
@@ -61,11 +55,11 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     return min_t, max_t, len_y
 
 
-def _first_timespan(columns: dict) -> str | None:
-    """Return the first ``timespan`` value found among the column entries."""
+def _first_value(columns: dict, key: str) -> str | Any:
+    """Return the first ``key`` value found among the column entries."""
     for col_data in columns.values():
-        if isinstance(col_data, dict) and "timespan" in col_data:
-            return col_data["timespan"]
+        if isinstance(col_data, dict) and key in col_data:
+            return col_data[key]
     return None
 
 
@@ -93,6 +87,8 @@ class ChartUpdateInfo:
     new_max_time: int | None = None
     new_len_years: int | None = None
 
+    owid_variable_id: int | None = None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "chart_id": self.chart_id,
@@ -107,6 +103,7 @@ class ChartUpdateInfo:
             "new_min_time": self.new_min_time,
             "new_max_time": self.new_max_time,
             "new_len_years": self.new_len_years,
+            "owid_variable_id": self.owid_variable_id,
         }
 
 
@@ -118,9 +115,15 @@ class ChartUpdateInfo:
 class UpdateOwidChartsWorker(BaseJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.session = requests.Session()
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(job_id, user, cancel_event)
+        self.limit_items = args.get("limit_items") if args else 0
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
@@ -139,22 +142,14 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                 "failed": 0,
             },
             "charts_processed": [],
+            "updated_charts": [],
+            "skipped_charts": [],
+            "failed_charts": [],
         }
 
     # ------------------------------------------------------------------
     # Per-chart processing
     # ------------------------------------------------------------------
-
-    def _fetch_metadata(self, slug: str) -> dict | None:
-        """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
-        url = METADATA_URL.format(slug=slug)
-        try:
-            resp = self.session.get(url, timeout=REQUEST_TIMEOUT)
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as exc:
-            logger.warning(f"Job {self.job_id}: Failed to fetch metadata for '{slug}': {exc}")
-            return None
 
     def _process_chart(self, chart: OwidChartRecord) -> None:
         info = ChartUpdateInfo(
@@ -163,16 +158,15 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             old_min_time=chart.min_time,
             old_max_time=chart.max_time,
             old_len_years=chart.len_years,
+            owid_variable_id=chart.owid_variable_id,
         )
 
         # 1. Fetch metadata
-        metadata = self._fetch_metadata(chart.slug)
+        metadata = fetch_grapher_metadata(chart.slug)
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
-            self.result["summary"]["failed"] += 1
-            # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append(
+            self.result["failed_charts"].append(
                 {
                     "status": "failed",
                     "slug": chart.slug,
@@ -183,84 +177,112 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 
         # 2. Find a timespan
         columns = metadata.get("columns", {})
-        timespan_raw = _first_timespan(columns)
+        timespan_raw = _first_value(columns, "timespan")
+        owid_variable_id = _first_value(columns, "owidVariableId")
 
-        if not timespan_raw:
+        data = {}
+
+        if not timespan_raw and not owid_variable_id:
             info.status = "skipped"
-            info.skip_reason = "no_timespan"
-            self.result["summary"]["skipped"] += 1
-            # self.result["charts_processed"].appenkd(info.to_dict())
-            self.result["charts_processed"].append(
+            info.skip_reason = "nothing to update"
+            self.result["skipped_charts"].append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
-                    "skip_reason": "no_timespan",
+                    "skip_reason": "nothing to update",
                 }
             )
             return
 
-        # 3. Parse timespan
-        parsed = _parse_timespan(timespan_raw)
-        if parsed is None:
-            info.status = "failed"
-            info.error = f"Could not parse timespan: '{timespan_raw}'"
-            self.result["summary"]["failed"] += 1
-            # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append(
+        if owid_variable_id and owid_variable_id != chart.owid_variable_id:
+            info.owid_variable_id = owid_variable_id
+            data.update(
                 {
-                    "status": "failed",
-                    "slug": chart.slug,
-                    "error": f"Could not parse timespan: '{timespan_raw}'",
+                    "owid_variable_id": owid_variable_id,
                 }
             )
-            return
 
-        min_t, max_t, len_y = parsed
-        info.new_min_time = min_t
-        info.new_max_time = max_t
-        info.new_len_years = len_y
+        if timespan_raw:
+            # 3. Parse timespan
+            parsed = _parse_timespan(timespan_raw)
+            # here we set status to failed if no parsed and no owid_variable_id to update.
+            if parsed is None and not data:
+                info.status = "failed"
+                info.error = f"Could not parse timespan: '{timespan_raw}'"
+                self.result["failed_charts"].append(
+                    {
+                        "status": "failed",
+                        "slug": chart.slug,
+                        "error": f"Could not parse timespan: '{timespan_raw}'",
+                    }
+                )
+                return
 
-        # 4. Compare — skip if nothing changed
-        if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
-            info.status = "skipped"
-            info.skip_reason = "no_change"
-            self.result["summary"]["skipped"] += 1
-            # self.result["charts_processed"].append(info.to_dict())
-            self.result["charts_processed"].append(
-                {
-                    "status": "skipped",
-                    "slug": chart.slug,
-                    "skip_reason": "no_change",
-                }
-            )
-            return
+            if parsed:
+                min_t, max_t, len_y = parsed
+
+                info.new_min_time = min_t if min_t != info.old_min_time else None
+                info.new_max_time = max_t if max_t != info.old_max_time else None
+                info.new_len_years = len_y if len_y != info.old_len_years else None
+
+                # 4. Compare — skip if nothing changed
+                if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
+                    logger.info(f"Chart '{chart.slug}' has no changes in timespan")
+                else:
+                    data.update(
+                        {
+                            "min_time": min_t,
+                            "max_time": max_t,
+                            "len_years": len_y,
+                        }
+                    )
 
         # 5. Update DB
+        if not data:
+            info.status = "skipped"
+            info.skip_reason = "nothing to update"
+            self.result["skipped_charts"].append(
+                {
+                    "status": "skipped",
+                    "slug": chart.slug,
+                    "skip_reason": "nothing to update",
+                }
+            )
+            return
+
         try:
             owid_charts_service.update_chart_data(
                 chart.chart_id,
-                {
-                    "min_time": min_t,
-                    "max_time": max_t,
-                    "len_years": len_y,
-                },
+                data,
             )
             info.status = "updated"
-            self.result["summary"]["updated"] += 1
+            self.result["updated_charts"].append(info.to_dict())
         except Exception as exc:
             logger.exception(f"Job {self.job_id}: DB update failed for chart '{chart.slug}'")
             info.status = "failed"
             info.error = str(exc)
-            self.result["summary"]["failed"] += 1
+            self.result["failed_charts"].append(info.to_dict())
 
-        self.result["charts_processed"].append(info.to_dict())
+        # self.result["charts_processed"].append(info.to_dict())
+
+    def _load_charts(self) -> list[OwidChartRecord]:
+        charts = owid_charts_service.list_charts()
+        return self._apply_limits(charts)
+
+    def _apply_limits(self, charts: list[OwidChartRecord]) -> list[OwidChartRecord]:
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
+        if _limit > 0 and len(charts) > _limit:
+            logger.info(f"Job {self.job_id}: limiting from {len(charts)} to {_limit} page")
+            return charts[:_limit]
+
+        return charts
 
     # ------------------------------------------------------------------
     # BaseJobWorker.process
     # ------------------------------------------------------------------
 
     def process(self) -> Dict[str, Any]:
-        charts = owid_charts_service.list_charts()
+        charts = self._load_charts()
         total = len(charts)
         self.result["summary"]["total"] = total
         logger.info(f"Job {self.job_id}: Found {total} charts to process")
@@ -290,18 +312,23 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 
 
 def update_owid_charts_worker_entry(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point for update_owid_charts."""
     logger.info(f"Starting job {job_id}: update OWID charts timespan data")
+
+    if args and args.get("owid_charts_limit_items"):
+        args.update({"limit_items": args.get("owid_charts_limit_items")})
+
     worker = UpdateOwidChartsWorker(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 

@@ -34,7 +34,6 @@
                             <option value="boolean" selected>Boolean (True/False)</option>
                             <option value="string">String</option>
                             <option value="integer">Integer</option>
-                            <option value="json">JSON</option>
                         </select>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -82,9 +81,6 @@
                                         {% elif s.value_type == 'integer' %}
                                         <input type="number" class="form-control" name="setting_{{ s.key }}"
                                             value="{{ s.value }}" required>
-                                        {% elif s.value_type == 'json' %}
-                                        <textarea class="form-control font-monospace form-control-sm"
-                                            name="setting_{{ s.key }}" rows="3">{{ s.value }}</textarea>
                                         {% else %}
                                         <input type="text" class="form-control" name="setting_{{ s.key }}"
                                             value="{{ s.value }}">

@@ -1,5 +1,8 @@
 from src.main_app.db.services.settings_service import (
     _serialize_value,
+    create_setting,
+    get_all_settings_raw,
+    get_all_settings_ready,
 )
 
 
@@ -21,13 +24,16 @@ def test_serialize_value_integer():
     assert _serialize_value(-10, "integer") == "-10"
 
 
-def test_serialize_value_json():
-    """Test _serialize_value handles JSON."""
-    assert _serialize_value({"key": "value"}, "json") == '{"key": "value"}'
-    assert _serialize_value([1, 2, 3], "json") == "[1, 2, 3]"
-
-
 def test_serialize_value_string():
     """Test _serialize_value handles strings."""
     assert _serialize_value("hello", "string") == "hello"
     assert _serialize_value(123, "string") == "123"
+
+
+def test_get_all_settings_ready() -> None:
+    create_setting("crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000")
+    records_raw = get_all_settings_raw()
+    assert records_raw[0]["value"] == "5000"
+
+    records = get_all_settings_ready()
+    assert records == {"crop_newest_upload_limit": 5000}

@@ -30,7 +30,7 @@ from ..db.services import (
 )
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files_worker import create_main_files_zip
-from ..jobs_workers.workers_list import jobs_data_public
+from ..public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
@@ -85,29 +85,6 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         flash(f"Failed to delete job {job_id}", "danger")
 
     return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-
-
-def _start_job(job_type: str) -> int | None:
-    """Start a job."""
-    user = load_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return None
-
-    try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_job(auth_payload, job_type)
-        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
-        return job_id
-    except DuplicateJobError as exc:
-        flash(str(exc), "warning")
-    except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return None
 
 
 def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
@@ -242,15 +219,6 @@ class JobsPublicRoutes:
         # ================================
 
         @self.bp.post("/<string:job_type>/start")
-        def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in jobs_data_public:
-                abort(404)
-            job_id = _start_job(job_type)
-            if not job_id:
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-            return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
-
-        @self.bp.post("/<string:job_type>/start_with_args")
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data_public:
                 abort(404)

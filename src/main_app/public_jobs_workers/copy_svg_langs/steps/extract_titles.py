@@ -13,14 +13,12 @@ logger = logging.getLogger(__name__)
 def extract_titles_step(
     text: str,
     manual_main_title: str | None = None,
-    titles_limit: int | None = None,
 ) -> dict[str, Any]:
     """Extract SVG titles from wikitext.
 
     Args:
         text: Wikitext retrieved from the main Commons page.
         manual_main_title: Optional title to use instead of the extracted main_title.
-        titles_limit: Optional maximum number of titles to keep.
 
     Returns:
         dict with keys: success (bool), main_title (str|None), titles (list[str]), error (str|None)
@@ -45,9 +43,6 @@ def extract_titles_step(
         }
 
     message = f"Found {len(titles)} titles"
-    if titles_limit and titles_limit > 0 and len(titles) > titles_limit:
-        logger.info(f"Limiting titles from {len(titles)} to {titles_limit}")
-        titles = titles[:titles_limit]
 
     return {
         "success": True,

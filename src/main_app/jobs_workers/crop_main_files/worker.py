@@ -9,7 +9,6 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ...config import settings
 from ..base_worker import BaseJobWorker
 from .process_new import process_crops
 
@@ -18,6 +17,17 @@ logger = logging.getLogger(__name__)
 
 class CropMainFilesWorker(BaseJobWorker):
     """Worker for cropping main files and uploading them with (cropped) suffix."""
+
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(job_id, user, cancel_event)
+        self.args = args or {}
+        self.upload_limit = args.get("upload_limit") if args else None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -55,15 +65,16 @@ class CropMainFilesWorker(BaseJobWorker):
             self.user,
             cancel_event=self.cancel_event,
             upload_files=True,
+            upload_limit=self.upload_limit,
         )
 
 
 def crop_main_files_for_templates(
-    job_id: int,
-    user: Dict[str, Any] | None = None,
     *,
+    job_id: int,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Entry point for crop newest world files background job.
@@ -74,7 +85,10 @@ def crop_main_files_for_templates(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    worker = CropMainFilesWorker(job_id, user, cancel_event)
+    if args and args.get("crop_newest_upload_limit"):
+        args.update({"upload_limit": args.get("crop_newest_upload_limit")})
+
+    worker = CropMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
 
 

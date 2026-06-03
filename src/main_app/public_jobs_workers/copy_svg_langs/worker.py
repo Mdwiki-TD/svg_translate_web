@@ -22,14 +22,16 @@ class CopySvgLangsWorker(BaseJobWorker):
 
     def __init__(
         self,
-        task_id: int,
-        args: Any,
-        user: dict[str, Any] | None = None,
+        job_id: int,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
-        self.task_id = task_id
-        self.args = args
-        super().__init__(task_id, user, cancel_event)
+        self.job_id = job_id
+        self.args = args or {}
+        self.upload_limit = args.get("upload_limit") if args else 0
+
+        super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -58,28 +60,34 @@ class CopySvgLangsWorker(BaseJobWorker):
         }
 
     def process(self) -> dict[str, Any]:
+
         processor = CopySvgLangsProcessor(
-            task_id=self.task_id,
+            job_id=self.job_id,
             args=self.args,
             user=self.user,
             result=self.result,
             result_file=self.result_file,
             cancel_event=self.cancel_event,
+            upload_limit=self.upload_limit,
         )
         return processor.run()
 
 
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
-    task_id: str,
-    user: Dict[str, str] | None,
     *,
+    job_id: str,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Any = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """Entry point for the background job."""
+
+    if args and args.get("copy_svg_langs_upload_limit"):
+        args.update({"upload_limit": args.get("copy_svg_langs_upload_limit")})
+
     worker = CopySvgLangsWorker(
-        task_id=task_id,
+        job_id=job_id,
         user=user,
         cancel_event=cancel_event,
         args=args,

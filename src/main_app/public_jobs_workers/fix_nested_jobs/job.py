@@ -38,9 +38,9 @@ class FixNestedJobsProcessor:
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
 
-    task_id: str | int
+    job_id: str | int
     args: Any
-    user: dict[str, Any] | None
+    user: dict[str, Any]
     result: dict[str, Any]
     result_file: str
     cancel_event: threading.Event | None = None
@@ -57,13 +57,13 @@ class FixNestedJobsProcessor:
         try:
             jobs_files_service.save_job_result_by_name(self.result_file, self.result)
         except Exception:
-            logger.exception(f"Job {self.task_id}: Failed to save progress")
+            logger.exception(f"Job {self.job_id}: Failed to save progress")
 
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
         cancelled = False
         if self.cancel_event and self.cancel_event.is_set():
             cancelled = True
-        elif is_job_cancelled(self.task_id, job_type="fix_nested_jobs"):
+        elif is_job_cancelled(self.job_id, job_type="fix_nested_jobs"):
             cancelled = True
 
         if cancelled:

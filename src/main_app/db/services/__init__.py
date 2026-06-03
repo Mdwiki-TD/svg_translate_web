@@ -28,6 +28,7 @@ from .settings_service import (
     create_setting,
     delete_setting,
     get_all_settings_raw,
+    get_all_settings_ready,
     list_settings,
     settings_update_form,
     update_setting,
@@ -78,6 +79,7 @@ __all__ = [
     "list_charts",
     "list_published_charts",
     # settings_service
+    "get_all_settings_ready",
     "get_all_settings_raw",
     "delete_setting",
     "update_setting",
