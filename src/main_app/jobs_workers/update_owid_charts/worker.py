@@ -23,18 +23,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
-import requests
-
+from ...api_services.clients.owid_client import fetch_grapher_metadata
 from ...db.models.owid_charts import OwidChartRecord
 from ...db.services import owid_charts_service
 from ..base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
-
-METADATA_URL = "https://ourworldindata.org/grapher/{slug}.metadata.json"
-
-# Seconds to wait for each HTTP request
-REQUEST_TIMEOUT = 15
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +123,6 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         args: Dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
-        self.session = requests.Session()
         self.limit_items = args.get("limit_items") if args else 0
 
     def get_job_type(self) -> str:
@@ -158,17 +151,6 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     # Per-chart processing
     # ------------------------------------------------------------------
 
-    def _fetch_metadata(self, slug: str) -> dict | None:
-        """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
-        url = METADATA_URL.format(slug=slug)
-        try:
-            resp = self.session.get(url, timeout=REQUEST_TIMEOUT)
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as exc:
-            logger.warning(f"Job {self.job_id}: Failed to fetch metadata for '{slug}': {exc}")
-            return None
-
     def _process_chart(self, chart: OwidChartRecord) -> None:
         info = ChartUpdateInfo(
             chart_id=chart.chart_id,
@@ -180,7 +162,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         )
 
         # 1. Fetch metadata
-        metadata = self._fetch_metadata(chart.slug)
+        metadata = fetch_grapher_metadata(chart.slug)
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"

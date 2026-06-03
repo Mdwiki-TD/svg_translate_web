@@ -1,8 +1,8 @@
 from src.main_app.db.services.settings_service import (
+    _serialize_value,
     create_setting,
     get_all_settings_raw,
     get_all_settings_ready,
-    _serialize_value,
 )
 
 
@@ -28,6 +28,7 @@ def test_serialize_value_string():
     """Test _serialize_value handles strings."""
     assert _serialize_value("hello", "string") == "hello"
     assert _serialize_value(123, "string") == "123"
+
 
 def test_get_all_settings_ready() -> None:
     create_setting("crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000")
