@@ -394,7 +394,7 @@ def test_crop_main_files_for_templates_different_exception_types(mock_services):
         with patch("src.main_app.jobs_workers.crop_main_files.worker.process_crops") as mock_process:
             mock_process.side_effect = exception
 
-        worker.crop_main_files_for_templates(job_id=1, user=None)
+            worker.crop_main_files_for_templates(job_id=1, user=None)
 
         # Verify error_type is set correctly
         final_result = mock_services["save_job_result_by_name"].call_args[0][1]
