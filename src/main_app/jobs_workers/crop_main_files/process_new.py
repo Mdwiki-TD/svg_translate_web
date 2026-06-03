@@ -108,6 +108,7 @@ class CropMainFilesProcessor:
         *,
         cancel_event: threading.Event | None = None,
         upload_files: bool = False,
+        upload_limit: int | None = None,
     ) -> None:
         self.job_id = job_id
         self.result = result
@@ -121,6 +122,7 @@ class CropMainFilesProcessor:
         self.session: requests.Session | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
+        self.upload_limit = upload_limit
 
     # ------------------------------------------------------------------
     # Public entry-point
@@ -218,13 +220,12 @@ class CropMainFilesProcessor:
         return self._apply_limits(templates_with_files)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        upload_limit = getattr(settings, "crop_newest_upload_limit", 0) or 0
-        if upload_limit > 0 and len(templates) > upload_limit:
+        _limit = self.upload_limit if isinstance(self.upload_limit, int) else 0
+        if _limit > 0 and len(templates) > _limit:
             logger.info(
-                f"Job {self.job_id}: Upload cropped files limit - "
-                f"limiting from {len(templates)} to {upload_limit} files"
+                f"Job {self.job_id}: Upload cropped files limit - " f"limiting from {len(templates)} to {_limit} files"
             )
-            return templates[:upload_limit]
+            return templates[:_limit]
 
         dev_limit = settings.jobs.dev_limit
         if dev_limit > 0 and len(templates) > dev_limit:
@@ -499,6 +500,7 @@ def process_crops(
     user: dict[str, Any] | None,
     cancel_event: threading.Event | None = None,
     upload_files: bool = False,
+    upload_limit: int | None = None,
 ) -> dict[str, Any]:
     """Thin shim kept for backwards compatibility."""
     processor = CropMainFilesProcessor(
@@ -508,6 +510,7 @@ def process_crops(
         user=user,
         cancel_event=cancel_event,
         upload_files=upload_files,
+        upload_limit=upload_limit,
     )
     return processor.run()
 

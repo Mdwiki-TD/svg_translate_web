@@ -47,6 +47,7 @@ class CopySvgLangsProcessor:
     result: dict[str, Any]
     result_file: str
     cancel_event: threading.Event | None = None
+    upload_limit: int | None = None
 
     site: mwclient.Site | None = field(init=False, default=None)
     session: requests.Session | None = field(init=False, default=None)
@@ -357,6 +358,7 @@ class CopySvgLangsProcessor:
                 self.site,
                 cancel_check=lambda: self._is_cancelled("upload"),
                 progress_callback=upload_progress,
+                upload_limit=self.upload_limit,
             ):
                 return self.result
 

@@ -8,7 +8,6 @@ from typing import Any, Callable
 import mwclient
 
 from ....api_services.upload_bot import upload_file
-from ....config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ def upload_step(
     site: mwclient.Site,
     cancel_check: Callable[[], bool] | None = None,
     progress_callback: Callable[[int, int, str], None] | None = None,
+    upload_limit: int | None = None,
 ) -> dict[str, Any]:
     """
     Upload translated SVG files to Wikimedia Commons.
@@ -50,8 +50,6 @@ def upload_step(
 
     main_title_link = f"[[:File:{main_title}]]" if not main_title.startswith("File:") else f"[[:{main_title}]]"
 
-    _upload_limit = 0
-
     for index, (title, file_data) in enumerate(to_work.items(), 1):
         if cancel_check and cancel_check():
             logger.info("Upload step cancelled")
@@ -65,8 +63,8 @@ def upload_step(
             else f"Adding translations from {main_title_link}"
         )
 
-        if _upload_limit > 0 and index > _upload_limit:
-            logger.info(f"Reached upload limit of {_upload_limit}")
+        if upload_limit > 0 and index > upload_limit:
+            logger.info(f"Reached upload limit of {upload_limit}")
             results[title] = {"result": None, "msg": "Reached upload limit"}
             continue
 

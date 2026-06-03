@@ -29,6 +29,8 @@ class CopySvgLangsWorker(BaseJobWorker):
     ) -> None:
         self.job_id = job_id
         self.args = args
+        self.upload_limit = args.get("upload_limit") if args else 0
+
         super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
@@ -58,6 +60,7 @@ class CopySvgLangsWorker(BaseJobWorker):
         }
 
     def process(self) -> dict[str, Any]:
+
         processor = CopySvgLangsProcessor(
             job_id=self.job_id,
             args=self.args,
@@ -65,6 +68,7 @@ class CopySvgLangsWorker(BaseJobWorker):
             result=self.result,
             result_file=self.result_file,
             cancel_event=self.cancel_event,
+            upload_limit=self.upload_limit,
         )
         return processor.run()
 
@@ -78,6 +82,10 @@ def copy_svg_langs_worker_entry(
     args: Dict[str, Any] | None = None,
 ) -> None:
     """Entry point for the background job."""
+
+    if args and args.get("copy_svg_langs_upload_limit"):
+        args.update({"upload_limit": args.get("copy_svg_langs_upload_limit")})
+
     worker = CopySvgLangsWorker(
         job_id=job_id,
         user=user,

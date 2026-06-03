@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -19,11 +18,6 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
             return int(raw_val), True
         except ValueError:
             return 0, True
-    elif v_type == "json":
-        try:
-            return json.loads(raw_val), True
-        except Exception:
-            return None, False
     else:
         return raw_val, True
 
@@ -38,8 +32,6 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
             return str(int(value))
         except (ValueError, TypeError):
             return "0"
-    elif value_type == "json":
-        return json.dumps(value, ensure_ascii=False)
     return str(value)
 
 
@@ -51,6 +43,28 @@ def list_settings() -> list[SettingRecord]:
 def get_all_settings_raw() -> list[dict[str, Any]]:
     """Fetch a setting by key."""
     return [x.to_dict() for x in list_settings()]
+
+
+def get_all_settings_ready() -> list[dict[str, Any]]:
+    """Fetch a setting by key."""
+    records = {}
+
+    for x in list_settings():
+        value = None
+        if x.value_type == "boolean":
+            value = x.value == "true"
+        elif x.value_type == "integer":
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                value = None
+        elif x.value_type == "string":
+            value = str(x.value)
+        else:
+            value = None
+        records[x.key] = value
+
+    return records
 
 
 def get_setting_by_key(key: str) -> SettingRecord:
@@ -121,7 +135,6 @@ def create_setting(key: str, title: str, value_type: str) -> bool:
     default_value_types = {
         "boolean": "false",
         "integer": "0",
-        "json": "{}",
     }
 
     value = default_value_types.get(value_type, "")
@@ -177,4 +190,5 @@ __all__ = [
     "create_setting",
     "settings_update_form",
     "list_settings",
+    "get_all_settings_ready",
 ]

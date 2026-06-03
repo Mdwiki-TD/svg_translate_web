@@ -131,7 +131,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     ):
         super().__init__(job_id, user, cancel_event)
         self.session = requests.Session()
-        self.limit_charts = args.get("limit_charts")
+        self.limit_items = args.get("limit_items")
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
@@ -288,7 +288,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         return self._apply_limits(charts)
 
     def _apply_limits(self, charts: list[OwidChartRecord]) -> list[OwidChartRecord]:
-        _limit = self.limit_charts if isinstance(self.limit_charts, int) else 0
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(charts) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(charts)} to {_limit} page")
             return charts[:_limit]

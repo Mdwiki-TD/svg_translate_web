@@ -15,7 +15,6 @@ import mwclient
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import update_page_text
 from ...api_services.text_api import get_page_text
-from ...config import settings
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
 from ..base_worker import BaseJobWorker
@@ -75,11 +74,13 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         job_id: int,
         user: dict[str, Any] | None,
         cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
         self.user = user
         self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+        self.args = args
 
         self.result = {}
 
@@ -95,6 +96,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         return self._apply_limits(templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
+        # _limit = int(settings.dynamic.get("add_svglanguages_template_limit", 0))
         _limit = 0
         if _limit > 0 and len(templates) > _limit:
             logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
@@ -296,6 +298,7 @@ def add_svglanguages_template_to_templates(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 
