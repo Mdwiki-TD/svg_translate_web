@@ -65,7 +65,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        args: Dict[str, Any] | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
         self.update_all = False
@@ -306,7 +306,7 @@ def collect_main_files_for_templates(
     job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to collect templates data.

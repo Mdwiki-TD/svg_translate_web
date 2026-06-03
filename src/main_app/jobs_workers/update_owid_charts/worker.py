@@ -55,7 +55,7 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     return min_t, max_t, len_y
 
 
-def _first_value(columns: dict, key: str) -> str | None:
+def _first_value(columns: dict, key: str) -> str | Any:
     """Return the first ``key`` value found among the column entries."""
     for col_data in columns.values():
         if isinstance(col_data, dict) and key in col_data:
@@ -87,7 +87,7 @@ class ChartUpdateInfo:
     new_max_time: int | None = None
     new_len_years: int | None = None
 
-    owid_variable_id: str | None = None
+    owid_variable_id: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -120,7 +120,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        args: Dict[str, Any] | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
         self.limit_items = args.get("limit_items") if args else 0
@@ -316,7 +316,7 @@ def update_owid_charts_worker_entry(
     job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point for update_owid_charts."""
     logger.info(f"Starting job {job_id}: update OWID charts timespan data")

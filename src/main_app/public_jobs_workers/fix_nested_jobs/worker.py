@@ -25,10 +25,10 @@ class FixNestedJobsWorker(BaseJobWorker):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        args: Dict[str, Any] | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
-        self.args = args
+        self.args = args or {}
         super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
@@ -75,7 +75,7 @@ def fix_nested_jobs_worker_entry(
     job_id: str,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """Entry point for the background job."""
 

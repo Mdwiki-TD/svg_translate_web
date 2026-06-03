@@ -23,10 +23,10 @@ class CropMainFilesWorker(BaseJobWorker):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        args: Dict[str, Any] | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
-        self.args = args
+        self.args = args or {}
         self.upload_limit = args.get("upload_limit") if args else None
 
     def get_job_type(self) -> str:
@@ -74,7 +74,7 @@ def crop_main_files_for_templates(
     job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Entry point for crop newest world files background job.

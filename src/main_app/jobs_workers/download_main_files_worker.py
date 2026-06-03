@@ -103,7 +103,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-        args: Dict[str, Any] | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
         self.limit_items = args.get("limit_items") if args else 0
@@ -243,7 +243,7 @@ def download_main_files_for_templates(
     job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to download main files for all templates.

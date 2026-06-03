@@ -81,7 +81,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
-        self.args = args
+        self.args = args or {}
 
         self.result = {}
 
@@ -282,7 +282,7 @@ def add_svglanguages_template_to_templates(
     job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker

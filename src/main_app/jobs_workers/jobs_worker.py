@@ -55,7 +55,7 @@ def _runner(
     cancel_event: threading.Event,
     target_func: Any,
     flask_app: Flask,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> None:
     """
     args=(job.id, user, cancel_event, target_func, flask_app, args),
@@ -97,7 +97,7 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
 def start_job_with_args(
     user: Dict[str, Any],
     job_type: str,
-    args: Dict[str, Any] | None = None,
+    args: dict[str, Any] | None = None,
 ) -> int:
     """
     Start a background job.
@@ -118,12 +118,9 @@ def start_job_with_args(
     if not username:
         raise ValueError("User authentication data is required")
 
-    if not args:
-        args = {}
-
-    # Parse job arguments
-    if job_data.job_args:
-        args.update(_load_job_args(job_data.job_args))
+    resolved_args = _load_job_args(job_data.job_args) if job_data.job_args else {}
+    if args:
+        resolved_args.update(args)
 
     # Create job record
     job = create_job(job_type, username)
@@ -137,7 +134,7 @@ def start_job_with_args(
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, target_func, flask_app, args),
+        args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
         daemon=True,
     )
     thread.start()
