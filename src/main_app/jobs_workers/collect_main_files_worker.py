@@ -233,7 +233,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                     template_info["last_world_file"] = last_world_file
 
-                source = find_template_source(wikitext)
+                source = find_template_source(wikitext, check_grapher=False)
                 if source and source != template.source:
                     template_info["source"] = source
                     template_data["source"] = source
