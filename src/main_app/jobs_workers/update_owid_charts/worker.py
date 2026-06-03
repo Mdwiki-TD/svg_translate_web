@@ -26,7 +26,6 @@ from typing import Any, Dict
 import requests
 
 from ...config import settings
-
 from ...db.models.owid_charts import OwidChartRecord
 from ...db.services import owid_charts_service
 from ..base_worker import BaseJobWorker
@@ -70,6 +69,7 @@ def _first_value(columns: dict, key: str) -> str | None:
             return col_data[key]
     return None
 
+
 # ---------------------------------------------------------------------------
 # Per-chart result dataclass
 # ---------------------------------------------------------------------------
@@ -110,7 +110,6 @@ class ChartUpdateInfo:
             "new_min_time": self.new_min_time,
             "new_max_time": self.new_max_time,
             "new_len_years": self.new_len_years,
-
             "owid_variable_id": self.owid_variable_id,
         }
 
@@ -123,12 +122,13 @@ class ChartUpdateInfo:
 class UpdateOwidChartsWorker(BaseJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
-    def __init__(self,
-            job_id: int,
-            user: Dict[str, Any] | None = None,
-            cancel_event: threading.Event | None = None,
-            args: Dict[str, Any] | None = None,
-        ):
+    def __init__(
+        self,
+        job_id: int,
+        user: Dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
+        args: Dict[str, Any] | None = None,
+    ):
         super().__init__(job_id, user, cancel_event)
         self.session = requests.Session()
         self.limit_charts = args.get("limit_charts")
@@ -214,9 +214,11 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 
         if owid_variable_id and owid_variable_id != chart.owid_variable_id:
             info.owid_variable_id = owid_variable_id
-            data.update({
-                "owid_variable_id": owid_variable_id,
-            })
+            data.update(
+                {
+                    "owid_variable_id": owid_variable_id,
+                }
+            )
 
         if timespan_raw:
             # 3. Parse timespan
@@ -244,11 +246,13 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                 if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
                     logger.info(f"Chart '{chart.slug}' has no changes in timespan")
                 else:
-                    data.update({
-                        "min_time": min_t,
-                        "max_time": max_t,
-                        "len_years": len_y,
-                    })
+                    data.update(
+                        {
+                            "min_time": min_t,
+                            "max_time": max_t,
+                            "len_years": len_y,
+                        }
+                    )
 
         # 5. Update DB
         if not data:

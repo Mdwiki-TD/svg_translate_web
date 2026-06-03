@@ -8,12 +8,11 @@ from typing import Any, Dict
 
 from flask import Flask, current_app
 
-from ..public_jobs_workers.workers_list_public import jobs_data_public
-
 from ..db.services import (
     cancel_job_db,
     create_job,
 )
+from ..public_jobs_workers.workers_list_public import jobs_data_public
 from .workers_list import jobs_data
 
 logger = logging.getLogger(__name__)
