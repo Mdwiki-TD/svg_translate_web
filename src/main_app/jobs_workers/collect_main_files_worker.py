@@ -5,9 +5,9 @@ Worker module for collecting main files for templates.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
 import threading
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict
 
@@ -37,25 +37,26 @@ class TemplateInfo:
 
     id: int
     title: str
-    timestamp: str
     new_main_file: str
     last_world_file: str
     source: str
     status: str = "processing"
     reason: str = ""
+    error: str | None = None
     error_type: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {
             "id": self.id,
             "title": self.title,
-            "timestamp": self.timestamp,
             "new_main_file": self.new_main_file,
             "last_world_file": self.last_world_file,
             "source": self.source,
             "status": self.status,
             "reason": self.reason,
         }
+        if self.error is not None:
+            result["error"] = self.error
         if self.error_type is not None:
             result["error_type"] = self.error_type
         return result
@@ -114,22 +115,21 @@ class CollectMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "templates_added": [],
             "templates_processed": [],
+            "templates_added": [],
             "templates_updated": [],
-            "templates_failed": [],
             "templates_skipped": [],
+            "templates_failed": [],
             "summary": {
                 "total": 0,
-                "added": 0,
-                "updated": 0,
+                "processed": 0,
                 "failed": 0,
                 "skipped": 0,
                 "already_had_main_file": 0,
             },
         }
 
-    def _fetch_and_add_new_templates(self) -> int:
+    def _fetch_and_add_new_templates(self) -> None:
         """
         Fetch templates from the category and add new ones to the database.
 
@@ -143,7 +143,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: Found {len(category_templates)} templates in category")
 
         if not category_templates:
-            return 0
+            return
 
         # Get existing template titles
         existing_templates = list_templates()
@@ -153,51 +153,38 @@ class CollectMainFilesWorker(BaseJobWorker):
         new_templates = [t for t in category_templates if t not in existing_titles]
         logger.info(f"Job {self.job_id}: Found {len(new_templates)} new templates to add")
 
-        added_count = 0
-        timestamp = datetime.now().isoformat()
-        for title in new_templates:
+        for n, title in enumerate(new_templates, start=1):
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected during template addition.")
                 break
 
+            tmp_info = TemplateInfo(
+                id=n,
+                title=title,
+                new_main_file="",
+                last_world_file="",
+                source="",
+                status="",
+            )
             try:
-                data = {
-                    "title": title,
-                    "main_file": "",
-                    "last_world_file": "",
-                }
-                add_template_data(data)
-                self.result["templates_added"].append(
-                    {
-                        "title": title,
-                        "timestamp": timestamp,
-                    }
-                )
-                added_count += 1
+                add_template_data({"title": title})
+                self.result["templates_added"].append(tmp_info.to_dict())
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
             except ValueError as e:
                 # Template already exists (race condition)
                 logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
+                tmp_info.error = f"Template {title} already exists"
             except Exception as e:
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
-                self.result["templates_failed"].append(
-                    {
-                        "title": title,
-                        "timestamp": timestamp,
-                        "error": str(e),
-                        "error_type": type(e).__name__,
-                        "context": "adding_new_template",
-                    }
-                )
+                tmp_info.error = str(e)
 
-        return added_count
+            self.result["templates_failed"].append(tmp_info.to_dict())
 
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
         # Step 1: Fetch new templates from category and add them
-        added_count = self._fetch_and_add_new_templates()
-        self.result["summary"]["added"] = added_count
+        self._fetch_and_add_new_templates()
 
         if self.is_cancelled():
             logger.info(f"Job {self.job_id}: Cancelled after adding templates.")
@@ -228,11 +215,11 @@ class CollectMainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
+            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
             template_info = TemplateInfo(
                 id=template.id,
                 title=template.title,
-                timestamp=datetime.now().isoformat(),
                 new_main_file="",
                 last_world_file="",
                 source="",
@@ -321,7 +308,6 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 template_info.status = "updated"
                 self.result["templates_updated"].append(template_info.to_dict())
-                self.result["summary"]["updated"] += 1
 
             except Exception as e:
                 template_info.status = "failed"
@@ -335,7 +321,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         self.result["summary"]["skipped"] = len(self.result["templates_skipped"])
 
         logger.info(
-            f"Job {self.job_id} completed: {self.result['summary']['updated']} updated, "
+            f"Job {self.job_id} completed: {len(self.result["templates_updated"])} updated, "
             f"{self.result['summary']['failed']} failed, "
             f"{self.result['summary']['skipped']} skipped"
         )

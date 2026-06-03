@@ -1,5 +1,5 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header %}
+{% from "_macros.html" import card_header, stats_card %}
 
 {% set job_type = 'collect_main_files' %}
 
@@ -7,70 +7,30 @@
 {% block detail_headline %}Collect Templates data{% endblock %}
 
 {% block job_summary %}
-{% if result_data.summary %}
-<div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
-    <div class="col col-sm-12">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.total }}
-                </h4>
-                <small class="text-muted">Total</small>
-            </div>
-        </div>
+{% set total_skipped = ( result_data.templates_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processing', result_data.summary.processed or 0 ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.updated }}
-                </h4>
-                <small>Updated</small>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Added', result_data.summary.added or ( result_data.templates_added|length ), "success", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.failed }}
-                </h4>
-                <small>Failed</small>
+            <div class="col">
+                {{ stats_card('Updated', result_data.summary.updated or ( result_data.templates_updated|length ), "success", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.added or 0 }}
-                </h4>
-                <small>Added</small>
+            <div class="col">
+                {{ stats_card('skipped', total_skipped, "secondary", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.skipped }}
-                </h4>
-                <small>Skipped</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-info">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.already_had_main_file }}
-                </h4>
-                <small>Already Had File</small>
+            <div class="col">
+                {{ stats_card('Failed', result_data.summary.failed or ( result_data.templates_failed|length ), "danger", "") }}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
+
 {% endblock %}
 
 {% block job_details %}
