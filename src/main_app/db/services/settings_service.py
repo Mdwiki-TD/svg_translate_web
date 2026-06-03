@@ -54,10 +54,13 @@ def get_all_settings_ready() -> list[dict[str, Any]]:
         if x.value_type == "boolean":
             value = x.value == "true"
         elif x.value_type == "integer":
-            try:
-                value = int(value)
-            except (ValueError, TypeError):
-                value = 0
+            if isinstance(x.value, int):
+                value = x.value
+            else:
+                try:
+                    value = int(value)
+                except (ValueError, TypeError):
+                    value = 0
         elif x.value_type == "string":
             value = str(x.value)
 

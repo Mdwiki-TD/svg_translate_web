@@ -15,6 +15,7 @@ class TestFixNestedJobsWorker:
     def test_get_job_type(self) -> None:
         worker = FixNestedJobsWorker(
             job_id=1,
+            user=None,
             args={"filename": "Test.svg"},
         )
         assert worker.get_job_type() == "fix_nested_jobs"
@@ -22,6 +23,7 @@ class TestFixNestedJobsWorker:
     def test_get_initial_result_structure(self) -> None:
         worker = FixNestedJobsWorker(
             job_id=1,
+            user=None,
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -41,6 +43,7 @@ class TestFixNestedJobsWorker:
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = FixNestedJobsWorker(
             job_id=1,
+            user=None,
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -63,6 +66,7 @@ class TestFixNestedJobsWorker:
         cancel_event = threading.Event()
         worker = FixNestedJobsWorker(
             job_id=1,
+            user=None,
             args={"filename": "Test.svg"},
             cancel_event=cancel_event,
         )

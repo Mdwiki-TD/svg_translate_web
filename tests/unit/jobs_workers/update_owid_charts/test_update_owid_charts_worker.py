@@ -163,7 +163,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, cancel_event=cancel_event)
+            update_owid_charts_worker_entry(job_id=1, user=None, cancel_event=cancel_event)
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["cancel_event"] is cancel_event
@@ -174,7 +174,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, args={"some_key": "value"})
+            update_owid_charts_worker_entry(job_id=1, user=None, args={"some_key": "value"})
 
             mock_instance.run.assert_called_once()
 
@@ -184,7 +184,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=99)
+            update_owid_charts_worker_entry(job_id=99, user=None)
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None
@@ -197,6 +197,7 @@ class TestUpdateOwidChartsWorkerEntry:
 
             update_owid_charts_worker_entry(
                 job_id=1,
+                user=None,
                 args={"owid_charts_limit_items": 10},
             )
 
@@ -211,6 +212,7 @@ class TestUpdateOwidChartsWorkerEntry:
 
             update_owid_charts_worker_entry(
                 job_id=1,
+                user=None,
                 args={"other_key": "value"},
             )
 
@@ -226,6 +228,7 @@ class TestUpdateOwidChartsWorkerEntry:
 
                 update_owid_charts_worker_entry(
                     job_id=1,
+                    user=None,
                     args={"owid_charts_limit_items": falsy_value},
                 )
 
@@ -238,7 +241,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, args=None)
+            update_owid_charts_worker_entry(job_id=1, user=None, args=None)
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None

@@ -15,6 +15,7 @@ class TestCopySvgLangsWorker:
     def test_get_job_type(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg"},
         )
         assert worker.get_job_type() == "copy_svg_langs"
@@ -22,6 +23,7 @@ class TestCopySvgLangsWorker:
     def test_get_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -43,6 +45,7 @@ class TestCopySvgLangsWorker:
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -65,6 +68,7 @@ class TestCopySvgLangsWorker:
         cancel_event = threading.Event()
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg"},
             cancel_event=cancel_event,
         )
@@ -73,6 +77,7 @@ class TestCopySvgLangsWorker:
     def test_worker_reads_upload_limit_from_args(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg", "upload_limit": 5},
         )
         assert worker.upload_limit == 5
@@ -80,6 +85,7 @@ class TestCopySvgLangsWorker:
     def test_worker_defaults_upload_limit_when_args_none(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args=None,
         )
         assert worker.upload_limit == 0
@@ -87,6 +93,7 @@ class TestCopySvgLangsWorker:
     def test_worker_upload_limit_none_when_key_missing(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
+            user=None,
             args={"title": "Test.svg"},
         )
         assert worker.upload_limit is None
