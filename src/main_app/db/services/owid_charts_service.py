@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
@@ -101,9 +101,7 @@ def add_chart(
         }
     )
     chart_data = {
-        key: value for key, value in chart_data.items()
-        if value is not None
-        and hasattr(OwidChartRecord, key)
+        key: value for key, value in chart_data.items() if value is not None and hasattr(OwidChartRecord, key)
     }
     chart = OwidChartRecord(**chart_data)
     db.session.add(chart)
