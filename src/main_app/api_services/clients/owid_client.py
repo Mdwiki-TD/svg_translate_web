@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import functools
 import logging
+import threading
 
 import requests
 
@@ -18,11 +18,15 @@ INDICATORS_METADATA_URL = "https://api.ourworldindata.org/v1/indicators/{variabl
 REQUEST_TIMEOUT = 15
 
 
-@functools.lru_cache(maxsize=1)
+_thread_local = threading.local()
+
+
 def _build_session() -> requests.Session:
-    session = requests.Session()
-    session.headers.update({"User-Agent": settings.other.user_agent})
-    return session
+    if not hasattr(_thread_local, "session"):
+        session = requests.Session()
+        session.headers.update({"User-Agent": settings.other.user_agent})
+        _thread_local.session = session
+    return _thread_local.session
 
 
 def fetch_grapher_metadata(slug: str) -> dict | None:

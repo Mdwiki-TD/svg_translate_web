@@ -216,6 +216,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                         "error": f"Could not parse timespan: '{timespan_raw}'",
                     }
                 )
+                return
 
             if parsed:
                 min_t, max_t, len_y = parsed
