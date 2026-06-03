@@ -90,26 +90,24 @@
                             </a>
                         </td>
                         {# min_time #}
-                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-warning{% endif %}">
+                        <td class="text-center">
                             {{ item.old_min_time if item.old_min_time is not none else '—' }}
                         </td>
-                        <td class="text-center {% if item.old_min_time != item.new_min_time %}table-success{% endif %}">
+                        <td class="text-center">
                             <strong>{{ item.new_min_time if item.new_min_time is not none else '—' }}</strong>
                         </td>
                         {# max_time #}
-                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-warning{% endif %}">
+                        <td class="text-center">
                             {{ item.old_max_time if item.old_max_time is not none else '—' }}
                         </td>
-                        <td class="text-center {% if item.old_max_time != item.new_max_time %}table-success{% endif %}">
+                        <td class="text-center">
                             <strong>{{ item.new_max_time if item.new_max_time is not none else '—' }}</strong>
                         </td>
                         {# len_years #}
-                        <td
-                            class="text-center {% if item.old_len_years != item.new_len_years %}table-warning{% endif %}">
+                        <td class="text-center">
                             {{ item.old_len_years if item.old_len_years is not none else '—' }}
                         </td>
-                        <td
-                            class="text-center {% if item.old_len_years != item.new_len_years %}table-success{% endif %}">
+                        <td class="text-center">
                             <strong>{{ item.new_len_years if item.new_len_years is not none else '—' }}</strong>
                         </td>
                     </tr>
@@ -166,7 +164,7 @@
 {% set skipped_charts = result_data.charts_processed | selectattr("status", "equalto", "skipped") | list %}
 {% if skipped_charts %}
 <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header">
         {{ card_header("Skipped Charts (" ~ skipped_charts | length ~ ")") }}
     </div>
     <div class="card-body p-0">

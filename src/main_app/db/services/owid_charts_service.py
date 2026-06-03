@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from sqlalchemy.orm import joinedload
 
@@ -13,7 +13,7 @@ from ..models.owid_charts import OwidChartRecord
 logger = logging.getLogger(__name__)
 
 
-def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
+def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
     """
     Return all charts from the view.
 
@@ -32,7 +32,7 @@ def list_charts(limit: int | None = None) -> List[OwidChartRecord]:
     return query.all()
 
 
-def list_published_charts() -> List[OwidChartRecord]:
+def list_published_charts() -> list[OwidChartRecord]:
     """
     Return all published charts from the view.
 

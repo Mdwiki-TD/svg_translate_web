@@ -22,14 +22,14 @@ class CopySvgLangsWorker(BaseJobWorker):
 
     def __init__(
         self,
-        task_id: int,
+        job_id: int,
         args: Any,
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
-        self.task_id = task_id
+        self.job_id = job_id
         self.args = args
-        super().__init__(task_id, user, cancel_event)
+        super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -59,7 +59,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
     def process(self) -> dict[str, Any]:
         processor = CopySvgLangsProcessor(
-            task_id=self.task_id,
+            job_id=self.job_id,
             args=self.args,
             user=self.user,
             result=self.result,
@@ -71,7 +71,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
-    task_id: str,
+    job_id: str,
     user: Dict[str, str] | None,
     *,
     cancel_event: threading.Event | None = None,
@@ -79,7 +79,7 @@ def copy_svg_langs_worker_entry(
 ) -> None:
     """Entry point for the background job."""
     worker = CopySvgLangsWorker(
-        task_id=task_id,
+        job_id=job_id,
         user=user,
         cancel_event=cancel_event,
         args=args,

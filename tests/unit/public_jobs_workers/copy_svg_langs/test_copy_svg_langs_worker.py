@@ -14,14 +14,14 @@ from src.main_app.public_jobs_workers.copy_svg_langs.worker import (
 class TestCopySvgLangsWorker:
     def test_get_job_type(self) -> None:
         worker = CopySvgLangsWorker(
-            task_id=1,
+            job_id=1,
             args={"title": "Test.svg"},
         )
         assert worker.get_job_type() == "copy_svg_langs"
 
     def test_get_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
-            task_id=1,
+            job_id=1,
             args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -42,7 +42,7 @@ class TestCopySvgLangsWorker:
 
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = CopySvgLangsWorker(
-            task_id=1,
+            job_id=1,
             args={"title": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -55,7 +55,7 @@ class TestCopySvgLangsWorker:
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
         worker = CopySvgLangsWorker(
-            task_id=1,
+            job_id=1,
             args={"title": "Test.svg"},
             user=user,
         )
@@ -64,7 +64,7 @@ class TestCopySvgLangsWorker:
     def test_worker_init_with_cancel_event(self) -> None:
         cancel_event = threading.Event()
         worker = CopySvgLangsWorker(
-            task_id=1,
+            job_id=1,
             args={"title": "Test.svg"},
             cancel_event=cancel_event,
         )
@@ -75,7 +75,7 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_missing_title(self) -> None:
         with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={"title": ""},
                 user=None,
             )
@@ -83,7 +83,7 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_missing_args(self) -> None:
         with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={"title": "Test.svg"},
                 user=None,
             )
@@ -94,7 +94,7 @@ class TestCopySvgLangsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             copy_svg_langs_worker_entry(
-                task_id="123",
+                job_id="123",
                 args={"title": "Test.svg"},
                 user={"id": 1},
             )
@@ -114,7 +114,7 @@ class TestCopySvgLangsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             copy_svg_langs_worker_entry(
-                task_id="456",
+                job_id="456",
                 args={"title": "Another.svg"},
                 user=None,
                 cancel_event=cancel_event,
