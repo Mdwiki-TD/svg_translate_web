@@ -41,7 +41,6 @@ class TemplateInfo:
     last_world_file: str
     source: str
     status: str = "processing"
-    reason: str = ""
     error: str | None = None
     error_type: str | None = None
 
@@ -53,7 +52,6 @@ class TemplateInfo:
             "last_world_file": self.last_world_file,
             "source": self.source,
             "status": self.status,
-            "reason": self.reason,
         }
         if self.error is not None:
             result["error"] = self.error
@@ -173,12 +171,13 @@ class CollectMainFilesWorker(BaseJobWorker):
             except ValueError as e:
                 # Template already exists (race condition)
                 logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
-                tmp_info.error = f"Template {title} already exists"
+                # no need to count this as failed
+                continue
             except Exception as e:
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
                 tmp_info.error = str(e)
 
-            self.result["templates_failed"].append(tmp_info.to_dict())
+                self.result["templates_failed"].append(tmp_info.to_dict())
 
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
@@ -231,7 +230,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             if not wikitext:
                 template_info.status = "failed"
-                template_info.reason = "Could not fetch wikitext from Commons"
+                template_info.error = "Could not fetch wikitext from Commons"
                 self.result["templates_failed"].append(template_info.to_dict())
                 self.result["summary"]["failed"] += 1
                 logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
@@ -277,7 +276,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             if not main_file and not last_world_file and not source:
                 template_info.status = "failed"
-                template_info.reason = "Could not find (main file or last world file or source) in wikitext"
+                template_info.error = "Could not find (main file or last world file or source) in wikitext"
                 self.result["templates_failed"].append(template_info.to_dict())
                 self.result["summary"]["failed"] += 1
                 logger.warning(
@@ -287,7 +286,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             if not template_data:
                 template_info.status = "skipped"
-                template_info.reason = skip_msg
+                template_info.error = skip_msg
                 self.result["templates_skipped"].append(template_info.to_dict())
                 self.result["summary"]["skipped"] += 1
                 logger.info(f"Job {self.job_id}: No changes for {template.title}")
@@ -311,7 +310,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             except Exception as e:
                 template_info.status = "failed"
-                template_info.reason = f"Exception: {str(e)}"
+                template_info.error = f"Exception: {str(e)}"
                 template_info.error_type = type(e).__name__
                 self.result["templates_failed"].append(template_info.to_dict())
                 self.result["summary"]["failed"] += 1

@@ -93,7 +93,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
     assert result.get("status") == "cancelled"
-    assert result["summary"]["updated"] == 1
+    assert len(result["templates_updated"]) == 1
 
 
 def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
