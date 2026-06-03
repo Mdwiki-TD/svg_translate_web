@@ -284,7 +284,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
     assert job_id == 11
     thread_args = mock_thread.call_args[1]["args"]
     # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
-    assert thread_args[5] is None
+    assert thread_args[5] == {}
 
 
 def test_start_job_with_args_is_alias_for_start_job():

@@ -613,13 +613,19 @@ def test_worker_init_update_all_defaults_to_false(mock_services):
 
 
 def test_worker_init_update_all_can_be_set_true(mock_services):
-    """Test CollectMainFilesWorker accepts update_all=True."""
+    """Test CollectMainFilesWorker accepts update_all='true' or update_all=True."""
     import threading
 
     worker = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), update_all=True
+        job_id=1, user=None, cancel_event=threading.Event(), args = {"update_all": "true"}
     )
     assert worker.update_all is True
+
+
+    worker2 = collect_main_files_worker.CollectMainFilesWorker(
+        job_id=1, user=None, cancel_event=threading.Event(), args = {"update_all": True}
+    )
+    assert worker2.update_all is True
 
 
 def test_collect_main_files_update_all_processes_all_templates(mock_services, mock_find_source):

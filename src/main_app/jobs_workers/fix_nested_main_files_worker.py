@@ -99,6 +99,16 @@ def repair_nested_svg_tags(
 class FixNestedMainFilesWorker(BaseJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
+        args: Dict[str, Any] | None = None,
+    ) -> None:
+        self.args = args
+        super().__init__(job_id, user, cancel_event)
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "fix_nested_main_files"
@@ -241,7 +251,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 def fix_nested_main_files_for_templates(
     *,
     job_id: int,
-    user: Dict[str, Any] | None = None,
+    user: dict[str, Any] | None = None,
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

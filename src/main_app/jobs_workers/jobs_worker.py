@@ -94,7 +94,11 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
     return local_cancelled or db_cancelled
 
 
-def start_job_with_args(user: Dict[str, Any] | None, job_type: str, args: Dict[str, Any] | None = None) -> int:
+def start_job_with_args(
+        user: Dict[str, Any] | None,
+        job_type: str,
+        args: Dict[str, Any] | None = None,
+    ) -> int:
     """
     Start a background job.
     Returns the job ID.

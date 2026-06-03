@@ -23,9 +23,9 @@ class FixNestedJobsWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        args: Any,
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
+        args: Dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
         self.args = args
@@ -81,9 +81,9 @@ def fix_nested_jobs_worker_entry(
 
     worker = FixNestedJobsWorker(
         job_id=job_id,
-        args=args,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 
