@@ -485,7 +485,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         add_svglanguages_template_to_templates(job_id=1, user=user, cancel_event=cancel_event)
 
-        mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event)
+        mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
         mock_worker_instance.run.assert_called_once()
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
@@ -508,5 +508,5 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         # Call with no args param at all
         add_svglanguages_template_to_templates(job_id=2, user=None)
 
-        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None)
+        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()

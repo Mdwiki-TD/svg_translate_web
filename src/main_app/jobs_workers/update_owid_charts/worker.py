@@ -131,7 +131,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     ):
         super().__init__(job_id, user, cancel_event)
         self.session = requests.Session()
-        self.limit_items = args.get("limit_items")
+        self.limit_items = args.get("limit_items") if args else 0
 
     def get_job_type(self) -> str:
         return "update_owid_charts"

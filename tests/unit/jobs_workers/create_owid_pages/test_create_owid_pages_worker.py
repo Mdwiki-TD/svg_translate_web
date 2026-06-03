@@ -80,14 +80,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_create_new_text,
     )
 
-    # Mock settings
-    mock_settings = MagicMock()
-    mock_settings.create_owid_pages_limit = 0
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.settings",
-        mock_settings,
-    )
-
     return {
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
@@ -98,7 +90,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "is_page_exists": mock_is_page_exists,
         "create_page": mock_create_page,
         "create_new_text": mock_create_new_text,
-        "settings": mock_settings,
         "is_job_cancelled": mock_jobs_service,
     }
 
@@ -209,14 +200,13 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
     def test_apply_limits_with_limit_set(self, mock_services):
         """Test _apply_limits respects the create_owid_pages_limit setting."""
-        mock_services["settings"].create_owid_pages_limit = 2
         templates = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
             TemplateRecord(id=3, title="Template:OWID/Test3", main_file="test3.svg", last_world_file=None),
         ]
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None, args={"limit_items": 2})
         result = worker._apply_limits(templates)
 
         assert len(result) == 2
