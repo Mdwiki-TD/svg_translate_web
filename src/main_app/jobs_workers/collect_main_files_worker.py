@@ -241,7 +241,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                         slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
                         template_data["slug"] = slug or None
                     else:
-                        skip_msg = "source url does not have /grapher/“
+                        skip_msg = "source url does not have /grapher/"
 
                 if not template.slug and not template_data.get("slug"):
                     _slug = slugify_title(template.title)
