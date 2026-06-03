@@ -396,9 +396,8 @@ class TestCropMainFilesProcessorLoadTemplates:
         assert len(result) == 2
         assert all(t.last_world_file is not None for t in result)
 
-    def test_apply_limits_with_crop_newest_upload_limit(self, mock_services):
-        """Test _apply_limits respects crop_newest_upload_limit setting."""
-        mock_services["settings"].crop_newest_upload_limit = 2
+    def test_apply_limits_with_upload_limit(self, mock_services):
+        """Test _apply_limits respects upload_limit setting."""
         templates = [
             TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
             TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg"),
@@ -416,6 +415,7 @@ class TestCropMainFilesProcessorLoadTemplates:
             result=initial_result,
             result_file="test_result.json",
             user=None,
+            upload_limit=2,
         )
 
         result = processor._apply_limits(templates)

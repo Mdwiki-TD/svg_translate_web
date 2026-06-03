@@ -63,7 +63,7 @@ def upload_step(
             else f"Adding translations from {main_title_link}"
         )
 
-        if upload_limit > 0 and index > upload_limit:
+        if upload_limit and upload_limit > 0 and index > upload_limit:
             logger.info(f"Reached upload limit of {upload_limit}")
             results[title] = {"result": None, "msg": "Reached upload limit"}
             continue
