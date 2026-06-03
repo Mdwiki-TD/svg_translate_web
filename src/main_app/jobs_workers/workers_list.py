@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from ..public_jobs_workers.copy_svg_langs.worker import copy_svg_langs_worker_entry
-from ..public_jobs_workers.fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_main_files_worker import collect_main_files_for_templates
 from .create_owid_pages import create_owid_pages_for_templates
@@ -22,23 +20,6 @@ class JobData:
     job_list_template: str
     job_details_template: str
 
-
-jobs_data_public = {
-    "copy_svg_langs": JobData(
-        job_type="copy_svg_langs",
-        job_name="Copy SVG Translation",
-        job_details_template="jobs_templates/copy_svg_langs/details.html",
-        job_list_template="jobs_templates/copy_svg_langs/list.html",
-        job_callable=copy_svg_langs_worker_entry,
-    ),
-    "fix_nested_jobs": JobData(
-        job_type="fix_nested_jobs",
-        job_name="Fix Nested Tasks",
-        job_details_template="jobs_templates/fix_nested_jobs/details.html",
-        job_list_template="jobs_templates/fix_nested_jobs/list.html",
-        job_callable=fix_nested_jobs_worker_entry,
-    ),
-}
 
 jobs_data = {
     "collect_main_files": JobData(
@@ -104,5 +85,4 @@ jobs_data = {
 
 __all__ = [
     "jobs_data",
-    "jobs_data_public",
 ]

@@ -11,7 +11,8 @@ from flask import (
 )
 
 from ...db.services import list_jobs, list_users
-from ...jobs_workers.workers_list import jobs_data, jobs_data_public
+from ...jobs_workers.workers_list import jobs_data
+from ...public_jobs_workers.workers_list_public import jobs_data_public
 from ..admin_routes import (
     coordinators_module,
     jobs_module,
