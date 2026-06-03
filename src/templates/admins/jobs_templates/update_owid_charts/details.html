@@ -190,13 +190,7 @@
                             </a>
                         </td>
                         <td>
-                            {% if item.skip_reason == 'no_timespan' %}
-                            <span class="badge bg-secondary">no timespan</span>
-                            {% elif item.skip_reason == 'no_change' %}
-                            <span class="badge bg-light text-dark border">no change</span>
-                            {% else %}
                             {{ item.skip_reason or '—' }}
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

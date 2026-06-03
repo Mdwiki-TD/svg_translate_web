@@ -21,6 +21,7 @@ class OwidChartRecord(db.Model):
       `max_time` int(11) DEFAULT NULL,
       `min_time` int(11) DEFAULT NULL,
       `default_tab` varchar(50) DEFAULT NULL,
+      `owid_variable_id` varchar(50) DEFAULT NULL,
       `is_published` tinyint(1) DEFAULT 0,
       `single_year_data` tinyint(1) DEFAULT 0,
       `len_years` int(11) DEFAULT NULL,
@@ -43,6 +44,7 @@ class OwidChartRecord(db.Model):
     max_time = Column(Integer, nullable=True)
     min_time = Column(Integer, nullable=True)
     default_tab = Column(String(50), nullable=True)
+    owid_variable_id = Column(String(50), nullable=True)
     is_published = Column(Boolean, server_default="0")
     single_year_data = Column(Boolean, server_default="0")
     len_years = Column(Integer, nullable=True)

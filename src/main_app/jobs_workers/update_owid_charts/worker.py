@@ -61,13 +61,12 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     return min_t, max_t, len_y
 
 
-def _first_timespan(columns: dict) -> str | None:
-    """Return the first ``timespan`` value found among the column entries."""
+def _first_value(columns: dict, key: str) -> str | None:
+    """Return the first ``key`` value found among the column entries."""
     for col_data in columns.values():
-        if isinstance(col_data, dict) and "timespan" in col_data:
-            return col_data["timespan"]
+        if isinstance(col_data, dict) and key in col_data:
+            return col_data[key]
     return None
-
 
 # ---------------------------------------------------------------------------
 # Per-chart result dataclass
@@ -93,6 +92,8 @@ class ChartUpdateInfo:
     new_max_time: int | None = None
     new_len_years: int | None = None
 
+    owid_variable_id: str | None = None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "chart_id": self.chart_id,
@@ -107,6 +108,8 @@ class ChartUpdateInfo:
             "new_min_time": self.new_min_time,
             "new_max_time": self.new_max_time,
             "new_len_years": self.new_len_years,
+
+            "owid_variable_id": self.owid_variable_id,
         }
 
 
@@ -163,6 +166,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             old_min_time=chart.min_time,
             old_max_time=chart.max_time,
             old_len_years=chart.len_years,
+            owid_variable_id=chart.owid_variable_id,
         )
 
         # 1. Fetch metadata
@@ -183,13 +187,20 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 
         # 2. Find a timespan
         columns = metadata.get("columns", {})
-        timespan_raw = _first_timespan(columns)
+        timespan_raw = _first_value(columns, "timespan")
+        owid_variable_id = _first_value(columns, "owidVariableId")
+
+        data = {
+            "min_time": None,
+            "max_time": None,
+            "len_years": None,
+            "owid_variable_id": None,
+        }
 
         if not timespan_raw:
             info.status = "skipped"
             info.skip_reason = "no_timespan"
             self.result["summary"]["skipped"] += 1
-            # self.result["charts_processed"].appenkd(info.to_dict())
             self.result["charts_processed"].append(
                 {
                     "status": "skipped",
@@ -225,7 +236,6 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             info.status = "skipped"
             info.skip_reason = "no_change"
             self.result["summary"]["skipped"] += 1
-            # self.result["charts_processed"].append(info.to_dict())
             self.result["charts_processed"].append(
                 {
                     "status": "skipped",
@@ -235,15 +245,17 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             )
             return
 
+        data = {
+            "min_time": min_t,
+            "max_time": max_t,
+            "len_years": len_y,
+        }
+
         # 5. Update DB
         try:
             owid_charts_service.update_chart_data(
                 chart.chart_id,
-                {
-                    "min_time": min_t,
-                    "max_time": max_t,
-                    "len_years": len_y,
-                },
+                data,
             )
             info.status = "updated"
             self.result["summary"]["updated"] += 1
