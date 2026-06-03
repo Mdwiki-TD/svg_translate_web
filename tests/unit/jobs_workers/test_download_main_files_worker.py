@@ -824,7 +824,7 @@ def test_download_main_files_for_templates_args_defaults_to_none(mock_services):
     mock_services["list_templates"].return_value = []
 
     # Call without args param - should use None default
-    download_main_files_worker.download_main_files_for_templates(job_id=99)
+    download_main_files_worker.download_main_files_for_templates(job_id=99, user=None)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
@@ -950,6 +950,7 @@ class TestDownloadMainFilesEntryPointArgsMapping:
 
             download_main_files_worker.download_main_files_for_templates(
                 job_id=1,
+                user=None,
                 args={"download_main_files_limit_items": 10},
             )
 
@@ -967,6 +968,7 @@ class TestDownloadMainFilesEntryPointArgsMapping:
 
             download_main_files_worker.download_main_files_for_templates(
                 job_id=1,
+                user=None,
                 args={"other_key": "value"},
             )
 
@@ -984,6 +986,7 @@ class TestDownloadMainFilesEntryPointArgsMapping:
 
                 download_main_files_worker.download_main_files_for_templates(
                     job_id=1,
+                    user=None,
                     args={"download_main_files_limit_items": falsy_value},
                 )
 
