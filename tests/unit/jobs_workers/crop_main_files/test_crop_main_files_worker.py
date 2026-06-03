@@ -118,7 +118,7 @@ def test_crop_main_files_for_templates_with_user(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(job_id=1,  user=user)
+        worker.crop_main_files_for_templates(job_id=1, user=user)
 
     # Verify user was passed to process_crops
     call_args = mock_process.call_args
@@ -144,7 +144,7 @@ def test_crop_main_files_for_templates_with_cancel_event(mock_services):
             "files_processed": [],
         }
 
-        worker.crop_main_files_for_templates(job_id=1,  cancel_event=cancel_event)
+        worker.crop_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     # Verify cancel_event was passed to process_crops
     call_args = mock_process.call_args
@@ -523,7 +523,7 @@ def test_crop_main_files_for_templates_accepts_args_keyword_param(mock_services)
         }
 
         # Should not raise TypeError; args is accepted but unused
-        worker.crop_main_files_for_templates(job_id=1,  args={"some_key": "value"})
+        worker.crop_main_files_for_templates(job_id=1, args={"some_key": "value"})
 
     mock_process.assert_called_once()
 

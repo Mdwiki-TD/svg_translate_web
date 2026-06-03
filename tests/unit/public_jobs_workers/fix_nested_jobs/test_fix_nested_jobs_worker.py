@@ -165,7 +165,7 @@ class TestFixNestedJobsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             # Pass user as 2nd positional arg (new signature)
-            fix_nested_jobs_worker_entry("77", user)
+            fix_nested_jobs_worker_entry(job_id=77, user=user)
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["user"] is user

@@ -166,7 +166,7 @@ class TestCopySvgLangsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             # Pass user as 2nd positional arg (new signature)
-            copy_svg_langs_worker_entry("123", user)
+            copy_svg_langs_worker_entry(job_id=123, user=user)
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["user"] is user
