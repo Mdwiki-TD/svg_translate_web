@@ -70,6 +70,27 @@ class TestCopySvgLangsWorker:
         )
         assert worker.cancel_event is cancel_event
 
+    def test_worker_reads_upload_limit_from_args(self) -> None:
+        worker = CopySvgLangsWorker(
+            job_id=1,
+            args={"title": "Test.svg", "upload_limit": 5},
+        )
+        assert worker.upload_limit == 5
+
+    def test_worker_defaults_upload_limit_when_args_none(self) -> None:
+        worker = CopySvgLangsWorker(
+            job_id=1,
+            args=None,
+        )
+        assert worker.upload_limit == 0
+
+    def test_worker_upload_limit_none_when_key_missing(self) -> None:
+        worker = CopySvgLangsWorker(
+            job_id=1,
+            args={"title": "Test.svg"},
+        )
+        assert worker.upload_limit is None
+
 
 class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_missing_title(self) -> None:
@@ -170,3 +191,60 @@ class TestCopySvgLangsWorkerEntry:
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["user"] is user
+
+    def test_worker_entry_maps_copy_svg_langs_upload_limit(self) -> None:
+        """Test that copy_svg_langs_upload_limit is mapped to upload_limit in args."""
+        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            copy_svg_langs_worker_entry(
+                job_id="1",
+                user=None,
+                args={"copy_svg_langs_upload_limit": 5},
+            )
+
+            call_kwargs = MockWorker.call_args.kwargs
+            assert call_kwargs["args"]["upload_limit"] == 5
+
+    def test_worker_entry_does_not_map_when_key_absent(self) -> None:
+        """Test that args are passed unchanged when copy_svg_langs_upload_limit is absent."""
+        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            copy_svg_langs_worker_entry(
+                job_id="1",
+                user=None,
+                args={"other_key": "value"},
+            )
+
+            call_kwargs = MockWorker.call_args.kwargs
+            assert "upload_limit" not in call_kwargs["args"]
+
+    def test_worker_entry_does_not_map_when_value_falsy(self) -> None:
+        """Test that mapping is skipped when copy_svg_langs_upload_limit value is falsy."""
+        for falsy_value in [0, None, "", False]:
+            with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+                mock_instance = MagicMock()
+                MockWorker.return_value = mock_instance
+
+                copy_svg_langs_worker_entry(
+                    job_id="1",
+                    user=None,
+                    args={"copy_svg_langs_upload_limit": falsy_value},
+                )
+
+                call_kwargs = MockWorker.call_args.kwargs
+                assert "upload_limit" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
+
+    def test_worker_entry_does_not_modify_args_when_none(self) -> None:
+        """Test that entry point works correctly when args is None."""
+        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+            mock_instance = MagicMock()
+            MockWorker.return_value = mock_instance
+
+            copy_svg_langs_worker_entry(job_id="1", user=None, args=None)
+
+            call_kwargs = MockWorker.call_args.kwargs
+            assert call_kwargs["args"] is None

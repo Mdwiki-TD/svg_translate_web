@@ -145,6 +145,34 @@ class TestCreateOwidPagesWorkerInitialization:
         assert worker.site is None
         assert worker.get_job_type() == "create_owid_pages"
 
+    def test_worker_initialization_reads_limit_items_from_args(self, mock_services):
+        """Test worker reads limit_items from args."""
+        worker = CreateOwidPagesWorker(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"limit_items": 5},
+        )
+
+        assert worker.limit_items == 5
+
+    def test_worker_initialization_defaults_limit_items_when_args_none(self, mock_services):
+        """Test worker defaults limit_items to 0 when args is None."""
+        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None, args=None)
+
+        assert worker.limit_items == 0
+
+    def test_worker_initialization_limit_items_none_when_key_missing(self, mock_services):
+        """Test worker sets limit_items to None when args has no limit_items key."""
+        worker = CreateOwidPagesWorker(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"other_key": "value"},
+        )
+
+        assert worker.limit_items is None
+
     def test_get_job_type(self, mock_services):
         """Test get_job_type returns correct value."""
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
@@ -631,3 +659,53 @@ class TestCreateOwidPagesForTemplates:
             create_owid_pages_for_templates(job_id=99)
 
         mock_run.assert_called_once()
+
+    def test_entry_point_maps_create_owid_pages_limit_to_limit_items(self, mock_services):
+        """Test that create_owid_pages_limit is mapped to limit_items in args."""
+        with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
+            with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+                mock_run.return_value = {"status": "completed"}
+                create_owid_pages_for_templates(
+                    job_id=1,
+                    args={"create_owid_pages_limit": 5},
+                )
+
+        call_kwargs = mock_init.call_args.kwargs
+        assert call_kwargs["args"]["limit_items"] == 5
+
+    def test_entry_point_does_not_map_when_key_absent(self, mock_services):
+        """Test that args are passed unchanged when create_owid_pages_limit is absent."""
+        with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
+            with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+                mock_run.return_value = {"status": "completed"}
+                create_owid_pages_for_templates(
+                    job_id=1,
+                    args={"other_key": "value"},
+                )
+
+        call_kwargs = mock_init.call_args.kwargs
+        assert "limit_items" not in call_kwargs["args"]
+
+    def test_entry_point_does_not_map_when_value_falsy(self, mock_services):
+        """Test that mapping is skipped when create_owid_pages_limit value is falsy (0, None, '')."""
+        for falsy_value in [0, None, "", False]:
+            with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
+                with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+                    mock_run.return_value = {"status": "completed"}
+                    create_owid_pages_for_templates(
+                        job_id=1,
+                        args={"create_owid_pages_limit": falsy_value},
+                    )
+
+            call_kwargs = mock_init.call_args.kwargs
+            assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
+
+    def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_services):
+        """Test that entry point works correctly when args is None."""
+        with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
+            with patch.object(CreateOwidPagesWorker, "run") as mock_run:
+                mock_run.return_value = {"status": "completed"}
+                create_owid_pages_for_templates(job_id=1, args=None)
+
+        call_kwargs = mock_init.call_args.kwargs
+        assert call_kwargs["args"] is None
