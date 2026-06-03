@@ -84,7 +84,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         mock_update_template,
     )
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     # Should have processed only one template before stopping
     # n=1: processes T1, updates template, sets cancel_event.
@@ -115,7 +115,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
         "src.main_app.jobs_workers.fix_nested_main_files_worker.repair_nested_svg_tags", mock_repair_nested_svg_tags
     )
 
-    fix_nested_main_files_worker.fix_nested_main_files_for_templates(1, user=None, cancel_event=cancel_event)
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["success"] == 2
@@ -129,6 +129,6 @@ def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.Mo
 
     # Should not raise exception
     collect_main_files_worker.collect_main_files_for_templates(1)
-    fix_nested_main_files_worker.fix_nested_main_files_for_templates(2, user=None)
+    fix_nested_main_files_worker.fix_nested_main_files_for_templates(job_id=2, user=None)
 
     assert mock_common_services["update_job_status"].call_count >= 2

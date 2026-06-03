@@ -317,7 +317,7 @@ def test_download_main_files_respects_cancellation(mock_services, tmp_path):
     cancel_event.set()  # Set immediately to cancel
 
     with patch("src.main_app.jobs_workers.download_main_files_worker.requests.Session"):
-        download_main_files_worker.download_main_files_for_templates(1, cancel_event=cancel_event)
+        download_main_files_worker.download_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     # Should save result with cancelled status
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -814,7 +814,7 @@ def test_download_main_files_for_templates_accepts_args_keyword_param(mock_servi
     mock_services["list_templates"].return_value = []
 
     # Should not raise TypeError; args is accepted but unused
-    download_main_files_worker.download_main_files_for_templates(1, args={"some_key": "value"})
+    download_main_files_worker.download_main_files_for_templates(job_id=1, args={"some_key": "value"})
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0

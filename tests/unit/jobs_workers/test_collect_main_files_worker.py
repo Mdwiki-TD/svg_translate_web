@@ -422,7 +422,7 @@ def test_collect_main_files_cancellation_during_template_addition(mock_services)
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = []
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     # Should stop early and not add all templates
     # The exact behavior depends on when the cancellation is checked
@@ -460,7 +460,7 @@ def test_collect_main_files_cancellation_during_processing(mock_services):
     mock_services["get_wikitext"].side_effect = get_wikitext_side_effect
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     # Should have processed at least one template before cancellation
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -638,7 +638,7 @@ def test_collect_main_files_update_all_processes_all_templates(mock_services, mo
     mock_services["find_main_title"].return_value = "newfile.svg"
 
     # With update_all=True, both templates should be processed even though they have data
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args={"update_all": "true"})
 
     # Both templates should have had their wikitext fetched
     assert mock_services["get_wikitext"].call_count == 2
@@ -673,7 +673,7 @@ def test_collect_main_files_for_templates_with_update_all_true_string(mock_servi
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args={"update_all": "true"})
 
     # Should process the template even though it already has data
     mock_services["get_wikitext"].assert_called_once()
@@ -689,7 +689,7 @@ def test_collect_main_files_for_templates_with_update_all_false_string(mock_serv
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args={"update_all": "false"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args={"update_all": "false"})
 
     # Template is complete, should not be fetched
     mock_services["get_wikitext"].assert_not_called()
@@ -705,7 +705,7 @@ def test_collect_main_files_for_templates_with_args_none(mock_services):
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args=None)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args=None)
 
     # Template is complete, should not be fetched
     mock_services["get_wikitext"].assert_not_called()
@@ -723,7 +723,7 @@ def test_collect_main_files_for_templates_update_all_case_insensitive(mock_servi
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args={"update_all": "TRUE"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args={"update_all": "TRUE"})
 
     # Should process even with uppercase "TRUE"
     mock_services["get_wikitext"].assert_called_once()
@@ -738,7 +738,7 @@ def test_collect_main_files_for_templates_cancel_event_is_keyword_only(mock_serv
     mock_services["list_templates"].return_value = []
 
     # Should not raise a TypeError - cancel_event must be passed as keyword arg
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, cancel_event=cancel_event)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
@@ -757,7 +757,7 @@ def test_collect_main_files_for_templates_update_all_summary_counts(mock_service
     mock_services["get_wikitext"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_main_files_worker.collect_main_files_for_templates(job_id=1. args={"update_all": "true"})
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1, args={"update_all": "true"})
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Total is 2, 1 already had all data
