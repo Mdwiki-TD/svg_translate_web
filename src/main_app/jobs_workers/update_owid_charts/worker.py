@@ -127,7 +127,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
         args: Dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(job_id, user, cancel_event)
         self.session = requests.Session()
         self.limit_items = args.get("limit_items") if args else 0

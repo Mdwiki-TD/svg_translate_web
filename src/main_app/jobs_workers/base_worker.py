@@ -45,7 +45,7 @@ class BaseJobWorker(ABC):
         job_id: int,
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
-    ):
+    ) -> None:
         self.job_id: Final[int] = job_id
         self.user: Final[Dict[str, Any] | None] = user
         self.cancel_event: Final[threading.Event | None] = cancel_event

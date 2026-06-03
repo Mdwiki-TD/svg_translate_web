@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -201,7 +202,7 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     def process_fix_nested_side_effect(
         filename,
         user,
-    ):
+    ) -> dict[str, Any]:
         if "test1" in filename:
             return {"success": True, "message": "Fixed test1.svg"}
         elif "test3" in filename:

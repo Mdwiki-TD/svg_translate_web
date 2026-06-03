@@ -617,13 +617,12 @@ def test_worker_init_update_all_can_be_set_true(mock_services):
     import threading
 
     worker = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), args = {"update_all": "true"}
+        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"}
     )
     assert worker.update_all is True
 
-
     worker2 = collect_main_files_worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), args = {"update_all": True}
+        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True}
     )
     assert worker2.update_all is True
 

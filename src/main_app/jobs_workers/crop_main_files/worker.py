@@ -24,7 +24,7 @@ class CropMainFilesWorker(BaseJobWorker):
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
         args: Dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(job_id, user, cancel_event)
         self.args = args
         self.upload_limit = args.get("upload_limit") if args else None

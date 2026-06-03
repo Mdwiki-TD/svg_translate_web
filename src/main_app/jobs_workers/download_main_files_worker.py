@@ -104,7 +104,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         user: dict[str, Any],
         cancel_event: threading.Event | None = None,
         args: Dict[str, Any] | None = None,
-    ):
+    ) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
         self.limit_items = args.get("limit_items") if args else 0
 
