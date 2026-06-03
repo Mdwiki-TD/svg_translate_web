@@ -100,7 +100,7 @@ class TestCopySvgLangsWorkerEntry:
             )
 
             MockWorker.assert_called_once_with(
-                task_id="123",
+                job_id="123",
                 args={"title": "Test.svg"},
                 user={"id": 1},
                 cancel_event=None,
@@ -130,12 +130,12 @@ class TestCopySvgLangsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            # New signature: (task_id, user, *, cancel_event=None, args=None)
+            # New signature: (job_id, user, *, cancel_event=None, args=None)
             # args must be keyword-only; user is now the 2nd positional
-            copy_svg_langs_worker_entry("1", None, args={"title": "Test.svg"})
+            copy_svg_langs_worker_entry(job_id="1", user=None, args={"title": "Test.svg"})
 
             MockWorker.assert_called_once_with(
-                task_id="1",
+                job_id="1",
                 args={"title": "Test.svg"},
                 user=None,
                 cancel_event=None,
@@ -149,17 +149,17 @@ class TestCopySvgLangsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             # Call without args - should default to None
-            copy_svg_langs_worker_entry("99", {"username": "tester"})
+            copy_svg_langs_worker_entry(job_id="99", user={"username": "tester"})
 
             MockWorker.assert_called_once_with(
-                task_id="99",
+                job_id="99",
                 args=None,
                 user={"username": "tester"},
                 cancel_event=None,
             )
 
     def test_worker_entry_user_is_second_positional(self) -> None:
-        """Test that user is the second positional parameter (after task_id)."""
+        """Test that user is the second positional parameter (after job_id)."""
         user = {"username": "testuser"}
         with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()

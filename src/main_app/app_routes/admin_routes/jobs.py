@@ -209,7 +209,7 @@ class Jobs:
         # Start Job routes
         # ================================
 
-        @self.bp.post("/<string:job_type>/start_with_args")
+        @self.bp.post("/<string:job_type>/start")
         @admin_required
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data:

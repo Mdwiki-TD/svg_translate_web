@@ -235,9 +235,9 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
 
 def download_main_files_for_templates(
+    *,
     job_id: int,
     user: Dict[str, Any] | None = None,
-    *,
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

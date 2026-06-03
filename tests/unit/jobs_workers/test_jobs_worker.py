@@ -123,9 +123,16 @@ def test_runner_calls_target_and_cleans_up():
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
-    _runner(job_id, user, event, mock_target, flask_app)
+    _runner(
+        job_id=job_id,
+        user=user,
+        cancel_event=event,
+        target_func=mock_target,
+        flask_app=flask_app,
+        args=None,
+    )
 
-    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=None)
+    mock_target.assert_called_once_with(job_id=job_id, user=user, cancel_event=event, args=None)
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker.get_jobs_cancel_event(job_id) is None
@@ -201,9 +208,15 @@ def test_runner_passes_args_to_target():
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
-    _runner(job_id, user, event, mock_target, flask_app, args=args)
-
-    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=args)
+    _runner(
+        job_id=job_id,
+        user=user,
+        cancel_event=event,
+        target_func=mock_target,
+        flask_app=flask_app,
+        args=args,
+    )
+    mock_target.assert_called_once_with(job_id=job_id, user=user, cancel_event=event, args=args)
 
 
 def test_runner_passes_none_args_by_default():
@@ -218,9 +231,14 @@ def test_runner_passes_none_args_by_default():
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
-    _runner(job_id, user, event, mock_target, flask_app)
-
-    mock_target.assert_called_once_with(job_id, user, cancel_event=event, args=None)
+    _runner(
+        job_id=job_id,
+        user=user,
+        cancel_event=event,
+        target_func=mock_target,
+        flask_app=flask_app,
+    )
+    mock_target.assert_called_once_with(job_id=job_id, user=user, cancel_event=event, args=None)
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
@@ -243,7 +261,7 @@ def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_jo
     assert job_id == 10
     mock_thread.assert_called_once()
     thread_args = mock_thread.call_args[1]["args"]
-    # args tuple: (job_id, user, cancel_event, job_func, flask_app, args)
+    # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
     assert thread_args[5] is args
 
 
@@ -265,7 +283,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
 
     assert job_id == 11
     thread_args = mock_thread.call_args[1]["args"]
-    # args tuple: (job_id, user, cancel_event, job_func, flask_app, args)
+    # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
     assert thread_args[5] is None
 
 

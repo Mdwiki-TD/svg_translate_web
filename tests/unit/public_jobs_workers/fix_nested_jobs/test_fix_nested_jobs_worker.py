@@ -129,15 +129,15 @@ class TestFixNestedJobsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            # New signature: (task_id, user, *, cancel_event=None, args=None)
+            # New signature: (job_id, user, *, cancel_event=None, args=None)
             # args must be keyword-only; user is now the 2nd positional
-            fix_nested_jobs_worker_entry("1", None, args={"filename": "Test.svg"})
+            fix_nested_jobs_worker_entry(job_id="1", user=None, args={"filename": "Test.svg"})
 
             MockWorker.assert_called_once_with(
-                task_id="1",
-                args={"filename": "Test.svg"},
+                job_id="1",
                 user=None,
                 cancel_event=None,
+                args={"filename": "Test.svg"},
             )
             mock_instance.run.assert_called_once()
 
@@ -148,17 +148,17 @@ class TestFixNestedJobsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             # Call without args - should default to None
-            fix_nested_jobs_worker_entry("42", {"username": "tester"})
+            fix_nested_jobs_worker_entry(job_id="42", user={"username": "tester"})
 
             MockWorker.assert_called_once_with(
-                task_id="42",
+                job_id="42",
                 args=None,
                 user={"username": "tester"},
                 cancel_event=None,
             )
 
     def test_worker_entry_user_is_second_positional(self) -> None:
-        """Test that user is the second positional parameter (after task_id)."""
+        """Test that user is the second positional parameter (after job_id)."""
         user = {"username": "testuser"}
         with patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsWorker") as MockWorker:
             mock_instance = MagicMock()

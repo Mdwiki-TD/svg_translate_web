@@ -84,7 +84,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         mock_update_template,
     )
 
-    collect_main_files_worker.collect_main_files_for_templates(1, cancel_event=cancel_event)
+    collect_main_files_worker.collect_main_files_for_templates(job_id=1. cancel_event=cancel_event)
 
     # Should have processed only one template before stopping
     # n=1: processes T1, updates template, sets cancel_event.

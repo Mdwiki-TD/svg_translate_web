@@ -71,11 +71,11 @@ class FixNestedJobsWorker(BaseJobWorker):
 
 # --- main pipeline --------------------------------------------
 def fix_nested_jobs_worker_entry(
+    *,
     job_id: str,
     user: Dict[str, str] | None,
-    *,
     cancel_event: threading.Event | None = None,
-    args: Any = None,
+    args: Dict[str, Any] | None = None,
 ) -> None:
     """Entry point for the background job."""
 

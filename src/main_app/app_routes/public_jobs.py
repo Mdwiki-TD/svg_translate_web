@@ -218,7 +218,7 @@ class JobsPublicRoutes:
         # Start Job routes
         # ================================
 
-        @self.bp.post("/<string:job_type>/start_with_args")
+        @self.bp.post("/<string:job_type>/start")
         def start_job_with_args(job_type: str) -> ResponseReturnValue:
             if job_type not in jobs_data_public:
                 abort(404)
