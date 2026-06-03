@@ -89,12 +89,12 @@
                     <tr>
                         <th>#</th>
                         <th>Slug</th>
-                        <th class="text-center">Old min_time</th>
-                        <th class="text-center">New min_time</th>
-                        <th class="text-center">Old max_time</th>
-                        <th class="text-center">New max_time</th>
-                        <th class="text-center">Old len_years</th>
-                        <th class="text-center">New len_years</th>
+                        <!-- <th class="text-center">Old min_time</th> -->
+                        <th class="text-center">min_time</th>
+                        <!-- <th class="text-center">Old max_time</th> -->
+                        <th class="text-center">max_time</th>
+                        <!-- <th class="text-center">Old len_years</th> -->
+                        <th class="text-center">len_years</th>
                         <th class="text-center">Owid Variable id</th>
                     </tr>
                 </thead>
@@ -109,23 +109,17 @@
                             </a>
                         </td>
                         {# min_time #}
-                        <td class="text-center">
-                            {{ item.old_min_time or '—' }}
-                        </td>
+                        <!-- <td class="text-center"> {{ item.old_min_time or '—' }} </td> -->
                         <td class="text-center">
                             <strong>{{ item.new_min_time or '—' }}</strong>
                         </td>
                         {# max_time #}
-                        <td class="text-center">
-                            {{ item.old_max_time or '—' }}
-                        </td>
+                        <!-- <td class="text-center"> {{ item.old_max_time or '—' }} </td> -->
                         <td class="text-center">
                             <strong>{{ item.new_max_time or '—' }}</strong>
                         </td>
                         {# len_years #}
-                        <td class="text-center">
-                            {{ item.old_len_years or '—' }}
-                        </td>
+                        <!-- <td class="text-center"> {{ item.old_len_years or '—' }} </td> -->
                         <td class="text-center">
                             <strong>{{ item.new_len_years or '—' }}</strong>
                         </td>
