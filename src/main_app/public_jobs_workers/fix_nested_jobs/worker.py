@@ -22,14 +22,14 @@ class FixNestedJobsWorker(BaseJobWorker):
 
     def __init__(
         self,
-        task_id: int,
+        job_id: int,
         args: Any,
         user: dict[str, Any] | None = None,
         cancel_event: threading.Event | None = None,
     ) -> None:
-        self.task_id = task_id
+        self.job_id = job_id
         self.args = args
-        super().__init__(task_id, user, cancel_event)
+        super().__init__(job_id, user, cancel_event)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -59,7 +59,7 @@ class FixNestedJobsWorker(BaseJobWorker):
 
     def process(self) -> dict[str, Any]:
         processor = FixNestedJobsProcessor(
-            task_id=self.task_id,
+            job_id=self.job_id,
             args=self.args,
             user=self.user,
             result=self.result,
@@ -71,7 +71,7 @@ class FixNestedJobsWorker(BaseJobWorker):
 
 # --- main pipeline --------------------------------------------
 def fix_nested_jobs_worker_entry(
-    task_id: str,
+    job_id: str,
     user: Dict[str, str] | None,
     *,
     cancel_event: threading.Event | None = None,
@@ -80,7 +80,7 @@ def fix_nested_jobs_worker_entry(
     """Entry point for the background job."""
 
     worker = FixNestedJobsWorker(
-        task_id=task_id,
+        job_id=job_id,
         args=args,
         user=user,
         cancel_event=cancel_event,

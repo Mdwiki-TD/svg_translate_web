@@ -14,14 +14,14 @@ from src.main_app.public_jobs_workers.fix_nested_jobs.worker import (
 class TestFixNestedJobsWorker:
     def test_get_job_type(self) -> None:
         worker = FixNestedJobsWorker(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
         )
         assert worker.get_job_type() == "fix_nested_jobs"
 
     def test_get_initial_result_structure(self) -> None:
         worker = FixNestedJobsWorker(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -40,7 +40,7 @@ class TestFixNestedJobsWorker:
 
     def test_get_initial_result_stages_have_status(self) -> None:
         worker = FixNestedJobsWorker(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
         )
         result = worker.get_initial_result()
@@ -53,7 +53,7 @@ class TestFixNestedJobsWorker:
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
         worker = FixNestedJobsWorker(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=user,
         )
@@ -62,7 +62,7 @@ class TestFixNestedJobsWorker:
     def test_worker_init_with_cancel_event(self) -> None:
         cancel_event = threading.Event()
         worker = FixNestedJobsWorker(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             cancel_event=cancel_event,
         )
@@ -73,7 +73,7 @@ class TestFixNestedJobsWorkerEntry:
     def test_worker_entry_missing_args(self) -> None:
         with patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsWorker"):
             fix_nested_jobs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={},
                 user=None,
             )
@@ -84,7 +84,7 @@ class TestFixNestedJobsWorkerEntry:
             MockWorker.return_value = mock_instance
 
             fix_nested_jobs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={"filename": "Test.svg"},
                 user=None,
             )
@@ -99,7 +99,7 @@ class TestFixNestedJobsWorkerEntry:
             user = {"username": "testuser"}
 
             fix_nested_jobs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={"filename": "Test.svg"},
                 user=user,
             )
@@ -114,7 +114,7 @@ class TestFixNestedJobsWorkerEntry:
             cancel_event = threading.Event()
 
             fix_nested_jobs_worker_entry(
-                task_id="1",
+                job_id="1",
                 args={"filename": "Test.svg"},
                 user=None,
                 cancel_event=cancel_event,

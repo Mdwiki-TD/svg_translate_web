@@ -12,7 +12,7 @@ class TestFixNestedJobsProcessorSteps:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
     def test_verify_step_success(self, mock_verify_fix) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -34,7 +34,7 @@ class TestFixNestedJobsProcessorSteps:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
     def test_verify_step_failure_no_tags_fixed(self, mock_verify_fix) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -53,7 +53,7 @@ class TestFixNestedJobsProcessorSteps:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_success(self, mock_upload_fixed_svg) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -76,7 +76,7 @@ class TestFixNestedJobsProcessorSteps:
     @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
     def test_upload_step_failure(self, mock_upload_fixed_svg) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -100,7 +100,7 @@ class TestFixNestedJobsProcessorSteps:
 class TestFixNestedJobsProcessor:
     def test_filename_from_args(self) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={},
@@ -110,7 +110,7 @@ class TestFixNestedJobsProcessor:
 
     def test_filename_from_args_with_file_prefix(self) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "File:Test.svg"},
             user=None,
             result={},
@@ -121,7 +121,7 @@ class TestFixNestedJobsProcessor:
 
     def test_filename_empty(self) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={},
             user=None,
             result={},
@@ -131,7 +131,7 @@ class TestFixNestedJobsProcessor:
 
     def test_is_cancelled_no_event(self) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={"status": "running"},
@@ -145,7 +145,7 @@ class TestFixNestedJobsProcessor:
         cancel_event = threading.Event()
         cancel_event.set()
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={"status": "running"},
@@ -157,7 +157,7 @@ class TestFixNestedJobsProcessor:
 
     def test_run_stage_success(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
@@ -177,7 +177,7 @@ class TestFixNestedJobsProcessor:
 
     def test_run_stage_failure(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
-            task_id=1,
+            job_id=1,
             args={"filename": "Test.svg"},
             user=None,
             result={
