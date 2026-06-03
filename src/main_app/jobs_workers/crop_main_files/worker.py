@@ -9,7 +9,6 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-from ...config import settings
 from ..base_worker import BaseJobWorker
 from .process_new import process_crops
 

@@ -34,11 +34,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_generate_result_file_name,
     )
 
-    mock_settings = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.worker.settings",
-        mock_settings,
-    )
+    # mock_settings = MagicMock()
+    # monkeypatch.setattr(
+    #     "src.main_app.jobs_workers.crop_main_files.worker.settings",
+    #     mock_settings,
+    # )
 
     return {
         "update_job_status": mock_update_job_status,
