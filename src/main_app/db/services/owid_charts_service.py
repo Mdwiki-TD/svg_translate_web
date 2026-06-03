@@ -86,7 +86,7 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
 
 
 def add_chart(
-    chart_data: dict[str, Any],
+    **chart_data: dict[str, Any],
 ) -> OwidChartRecord:
     """
     Add a new chart.
@@ -99,6 +99,11 @@ def add_chart(
             "has_timeline": 1 if chart_data.get("has_timeline") else 0,
         }
     )
+    chart_data = {
+        key: value for key, value in chart_data.items()
+        if value is not None
+        and hasattr(OwidChartRecord, key)
+    }
     chart = OwidChartRecord(**chart_data)
     db.session.add(chart)
     db.session.commit()
@@ -116,7 +121,7 @@ def update_chart_data(
     chart = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
     if chart:
         for key, value in chart_data.items():
-            if value is not None:
+            if value is not None and hasattr(OwidChartRecord, key):
                 setattr(chart, key, value)
     db.session.commit()
     db.session.refresh(chart)
