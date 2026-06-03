@@ -25,7 +25,6 @@ from typing import Any, Dict
 
 import requests
 
-from ...config import settings
 from ...db.models.owid_charts import OwidChartRecord
 from ...db.services import owid_charts_service
 from ..base_worker import BaseJobWorker
@@ -125,7 +124,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None = None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
         args: Dict[str, Any] | None = None,
     ):
@@ -332,7 +331,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 def update_owid_charts_worker_entry(
     *,
     job_id: int,
-    user: dict[str, Any] | None = None,
+    user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: Dict[str, Any] | None = None,
 ) -> None:

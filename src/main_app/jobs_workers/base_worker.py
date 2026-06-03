@@ -43,7 +43,7 @@ class BaseJobWorker(ABC):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None = None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
     ):
         self.job_id: Final[int] = job_id
