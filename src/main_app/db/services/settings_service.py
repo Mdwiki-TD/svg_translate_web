@@ -45,8 +45,8 @@ def get_all_settings_raw() -> list[dict[str, Any]]:
     return [x.to_dict() for x in list_settings()]
 
 
-def get_all_settings_ready() -> list[dict[str, Any]]:
-    """Fetch a setting by key."""
+def get_all_settings_ready() -> dict[str, Any]:
+    """Fetch all settings parsed into their respective Python types."""
     records = {}
 
     for x in list_settings():
@@ -64,7 +64,7 @@ def get_all_settings_ready() -> list[dict[str, Any]]:
         elif x.value_type == "string":
             val = str(x.value)
 
-        if val is None or (not val and val != x.value):
+        if val is None:
             logger.warning(f"Could not parse setting {x.key} with value {x.value}")
 
         records[x.key] = val
