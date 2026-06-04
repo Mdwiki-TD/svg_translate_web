@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....api_services.query_api import get_wikitext
+import mwclient
+
+from ....api_services.pages_api import get_page_text
 
 logger = logging.getLogger(__name__)
 
 
-def extract_text_step(title: str) -> dict[str, Any]:
+def extract_text_step(title: str, site: mwclient.Site | None = None) -> dict[str, Any]:
     """Fetch wikitext for a Commons file.
 
     Args:
@@ -24,7 +26,7 @@ def extract_text_step(title: str) -> dict[str, Any]:
         logger.error("No title found")
         return {"success": False, "text": "", "error": "No title found"}
 
-    text = get_wikitext(title)
+    text = get_page_text(title, site)
 
     if not text:
         logger.error(f"No wikitext found for title: {title}")

@@ -1,6 +1,10 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
+{% set updated_charts = result_data.updated_charts or (result_data.charts_processed | selectattr("status", "equalto", "updated") | list) %}
+{% set skipped_charts = result_data.skipped_charts or (result_data.charts_processed | selectattr("status", "equalto", "skipped") | list ) %}
+{% set failed_charts = result_data.failed_charts or (result_data.charts_processed | selectattr("status", "equalto", "failed") | list ) %}
+
 {% block job_summary %}
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -27,7 +31,6 @@
 {# ------------------------------------------------------------------ #}
 {# Updated charts — with old/new comparison                           #}
 {# ------------------------------------------------------------------ #}
-{% set updated_charts = result_data.updated_charts or (result_data.charts_processed | selectattr("status", "equalto", "updated") | list) %}
 {% if updated_charts %}
 <div class="card mb-3">
     <div class="card-header">
@@ -52,7 +55,7 @@
                 <tbody>
                     {% for item in updated_charts %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -96,7 +99,6 @@
 {# ------------------------------------------------------------------ #}
 {# Failed charts                                                      #}
 {# ------------------------------------------------------------------ #}
-{% set failed_charts = result_data.failed_charts or (result_data.charts_processed | selectattr("status", "equalto", "failed") | list ) %}
 {% if failed_charts %}
 <div class="card mb-3">
     <div class="card-header">
@@ -115,7 +117,7 @@
                 <tbody>
                     {% for item in failed_charts %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -135,7 +137,7 @@
 {# ------------------------------------------------------------------ #}
 {# Skipped charts                                                     #}
 {# ------------------------------------------------------------------ #}
-{% set skipped_charts = result_data.skipped_charts or (result_data.charts_processed | selectattr("status", "equalto", "skipped") | list ) %}
+
 {% if skipped_charts %}
 <div class="card mb-3">
     <div class="card-header">
@@ -154,7 +156,7 @@
                 <tbody>
                     {% for item in skipped_charts %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://ourworldindata.org/grapher/{{ item.slug }}" target="_blank"
                                 rel="noopener noreferrer">

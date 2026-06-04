@@ -12,6 +12,8 @@ from .temps_bot import get_files_list, get_files_list_data, get_titles, get_titl
 
 
 def ensure_file_prefix(file_name) -> str:
+    if not file_name or not isinstance(file_name, str):
+        return file_name
     if not file_name.startswith("File:"):
         file_name = "File:" + file_name
     return file_name

@@ -107,7 +107,7 @@ def test_env_int():
         "OAUTH_CONSUMER_KEY": "key",
         "OAUTH_CONSUMER_SECRET": "secret",
         "USER_AGENT": "test-agent",
-        "UPLOAD_END_POINT": "upload.example.com",
+        "WIKI_DOMAIN": "upload.example.com",
     },
 )
 def test_load_oauth_config():

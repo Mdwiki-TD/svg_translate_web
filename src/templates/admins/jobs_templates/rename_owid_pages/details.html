@@ -1,10 +1,10 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
-{% set renamed_pages = result_data.pages_processed | selectattr("status", "equalto", "renamed") | list %}
-{% set skipped_pages = result_data.pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list %}
-{% set redirected_pages = result_data.pages_processed | selectattr("status", "equalto", "redirected") | list %}
-{% set failed_pages = result_data.pages_processed | selectattr("status", "equalto", "failed") | list %}
+{% set renamed_pages = (result_data.pages_processed | selectattr("status", "equalto", "renamed") | list) if result_data and result_data.pages_processed else [] %}
+{% set skipped_pages = (result_data.pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list) if result_data and result_data.pages_processed else [] %}
+{% set redirected_pages = (result_data.pages_processed | selectattr("status", "equalto", "redirected") | list) if result_data and result_data.pages_processed else [] %}
+{% set failed_pages = (result_data.pages_processed | selectattr("status", "equalto", "failed") | list) if result_data and result_data.pages_processed else [] %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -17,16 +17,16 @@
     <div class="col-md-8">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Renamed', ( result_data.templates_success | length ) or result_data.summary.success or result_data.summary.renamed, "success", "") }}
+                {{ stats_card('Renamed', ( renamed_pages | length ) or result_data.summary.renamed, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Redirected', ( result_data.templates_success | length ) or result_data.summary.redirected, "success", "") }}
+                {{ stats_card('Redirected', ( redirected_pages | length ) or result_data.summary.redirected, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Skipped', result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
+                {{ stats_card('Skipped', ( skipped_pages | length ) or result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( failed_pages | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
                 <tbody>
                     {% for item in renamed_pages %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -100,7 +100,7 @@
                 <tbody>
                     {% for item in skipped_pages %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -150,7 +150,7 @@
                 <tbody>
                     {% for item in redirected_pages %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -195,7 +195,7 @@
                 <tbody>
                     {% for item in failed_pages %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
                                 rel="noopener noreferrer">

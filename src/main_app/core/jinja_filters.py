@@ -1,4 +1,6 @@
-""" """
+"""
+Flask application factory.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +8,49 @@ import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+
+def _format_timestamp(
+    value: str | datetime,
+    format_str: str = "%Y-%m-%d %H:%M:%S",
+    default: str = "",
+) -> str:
+    """Format ISO8601 like '2025-10-27T04:41:07' to 'Oct 27, 2025, 4:41 AM'."""
+    if not value:
+        return default
+
+    if not format_str:
+        format_str = "%Y-%m-%d %H:%M:%S"
+
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        try:
+            dt = datetime.fromisoformat(value)
+        except (ValueError, TypeError):
+            logger.exception("Failed to parse timestamp: %s", value)
+            logger.error("type of value: %s", type(value))
+            return default
+
+    return dt.strftime(format_str)
+
+
+def format_long_date(value: str | datetime, default: str = "") -> str:
+    """Format ISO8601 like '2026-05-28T23:51:50' to '2026-05-28 23:51:50'."""
+    return _format_timestamp(
+        value=value,
+        format_str="%Y-%m-%d %H:%M:%S",
+        default=default,
+    )
+
+
+def format_short_date(value: str | datetime, default: str = "") -> str:
+    """Format ISO8601 like '2026-05-28T23:51:50' to '23:51:50"""
+    return _format_timestamp(
+        value=value,
+        format_str="%H:%M:%S",
+        default=default,
+    )
 
 
 def get_status_class(status):
@@ -24,24 +69,6 @@ def get_status_class(status):
         "pending": "secondary",
     }
     return status_classes.get(str(status).lower(), "secondary")
-
-
-def format_stage_timestamp(value: str) -> str:
-    """Format ISO8601 like '2025-10-27T04:41:07' to 'Oct 27, 2025, 4:41 AM'."""
-    if not value:
-        return ""
-    try:
-        dt = datetime.fromisoformat(value)
-    except Exception:
-        logger.exception("Failed to parse timestamp: %s", value)
-        return ""
-    # convert 24h → 12h with AM/PM
-    hour24 = dt.hour
-    ampm = "AM" if hour24 < 12 else "PM"
-    hour12 = hour24 % 12 or 12
-    minute = f"{dt.minute:02d}"
-    month = dt.strftime("%b")  # Oct
-    return f"{month} {dt.day}, {dt.year}, {hour12}:{minute} {ampm}"
 
 
 def short_url(value: str) -> str:
@@ -71,8 +98,9 @@ def short_url(value: str) -> str:
 
 
 filters = {
+    "format_long_date": format_long_date,
+    "format_short_date": format_short_date,
     "get_status_class": get_status_class,
-    "format_stage_timestamp": format_stage_timestamp,
     "short_url": short_url,
 }
 

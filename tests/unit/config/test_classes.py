@@ -89,7 +89,6 @@ def test_Settings():
 
     jobs_config = JobsConfig(
         disable_uploads="",
-        upload_host="upload.example.com",
     )
 
     security_config = SecurityConfig(
@@ -109,7 +108,7 @@ def test_Settings():
         user_agent="user_agent",
         csrf_time_limit=3600,
         static_server="static_server",
-        wiki_domain="wiki_domain",
+        wiki_domain="upload.example.com",
     )
 
     settings = Settings(
@@ -123,7 +122,7 @@ def test_Settings():
         other=other_config,
     )
 
-    assert settings.jobs.upload_host == "upload.example.com"
+    assert settings.other.wiki_domain == "upload.example.com"
     assert settings.database_data.db_host == "localhost"
     assert settings.database_data.db_name == "test"
     assert settings.cookie.name == "test"

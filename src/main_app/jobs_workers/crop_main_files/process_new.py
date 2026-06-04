@@ -15,9 +15,13 @@ import mwclient
 import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
-from ...api_services.pages_api import update_file_text, update_page_text
+from ...api_services.pages_api import (
+    get_file_text,
+    get_page_text,
+    update_file_text,
+    update_page_text,
+)
 from ...api_services.query_api import is_pages_exists
-from ...api_services.text_api import get_file_text, get_page_text
 from ...config import settings
 from ...db.models import TemplateRecord
 from ...db.services import (

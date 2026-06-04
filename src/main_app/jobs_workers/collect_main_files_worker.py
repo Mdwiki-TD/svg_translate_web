@@ -11,8 +11,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict
 
+import mwclient
+
 from ..api_services.category import get_category_members
-from ..api_services.query_api import get_wikitext
+from ..api_services.clients import get_user_site
+from ..api_services.pages_api import get_page_text
 from ..db.services import (
     add_template_data,
     get_chart_by_slug,
@@ -101,6 +104,8 @@ class CollectMainFilesWorker(BaseJobWorker):
     ) -> None:
         super().__init__(job_id, user, cancel_event)
         self.update_all = False
+        self.user = user
+        self.site: mwclient.Site | None = None
         if args and str(args.get("update_all", "")).lower() == "true":
             self.update_all = True
 
@@ -181,6 +186,13 @@ class CollectMainFilesWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.result["status"] = "failed"
+            self.result["failed_at"] = datetime.now().isoformat()
+            return self.result
+
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
 
@@ -222,7 +234,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             )
             logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
             # Fetch wikitext from Commons
-            wikitext = get_wikitext(template.title, project="commons.wikimedia.org")
+            wikitext = get_page_text(template.title, site=self.site)
 
             if not wikitext:
                 template_info.status = "failed"

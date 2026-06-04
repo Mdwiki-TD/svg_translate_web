@@ -94,7 +94,7 @@ def cancel_job(job_id: int, job_type: str | None = None) -> bool:
     return local_cancelled or db_cancelled
 
 
-def start_job_with_args(
+def start_job(
     user: Dict[str, Any],
     job_type: str,
     args: dict[str, Any] | None = None,
@@ -145,6 +145,6 @@ def start_job_with_args(
 
 
 __all__ = [
-    "start_job_with_args",
+    "start_job",
     "cancel_job",
 ]

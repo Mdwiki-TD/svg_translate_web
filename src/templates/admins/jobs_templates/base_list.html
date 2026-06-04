@@ -1,4 +1,5 @@
 {% extends "admins/base1.html" %}
+{% from "_macros.html" import status_icon %}
 
 {% block title %}{{ list_title }} · Copy SVG Translation{% endblock %}
 
@@ -10,7 +11,7 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            <form method="post" action="{{ url_for('admin.jobs.start_job_with_args', job_type=job_type) }}"
+            <form method="post" action="{{ url_for('admin.jobs.start_job', job_type=job_type) }}"
                 class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-outline-primary"
@@ -41,28 +42,20 @@
                 <tbody>
                     {% for job in jobs %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>{{ job.id }}</td>
                         <td>
-                            {% if job.status == 'completed' %}
-                            <span class="badge bg-success">{{ job.status }}</span>
-                            {% elif job.status == 'failed' %}
-                            <span class="badge bg-danger">{{ job.status }}</span>
-                            {% elif job.status == 'running' %}
-                            <span class="badge bg-primary">{{ job.status }}</span>
-                            {% else %}
-                            <span class="badge bg-secondary">{{ job.status }}</span>
-                            {% endif %}
+                            {{ status_icon(job.status) }}
                         </td>
                         <td>{{ job.username if job.username else '-' }}</td>
-                        <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>
-                        <td>{{ job.started_at.strftime('%H:%M:%S') if job.started_at else '-' }}</td>
-                        <td>{{ job.completed_at.strftime('%H:%M:%S') if job.completed_at else '-' }}</td>
+                        <td>{{ job.created_at | format_long_date("-") }}</td>
+                        <td>{{ job.started_at | format_short_date("-") }}</td>
+                        <td>{{ job.completed_at | format_short_date("-") }}</td>
                         <td class="text-center">
                             <div class="btn-group">
                                 <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
                                     class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-eye"></i> View
+                                    Details
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
                                 <form method="POST"

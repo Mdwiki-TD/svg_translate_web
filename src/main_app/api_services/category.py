@@ -12,8 +12,8 @@ def get_category_members_api(category, project, limit=500):
     Fetch all pages belonging to a given category from a Wikimedia project.
 
     Args:
-        category (str): Category title (e.g. 'Category:Pages using gadget owidslider')
-        project (str): Domain of wiki (default: commons.wikimedia.org)
+        category (str): Category title
+        project (str): Domain of wiki
         limit (int): Maximum results per request (max 500 for normal users, 5000 for bots)
 
     Returns:

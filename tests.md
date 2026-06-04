@@ -16,7 +16,7 @@ tests/
 │   │
 │   ├── main_app/
 │   │   ├── utils/
-│   │   │   ├── test_jinja_filters.py        # format_stage_timestamp, short_url
+│   │   │   ├── test_jinja_filters.py        # get_status_class, short_url
 │   │   │   ├── test_verify.py               # verify_required_fields
 │   │   │   ├── wikitext/
 │   │   │   │   ├── test_before_methods.py

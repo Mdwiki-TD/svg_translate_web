@@ -19,7 +19,7 @@ class TestEnsureFilePrefix:
     def test_handles_empty_string(self):
         """Test handling of empty string."""
         result = ensure_file_prefix("")
-        assert result == "File:"
+        assert result == ""
 
     def test_handles_prefix_with_different_case(self):
         """Test that only exact 'File:' prefix is recognized."""

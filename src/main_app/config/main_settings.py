@@ -215,7 +215,6 @@ def _load_jobs_config() -> JobsConfig:
 
     _config = JobsConfig(
         disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
-        upload_host=os.getenv("UPLOAD_END_POINT", "commons.wikimedia.org"),
         priority_per_item=priority_per_item,
     )
 

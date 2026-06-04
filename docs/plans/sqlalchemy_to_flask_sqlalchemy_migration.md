@@ -907,13 +907,13 @@ def _register_error_handlers(app: Flask) -> None:
 
 def _register_context_processors(app: Flask) -> None:
     from .su_services.users_service import context_user
-    from .utils import format_stage_timestamp, short_url
+    from .utils import get_status_class, short_url
 
     @app.context_processor
     def inject_user():
         return context_user()
 
-    app.jinja_env.filters['stage_timestamp'] = format_stage_timestamp
+    app.jinja_env.filters['stage_timestamp'] = get_status_class
     app.jinja_env.filters['short_url'] = short_url
 ```
 

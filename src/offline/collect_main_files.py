@@ -20,7 +20,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
-from src.main_app.api_services import get_category_members, get_wikitext
+from src.main_app.api_services import get_category_members, get_page_text, get_user_site
 from src.main_app.db.services import (
     add_template_data,
     create_job,
@@ -127,6 +127,13 @@ class MainFilesWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.result["status"] = "failed"
+            self.result["failed_at"] = datetime.now().isoformat()
+            return self.result
+
         # Step 1: Fetch new templates from category and add them
         added_count = self._fetch_and_add_new_templates()
         self.result["summary"]["added"] = added_count
@@ -161,7 +168,7 @@ class MainFilesWorker(BaseJobWorker):
             try:
                 # Fetch wikitext from Commons
                 logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
-                wikitext = get_wikitext(template.title, project="commons.wikimedia.org")
+                wikitext = get_page_text(template.title, self.site)
 
                 if not wikitext:
                     template_info["status"] = "failed"

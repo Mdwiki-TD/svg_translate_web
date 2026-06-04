@@ -1,5 +1,5 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, status_icon %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.title %}
@@ -34,22 +34,10 @@
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
             <tr>
-                <td>{{ loop.index }}</td>
+                <td> {{ loop.index }} </td>
                 <td>{{ stage_key|title }}</td>
                 <td>
-                    {% if stage.status == 'Completed' %}
-                    <span class="badge bg-success">{{ stage.status }}</span>
-                    {% elif stage.status == 'Failed' %}
-                    <span class="badge bg-danger">{{ stage.status }}</span>
-                    {% elif stage.status == 'Running' %}
-                    <span class="badge bg-primary">{{ stage.status }}</span>
-                    {% elif stage.status == 'Skipped' %}
-                    <span class="badge bg-secondary">{{ stage.status }}</span>
-                    {% elif stage.status == 'Cancelled' %}
-                    <span class="badge bg-warning">{{ stage.status }}</span>
-                    {% else %}
-                    <span class="badge bg-light text-dark">{{ stage.status }}</span>
-                    {% endif %}
+                    {{ status_icon(stage.status) }}
                 </td>
                 <td><small>{{ stage.message }}</small></td>
             </tr>
@@ -88,7 +76,7 @@
                     {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
                     {% for item in result_data.files_processed.values() %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/File:{{ item.title }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -96,15 +84,7 @@
                             </a>
                         </td>
                         <td>
-                            {% if item.status == 'completed' %}
-                            <span class="badge bg-success">{{ item.status }}</span>
-                            {% elif item.status == 'failed' %}
-                            <span class="badge bg-danger" title="{{ item.error }}">{{ item.status }}</span>
-                            {% elif item.status == 'skipped' %}
-                            <span class="badge bg-secondary">{{ item.status }}</span>
-                            {% else %}
-                            <span class="badge bg-primary">{{ item.status }}</span>
-                            {% endif %}
+                            {{ status_icon(item.status) }}
                         </td>
                         {% for step_key in step_keys %}
                         <td>
@@ -174,7 +154,7 @@
                     {% for key, translations in new_trans | dictsort %}
                     {% if translations %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td><small class="text-muted">{{ key[:80] }}{% if key|length > 80 %}...{% endif %}</small></td>
                         {% for lang, text in translations.items() %}
                         <td><small>{{ text[:80] }}{% if text|length > 80 %}...{% endif %}</small></td>
