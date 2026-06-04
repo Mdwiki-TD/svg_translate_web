@@ -1,11 +1,13 @@
 """Unit tests for src/main_app/app_routes/admin/sidebar.py."""
 
 from __future__ import annotations
+
 from src.main_app.app_routes.admin.sidebar import (
     SidebarItem,
     create_side,
     generate_list_item,
 )
+
 
 class TestSidebarItem:
     def test_create(self):
@@ -37,7 +39,9 @@ class TestGenerateListItem:
         assert "bi-gear" in html
 
     def test_with_target_blank(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon="bi-gear", target="_blank", disabled=False)
+        item = SidebarItem(
+            id="test", admin=0, href="/test", title="Test", icon="bi-gear", target="_blank", disabled=False
+        )
         html = generate_list_item(item)
         assert "target='_blank'" in html
 
@@ -47,13 +51,14 @@ class TestGenerateListItem:
         assert "target=" not in html
 
     def test_generate_list_item(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False
+        )
         html = generate_list_item(item)
         assert "/home" in html
         assert "bi-house" in html
         assert "target='_blank'" in html
         assert "Home" in html
-
 
     def test_generate_list_item_basic(self) -> None:
         item = SidebarItem(id="home", admin=0, href="/admin/home", title="Home", icon=None, target=None, disabled=False)
@@ -64,16 +69,16 @@ class TestGenerateListItem:
         assert "target=" not in result
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
 
-
     def test_generate_list_item_with_icon(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/admin/home", title="Home", icon="bi-house", target=None, disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/admin/home", title="Home", icon="bi-house", target=None, disabled=False
+        )
         result = generate_list_item(item)
         assert "/admin/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target=" not in result
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
-
 
     def test_generate_list_item_with_target(self) -> None:
         item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon=None, target="_blank", disabled=False)
@@ -84,16 +89,16 @@ class TestGenerateListItem:
         assert "target='_blank'" in result
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
 
-
     def test_generate_list_item_with_icon_and_target(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False
+        )
         result = generate_list_item(item)
         assert "/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target='_blank'" in result
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
-
 
 
 class TestCreateSide:
@@ -128,7 +133,6 @@ class TestCreateSide:
         assert 'aria-expanded="true"' in result
         assert 'class="collapse show"' in result
 
-
     def test_sidebar_contains_jobs_section(self) -> None:
         """Test that sidebar contains the Jobs section."""
         result = create_side("collect_main_files")
@@ -139,14 +143,12 @@ class TestCreateSide:
         assert "bi-files" in result
         assert "bi-file-earmark-richtext" in result
 
-
     def test_sidebar_contains_collect_main_files_job_link(self) -> None:
         """Test that sidebar contains Collect Templates data job link."""
         result = create_side("collect_main_files")
         assert "Collect Templates data" in result
         assert "/admin/jobs/collect_main_files" in result
         assert "bi-kanban" in result
-
 
     def test_sidebar_contains_fix_nested_main_files_job_link(self) -> None:
         """Test that sidebar contains Fix Nested Main Files job link."""
@@ -155,13 +157,11 @@ class TestCreateSide:
         assert "/admin/jobs/fix_nested_main_files" in result
         assert "bi-tools" in result
 
-
     def test_sidebar_marks_collect_main_files_as_active(self) -> None:
         """Test that Collect Templates data is marked as active when selected."""
         result = create_side("collect_main_files")
         # The link should have an active class
         assert "id='collect_main_files' class='active'" in result
-
 
     def test_sidebar_marks_fix_nested_main_files_as_active(self) -> None:
         """Test that Fix Nested Main Files is marked as active when selected."""
