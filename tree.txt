@@ -16,7 +16,6 @@ src/
 │   │   │   └── wiki_client.py
 │   │   ├── mwclient_page.py
 │   │   ├── pages_api.py
-│   │   ├── text_api.py
 │   │   ├── text_bot.py
 │   │   ├── upload_bot.py
 │   │   └── utils/

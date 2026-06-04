@@ -149,6 +149,7 @@ def get_page_text(
         logger.exception(f"Failed to retrieve wikitext for {page_title}", exc_info=exc)
         return ""
 
+
 def update_file_text(
     original_file: str,
     updated_file_text: str,
@@ -184,6 +185,16 @@ def update_file_text(
     return edit_page(site, original_file, updated_file_text, summary)
 
 
+def get_file_text(
+    file_name: str,
+    site: mwclient.Site | None,
+) -> str:
+    """
+    Get the wikitext of a file on Wikimedia Commons.
+    """
+    file_name = ensure_file_prefix(file_name)
+    return get_page_text(file_name, site)
+
 
 __all__ = [
     "create_page",
@@ -193,4 +204,5 @@ __all__ = [
     "move_page",
     "update_page_text",
     "update_file_text",
+    "get_file_text",
 ]

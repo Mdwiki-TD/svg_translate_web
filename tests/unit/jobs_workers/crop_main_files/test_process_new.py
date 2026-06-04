@@ -56,7 +56,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_create_commons_session,
     )
 
-    # Mock text_api functions
+    # Mock pages_api functions
     mock_get_file_text = MagicMock()
     mock_get_page_text = MagicMock()
     mock_update_file_text = MagicMock()

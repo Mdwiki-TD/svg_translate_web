@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
-import mwclient
 from typing import Any
+
+import mwclient
 
 from ....api_services.query_api import get_wikitext
 

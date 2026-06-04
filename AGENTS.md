@@ -150,7 +150,6 @@ src/
       clients/           # mwclient site builders (wiki_client, commons_client)
       mwclient_page.py   # MwClientPage class (edit, move, redirect check with retry)
       pages_api.py       # Thin wrappers: is_page_exists, is_redirect, edit_page, move_page
-      text_api.py        # Fetch page/file wikitext
       category.py        # Category member listing
     sqlalchemy_db/       # SQLAlchemy models & services
     jobs_workers/        # Background job workers (BaseJobWorker pattern)

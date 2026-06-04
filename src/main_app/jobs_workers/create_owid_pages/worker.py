@@ -13,8 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import create_page, is_page_exists
-from ...api_services.text_api import get_page_text
+from ...api_services.pages_api import create_page, get_page_text, is_page_exists
 from ...data import get_slug_categories
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
