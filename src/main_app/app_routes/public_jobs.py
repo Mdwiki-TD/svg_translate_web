@@ -133,6 +133,7 @@ def _jobs_list(job_type: str) -> str:
         job_type=job_type,
         list_title=template_data.job_name,
         list_headline=template_data.job_name,
+        start_confirm_message=template_data.start_confirm_message,
     )
 
 
@@ -151,16 +152,19 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
-    job_data = jobs_data_public.get(job_type)
-    template = job_data.job_details_template if job_data else None
-    if not template:
+    template_data = jobs_data_public.get(job_type)
+    if not template_data:
         abort(404)
 
+    template_name = template_data.job_details_template
+
     return render_template(
-        template,
+        template_name,
         job=job,
         job_type=job_type,
         result_data=result_data,
+        detail_title=template_data.job_name,
+        detail_headline=template_data.job_name,
     )
 
 

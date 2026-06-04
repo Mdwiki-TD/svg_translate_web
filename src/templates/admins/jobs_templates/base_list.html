@@ -10,13 +10,13 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            <form method="post" action="{{ url_for('admin.jobs.start_job_with_args', job_type=job_type) }}" class="d-inline">
+            <form method="post" action="{{ url_for('admin.jobs.start_job_with_args', job_type=job_type) }}"
+                class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button type="submit" class="btn btn-outline-primary"
-                    data-confirm-message="{% block start_confirm_message %}{% endblock %}"
+                    data-confirm-message="{{ start_confirm_message }}"
                     onclick="return confirm(this.dataset.confirmMessage);">
-                    <i class="bi {% block start_icon %}bi-play-circle{% endblock %}"></i> {% block start_text %}Start
-                    New Job{% endblock %}
+                    <i class="bi bi-play-circle"></i> Start New Job
                 </button>
             </form>
             {% endif %}

@@ -1,9 +1,6 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
-{% block detail_title %}Collect Templates data{% endblock %}
-{% block detail_headline %}Collect Templates data{% endblock %}
-
 {% block job_summary %}
 {% set total_skipped = ( result_data.templates_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
 

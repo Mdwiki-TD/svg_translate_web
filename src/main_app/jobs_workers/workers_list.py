@@ -20,6 +20,7 @@ class JobData:
 
     job_callable: Callable
     job_args: list | None = None
+    start_confirm_message: str | None = None
 
 
 jobs_data = {
@@ -30,6 +31,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/collect_main_files/list.html",
         job_callable=collect_main_files_for_templates,
         job_args=[],
+        start_confirm_message="",
     ),
     "update_owid_charts": JobData(
         job_type="update_owid_charts",
@@ -38,6 +40,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/update_owid_charts/list.html",
         job_callable=update_owid_charts_worker_entry,
         job_args=["owid_charts_limit_items"],
+        start_confirm_message="",
     ),
     "crop_main_files": JobData(
         job_type="crop_main_files",
@@ -46,6 +49,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/crop_main_files/list.html",
         job_callable=crop_main_files_for_templates,
         job_args=["crop_newest_upload_limit"],
+        start_confirm_message="",
     ),
     "fix_nested_main_files": JobData(
         job_type="fix_nested_main_files",
@@ -54,6 +58,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/fix_nested_main_files/list.html",
         job_callable=fix_nested_main_files_for_templates,
         job_args=[],
+        start_confirm_message="",
     ),
     "create_owid_pages": JobData(
         job_type="create_owid_pages",
@@ -62,6 +67,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/create_owid_pages/list.html",
         job_callable=create_owid_pages_for_templates,
         job_args=["create_owid_pages_limit"],
+        start_confirm_message="",
     ),
     "rename_owid_pages": JobData(
         job_type="rename_owid_pages",
@@ -70,6 +76,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/rename_owid_pages/list.html",
         job_callable=rename_owid_pages_for_templates,
         job_args=[],
+        start_confirm_message="",
     ),
     "add_svglanguages_template": JobData(
         job_type="add_svglanguages_template",
@@ -78,6 +85,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/add_svglanguages_template/list.html",
         job_callable=add_svglanguages_template_to_templates,
         job_args=["add_svglanguages_limit_items"],
+        start_confirm_message="",
     ),
     "download_main_files": JobData(
         job_type="download_main_files",
@@ -86,6 +94,7 @@ jobs_data = {
         job_list_template="admins/jobs_templates/download_main_files/list.html",
         job_callable=download_main_files_for_templates,
         job_args=["download_main_files_limit_items"],
+        start_confirm_message="",
     ),
 }
 
