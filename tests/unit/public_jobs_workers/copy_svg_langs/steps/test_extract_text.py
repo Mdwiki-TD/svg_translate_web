@@ -34,7 +34,7 @@ def test_extract_text_step_success(mocker):
     assert result["success"] is True
     assert result["text"] == "some wikitext"
     assert result["error"] is None
-    mock_get_page_text.assert_called_once_with("File:Example.svg")
+    mock_get_page_text.assert_called_once_with("File:Example.svg", None)
 
 
 def test_extract_text_step_fail(mocker):
