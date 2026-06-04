@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, status_icon, csrf %}
 
-{% block title %}{{ detail_title }} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+{% block title %}{{ detail_title }} Job #{{ job.id }}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -12,7 +12,7 @@
                 {% if (current_username == job.username) and (job.status == 'running' or job.status == 'pending') %}
                 <form method="POST" action="{{ url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id) }}"
                     onsubmit="return confirm('Are you sure you want to cancel this job?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    {{ csrf() }}
                     <button type="submit" class="btn btn-warning">
                         <i class="bi bi-x-circle"></i> Cancel Job
                     </button>
@@ -21,7 +21,7 @@
                 {% if is_admin %}
                 <form method="POST" action="{{ url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id) }}"
                     onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    {{ csrf() }}
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-trash"></i> Delete
                     </button>
@@ -46,15 +46,8 @@
                                 <tr>
                                     <th style="width: 40%">Status:</th>
                                     <td>
-                                        {% if job.status == 'completed' %}
-                                        <span class="badge bg-success">{{ job.status }}</span>
-                                        {% elif job.status == 'failed' %}
-                                        <span class="badge bg-danger">{{ job.status }}</span>
-                                        {% elif job.status == 'running' %}
-                                        <span class="badge bg-primary">{{ job.status }}</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">{{ job.status }}</span>
-                                        {% endif %}
+                                        {{ job.status }}
+                                        {# status_icon(job.status) #}
                                     </td>
                                 </tr>
                                 <tr>
@@ -63,12 +56,14 @@
                                 </tr>
                                 <tr>
                                     <th>Created:</th>
-                                    <td>{{ job.created_at | format_long_date("-") }}
+                                    <td>
+                                        {{ job.created_at | format_long_date("-") }}
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Started:</th>
-                                    <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}
+                                    <td>
+                                        {{ job.started_at | format_long_date("-") }}
                                     </td>
                                 </tr>
                             </table>
@@ -77,20 +72,23 @@
                             <table class="table table-sm">
                                 <tr>
                                     <th style="width: 40%">Completed:</th>
-                                    <td>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') if job.completed_at else '-' }}
+                                    <td>
+                                        {{ job.completed_at | format_long_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}
                                 <tr>
                                     <th style="width: 40%">Failed At:</th>
-                                    <td>{{ (job.failed_at or result_data.failed_at) }}
+                                    <td>
+                                        {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
                                     </td>
                                 </tr>
                                 {% endif %}
                                 {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
                                 <tr>
-                                    <th style="width: 40%">Failed At:</th>
-                                    <td>{{ (job.cancelled_at or result_data.cancelled_at) }}
+                                    <th style="width: 40%">Cancelled At:</th>
+                                    <td>
+                                        {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
                                     </td>
                                 </tr>
                                 {% endif %}
@@ -105,6 +103,12 @@
                                         {% else %}
                                         -
                                         {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Last update:</th>
+                                    <td>
+                                        {{ result_data.last_update| format_long_date("-") }}
                                     </td>
                                 </tr>
                                 {% block job_info_extra %}{% endblock %}

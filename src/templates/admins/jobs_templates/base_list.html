@@ -1,4 +1,5 @@
 {% extends "admins/base1.html" %}
+{% from "_macros.html" import status_icon %}
 
 {% block title %}{{ list_title }} · Copy SVG Translation{% endblock %}
 
@@ -44,15 +45,7 @@
                         <td> {{ loop.index }} </td>
                         <td>{{ job.id }}</td>
                         <td>
-                            {% if job.status == 'completed' %}
-                            <span class="badge bg-success">{{ job.status }}</span>
-                            {% elif job.status == 'failed' %}
-                            <span class="badge bg-danger">{{ job.status }}</span>
-                            {% elif job.status == 'running' %}
-                            <span class="badge bg-primary">{{ job.status }}</span>
-                            {% else %}
-                            <span class="badge bg-secondary">{{ job.status }}</span>
-                            {% endif %}
+                            {{ status_icon(job.status) }}
                         </td>
                         <td>{{ job.username if job.username else '-' }}</td>
                         <td>{{ job.created_at | format_long_date("-") }}</td>

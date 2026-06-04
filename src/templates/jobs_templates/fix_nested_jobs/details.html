@@ -1,5 +1,5 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, status_icon %}
 
 {% block job_info_extra %}
 
@@ -44,19 +44,7 @@
                 <td><strong>Status</strong></td>
                 {% for stage_key, stage in stages %}
                 <td>
-                    {% if stage.status == 'Completed' %}
-                    <span class="badge bg-success">{{ stage.status }}</span>
-                    {% elif stage.status == 'Failed' %}
-                    <span class="badge bg-danger">{{ stage.status }}</span>
-                    {% elif stage.status == 'Running' %}
-                    <span class="badge bg-primary">{{ stage.status }}</span>
-                    {% elif stage.status == 'Skipped' %}
-                    <span class="badge bg-secondary">{{ stage.status }}</span>
-                    {% elif stage.status == 'Cancelled' %}
-                    <span class="badge bg-warning">{{ stage.status }}</span>
-                    {% else %}
-                    <span class="badge bg-light text-dark">{{ stage.status }}</span>
-                    {% endif %}
+                    {{ status_icon(stage.status) }}
                 </td>
                 {% endfor %}
             </tr>
