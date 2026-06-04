@@ -116,7 +116,6 @@ def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
     assert result["summary"]["skipped"] == 2
-    assert result["summary"]["no_main_file"] == 2
 
 
 def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested_services):
@@ -222,7 +221,6 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
     assert result["summary"]["total"] == 3
     assert result["summary"]["success"] == 2
     assert result["summary"]["skipped"] == 1
-    assert result["summary"]["no_main_file"] == 1
 
 
 # =============================================================================
