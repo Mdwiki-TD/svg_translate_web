@@ -123,7 +123,6 @@ class CollectMainFilesWorker(BaseJobWorker):
                 "processed": 0,
                 "failed": 0,
                 "skipped": 0,
-                "already_had_main_file": 0,
             },
         }
 
@@ -192,9 +191,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         # Step 2: Get all templates (including newly added)
         templates = list_templates()
         self.result["summary"]["total"] = len(templates)
-        self.result["summary"]["already_had_main_file"] = len(
-            [t for t in templates if t.main_file and t.last_world_file and t.source]
-        )
 
         if self.update_all:
             tmps_to_process = templates
@@ -288,7 +284,6 @@ class CollectMainFilesWorker(BaseJobWorker):
                 template_info.status = "skipped"
                 template_info.error = skip_msg
                 self.result["templates_skipped"].append(template_info.to_dict())
-                self.result["summary"]["skipped"] += 1
                 logger.info(f"Job {self.job_id}: No changes for {template.title}")
                 continue
 

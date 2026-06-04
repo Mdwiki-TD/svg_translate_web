@@ -6,8 +6,9 @@ import logging
 import threading
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Dict, Final, TypeVar
+from typing import Any, Dict, Final
 
+from ..config import settings
 from ..db.services import (
     is_job_cancelled,
     update_job_status,
@@ -16,8 +17,6 @@ from ..su_services import jobs_files_service
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
-
-FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
 
 class BaseJobWorker(ABC):
@@ -151,6 +150,10 @@ class BaseJobWorker(ABC):
     def get_priority(self, length) -> int:
         if length < 11:
             return 1
+
+        if settings.jobs.priority_per_item is not None:
+            return settings.jobs.priority_per_item
+
         # Calculate the interval for progress updates to aim for about 10 updates.
         return min(10, length // 10)
 

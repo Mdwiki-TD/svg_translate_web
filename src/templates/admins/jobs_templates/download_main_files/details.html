@@ -1,10 +1,5 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header %}
-
-{% set job_type = 'download_main_files' %}
-
-{% block detail_title %}Download Main Files{% endblock %}
-{% block detail_headline %}Download Main Files{% endblock %}
+{% from "_macros.html" import card_header, stats_card %}
 
 {% block job_info_extra %}
 <tr>
@@ -14,50 +9,24 @@
 {% endblock %}
 
 {% block job_summary %}
-{% if result_data.summary %}
-<div class="row row-cols-2 row-cols-md-4 g-2 text-center mb-3">
-    <div class="col col-sm-12">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.total }}
-                </h4>
-                <small class="text-muted">Total</small>
-            </div>
-        </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ (result_data.summary.total or result_data.summary.to_rename or 0), "primary", "") }}
     </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.downloaded }}
-                </h4>
-                <small>Downloaded</small>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Downloaded', ( result_data.files_downloaded | length ) or result_data.summary.downloaded, "info", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-warning">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.exists }}
-                </h4>
-                <small>Exists</small>
+            <div class="col">
+                {{ stats_card('Skipped', result_data.summary.exists or result_data.summary.skipped, "secondary", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.failed }}
-                </h4>
-                <small>Failed</small>
+            <div class="col">
+                {{ stats_card('Failed', ( result_data.files_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block job_details %}

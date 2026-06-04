@@ -1,66 +1,25 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header %}
-
-{% set job_type = 'fix_nested_main_files' %}
-
-{% block detail_title %}Fix Nested Main Files{% endblock %}
-{% block detail_headline %}Fix Nested Main Files{% endblock %}
+{% from "_macros.html" import card_header, stats_card %}
 
 {% block job_summary %}
-{% if result_data.summary %}
-<div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
-    <div class="col col-sm-12">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.total }}
-                </h4>
-                <small class="text-muted">Total</small>
-            </div>
-        </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.success }}
-                </h4>
-                <small>Success</small>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Success', ( result_data.templates_success | length ) or result_data.summary.success, "success", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.failed }}
-                </h4>
-                <small>Failed</small>
+            <div class="col">
+                {{ stats_card('skipped', ( result_data.templates_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.skipped }}
-                </h4>
-                <small>Skipped</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-info">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {{ result_data.summary.no_main_file }}
-                </h4>
-                <small>No Main File</small>
+            <div class="col">
+                {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block job_details %}

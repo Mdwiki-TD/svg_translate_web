@@ -131,7 +131,6 @@ def test_collect_main_files_skips_templates_with_main_file(mock_services, mock_f
     # Should save result with skipped templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
-    assert result["summary"]["already_had_main_file"] == 2
     assert len(result["templates_added"]) == 0
 
 
@@ -547,7 +546,6 @@ def test_collect_main_files_template_with_existing_main_file_only(mock_services)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
-    assert result["summary"]["already_had_main_file"] == 0  # Doesn't have all three
 
 
 def test_collect_main_files_add_template_generic_exception(mock_services):
@@ -761,6 +759,5 @@ def test_collect_main_files_for_templates_update_all_summary_counts(mock_service
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Total is 2, 1 already had all data
     assert result["summary"]["total"] == 2
-    assert result["summary"]["already_had_main_file"] == 1
     # With update_all, both templates are processed
     assert mock_services["get_wikitext"].call_count == 2

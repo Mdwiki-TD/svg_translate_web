@@ -8,6 +8,24 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def get_status_class(status):
+    status_classes = {
+        "running": "primary",
+        "imported": "success",
+        "imported_fallback": "success",
+        "completed": "success",
+        "changed": "success",
+        "missing": "warning",
+        "skipped": "warning",
+        "cancelled": "warning",
+        "failed": "danger",
+        "error": "danger",
+        "errors": "danger",
+        "pending": "secondary",
+    }
+    return status_classes.get(str(status).lower(), "secondary")
+
+
 def format_stage_timestamp(value: str) -> str:
     """Format ISO8601 like '2025-10-27T04:41:07' to 'Oct 27, 2025, 4:41 AM'."""
     if not value:
@@ -53,6 +71,7 @@ def short_url(value: str) -> str:
 
 
 filters = {
+    "get_status_class": get_status_class,
     "format_stage_timestamp": format_stage_timestamp,
     "short_url": short_url,
 }

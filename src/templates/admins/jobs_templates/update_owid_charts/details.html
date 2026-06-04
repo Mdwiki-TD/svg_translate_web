@@ -1,74 +1,25 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header %}
-
-{% set job_type = 'update_owid_charts' %}
-
-{% block detail_title %}Update OWID Charts{% endblock %}
-{% block detail_headline %}Update OWID Charts{% endblock %}
+{% from "_macros.html" import card_header, stats_card %}
 
 {% block job_summary %}
-{% if result_data.summary %}
-<div class="row row-cols-2 row-cols-md-5 g-2 text-center mb-3">
-    <div class="col">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.total }}</h4>
-                <small class="text-muted">Total</small>
-            </div>
-        </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
-    <div class="col">
-        <div class="card h-100 border-primary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.processed }}</h4>
-                <small>Processed</small>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Updated', ( result_data.updated_charts | length ) or result_data.summary.updated, "success", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {% if result_data.updated_charts %}
-                        {{ result_data.updated_charts | length }}
-                    {% else %}
-                        {{ result_data.summary.updated }}
-                    {% endif %}
-                </h4>
-                <small>Updated</small>
+            <div class="col">
+                {{ stats_card('skipped', ( result_data.skipped_charts | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {% if result_data.skipped_charts %}
-                        {{ result_data.skipped_charts | length }}
-                    {% else %}
-                        {{ result_data.summary.skipped }}
-                    {% endif %}
-                </h4>
-                <small>Skipped</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">
-                    {% if result_data.failed_charts %}
-                        {{ result_data.failed_charts | length }}
-                    {% else %}
-                        {{ result_data.summary.failed }}
-                    {% endif %}
-                </h4>
-                <small>Failed</small>
+            <div class="col">
+                {{ stats_card('Failed', ( result_data.failed_charts | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block job_details %}

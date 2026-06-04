@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header %}
+{% from "_macros.html" import card_header, stats_card %}
 
-{% block title %}{% block detail_title %}{% endblock %} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+{% block title %}{{ detail_title }} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="headline mb-0">{% block detail_headline %}{% endblock %} Job #{{ job.id }}</h3>
+            <h3 class="headline mb-0">{{ detail_headline }} Job #{{ job.id }}</h3>
             <div class="d-flex gap-2">
                 {% if (current_username == job.username) and (job.status == 'running' or job.status == 'pending') %}
                 <form method="POST" action="{{ url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id) }}"

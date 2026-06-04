@@ -1,17 +1,10 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
-{% set job_type = 'collect_main_files' %}
-
-{% block list_title %}Collect Templates data Jobs{% endblock %}
-{% block list_headline %}Collect Templates data Jobs{% endblock %}
-
-{% block start_confirm_message %}This will start a background job to collect templates data for all templates that don't have one. Continue?{% endblock %}
-
 {% block header_actions %}
 <form method="post" action="{{ url_for('admin.jobs.start_job_with_args', job_type=job_type) }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <input type="hidden" name="update_all" value="true" />
-    <button type="submit" class="btn btn-outline-warning"
+    <button type="submit" class="btn btn-outline-warning text-muted"
         onclick="return confirm('This will update ALL template data (including those already collected). This may take a long time. Continue?');">
         <i class="bi bi-arrow-repeat"></i> Update All
     </button>

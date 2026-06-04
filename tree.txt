@@ -226,8 +226,8 @@ src/
 │   │   └── upload_form.html
 │   ├── index.html
 │   ├── jobs_templates/
-│   │   ├── base_details2.html
-│   │   ├── base_list2.html
+│   │   ├── base_details_public.html
+│   │   ├── base_list_public.html
 │   │   └── copy_svg_langs/
 │   │       ├── details.html
 │   │       └── list.html

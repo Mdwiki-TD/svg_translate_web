@@ -120,14 +120,14 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             "started_at": datetime.now().isoformat(),
             "templates_processed": [],
             "templates_success": [],
-            "templates_failed": [],
             "templates_skipped": [],
+            "templates_failed": [],
             "summary": {
                 "total": 0,
+                "processed": 0,
                 "success": 0,
                 "failed": 0,
                 "skipped": 0,
-                "no_main_file": 0,
             },
         }
 
@@ -136,7 +136,6 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         template_info["status"] = "skipped"
         template_info["reason"] = "No main_file set"
         self.result["templates_skipped"].append(template_info)
-        self.result["summary"]["no_main_file"] += 1
 
     def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
         """Log information about a template that was skipped due to having no nested tags."""
@@ -186,6 +185,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
+            self.result["summary"]["processed"] += 1
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:

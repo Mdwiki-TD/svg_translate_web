@@ -1,17 +1,12 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
-{% set job_type = 'collect_main_files' %}
-
-{% block detail_title %}Collect Templates data{% endblock %}
-{% block detail_headline %}Collect Templates data{% endblock %}
-
 {% block job_summary %}
 {% set total_skipped = ( result_data.templates_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        {{ stats_card('Processing', result_data.summary.processed or 0 ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
     <div class="col-md-9">
         <div class="row g-3">

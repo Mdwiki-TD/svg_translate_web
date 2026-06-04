@@ -108,8 +108,9 @@ class RenameOwidPagesWorker(BaseJobWorker):
             "completed_at": None,
             "cancelled_at": None,
             "summary": {
+                "total": 0,
+                "processed": 0,
                 "checked": 0,
-                "to_rename": 0,
                 "renamed": 0,
                 "skipped_target_exists": 0,
                 "redirected": 0,
@@ -144,7 +145,6 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 if not yes:
                     continue
                 candidates.append((namespace, full_prefix, title, new_title))
-                self.result["summary"]["to_rename"] += 1
 
             logger.info(f"Job {self.job_id}: Scanned {ns_count} page(s) under '{full_prefix}'")
 
@@ -154,13 +154,14 @@ class RenameOwidPagesWorker(BaseJobWorker):
         # Save progress immediately so the UI reflects the discovery phase.
         self._save_progress()
 
+        self.result["summary"]["total"] = total
         per_item = self.get_priority(total) if total else 1
 
         # Second pass: actually move.
         for n, (namespace, _full_prefix, old_title, new_title) in enumerate(candidates, start=1):
             if self.is_cancelled():
                 break
-
+            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Renaming {n}/{total}: {old_title} -> {new_title}")
             self._rename_one(namespace, old_title, new_title)
 
