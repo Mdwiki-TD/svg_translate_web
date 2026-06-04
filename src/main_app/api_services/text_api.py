@@ -77,9 +77,11 @@ def get_page_text(
     try:
         page = site.pages[page_name]
         return page.text()
+        # Attempt to retrieve the specified page and get its text content
     except Exception as exc:
         logger.exception(f"Failed to retrieve wikitext for {page_name}", exc_info=exc)
         return ""
+        # Log any exceptions that occur during page retrieval
 
 
 __all__ = [
