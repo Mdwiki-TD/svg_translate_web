@@ -270,8 +270,8 @@ class CollectMainFilesWorker(BaseJobWorker):
             source = find_template_source(wikitext, check_grapher=False)
             if source and source != template.source:
                 template_info.source = source
+                template_data["source"] = source
                 if "/grapher/" in source:
-                    template_data["source"] = source
                     slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
                     template_data["slug"] = slug or None
                 else:
