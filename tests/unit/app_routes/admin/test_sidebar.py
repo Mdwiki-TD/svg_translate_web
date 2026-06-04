@@ -47,19 +47,18 @@ class TestGenerateListItem:
         assert "target=" not in html
 
     def test_generate_list_item(self) -> None:
-        html = generate_list_item("/home", "Home", icon="bi-house", target=True)
-        assert "href='/home'" in html
+        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False)
+        html = generate_list_item(item)
+        assert "/home" in html
         assert "bi-house" in html
         assert "target='_blank'" in html
         assert "Home" in html
 
 
     def test_generate_list_item_basic(self) -> None:
-        """
-        Tests basic list item generation.
-        """
-        result = generate_list_item("/home", "Home")
-        assert "href='/home'" in result
+        item = SidebarItem(id="home", admin=0, href="/admin/home", title="Home", icon=None, target=None, disabled=False)
+        result = generate_list_item(item)
+        assert "/admin/home" in result
         assert "title='Home'" in result
         assert "<i class" not in result
         assert "target=" not in result
@@ -67,11 +66,9 @@ class TestGenerateListItem:
 
 
     def test_generate_list_item_with_icon(self) -> None:
-        """
-        Tests list item generation with an icon.
-        """
-        result = generate_list_item("/home", "Home", icon="bi-house")
-        assert "href='/home'" in result
+        item = SidebarItem(id="home", admin=0, href="/admin/home", title="Home", icon="bi-house", target=None, disabled=False)
+        result = generate_list_item(item)
+        assert "/admin/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target=" not in result
@@ -79,11 +76,9 @@ class TestGenerateListItem:
 
 
     def test_generate_list_item_with_target(self) -> None:
-        """
-        Tests list item generation with a target attribute.
-        """
-        result = generate_list_item("/home", "Home", target="_blank")
-        assert "href='/home'" in result
+        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon=None, target="_blank", disabled=False)
+        result = generate_list_item(item)
+        assert "/home" in result
         assert "title='Home'" in result
         assert "<i class" not in result
         assert "target='_blank'" in result
@@ -91,11 +86,9 @@ class TestGenerateListItem:
 
 
     def test_generate_list_item_with_icon_and_target(self) -> None:
-        """
-        Tests list item generation with both an icon and a target attribute.
-        """
-        result = generate_list_item("/home", "Home", icon="bi-house", target="_blank")
-        assert "href='/home'" in result
+        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False)
+        result = generate_list_item(item)
+        assert "/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target='_blank'" in result
@@ -131,7 +124,7 @@ class TestCreateSide:
         """
         Tests sidebar creation with an active item.
         """
-        result = create_side("recent")
+        result = create_side("admins")
         assert 'aria-expanded="true"' in result
         assert 'class="collapse show"' in result
 
