@@ -29,9 +29,9 @@ def test_create_app_sets_session_cookie_config():
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
 def test_create_app_jinja_filter_registered():
-    """Test create_app registers the format_stage_timestamp Jinja filter."""
+    """Test create_app registers the get_status_class Jinja filter."""
     app = create_app(TestingConfig)
-    assert "format_stage_timestamp" in app.jinja_env.filters
+    assert "get_status_class" in app.jinja_env.filters
 
 
 @patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})

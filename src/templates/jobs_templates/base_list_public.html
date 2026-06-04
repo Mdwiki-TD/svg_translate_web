@@ -41,18 +41,11 @@
                     <tbody>
                         {% for job in jobs %}
                         <tr>
-                            <td>{{ loop.index }}</td>
+                            <td> {{ loop.index }} </td>
                             <td>{{ job.id }}</td>
                             <td>
-                                {% if job.status == 'completed' %}
-                                <span class="badge bg-success">{{ job.status }}</span>
-                                {% elif job.status == 'failed' %}
-                                <span class="badge bg-danger">{{ job.status }}</span>
-                                {% elif job.status == 'running' %}
-                                <span class="badge bg-primary">{{ job.status }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ job.status }}</span>
-                                {% endif %}
+                                {{ job.status }}
+                                {# status_icon(job.status) #}
                             </td>
                             <td>{{ job.username if job.username else '-' }}</td>
                             <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}</td>

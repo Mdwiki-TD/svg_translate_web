@@ -34,7 +34,7 @@
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
             <tr>
-                <td>{{ loop.index }}</td>
+                <td> {{ loop.index }} </td>
                 <td>{{ stage_key|title }}</td>
                 <td>
                     {% if stage.status == 'Completed' %}
@@ -88,7 +88,7 @@
                     {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
                     {% for item in result_data.files_processed.values() %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/File:{{ item.title }}" target="_blank"
                                 rel="noopener noreferrer">
@@ -174,7 +174,7 @@
                     {% for key, translations in new_trans | dictsort %}
                     {% if translations %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td><small class="text-muted">{{ key[:80] }}{% if key|length > 80 %}...{% endif %}</small></td>
                         {% for lang, text in translations.items() %}
                         <td><small>{{ text[:80] }}{% if text|length > 80 %}...{% endif %}</small></td>

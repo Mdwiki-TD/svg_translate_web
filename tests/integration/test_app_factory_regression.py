@@ -111,6 +111,6 @@ def test_create_app_jinja_env_configured(monkeypatch):
     get_settings.cache_clear()
     app = create_app(TestingConfig)
 
-    assert "format_stage_timestamp" in app.jinja_env.filters
+    assert "short_url" in app.jinja_env.filters
 
     get_settings.cache_clear()

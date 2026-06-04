@@ -26,7 +26,7 @@
                 <tbody>
                     {% for job in jobs %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>{{ job.id }}</td>
                         <td>
                             {% if job.status == 'completed' %}
