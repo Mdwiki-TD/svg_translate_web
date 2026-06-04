@@ -27,7 +27,7 @@ class SidebarItem:
     disabled: bool = False
 
 
-def generate_list_item(item) -> str:
+def generate_list_item(item: SidebarItem) -> str:
     """Generate HTML for a single navigation link."""
     href_full = item.href if item.target else f"/admin/{item.href}"
     if item.href.startswith("/admin/"):

@@ -151,7 +151,7 @@ class BaseJobWorker(ABC):
         if length < 11:
             return 1
 
-        if settings.jobs.priority_per_item:
+        if settings.jobs.priority_per_item is not None:
             return settings.jobs.priority_per_item
 
         # Calculate the interval for progress updates to aim for about 10 updates.
