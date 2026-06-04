@@ -131,6 +131,7 @@ def search_pages(
 
     return titles
 
+
 def get_page_links(
     title: str,
     site: mwclient.Site,

@@ -1,5 +1,4 @@
 from .current_user import CurrentUser
-
 from .jobs_files_service import (
     create_job_cancelled_file,
     is_job_cancelled_file_exist,
