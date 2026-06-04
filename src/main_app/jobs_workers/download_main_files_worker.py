@@ -125,8 +125,9 @@ class DownloadMainFilesWorker(BaseJobWorker):
             "summary": {
                 "total": 0,
                 "processed": 0,
-                "downloaded": 0,
                 "failed": 0,
+                "skipped": 0,
+                "downloaded": 0,
                 "exists": 0,
             },
         }

@@ -124,6 +124,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             "templates_failed": [],
             "summary": {
                 "total": 0,
+                "processed": 0,
                 "success": 0,
                 "failed": 0,
                 "skipped": 0,
