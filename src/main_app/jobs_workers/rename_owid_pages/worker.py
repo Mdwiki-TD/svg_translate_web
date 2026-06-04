@@ -108,6 +108,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
             "completed_at": None,
             "cancelled_at": None,
             "summary": {
+                "total": 0,
+                "processed": 0,
                 "checked": 0,
                 "to_rename": 0,
                 "renamed": 0,
