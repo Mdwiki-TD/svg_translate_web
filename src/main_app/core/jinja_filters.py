@@ -68,6 +68,7 @@ def get_status_class(status):
     }
     return status_classes.get(str(status).lower(), "secondary")
 
+
 def short_url(value: str) -> str:
     """Extract the last segment of a URL path.
 

@@ -3,7 +3,7 @@
 {% set hide_start_button = '1' %}
 
 {% block list_info %}
-<form method="post" action="{{ url_for('public_jobs.start_job_with_args', job_type=job_type) }}"
+<form method="post" action="{{ url_for('public_jobs.start_job', job_type=job_type) }}"
     class="row gy-2 gx-3 align-items-center mb-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="col-sm-12 col-md-6">

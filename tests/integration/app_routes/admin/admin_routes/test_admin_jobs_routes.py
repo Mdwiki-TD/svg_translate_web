@@ -157,7 +157,7 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client, jobs_db, mon
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_job_with_args")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_collect_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start collect templates data job route works."""
@@ -294,7 +294,7 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client, j
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_job_with_args")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start fix nested main files job route works."""
@@ -596,7 +596,7 @@ def test_download_main_files_job_detail_page_handles_nonexistent_job(admin_jobs_
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_job_with_args")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_download_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start download main files job route works."""
@@ -796,7 +796,7 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     mock_flash.assert_called_once_with("You must be logged in to start this job.", "danger")
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.start_job_with_args")
+@patch("src.main_app.jobs_workers.jobs_worker.start_job")
 @patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
 def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that job start handles exceptions gracefully."""

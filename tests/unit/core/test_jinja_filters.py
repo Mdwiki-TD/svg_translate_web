@@ -4,6 +4,7 @@ import pytest
 
 from src.main_app.core.jinja_filters import short_url
 
+
 class TestShortUrl:
     """Tests for short_url function."""
 

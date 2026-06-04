@@ -61,7 +61,7 @@
                             </tr>
                             <tr>
                                 <th>Created:</th>
-                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') if job.created_at else '-' }}
+                                <td>{{ job.created_at | format_long_date("-") }}
                                 </td>
                             </tr>
                             <tr>
