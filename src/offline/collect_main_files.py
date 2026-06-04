@@ -57,6 +57,7 @@ class MainFilesWorker(BaseJobWorker):
             "templates_skipped": [],
             "summary": {
                 "total": 0,
+                "processed": 0,
                 "added": 0,
                 "updated": 0,
                 "failed": 0,
@@ -118,7 +119,6 @@ class MainFilesWorker(BaseJobWorker):
                         "timestamp": timestamp,
                         "error": str(e),
                         "error_type": type(e).__name__,
-                        "context": "adding_new_template",
                     }
                 )
 
@@ -148,6 +148,7 @@ class MainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
+            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_to_process)}: {template.title}")
             template_info = {
                 "id": template.id,
@@ -194,7 +195,6 @@ class MainFilesWorker(BaseJobWorker):
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
-                    template_info["wikitext_length"] = len(wikitext)
                     self.result["templates_failed"].append(template_info)
                     self.result["summary"]["failed"] += 1
                     logger.warning(

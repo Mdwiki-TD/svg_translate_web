@@ -5,8 +5,6 @@ import urllib.parse
 
 
 def check_url(url: str) -> bool:
-    if "/grapher/" not in url:
-        return False
 
     try:
         parsed = urllib.parse.urlparse(url)
@@ -80,5 +78,8 @@ def _find_template_source(wikitext: str) -> str:
     return url
 
 
-def find_template_source(wikitext: str) -> str:
-    return _find_template_source(wikitext) or _find_template_source_2(wikitext)
+def find_template_source(wikitext: str, check_grapher=True) -> str:
+    url = _find_template_source(wikitext) or _find_template_source_2(wikitext)
+    if check_grapher and "/grapher/" not in url:
+        return ""
+    return url

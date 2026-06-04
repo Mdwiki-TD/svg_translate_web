@@ -52,3 +52,21 @@
     <i class="bi {{ icon }}"></i> {{ text }}
 </a>
 {% endmacro %}
+
+{# status card #}
+{% macro stats_card(title, value, border_type, icon="") %}
+
+<div class="card border-{{ border_type or 'secondary' | trim }} h-100">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="card-title mb-0">{{ title | title }}</h6>
+                <h2 class="mb-0">{{ value or 0 }}</h2>
+            </div>
+            {% if icon %}
+            <i class="{{ icon }}"></i>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{%- endmacro -%}
