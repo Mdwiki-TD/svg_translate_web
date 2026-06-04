@@ -24,6 +24,7 @@ class JobsConfig:
 
     disable_uploads: str
     upload_host: str
+    priority_per_item: int | None = None
 
 
 @dataclass(frozen=True)

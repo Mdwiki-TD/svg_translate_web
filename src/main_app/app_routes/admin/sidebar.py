@@ -27,15 +27,15 @@ class SidebarItem:
     disabled: bool = False
 
 
-def generate_list_item(href, title, icon=None, target=None):
+def generate_list_item(href, item) -> str:
     """Generate HTML for a single navigation link."""
-    icon_tag = f"<i class='bi {icon} me-1'></i>" if icon else ""
-    target_attr = "target='_blank'" if target else ""
+    icon_tag = f"<i class='bi {item.icon} me-1'></i>" if item.icon else ""
+    target_attr = "target='_blank'" if item.target else ""
     link = f"""
-        <a {target_attr} class='link_nav rounded' href='{href}' title='{title}'
+        <a {target_attr} class='link_nav rounded' href='{href}' title='{item.title}'
            data-bs-toggle='tooltip' data-bs-placement='right'>
             {icon_tag}
-            <span class='hide-on-collapse-inline'>{title}</span>
+            <span class='hide-on-collapse-inline'>{item.title}</span>
         </a>
     """
     return link.strip()
@@ -190,7 +190,7 @@ def create_side(active_route, path: str | None = None):
 
     for key, items in main_menu.items():
         lis = []
-        group_is_active = True
+        group_is_active = False
         key_id = key.lower().replace(" ", "_")
         css_class_full = [item.href for item in items if path == item.href]
 
@@ -211,8 +211,11 @@ def create_side(active_route, path: str | None = None):
             if item.href.startswith("/admin/"):
                 href_full = item.href
 
-            link = generate_list_item(href_full, item.title, item.icon, item.target)
+            link = generate_list_item(href_full, item)
+
             lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
+            if css_class:
+                group_is_active = True
 
         if lis:
             show = "show" if group_is_active else ""
