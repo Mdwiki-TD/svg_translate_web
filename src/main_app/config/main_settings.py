@@ -42,6 +42,7 @@ def _env_int(name: str, default: int, safe: bool = False) -> int:
         else:
             return default
 
+
 def resolve_path(_path) -> Path:
     """Expand environment variables and user home directory in paths."""
     _path = os.path.expandvars(str(_path))

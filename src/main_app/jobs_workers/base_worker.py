@@ -7,6 +7,7 @@ import threading
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, Final
+
 from ..config import settings
 from ..db.services import (
     is_job_cancelled,
@@ -16,6 +17,7 @@ from ..su_services import jobs_files_service
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
+
 
 class BaseJobWorker(ABC):
     """Abstract base class for job workers with standardized lifecycle.
