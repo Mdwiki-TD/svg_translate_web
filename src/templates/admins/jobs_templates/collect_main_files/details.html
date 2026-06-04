@@ -129,7 +129,7 @@
                                 {{ template.title }}
                             </a>
                         </td>
-                        <td>{{ template.reason }}</td>
+                        <td>{{ template.reason or template.error }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -165,7 +165,7 @@
                                 {{ template.title }}
                             </a>
                         </td>
-                        <td>{{ template.reason }}</td>
+                        <td>{{ template.reason or template.error }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

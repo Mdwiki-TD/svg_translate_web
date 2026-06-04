@@ -103,7 +103,7 @@
                             </a>
                             {% endif %}
                         </td>
-                        <td>{{ template.reason }}</td>
+                        <td>{{ template.reason or template.error }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -148,7 +148,7 @@
                             </a>
                             {% endif %}
                         </td>
-                        <td>{{ template.reason }}</td>
+                        <td>{{ template.reason or template.error }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
