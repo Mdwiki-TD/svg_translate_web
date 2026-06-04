@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_icon, csrf %}
 
-{% block title %}{{ list_title }} · Copy SVG Translation{% endblock %}
+{% block title %}{{ list_title }}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -65,7 +65,7 @@
                                         {{ csrf() }}
                                         <button type="submit" class="btn btn-outline-warning text-muted btn-sm"
                                             onclick="return confirm('Are you sure you want to cancel this job?');">
-                                            <i class="bi bi-x-circle"></i> Cancel
+                                            Cancel
                                         </button>
                                     </form>
                                     {% endif %}

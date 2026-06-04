@@ -6,32 +6,12 @@ import logging
 from typing import Any, Dict
 
 import mwclient
+import requests
 
 from ...config import settings
 from ...core.crypto import decrypt_value
 
 logger = logging.getLogger(__name__)
-
-
-def _build_site(access_key: str, access_secret: str) -> mwclient.Site:
-    if not settings.oauth:
-        raise RuntimeError("MediaWiki OAuth consumer not configured")
-
-    return mwclient.Site(
-        settings.jobs.upload_host,
-        scheme="https",
-        clients_useragent=settings.other.user_agent,
-        consumer_token=settings.oauth.consumer_key,
-        consumer_secret=settings.oauth.consumer_secret,
-        access_token=access_key,
-        access_secret=access_secret,
-    )
-
-
-def build_upload_site(access_token: bytes, access_secret: bytes) -> mwclient.Site:
-    access_key = decrypt_value(access_token)
-    access_secret = decrypt_value(access_secret)
-    return _build_site(access_key, access_secret)
 
 
 def coerce_encrypted(value: object) -> bytes | None:
@@ -52,13 +32,32 @@ def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
     if user is None:
         return None
 
+    if not settings.oauth:
+        logger.warning("MediaWiki OAuth consumer not configured")
+        raise RuntimeError("MediaWiki OAuth consumer not configured")
+        # return None
+
     access_token = coerce_encrypted(user.get("access_token"))
     access_secret = coerce_encrypted(user.get("access_secret"))
 
     if not access_token or not access_secret:
         return None
+
     try:
-        site = build_upload_site(access_token, access_secret)
+        _access_key = decrypt_value(access_token)
+        _access_secret = decrypt_value(access_secret)
+        site = mwclient.Site(
+            settings.other.wiki_domain,
+            scheme="https",
+            clients_useragent=settings.other.user_agent,
+            consumer_token=settings.oauth.consumer_key,
+            consumer_secret=settings.oauth.consumer_secret,
+            access_token=_access_key,
+            access_secret=_access_secret,
+        )
+    except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction
+        logger.error(f"Failed to build OAuth site, {str(exc)}")
+        return None
     except Exception as exc:  # pragma: no cover - network interaction
         logger.exception("Failed to build OAuth site", exc_info=exc)
         return None

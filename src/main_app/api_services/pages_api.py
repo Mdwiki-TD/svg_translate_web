@@ -90,41 +90,6 @@ def create_page(
     return edit_page(site, page_name, wikitext, summary)
 
 
-def update_file_text(
-    original_file: str,
-    updated_file_text: str,
-    site: mwclient.Site | None,
-) -> dict:
-    """
-    Update the wikitext of the original file.
-
-    Args:
-        original_file: The name of the original file on Commons.
-        updated_file_text: The new wikitext content.
-        site: Authenticated mwclient.Site object for Commons.
-
-    Returns:
-        A dictionary with 'success' (bool) and optionally 'error' (str) on failure.
-    """
-    missing_fields = verify_required_fields(
-        {
-            "original_file": original_file,
-            "updated_file_text": updated_file_text,
-            "site": site,
-        }
-    )
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for update_file_text: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    original_file = ensure_file_prefix(original_file)
-
-    summary = "Adding/updating {{Image extracted}}"
-
-    return edit_page(site, original_file, updated_file_text, summary)
-
-
 def update_page_text(
     page_name: str,
     updated_text: str,
@@ -184,12 +149,48 @@ def get_page_text(
         logger.exception(f"Failed to retrieve wikitext for {page_title}", exc_info=exc)
         return ""
 
+def update_file_text(
+    original_file: str,
+    updated_file_text: str,
+    site: mwclient.Site | None,
+) -> dict:
+    """
+    Update the wikitext of the original file.
+
+    Args:
+        original_file: The name of the original file on Commons.
+        updated_file_text: The new wikitext content.
+        site: Authenticated mwclient.Site object for Commons.
+
+    Returns:
+        A dictionary with 'success' (bool) and optionally 'error' (str) on failure.
+    """
+    missing_fields = verify_required_fields(
+        {
+            "original_file": original_file,
+            "updated_file_text": updated_file_text,
+            "site": site,
+        }
+    )
+    if missing_fields:
+        list_str = ", ".join(missing_fields)
+        logger.error(f"Missing required fields for update_file_text: {list_str}")
+        return {"success": False, "error": f"Missing required fields: {list_str}"}
+
+    original_file = ensure_file_prefix(original_file)
+
+    summary = "Adding/updating {{Image extracted}}"
+
+    return edit_page(site, original_file, updated_file_text, summary)
+
+
 
 __all__ = [
     "create_page",
+    "get_page_text",
     "is_page_exists",
     "is_redirect",
     "move_page",
-    "update_file_text",
     "update_page_text",
+    "update_file_text",
 ]

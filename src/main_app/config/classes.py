@@ -23,7 +23,6 @@ class JobsConfig:
     """Configuration for jobs."""
 
     disable_uploads: str
-    upload_host: str
     priority_per_item: int | None = None
 
 

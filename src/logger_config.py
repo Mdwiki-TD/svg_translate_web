@@ -98,6 +98,9 @@ def configure_logging(
     level,
     use_colorlog: bool = False,
 ) -> None:
+    """
+    NOTE: Don't use settings.paths.log_dir here, logger must initialize before the app/config is created.
+    """
     # Create log directory if needed
     main_dir = os.getenv("MAIN_DIR", "~/data")
     main_dir = Path(os.path.expandvars(main_dir)).expanduser()
