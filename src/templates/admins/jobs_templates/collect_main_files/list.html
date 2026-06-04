@@ -1,10 +1,5 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
-{% set job_type = 'collect_main_files' %}
-
-{% block list_title %}Collect Templates data Jobs{% endblock %}
-{% block list_headline %}Collect Templates data Jobs{% endblock %}
-
 {% block start_confirm_message %}This will start a background job to collect templates data for all templates that don't have one. Continue?{% endblock %}
 
 {% block header_actions %}

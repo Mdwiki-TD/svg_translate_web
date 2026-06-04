@@ -1,10 +1,5 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
-{% set job_type = 'crop_main_files' %}
-
-{% block list_title %}Crop Newest World Files{% endblock %}
-{% block list_headline %}Crop Newest World Files{% endblock %}
-
 {% block start_confirm_message %}This will start a background job to crop newest world files and upload them with '(cropped)' suffix. Continue?{% endblock %}
 {% block start_icon %}bi-crop{% endblock %}
 

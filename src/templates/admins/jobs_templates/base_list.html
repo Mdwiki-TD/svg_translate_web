@@ -6,7 +6,7 @@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">{% block list_headline %}{% endblock %}</h3>
+        <h3 class="headline mb-0">{{ list_headline }}</h3>
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}

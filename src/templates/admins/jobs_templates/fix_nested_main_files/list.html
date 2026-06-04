@@ -1,8 +1,3 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
-{% set job_type = 'fix_nested_main_files' %}
-
-{% block list_title %}Fix Nested Main Files Jobs{% endblock %}
-{% block list_headline %}Fix Nested Main Files Jobs{% endblock %}
-
 {% block start_confirm_message %}This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?{% endblock %}

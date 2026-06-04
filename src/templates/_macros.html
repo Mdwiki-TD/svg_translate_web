@@ -43,7 +43,6 @@
 </a>
 {% endmacro %}
 
-
 {% macro nav_link_with_args(endpoint, icon, text, url, path) %}
 {# check endpoint and job_type in URL #}
 {% set is_active = request and request.path and request.path.startswith(path) %}
