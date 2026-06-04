@@ -74,7 +74,7 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
     mock_update_template.side_effect = side_effect
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_main_files_worker.get_wikitext", lambda t, **kwargs: "some wikitext"
+        "src.main_app.jobs_workers.collect_main_files_worker.get_page_text", lambda t, **kwargs: "some wikitext"
     )
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.find_main_title", lambda x: "file.svg")
     monkeypatch.setattr(
