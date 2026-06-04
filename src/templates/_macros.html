@@ -53,6 +53,80 @@
 </a>
 {% endmacro %}
 
+{%- macro edit_form(domain, title, newtext) -%}
+<div class="card mt-3">
+    <div class="card-header aligncenter" style="font-weight:bold;">
+        <h3>
+            <i class="bi bi-file-earmark-text"></i>
+            <a target="_blank" href="https://{{ domain }}/w/index.php?title={{ title }}">
+                {{ title }}
+            </a>
+        </h3>
+    </div>
+    <div class="card-body">
+        <form id="editform" name="editform" method="POST"
+            action="https://{{ domain }}/w/index.php?title={{ title }}&action=submit" target="_blank">
+            <input type="hidden" value="" name="wpEdittime">
+            <input type="hidden" value="" name="wpStarttime">
+            <input type="hidden" value="" name="wpScrolltop" id="wpScrolltop">
+            <input type="hidden" value="12" name="parentRevId">
+            <input type="hidden" value="wikitext" name="model">
+            <input type="hidden" value="text/x-wiki" name="format">
+            <input type="hidden" value="1" name="wpUltimateParam">
+            <input type="hidden" name="wpSummary" value="Fix references">
+            <input type="hidden" id="wikitext-old" value="">
+            <div class="mb-3">
+                <label for="wikitext-new" class="form-label fw-semibold">
+                    New Wikitext
+                </label>
+                <textarea id="wikitext-new" class="form-control" name="wpTextbox1" rows="5">{{ newtext }}</textarea>
+            </div>
+            <div class="editOptions aligncenter">
+                <input id="wpPreview" type="submit" class="btn btn-outline-primary" tabindex="5" title="[p]"
+                    accesskey="p" name="wpPreview" value="Preview changes" fdprocessedid="nudjzu">
+                <input id="wpDiff" type="submit" class="btn btn-outline-primary" tabindex="7" name="wpDiff"
+                    value="show changes" accesskey="v" title="show changes." fdprocessedid="81zdl">
+                <div class="editButtons">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{%- endmacro -%}
+
+{%- macro saved_alert(domain, form_title, newrevid) -%}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-12">
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Changes have been published.
+                <div class="ms-auto d-flex gap-2">
+                    <a href="https://{{ domain }}/w/index.php?title=Special:Diff/{{ newrevid }}" target="_blank"
+                        class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-earmark-text me-1"></i> Diff
+                    </a>
+                    <a href="https://{{ domain }}/w/index.php?title={{ form_title }}&action=history" target="_blank"
+                        class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-clock-history me-1"></i> History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{%- endmacro -%}
+
+
+{# status icon #}
+{% macro status_icon(status) %}
+<small
+    class="d-inline-flex px-2 py-1 fw-semibold text-{{ status | get_status_class }}-emphasis bg-{{ status | get_status_class }}-subtle border border-{{ status | get_status_class }}-subtle rounded-2">
+    {{ status | title }}
+</small>
+{%- endmacro -%}
+
+
 {# status card #}
 {% macro stats_card(title, value, border_type, icon="") %}
 
@@ -69,4 +143,18 @@
         </div>
     </div>
 </div>
+{%- endmacro -%}
+
+{# Diff link #}
+{% macro diff_link(domain, newrevid) %}
+<a href="https://{{ domain }}/w/index.php?diff={{ newrevid }}" target="_blank">
+    Diff
+</a>
+{%- endmacro -%}
+
+{# wiki domain link #}
+{% macro wiki_domain_link(domain, title) %}
+<a href="https://{{ domain }}/wiki/{{ title | replace(' ', '_') | urlencode }}" target="_blank">
+    {{ title }}
+</a>
 {%- endmacro -%}

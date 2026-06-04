@@ -13,69 +13,25 @@
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        {{ stats_card('Processed', (result_data.summary.processed or result_data.summary.checked or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    <div class="col-md-2">
+        {{ stats_card('checked', result_data.summary.checked, "success", "") }}
     </div>
-    <div class="col-md-9">
+    <div class="col-md-2">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ (result_data.summary.total or result_data.summary.to_rename or 0), "primary", "") }}
+    </div>
+    <div class="col-md-8">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Success', ( result_data.templates_success | length ) or result_data.summary.success, "success", "") }}
+                {{ stats_card('Renamed', ( result_data.templates_success | length ) or result_data.summary.success or result_data.summary.renamed, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.templates_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Redirected', ( result_data.templates_success | length ) or result_data.summary.redirected, "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Skipped', result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
-    <div class="col">
-        <div class="card h-100 border">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.checked or 0 }}</h4>
-                <small class="text-muted">Checked</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-primary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.to_rename or 0 }}</h4>
-                <small>Need rename</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-success">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.renamed or 0 }}</h4>
-                <small>Renamed</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-secondary">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.skipped_target_exists or 0 }}</h4>
-                <small>Skipped (target exists)</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-info">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.redirected or 0 }}</h4>
-                <small>Redirected</small>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-danger">
-            <div class="card-body p-2">
-                <h4 class="mb-0">{{ result_data.summary.failed or 0 }}</h4>
-                <small>Failed</small>
             </div>
         </div>
     </div>
