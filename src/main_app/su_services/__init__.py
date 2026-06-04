@@ -1,3 +1,5 @@
+from .current_user import CurrentUser
+
 from .jobs_files_service import (
     create_job_cancelled_file,
     is_job_cancelled_file_exist,
@@ -14,4 +16,5 @@ __all__ = [
     "save_job_result_by_name",
     "load_job_result",
     "UserService",
+    "CurrentUser",
 ]
