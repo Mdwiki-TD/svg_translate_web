@@ -34,8 +34,7 @@ def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
 
     if not settings.oauth:
         logger.warning("MediaWiki OAuth consumer not configured")
-        raise RuntimeError("MediaWiki OAuth consumer not configured")
-        # return None
+        return None
 
     access_token = coerce_encrypted(user.get("access_token"))
     access_secret = coerce_encrypted(user.get("access_secret"))
