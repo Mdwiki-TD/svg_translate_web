@@ -76,6 +76,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_get_chart_by_slug = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug)
 
+    # Mock get_user_site
+    mock_get_user_site = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.get_user_site",
+        mock_get_user_site,
+    )
+
     return {
         "list_templates": mock_list_templates,
         "add_template_data": mock_add_template_data,
@@ -87,6 +94,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "find_main_title": mock_find_main_title,
         "get_chart_by_slug": mock_get_chart_by_slug,
         "is_job_cancelled": mock_jobs_service,
+        "get_user_site": mock_get_user_site,
     }
 
 
@@ -146,8 +154,9 @@ def test_collect_main_files_updates_template_without_main_file(mock_services, mo
 
     collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
+    mock_services["get_user_site"].return_value = None
     # Should fetch wikitext
-    mock_services["get_page_text"].assert_called_once_with("Template:Test", project="commons.wikimedia.org")
+    mock_services["get_page_text"].assert_called_once_with("Template:Test", site=None)
 
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
@@ -240,7 +249,7 @@ def test_collect_main_files_processes_multiple_templates(mock_services):
 
     # First template: success
     # Third template: success
-    def get_page_text_side_effect(title, project):
+    def get_page_text_side_effect(title, site=None):
         if "Test1" in title:
             return "{{SVGLanguages|test1.svg}}"
         elif "Test3" in title:
@@ -350,8 +359,9 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     # Should add new template
     mock_services["add_template_data"].assert_called_once_with({"title": "Template:NewFromCategory"})
 
+    mock_services["get_user_site"].return_value = None
     # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
-    mock_services["get_page_text"].assert_called_once_with("Template:NewFromCategory", project="commons.wikimedia.org")
+    mock_services["get_page_text"].assert_called_once_with("Template:NewFromCategory", site=None)
 
     # Should update the new template with main file
     mock_services["update_template_data"].assert_called_once_with(
@@ -443,7 +453,7 @@ def test_collect_main_files_cancellation_during_processing(mock_services):
     # Cancel after processing first template
     call_count = [0]
 
-    def get_page_text_side_effect(title, project):
+    def get_page_text_side_effect(title, site=None):
         call_count[0] += 1
         if call_count[0] == 1:
             return "{{SVGLanguages|test1.svg}}"
