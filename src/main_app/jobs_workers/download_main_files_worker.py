@@ -124,6 +124,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
             "files_failed": [],
             "summary": {
                 "total": 0,
+                "processed": 0,
                 "downloaded": 0,
                 "failed": 0,
                 "exists": 0,
@@ -170,6 +171,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
+            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
             file_info = {
