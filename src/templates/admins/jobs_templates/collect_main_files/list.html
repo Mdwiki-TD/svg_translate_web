@@ -1,7 +1,5 @@
 {% extends "admins/jobs_templates/base_list.html" %}
 
-{% block start_confirm_message %}This will start a background job to collect templates data for all templates that don't have one. Continue?{% endblock %}
-
 {% block header_actions %}
 <form method="post" action="{{ url_for('admin.jobs.start_job_with_args', job_type=job_type) }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
