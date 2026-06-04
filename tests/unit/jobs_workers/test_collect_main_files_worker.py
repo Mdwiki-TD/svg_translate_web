@@ -77,7 +77,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     monkeypatch.setattr("src.main_app.jobs_workers.collect_main_files_worker.get_chart_by_slug", mock_get_chart_by_slug)
 
     # Mock get_user_site
-    mock_get_user_site = MagicMock()
+    mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
         "src.main_app.jobs_workers.collect_main_files_worker.get_user_site",
         mock_get_user_site,
@@ -152,11 +152,13 @@ def test_collect_main_files_updates_template_without_main_file(mock_services, mo
     mock_services["get_page_text"].return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
 
+    magic = MagicMock()
+    mock_services["get_user_site"].return_value = magic
+
     collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
-    mock_services["get_user_site"].return_value = None
     # Should fetch wikitext
-    mock_services["get_page_text"].assert_called_once_with("Template:Test", site=None)
+    mock_services["get_page_text"].assert_called_once_with("Template:Test", site=magic)
 
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
@@ -354,14 +356,16 @@ def test_collect_main_files_full_workflow_with_new_templates(mock_services, mock
     mock_services["get_page_text"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
+    magic = MagicMock()
+    mock_services["get_user_site"].return_value = magic
+
     collect_main_files_worker.collect_main_files_for_templates(job_id=1, user=None)
 
     # Should add new template
     mock_services["add_template_data"].assert_called_once_with({"title": "Template:NewFromCategory"})
 
-    mock_services["get_user_site"].return_value = None
     # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
-    mock_services["get_page_text"].assert_called_once_with("Template:NewFromCategory", site=None)
+    mock_services["get_page_text"].assert_called_once_with("Template:NewFromCategory", site=magic)
 
     # Should update the new template with main file
     mock_services["update_template_data"].assert_called_once_with(
