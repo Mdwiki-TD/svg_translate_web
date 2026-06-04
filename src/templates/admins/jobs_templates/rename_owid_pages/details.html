@@ -1,13 +1,35 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header %}
+{% from "_macros.html" import card_header, stats_card %}
 
 {% set job_type = 'rename_owid_pages' %}
 
 {% block detail_title %}Rename OWID Pages{% endblock %}
 {% block detail_headline %}Rename OWID Pages{% endblock %}
 
+{% set renamed_pages = result_data.pages_processed | selectattr("status", "equalto", "renamed") | list %}
+{% set skipped_pages = result_data.pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list %}
+{% set redirected_pages = result_data.pages_processed | selectattr("status", "equalto", "redirected") | list %}
+{% set failed_pages = result_data.pages_processed | selectattr("status", "equalto", "failed") | list %}
+
 {% block job_summary %}
-{% if result_data.summary %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or result_data.summary.checked or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Success', ( result_data.templates_success | length ) or result_data.summary.success, "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('skipped', ( result_data.templates_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-3">
     <div class="col">
         <div class="card h-100 border">
@@ -58,16 +80,9 @@
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block job_details %}
-{% if result_data.pages_processed %}
-
-{% set renamed_pages = result_data.pages_processed | selectattr("status", "equalto", "renamed") | list %}
-{% set skipped_pages = result_data.pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list %}
-{% set redirected_pages = result_data.pages_processed | selectattr("status", "equalto", "redirected") | list %}
-{% set failed_pages = result_data.pages_processed | selectattr("status", "equalto", "failed") | list %}
 
 <!-- Renamed -->
 {% if renamed_pages %}
@@ -254,5 +269,4 @@
 </div>
 {% endif %}
 
-{% endif %}
 {% endblock %}

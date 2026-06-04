@@ -11,7 +11,7 @@
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        {{ stats_card('Processing', result_data.summary.processed or 0 ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
     <div class="col-md-9">
         <div class="row g-3">
