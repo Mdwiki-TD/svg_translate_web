@@ -62,11 +62,14 @@ class TemplateRecord(db.Model):
         if not self.last_world_year and self.last_world_file:
             last_world_year = match_last_world_year(self.last_world_file)
 
+        main_file = self.main_file.removeprefix("File:") if self.main_file else self.main_file
+        last_world_file = self.last_world_file.removeprefix("File:") if self.last_world_file else self.last_world_file
+
         return {
             "id": self.id,
             "title": self.title,
-            "main_file": self.main_file,
-            "last_world_file": self.last_world_file,
+            "main_file": main_file,
+            "last_world_file": last_world_file,
             "last_world_year": last_world_year,
             "source": self.source,
             "slug": slug,
