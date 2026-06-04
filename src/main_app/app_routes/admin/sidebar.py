@@ -27,12 +27,16 @@ class SidebarItem:
     disabled: bool = False
 
 
-def generate_list_item(href, item) -> str:
+def generate_list_item(item) -> str:
     """Generate HTML for a single navigation link."""
+    href_full = item.href if item.target else f"/admin/{item.href}"
+    if item.href.startswith("/admin/"):
+        href_full = item.href
+
     icon_tag = f"<i class='bi {item.icon} me-1'></i>" if item.icon else ""
     target_attr = "target='_blank'" if item.target else ""
     link = f"""
-        <a {target_attr} class='link_nav rounded' href='{href}' title='{item.title}'
+        <a {target_attr} class='link_nav rounded' href='{href_full}' title='{item.title}'
            data-bs-toggle='tooltip' data-bs-placement='right'>
             {icon_tag}
             <span class='hide-on-collapse-inline'>{item.title}</span>
@@ -207,11 +211,7 @@ def create_side(active_route, path: str | None = None):
                 if not css_class and active_route == item.id:
                     css_class = "active"
 
-            href_full = item.href if item.target else f"/admin/{item.href}"
-            if item.href.startswith("/admin/"):
-                href_full = item.href
-
-            link = generate_list_item(href_full, item)
+            link = generate_list_item(item)
 
             lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
             if css_class:
