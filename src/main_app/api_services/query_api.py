@@ -131,24 +131,6 @@ def search_pages(
 
     return titles
 
-
-def get_double_redirects(site: mwclient.Site) -> list[dict[str, str]]:
-    """Return resolved double-redirect pairs ``[{"from", "to"}, ...]``."""
-    params = {
-        "prop": "info",
-        "generator": "querypage",
-        "redirects": 1,
-        "utf8": 1,
-        "gqppage": "DoubleRedirects",
-        "gqplimit": "max",
-    }
-    data = site.get("query", **params)
-    if not data:
-        return []
-    query = data.get("query") or {}
-    return query.get("redirects") or []
-
-
 def get_page_links(
     title: str,
     site: mwclient.Site,
@@ -181,7 +163,6 @@ def get_page_links(
 
 __all__ = [
     "get_template_pages",
-    "get_double_redirects",
     "get_page_links",
     "is_pages_exists",
     "resolve_redirects",
