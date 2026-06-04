@@ -106,7 +106,7 @@ def test_job_detail_page_displays_job_info(admin_jobs_client, jobs_db):
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Collect Templates data Job #{job.id}" in page
-    assert "completed" in page
+    assert "Completed" in page
 
 
 def test_job_detail_page_shows_result_data(admin_jobs_client, jobs_db, tmp_path):
@@ -239,7 +239,7 @@ def test_fix_nested_job_detail_page_displays_job_info(admin_jobs_client, jobs_db
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Fix Nested Main Files Job #{job.id}" in page
-    assert "completed" in page
+    assert "Completed" in page
 
 
 def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, jobs_db, tmp_path):
@@ -534,7 +534,7 @@ def test_download_main_files_job_detail_page_displays_job_info(admin_jobs_client
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))
     assert f"Download Main Files Job #{job.id}" in page
-    assert "completed" in page
+    assert "Completed" in page
 
 
 def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client, jobs_db, tmp_path):

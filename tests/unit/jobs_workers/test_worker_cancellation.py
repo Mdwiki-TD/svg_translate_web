@@ -64,6 +64,13 @@ def test_collect_main_files_worker_cancellation(mock_common_services, monkeypatc
         mock_add_template_data,
     )
 
+    # Mock get_user_site to return a non-None site so the worker reaches the processing loop
+    mock_get_user_site = MagicMock(return_value=MagicMock())
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_main_files_worker.get_user_site",
+        mock_get_user_site,
+    )
+
     # Mock update_template_data to set the cancel event
     cancel_event = threading.Event()
     mock_update_template = MagicMock()
