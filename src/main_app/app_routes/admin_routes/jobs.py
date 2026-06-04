@@ -123,19 +123,18 @@ def _jobs_list(job_type: str) -> str:
     # Filter jobs at database level for better performance
     jobs = list_jobs(limit=100, job_type=job_type)
 
-    # sort jobs by created_at key
-    if jobs:
-        jobs = sorted(jobs, key=lambda x: x.created_at or "", reverse=True)
-
-    job_data = jobs_data.get(job_type)
-    template = job_data.job_list_template if job_data else None
-    if not template:
+    template_data = jobs_data.get(job_type)
+    if not template_data:
         abort(404)
 
+    template_name = template_data.job_list_template
+
     return render_template(
-        template,
+        template_name,
         jobs=jobs,
         job_type=job_type,
+        list_title=template_data.job_name,
+        list_headline=template_data.job_name,
     )
 
 
