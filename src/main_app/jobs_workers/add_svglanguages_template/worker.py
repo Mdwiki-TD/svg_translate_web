@@ -126,7 +126,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def _process_template(self, template: TemplateRecord) -> None:
+    def _process_template(self, template: TemplateRecord) -> bool:
         file_info = TemplateInfo(
             template_id=template.id,
             template_title=template.title,
@@ -135,26 +135,27 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 2 generate_template_text
         if not self._step_generate_template_text(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 3 add_template_text
         if not self._step_add_template(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 4 save_new_text
         if not self._step_save_new_text(file_info):
             self._append(file_info)
-            return
+            return False
 
         file_info.status = "completed"
         self.result["summary"]["processed"] += 1
         self._append(file_info)
+        return True
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
@@ -264,7 +265,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
