@@ -60,9 +60,7 @@ def add_template_data(
     if "main_file" in data:
         data["main_file"] = data["main_file"].removeprefix("File:")
 
-    temp_data = {
-        key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)
-    }
+    temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
     chart = TemplateRecord(**temp_data)
 
     db.session.add(chart)
