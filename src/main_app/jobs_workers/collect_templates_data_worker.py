@@ -113,7 +113,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "collect_main_files"
+        return "collect_templates_data"
 
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
@@ -337,7 +337,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         return self.result
 
 
-def collect_main_files_for_templates(
+def collect_templates_data_entry(
     *,
     job_id: int,
     user: dict[str, Any],
@@ -369,6 +369,6 @@ def collect_main_files_for_templates(
 
 
 __all__ = [
-    "collect_main_files_for_templates",
+    "collect_templates_data_entry",
     "CollectMainFilesWorker",
 ]

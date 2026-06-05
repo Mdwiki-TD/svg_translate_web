@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .add_svglanguages_template import add_svglanguages_template_to_templates
-from .collect_main_files_worker import collect_main_files_for_templates
+from .collect_templates_data_worker import collect_templates_data_entry
 from .create_owid_pages import create_owid_pages_for_templates
 from .crop_main_files import crop_main_files_for_templates
 from .download_main_files_worker import download_main_files_for_templates
@@ -24,12 +24,12 @@ class JobData:
 
 
 jobs_data = {
-    "collect_main_files": JobData(
-        job_type="collect_main_files",
+    "collect_templates_data": JobData(
+        job_type="collect_templates_data",
         job_name="Collect Templates data",
-        job_details_template="admins/jobs_templates/collect_main_files/details.html",
-        job_list_template="admins/jobs_templates/collect_main_files/list.html",
-        job_callable=collect_main_files_for_templates,
+        job_details_template="admins/jobs_templates/collect_templates_data/details.html",
+        job_list_template="admins/jobs_templates/collect_templates_data/list.html",
+        job_callable=collect_templates_data_entry,
         job_args=[],
         start_confirm_message="This will start a background job to collect templates data for all templates that don't have one. Continue?",
     ),

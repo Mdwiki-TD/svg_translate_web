@@ -30,7 +30,7 @@ class TestGenerateResultFileName:
     def test_generate_result_file_name_different_job_types(self) -> None:
         """Test generate_result_file_name with different job types."""
         job_types = [
-            "collect_main_files",
+            "collect_templates_data",
             "create_owid_pages",
             "crop_main_files",
             "download_main_files",

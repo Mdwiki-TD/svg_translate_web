@@ -107,7 +107,7 @@ tests/
 │   │   │   ├── test_base_worker.py          # BaseJobWorker (ABC)
 │   │   │   ├── test_jobs_worker.py
 │   │   │   ├── test_worker_cancellation.py
-│   │   │   ├── test_collect_main_files_worker.py  # CollectMainFilesWorker
+│   │   │   ├── test_collect_templates_data_worker.py  # CollectMainFilesWorker
 │   │   │   ├── test_download_main_files_worker.py # DownloadMainFilesWorker
 │   │   │   ├── test_fix_nested_main_files_worker.py # FixNestedMainFilesWorker
 │   │   │   ├── crop_main_files/

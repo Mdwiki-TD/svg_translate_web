@@ -58,7 +58,7 @@ class BaseJobWorker(ABC):
         """Return the job type string identifier.
 
         Returns:
-            The job type string (e.g., 'crop_main_files', 'collect_main_files')
+            The job type string (e.g., 'crop_main_files', 'collect_templates_data')
         """
         ...
 

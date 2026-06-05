@@ -2,7 +2,7 @@
 Background job definitions and registry.
 
 TODO:
-The MainFilesWorker class in this file is nearly identical to CollectMainFilesWorker in src/main_app/jobs_workers/collect_main_files_worker.py. This significant code duplication makes maintenance difficult and error-prone.
+The MainFilesWorker class in this file is nearly identical to CollectMainFilesWorker in src/main_app/jobs_workers/collect_templates_data_worker.py. This significant code duplication makes maintenance difficult and error-prone.
 Please consider refactoring so both could use a shared base class or utility functions for the common logic.
 
 """
@@ -55,7 +55,7 @@ class MainFilesWorker(BaseJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "collect_main_files"
+        return "collect_templates_data"
 
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
@@ -277,7 +277,7 @@ def start() -> None:
     user = None
     # Get auth payload for OAuth uploads
     cancel_event = threading.Event()
-    job_record = create_job("collect_main_files", "Background job")
+    job_record = create_job("collect_templates_data", "Background job")
     job_id = job_record.id
     logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
     worker = MainFilesWorker(job_id, user, cancel_event)

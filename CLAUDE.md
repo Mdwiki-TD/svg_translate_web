@@ -124,7 +124,7 @@ Background jobs are registered in `src/main_app/jobs_workers/workers_list.py` an
 
 | Job Type                    | Worker Location                                         | Purpose                                                  |
 | --------------------------- | ------------------------------------------------------- | -------------------------------------------------------- |
-| `collect_main_files`        | `jobs_workers/collect_main_files_worker.py`             | Collect template metadata from Commons                   |
+| `collect_templates_data`        | `jobs_workers/collect_templates_data_worker.py`             | Collect template metadata from Commons                   |
 | `crop_main_files`           | `jobs_workers/crop_main_files/`                         | Crop newest world files                                  |
 | `create_owid_pages`         | `jobs_workers/create_owid_pages/`                       | Create OWID gallery pages from templates                 |
 | `rename_owid_pages`         | `jobs_workers/rename_owid_pages/`                       | Capitalize first letter of OWID subpage names            |

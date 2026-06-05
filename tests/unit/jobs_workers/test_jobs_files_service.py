@@ -21,7 +21,7 @@ def test_save_job_result(tmp_path, monkeypatch):
     # Mock get_jobs_data_dir to use tmp_path
     monkeypatch.setattr("src.main_app.su_services.jobs_files_service.get_jobs_data_dir", lambda: tmp_path)
 
-    job = JobRecord(id=1, job_type="collect_main_files", status="pending")
+    job = JobRecord(id=1, job_type="collect_templates_data", status="pending")
 
     result_data = {
         "job_id": job.id,
