@@ -136,7 +136,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         return new_text
 
-    def _process_template(self, template: TemplateRecord) -> None:
+    def _process_template(self, template: TemplateRecord) -> bool:
         file_info = TemplateProcessingInfo(
             template_id=template.id,
             template_title=template.title,
@@ -145,12 +145,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
             self._append(file_info)
-            return
+            return False
 
         if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
@@ -159,16 +159,17 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # if page text == new text then summary.skipped++ else summary.updated++
         if not self._step_check_exists_and_update(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 4 - create_new_page
         if not self._step_create_new_page(file_info):
             self._append(file_info)
-            return
+            return False
 
         file_info.status = "completed"
         self.result["summary"]["processed"] += 1
         self._append(file_info)
+        return True
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
@@ -312,7 +313,11 @@ class CreateOwidPagesWorker(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()

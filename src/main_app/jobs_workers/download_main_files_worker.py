@@ -217,6 +217,10 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 self.result["summary"]["failed"] += 1
                 logger.exception(f"Job {self.job_id}: Error processing {template.title}")
 
+            if file_info["status"] == "downloaded" and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
+
         # Final save
         self.result["completed_at"] = datetime.now().isoformat()
 

@@ -228,6 +228,10 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 self._log_success(template_info, fix_result)
                 logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
 
+                if self.check_cancel_db_periodic():
+                    logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                    break
+
             elif fix_result.get("no_nested_tags", False):
                 self._log_skipped_no_nested_tags(template_info, fix_result)
                 logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")

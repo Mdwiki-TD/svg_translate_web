@@ -322,9 +322,15 @@ class CollectMainFilesWorker(BaseJobWorker):
                 template_info.status = "failed"
                 template_info.error = f"Exception: {str(e)}"
                 template_info.error_type = type(e).__name__
+
                 self.result["pages_failed"].append(template_info.to_dict())
                 self.result["summary"]["failed"] += 1
+
                 logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
+
+            if template_info.status == "updated" and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
         # Update summary skipped count
         self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
