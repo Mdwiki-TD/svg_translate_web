@@ -32,6 +32,7 @@ class CopySvgLangsWorker(BaseJobWorker):
         self.upload_limit = args.get("upload_limit") if args else 0
 
         super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

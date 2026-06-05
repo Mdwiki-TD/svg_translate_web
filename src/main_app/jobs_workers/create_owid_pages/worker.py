@@ -82,9 +82,30 @@ class CreateOwidPagesWorker(BaseJobWorker):
         self.site: mwclient.Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
 
-        self.result = {}
-
         super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "create_owid_pages"
+
+    def get_initial_result(self) -> Dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "status": "pending",
+            "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
+            "summary": {
+                "total": 0,
+                "processed": 0,
+                "created": 0,
+                "updated": 0,
+                "failed": 0,
+                "skipped": 0,
+            },
+            "templates_processed": [],
+        }
 
     # ------------------------------------------------------------------
     # Initialisation helpers
@@ -271,28 +292,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "create_owid_pages"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "status": "pending",
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "created": 0,
-                "updated": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "templates_processed": [],
-        }
 
     def process(self):
         self.site = get_user_site(self.user)

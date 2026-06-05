@@ -92,7 +92,10 @@ class RenameOwidPagesWorker(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: mwclient.Site | None = None
+        self.args = args or {}
+
         super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     # ------------------------------------------------------------------
     # BaseJobWorker hooks

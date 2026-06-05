@@ -31,7 +31,6 @@ class BaseJobWorker(ABC):
 
     Subclasses must implement:
     - get_job_type(): Return the job type string
-    - get_initial_result(): Return the initial result dictionary
     - process(): Implement the actual processing logic
 
     Optional overrides:
@@ -50,8 +49,9 @@ class BaseJobWorker(ABC):
         self.cancel_event: Final[threading.Event | None] = cancel_event
         self.job_type: str = self.get_job_type()
         self.result_file: str = generate_result_file_name(job_id, self.job_type)
-        self.result: Dict[str, Any] = self.get_initial_result()
         self._status: str = "pending"
+
+        self.result: Dict[str, Any] = None
 
     @abstractmethod
     def get_job_type(self) -> str:
@@ -59,16 +59,6 @@ class BaseJobWorker(ABC):
 
         Returns:
             The job type string (e.g., 'crop_main_files', 'collect_main_files')
-        """
-        ...
-
-    @abstractmethod
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result dictionary structure.
-
-        Returns:
-            Dictionary with initial result structure including
-            job_id, started_at, summary, and tracking lists
         """
         ...
 

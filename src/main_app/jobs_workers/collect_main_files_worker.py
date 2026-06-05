@@ -102,12 +102,14 @@ class CollectMainFilesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(job_id, user, cancel_event)
         self.update_all = False
         self.user = user
         self.site: mwclient.Site | None = None
         if args and str(args.get("update_all", "")).lower() == "true":
             self.update_all = True
+
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

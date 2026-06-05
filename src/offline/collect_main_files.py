@@ -41,6 +41,18 @@ logger = logging.getLogger(__name__)
 class MainFilesWorker(BaseJobWorker):
     """Worker for collecting main files for templates."""
 
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        self.args = args or {}
+
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "collect_main_files"
