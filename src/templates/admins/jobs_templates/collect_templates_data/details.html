@@ -2,7 +2,7 @@
 {% from "_macros.html" import card_header, stats_card %}
 
 {% block job_summary %}
-{% set total_skipped = ( result_data.templates_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
+{% set total_skipped = ( result_data.pages_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -11,16 +11,16 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Added', result_data.summary.added or ( result_data.templates_added|length ), "success", "") }}
+                {{ stats_card('Added', result_data.summary.added or ( result_data.pages_added|length ), "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Updated', result_data.summary.updated or ( result_data.templates_updated|length ), "success", "") }}
+                {{ stats_card('Updated', result_data.summary.updated or ( result_data.pages_updated|length ), "success", "") }}
             </div>
             <div class="col">
                 {{ stats_card('skipped', total_skipped, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', result_data.summary.failed or ( result_data.templates_failed|length ), "danger", "") }}
+                {{ stats_card('Failed', result_data.summary.failed or ( result_data.pages_failed|length ), "danger", "") }}
             </div>
         </div>
     </div>
@@ -30,10 +30,10 @@
 
 {% block job_details %}
 <!-- Added Templates -->
-{% if result_data.templates_added %}
+{% if result_data.pages_added %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Added Templates (" ~ result_data.templates_added|length ~ ")") }}
+        {{ card_header("Added Templates (" ~ result_data.pages_added|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -45,7 +45,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_added %}
+                    {% for template in result_data.pages_added %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -64,10 +64,10 @@
 {% endif %}
 
 <!-- Updated Templates -->
-{% if result_data.templates_updated %}
+{% if result_data.pages_updated %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Updated Templates (" ~ result_data.templates_updated|length ~ ")") }}
+        {{ card_header("Updated Templates (" ~ result_data.pages_updated|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -82,7 +82,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_updated %}
+                    {% for template in result_data.pages_updated %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>
@@ -104,10 +104,10 @@
 {% endif %}
 
 <!-- Failed Templates -->
-{% if result_data.templates_failed %}
+{% if result_data.pages_failed %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Failed Templates (" ~ result_data.templates_failed|length ~ ")") }}
+        {{ card_header("Failed Templates (" ~ result_data.pages_failed|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -120,7 +120,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_failed %}
+                    {% for template in result_data.pages_failed %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>
@@ -140,10 +140,10 @@
 {% endif %}
 
 <!-- Skipped Templates -->
-{% if result_data.templates_skipped %}
+{% if result_data.pages_skipped %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Skipped Templates (" ~ result_data.templates_skipped|length ~ ")") }}
+        {{ card_header("Skipped Templates (" ~ result_data.pages_skipped|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -156,7 +156,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_skipped %}
+                    {% for template in result_data.pages_skipped %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>

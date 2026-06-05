@@ -188,7 +188,9 @@ class CropMainFilesProcessor:
             if n == 1 or n % per_item == 0:
                 self._save_progress()
                 try:
-                    jobs_files_service.save_job_result_by_name(self.result_file, self.result)
+                    result = self.result
+                    result["last_update"] = datetime.now().isoformat()
+                    jobs_files_service.save_job_result_by_name(self.result_file, result)
                 except Exception as exc:
                     logger.exception(
                         f"Job {self.job_id}: Failed to persist periodic progress; continuing",

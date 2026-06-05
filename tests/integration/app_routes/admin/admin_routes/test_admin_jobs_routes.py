@@ -123,10 +123,10 @@ def test_job_detail_page_shows_result_data(admin_jobs_client, jobs_db, tmp_path)
             "failed": 1,
             "skipped": 1,
         },
-        "templates_updated": [
+        "pages_updated": [
             {"id": 1, "title": "Template:Test1", "new_main_file": "test1.svg"},
         ],
-        "templates_failed": [
+        "pages_failed": [
             {"id": 2, "title": "Template:Test2", "reason": "No wikitext found"},
         ],
     }
@@ -256,13 +256,13 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, jobs_db
             "failed": 1,
             "skipped": 1,
         },
-        "templates_success": [
+        "pages_success": [
             {"id": 1, "title": "Template:Test1", "main_file": "test1.svg", "fix_result": {"message": "Success"}},
         ],
-        "templates_failed": [
+        "pages_failed": [
             {"id": 2, "title": "Template:Test2", "main_file": "test2.svg", "reason": "Failed to fix"},
         ],
-        "templates_skipped": [
+        "pages_skipped": [
             {"id": 3, "title": "Template:Test3", "reason": "No main_file set"},
         ],
     }

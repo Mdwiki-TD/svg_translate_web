@@ -99,11 +99,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             "summary": {
                 "total": 0,
                 "processed": 0,
-                "updated": 0,
+                "success": 0,
                 "failed": 0,
                 "skipped": 0,
             },
-            "templates_processed": [],
+            "pages_processed": [],
         }
 
     # ------------------------------------------------------------------
@@ -219,7 +219,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             self._fail(info, "save_new_text", err)
             return False
 
-        self.result["summary"]["updated"] += 1
+        self.result["summary"]["success"] += 1
         info.steps["save_new_text"] = {"result": True, "msg": "Template page updated."}
         return True
 
@@ -239,7 +239,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateInfo) -> None:
-        self.result["templates_processed"].append(file_info.to_dict())
+        self.result["pages_processed"].append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point

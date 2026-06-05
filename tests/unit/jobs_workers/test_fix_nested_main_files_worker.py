@@ -141,8 +141,8 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["success"] == 1
-    assert len(result["templates_success"]) == 1
-    assert result["templates_success"][0]["main_file"] == "test.svg"
+    assert len(result["pages_success"]) == 1
+    assert result["pages_success"][0]["main_file"] == "test.svg"
 
 
 def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
@@ -165,8 +165,8 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 0
     assert result["summary"]["skipped"] == 1
-    assert len(result["templates_skipped"]) == 1
-    assert "No nested tags found" in result["templates_skipped"][0]["reason"]
+    assert len(result["pages_skipped"]) == 1
+    assert "No nested tags found" in result["pages_skipped"][0]["reason"]
 
 
 def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
@@ -184,8 +184,8 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
-    assert "Exception: Network error" in result["templates_failed"][0]["reason"]
+    assert len(result["pages_failed"]) == 1
+    assert "Exception: Network error" in result["pages_failed"][0]["reason"]
 
 
 def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_services):
@@ -394,7 +394,7 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
     # Should save result with failed template
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
+    assert len(result["pages_failed"]) == 1
 
 
 def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix_nested_services):

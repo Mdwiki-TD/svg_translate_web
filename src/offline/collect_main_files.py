@@ -62,11 +62,11 @@ class MainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "templates_added": [],
-            "templates_processed": [],
-            "templates_updated": [],
-            "templates_failed": [],
-            "templates_skipped": [],
+            "pages_added": [],
+            "pages_processed": [],
+            "pages_updated": [],
+            "pages_failed": [],
+            "pages_skipped": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -112,7 +112,7 @@ class MainFilesWorker(BaseJobWorker):
                     "last_world_file": "",
                 }
                 add_template_data(data)
-                self.result["templates_added"].append(
+                self.result["pages_added"].append(
                     {
                         "title": title,
                         "timestamp": timestamp,
@@ -125,7 +125,7 @@ class MainFilesWorker(BaseJobWorker):
                 logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
             except Exception as e:
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
-                self.result["templates_failed"].append(
+                self.result["pages_failed"].append(
                     {
                         "title": title,
                         "timestamp": timestamp,
@@ -185,7 +185,7 @@ class MainFilesWorker(BaseJobWorker):
                 if not wikitext:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not fetch wikitext from Commons"
-                    self.result["templates_failed"].append(template_info)
+                    self.result["pages_failed"].append(template_info)
                     self.result["summary"]["failed"] += 1
                     logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
                     continue
@@ -214,7 +214,7 @@ class MainFilesWorker(BaseJobWorker):
                 if not main_file and not last_world_file and not source:
                     template_info["status"] = "failed"
                     template_info["reason"] = "Could not find (main file or last world file or source) in wikitext"
-                    self.result["templates_failed"].append(template_info)
+                    self.result["pages_failed"].append(template_info)
                     self.result["summary"]["failed"] += 1
                     logger.warning(
                         f"Job {self.job_id}: Could not find main file or last world file or source for {template.title}"
@@ -223,7 +223,7 @@ class MainFilesWorker(BaseJobWorker):
 
                 if not template_data:
                     template_info["status"] = "skipped"
-                    self.result["templates_skipped"].append(template_info)
+                    self.result["pages_skipped"].append(template_info)
                     self.result["summary"]["skipped"] += 1
                     logger.info(f"Job {self.job_id}: No changes for {template.title}")
                     continue
@@ -241,19 +241,19 @@ class MainFilesWorker(BaseJobWorker):
                 )
 
                 template_info["status"] = "updated"
-                self.result["templates_updated"].append(template_info)
+                self.result["pages_updated"].append(template_info)
                 self.result["summary"]["updated"] += 1
 
             except Exception as e:
                 template_info["status"] = "failed"
                 template_info["reason"] = f"Exception: {str(e)}"
                 template_info["error_type"] = type(e).__name__
-                self.result["templates_failed"].append(template_info)
+                self.result["pages_failed"].append(template_info)
                 self.result["summary"]["failed"] += 1
                 logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 
         # Update summary skipped count
-        self.result["summary"]["skipped"] = len(self.result["templates_skipped"])
+        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
 
         logger.info(
             f"Job {self.job_id} completed: {self.result['summary']['updated']} updated, "

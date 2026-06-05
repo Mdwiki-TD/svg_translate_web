@@ -120,10 +120,10 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "templates_processed": [],
-            "templates_success": [],
-            "templates_skipped": [],
-            "templates_failed": [],
+            "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -137,21 +137,21 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         """Log a skipped template due to the absence of a main file."""
         template_info["status"] = "skipped"
         template_info["reason"] = "No main_file set"
-        self.result["templates_skipped"].append(template_info)
+        self.result["pages_skipped"].append(template_info)
 
     def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
         """Log information about a template that was skipped due to having no nested tags."""
         template_info["status"] = "skipped"
         template_info["reason"] = "No nested tags found"
         template_info["fix_result"] = fix_result
-        self.result["templates_skipped"].append(template_info)
+        self.result["pages_skipped"].append(template_info)
         self.result["summary"]["skipped"] += 1
 
     def _log_success(self, template_info: dict, fix_result: dict) -> None:
         """Log a successfully processed template."""
         template_info["status"] = "success"
         template_info["fix_result"] = fix_result
-        self.result["templates_success"].append(template_info)
+        self.result["pages_success"].append(template_info)
         self.result["summary"]["success"] += 1
 
     def _log_failure(self, template_info: dict, reason: str, error_type: str = "") -> None:
@@ -160,7 +160,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         template_info["reason"] = reason
         if error_type:
             template_info["error_type"] = error_type
-        self.result["templates_failed"].append(template_info)
+        self.result["pages_failed"].append(template_info)
         self.result["summary"]["failed"] += 1
 
     def _log_failed_fix(self, template_info: dict, fix_result: dict) -> None:
@@ -168,7 +168,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         template_info["status"] = "failed"
         template_info["reason"] = fix_result.get("message", "Unknown error")
         template_info["fix_result"] = fix_result
-        self.result["templates_failed"].append(template_info)
+        self.result["pages_failed"].append(template_info)
         self.result["summary"]["failed"] += 1
 
     def process(self) -> Dict[str, Any]:
@@ -238,7 +238,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
 
         # Update summary skipped count
-        self.result["summary"]["skipped"] = len(self.result["templates_skipped"])
+        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
 
         logger.info(
             f"Job {self.job_id} completed: "

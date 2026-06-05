@@ -104,7 +104,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
-            "templates_processed": [],
+            "pages_processed": [],
         }
 
     # ------------------------------------------------------------------
@@ -287,7 +287,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateProcessingInfo) -> None:
-        self.result["templates_processed"].append(file_info.to_dict())
+        self.result["pages_processed"].append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point

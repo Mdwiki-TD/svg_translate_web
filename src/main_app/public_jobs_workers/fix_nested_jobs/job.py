@@ -55,7 +55,9 @@ class FixNestedJobsProcessor:
 
     def _save_progress(self) -> None:
         try:
-            jobs_files_service.save_job_result_by_name(self.result_file, self.result)
+            result = self.result
+            result["last_update"] = datetime.now().isoformat()
+            jobs_files_service.save_job_result_by_name(self.result_file, result)
         except Exception:
             logger.exception(f"Job {self.job_id}: Failed to save progress")
 

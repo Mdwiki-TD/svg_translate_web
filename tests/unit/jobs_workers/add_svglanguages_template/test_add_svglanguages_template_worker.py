@@ -123,7 +123,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert result["summary"]["updated"] == 0
         assert result["summary"]["failed"] == 0
         assert result["summary"]["skipped"] == 0
-        assert result["templates_processed"] == []
+        assert result["pages_processed"] == []
 
 
 class TestLoadTemplates:
@@ -427,8 +427,8 @@ class TestHelperMethods:
 
         mock_worker._append(info)
 
-        assert len(mock_worker.result["templates_processed"]) == 1
-        assert mock_worker.result["templates_processed"][0]["template_id"] == 1
+        assert len(mock_worker.result["pages_processed"]) == 1
+        assert mock_worker.result["pages_processed"][0]["template_id"] == 1
 
 
 class TestProcessMethod:

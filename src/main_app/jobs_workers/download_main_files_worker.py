@@ -126,10 +126,9 @@ class DownloadMainFilesWorker(BaseJobWorker):
             "summary": {
                 "total": 0,
                 "processed": 0,
+                "success": 0,
                 "failed": 0,
                 "skipped": 0,
-                "downloaded": 0,
-                "exists": 0,
             },
         }
 
@@ -188,10 +187,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
             clean_filename = clean_filename.removeprefix("File:")
 
             try:
-                # Check if the file already exists
-                if (self.output_dir / clean_filename).exists():
-                    self.result["summary"]["exists"] += 1
-
                 # Download the file (will overwrite if exists)
                 download_result = download_file_from_commons(
                     clean_filename,

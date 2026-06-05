@@ -193,7 +193,7 @@ class TestCreateOwidPagesWorkerInitialization:
         assert result["summary"]["updated"] == 0
         assert result["summary"]["failed"] == 0
         assert result["summary"]["skipped"] == 0
-        assert result["templates_processed"] == []
+        assert result["pages_processed"] == []
 
 
 class TestCreateOwidPagesWorkerLoadTemplates:
@@ -483,15 +483,15 @@ class TestCreateOwidPagesWorkerHelpers:
         assert info.steps["create_new_page"]["msg"] == "Already exists"
 
     def test_append_adds_to_result(self, mock_services):
-        """Test _append adds info to templates_processed list."""
+        """Test _append adds info to pages_processed list."""
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         worker.result = worker.get_initial_result()
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
         worker._append(info)
 
-        assert len(worker.result["templates_processed"]) == 1
-        assert worker.result["templates_processed"][0]["template_id"] == 1
+        assert len(worker.result["pages_processed"]) == 1
+        assert worker.result["pages_processed"][0]["template_id"] == 1
 
 
 class TestCreateOwidPagesWorkerProcess:

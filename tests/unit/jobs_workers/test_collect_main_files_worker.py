@@ -117,7 +117,7 @@ def test_collect_templates_data_with_no_templates(mock_services):
     mock_services["save_job_result_by_name"].assert_called_once()
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
-    assert len(result["templates_added"]) == 0
+    assert len(result["pages_added"]) == 0
 
 
 def test_collect_templates_data_skips_templates_with_main_file(mock_services, mock_find_source):
@@ -141,7 +141,7 @@ def test_collect_templates_data_skips_templates_with_main_file(mock_services, mo
     # Should save result with skipped templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
-    assert len(result["templates_added"]) == 0
+    assert len(result["pages_added"]) == 0
 
 
 def test_collect_templates_data_updates_template_without_main_file(mock_services, mock_find_source):
@@ -171,9 +171,9 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
-    assert len(result["templates_updated"]) == 1
-    assert len(result["templates_updated"]) == 1
-    assert result["templates_updated"][0]["new_main_file"] == "test.svg"
+    assert len(result["pages_updated"]) == 1
+    assert len(result["pages_updated"]) == 1
+    assert result["pages_updated"][0]["new_main_file"] == "test.svg"
 
 
 def test_collect_templates_data_handles_missing_wikitext(mock_services):
@@ -194,8 +194,8 @@ def test_collect_templates_data_handles_missing_wikitext(mock_services):
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
-    assert "Could not fetch wikitext" in result["templates_failed"][0]["error"]
+    assert len(result["pages_failed"]) == 1
+    assert "Could not fetch wikitext" in result["pages_failed"][0]["error"]
 
 
 def test_collect_templates_data_handles_missing_main_title(mock_services):
@@ -217,8 +217,8 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
-    assert "Could not find (main file or last world file or source)" in result["templates_failed"][0]["error"]
+    assert len(result["pages_failed"]) == 1
+    assert "Could not find (main file or last world file or source)" in result["pages_failed"][0]["error"]
 
 
 @pytest.mark.skip(reason="exceptions changes")
@@ -237,8 +237,8 @@ def test_collect_templates_data_handles_exception(mock_services):
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
-    assert len(result["templates_failed"]) == 1
-    assert "Exception: Network error" in result["templates_failed"][0]["error"]
+    assert len(result["pages_failed"]) == 1
+    assert "Exception: Network error" in result["pages_failed"][0]["error"]
 
 
 def test_collect_templates_data_processes_multiple_templates(mock_services):
@@ -278,7 +278,7 @@ def test_collect_templates_data_processes_multiple_templates(mock_services):
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 3
-    assert len(result["templates_updated"]) == 2
+    assert len(result["pages_updated"]) == 2
     assert result["summary"]["skipped"] == 0
 
 
@@ -307,8 +307,8 @@ def test_collect_templates_data_adds_new_templates_from_category(mock_services):
 
     # Should save result with added templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_added"]) == 2
-    assert len(result["templates_added"]) == 2
+    assert len(result["pages_added"]) == 2
+    assert len(result["pages_added"]) == 2
 
 
 def test_collect_templates_data_handles_add_template_value_error(mock_services):
@@ -332,8 +332,8 @@ def test_collect_templates_data_handles_add_template_value_error(mock_services):
 
     # Should continue processing without error
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_added"]) == 0
-    assert len(result["templates_failed"]) == 0  # ValueError is handled gracefully (race condition)
+    assert len(result["pages_added"]) == 0
+    assert len(result["pages_failed"]) == 0  # ValueError is handled gracefully (race condition)
 
 
 def test_collect_templates_data_full_workflow_with_new_templates(mock_services, mock_find_source):
@@ -376,8 +376,8 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_added"]) == 1
-    assert len(result["templates_updated"]) == 1
+    assert len(result["pages_added"]) == 1
+    assert len(result["pages_updated"]) == 1
 
 
 def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -416,9 +416,9 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
 
     # Should save result with correct data
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_updated"]) == 1
-    assert result["templates_updated"][0]["new_main_file"] == "test.svg"
-    assert result["templates_updated"][0]["last_world_file"] == "File:test, World, 2021.svg"
+    assert len(result["pages_updated"]) == 1
+    assert result["pages_updated"][0]["new_main_file"] == "test.svg"
+    assert result["pages_updated"][0]["last_world_file"] == "File:test, World, 2021.svg"
 
 
 def test_collect_templates_data_cancellation_during_template_addition(mock_services):
@@ -438,7 +438,7 @@ def test_collect_templates_data_cancellation_during_template_addition(mock_servi
     # The exact behavior depends on when the cancellation is checked
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Job should be cancelled before processing templates
-    assert len(result["templates_updated"]) == 0
+    assert len(result["pages_updated"]) == 0
 
 
 def test_collect_templates_data_cancellation_during_processing(mock_services):
@@ -475,7 +475,7 @@ def test_collect_templates_data_cancellation_during_processing(mock_services):
     # Should have processed at least one template before cancellation
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Exact count depends on when cancellation is detected
-    assert len(result["templates_updated"]) == 2  # Should process 2 templates before cancellation
+    assert len(result["pages_updated"]) == 2  # Should process 2 templates before cancellation
 
 
 def test_collect_templates_data_progress_saving_frequency(mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -542,7 +542,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_updated"]) == 1
+    assert len(result["pages_updated"]) == 1
 
 
 def test_collect_templates_data_template_with_existing_main_file_only(mock_services):
@@ -565,7 +565,7 @@ def test_collect_templates_data_template_with_existing_main_file_only(mock_servi
 
 
 def test_collect_templates_data_add_template_generic_exception(mock_services):
-    """Test that generic exceptions during add_template are tracked in templates_failed."""
+    """Test that generic exceptions during add_template are tracked in pages_failed."""
     existing_templates = []
     category_templates = ["Template:New1"]
 
@@ -575,11 +575,11 @@ def test_collect_templates_data_add_template_generic_exception(mock_services):
 
     collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
 
-    # Should track in templates_failed but not increment summary["failed"] (that's for processing phase)
+    # Should track in pages_failed but not increment summary["failed"] (that's for processing phase)
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["templates_added"]) == 0
-    assert len(result["templates_failed"]) >= 1
-    assert "Database connection failed" in result["templates_failed"][0]["error"]
+    assert len(result["pages_added"]) == 0
+    assert len(result["pages_failed"]) >= 1
+    assert "Database connection failed" in result["pages_failed"][0]["error"]
 
 
 def test_worker_class_get_job_type(mock_services):
@@ -599,14 +599,14 @@ def test_worker_class_get_initial_result(mock_services):
 
     assert result["job_id"] == 1
     assert "started_at" in result
-    assert "templates_added" in result
-    assert "templates_processed" in result
-    assert "templates_updated" in result
-    assert "templates_failed" in result
-    assert "templates_skipped" in result
+    assert "pages_added" in result
+    assert "pages_processed" in result
+    assert "pages_updated" in result
+    assert "pages_failed" in result
+    assert "pages_skipped" in result
     assert "summary" in result
     assert result["summary"]["total"] == 0
-    assert len(result["templates_added"]) == 0
+    assert len(result["pages_added"]) == 0
 
 
 # --- Tests for new update_all functionality (added in this PR) ---
