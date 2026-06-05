@@ -225,7 +225,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 self.result["summary"]["skipped_target_exists"] += 1
                 self._update_template_title(old_title, new_title)
                 self.result["pages_processed"].append(info.to_dict())
-                return False # no changes made
+                return False  # no changes made
             else:
                 # Neither page redirects to the other — both are real pages.
                 # Redirect the old (lowercase) page to the new (capitalized) one.

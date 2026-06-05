@@ -5,11 +5,11 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
+from src.main_app.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 
 
 class TestFixNestedJobsProcessorSteps:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix")
     def test_verify_step_success(self, mock_verify_fix) -> None:
         processor = FixNestedJobsProcessor(
             job_id=1,
@@ -31,7 +31,7 @@ class TestFixNestedJobsProcessorSteps:
         assert result is True
         assert processor.result["stages"]["verify"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix")
     def test_verify_step_failure_no_tags_fixed(self, mock_verify_fix) -> None:
         processor = FixNestedJobsProcessor(
             job_id=1,
@@ -50,7 +50,7 @@ class TestFixNestedJobsProcessorSteps:
         assert result is False
         assert processor.result["stages"]["verify"]["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_upload_step_success(self, mock_upload_fixed_svg) -> None:
         processor = FixNestedJobsProcessor(
             job_id=1,
@@ -73,7 +73,7 @@ class TestFixNestedJobsProcessorSteps:
         assert result is True
         assert processor.result["stages"]["upload"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_upload_step_failure(self, mock_upload_fixed_svg) -> None:
         processor = FixNestedJobsProcessor(
             job_id=1,
@@ -137,7 +137,7 @@ class TestFixNestedJobsProcessor:
             result={"status": "running"},
             result_file="test.json",
         )
-        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled") as mock_is_job_cancelled:
+        with patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled") as mock_is_job_cancelled:
             mock_is_job_cancelled.return_value = False
             assert processor._is_cancelled() is False
 

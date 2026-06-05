@@ -153,7 +153,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     # Per-chart processing
     # ------------------------------------------------------------------
 
-    def _process_chart(self, chart: OwidChartRecord) -> None:
+    def _process_chart(self, chart: OwidChartRecord) -> bool:
         info = ChartUpdateInfo(
             chart_id=chart.chart_id,
             slug=chart.slug,
@@ -175,7 +175,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                     "error": "Could not fetch metadata JSON",
                 }
             )
-            return
+            return False
 
         # 2. Find a timespan
         columns = metadata.get("columns", {})
@@ -194,7 +194,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                     "skip_reason": "nothing to update",
                 }
             )
-            return
+            return False
 
         if owid_variable_id and owid_variable_id != chart.owid_variable_id:
             info.owid_variable_id = owid_variable_id
@@ -218,7 +218,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                         "error": f"Could not parse timespan: '{timespan_raw}'",
                     }
                 )
-                return
+                return False
 
             if parsed:
                 min_t, max_t, len_y = parsed
@@ -250,7 +250,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                     "skip_reason": "nothing to update",
                 }
             )
-            return
+            return False
 
         try:
             owid_charts_service.update_chart_data(
@@ -259,13 +259,14 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             )
             info.status = "updated"
             self.result["updated_charts"].append(info.to_dict())
+            return True
         except Exception as exc:
             logger.exception(f"Job {self.job_id}: DB update failed for chart '{chart.slug}'")
             info.status = "failed"
             info.error = str(exc)
-            self.result["failed_charts"].append(info.to_dict())
 
-        # self.result["charts_processed"].append(info.to_dict())
+        self.result["failed_charts"].append(info.to_dict())
+        return False
 
     def _load_charts(self) -> list[OwidChartRecord]:
         charts = owid_charts_service.list_charts()
@@ -296,8 +297,12 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{total}: {chart.slug}")
-            self._process_chart(chart)
+            changed = self._process_chart(chart)
             self.result["summary"]["processed"] += 1
+
+            if changed and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()

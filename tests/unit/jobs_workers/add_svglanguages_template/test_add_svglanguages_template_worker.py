@@ -120,7 +120,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert "summary" in result
         assert result["summary"]["total"] == 0
         assert result["summary"]["processed"] == 0
-        assert result["summary"]["updated"] == 0
+        assert result["summary"]["success"] == 0
         assert result["summary"]["failed"] == 0
         assert result["summary"]["skipped"] == 0
         assert result["pages_processed"] == []
@@ -368,7 +368,7 @@ class TestStepSaveNewText:
 
         assert result is True
         assert info.steps["save_new_text"]["result"] is True
-        assert mock_worker.result["summary"]["updated"] == 1
+        assert mock_worker.result["summary"]["success"] == 1
         mock_update_page_text.assert_called_once()
 
     @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.update_page_text")
