@@ -166,7 +166,12 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 break
             self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Renaming {n}/{total}: {old_title} -> {new_title}")
-            self._rename_one(namespace, old_title, new_title)
+
+            changed = self._rename_one(namespace, old_title, new_title)
+
+            if changed and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
@@ -192,7 +197,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             filterredir="nonredirects",
         )
 
-    def _rename_one(self, namespace: int, old_title: str, new_title: str) -> None:
+    def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
         info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
         # Pre-flight: don't even try to move if the target already exists.
@@ -220,12 +225,11 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 self.result["summary"]["skipped_target_exists"] += 1
                 self._update_template_title(old_title, new_title)
                 self.result["pages_processed"].append(info.to_dict())
-                return
+                return False # no changes made
             else:
                 # Neither page redirects to the other — both are real pages.
                 # Redirect the old (lowercase) page to the new (capitalized) one.
-                self._redirect_old_to_new(info, old_title, new_title)
-                return
+                return self._redirect_old_to_new(info, old_title, new_title)
 
         res = move_page(
             self.site,
@@ -236,6 +240,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             no_redirect=False,
         )
 
+        edit_success = bool(res.get("success"))
         if res.get("success"):
             info.status = "renamed"
             info.msg = f"Moved {old_title} -> {new_title}"
@@ -250,6 +255,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["failed"] += 1
 
         self.result["pages_processed"].append(info.to_dict())
+        return edit_success
 
     def _redirect_old_to_new(self, info: RenameInfo, old_title: str, new_title: str) -> None:
         """Turn the old (lowercase) page into a redirect to the new (capitalized) page."""
@@ -258,7 +264,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
 
         res = edit_page(self.site, old_title, redirect_text, summary)
 
-        if res.get("success"):
+        edit_success = bool(res.get("success"))
+        if edit_success:
             info.status = "redirected"
             info.msg = f"Redirected {old_title} -> {new_title}"
             self.result["summary"]["redirected"] += 1
@@ -271,6 +278,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
             self.result["summary"]["failed"] += 1
 
         self.result["pages_processed"].append(info.to_dict())
+        return edit_success
 
     def _update_template_title(self, old_title: str, new_title: str) -> None:
         """Update TemplateRecord.title in the database after a successful move."""
