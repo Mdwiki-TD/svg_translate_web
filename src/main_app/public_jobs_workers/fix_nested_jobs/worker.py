@@ -7,17 +7,13 @@ from __future__ import annotations
 import logging
 import tempfile
 import threading
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
-import requests
 
-from ...api_services.clients import create_commons_session, get_user_site
-from ...config import settings
-from ...db.services import is_job_cancelled
+from ...api_services.clients import get_user_site
 from ...jobs_workers.base_worker import BaseJobWorker
 from ...shared.fix_nested.worker import (
     detect_nested_tags,
@@ -26,54 +22,41 @@ from ...shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
-from ...su_services import jobs_files_service
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class FixNestedJobsProcessor:
+class FixNestedJobsProcessor(BaseJobWorker):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
 
-    job_id: str | int
-    args: Any
-    user: dict[str, Any]
-    result: dict[str, Any]
-    result_file: str
-    cancel_event: threading.Event | None = None
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        self.job_id = job_id
+        self.args = args or {}
+        self.upload_limit = args.get("upload_limit") if args else 0
 
-    site: mwclient.Site | None = field(init=False, default=None)
-    session: requests.Session | None = field(init=False, default=None)
+        self.user = user
 
-    filename: str = None
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
-    def __post_init__(self) -> None:
         self.filename = self.args.get("filename")
+        self.site: mwclient.Site | None = None
 
-    def _save_progress(self) -> None:
-        try:
-            result = self.result
-            result["last_update"] = datetime.now().isoformat()
-            jobs_files_service.save_job_result_by_name(self.result_file, result)
-        except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save progress")
+    def _is_cancelled(self) -> bool:
 
-    def _is_cancelled(self, stage_name: str | None = None) -> bool:
-        cancelled = False
-        if self.cancel_event and self.cancel_event.is_set():
-            cancelled = True
-        elif is_job_cancelled(self.job_id, job_type="fix_nested_jobs"):
-            cancelled = True
-
-        if cancelled:
+        if self.is_cancelled():
             self.result["status"] = "Cancelled"
             if self.result.get("cancelled_at") is None:
                 self.result["cancelled_at"] = datetime.now().isoformat()
-            if stage_name and stage_name in self.result.get("stages", {}):
-                self.result["stages"][stage_name]["status"] = "Cancelled"
             return True
+
         return False
 
     def _update_step(self, stage_name: str, status: str, message: str) -> None:
@@ -85,7 +68,6 @@ class FixNestedJobsProcessor:
         self.result["status"] = "running"
         self._save_progress()
 
-        self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.filename:
@@ -270,7 +252,9 @@ class FixNestedJobsProcessor:
         **kwargs: Any,
     ) -> bool:
         """Run a single stage and update result."""
-        if self._is_cancelled(stage_name):
+        if self._is_cancelled():
+            if stage_name in self.result["stages"]:
+                self.result["stages"][stage_name]["status"] = "Cancelled"
             return False
 
         stage = self.result["stages"][stage_name]
@@ -346,7 +330,6 @@ class FixNestedJobsWorker(BaseJobWorker):
             args=self.args,
             user=self.user,
             result=self.result,
-            result_file=self.result_file,
             cancel_event=self.cancel_event,
         )
         return processor.run()
