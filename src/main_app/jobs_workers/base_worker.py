@@ -8,12 +8,14 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, Final
 
+from sqlalchemy.orm.exc import StaleDataError
+
 from ..config import settings
 from ..db.services import (
     is_job_cancelled,
     update_job_status,
 )
-from ..su_services import jobs_files_service
+from ..su_services import is_job_cancelled_file_exist, save_job_result_by_name
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,8 @@ class BaseJobWorker(ABC):
         self.job_type: str = self.get_job_type()
         self.result_file: str = generate_result_file_name(job_id, self.job_type)
         self._status: str = "pending"
+        self.result_file_cancelled: str = f"{self.result_file}.cancelled"
+        self._edit_count: int = 0
 
         self.result: Dict[str, Any] = None
 
@@ -82,6 +86,7 @@ class BaseJobWorker(ABC):
         """
         try:
             update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+            self.result.status = "running"
             return True
         except LookupError:
             logger.exception(
@@ -93,7 +98,7 @@ class BaseJobWorker(ABC):
         """Called after processing completes (success or failure)."""
         # Finalize timestamps
         self.result["completed_at"] = datetime.now().isoformat()
-        final_status = self.result.get("status", "completed")
+        final_status = self.result.get("status") or "completed"
 
         # Save final results
         self._save_progress()
@@ -101,20 +106,22 @@ class BaseJobWorker(ABC):
         # Update final status
         try:
             update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
-        except LookupError:
-            logger.exception(f"Job {self.job_id}: Could not update final status, job record might have been deleted.")
+        except (StaleDataError, LookupError):
+            logger.error(f"Job {self.job_id}: Could not update final status, job record might have been deleted.")
+        except Exception:
+            logger.error(f"Job {self.job_id}: Failed to update final status")
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
-    def _save_progress(self):
+    def _save_progress(self) -> None:
         result = self.result
         result["last_update"] = datetime.now().isoformat()
         try:
-            jobs_files_service.save_job_result_by_name(self.result_file, result)
+            save_job_result_by_name(self.result_file, result)
         except Exception:
             logger.exception(f"Job {self.job_id}: Failed to save job result")
 
-    def is_cancelled(self) -> bool:
+    def is_cancelled(self, check_db: bool = False) -> bool:
         """Check if the job has been cancelled.
 
         Returns:
@@ -125,11 +132,36 @@ class BaseJobWorker(ABC):
             self._mark_as_cancelled_in_result()
             return True
 
-        if is_job_cancelled(self.job_id, job_type=self.job_type):
-            logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
+        if is_job_cancelled_file_exist(self.result_file_cancelled):
+            logger.info(f"Job {self.job_id}: Cancelled file detected, stopping.")
             self._mark_as_cancelled_in_result()
             return True
 
+        if check_db:
+            # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
+            if is_job_cancelled(self.job_id, job_type=self.job_type):
+                logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
+                self._mark_as_cancelled_in_result()
+                return True
+
+        return False
+
+    def check_cancel_db_periodic(self, interval: int = 10) -> bool:
+        """
+        Increment edit counter and check DB cancellation every `interval` edits.
+
+        Call this after a successful edit (when outcome.newrevid exists)
+        to periodically verify if an admin cancelled the job via the DB.
+
+        Args:
+            interval: Check DB every N successful edits (default 10).
+
+        Returns:
+            True if cancelled, False otherwise.
+        """
+        self._edit_count += 1
+        if self._edit_count % interval == 0:
+            return self.is_cancelled(check_db=True)
         return False
 
     def _mark_as_cancelled_in_result(self) -> None:
@@ -138,6 +170,7 @@ class BaseJobWorker(ABC):
         # if "cancelled_at" not in self.result:
         if self.result.get("cancelled_at") is None:
             self.result["cancelled_at"] = datetime.now().isoformat()
+        self._save_progress()
 
     def get_priority(self, length) -> int:
         if length < 11:
