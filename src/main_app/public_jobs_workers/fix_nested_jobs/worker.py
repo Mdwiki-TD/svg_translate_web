@@ -25,6 +25,7 @@ from ...shared.fix_nested.worker import (
 
 logger = logging.getLogger(__name__)
 
+
 class FixNestedJobsProcessor(BaseJobWorker):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.

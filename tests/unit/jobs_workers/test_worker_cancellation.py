@@ -23,9 +23,7 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock for collect_templates_data_worker (now accessed via base_worker)
     monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data_worker.list_templates", mock_list_templates)
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
