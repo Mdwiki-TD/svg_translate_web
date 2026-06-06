@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any
+import copy
 
 from flask import (
     Blueprint,
@@ -57,7 +58,7 @@ def _can_manage_job(job: Any, user: Any) -> bool:
 def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
     data = load_job_result(result_file)
     if data:
-        data_before = data.copy()
+        data_before = copy.deepcopy(data)
         data2 = fix_result_data(data, job_type)
         if data2 != data_before:
             logger.info(f"Job result {result_file} was fixed")

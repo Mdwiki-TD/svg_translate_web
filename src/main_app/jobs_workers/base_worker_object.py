@@ -213,6 +213,7 @@ class BaseObjectsJobWorker(ABC):
         logger.exception(prefix)
 
         self.result.status = "failed"
+        self.result.failed_at = datetime.now().isoformat()
         self.result.error = str(error)
         self.result.error_type = type(error).__name__
 

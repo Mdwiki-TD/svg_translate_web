@@ -381,7 +381,7 @@ def test_delete_collect_templates_data_job(admin_jobs_client, jobs_db, monkeypat
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -401,7 +401,7 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -473,7 +473,7 @@ def test_cancel_collect_templates_data_job(admin_jobs_client, jobs_db, monkeypat
     jobs_db.update_status(job.id, "running", job_type="collect_templates_data")
 
     # Cancel the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=True):
         response = admin_jobs_client.post(f"/admin/jobs/collect_templates_data/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
@@ -490,7 +490,7 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
     jobs_db.update_status(job.id, "running", job_type="fix_nested_main_files")
 
     # Cancel the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=True):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=True):
         response = admin_jobs_client.post(f"/admin/jobs/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")

@@ -20,7 +20,7 @@ def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
 
     msg = "Skipped - page content is already has {{SVGLanguages|...}}"
 
-    pages_processed = data.get("templates_processed") or data.get("pages_processed")
+    pages_processed = data.get("templates_processed") or data.get("pages_processed") or []
     for page in pages_processed:
         template_title = page.get("template_title") or page.get("title")
 

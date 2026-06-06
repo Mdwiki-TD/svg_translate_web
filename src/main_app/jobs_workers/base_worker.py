@@ -55,7 +55,7 @@ class BaseJobWorker(ABC):
         self.result_file_cancelled: str = f"{self.result_file}.cancelled"
         self._edit_count: int = 0
 
-        self.result: Dict[str, Any] = None
+        self.result: Dict[str, Any] = {}
 
     @abstractmethod
     def get_job_type(self) -> str:
