@@ -29,7 +29,7 @@ from ..db.services import (
     list_jobs,
 )
 from ..jobs_workers import jobs_worker
-from ..jobs_workers.download_main_files.download_main_files_worker import create_main_files_zip
+from ..jobs_workers.download_main_files.worker import create_main_files_zip
 from ..public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required

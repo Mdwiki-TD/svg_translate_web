@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.collect_templates_data import collect_templates_data_worker
+from src.main_app.jobs_workers.collect_templates_data import worker
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
     mock = MagicMock(return_value=None)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock,
     )
     return mock
@@ -26,7 +26,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
     """Mock find_template_source to return empty string by default."""
     mock = MagicMock(return_value="")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.find_template_source",
+        "src.main_app.jobs_workers.collect_templates_data.worker.find_template_source",
         mock,
     )
     return mock
@@ -40,13 +40,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_list_templates = MagicMock()
     mock_add_template_data = MagicMock()
     mock_update_template_data = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data_worker.list_templates", mock_list_templates)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.add_template_data",
+        "src.main_app.jobs_workers.collect_templates_data.worker.add_template_data",
         mock_add_template_data,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.update_template_data",
+        "src.main_app.jobs_workers.collect_templates_data.worker.update_template_data",
         mock_update_template_data,
     )
 
@@ -68,27 +68,27 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock get_category_members
     mock_get_category_members = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.get_category_members", mock_get_category_members
+        "src.main_app.jobs_workers.collect_templates_data.worker.get_category_members", mock_get_category_members
     )
 
     # Mock get_page_text
     mock_get_page_text = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data_worker.get_page_text", mock_get_page_text)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.get_page_text", mock_get_page_text)
 
     # Mock find_main_title
     mock_find_main_title = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data_worker.find_main_title", mock_find_main_title)
+    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.find_main_title", mock_find_main_title)
 
     # Mock get_chart_by_slug so slugify_title can return a slug
     mock_get_chart_by_slug = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.get_chart_by_slug", mock_get_chart_by_slug
+        "src.main_app.jobs_workers.collect_templates_data.worker.get_chart_by_slug", mock_get_chart_by_slug
     )
 
     # Mock get_user_site
     mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.get_user_site",
+        "src.main_app.jobs_workers.collect_templates_data.worker.get_user_site",
         mock_get_user_site,
     )
 
@@ -112,7 +112,7 @@ def test_collect_templates_data_with_no_templates(mock_services):
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = []
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # before_run is mocked out in the fixture (to bypass the buggy
     # `self.result.status = "running"` line), so only after_run's final
@@ -142,7 +142,7 @@ def test_collect_templates_data_skips_templates_with_main_file(mock_services, mo
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should not fetch wikitext for templates that have all three fields
     mock_services["get_page_text"].assert_not_called()
@@ -166,7 +166,7 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     magic = MagicMock()
     mock_services["get_user_site"].return_value = magic
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should fetch wikitext
     mock_services["get_page_text"].assert_called_once_with("Template:Test", site=magic)
@@ -194,7 +194,7 @@ def test_collect_templates_data_handles_missing_wikitext(mock_services):
     mock_services["list_templates"].return_value = templates
     mock_services["get_page_text"].return_value = None
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should not try to find main title
     mock_services["find_main_title"].assert_not_called()
@@ -217,7 +217,7 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
     mock_services["get_page_text"].return_value = "some wikitext without SVGLanguages"
     mock_services["find_main_title"].return_value = None
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should not update template
     mock_services["update_template_data"].assert_not_called()
@@ -240,7 +240,7 @@ def test_collect_templates_data_handles_exception(mock_services):
     mock_services["list_templates"].return_value = templates
     mock_services["get_page_text"].side_effect = Exception("Network error")
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -279,7 +279,7 @@ def test_collect_templates_data_processes_multiple_templates(mock_services):
     mock_services["get_page_text"].side_effect = get_page_text_side_effect
     mock_services["find_main_title"].side_effect = find_main_title_side_effect
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should update two templates
     assert mock_services["update_template_data"].call_count == 2
@@ -307,7 +307,7 @@ def test_collect_templates_data_adds_new_templates_from_category(mock_services):
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should add 2 new templates
     assert mock_services["add_template_data"].call_count == 2
@@ -337,7 +337,7 @@ def test_collect_templates_data_handles_add_template_value_error(mock_services):
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should continue processing without error
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -370,7 +370,7 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
     magic = MagicMock()
     mock_services["get_user_site"].return_value = magic
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should add new template
     mock_services["add_template_data"].assert_called_once_with({"title": "Template:NewFromCategory"})
@@ -412,11 +412,11 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
     # Mock find_last_world_file_from_owidslidersrcs
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock_find_last_world,
     )
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
@@ -441,7 +441,7 @@ def test_collect_templates_data_cancellation_during_template_addition(mock_servi
     mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = []
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
+    worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should stop early and not add all templates
     # The exact behavior depends on when the cancellation is checked
@@ -479,7 +479,7 @@ def test_collect_templates_data_cancellation_during_processing(mock_services):
     mock_services["get_page_text"].side_effect = get_page_text_side_effect
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
+    worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should have processed at least one template before cancellation
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -509,7 +509,7 @@ def test_collect_templates_data_progress_saving_frequency(mock_services, monkeyp
 
     mock_services["save_job_result_by_name"].side_effect = track_save
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Progress should be saved at: 1, 10, 20, and final
     # Expecting at least 3 saves (n=1, n=10, n=20, plus final)
@@ -538,11 +538,11 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     # Mock find_last_world_file_from_owidslidersrcs
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data_worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock_find_last_world,
     )
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should update template with only last_world_file
     mock_services["update_template_data"].assert_called_once_with(
@@ -564,7 +564,7 @@ def test_collect_templates_data_template_with_existing_main_file_only(mock_servi
     mock_services["get_page_text"].return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should process template because last_world_file is missing
     mock_services["get_page_text"].assert_called_once()
@@ -582,7 +582,7 @@ def test_collect_templates_data_add_template_generic_exception(mock_services):
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should track in pages_failed but not increment summary["failed"] (that's for processing phase)
     result = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -595,7 +595,7 @@ def test_worker_class_get_job_type(mock_services):
     """Test CollectMainFilesWorker.get_job_type returns correct type."""
     import threading
 
-    worker = collect_templates_data_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
     assert worker.get_job_type() == "collect_templates_data"
 
 
@@ -603,7 +603,7 @@ def test_worker_class_get_initial_result(mock_services):
     """Test CollectMainFilesWorker.get_initial_result returns proper structure."""
     import threading
 
-    worker = collect_templates_data_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
     result = worker.get_initial_result()
 
     assert result["job_id"] == 1
@@ -625,7 +625,7 @@ def test_worker_init_update_all_defaults_to_false(mock_services):
     """Test CollectMainFilesWorker initializes update_all=False by default."""
     import threading
 
-    worker = collect_templates_data_worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
     assert worker.update_all is False
 
 
@@ -633,12 +633,12 @@ def test_worker_init_update_all_can_be_set_true(mock_services):
     """Test CollectMainFilesWorker accepts update_all='true' or update_all=True."""
     import threading
 
-    worker = collect_templates_data_worker.CollectMainFilesWorker(
+    worker = worker.CollectMainFilesWorker(
         job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"}
     )
     assert worker.update_all is True
 
-    worker2 = collect_templates_data_worker.CollectMainFilesWorker(
+    worker2 = worker.CollectMainFilesWorker(
         job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True}
     )
     assert worker2.update_all is True
@@ -660,7 +660,7 @@ def test_collect_templates_data_update_all_processes_all_templates(mock_services
     mock_services["find_main_title"].return_value = "newfile.svg"
 
     # With update_all=True, both templates should be processed even though they have data
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
+    worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
 
     # Both templates should have had their wikitext fetched
     assert mock_services["get_page_text"].call_count == 2
@@ -677,7 +677,7 @@ def test_collect_templates_data_default_skips_complete_templates(mock_services):
     mock_services["list_templates"].return_value = templates
 
     # Without args (update_all=False by default), complete templates are skipped
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None)
+    worker.collect_templates_data_entry(job_id=1, user=None)
 
     # No wikitext should be fetched for a complete template
     mock_services["get_page_text"].assert_not_called()
@@ -695,7 +695,7 @@ def test_collect_templates_data_entry_with_update_all_true_string(mock_services,
     mock_services["get_page_text"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
+    worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
 
     # Should process the template even though it already has data
     mock_services["get_page_text"].assert_called_once()
@@ -711,7 +711,7 @@ def test_collect_templates_data_entry_with_update_all_false_string(mock_services
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "false"})
+    worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "false"})
 
     # Template is complete, should not be fetched
     mock_services["get_page_text"].assert_not_called()
@@ -727,7 +727,7 @@ def test_collect_templates_data_entry_with_args_none(mock_services):
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args=None)
+    worker.collect_templates_data_entry(job_id=1, user=None, args=None)
 
     # Template is complete, should not be fetched
     mock_services["get_page_text"].assert_not_called()
@@ -745,7 +745,7 @@ def test_collect_templates_data_entry_update_all_case_insensitive(mock_services,
     mock_services["get_page_text"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "TRUE"})
+    worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "TRUE"})
 
     # Should process even with uppercase "TRUE"
     mock_services["get_page_text"].assert_called_once()
@@ -760,7 +760,7 @@ def test_collect_templates_data_entry_cancel_event_is_keyword_only(mock_services
     mock_services["list_templates"].return_value = []
 
     # Should not raise a TypeError - cancel_event must be passed as keyword arg
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
+    worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
@@ -779,7 +779,7 @@ def test_collect_templates_data_entry_update_all_summary_counts(mock_services, m
     mock_services["get_page_text"].return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
 
-    collect_templates_data_worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
+    worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "true"})
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Total is 2, 1 already had all data
