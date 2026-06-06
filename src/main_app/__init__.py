@@ -11,6 +11,7 @@ from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import register_blueprints
+from .jobs_workers.cli_jobs import register_cli_jobs
 from .app_routes.utils import context_user
 from .config import ensure_directories, settings
 from .core.cookies import CookieHeaderClient
@@ -138,6 +139,7 @@ def create_app(config_class: Type) -> Flask:
 
     if db_is_ok:
         register_blueprints(app)
+        register_cli_jobs(app)
     else:
 
         @app.before_request
