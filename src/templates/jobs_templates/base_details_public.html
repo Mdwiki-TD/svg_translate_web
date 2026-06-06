@@ -96,7 +96,7 @@
                                     <th>Result File:</th>
                                     <td>
                                         {% if job.result_file %}
-                                        <a href="{{ url_for('public_jobs.read_job_result_file', result_file=job.result_file) }}"
+                                        <a href="{{ url_for('public_jobs.read_job_result_file', result_file=job.result_file, job_type=job_type) }}"
                                             target="_blank">
                                             {{ job.result_file }}
                                         </a>

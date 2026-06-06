@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 import threading
 from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Final
+from typing import Any, Dict, Final, Optional
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -21,7 +22,26 @@ from .utils import generate_result_file_name
 logger = logging.getLogger(__name__)
 
 
-class BaseJobWorker(ABC):
+@dataclass
+class WorkerObject:
+    status: str = "pending"
+    started_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    completed_at: Optional[str] = None
+    cancelled_at: Optional[str] = None
+    last_update: Optional[str] = ""
+    failed_at: Optional[str] = None
+    error: Optional[str] = None
+    error_type: Optional[str] = None
+
+    def to_json(self) -> Dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
+
+        return asdict(self)
+
+
+class BaseObjectsJobWorker(ABC):
     """Abstract base class for job workers with standardized lifecycle.
 
     This base class provides:
@@ -55,7 +75,7 @@ class BaseJobWorker(ABC):
         self.result_file_cancelled: str = f"{self.result_file}.cancelled"
         self._edit_count: int = 0
 
-        self.result: Dict[str, Any] = {}
+        self.result: WorkerObject = None
 
     @abstractmethod
     def get_job_type(self) -> str:
@@ -86,7 +106,7 @@ class BaseJobWorker(ABC):
         """
         try:
             update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
-            self.result["status"] = "running"
+            self.result.status = "running"
             return True
         except LookupError:
             logger.exception(
@@ -97,8 +117,8 @@ class BaseJobWorker(ABC):
     def after_run(self) -> None:
         """Called after processing completes (success or failure)."""
         # Finalize timestamps
-        self.result["completed_at"] = datetime.now().isoformat()
-        final_status = self.result.get("status") or "completed"
+        self.result.completed_at = datetime.now().isoformat()
+        final_status = self.result.status or "completed"
 
         # Save final results
         self._save_progress()
@@ -114,7 +134,7 @@ class BaseJobWorker(ABC):
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
     def _save_progress(self) -> None:
-        result = self.result
+        result = self.result.to_json()
         result["last_update"] = datetime.now().isoformat()
         try:
             save_job_result_by_name(self.result_file, result)
@@ -166,10 +186,8 @@ class BaseJobWorker(ABC):
 
     def _mark_as_cancelled_in_result(self) -> None:
         """Standardize the result dictionary for a cancelled job."""
-        self.result["status"] = "cancelled"
-        # if "cancelled_at" not in self.result:
-        if self.result.get("cancelled_at") is None:
-            self.result["cancelled_at"] = datetime.now().isoformat()
+        self.result.status = "cancelled"
+        self.result.cancelled_at = datetime.now().isoformat()
         self._save_progress()
 
     def get_priority(self, length) -> int:
@@ -194,9 +212,10 @@ class BaseJobWorker(ABC):
             prefix += f": {context}"
         logger.exception(prefix)
 
-        self.result["status"] = "failed"
-        self.result["error"] = str(error)
-        self.result["error_type"] = type(error).__name__
+        self.result.status = "failed"
+        self.result.failed_at = datetime.now().isoformat()
+        self.result.error = str(error)
+        self.result.error_type = type(error).__name__
 
     def run(self) -> Dict[str, Any]:
         """Execute the complete job lifecycle.
@@ -212,7 +231,7 @@ class BaseJobWorker(ABC):
         try:
             # Pre-processing setup
             if not self.before_run():
-                return self.result
+                return self.result.to_json()
 
             # Main processing
             self.result = self.process()
@@ -224,9 +243,9 @@ class BaseJobWorker(ABC):
             # Post-processing cleanup
             self.after_run()
 
-        return self.result
+        return self.result.to_json()
 
 
 __all__ = [
-    "BaseJobWorker",
+    "BaseObjectsJobWorker",
 ]

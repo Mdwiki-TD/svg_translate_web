@@ -23,6 +23,7 @@ class ConcreteTestWorker(BaseJobWorker):
         self.should_fail = should_fail
         self._process_result = process_result
         super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         return "test_worker"
@@ -59,7 +60,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.jobs_files_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(

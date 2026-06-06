@@ -16,10 +16,10 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Downloaded', ( result_data.files_downloaded | length ) or result_data.summary.downloaded, "info", "") }}
+                {{ stats_card('Downloaded', ( result_data.files_downloaded | length ) or result_data.summary.success, "info", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Skipped', result_data.summary.exists or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( result_data.files_failed | length ) or result_data.summary.failed, "danger", "") }}

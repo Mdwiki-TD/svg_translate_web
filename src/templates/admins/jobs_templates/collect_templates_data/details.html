@@ -1,0 +1,118 @@
+{% extends "admins/jobs_templates/base_details.html" %}
+{% from "_macros.html" import card_header, stats_card %}
+
+{% block job_summary %}
+{% set total_skipped = ( result_data.pages_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Added', result_data.summary.added or ( result_data.pages_added|length ), "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Updated', result_data.summary.updated or ( result_data.pages_updated|length ), "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('skipped', total_skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', result_data.summary.failed or ( result_data.pages_failed|length ), "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block job_details %}
+<!-- Added Templates -->
+{% if result_data.pages_added %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Added Templates (" ~ result_data.pages_added|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for template in result_data.pages_added %}
+                    <tr>
+                        <td> {{ loop.index }} </td>
+                        <td>
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.title }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Updated Templates -->
+{% if result_data.pages_updated %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Updated Templates (" ~ result_data.pages_updated|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>New Main File</th>
+                        <th>Last World File</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for template in result_data.pages_updated %}
+                    <tr>
+                        <td>{{ template.id }}</td>
+                        <td>
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.title }}
+                            </a>
+                        </td>
+                        <td><code>{{ template.new_main_file }}</code></td>
+                        <td><code>{{ template.last_world_file }}</code></td>
+                        <td><code>{{ template.source }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% from "admins/jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
+
+<!-- Skipped Templates -->
+{% if result_data.pages_skipped %}
+{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Templates", job.id, job_type, expand_all) }}
+{% endif %}
+
+<!-- Failed Templates -->
+{% if result_data.pages_failed %}
+{{ pages_skipped_table(wiki_domain, result_data.pages_failed, "Failed Templates", job.id, job_type, expand_all) }}
+{% endif %}
+
+{% endblock %}

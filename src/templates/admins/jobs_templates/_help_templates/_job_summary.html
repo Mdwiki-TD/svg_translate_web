@@ -1,0 +1,24 @@
+
+{% from "_macros.html" import status_icon, stats_card %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processing', result_data.summary.scanned ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Changed', result_data.pages_changed|length, "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('skipped', result_data.pages_skipped|length, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('missing', result_data.pages_missing|length, "warning", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Errors', result_data.pages_errors|length, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Dict
 
 import mwclient
@@ -28,7 +29,24 @@ def coerce_encrypted(value: object) -> bytes | None:
     return None
 
 
-def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
+def get_cronjob_site() -> mwclient.Site | None:
+
+    try:
+        site = mwclient.Site(
+            settings.other.wiki_domain,
+            scheme="https",
+            force_login=False,
+        )
+    except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction
+        logger.error(f"Failed to build OAuth site, {str(exc)}")
+        return None
+    except Exception as exc:  # pragma: no cover - network interaction
+        logger.exception("Failed to build OAuth site", exc_info=exc)
+        return None
+    return site
+
+
+def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
     if user is None:
         return None
 
@@ -61,3 +79,18 @@ def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
         logger.exception("Failed to build OAuth site", exc_info=exc)
         return None
     return site
+
+
+def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
+
+    is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
+    if is_cron_job:
+        return get_cronjob_site()
+
+    return _get_user_site(user)
+
+
+__all__ = [
+    "get_user_site",
+    "get_cronjob_site",
+]

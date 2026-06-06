@@ -25,9 +25,11 @@ class CropMainFilesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(job_id, user, cancel_event)
         self.args = args or {}
         self.upload_limit = args.get("upload_limit") if args else None
+
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -48,7 +50,10 @@ class CropMainFilesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
-            "files_processed": [],
+            "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     def before_run(self) -> bool:

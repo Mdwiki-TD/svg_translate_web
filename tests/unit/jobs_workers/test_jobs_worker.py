@@ -40,9 +40,9 @@ def clean_cancel_events():
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create_job):
+def test_start_collect_templates_data_job(mock_current_app, mock_thread, mock_create_job):
     """Test starting a collect templates data job."""
-    mock_job = JobRecord(id=1, job_type="collect_main_files", status="pending")
+    mock_job = JobRecord(id=1, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job
 
     mock_app = MagicMock()
@@ -51,10 +51,10 @@ def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_main_files")
+    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
 
     assert job_id == 1
-    mock_create_job.assert_called_once_with("collect_main_files", "22")
+    mock_create_job.assert_called_once_with("collect_templates_data", "22")
     mock_thread.assert_called_once()
     # Verify the thread was started with correct arguments
     args = mock_thread.call_args[1]["args"]
@@ -64,7 +64,7 @@ def test_start_collect_main_files_job(mock_current_app, mock_thread, mock_create
     mock_thread_instance.start.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_jobs_cancel_event(1) is not None
+    assert jobs_worker._get_jobs_cancel_event(1) is not None
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
@@ -89,7 +89,7 @@ def test_start_fix_nested_main_files_job(mock_current_app, mock_thread, mock_cre
     mock_thread.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_jobs_cancel_event(2) is not None
+    assert jobs_worker._get_jobs_cancel_event(2) is not None
 
 
 def test_cancel_job():
@@ -98,14 +98,14 @@ def test_cancel_job():
     jobs_worker._register_cancel_event(123, event)
 
     assert not event.is_set()
-    result = jobs_worker.cancel_job(123)
+    result = jobs_worker.cancel_job_worker(123)
     assert result is True
     assert event.is_set()
 
 
 def test_cancel_nonexistent_job():
     """Test cancelling a job that isn't registered."""
-    result = jobs_worker.cancel_job(999)
+    result = jobs_worker.cancel_job_worker(999)
     assert result is False
 
 
@@ -119,7 +119,7 @@ def test_runner_calls_target_and_cleans_up():
     flask_app.app_context = MagicMock()
 
     jobs_worker._register_cancel_event(job_id, event)
-    assert jobs_worker.get_jobs_cancel_event(job_id) == event
+    assert jobs_worker._get_jobs_cancel_event(job_id) == event
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
@@ -135,7 +135,7 @@ def test_runner_calls_target_and_cleans_up():
     mock_target.assert_called_once_with(job_id=job_id, user=user, cancel_event=event, args=None)
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
-    assert jobs_worker.get_jobs_cancel_event(job_id) is None
+    assert jobs_worker._get_jobs_cancel_event(job_id) is None
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
@@ -160,7 +160,7 @@ def test_start_download_main_files_job(mock_current_app, mock_thread, mock_creat
     mock_thread.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_jobs_cancel_event(3) is not None
+    assert jobs_worker._get_jobs_cancel_event(3) is not None
 
 
 def test_start_job_with_invalid_job_type():
@@ -180,18 +180,18 @@ def test_multiple_jobs_can_be_cancelled_independently():
     jobs_worker._register_cancel_event(3, event3)
 
     # Cancel job 2
-    assert jobs_worker.cancel_job(2) is True
+    assert jobs_worker.cancel_job_worker(2) is True
     assert event2.is_set()
     assert not event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 1
-    assert jobs_worker.cancel_job(1) is True
+    assert jobs_worker.cancel_job_worker(1) is True
     assert event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 3
-    assert jobs_worker.cancel_job(3) is True
+    assert jobs_worker.cancel_job_worker(3) is True
     assert event3.is_set()
 
 
@@ -244,9 +244,9 @@ def test_runner_passes_none_args_by_default():
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_param(mock_current_app, mock_thread, mock_create_job):
     """Test that start_job passes args to the background thread."""
-    mock_job = JobRecord(id=10, job_type="collect_main_files", status="pending")
+    mock_job = JobRecord(id=10, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job
 
     mock_app = MagicMock()
@@ -256,7 +256,7 @@ def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_jo
     mock_thread.return_value = mock_thread_instance
 
     args = {"update_all": "true"}
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_main_files", args=args)
+    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data", args=args)
 
     assert job_id == 10
     mock_thread.assert_called_once()
@@ -270,7 +270,7 @@ def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_jo
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
 def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_create_job):
     """Test that start_job passes args=None to the thread when no args given."""
-    mock_job = JobRecord(id=11, job_type="collect_main_files", status="pending")
+    mock_job = JobRecord(id=11, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job
 
     mock_app = MagicMock()
@@ -279,7 +279,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
     mock_thread_instance = MagicMock()
     mock_thread.return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_main_files")
+    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
 
     assert job_id == 11
     thread_args = mock_thread.call_args[1]["args"]
@@ -287,7 +287,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
     assert thread_args[5] == {}
 
 
-def test_start_job_with_args_is_alias_for_start_job():
+def test_start_job_is_alias_for_start_job():
     """Test that start_job is the same callable as start_job."""
     assert jobs_worker.start_job is jobs_worker.start_job
 
@@ -295,9 +295,9 @@ def test_start_job_with_args_is_alias_for_start_job():
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_alias_works(mock_current_app, mock_thread, mock_create_job):
     """Test that the start_job alias behaves identically to start_job."""
-    mock_job = JobRecord(id=12, job_type="collect_main_files", status="pending")
+    mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job
 
     mock_app = MagicMock()
@@ -308,9 +308,9 @@ def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_cre
 
     args = {"update_all": "true"}
     user = {"username": "alias_user"}
-    job_id = jobs_worker.start_job(user, "collect_main_files", args)
+    job_id = jobs_worker.start_job(user, "collect_templates_data", args)
 
     assert job_id == 12
-    mock_create_job.assert_called_once_with("collect_main_files", "alias_user")
+    mock_create_job.assert_called_once_with("collect_templates_data", "alias_user")
     thread_args = mock_thread.call_args[1]["args"]
     assert thread_args[5] == args

@@ -17,30 +17,30 @@ from src.main_app.db.services.jobs_service import (
 
 def test_create_job():
     """Test creating a new job."""
-    job = create_job("collect_main_files", username="test_user")
+    job = create_job("collect_templates_data", username="test_user")
 
     assert job is not None
     assert job.id == 1
-    assert job.job_type == "collect_main_files"
+    assert job.job_type == "collect_templates_data"
     assert job.status == "pending"
 
 
 def test_create_job_with_username():
     """Test creating a new job with username."""
-    job = create_job("collect_main_files", username="test_user")
+    job = create_job("collect_templates_data", username="test_user")
 
     assert job is not None
     assert job.id == 1
-    assert job.job_type == "collect_main_files"
+    assert job.job_type == "collect_templates_data"
     assert job.status == "pending"
     assert job.username == "test_user"
 
 
 def test_get_job():
     """Test retrieving a job by ID."""
-    created_job = create_job("collect_main_files", username="z")
+    created_job = create_job("collect_templates_data", username="z")
 
-    retrieved_job = get_job(created_job.id, job_type="collect_main_files")
+    retrieved_job = get_job(created_job.id, job_type="collect_templates_data")
 
     assert retrieved_job.id == created_job.id
     assert retrieved_job.job_type == created_job.job_type
@@ -49,14 +49,14 @@ def test_get_job():
 def test_get_nonexistent_job():
     """Test retrieving a nonexistent job raises LookupError."""
     with pytest.raises(LookupError, match="Job id 999 was not found"):
-        get_job(999, job_type="collect_main_files")
+        get_job(999, job_type="collect_templates_data")
 
 
 def test_list_jobs():
     """Test listing jobs."""
-    job1 = create_job("collect_main_files", username="z")
-    update_job_status(job1.id, "completed", job_type="collect_main_files")
-    create_job("collect_main_files", username="z")
+    job1 = create_job("collect_templates_data", username="z")
+    update_job_status(job1.id, "completed", job_type="collect_templates_data")
+    create_job("collect_templates_data", username="z")
     create_job("other_job", username="z")
 
     jobs = list_jobs()
@@ -68,9 +68,9 @@ def test_list_jobs():
 def test_list_jobs_with_limit():
     """Test listing jobs with a limit."""
     for i in range(5):
-        job = create_job("collect_main_files", username="z")
+        job = create_job("collect_templates_data", username="z")
         if i < 4:
-            update_job_status(job.id, "completed", job_type="collect_main_files")
+            update_job_status(job.id, "completed", job_type="collect_templates_data")
 
     jobs = list_jobs(limit=2)
 
@@ -79,18 +79,18 @@ def test_list_jobs_with_limit():
 
 def test_update_job_status():
     """Test updating a job's status."""
-    job = create_job("collect_main_files", username="z")
+    job = create_job("collect_templates_data", username="z")
 
-    updated_job = update_job_status(job.id, "running", job_type="collect_main_files")
+    updated_job = update_job_status(job.id, "running", job_type="collect_templates_data")
 
     assert updated_job.status == "running"
 
 
 def test_update_job_status_with_result_file():
     """Test updating a job's status with a result file."""
-    job = create_job("collect_main_files", username="z")
+    job = create_job("collect_templates_data", username="z")
 
-    updated_job = update_job_status(job.id, "completed", "/path/to/result.json", job_type="collect_main_files")
+    updated_job = update_job_status(job.id, "completed", "/path/to/result.json", job_type="collect_templates_data")
 
     assert updated_job.status == "completed"
     assert updated_job.result_file == "/path/to/result.json"
@@ -98,21 +98,21 @@ def test_update_job_status_with_result_file():
 
 def test_delete_job():
     """Test deleting a job."""
-    job = create_job("collect_main_files", username="z")
+    job = create_job("collect_templates_data", username="z")
     assert len(jobs_service.list_jobs()) == 1
 
-    delete_job(job.id, "collect_main_files")
+    delete_job(job.id, "collect_templates_data")
     jobs_len = len(jobs_service.list_jobs())
     assert jobs_len == 0
 
 
 def test_delete_job_with_correct_type():
     """Test deleting a job with correct job type."""
-    job1 = create_job("collect_main_files", username="z")
+    job1 = create_job("collect_templates_data", username="z")
     job2 = create_job("fix_nested_main_files", username="z")
     assert len(jobs_service.list_jobs()) == 2
 
-    delete_job(job1.id, "collect_main_files")
+    delete_job(job1.id, "collect_templates_data")
 
     remaining_jobs = list_jobs()
     assert len(remaining_jobs) == 1
@@ -121,7 +121,7 @@ def test_delete_job_with_correct_type():
 
 def test_delete_job_with_wrong_type():
     """Test deleting a job with wrong job type doesn't delete it."""
-    job = create_job("collect_main_files", username="z")
+    job = create_job("collect_templates_data", username="z")
     assert len(jobs_service.list_jobs()) == 1
 
     # Try to delete with wrong job type
@@ -136,7 +136,7 @@ def test_delete_job_with_wrong_type():
 def test_delete_nonexistent_job():
     """Test deleting a non-existent job."""
     # Should not raise an error
-    delete_job(999, "collect_main_files")
+    delete_job(999, "collect_templates_data")
 
     # No jobs should exist
     assert len(jobs_service.list_jobs()) == 0
@@ -144,16 +144,16 @@ def test_delete_nonexistent_job():
 
 def test_list_jobs_filtered_by_type():
     """Test listing jobs filtered by job_type."""
-    job1 = create_job("collect_main_files", username="z")
-    update_job_status(job1.id, "completed", job_type="collect_main_files")
-    create_job("collect_main_files", username="z")
+    job1 = create_job("collect_templates_data", username="z")
+    update_job_status(job1.id, "completed", job_type="collect_templates_data")
+    create_job("collect_templates_data", username="z")
     create_job("fix_nested_main_files", username="z")
     create_job("other_job_type", username="z")
 
-    # Filter by collect_main_files
-    collect_jobs = list_jobs(job_type="collect_main_files")
+    # Filter by collect_templates_data
+    collect_jobs = list_jobs(job_type="collect_templates_data")
     assert len(collect_jobs) == 2
-    assert all(job.job_type == "collect_main_files" for job in collect_jobs)
+    assert all(job.job_type == "collect_templates_data" for job in collect_jobs)
 
     # Filter by fix_nested_main_files
     fix_jobs = list_jobs(job_type="fix_nested_main_files")
@@ -168,18 +168,18 @@ def test_list_jobs_filtered_by_type():
 def test_list_jobs_filtered_with_limit():
     """Test listing jobs filtered by job_type with a limit."""
     for i in range(5):
-        job = create_job("collect_main_files", username="z")
+        job = create_job("collect_templates_data", username="z")
         if i < 4:
-            update_job_status(job.id, "completed", job_type="collect_main_files")
+            update_job_status(job.id, "completed", job_type="collect_templates_data")
     for i in range(3):
         job = create_job("fix_nested_main_files", username="z")
         if i < 2:
             update_job_status(job.id, "completed", job_type="fix_nested_main_files")
 
     # Filter by type with limit
-    collect_jobs = list_jobs(limit=2, job_type="collect_main_files")
+    collect_jobs = list_jobs(limit=2, job_type="collect_templates_data")
     assert len(collect_jobs) == 2
-    assert all(job.job_type == "collect_main_files" for job in collect_jobs)
+    assert all(job.job_type == "collect_templates_data" for job in collect_jobs)
 
 
 def test_update_job_status_nonexistent():

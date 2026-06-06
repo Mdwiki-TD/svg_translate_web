@@ -12,5 +12,5 @@ def test_get_job_detail_url_public(app):
 
 def test_get_job_detail_url_admin(app):
     with app.test_request_context():
-        url = get_job_detail_url(1, "collect_main_files")
-        assert "/admin/jobs/collect_main_files/1" in url
+        url = get_job_detail_url(1, "collect_templates_data")
+        assert "/admin/jobs/collect_templates_data/1" in url

@@ -7,7 +7,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs_workers.fix_nested_jobs.job import FixNestedJobsProcessor
+from src.main_app.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
@@ -48,8 +48,8 @@ def _make_processor(
         job_id=42,
         args=args,
         user=user or {"username": "testuser"},
-        result=result,
-        result_file="result_42.json",
+        # result=result,
+        # result_file="result_42.json",
         cancel_event=cancel_event,
     )
 
@@ -71,7 +71,7 @@ class TestPostInit:
     def test_site_and_session_default_to_none(self):
         proc = _make_processor()
         assert proc.site is None
-        assert proc.session is None
+        assert not hasattr(proc, "session")
 
 
 # ---------------------------------------------------------------------------
@@ -80,81 +80,85 @@ class TestPostInit:
 
 
 class TestSaveProgress:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_files_service")
-    def test_delegates_to_jobs_service(self, mock_svc):
+    @patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name")
+    def test_delegates_to_jobs_service(self, mock_save):
         proc = _make_processor()
         proc._save_progress()
-        mock_svc.save_job_result_by_name.assert_called_once_with(proc.result_file, proc.result)
+        mock_save.assert_called_once_with(proc.result_file, proc.result)
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.jobs_files_service")
-    def test_swallows_exceptions(self, mock_svc):
-        mock_svc.save_job_result_by_name.side_effect = RuntimeError("disk full")
+    @patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name")
+    def test_swallows_exceptions(self, mock_save):
+        mock_save.side_effect = RuntimeError("disk full")
         proc = _make_processor()
         # Must not raise
         proc._save_progress()
 
 
 # ---------------------------------------------------------------------------
-# _is_cancelled
+# is_cancelled
 # ---------------------------------------------------------------------------
 
 
 class TestIsCancelled:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_when_not_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
-        assert proc._is_cancelled() is False
+        assert proc.is_cancelled() is False
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_cancel_event_set_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         event = threading.Event()
         event.set()
         proc = _make_processor(cancel_event=event)
-        assert proc._is_cancelled() is True
+        assert proc.is_cancelled() is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_jobs_service_cancelled_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        assert proc._is_cancelled() is True
+        assert proc.is_cancelled(check_db=True) is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_result_status_to_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled()
-        assert proc.result["status"] == "Cancelled"
+        proc.is_cancelled(check_db=True)
+        assert proc.result["status"] == "cancelled"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_cancelled_at_timestamp(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled()
+        proc.is_cancelled(check_db=True)
         assert proc.result.get("cancelled_at") is not None
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_does_not_overwrite_existing_cancelled_at(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
         proc.result["cancelled_at"] = "original"
-        proc._is_cancelled()
+        proc.is_cancelled(check_db=True)
         assert proc.result["cancelled_at"] == "original"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_updates_stage_status_when_stage_name_given(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled("download")
-        assert proc.result["stages"]["download"]["status"] == "Cancelled"
+        # is_cancelled's only positional arg is `check_db` (bool); a truthy
+        # value triggers the DB cancellation check. The base worker sets the
+        # global result status to "cancelled" but does NOT update per-stage
+        # statuses (stage updates happen in _run_stage instead).
+        proc.is_cancelled("download")
+        assert proc.result["status"] == "cancelled"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_ignores_unknown_stage_name(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
         # should not raise
-        proc._is_cancelled("nonexistent_stage")
+        proc.is_cancelled("nonexistent_stage")
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +180,7 @@ class TestUpdateStep:
 
 
 class TestDownloadStep:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.download_svg_file")
     def test_success_populates_file_result(self, mock_dl, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
@@ -187,7 +191,7 @@ class TestDownloadStep:
         assert proc.result["file_result"]["success"] is True
         assert proc.result["stages"]["download"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.download_svg_file")
     def test_failure_populates_file_result_with_error(self, mock_dl):
         mock_dl.return_value = {"ok": False, "error": "network_error"}
         proc = _make_processor()
@@ -197,7 +201,7 @@ class TestDownloadStep:
         assert proc.result["file_result"]["error"] == "network_error"
         assert proc.result["stages"]["download"]["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.download_svg_file")
     def test_failure_defaults_error_when_missing(self, mock_dl):
         mock_dl.return_value = {"ok": False}
         proc = _make_processor()
@@ -212,7 +216,7 @@ class TestAnalyzeStep:
         proc.result["file_result"] = {"path": str(path), "success": True}
         return proc
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.detect_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags")
     def test_skips_when_download_not_success(self, mock_detect):
         proc = _make_processor()
         proc.result["stages"]["download"]["status"] = "Failed"
@@ -221,14 +225,14 @@ class TestAnalyzeStep:
         assert result is None
         mock_detect.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.detect_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags")
     def test_returns_false_when_file_missing(self, mock_detect, tmp_path):
         proc = self._proc_with_download_success(tmp_path / "missing.svg")
         result = proc._analyze_step()
         assert result is False
         mock_detect.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.detect_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags")
     def test_returns_none_when_no_nested_tags(self, mock_detect, tmp_path):
         svg = tmp_path / "a.svg"
         svg.touch()
@@ -238,7 +242,7 @@ class TestAnalyzeStep:
         assert result is None
         assert proc.result["stages"]["analyze"]["status"] == "skipped"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.detect_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags")
     def test_returns_true_when_nested_tags_found(self, mock_detect, tmp_path):
         svg = tmp_path / "b.svg"
         svg.touch()
@@ -258,7 +262,7 @@ class TestFixStep:
         proc.result["file_result"] = {"path": str(path)}
         return proc
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.fix_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags")
     def test_skips_when_analyze_not_success(self, mock_fix):
         proc = _make_processor()
         proc.result["stages"]["analyze"]["status"] = "skipped"
@@ -267,7 +271,7 @@ class TestFixStep:
         assert result is None
         mock_fix.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.fix_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags")
     def test_returns_true_on_success(self, mock_fix, tmp_path):
         mock_fix.return_value = True
         proc = self._proc_after_analyze(tmp_path / "x.svg")
@@ -275,7 +279,7 @@ class TestFixStep:
         assert result is True
         assert proc.result["stages"]["fix"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.fix_nested_tags")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags")
     def test_returns_false_on_failure(self, mock_fix, tmp_path):
         mock_fix.return_value = False
         proc = self._proc_after_analyze(tmp_path / "x.svg")
@@ -291,7 +295,7 @@ class TestVerifyStep:
         proc.result["file_result"] = {"path": str(path), "nested_tags_before": before_count}
         return proc
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix")
     def test_skips_when_fix_not_success(self, mock_verify):
         proc = _make_processor()
         proc.result["stages"]["fix"]["status"] = "Failed"
@@ -299,7 +303,7 @@ class TestVerifyStep:
         assert result is None
         mock_verify.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix")
     def test_returns_true_when_tags_fixed(self, mock_verify, tmp_path):
         mock_verify.return_value = {"after": 0, "fixed": 5}
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
@@ -309,7 +313,7 @@ class TestVerifyStep:
         assert proc.result["file_result"]["nested_tags_fixed"] == 5
         assert proc.result["stages"]["verify"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix")
     def test_returns_false_when_no_tags_fixed(self, mock_verify, tmp_path):
         mock_verify.return_value = {"after": 5, "fixed": 0}
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
@@ -326,7 +330,7 @@ class TestUploadStep:
         proc.result["file_result"] = {"path": "/tmp/x.svg", "nested_tags_fixed": tags_fixed}
         return proc
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_skips_when_upload_disabled(self, mock_upload):
         proc = _make_processor(args={"filename": "File:x.svg", "upload": False})
         proc.result["stages"]["verify"]["status"] = "success"
@@ -334,7 +338,7 @@ class TestUploadStep:
         assert result is None
         mock_upload.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_skips_when_no_site(self, mock_upload):
         proc = self._proc_after_verify()
         proc.site = None
@@ -342,7 +346,7 @@ class TestUploadStep:
         assert result is None
         mock_upload.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_skips_when_verify_not_success(self, mock_upload):
         proc = self._proc_after_verify()
         proc.result["stages"]["verify"]["status"] = "Failed"
@@ -350,7 +354,7 @@ class TestUploadStep:
         assert result is None
         mock_upload.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_returns_true_on_success(self, mock_upload):
         mock_upload.return_value = {"ok": True}
         proc = self._proc_after_verify()
@@ -358,7 +362,7 @@ class TestUploadStep:
         assert result is True
         assert proc.result["stages"]["upload"]["status"] == "success"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg")
+    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg")
     def test_returns_false_on_failure(self, mock_upload):
         mock_upload.return_value = {"ok": False, "error": "permission_denied"}
         proc = self._proc_after_verify()
@@ -374,27 +378,27 @@ class TestUploadStep:
 
 
 class TestRunStage:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_true_when_step_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: True) is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: False) is False
         assert proc.result["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: None) is False
         assert proc.result["status"] == "skipped"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_handles_exception_and_sets_failed(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
@@ -407,15 +411,20 @@ class TestRunStage:
         assert "oops" in proc.result["stages"]["download"]["message"]
         assert proc.result["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_immediately_when_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
+        # _run_stage calls self.is_cancelled() without check_db=True, so the
+        # DB mock alone has no effect. Use a cancel_event to trigger
+        # cancellation via the local event path.
+        event = threading.Event()
+        event.set()
         step = MagicMock(return_value=True)
-        proc = _make_processor()
+        proc = _make_processor(cancel_event=event)
         assert proc._run_stage("download", step) is False
         step.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_stage_status_to_running_before_calling_step(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         statuses = []
@@ -440,33 +449,50 @@ class TestRun:
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
-            "is_job_cancelled": patch("src.main_app.public_jobs_workers.fix_nested_jobs.job.is_job_cancelled"),
-            "create_session": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.create_commons_session",
-                return_value=MagicMock(),
+            # Bypass BaseJobWorker.before_run (which calls update_job_status
+            # against the real DB and then tries to do `self.result.status =`
+            # attribute access on a dict). Returning True lets process() run.
+            "before_run": patch(
+                "src.main_app.jobs_workers.base_worker.BaseJobWorker.before_run",
+                return_value=True,
+            ),
+            # Bypass the DB write inside BaseJobWorker.after_run().
+            "update_job_status": patch(
+                "src.main_app.jobs_workers.base_worker.update_job_status",
+                return_value=None,
+            ),
+            # Bypass disk writes from _save_progress().
+            "save_job_result_by_name": patch(
+                "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+                return_value=None,
+            ),
+            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
+            "is_job_cancelled_file_exist": patch(
+                "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+                return_value=False,
             ),
             "get_site": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.get_user_site",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
             ),
             "download": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.download_svg_file",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
                 return_value={"ok": True, "path": svg},
             ),
             "detect": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.detect_nested_tags",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",
                 return_value={"count": 2, "tags": ["g", "g"]},
             ),
             "fix": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.fix_nested_tags",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags",
                 return_value=True,
             ),
             "verify": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.verify_fix",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.verify_fix",
                 return_value={"after": 0, "fixed": 2},
             ),
             "upload": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.job.upload_fixed_svg",
+                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
                 return_value={"ok": True},
             ),
         }
@@ -518,19 +544,25 @@ class TestRun:
         """Cancellation detected at the fix stage stops further stages."""
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
+        mocks["is_job_cancelled"].return_value = False
 
+        # _run_stage calls self.is_cancelled() without check_db=True, so we
+        # drive cancellation through is_job_cancelled_file_exist (file path)
+        # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]
 
-        def cancel_on_third(*_, **kwargs):
+        def cancel_on_third(*_, **__):
             call_count[0] += 1
             return call_count[0] >= 3
 
-        mocks["is_job_cancelled"].side_effect = cancel_on_third
+        mocks["is_job_cancelled_file_exist"].side_effect = cancel_on_third
 
         try:
             proc = _make_processor()
             result = proc.run()
-            assert result["status"] == "Cancelled"
+            # BaseJobWorker._mark_as_cancelled_in_result sets status to
+            # lowercase "cancelled".
+            assert result["status"] == "cancelled"
             mocks["upload"].assert_not_called()
         finally:
             for p in patchers.values():

@@ -14,11 +14,11 @@ from typing import Any, Dict
 import requests
 from flask import send_file
 
-from ..api_services.clients import create_commons_session, download_commons_file_core
-from ..config import settings
-from ..db.models import TemplateRecord
-from ..db.services import list_templates
-from .base_worker import BaseJobWorker
+from ...api_services.clients import create_commons_session, download_commons_file_core
+from ...config import settings
+from ...db.models import TemplateRecord
+from ...db.services import list_templates
+from ..base_worker import BaseJobWorker
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -109,6 +109,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -120,16 +121,15 @@ class DownloadMainFilesWorker(BaseJobWorker):
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "output_path": str(self.output_dir),
-            "files_downloaded": [],
-            "files_failed": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
+                "success": 0,
                 "failed": 0,
                 "skipped": 0,
-                "downloaded": 0,
-                "exists": 0,
             },
+            "files_downloaded": [],
+            "files_failed": [],
         }
 
     def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
@@ -186,11 +186,11 @@ class DownloadMainFilesWorker(BaseJobWorker):
             clean_filename = template.main_file
             clean_filename = clean_filename.removeprefix("File:")
 
-            try:
-                # Check if the file already exists
-                if (self.output_dir / clean_filename).exists():
-                    self.result["summary"]["exists"] += 1
+            # Check if file already exists
+            # out_path = self.output_dir / clean_filename
+            # if out_path.exists(): self.result["summary"]["exists"] += 1
 
+            try:
                 # Download the file (will overwrite if exists)
                 download_result = download_file_from_commons(
                     clean_filename,
@@ -203,7 +203,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                     file_info["path"] = download_result["path"]
                     file_info["size_bytes"] = download_result["size_bytes"]
                     self.result["files_downloaded"].append(file_info)
-                    self.result["summary"]["downloaded"] += 1
+                    self.result["summary"]["success"] += 1
                 else:
                     file_info["status"] = "failed"
                     file_info["reason"] = download_result["error"]
@@ -221,6 +221,10 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 self.result["summary"]["failed"] += 1
                 logger.exception(f"Job {self.job_id}: Error processing {template.title}")
 
+            if file_info["status"] == "downloaded" and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
+
         # Final save
         self.result["completed_at"] = datetime.now().isoformat()
 
@@ -234,7 +238,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{self.result['summary']['downloaded']} downloaded, "
+            f"{self.result['summary']['success']} success, "
             f"{self.result['summary']['failed']} failed"
         )
 

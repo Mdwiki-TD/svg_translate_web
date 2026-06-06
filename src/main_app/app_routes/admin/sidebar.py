@@ -100,10 +100,10 @@ def create_side(active_route, path: str | None = None):
         ],
         "DB jobs": [
             SidebarItem(
-                id="collect_main_files",
+                id="collect_templates_data",
                 admin=1,
                 href=_safe_url_for(
-                    "admin.jobs.jobs_list", "/admin/jobs/collect_main_files", job_type="collect_main_files"
+                    "admin.jobs.jobs_list", "/admin/jobs/collect_templates_data", job_type="collect_templates_data"
                 ),
                 title="Collect Templates data",
                 icon="bi-kanban",

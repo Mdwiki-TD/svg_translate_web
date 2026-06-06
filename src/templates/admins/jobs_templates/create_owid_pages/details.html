@@ -27,10 +27,10 @@
 
 {% block job_details %}
 <!-- Templates Processed -->
-{% if result_data.templates_processed %}
+{% if result_data.pages_processed %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Templates Processed (" ~ result_data.templates_processed|length ~ ")") }}
+        {{ card_header("Templates Processed (" ~ result_data.pages_processed|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -46,7 +46,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in result_data.templates_processed %}
+                    {% for item in result_data.pages_processed %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>

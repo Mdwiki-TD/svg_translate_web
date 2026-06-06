@@ -135,7 +135,7 @@ class TestCreateSide:
 
     def test_sidebar_contains_jobs_section(self) -> None:
         """Test that sidebar contains the Jobs section."""
-        result = create_side("collect_main_files")
+        result = create_side("collect_templates_data")
         assert "DB jobs" in result
         assert "Files jobs" in result
         assert "OWID Templates/Pages" in result
@@ -143,11 +143,11 @@ class TestCreateSide:
         assert "bi-files" in result
         assert "bi-file-earmark-richtext" in result
 
-    def test_sidebar_contains_collect_main_files_job_link(self) -> None:
+    def test_sidebar_contains_collect_templates_data_job_link(self) -> None:
         """Test that sidebar contains Collect Templates data job link."""
-        result = create_side("collect_main_files")
+        result = create_side("collect_templates_data")
         assert "Collect Templates data" in result
-        assert "/admin/jobs/collect_main_files" in result
+        assert "/admin/jobs/collect_templates_data" in result
         assert "bi-kanban" in result
 
     def test_sidebar_contains_fix_nested_main_files_job_link(self) -> None:
@@ -157,11 +157,11 @@ class TestCreateSide:
         assert "/admin/jobs/fix_nested_main_files" in result
         assert "bi-tools" in result
 
-    def test_sidebar_marks_collect_main_files_as_active(self) -> None:
+    def test_sidebar_marks_collect_templates_data_as_active(self) -> None:
         """Test that Collect Templates data is marked as active when selected."""
-        result = create_side("collect_main_files")
+        result = create_side("collect_templates_data")
         # The link should have an active class
-        assert "id='collect_main_files' class='active'" in result
+        assert "id='collect_templates_data' class='active'" in result
 
     def test_sidebar_marks_fix_nested_main_files_as_active(self) -> None:
         """Test that Fix Nested Main Files is marked as active when selected."""

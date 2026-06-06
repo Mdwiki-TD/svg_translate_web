@@ -9,28 +9,23 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Created', ( result_data.templates_created | length ) or result_data.summary.created, "success", "") }}
+                {{ stats_card('Updated', ( result_data.pages_success | length ) or result_data.summary.success or result_data.summary.updated, "info", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Updated', ( result_data.templates_updated | length ) or result_data.summary.updated, "info", "") }}
+                {{ stats_card('Skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Skipped', ( result_data.templates_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
-            </div>
-            <div class="col">
-                {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( result_data.pages_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block job_details %}
-<!-- Templates Processed -->
-{% if result_data.templates_processed %}
+{% macro pages_processed_table(data, table_title) %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Templates Processed (" ~ result_data.templates_processed|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -46,7 +41,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in result_data.templates_processed %}
+                    {% for item in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -87,5 +82,31 @@
         </div>
     </div>
 </div>
+{%- endmacro -%}
+
+{% block job_details %}
+
+<!-- Templates Processed -->
+{% if result_data.pages_processed %}
+{{ pages_processed_table(result_data.pages_processed, 'Templates Processed') }}
 {% endif %}
+
+<!-- Templates Processed -->
+{% if result_data.pages_success %}
+{{ pages_processed_table(result_data.pages_success, 'Templates success') }}
+{% endif %}
+
+{% from "admins/jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
+
+<!-- Skipped Templates -->
+{% if result_data.pages_skipped %}
+{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Templates", job.id, job_type, expand_all) }}
+{% endif %}
+
+<!-- Failed Templates -->
+{% if result_data.pages_failed %}
+{{ pages_processed_table(result_data.pages_failed, 'Failed') }}
+{% endif %}
+
+
 {% endblock %}

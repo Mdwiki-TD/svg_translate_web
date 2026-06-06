@@ -9,13 +9,13 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Success', ( result_data.templates_success | length ) or result_data.summary.success, "success", "") }}
+                {{ stats_card('Success', ( result_data.pages_success | length ) or result_data.summary.success, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.templates_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', ( result_data.templates_failed | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( result_data.pages_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
@@ -24,10 +24,10 @@
 
 {% block job_details %}
 <!-- Successful Files -->
-{% if result_data.templates_success %}
+{% if result_data.pages_success %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Successful Files (" ~ result_data.templates_success|length ~ ")") }}
+        {{ card_header("Successful Files (" ~ result_data.pages_success|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -41,7 +41,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_success %}
+                    {% for template in result_data.pages_success %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>
@@ -69,10 +69,10 @@
 {% endif %}
 
 <!-- Failed Files -->
-{% if result_data.templates_failed %}
+{% if result_data.pages_failed %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Failed Files (" ~ result_data.templates_failed|length ~ ")") }}
+        {{ card_header("Failed Files (" ~ result_data.pages_failed|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -86,7 +86,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_failed %}
+                    {% for template in result_data.pages_failed %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>
@@ -114,10 +114,10 @@
 {% endif %}
 
 <!-- Skipped Files -->
-{% if result_data.templates_skipped %}
+{% if result_data.pages_skipped %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Skipped Files (" ~ result_data.templates_skipped|length ~ ")") }}
+        {{ card_header("Skipped Files (" ~ result_data.pages_skipped|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -131,7 +131,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.templates_skipped %}
+                    {% for template in result_data.pages_skipped %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>

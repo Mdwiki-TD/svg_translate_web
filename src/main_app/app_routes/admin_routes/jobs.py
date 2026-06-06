@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any
+import copy
 
 from flask import (
     Blueprint,
@@ -28,24 +29,70 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.download_main_files_worker import create_main_files_zip
+from ...jobs_workers.download_main_files.worker import create_main_files_zip
 from ...jobs_workers.workers_list import jobs_data
-from ...su_services import jobs_files_service
+from ...su_services import load_job_result, save_job_result_by_name
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
 from ..utils.routes_utils import load_auth_payload
+from .results_utils import fix_result_data
 
 logger = logging.getLogger(__name__)
 
 
+def _can_manage_job(job: Any, user: Any) -> bool:
+    """Check if the current user can manage (cancel/delete) a job.
+
+    Returns True if the user is an admin (coordinator) or if the user
+    is the owner of the job.
+    """
+    if not user:
+        return False
+    if getattr(user, "is_active_admin", False):
+        return True
+    if job.username and job.username == user.username:
+        return True
+    return False
+
+
+def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
+    data = load_job_result(result_file)
+    if data:
+        data_before = copy.deepcopy(data)
+        data2 = fix_result_data(data, job_type)
+        if data2 != data_before:
+            logger.info(f"Job result {result_file} was fixed")
+            save_job_result_by_name(result_file, data2)
+        else:
+            logger.info(f"Job result {result_file} was not fixed")
+        return data2
+
+    return data
+
+
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
-    if jobs_worker.cancel_job(job_id, job_type):
+    user = load_user()
+    if not user:
+        flash("You must be logged in to cancel jobs.", "danger")
+        return redirect(url_for("new_jobs.job_detail", job_type=job_type, job_id=job_id))
+
+    try:
+        job = get_job(job_id, job_type)
+    except LookupError:
+        flash("Job not found.", "warning")
+        return redirect(url_for("new_jobs.jobs_list", job_type=job_type))
+
+    if not _can_manage_job(job, user):
+        flash("You don't have permission to cancel this job.", "danger")
+        return redirect(url_for("new_jobs.job_detail", job_type=job_type, job_id=job_id))
+
+    if jobs_worker.cancel_job_worker(job_id, job_type, job):
         flash(f"Job {job_id} cancellation requested.", "success")
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+    return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -53,7 +100,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
     try:
         # Cancel the job if it's running
-        if jobs_worker.cancel_job(job_id, job_type):
+        if jobs_worker.cancel_job_worker(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
         if delete_job(job_id, job_type):
@@ -67,7 +114,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
 
 
-def _start_job(job_type: str) -> int | None:
+def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
 
@@ -78,34 +125,18 @@ def _start_job(job_type: str) -> int | None:
     try:
         # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
-        job_id = jobs_worker.start_job(auth_payload, job_type)
-        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
-        return job_id
-    except DuplicateJobError as exc:
-        flash(str(exc), "warning")
     except Exception:
-        logger.exception("Failed to start job")
-        flash("Failed to start job. Please try again.", "danger")
-
-    return None
-
-
-def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
-    """Start a job."""
-    user = load_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
+        logger.exception("Failed to load auth payload")
+        flash("Failed to load auth payload. Please try again.", "danger")
         return None
 
     try:
-        # Get auth payload for OAuth uploads
-        auth_payload = load_auth_payload(user)
         job_id = jobs_worker.start_job(auth_payload, job_type, args)
-        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
+        flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
-    except DuplicateJobError as exc:
-        flash(str(exc), "warning")
+    except DuplicateJobError:
+        logger.warning("User '%s' attempted to start duplicate job type '%s'", user.username, job_type)
+        flash("A job of this type is already running. Please wait for it to complete.", "warning")
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
@@ -121,9 +152,15 @@ def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
-    jobs = list_jobs(limit=100, job_type=job_type)
+    try:
+        jobs = list_jobs(limit=100, job_type=job_type)
+    except Exception:  # pragma: no cover - defensive guard
+        logger.exception("Unable to load jobs list.")
+        flash("Unable to load jobs list.", "danger")
+        jobs = []
 
     template_data = jobs_data.get(job_type)
+
     if not template_data:
         abort(404)
 
@@ -139,7 +176,7 @@ def _jobs_list(job_type: str) -> str:
     )
 
 
-def _job_detail(job_id: int, job_type: str) -> Response | str:
+def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
@@ -152,9 +189,11 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     # Load job result if available
     result_data = None
     if job.result_file:
-        result_data = jobs_files_service.load_job_result(job.result_file)
+        result_data = load_job_result_and_fix(job.result_file, job_type)
 
+    # Load template data
     template_data = jobs_data.get(job_type)
+
     if not template_data:
         abort(404)
 
@@ -167,6 +206,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
         result_data=result_data,
         detail_title=template_data.job_name,
         detail_headline=template_data.job_name,
+        expand_all=expand_all,
     )
 
 
@@ -208,6 +248,11 @@ class Jobs:
         def job_detail(job_type: str, job_id: int) -> Response | str:
             return _job_detail(job_id, job_type)
 
+        @self.bp.get("/<string:job_type>/<int:job_id>/expand")
+        @admin_required
+        def job_detail_expand(job_type: str, job_id: int) -> Response | str:
+            return _job_detail(job_id, job_type, expand_all=True)
+
         # ================================
         # Start Job routes
         # ================================
@@ -219,9 +264,11 @@ class Jobs:
                 abort(404)
 
             args = request.form.to_dict()
-            job_id = _start_job_with_args(job_type, args)
+
+            job_id = _start_job(job_type, args)
             if not job_id:
                 return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+
             return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
@@ -306,10 +353,11 @@ class Jobs:
             )
 
         @self.bp.get("/read-job-result-file/<path:result_file>")
+        @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
         @admin_required
-        def read_job_result_file(result_file: str) -> ResponseReturnValue:
+        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
-            result_data = jobs_files_service.load_job_result(result_file)
+            result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
 
 

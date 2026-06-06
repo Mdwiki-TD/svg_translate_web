@@ -1,8 +1,6 @@
 """Tests for crop_main_files/utils module."""
 
-import pytest
-
-from src.main_app.jobs_workers.utils.crop_main_files_utils import generate_cropped_filename
+from src.main_app.jobs_workers.crop_main_files.crop_utils import generate_cropped_filename
 
 
 class TestGenerateCroppedFilename:
