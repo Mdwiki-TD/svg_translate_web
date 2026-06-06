@@ -158,14 +158,27 @@ class TestProcessTemplate:
         worker.result = worker.get_initial_result()
         return worker
 
-    def test_process_template_success_flow(self, mock_worker):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
+    def test_process_template_success_flow(self, mock_re_svg_lang, mock_worker):
         """Test successful processing of a template."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
-        # Mock all steps to succeed
-        mock_worker._step_load_template_text = MagicMock(return_value=True)
-        mock_worker._step_generate_template_text = MagicMock(return_value=True)
-        mock_worker._step_add_template = MagicMock(return_value=True)
+        # Mock regex to not match (template doesn't have SVGLanguages yet)
+        mock_re_svg_lang.search = MagicMock(return_value=None)
+
+        # Mock all steps to succeed, with side_effects to set required state
+        def mock_load(info):
+            info._text = "some text"
+
+        def mock_generate(info):
+            info._template_text = "{{SVGLanguages|test.svg}}"
+
+        def mock_add(info):
+            info._new_text = "updated text"
+
+        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
+        mock_worker._step_generate_template_text = MagicMock(side_effect=mock_generate)
+        mock_worker._step_add_template = MagicMock(side_effect=mock_add)
         mock_worker._step_save_new_text = MagicMock(return_value=True)
         mock_worker._append = MagicMock()
 
