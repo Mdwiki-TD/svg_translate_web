@@ -30,7 +30,7 @@ from ...db.services import (
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files.worker import create_main_files_zip
 from ...jobs_workers.workers_list import jobs_data
-from ...su_services import load_job_result
+from ...su_services import load_job_result, save_job_result_by_name
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
 from ..utils.routes_utils import load_auth_payload
@@ -42,7 +42,15 @@ logger = logging.getLogger(__name__)
 def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
     data = load_job_result(result_file)
     if data:
-        data = fix_result_data(data, job_type)
+        data_before = data.copy()
+        data2 = fix_result_data(data, job_type)
+        if data2 != data_before:
+            logger.info(f"Job result {result_file} was fixed")
+            save_job_result_by_name(result_file, data2)
+        else:
+            logger.info(f"Job result {result_file} was not fixed")
+        return data2
+
     return data
 
 

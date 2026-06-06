@@ -20,18 +20,19 @@ def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
 
     msg = "Skipped - page content is already has {{SVGLanguages|...}}"
 
-    for page in data["pages_processed"]:
-        template_title = page["template_title"]
+    pages_processed = data.get("templates_processed") or data.get("pages_processed")
+    for page in pages_processed:
+        template_title = page.get("template_title") or page.get("title")
 
-        if page["status"] == "completed":
+        if page.get("status") == "completed":
             _pages_success.append(page)
             continue
 
-        if page["status"] == "failed":
+        if page.get("status") == "failed":
             _pages_failed.append(page)
             continue
 
-        if page["steps"]["load_template_text"]["msg"] == msg:
+        if page.get("steps", {}).get("load_template_text", {}).get("msg") == msg:
             _pages_skipped.append({"title": template_title, "msg": msg})
             continue
 
@@ -41,6 +42,8 @@ def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
     data["pages_processed"] = _pages_processed
     data["pages_failed"] = _pages_failed
     data["pages_success"] = _pages_success
+
+    data["summary"] = data.get("summary", {})
 
     data["summary"].update(
         {
