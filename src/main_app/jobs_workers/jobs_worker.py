@@ -193,10 +193,10 @@ def start_job_cli(
         job = create_job(job_type, username)
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
-        raise
-    except Exception as e:
+        return 0
+    except Exception:
         logger.exception(f"Failed to create job record for job type {job_type}")
-        raise e
+        return 0
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
