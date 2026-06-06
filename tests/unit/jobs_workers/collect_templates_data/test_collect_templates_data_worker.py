@@ -595,16 +595,16 @@ def test_worker_class_get_job_type(mock_services):
     """Test CollectMainFilesWorker.get_job_type returns correct type."""
     import threading
 
-    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
-    assert worker.get_job_type() == "collect_templates_data"
+    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    assert _worker.get_job_type() == "collect_templates_data"
 
 
 def test_worker_class_get_initial_result(mock_services):
     """Test CollectMainFilesWorker.get_initial_result returns proper structure."""
     import threading
 
-    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
-    result = worker.get_initial_result()
+    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    result = _worker.get_initial_result()
 
     assert result["job_id"] == 1
     assert "started_at" in result
@@ -625,18 +625,18 @@ def test_worker_init_update_all_defaults_to_false(mock_services):
     """Test CollectMainFilesWorker initializes update_all=False by default."""
     import threading
 
-    worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
-    assert worker.update_all is False
+    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    assert _worker.update_all is False
 
 
 def test_worker_init_update_all_can_be_set_true(mock_services):
     """Test CollectMainFilesWorker accepts update_all='true' or update_all=True."""
     import threading
 
-    worker = worker.CollectMainFilesWorker(
+    _worker = worker.CollectMainFilesWorker(
         job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"}
     )
-    assert worker.update_all is True
+    assert _worker.update_all is True
 
     worker2 = worker.CollectMainFilesWorker(
         job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True}

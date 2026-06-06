@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.utils.add_svglanguages_template_utils import (
+from src.main_app.jobs_workers.add_svglanguages_template.utils import (
     RE_SVG_LANG,
     RE_TRANSLATE,
     add_template_to_text,

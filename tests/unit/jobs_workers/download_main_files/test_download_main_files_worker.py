@@ -834,36 +834,36 @@ class TestDownloadMainFilesWorkerInitialization:
 
     def test_worker_reads_limit_items_from_args(self, mock_services):
         """Test worker reads limit_items from args."""
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args={"limit_items": 5},
         )
 
-        assert worker.limit_items == 5
+        assert _worker.limit_items == 5
 
     def test_worker_defaults_limit_items_when_args_none(self, mock_services):
         """Test worker defaults limit_items to 0 when args is None."""
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args=None,
         )
 
-        assert worker.limit_items == 0
+        assert _worker.limit_items == 0
 
     def test_worker_limit_items_none_when_key_missing(self, mock_services):
         """Test worker sets limit_items to None when args has no limit_items key."""
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args={"other_key": "value"},
         )
 
-        assert worker.limit_items is None
+        assert _worker.limit_items is None
 
 
 class TestDownloadMainFilesWorkerApplyLimits:
@@ -876,13 +876,13 @@ class TestDownloadMainFilesWorkerApplyLimits:
             for i in range(1, 4)
         ]
 
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args={"limit_items": 2},
         )
-        result = worker._apply_limits(templates)
+        result = _worker._apply_limits(templates)
 
         assert len(result) == 2
 
@@ -893,12 +893,12 @@ class TestDownloadMainFilesWorkerApplyLimits:
             TemplateRecord(id=2, title="Template:T2", main_file="f2.svg", last_world_file=None),
         ]
 
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
         )
-        result = worker._apply_limits(templates)
+        result = _worker._apply_limits(templates)
 
         assert len(result) == 2
 
@@ -908,13 +908,13 @@ class TestDownloadMainFilesWorkerApplyLimits:
             TemplateRecord(id=1, title="Template:T1", main_file="f1.svg", last_world_file=None),
         ]
 
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args={"limit_items": 10},
         )
-        result = worker._apply_limits(templates)
+        result = _worker._apply_limits(templates)
 
         assert len(result) == 1
 
@@ -925,13 +925,13 @@ class TestDownloadMainFilesWorkerApplyLimits:
             TemplateRecord(id=2, title="Template:T2", main_file="f2.svg", last_world_file=None),
         ]
 
-        worker = worker.DownloadMainFilesWorker(
+        _worker = worker.DownloadMainFilesWorker(
             job_id=1,
             user=None,
             cancel_event=None,
             args={"limit_items": "not_int"},
         )
-        result = worker._apply_limits(templates)
+        result = _worker._apply_limits(templates)
 
         assert len(result) == 2
 

@@ -17,7 +17,7 @@ from ...api_services.pages_api import get_page_text, update_page_text
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
 from ..base_worker import BaseJobWorker
-from ..utils.add_svglanguages_template_utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
+from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
 StepResult = dict[str, Any]
