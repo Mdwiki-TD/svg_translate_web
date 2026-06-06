@@ -112,6 +112,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
     return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
 
+
 def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
