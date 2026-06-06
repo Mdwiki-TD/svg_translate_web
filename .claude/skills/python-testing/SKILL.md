@@ -1,3 +1,11 @@
+---
+name: python-testing
+description: |
+    WHEN: You need to test Python code.
+    WHAT: Use pytest for professional Python testing.
+    WHEN NOT: You don't need to test Python code.
+---
+
 # pytest - Professional Python Testing
 
 -   [source](https://github.com/MacPhobos/research-mind/blob/main/.claude/skills/toolchains-python-testing-pytest/skill.md?plain=1)
