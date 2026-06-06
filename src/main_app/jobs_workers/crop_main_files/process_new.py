@@ -31,8 +31,8 @@ from ...db.services import (
 )
 from ...su_services import jobs_files_service
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
-from .crop_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
+from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 

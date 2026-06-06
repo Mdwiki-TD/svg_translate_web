@@ -4,22 +4,20 @@ Worker module for copy_svg_langs.
 
 from __future__ import annotations
 
+import json
 import logging
+import re
 import threading
 from datetime import datetime
-from typing import Any, Dict
-
-import json
-import re
 from pathlib import Path
+from typing import Any, Dict
 
 import mwclient
 import requests
 
-from ...jobs_workers.base_worker import BaseJobWorker
-
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
+from ...jobs_workers.base_worker import BaseJobWorker
 from .steps import (
     download_step,
     extract_text_step,
@@ -31,6 +29,7 @@ from .steps import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class CopySvgLangsWorker(BaseJobWorker):
     """

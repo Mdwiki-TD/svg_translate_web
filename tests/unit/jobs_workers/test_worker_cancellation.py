@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.fix_nested_main_files import worker
-from src.main_app.jobs_workers.collect_templates_data import worker
+from src.main_app.jobs_workers.collect_templates_data import worker as collect_worker
+from src.main_app.jobs_workers.fix_nested_main_files import worker as fix_worker
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
         mock_update_template,
     )
 
-    worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
+    collect_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should have processed only one template before stopping
     # n=1: processes T1, updates template, sets cancel_event.
@@ -123,7 +123,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
         "src.main_app.jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags", mock_repair_nested_svg_tags
     )
 
-    worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
+    fix_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["success"] == 2
@@ -136,7 +136,7 @@ def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.Mo
     mock_common_services["update_job_status"].side_effect = LookupError("Job not found")
 
     # Should not raise exception
-    worker.collect_templates_data_entry(job_id=1, user=None)
-    worker.fix_nested_main_files_for_templates(job_id=2, user=None)
+    collect_worker.collect_templates_data_entry(job_id=1, user=None)
+    fix_worker.fix_nested_main_files_for_templates(job_id=2, user=None)
 
     assert mock_common_services["update_job_status"].call_count >= 2
