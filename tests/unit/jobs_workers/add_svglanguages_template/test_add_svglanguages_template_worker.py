@@ -169,12 +169,15 @@ class TestProcessTemplate:
         # Mock all steps to succeed, with side_effects to set required state
         def mock_load(info):
             info._text = "some text"
+            return True
 
         def mock_generate(info):
             info._template_text = "{{SVGLanguages|test.svg}}"
+            return True
 
         def mock_add(info):
             info._new_text = "updated text"
+            return True
 
         mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
         mock_worker._step_generate_template_text = MagicMock(side_effect=mock_generate)
@@ -223,6 +226,7 @@ class TestProcessTemplate:
 
         def mock_load(info):
             info._text = "some text"
+            return True
 
         mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
         mock_worker._step_generate_template_text = MagicMock(return_value=False)
@@ -285,6 +289,7 @@ class TestStepLoadTemplateText:
 
         def mock_load(info):
             info._text = "{{SVGLanguages|test.svg}}\nSome content"
+            return True
 
         mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
         mock_worker._step_generate_template_text = MagicMock()
