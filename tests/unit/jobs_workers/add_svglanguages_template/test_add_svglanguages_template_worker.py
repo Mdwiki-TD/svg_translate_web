@@ -375,8 +375,7 @@ class TestStepAddTemplate:
 
         assert result is False
         assert info.status == "skipped"
-        assert mock_worker.result["summary"]["skipped"] == 1
-        assert mock_worker.result["summary"]["processed"] == 1
+        assert info.steps["add_template_text"]["result"] is None
 
 
 class TestStepSaveNewText:
