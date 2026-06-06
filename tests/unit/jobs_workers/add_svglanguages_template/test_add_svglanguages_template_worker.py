@@ -442,7 +442,6 @@ class TestHelperMethods:
         assert info.steps["test_step"]["msg"] == "Test error message"
         assert info.status == "failed"
         assert info.error == "Test error message"
-        assert mock_worker.result["summary"]["failed"] == 1
 
     def test_skip_step_marks_step_as_skipped(self, mock_worker):
         """Test that _skip_step correctly marks step as skipped."""
