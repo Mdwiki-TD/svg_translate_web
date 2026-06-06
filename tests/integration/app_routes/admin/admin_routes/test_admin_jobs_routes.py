@@ -881,7 +881,7 @@ def test_cancel_already_cancelled_job(admin_jobs_client, jobs_db, monkeypatch):
     jobs_db.update_status(job.id, "cancelled", job_type="download_main_files")
 
     # Try to cancel again
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
