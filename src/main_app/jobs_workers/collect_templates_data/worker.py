@@ -120,11 +120,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "pages_processed": [],
-            "pages_added": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -132,6 +127,11 @@ class CollectMainFilesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
+            "pages_processed": [],
+            "pages_added": [],
+            "pages_updated": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     def _fetch_and_add_new_templates(self) -> None:

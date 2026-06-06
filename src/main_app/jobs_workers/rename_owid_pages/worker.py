@@ -120,6 +120,9 @@ class RenameOwidPagesWorker(BaseJobWorker):
                 "failed": 0,
             },
             "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     def process(self) -> Dict[str, Any]:

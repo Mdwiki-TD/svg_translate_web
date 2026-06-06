@@ -298,7 +298,7 @@ class TestStepGenerateTemplateText:
 
         assert result is False
         assert info.status == "failed"
-        assert "Could not load Translate link" in info.error
+        assert "Could not load svgtranslate link" in info.error
 
 
 class TestStepAddTemplate:

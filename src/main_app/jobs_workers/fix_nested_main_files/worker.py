@@ -120,10 +120,6 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -131,6 +127,10 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
+            "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     def _log_skipped_no_main_file(self, template_info: dict) -> None:

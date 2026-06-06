@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
+
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,6 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
     except Exception as e:
         logger.error(f"Error loading job result from {result_file}: {e}")
         return None
-
 
 def create_job_cancelled_file(filename: str) -> Path | None:
     jobs_dir = get_jobs_data_dir()

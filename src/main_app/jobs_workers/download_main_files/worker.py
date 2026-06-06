@@ -121,8 +121,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "output_path": str(self.output_dir),
-            "files_downloaded": [],
-            "files_failed": [],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -130,6 +128,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
+            "files_downloaded": [],
+            "files_failed": [],
         }
 
     def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:

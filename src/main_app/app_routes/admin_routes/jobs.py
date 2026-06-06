@@ -20,6 +20,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+
 from ...config import settings
 from ...db.exceptions import DuplicateJobError
 from ...db.services import (
@@ -30,12 +31,20 @@ from ...db.services import (
 from ...jobs_workers import jobs_worker
 from ...jobs_workers.download_main_files.worker import create_main_files_zip
 from ...jobs_workers.workers_list import jobs_data
-from ...su_services import jobs_files_service
+from ...su_services import load_job_result
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
 from ..utils.routes_utils import load_auth_payload
 
+from .results_utils import fix_result_data
+
 logger = logging.getLogger(__name__)
+
+def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
+    data = load_job_result(result_file)
+    if data:
+        data = fix_result_data(data, job_type)
+    return data
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
@@ -124,6 +133,7 @@ def _jobs_list(job_type: str) -> str:
     jobs = list_jobs(limit=100, job_type=job_type)
 
     template_data = jobs_data.get(job_type)
+
     if not template_data:
         abort(404)
 
@@ -139,7 +149,7 @@ def _jobs_list(job_type: str) -> str:
     )
 
 
-def _job_detail(job_id: int, job_type: str) -> Response | str:
+def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
@@ -152,8 +162,9 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
     # Load job result if available
     result_data = None
     if job.result_file:
-        result_data = jobs_files_service.load_job_result(job.result_file)
+        result_data = load_job_result_and_fix(job.result_file, job_type)
 
+    # Load template data
     template_data = jobs_data.get(job_type)
     if not template_data:
         abort(404)
@@ -167,6 +178,7 @@ def _job_detail(job_id: int, job_type: str) -> Response | str:
         result_data=result_data,
         detail_title=template_data.job_name,
         detail_headline=template_data.job_name,
+        expand_all=expand_all,
     )
 
 
@@ -207,6 +219,11 @@ class Jobs:
         @admin_required
         def job_detail(job_type: str, job_id: int) -> Response | str:
             return _job_detail(job_id, job_type)
+
+        @self.bp.get("/<string:job_type>/<int:job_id>/expand")
+        @admin_required
+        def job_detail_expand(job_type: str, job_id: int) -> Response | str:
+            return _job_detail(job_id, job_type, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -305,11 +322,11 @@ class Jobs:
                 file_cropped=cropped,
             )
 
-        @self.bp.get("/read-job-result-file/<path:result_file>")
+        @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
         @admin_required
-        def read_job_result_file(result_file: str) -> ResponseReturnValue:
+        def read_job_result_file(result_file: str, job_type: str="") -> ResponseReturnValue:
             """ """
-            result_data = jobs_files_service.load_job_result(result_file)
+            result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
 
 

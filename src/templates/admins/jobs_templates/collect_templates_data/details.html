@@ -103,83 +103,16 @@
 </div>
 {% endif %}
 
-<!-- Failed Templates -->
-{% if result_data.pages_failed %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Failed Templates (" ~ result_data.pages_failed|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Reason</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in result_data.pages_failed %}
-                    <tr>
-                        <td>{{ template.id }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td>{{ template.reason or template.error }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
+{% from "admins/jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
 
 <!-- Skipped Templates -->
 {% if result_data.pages_skipped %}
-{% if result_data.pages_skipped|length > 100 %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Skipped Templates (" ~ result_data.pages_skipped|length ~ ")") }}
-    </div>
-</div>
-{% else %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Skipped Templates (" ~ result_data.pages_skipped|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Reason</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in result_data.pages_skipped %}
-                    <tr>
-                        <td>{{ template.id }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td>{{ template.reason or template.error }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Templates", job.id, job_type, expand_all) }}
 {% endif %}
+
+<!-- Failed Templates -->
+{% if result_data.pages_failed %}
+{{ pages_skipped_table(wiki_domain, result_data.pages_failed, "Failed Templates", job.id, job_type, expand_all) }}
 {% endif %}
+
 {% endblock %}

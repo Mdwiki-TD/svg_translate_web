@@ -104,6 +104,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
                 "skipped": 0,
             },
             "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     # ------------------------------------------------------------------
@@ -127,6 +130,8 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
+
         file_info = TemplateInfo(
             template_id=template.id,
             template_title=template.title,
@@ -134,27 +139,34 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_failed")
+            return False
+
+        match = RE_SVG_LANG.search(file_info._text)
+        if match:
+            self._skip_step(file_info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}")
+            self._append(file_info, key="pages_skipped")
             return False
 
         # Step 2 generate_template_text
         if not self._step_generate_template_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_failed")
             return False
 
         # Step 3 add_template_text
         if not self._step_add_template(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_skipped")
             return False
 
         # Step 4 save_new_text
         if not self._step_save_new_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_failed")
             return False
 
         file_info.status = "completed"
-        self.result["summary"]["processed"] += 1
-        self._append(file_info)
+        # self._append(file_info, key="pages_processed")
+        self._append(file_info, key="pages_success")
+
         return True
 
     # ------------------------------------------------------------------
@@ -168,11 +180,6 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
 
-        match = RE_SVG_LANG.search(text)
-        if match:
-            self._skip_step(info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}")
-            return False
-
         info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
         info._text = text
         return True
@@ -182,7 +189,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         translate_link_file_name = load_link_file_name(info._text)
 
         if not translate_link_file_name:
-            self._fail(info, "generate_template_text", f"Could not load Translate link for {info.template_title}")
+            self._fail(info, "generate_template_text", f"Could not load svgtranslate link for {info.template_title}")
             return False
 
         info.steps["generate_template_text"] = {"result": True, "msg": "Template wikitext generated"}
@@ -198,8 +205,6 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         if info._text.strip() == info._new_text.strip():
             self._skip_step(info, "add_template_text", "Skipped - page content is already identical")
             info.status = "skipped"
-            self.result["summary"]["skipped"] += 1
-            self.result["summary"]["processed"] += 1
             return False
 
         info.steps["add_template_text"] = {"result": True, "msg": "Wikitext updated"}
@@ -215,15 +220,13 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             summary=f"Adding {info._template_text}",
         )
 
-        if not update_result["success"]:
-            err = update_result.get("error", "Unknown error")
-            self._fail(info, "save_new_text", err)
-            return False
+        if update_result["success"]:
+            info.steps["save_new_text"] = {"result": True, "msg": "Template page updated."}
+            return True
 
-        self.result["summary"]["success"] += 1
-        info.steps["save_new_text"] = {"result": True, "msg": "Template page updated."}
-        return True
-
+        err = update_result.get("error", "Unknown error")
+        self._fail(info, "save_new_text", err)
+        return False
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
@@ -233,14 +236,13 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-        self.result["summary"]["failed"] += 1
 
     def _skip_step(self, file_info: TemplateInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _append(self, file_info: TemplateInfo) -> None:
-        self.result["pages_processed"].append(file_info.to_dict())
+    def _append(self, file_info: TemplateInfo, key: str = "pages_processed") -> None:
+        self.result[key].append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point
@@ -276,6 +278,10 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
         if self.result.get("status") in ["pending", "running"]:
             self.result["status"] = "completed"
+
+        self.result["summary"]["failed"] = len(self.result["pages_failed"])
+        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
+        self.result["summary"]["success"] = len(self.result["pages_success"])
 
         return self.result
 

@@ -105,6 +105,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
                 "skipped": 0,
             },
             "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
         }
 
     # ------------------------------------------------------------------
