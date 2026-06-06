@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import sys
 import threading
+import mwclient
 from pathlib import Path
 
 if _path_ := Path(__file__).parent.parent.parent:
@@ -20,7 +21,9 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
-from src.main_app.api_services import get_category_members, get_page_text, get_user_site
+import pymysql
+
+from src.main_app.api_services import get_category_members, get_page_text
 from src.main_app.db.services import (
     add_template_data,
     create_job,
@@ -34,6 +37,12 @@ from src.main_app.utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
+from src.main_app import create_app
+
+from src.main_app.config import ProductionConfig, settings
+from src.logger_config import setup_logging
+
+pymysql.install_as_MySQLdb()
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +148,11 @@ class MainFilesWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
-        self.site = get_user_site(self.user)
+        self.site = mwclient.Site(
+            settings.other.wiki_domain,
+            scheme="https",
+            force_login=False,
+        )
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.result["status"] = "failed"
@@ -275,13 +288,22 @@ class MainFilesWorker(BaseJobWorker):
 
 def start() -> None:
     user = None
+
+    # environment variables in production already in toolforge envvars no need to run load_dotenv()
+
+    setup_logging(logging.DEBUG, "main_app")
+    setup_logging(logging.DEBUG, "__main__")
+
+    app = create_app(ProductionConfig)
+
     # Get auth payload for OAuth uploads
     cancel_event = threading.Event()
-    job_record = create_job("collect_templates_data", "Background job")
-    job_id = job_record.id
-    logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
-    worker = MainFilesWorker(job_id, user, cancel_event)
-    worker.run()
+    with app.app_context():
+        job_record = create_job("collect_templates_data", "Background job")
+        job_id = job_record.id
+        logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
+        worker = MainFilesWorker(job_id, user, cancel_event)
+        worker.run()
 
 
 if __name__ == "__main__":
