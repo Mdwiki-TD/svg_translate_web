@@ -97,6 +97,11 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                            <tr>
+                                <th style="width: 40%">Last update:</th>
+                                <td>{{ (result_data.last_update or "") }}
+                                </td>
+                            </tr>
                             {% block job_info_extra %}{% endblock %}
                         </table>
                     </div>
