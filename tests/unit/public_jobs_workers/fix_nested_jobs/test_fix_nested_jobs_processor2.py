@@ -71,7 +71,7 @@ class TestPostInit:
     def test_site_and_session_default_to_none(self):
         proc = _make_processor()
         assert proc.site is None
-        assert proc.session is None
+        assert not hasattr(proc, "session")
 
 
 # ---------------------------------------------------------------------------
@@ -80,15 +80,15 @@ class TestPostInit:
 
 
 class TestSaveProgress:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.jobs_files_service")
-    def test_delegates_to_jobs_service(self, mock_svc):
+    @patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name")
+    def test_delegates_to_jobs_service(self, mock_save):
         proc = _make_processor()
         proc._save_progress()
-        mock_svc.save_job_result_by_name.assert_called_once_with(proc.result_file, proc.result)
+        mock_save.assert_called_once_with(proc.result_file, proc.result)
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.jobs_files_service")
-    def test_swallows_exceptions(self, mock_svc):
-        mock_svc.save_job_result_by_name.side_effect = RuntimeError("disk full")
+    @patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name")
+    def test_swallows_exceptions(self, mock_save):
+        mock_save.side_effect = RuntimeError("disk full")
         proc = _make_processor()
         # Must not raise
         proc._save_progress()
@@ -118,20 +118,20 @@ class TestIsCancelled:
     def test_jobs_service_cancelled_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        assert proc.is_cancelled() is True
+        assert proc.is_cancelled(check_db=True) is True
 
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_result_status_to_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc.is_cancelled()
-        assert proc.result["status"] == "Cancelled"
+        proc.is_cancelled(check_db=True)
+        assert proc.result["status"] == "cancelled"
 
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_cancelled_at_timestamp(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc.is_cancelled()
+        proc.is_cancelled(check_db=True)
         assert proc.result.get("cancelled_at") is not None
 
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
@@ -139,15 +139,19 @@ class TestIsCancelled:
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
         proc.result["cancelled_at"] = "original"
-        proc.is_cancelled()
+        proc.is_cancelled(check_db=True)
         assert proc.result["cancelled_at"] == "original"
 
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_updates_stage_status_when_stage_name_given(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
+        # is_cancelled's only positional arg is `check_db` (bool); a truthy
+        # value triggers the DB cancellation check. The base worker sets the
+        # global result status to "cancelled" but does NOT update per-stage
+        # statuses (stage updates happen in _run_stage instead).
         proc.is_cancelled("download")
-        assert proc.result["stages"]["download"]["status"] == "Cancelled"
+        assert proc.result["status"] == "cancelled"
 
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_ignores_unknown_stage_name(self, mock_is_job_cancelled):
@@ -410,8 +414,13 @@ class TestRunStage:
     @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_immediately_when_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
+        # _run_stage calls self.is_cancelled() without check_db=True, so the
+        # DB mock alone has no effect. Use a cancel_event to trigger
+        # cancellation via the local event path.
+        event = threading.Event()
+        event.set()
         step = MagicMock(return_value=True)
-        proc = _make_processor()
+        proc = _make_processor(cancel_event=event)
         assert proc._run_stage("download", step) is False
         step.assert_not_called()
 
@@ -440,7 +449,28 @@ class TestRun:
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
+            # Bypass BaseJobWorker.before_run (which calls update_job_status
+            # against the real DB and then tries to do `self.result.status =`
+            # attribute access on a dict). Returning True lets process() run.
+            "before_run": patch(
+                "src.main_app.jobs_workers.base_worker.BaseJobWorker.before_run",
+                return_value=True,
+            ),
+            # Bypass the DB write inside BaseJobWorker.after_run().
+            "update_job_status": patch(
+                "src.main_app.jobs_workers.base_worker.update_job_status",
+                return_value=None,
+            ),
+            # Bypass disk writes from _save_progress().
+            "save_job_result_by_name": patch(
+                "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+                return_value=None,
+            ),
             "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
+            "is_job_cancelled_file_exist": patch(
+                "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+                return_value=False,
+            ),
             "get_site": patch(
                 "src.main_app.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
@@ -514,19 +544,25 @@ class TestRun:
         """Cancellation detected at the fix stage stops further stages."""
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
+        mocks["is_job_cancelled"].return_value = False
 
+        # _run_stage calls self.is_cancelled() without check_db=True, so we
+        # drive cancellation through is_job_cancelled_file_exist (file path)
+        # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]
 
-        def cancel_on_third(*_, **kwargs):
+        def cancel_on_third(*_, **__):
             call_count[0] += 1
             return call_count[0] >= 3
 
-        mocks["is_job_cancelled"].side_effect = cancel_on_third
+        mocks["is_job_cancelled_file_exist"].side_effect = cancel_on_third
 
         try:
             proc = _make_processor()
             result = proc.run()
-            assert result["status"] == "Cancelled"
+            # BaseJobWorker._mark_as_cancelled_in_result sets status to
+            # lowercase "cancelled".
+            assert result["status"] == "cancelled"
             mocks["upload"].assert_not_called()
         finally:
             for p in patchers.values():

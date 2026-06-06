@@ -23,6 +23,7 @@ class ConcreteTestWorker(BaseJobWorker):
         self.should_fail = should_fail
         self._process_result = process_result
         super().__init__(job_id, user, cancel_event)
+        self.result = self.get_initial_result()
 
     def get_job_type(self) -> str:
         return "test_worker"

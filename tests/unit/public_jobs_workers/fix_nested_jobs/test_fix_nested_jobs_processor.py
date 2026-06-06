@@ -15,9 +15,9 @@ class TestFixNestedJobsProcessorSteps:
             job_id=1,
             args={"filename": "Test.svg"},
             user=None,
-            # result={ "file_result": { "path": "/tmp/test.svg", "nested_tags_before": 2, }, "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": "success"}}, },
-            # result_file="test.json",
         )
+        processor.result["stages"]["fix"]["status"] = "success"
+        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_before": 2}
         mock_verify_fix.return_value = {"after": 0, "fixed": 2}
 
         result = processor._verify_step()
@@ -31,9 +31,9 @@ class TestFixNestedJobsProcessorSteps:
             job_id=1,
             args={"filename": "Test.svg"},
             user=None,
-            # result={ "stages": {"verify": {"message": "", "status": ""}, "fix": {"status": "success"}}, "file_result": {"path": "/tmp/test.svg", "nested_tags_before": 2}, },
-            # result_file="test.json",
         )
+        processor.result["stages"]["fix"]["status"] = "success"
+        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_before": 2}
         mock_verify_fix.return_value = {"after": 2, "fixed": 0}
 
         result = processor._verify_step()
@@ -47,10 +47,10 @@ class TestFixNestedJobsProcessorSteps:
             job_id=1,
             args={"filename": "Test.svg"},
             user=None,
-            # result={ "file_result": { "path": "/tmp/test.svg", "nested_tags_fixed": 2, }, "stages": {"verify": {"message": "", "status": "success"}, "upload": {"message": "", "status": ""}}, },
-            # result_file="test.json",
         )
         processor.site = MagicMock()
+        processor.result["stages"]["verify"]["status"] = "success"
+        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_fixed": 2}
         mock_upload_fixed_svg.return_value = {"ok": True, "result": {"some": "data"}}
 
         result = processor._upload_step()
@@ -64,10 +64,10 @@ class TestFixNestedJobsProcessorSteps:
             job_id=1,
             args={"filename": "Test.svg"},
             user=None,
-            # result={ "file_result": { "path": "/tmp/test.svg", "nested_tags_fixed": 2, }, "stages": {"verify": {"message": "", "status": "success"}, "upload": {"message": "", "status": ""}}, },
-            # result_file="test.json",
         )
         processor.site = MagicMock()
+        processor.result["stages"]["verify"]["status"] = "success"
+        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_fixed": 2}
         mock_upload_fixed_svg.return_value = {"ok": False, "error": "Upload failed message"}
 
         result = processor._upload_step()
@@ -132,7 +132,7 @@ class TestFixNestedJobsProcessor:
             cancel_event=cancel_event,
         )
         assert processor.is_cancelled() is True
-        assert processor.result["status"] == "Cancelled"
+        assert processor.result["status"] == "cancelled"
 
     def test_run_stage_success(self, mock_jobs_service) -> None:
         processor = FixNestedJobsProcessor(
