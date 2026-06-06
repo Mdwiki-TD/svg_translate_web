@@ -317,7 +317,7 @@ class JobsPublicRoutes:
             )
 
         @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
-        def read_job_result_file(result_file: str, job_type: str="") -> ResponseReturnValue:
+        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
             result_data = load_job_result(result_file)
             return jsonify(result_data)

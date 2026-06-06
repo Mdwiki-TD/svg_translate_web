@@ -1,11 +1,10 @@
-
 import logging
-
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 FIX_BY_JOB_TYPE = {}
+
 
 def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
     """
@@ -43,13 +42,16 @@ def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
     data["pages_failed"] = _pages_failed
     data["pages_success"] = _pages_success
 
-    data["summary"].update({
-        "failed": len(_pages_failed),
-        "skipped": len(_pages_skipped),
-        "success": len(_pages_success),
-    })
+    data["summary"].update(
+        {
+            "failed": len(_pages_failed),
+            "skipped": len(_pages_skipped),
+            "success": len(_pages_success),
+        }
+    )
 
     return data
+
 
 def fix_result_data(result_data: dict[str, Any], job_type: str) -> dict[str, Any]:
     if not result_data:
@@ -63,6 +65,7 @@ def fix_result_data(result_data: dict[str, Any], job_type: str) -> dict[str, Any
             return result_data
 
     return result_data
+
 
 FIX_BY_JOB_TYPE = {
     "add_svglanguages_template": fix_add_svglanguages_template,

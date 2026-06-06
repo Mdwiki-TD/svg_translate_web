@@ -20,7 +20,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-
 from ...config import settings
 from ...db.exceptions import DuplicateJobError
 from ...db.services import (
@@ -35,10 +34,10 @@ from ...su_services import load_job_result
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
 from ..utils.routes_utils import load_auth_payload
-
 from .results_utils import fix_result_data
 
 logger = logging.getLogger(__name__)
+
 
 def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
     data = load_job_result(result_file)
@@ -324,7 +323,7 @@ class Jobs:
 
         @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
         @admin_required
-        def read_job_result_file(result_file: str, job_type: str="") -> ResponseReturnValue:
+        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
             result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
