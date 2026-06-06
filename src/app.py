@@ -4,9 +4,12 @@ WSGI production entry point for the app.
 """
 
 from __future__ import annotations
+import sys
+from pathlib import Path
 import logging
 import pymysql
 
+sys.path.insert(0, str(Path(__file__).parent))
 pymysql.install_as_MySQLdb()
 
 # environment variables in production already in toolforge envvars no need to run load_dotenv()
