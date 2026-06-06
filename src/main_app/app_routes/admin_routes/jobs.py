@@ -321,6 +321,7 @@ class Jobs:
                 file_cropped=cropped,
             )
 
+        @self.bp.get("/read-job-result-file/<path:result_file>")
         @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
         @admin_required
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
