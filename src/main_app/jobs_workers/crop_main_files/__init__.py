@@ -1,6 +1,6 @@
 """ """
 
-from .crop_main_files_utils import generate_cropped_filename
+from .crop_utils import generate_cropped_filename
 from .crop_file import crop_svg_file
 from .download import download_file_for_cropping
 from .process_new import process_crops
