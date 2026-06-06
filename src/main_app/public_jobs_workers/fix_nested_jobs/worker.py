@@ -40,7 +40,6 @@ class FixNestedJobsProcessor(BaseJobWorker):
         self.job_id = job_id
         self.args = args or {}
         self.upload_limit = args.get("upload_limit") if args else 0
-
         self.user = user
 
         super().__init__(job_id, user, cancel_event)
@@ -49,68 +48,35 @@ class FixNestedJobsProcessor(BaseJobWorker):
         self.filename = self.args.get("filename")
         self.site: mwclient.Site | None = None
 
-    def _is_cancelled(self) -> bool:
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "fix_nested_jobs"
 
-        if self.is_cancelled():
-            self.result["status"] = "Cancelled"
-            if self.result.get("cancelled_at") is None:
-                self.result["cancelled_at"] = datetime.now().isoformat()
-            return True
-
-        return False
+    def get_initial_result(self) -> dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "status": "pending",
+            "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
+            "filename": None,
+            "file_result": {
+                "status": "pending",
+                "path": None,
+                "error": None,
+            },
+            "stages": {
+                "download": {"status": "Pending", "message": "Downloading files"},
+                "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
+                "fix": {"status": "Pending", "message": "Fixing nested tags"},
+                "verify": {"status": "Pending", "message": "Verifying fixes"},
+                "upload": {"status": "Pending", "message": "Uploading fixed files"},
+            },
+        }
 
     def _update_step(self, stage_name: str, status: str, message: str) -> None:
         self.result["stages"][stage_name]["status"] = status
         self.result["stages"][stage_name]["message"] = message
-
-    def run(self) -> dict[str, Any]:
-        """Execute the full pipeline."""
-        self.result["status"] = "running"
-        self._save_progress()
-
-        self.site = get_user_site(self.user)
-
-        if not self.filename:
-            logger.error("No filename found")
-            self.result["status"] = "Failed"
-            return self.result
-
-        self.result["filename"] = self.filename
-
-        # ----------------------------------------------
-        # Stage 1: Download SVG files
-
-        if not self._run_stage("download", self._download_step):
-            return self.result
-
-        # ----------------------------------------------
-        # Stage 2: Analyze nested tags
-        if not self._run_stage("analyze", self._analyze_step):
-            return self.result
-
-        # ----------------------------------------------
-        # Stage 3: Fix nested tags
-        if not self._run_stage("fix", self._fix_step):
-            return self.result
-
-        # ----------------------------------------------
-        # Stage 4: Verify fixes
-        if not self._run_stage("verify", self._verify_step):
-            return self.result
-
-        # ----------------------------------------------
-        # Stage 5: Upload fixed files
-
-        if not self._run_stage("upload", self._upload_step):
-            return self.result
-
-        # ----------------------------------------------
-        # Finalize
-        self.result["status"] = "completed"
-        self.result["completed_at"] = datetime.now().isoformat()
-        self._save_progress()
-
-        return self.result
 
     def _download_step(self) -> bool | None:
         """Download SVG files from Commons."""
@@ -252,7 +218,7 @@ class FixNestedJobsProcessor(BaseJobWorker):
         **kwargs: Any,
     ) -> bool:
         """Run a single stage and update result."""
-        if self._is_cancelled():
+        if self.is_cancelled():
             if stage_name in self.result["stages"]:
                 self.result["stages"][stage_name]["status"] = "Cancelled"
             return False
@@ -279,60 +245,60 @@ class FixNestedJobsProcessor(BaseJobWorker):
             self.result["status"] = "Failed"
             return False
 
+    def process(self) -> dict[str, Any]:
+        """Execute the full pipeline."""
+        self.result["status"] = "running"
+        self._save_progress()
+
+        self.site = get_user_site(self.user)
+
+        if not self.filename:
+            logger.error("No filename found")
+            self.result["status"] = "Failed"
+            return self.result
+
+        self.result["filename"] = self.filename
+
+        # ----------------------------------------------
+        # Stage 1: Download SVG files
+
+        if not self._run_stage("download", self._download_step):
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 2: Analyze nested tags
+        if not self._run_stage("analyze", self._analyze_step):
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 3: Fix nested tags
+        if not self._run_stage("fix", self._fix_step):
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 4: Verify fixes
+        if not self._run_stage("verify", self._verify_step):
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 5: Upload fixed files
+
+        if not self._run_stage("upload", self._upload_step):
+            return self.result
+
+        # ----------------------------------------------
+        # Finalize
+        self.result["status"] = "completed"
+        self.result["completed_at"] = datetime.now().isoformat()
+        self._save_progress()
+
+        return self.result
+
 
 class FixNestedJobsWorker(BaseJobWorker):
     """
     Worker for fixing nested tags in user-submitted SVG files.
     """
-
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.job_id = job_id
-        self.args = args or {}
-
-        super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "fix_nested_jobs"
-
-    def get_initial_result(self) -> dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "status": "pending",
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "filename": None,
-            "file_result": {
-                "status": "pending",
-                "path": None,
-                "error": None,
-            },
-            "stages": {
-                "download": {"status": "Pending", "message": "Downloading files"},
-                "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
-                "fix": {"status": "Pending", "message": "Fixing nested tags"},
-                "verify": {"status": "Pending", "message": "Verifying fixes"},
-                "upload": {"status": "Pending", "message": "Uploading fixed files"},
-            },
-        }
-
-    def process(self) -> dict[str, Any]:
-        processor = FixNestedJobsProcessor(
-            job_id=self.job_id,
-            args=self.args,
-            user=self.user,
-            result=self.result,
-            cancel_event=self.cancel_event,
-        )
-        return processor.run()
 
 
 # --- main pipeline --------------------------------------------
@@ -345,7 +311,7 @@ def fix_nested_jobs_worker_entry(
 ) -> None:
     """Entry point for the background job."""
 
-    worker = FixNestedJobsWorker(
+    worker = FixNestedJobsProcessor(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
@@ -356,5 +322,5 @@ def fix_nested_jobs_worker_entry(
 
 __all__ = [
     "fix_nested_jobs_worker_entry",
-    "FixNestedJobsWorker",
+    "FixNestedJobsProcessor",
 ]

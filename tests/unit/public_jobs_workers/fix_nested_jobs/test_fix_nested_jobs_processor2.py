@@ -48,8 +48,8 @@ def _make_processor(
         job_id=42,
         args=args,
         user=user or {"username": "testuser"},
-        result=result,
-        result_file="result_42.json",
+        # result=result,
+        # result_file="result_42.json",
         cancel_event=cancel_event,
     )
 
@@ -95,66 +95,66 @@ class TestSaveProgress:
 
 
 # ---------------------------------------------------------------------------
-# _is_cancelled
+# is_cancelled
 # ---------------------------------------------------------------------------
 
 
 class TestIsCancelled:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_when_not_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
-        assert proc._is_cancelled() is False
+        assert proc.is_cancelled() is False
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_cancel_event_set_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         event = threading.Event()
         event.set()
         proc = _make_processor(cancel_event=event)
-        assert proc._is_cancelled() is True
+        assert proc.is_cancelled() is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_jobs_service_cancelled_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        assert proc._is_cancelled() is True
+        assert proc.is_cancelled() is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_result_status_to_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled()
+        proc.is_cancelled()
         assert proc.result["status"] == "Cancelled"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_cancelled_at_timestamp(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled()
+        proc.is_cancelled()
         assert proc.result.get("cancelled_at") is not None
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_does_not_overwrite_existing_cancelled_at(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
         proc.result["cancelled_at"] = "original"
-        proc._is_cancelled()
+        proc.is_cancelled()
         assert proc.result["cancelled_at"] == "original"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_updates_stage_status_when_stage_name_given(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
-        proc._is_cancelled("download")
+        proc.is_cancelled("download")
         assert proc.result["stages"]["download"]["status"] == "Cancelled"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_ignores_unknown_stage_name(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         proc = _make_processor()
         # should not raise
-        proc._is_cancelled("nonexistent_stage")
+        proc.is_cancelled("nonexistent_stage")
 
 
 # ---------------------------------------------------------------------------
@@ -374,27 +374,27 @@ class TestUploadStep:
 
 
 class TestRunStage:
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_true_when_step_returns_true(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: True) is True
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: False) is False
         assert proc.result["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
         assert proc._run_stage("download", lambda: None) is False
         assert proc.result["status"] == "skipped"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_handles_exception_and_sets_failed(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         proc = _make_processor()
@@ -407,7 +407,7 @@ class TestRunStage:
         assert "oops" in proc.result["stages"]["download"]["message"]
         assert proc.result["status"] == "Failed"
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_returns_false_immediately_when_cancelled(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = True
         step = MagicMock(return_value=True)
@@ -415,7 +415,7 @@ class TestRunStage:
         assert proc._run_stage("download", step) is False
         step.assert_not_called()
 
-    @patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled")
+    @patch("src.main_app.jobs_workers.base_worker.is_job_cancelled")
     def test_sets_stage_status_to_running_before_calling_step(self, mock_is_job_cancelled):
         mock_is_job_cancelled.return_value = False
         statuses = []
@@ -440,11 +440,7 @@ class TestRun:
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
-            "is_job_cancelled": patch("src.main_app.public_jobs_workers.fix_nested_jobs.worker.is_job_cancelled"),
-            "create_session": patch(
-                "src.main_app.public_jobs_workers.fix_nested_jobs.worker.create_commons_session",
-                return_value=MagicMock(),
-            ),
+            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
             "get_site": patch(
                 "src.main_app.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
