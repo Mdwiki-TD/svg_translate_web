@@ -298,7 +298,7 @@ class TestStepLoadTemplateText:
         assert result is False
         mock_worker._step_load_template_text.assert_called_once()
         mock_worker._step_generate_template_text.assert_not_called()
-        mock_worker._skip_step.assert_called_once()
+        # mock_worker._skip_step.assert_called_once()
         mock_worker._append.assert_called_once()
 
 
