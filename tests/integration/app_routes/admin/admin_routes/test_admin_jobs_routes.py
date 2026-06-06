@@ -172,7 +172,7 @@ def test_start_collect_templates_data_job_route(mock_load_auth, mock_start_job, 
 
     response = admin_jobs_client.post("/admin/jobs/collect_templates_data/start", follow_redirects=True)
     assert response.status_code == 200
-    mock_flash.assert_any_call("Job 1 started to collect main files.", "success")
+    mock_flash.assert_any_call("Job 1 started to collect templates data.", "success")
 
     mock_start_job.assert_called_once()
     mock_load_auth.assert_called_once()

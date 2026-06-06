@@ -186,6 +186,10 @@ class DownloadMainFilesWorker(BaseJobWorker):
             clean_filename = template.main_file
             clean_filename = clean_filename.removeprefix("File:")
 
+            # Check if file already exists
+            # out_path = self.output_dir / clean_filename
+            # if out_path.exists(): self.result["summary"]["exists"] += 1
+
             try:
                 # Download the file (will overwrite if exists)
                 download_result = download_file_from_commons(

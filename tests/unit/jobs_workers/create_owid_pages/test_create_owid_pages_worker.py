@@ -608,6 +608,7 @@ class TestCreateOwidPagesWorkerProcess:
         def patched_is_cancelled():
             call_count[0] += 1
             if call_count[0] > 1:
+                worker._mark_as_cancelled_in_result()
                 return True
             return original_is_cancelled()
 

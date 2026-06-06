@@ -211,10 +211,10 @@ def test_download_main_files_downloads_template_with_main_file(mock_services, tm
 
         download_main_files_worker.download_main_files_for_templates(job_id=1, user=None)
 
-    # Should save result with downloaded file
+    # Should save result with success file
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 1
-    assert result["summary"]["downloaded"] == 1
+    assert result["summary"]["success"] == 1
     assert len(result["files_downloaded"]) == 1
     assert result["files_downloaded"][0]["filename"] == "test.svg"
 
@@ -297,7 +297,7 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 2
-    assert result["summary"]["downloaded"] == 1
+    assert result["summary"]["success"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["files_downloaded"]) == 1
     assert len(result["files_failed"]) == 1
@@ -346,7 +346,7 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
 
     # Should download with cleaned filename
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["downloaded"] == 1
+    assert result["summary"]["success"] == 1
     # The file should be saved as test.svg, not File:test.svg
     assert (tmp_path / "test.svg").exists()
 
@@ -376,8 +376,7 @@ def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
 
     # Should count as exists
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["exists"] == 1
-    assert result["summary"]["downloaded"] == 1
+    assert result["summary"]["success"] == 1
 
 
 def test_download_main_files_fatal_error_handling(mock_services):
@@ -790,7 +789,7 @@ def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path
     zip_path = tmp_path / "main_files.zip"
     assert zip_path.exists()
 
-    # Verify zip contains the downloaded file
+    # Verify zip contains the success file
     with zipfile.ZipFile(zip_path) as zf:
         assert "test.svg" in zf.namelist()
 

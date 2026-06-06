@@ -141,6 +141,13 @@
 
 <!-- Skipped Templates -->
 {% if result_data.pages_skipped %}
+{% if result_data.pages_skipped|length > 100 %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Skipped Templates (" ~ result_data.pages_skipped|length ~ ")") }}
+    </div>
+</div>
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header("Skipped Templates (" ~ result_data.pages_skipped|length ~ ")") }}
@@ -173,5 +180,6 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
