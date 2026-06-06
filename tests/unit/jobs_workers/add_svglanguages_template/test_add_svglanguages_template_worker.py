@@ -274,17 +274,32 @@ class TestStepLoadTemplateText:
         assert info.error is not None
         assert info.steps["load_template_text"]["result"] is False
 
-    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.get_page_text")
-    def test_load_template_text_skips_if_already_has_svglanguages(self, mock_get_page_text, mock_worker):
-        """Test that step is skipped if template already has SVGLanguages."""
-        mock_get_page_text.return_value = "{{SVGLanguages|test.svg}}\nSome content"
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
+    def test_load_template_text_skips_if_already_has_svglanguages(self, mock_re_svg_lang, mock_worker):
+        """Test that _process_template skips if template already has SVGLanguages."""
+        template = MagicMock(id=1, title="Template:OWID/test")
 
-        info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        result = mock_worker._step_load_template_text(info)
+        # Mock regex to match (template already has SVGLanguages)
+        mock_match = MagicMock()
+        mock_re_svg_lang.search = MagicMock(return_value=mock_match)
+
+        def mock_load(info):
+            info._text = "{{SVGLanguages|test.svg}}\nSome content"
+
+        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
+        mock_worker._step_generate_template_text = MagicMock()
+        mock_worker._step_add_template = MagicMock()
+        mock_worker._step_save_new_text = MagicMock()
+        mock_worker._append = MagicMock()
+        mock_worker._skip_step = MagicMock()
+
+        result = mock_worker._process_template(template)
 
         assert result is False
-        assert info.steps["load_template_text"]["result"] is None  # Skipped
-        assert "Skipped" in info.steps["load_template_text"]["msg"]
+        mock_worker._step_load_template_text.assert_called_once()
+        mock_worker._step_generate_template_text.assert_not_called()
+        mock_worker._skip_step.assert_called_once()
+        mock_worker._append.assert_called_once()
 
 
 class TestStepGenerateTemplateText:
