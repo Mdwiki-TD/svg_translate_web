@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.job import CopySvgLangsProcessor
+from src.main_app.public_jobs_workers.copy_svg_langs.worker import CopySvgLangsProcessor
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def initial_result():
 
 
 def test_processor_compute_output_dir(processor_args, initial_result, mocker):
-    mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
+    mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.settings")
     mock_settings.paths.svg_data = "/tmp/svg_data"
     processor_args_with_title = {**processor_args, "title": "File:Test Path/Example.svg"}
     processor = CopySvgLangsProcessor(
@@ -49,14 +49,14 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     assert "example_svg" in str(processor.output_dir) or "example.svg" in str(processor.output_dir)
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.is_job_cancelled")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.is_job_cancelled")
 def test_processor_run_text_stage_fail(mock_is_job_cancelled, processor_args, initial_result, mocker):
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.settings")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.create_commons_session")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.get_user_site")
     mock_is_job_cancelled.return_value = False
 
-    mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step")
+    mock_extract_text = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.extract_text_step")
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
 
     processor_args_with_title = {**processor_args, "title": "Test"}
@@ -75,24 +75,24 @@ def test_processor_run_text_stage_fail(mock_is_job_cancelled, processor_args, in
     assert result["stages"]["text"]["message"] == "Failed to get text"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.job.is_job_cancelled")
+@patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.is_job_cancelled")
 def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_args, initial_result, mocker, tmp_path):
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.settings")
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.create_commons_session")
-    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.job.get_user_site")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.settings")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.create_commons_session")
+    mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.get_user_site")
     mock_is_job_cancelled.return_value = False
 
     # Mock stages
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_text_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.extract_text_step",
         return_value={"success": True, "text": "wikitext"},
     )
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_titles_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.extract_titles_step",
         return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg"], "message": "Found 1 titles"},
     )
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.extract_translations_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.extract_translations_step",
         return_value={"success": True, "translations": {"new": {}}, "message": "Extracted translations"},
     )
 
@@ -109,7 +109,7 @@ def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_arg
         }
 
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.download_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.download_step",
         side_effect=download_side_effect,
     )
 
@@ -125,13 +125,13 @@ def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_arg
         }
 
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.fix_nested_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.fix_nested_step",
         side_effect=nested_side_effect,
     )
 
     # Mock inject step
     mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.job.inject_step",
+        "src.main_app.public_jobs_workers.copy_svg_langs.worker.inject_step",
         return_value={
             "success": True,
             "data": {
