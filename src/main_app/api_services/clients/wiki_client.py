@@ -84,7 +84,7 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
 def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
 
     is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
-    if is_cron_job or user.get("username") == "Background job":
+    if is_cron_job or (user and user.get("username") == "Background job"):
         return get_cronjob_site()
 
     return _get_user_site(user)

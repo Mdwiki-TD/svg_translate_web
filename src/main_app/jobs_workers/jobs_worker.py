@@ -202,13 +202,14 @@ def start_job_cli(
     _register_cancel_event(job.id, cancel_event)
 
     # Start background job
-    with app.app_context():
+    flask_app = app or current_app._get_current_object()
+    with flask_app.app_context():
         try:
             target_func(
                 job_id=job.id,
                 user=user,
                 cancel_event=cancel_event,
-                args=args,
+                args=resolved_args,
             )
         finally:
             _pop_cancel_event(job.id)
