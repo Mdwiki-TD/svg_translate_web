@@ -1,3 +1,5 @@
+python3 src/offline/collect_templates_data.py
+
 2026-06-06 03:19:57 - src - DEBUG - Setting up logging for 'src' with level '10'
 2026-06-06 03:19:57 - main_app - DEBUG - Setting up logging for 'main_app' with level '10'
 2026-06-06 03:19:57 - __main__ - DEBUG - Setting up logging for '__main__' with level '10'
