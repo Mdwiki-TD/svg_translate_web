@@ -60,7 +60,7 @@ def _can_manage_job(job: Any, user: Any) -> bool:
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
-    if jobs_worker.cancel_job(job_id, job_type):
+    if jobs_worker.cancel_job_worker(job_id, job_type):
         flash(f"Job {job_id} cancellation requested.", "success")
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
@@ -73,7 +73,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 
     try:
         # Cancel the job if it's running
-        if jobs_worker.cancel_job(job_id, job_type):
+        if jobs_worker.cancel_job_worker(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
         if delete_job(job_id, job_type):
@@ -87,7 +87,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
 
-def _start_job_with_args(job_type: str, args: dict[str, Any]) -> int | None:
+def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
 
@@ -235,7 +235,7 @@ class JobsPublicRoutes:
                 abort(404)
 
             args = request.form.to_dict()
-            job_id = _start_job_with_args(job_type, args)
+            job_id = _start_job(job_type, args)
             if not job_id:
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
             return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))

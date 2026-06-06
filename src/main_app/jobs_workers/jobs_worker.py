@@ -4,20 +4,19 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Dict
+from typing import Any
 
 from flask import Flask, current_app
 
 from ..db.exceptions import DuplicateJobError
 from ..db.models import JobRecord
-
 from ..db.services import (
     cancel_job_db,
     create_job,
     get_all_settings_ready,
 )
-from ..su_services.jobs_files_service import create_job_cancelled_file
 from ..public_jobs_workers.workers_list_public import jobs_data_public
+from ..su_services.jobs_files_service import create_job_cancelled_file
 from .workers_list import JobData, jobs_data
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,7 @@ def _load_job_args(job_args) -> dict:
 
 def _runner(
     job_id: int,
-    user: dict[str, Any],
+    user: dict[str, Any] | None,
     cancel_event: threading.Event,
     target_func: Any,
     flask_app: Flask,
@@ -76,7 +75,7 @@ def _runner(
             _pop_cancel_event(job_id)
 
 
-def cancel_job(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
+def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
     """
     Cancel a running job.
     Works across multiple processes by updating the database status.
@@ -104,7 +103,7 @@ def cancel_job(job_id: int, job_type: str | None = None, job: JobRecord | None =
 
 
 def start_job(
-    user: Dict[str, Any],
+    user: dict[str, Any] | None,
     job_type: str,
     args: dict[str, Any] | None = None,
 ) -> int:
@@ -162,5 +161,5 @@ def start_job(
 
 __all__ = [
     "start_job",
-    "cancel_job",
+    "cancel_job_worker",
 ]

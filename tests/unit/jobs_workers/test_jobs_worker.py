@@ -98,14 +98,14 @@ def test_cancel_job():
     jobs_worker._register_cancel_event(123, event)
 
     assert not event.is_set()
-    result = jobs_worker.cancel_job(123)
+    result = jobs_worker.cancel_job_worker(123)
     assert result is True
     assert event.is_set()
 
 
 def test_cancel_nonexistent_job():
     """Test cancelling a job that isn't registered."""
-    result = jobs_worker.cancel_job(999)
+    result = jobs_worker.cancel_job_worker(999)
     assert result is False
 
 
@@ -180,18 +180,18 @@ def test_multiple_jobs_can_be_cancelled_independently():
     jobs_worker._register_cancel_event(3, event3)
 
     # Cancel job 2
-    assert jobs_worker.cancel_job(2) is True
+    assert jobs_worker.cancel_job_worker(2) is True
     assert event2.is_set()
     assert not event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 1
-    assert jobs_worker.cancel_job(1) is True
+    assert jobs_worker.cancel_job_worker(1) is True
     assert event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 3
-    assert jobs_worker.cancel_job(3) is True
+    assert jobs_worker.cancel_job_worker(3) is True
     assert event3.is_set()
 
 
@@ -244,7 +244,7 @@ def test_runner_passes_none_args_by_default():
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_with_args_param(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_param(mock_current_app, mock_thread, mock_create_job):
     """Test that start_job passes args to the background thread."""
     mock_job = JobRecord(id=10, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job
@@ -287,7 +287,7 @@ def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_
     assert thread_args[5] == {}
 
 
-def test_start_job_with_args_is_alias_for_start_job():
+def test_start_job_is_alias_for_start_job():
     """Test that start_job is the same callable as start_job."""
     assert jobs_worker.start_job is jobs_worker.start_job
 
@@ -295,7 +295,7 @@ def test_start_job_with_args_is_alias_for_start_job():
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
 @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
 @patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_with_args_alias_works(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_alias_works(mock_current_app, mock_thread, mock_create_job):
     """Test that the start_job alias behaves identically to start_job."""
     mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")
     mock_create_job.return_value = mock_job

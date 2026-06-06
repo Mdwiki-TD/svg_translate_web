@@ -4,9 +4,9 @@ Background job definitions and registry.
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
-import logging
 import threading
 from pathlib import Path
 
@@ -14,13 +14,14 @@ if _path_ := Path(__file__).parent.parent.parent:
     os.environ["CRON_JOB"] = "true"
     sys.path.append(str(_path_))
 
-from src.main_app.db.services import create_job
-from src.main_app import create_app
-from src.main_app.jobs_workers.workers_list import collect_templates_data_entry
-from src.main_app.config import ProductionConfig
 from src.logger_config import setup_logging
+from src.main_app import create_app
+from src.main_app.config import ProductionConfig
+from src.main_app.db.services import create_job
+from src.main_app.jobs_workers.workers_list import collect_templates_data_entry
 
 logger = logging.getLogger(__name__)
+
 
 def start() -> None:
 
@@ -48,7 +49,7 @@ def start() -> None:
             job_id=job_id,
             user=None,
             cancel_event=cancel_event,
-            args={"update_all":"true"},
+            args={"update_all": "true"},
         )
 
 

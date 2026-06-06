@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import logging
+import os
 from typing import Any, Dict
 
 import mwclient
@@ -27,6 +27,7 @@ def coerce_encrypted(value: object) -> bytes | None:
     if isinstance(value, str):
         return value.encode("utf-8")
     return None
+
 
 def get_cronjob_site() -> mwclient.Site | None:
 
@@ -79,6 +80,7 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
         return None
     return site
 
+
 def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
 
     is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
@@ -86,6 +88,7 @@ def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
         return get_cronjob_site()
 
     return _get_user_site(user)
+
 
 __all__ = [
     "get_user_site",
