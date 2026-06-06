@@ -16,5 +16,6 @@ def register_cli_jobs(app: Flask) -> None:
         start_job_cli(
             user={"username": "Background job"},
             job_type="collect_templates_data",
+            args={"update_all":"true"},
             app=app,
         )
