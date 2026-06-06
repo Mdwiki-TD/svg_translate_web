@@ -28,7 +28,7 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.download_main_files_worker import create_main_files_zip
+from ...jobs_workers.download_main_files.download_main_files_worker import create_main_files_zip
 from ...jobs_workers.workers_list import jobs_data
 from ...su_services import jobs_files_service
 from ..admin.admins_required import admin_required
