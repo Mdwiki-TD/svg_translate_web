@@ -106,6 +106,7 @@ def start_job(
     user: dict[str, Any] | None,
     job_type: str,
     args: dict[str, Any] | None = None,
+    daemon: bool=True,
 ) -> int:
     """
     Start a background job.
@@ -150,7 +151,7 @@ def start_job(
     thread = threading.Thread(
         target=_runner,
         args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
-        daemon=True,
+        daemon=daemon,
     )
     thread.start()
 
