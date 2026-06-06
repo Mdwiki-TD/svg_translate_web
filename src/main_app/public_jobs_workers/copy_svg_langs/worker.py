@@ -9,10 +9,8 @@ import threading
 from datetime import datetime
 from typing import Any, Dict
 
-
 import json
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
 
 import mwclient
@@ -22,10 +20,6 @@ from ...jobs_workers.base_worker import BaseJobWorker
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...config import settings
-from ...db.services import (
-    is_job_cancelled,
-)
-from ...su_services import jobs_files_service
 from .steps import (
     download_step,
     extract_text_step,
@@ -38,30 +32,57 @@ from .steps import (
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class CopySvgLangsProcessor:
+class CopySvgLangsWorker(BaseJobWorker):
     """
-    Orchestrates the pipeline for copying SVG translations.
+    Worker for copying SVG translations from a main file to its versions.
     """
 
-    job_id: str | int
-    args: Any
-    user: dict[str, Any]
-    result: dict[str, Any]
-    result_file: str
-    cancel_event: threading.Event | None = None
-    upload_limit: int | None = None
+    def __init__(
+        self,
+        job_id: int,
+        user: dict[str, Any],
+        cancel_event: threading.Event | None = None,
+        args: dict[str, Any] | None = None,
+    ) -> None:
+        self.job_id = job_id
+        self.args = args or {}
+        self.user: dict[str, Any] = user
 
-    site: mwclient.Site | None = field(init=False, default=None)
-    session: requests.Session | None = field(init=False, default=None)
-    output_dir: Path = field(init=False)
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
 
-    files_dict: list[str] = field(init=False, default_factory=list)
-
-    def __post_init__(self) -> None:
+        self.upload_limit = args.get("upload_limit") if args else 0
         self.title = self.args.get("title")
         self.output_dir = self._compute_output_dir(self.title)
+        self.files_dict: list[str] = []
+        self.site: mwclient.Site | None = None
+        self.session: requests.Session | None = None
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "copy_svg_langs"
+
+    def get_initial_result(self) -> dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "status": "pending",
+            "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
+            "title": None,
+            "stages": {
+                "text": {"status": "Pending", "message": "Getting text"},
+                "titles": {"status": "Pending", "message": "Getting titles"},
+                "translations": {"status": "Pending", "message": "Getting translations"},
+                "download": {"status": "Pending", "message": "Downloading files"},
+                "nested": {"status": "Pending", "message": "Analyze nested files"},
+                "inject": {"status": "Pending", "message": "Injecting translations"},
+                "upload": {"status": "Pending", "message": "Uploading files"},
+            },
+            "summary": {},
+            "results_summary": {},
+            "files_processed": {},
+        }
 
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
@@ -74,31 +95,15 @@ class CopySvgLangsProcessor:
 
         return out
 
-    def _save_progress(self) -> None:
-        try:
-            result = self.result
-            result["last_update"] = datetime.now().isoformat()
-            jobs_files_service.save_job_result_by_name(self.result_file, result)
-        except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save progress")
-
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
-        cancelled = False
-        if self.cancel_event and self.cancel_event.is_set():
-            cancelled = True
-        elif is_job_cancelled(self.job_id, job_type="copy_svg_langs"):
-            cancelled = True
-
-        if cancelled:
-            self.result["status"] = "cancelled"
-            if self.result.get("cancelled_at") is None:
-                self.result["cancelled_at"] = datetime.now().isoformat()
+        if self.is_cancelled():
             if stage_name and stage_name in self.result.get("stages", {}):
                 self.result["stages"][stage_name]["status"] = "Cancelled"
             return True
+
         return False
 
-    def run(self) -> dict[str, Any]:
+    def process(self) -> dict[str, Any]:
         """Execute the full pipeline."""
         self.result["status"] = "running"
         self._save_progress()
@@ -471,64 +476,6 @@ class CopySvgLangsProcessor:
             stage["message"] = str(e)
             self.result["status"] = "failed"
             return False
-
-class CopySvgLangsWorker(BaseJobWorker):
-    """
-    Worker for copying SVG translations from a main file to its versions.
-    """
-
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.job_id = job_id
-        self.args = args or {}
-        self.upload_limit = args.get("upload_limit") if args else 0
-
-        super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "copy_svg_langs"
-
-    def get_initial_result(self) -> dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "status": "pending",
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "title": None,
-            "stages": {
-                "text": {"status": "Pending", "message": "Getting text"},
-                "titles": {"status": "Pending", "message": "Getting titles"},
-                "translations": {"status": "Pending", "message": "Getting translations"},
-                "download": {"status": "Pending", "message": "Downloading files"},
-                "nested": {"status": "Pending", "message": "Analyze nested files"},
-                "inject": {"status": "Pending", "message": "Injecting translations"},
-                "upload": {"status": "Pending", "message": "Uploading files"},
-            },
-            "summary": {},
-            "results_summary": {},
-            "files_processed": {},
-        }
-
-    def process(self) -> dict[str, Any]:
-
-        processor = CopySvgLangsProcessor(
-            job_id=self.job_id,
-            args=self.args,
-            user=self.user,
-            result=self.result,
-            result_file=self.result_file,
-            cancel_event=self.cancel_event,
-            upload_limit=self.upload_limit,
-        )
-        return processor.run()
 
 
 # --- main pipeline --------------------------------------------

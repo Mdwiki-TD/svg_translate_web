@@ -1,4 +1,4 @@
-"""Tests for the CopySvgLangsProcessor and its steps."""
+"""Tests for the CopySvgLangsWorker and its steps."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.worker import CopySvgLangsProcessor
+from src.main_app.public_jobs_workers.copy_svg_langs.worker import CopySvgLangsWorker
 
 
 @pytest.fixture
@@ -38,12 +38,12 @@ def test_processor_compute_output_dir(processor_args, initial_result, mocker):
     mock_settings = mocker.patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.settings")
     mock_settings.paths.svg_data = "/tmp/svg_data"
     processor_args_with_title = {**processor_args, "title": "File:Test Path/Example.svg"}
-    processor = CopySvgLangsProcessor(
+    processor = CopySvgLangsWorker(
         job_id=1,
         args=processor_args_with_title,
         user=None,
-        result=initial_result,
-        result_file="job_1.json",
+        # result=initial_result,
+        # result_file="job_1.json",
     )
 
     assert "example_svg" in str(processor.output_dir) or "example.svg" in str(processor.output_dir)
@@ -60,12 +60,12 @@ def test_processor_run_text_stage_fail(mock_is_job_cancelled, processor_args, in
     mock_extract_text.return_value = {"success": False, "error": "Failed to get text"}
 
     processor_args_with_title = {**processor_args, "title": "Test"}
-    processor = CopySvgLangsProcessor(
+    processor = CopySvgLangsWorker(
         job_id=1,
         args=processor_args_with_title,
         user=None,
-        result=initial_result,
-        result_file="job_1.json",
+        # result=initial_result,
+        # result_file="job_1.json",
     )
 
     result = processor.run()
@@ -148,12 +148,12 @@ def test_processor_files_processed_tracking(mock_is_job_cancelled, processor_arg
     # Mock upload disabled
     processor_args_with_title = {**processor_args, "upload": False, "title": "Test"}
 
-    processor = CopySvgLangsProcessor(
+    processor = CopySvgLangsWorker(
         job_id=1,
         args=processor_args_with_title,
         user=None,
-        result=initial_result,
-        result_file="job_1.json",
+        # result=initial_result,
+        # result_file="job_1.json",
     )
 
     # Override output_dir to have a predictable path for matching
