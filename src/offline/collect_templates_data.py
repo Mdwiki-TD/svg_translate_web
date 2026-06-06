@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 def start() -> None:
 
     # environment variables in production already in toolforge envvars no need to run load_dotenv()
+    setup_logging(logging.DEBUG, "src")
     setup_logging(logging.DEBUG, "main_app")
     setup_logging(logging.DEBUG, "__main__")
 
@@ -34,14 +35,20 @@ def start() -> None:
     cancel_event = threading.Event()
 
     with app.app_context():
-        job_record = create_job("collect_templates_data", "Background job")
-        job_id = job_record.id
+        try:
+            job_record = create_job("collect_templates_data", "Background job")
+            job_id = job_record.id
+        except Exception as e:
+            logger.error(f"Error creating job record: {e}")
+            sys.exit(1)
+
         logger.info(f"Starting collect templates data offline job with job_id={job_id}.")
 
         collect_templates_data_entry(
             job_id=job_id,
             user=None,
             cancel_event=cancel_event,
+            args={"update_all":"true"},
         )
 
 

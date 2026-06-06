@@ -8,13 +8,17 @@ from typing import Any, Dict
 
 from flask import Flask, current_app
 
+from ..db.exceptions import DuplicateJobError
+from ..db.models import JobRecord
+
 from ..db.services import (
     cancel_job_db,
     create_job,
     get_all_settings_ready,
 )
+from ..su_services.jobs_files_service import create_job_cancelled_file
 from ..public_jobs_workers.workers_list_public import jobs_data_public
-from .workers_list import jobs_data
+from .workers_list import JobData, jobs_data
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +37,7 @@ def _pop_cancel_event(job_id: int) -> threading.Event | None:
         return JOBS_CANCEL_EVENTS.pop(job_id, None)
 
 
-def get_jobs_cancel_event(job_id: int) -> threading.Event | None:
+def _get_jobs_cancel_event(job_id: int) -> threading.Event | None:
     with JOBS_CANCEL_EVENTS_LOCK:
         return JOBS_CANCEL_EVENTS.get(job_id)
 
@@ -72,26 +76,31 @@ def _runner(
             _pop_cancel_event(job_id)
 
 
-def cancel_job(job_id: int, job_type: str | None = None) -> bool:
+def cancel_job(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
     """
     Cancel a running job.
     Works across multiple processes by updating the database status.
     Returns True if the job was found and cancellation was requested.
     """
     # 1. Try local cancellation (if the job is in this process)
-    cancel_event = get_jobs_cancel_event(job_id)
+    cancel_event = _get_jobs_cancel_event(job_id)
     local_cancelled = False
     if cancel_event:
         cancel_event.set()
         logger.info(f"Local cancellation requested for job {job_id}")
         local_cancelled = True
 
-    # 2. Persist cancellation to DB (for cross-process detection)
+    cancelled_file = False
+    # 2. Create result_file_cancelled file
+    if job and job.result_file:
+        cancelled_file = create_job_cancelled_file(f"{job.result_file}.cancelled")
+
+    # 3. Persist cancellation to DB (for cross-process detection)
     db_cancelled = cancel_job_db(job_id, job_type)
     if db_cancelled:
         logger.info(f"Database cancellation requested for job {job_id}")
 
-    return local_cancelled or db_cancelled
+    return local_cancelled or cancelled_file or db_cancelled
 
 
 def start_job(
@@ -108,7 +117,7 @@ def start_job(
         job_type: The type of job to start
         args: Optional arguments to pass to the worker
     """
-    job_data = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    job_data: JobData = jobs_data.get(job_type) or jobs_data_public.get(job_type)
     target_func = job_data.job_callable if job_data else None
 
     if not target_func:
@@ -122,8 +131,15 @@ def start_job(
     if args:
         resolved_args.update(args)
 
-    # Create job record
-    job = create_job(job_type, username)
+    try:
+        # Create job record
+        job = create_job(job_type, username)
+    except DuplicateJobError:
+        logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to create job record for job type {job_type}")
+        raise e
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
