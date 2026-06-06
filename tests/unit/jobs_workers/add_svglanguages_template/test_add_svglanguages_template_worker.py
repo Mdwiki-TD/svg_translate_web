@@ -199,9 +199,9 @@ class TestProcessTemplate:
         template = MagicMock(id=1, title="Template:OWID/test")
 
         mock_worker._step_load_template_text = MagicMock(return_value=False)
-        mock_worker._step_generate_template_text = MagicMock(return_value=True)
-        mock_worker._step_add_template = MagicMock(return_value=True)
-        mock_worker._step_save_new_text = MagicMock(return_value=True)
+        mock_worker._step_generate_template_text = MagicMock()
+        mock_worker._step_add_template = MagicMock()
+        mock_worker._step_save_new_text = MagicMock()
         mock_worker._append = MagicMock()
 
         mock_worker._process_template(template)
@@ -213,14 +213,21 @@ class TestProcessTemplate:
         mock_worker._step_save_new_text.assert_not_called()
         mock_worker._append.assert_called_once()
 
-    def test_process_template_generate_step_fails(self, mock_worker):
+    @patch("src.main_app.jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
+    def test_process_template_generate_step_fails(self, mock_re_svg_lang, mock_worker):
         """Test that processing stops when generate step fails."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
-        mock_worker._step_load_template_text = MagicMock(return_value=True)
+        # Mock regex to not match (so it proceeds past the skip check)
+        mock_re_svg_lang.search = MagicMock(return_value=None)
+
+        def mock_load(info):
+            info._text = "some text"
+
+        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
         mock_worker._step_generate_template_text = MagicMock(return_value=False)
-        mock_worker._step_add_template = MagicMock(return_value=True)
-        mock_worker._step_save_new_text = MagicMock(return_value=True)
+        mock_worker._step_add_template = MagicMock()
+        mock_worker._step_save_new_text = MagicMock()
         mock_worker._append = MagicMock()
 
         mock_worker._process_template(template)
