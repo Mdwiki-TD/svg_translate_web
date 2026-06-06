@@ -22,6 +22,7 @@ from ...db.services import (
     list_templates,
     update_template_data,
 )
+# from ...extensions import db
 from ...utils.wikitext import find_template_source
 from ...utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
@@ -327,6 +328,11 @@ class CollectMainFilesWorker(BaseJobWorker):
                 self.result["summary"]["failed"] += 1
 
                 logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
+
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
 
             if template_info.status == "updated" and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
