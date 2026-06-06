@@ -1,10 +1,5 @@
 """
 Background job definitions and registry.
-
-TODO:
-The MainFilesWorker class in this file is nearly identical to CollectMainFilesWorker in src/main_app/jobs_workers/collect_templates_data_worker.py. This significant code duplication makes maintenance difficult and error-prone.
-Please consider refactoring so both could use a shared base class or utility functions for the common logic.
-
 """
 
 from __future__ import annotations
@@ -28,7 +23,6 @@ from src.logger_config import setup_logging
 logger = logging.getLogger(__name__)
 
 def start() -> None:
-    user = None
 
     # environment variables in production already in toolforge envvars no need to run load_dotenv()
     setup_logging(logging.DEBUG, "main_app")
@@ -46,7 +40,7 @@ def start() -> None:
 
         collect_templates_data_entry(
             job_id=job_id,
-            user=user,
+            user=None,
             cancel_event=cancel_event,
         )
 
