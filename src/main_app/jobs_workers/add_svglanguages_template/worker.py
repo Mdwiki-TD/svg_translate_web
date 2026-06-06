@@ -142,7 +142,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             self._append(file_info, key="pages_failed")
             return False
 
-        match = RE_SVG_LANG.search(file_info._text)
+        match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
         if match:
             self._skip_step(
                 file_info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}"

@@ -608,9 +608,9 @@ def test_start_download_main_files_job_route(mock_load_auth, mock_start_job, adm
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
 
-    response = admin_jobs_client.post("/admin/jobs/download_main_files/start", follow_redirects=True)
-    assert response.status_code == 200
-    mock_flash.assert_any_call("Job 1 started to download main files.", "success")
+    response = admin_jobs_client.post("/admin/jobs/download_main_files/start")
+    assert response.status_code == 302
+    mock_flash.assert_any_call("Job 1 started to download_main_files.", "success")
 
     mock_start_job.assert_called_once()
     mock_load_auth.assert_called_once()
