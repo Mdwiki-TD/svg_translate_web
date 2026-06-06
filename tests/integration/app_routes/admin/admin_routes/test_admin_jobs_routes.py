@@ -670,7 +670,7 @@ def test_delete_download_main_files_job(admin_jobs_client, jobs_db, monkeypatch)
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job", return_value=False):
+    with patch("src.main_app.app_routes.admin_routes.jobs.jobs_worker.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
