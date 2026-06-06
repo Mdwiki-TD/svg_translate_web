@@ -159,6 +159,65 @@ def start_job(
     return job.id
 
 
+def start_job_cli(
+    user: dict[str, Any] | None,
+    job_type: str,
+    args: dict[str, Any] | None = None,
+    app: Flask | None = None,
+) -> int:
+    """
+    Start a background job.
+    Returns the job ID.
+
+    Args:
+        user: User authentication data for OAuth uploads
+        job_type: The type of job to start
+        args: Optional arguments to pass to the worker
+    """
+    job_data: JobData = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    target_func = job_data.job_callable if job_data else None
+
+    if not target_func:
+        raise ValueError(f"Unknown job type: {job_type}")
+
+    username = user.get("username") if user else None
+    if not username:
+        raise ValueError("User authentication data is required")
+
+    resolved_args = _load_job_args(job_data.job_args) if job_data.job_args else {}
+    if args:
+        resolved_args.update(args)
+
+    try:
+        # Create job record
+        job = create_job(job_type, username)
+    except DuplicateJobError:
+        logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to create job record for job type {job_type}")
+        raise e
+
+    cancel_event = threading.Event()
+    _register_cancel_event(job.id, cancel_event)
+
+    # Start background job
+    with app.app_context():
+        try:
+            target_func(
+                job_id=job.id,
+                user=user,
+                cancel_event=cancel_event,
+                args=args,
+            )
+        finally:
+            _pop_cancel_event(job.id)
+
+    logger.info(f"Started background job {job.id} for {job_type}")
+
+    return job.id
+
+
 __all__ = [
     "start_job",
     "cancel_job_worker",
