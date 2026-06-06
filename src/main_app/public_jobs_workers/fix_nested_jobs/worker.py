@@ -296,12 +296,6 @@ class FixNestedJobsProcessor(BaseJobWorker):
         return self.result
 
 
-class FixNestedJobsWorker(BaseJobWorker):
-    """
-    Worker for fixing nested tags in user-submitted SVG files.
-    """
-
-
 # --- main pipeline --------------------------------------------
 def fix_nested_jobs_worker_entry(
     *,
