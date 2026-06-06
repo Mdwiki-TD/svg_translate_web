@@ -170,9 +170,9 @@ def test_start_collect_templates_data_job_route(mock_load_auth, mock_start_job, 
     # Mock the job creation
     mock_start_job.return_value = 1
 
-    response = admin_jobs_client.post("/admin/jobs/collect_templates_data/start", follow_redirects=True)
-    assert response.status_code == 200
-    mock_flash.assert_any_call("Job 1 started to collect templates data.", "success")
+    response = admin_jobs_client.post("/admin/jobs/collect_templates_data/start")
+    assert response.status_code == 302
+    mock_flash.assert_any_call("Job 1 started to collect_templates_data.", "success")
 
     mock_start_job.assert_called_once()
     mock_load_auth.assert_called_once()
@@ -306,9 +306,9 @@ def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, a
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.return_value = 1
 
-    response = admin_jobs_client.post("/admin/jobs/fix_nested_main_files/start", follow_redirects=True)
-    assert response.status_code == 200
-    mock_flash.assert_any_call("Job 1 started to fix nested main files.", "success")
+    response = admin_jobs_client.post("/admin/jobs/fix_nested_main_files/start")
+    assert response.status_code == 302
+    mock_flash.assert_any_call("Job 1 started to fix_nested_main_files.", "success")
 
     mock_start_job.assert_called_once()
     mock_load_auth.assert_called_once()
