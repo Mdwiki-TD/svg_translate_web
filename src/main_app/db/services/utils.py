@@ -4,7 +4,7 @@ import functools
 import logging
 from typing import Any, Callable, ParamSpec, TypeVar
 
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.exc import OperationalError, PendingRollbackError, SQLAlchemyError
 
 from ...extensions import db
 
@@ -31,6 +31,11 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callab
                 return func(*args, **kwargs)
             except OperationalError as exc:
                 logger.error("DB error in %s", func.__qualname__)
+                logger.exception(f"{msg}: %s", exc)
+                db.session.rollback()
+                return default_return
+            except PendingRollbackError as exc:
+                logger.error("DB pending rollback error in %s", func.__qualname__)
                 logger.exception(f"{msg}: %s", exc)
                 db.session.rollback()
                 return default_return
