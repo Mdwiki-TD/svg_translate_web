@@ -203,7 +203,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                     file_info["path"] = download_result["path"]
                     file_info["size_bytes"] = download_result["size_bytes"]
                     self.result["files_downloaded"].append(file_info)
-                    self.result["summary"]["downloaded"] += 1
+                    self.result["summary"]["success"] += 1
                 else:
                     file_info["status"] = "failed"
                     file_info["reason"] = download_result["error"]
@@ -238,7 +238,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{self.result['summary']['downloaded']} downloaded, "
+            f"{self.result['summary']['success']} success, "
             f"{self.result['summary']['failed']} failed"
         )
 
