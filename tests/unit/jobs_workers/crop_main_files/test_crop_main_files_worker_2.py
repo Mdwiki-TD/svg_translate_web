@@ -1,4 +1,4 @@
-"""Unit tests for crop_main_files/process_new module."""
+"""Unit tests for crop_main_files/worker module."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.crop_main_files.process_new import (
+from src.main_app.jobs_workers.crop_main_files.worker import (
     CropMainFilesProcessor,
     FileProcessingInfo,
     is_cropped_file_existing,
@@ -19,28 +19,28 @@ from src.main_app.jobs_workers.crop_main_files.process_new import (
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
-    """Mock the services used by process_new module."""
+    """Mock the services used by worker module."""
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.update_job_status",
+        "src.main_app.jobs_workers.crop_main_files.worker.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.jobs_files_service.save_job_result_by_name",
+        "src.main_app.jobs_workers.crop_main_files.worker.jobs_files_service.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.is_job_cancelled",
+        "src.main_app.jobs_workers.crop_main_files.worker.is_job_cancelled",
         mock_jobs_service,
     )
 
     # Mock list_templates
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.list_templates",
+        "src.main_app.jobs_workers.crop_main_files.worker.list_templates",
         mock_list_templates,
     )
 
@@ -48,11 +48,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_get_user_site = MagicMock()
     mock_create_commons_session = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.get_user_site",
+        "src.main_app.jobs_workers.crop_main_files.worker.get_user_site",
         mock_get_user_site,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.create_commons_session",
+        "src.main_app.jobs_workers.crop_main_files.worker.create_commons_session",
         mock_create_commons_session,
     )
 
@@ -62,19 +62,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_update_file_text = MagicMock()
     mock_update_page_text = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.get_file_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.get_file_text",
         mock_get_file_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.get_page_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.get_page_text",
         mock_get_page_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.update_file_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.update_file_text",
         mock_update_file_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.update_page_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.update_page_text",
         mock_update_page_text,
     )
 
@@ -83,15 +83,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_crop_svg_file = MagicMock()
     mock_upload_cropped_file = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.download_file_for_cropping",
+        "src.main_app.jobs_workers.crop_main_files.worker.download_file_for_cropping",
         mock_download_file,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.crop_svg_file",
+        "src.main_app.jobs_workers.crop_main_files.worker.crop_svg_file",
         mock_crop_svg_file,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.upload_cropped_file",
+        "src.main_app.jobs_workers.crop_main_files.worker.upload_cropped_file",
         mock_upload_cropped_file,
     )
 
@@ -100,22 +100,22 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_update_original_file_text = MagicMock(return_value="Updated original text")
     mock_update_template_page_file_reference = MagicMock(return_value="Updated template text")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.create_cropped_file_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.create_cropped_file_text",
         mock_create_cropped_file_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.update_original_file_text",
+        "src.main_app.jobs_workers.crop_main_files.worker.update_original_file_text",
         mock_update_original_file_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.update_template_page_file_reference",
+        "src.main_app.jobs_workers.crop_main_files.worker.update_template_page_file_reference",
         mock_update_template_page_file_reference,
     )
 
     # Mock utils
     mock_generate_cropped_filename = MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.generate_cropped_filename",
+        "src.main_app.jobs_workers.crop_main_files.worker.generate_cropped_filename",
         mock_generate_cropped_filename,
     )
 
@@ -124,7 +124,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
     mock_settings.other.user_agent = "TestBot/1.0"
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.crop_main_files.process_new.settings",
+        "src.main_app.jobs_workers.crop_main_files.worker.settings",
         mock_settings,
     )
 

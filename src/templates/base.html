@@ -59,6 +59,15 @@
 
             setupWikiAutocomplete(".wiki-autocomplete", WIKIMEDIA_API_URL);
         });
+
+        function pup_window_new(element, width = 700, height = 650) {
+            var target = $(element).attr("pup-target");
+            window.open(
+                target,
+                "",
+                `width=${width},height=${height},left=100,top=100,location=no`,
+            );
+        }
     </script>
 </body>
 

@@ -193,26 +193,23 @@ def start_job_cli(
         job = create_job(job_type, username)
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
-        return 0
-    except Exception:
+        raise
+    except Exception as e:
         logger.exception(f"Failed to create job record for job type {job_type}")
-        return 0
+        raise e
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
-    # Start background job
+    # Capture the Flask app for the background thread (requires app context)
     flask_app = app or current_app._get_current_object()
-    with flask_app.app_context():
-        try:
-            target_func(
-                job_id=job.id,
-                user=user,
-                cancel_event=cancel_event,
-                args=resolved_args,
-            )
-        finally:
-            _pop_cancel_event(job.id)
+
+    # Start background thread
+    thread = threading.Thread(
+        target=_runner,
+        args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
+    )
+    thread.start()
 
     logger.info(f"Started background job {job.id} for {job_type}")
 

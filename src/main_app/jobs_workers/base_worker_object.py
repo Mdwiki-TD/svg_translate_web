@@ -107,6 +107,7 @@ class BaseObjectsJobWorker(ABC):
         try:
             update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             self.result.status = "running"
+            self._save_progress()
             return True
         except LookupError:
             logger.exception(
@@ -119,6 +120,9 @@ class BaseObjectsJobWorker(ABC):
         # Finalize timestamps
         self.result.completed_at = datetime.now().isoformat()
         final_status = self.result.status or "completed"
+
+        if final_status in ("running", "pending"):
+            final_status = "completed"
 
         # Save final results
         self._save_progress()

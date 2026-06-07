@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
@@ -16,6 +16,7 @@ import mwclient
 from ...api_services.category import get_category_members
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import get_page_text
+from ...db.models import TemplateRecord
 from ...db.services import (
     add_template_data,
     get_chart_by_slug,
@@ -46,21 +47,20 @@ class TemplateInfo:
     status: str = "processing"
     error: str | None = None
     error_type: str | None = None
+    steps: dict[str, dict[str, Any]] = field(
+        default_factory=lambda: {
+            "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
+            "last_world_file": {"result": None, "value": "", "new_value": "", "msg": ""},
+            "source": {"result": None, "value": "", "new_value": "", "msg": ""},
+            "slug": {"result": None, "value": "", "new_value": "", "msg": ""},
+        }
+    )
 
     def to_dict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {
-            "id": self.id,
-            "title": self.title,
-            "new_main_file": self.new_main_file,
-            "last_world_file": self.last_world_file,
-            "source": self.source,
-            "status": self.status,
-        }
-        if self.error is not None:
-            result["error"] = self.error
-        if self.error_type is not None:
-            result["error_type"] = self.error_type
-        return result
+        """
+        convert to dict.
+        """
+        return asdict(self)
 
 
 def slugify_title(title: str) -> str:
@@ -134,6 +134,9 @@ class CollectMainFilesWorker(BaseJobWorker):
             "pages_failed": [],
         }
 
+    # ------------------------------------------------------------------
+    # pre process step
+    # ------------------------------------------------------------------
     def _fetch_and_add_new_templates(self) -> None:
         """
         Fetch templates from the category and add new ones to the database.
@@ -143,16 +146,15 @@ class CollectMainFilesWorker(BaseJobWorker):
         """
         logger.info(f"Job {self.job_id}: Fetching templates from category")
 
+        templates: list[TemplateRecord] = list_templates()
+        existing_titles = {t.title for t in templates}
+
         # Get templates from category
         category_templates = get_category_members("Category:Pages using gadget owidslider")
         logger.info(f"Job {self.job_id}: Found {len(category_templates)} templates in category")
 
         if not category_templates:
             return
-
-        # Get existing template titles
-        existing_templates = list_templates()
-        existing_titles = {t.title for t in existing_templates}
 
         # Find new templates
         new_templates = [t for t in category_templates if t not in existing_titles]
@@ -186,6 +188,198 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 self.result["pages_failed"].append(tmp_info.to_dict())
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _update_step(self, file_info: TemplateInfo, step: str, **kwargs) -> None:
+        for k, v in kwargs.items():
+            if k in file_info.steps[step]:
+                file_info.steps[step][k] = v
+
+    # ------------------------------------------------------------------
+    # Per-template orchestration
+    # ------------------------------------------------------------------
+
+    def _load_temp_info(self, template: TemplateRecord) -> TemplateInfo:
+        template_info = TemplateInfo(
+            id=template.id,
+            title=template.title,
+            new_main_file="",
+            last_world_file="",
+            source="",
+            status="",
+        )
+
+        template_info.steps["main_file"]["value"] = template.main_file
+        template_info.steps["last_world_file"]["value"] = template.last_world_file
+        template_info.steps["source"]["value"] = template.source
+        template_info.steps["slug"]["value"] = template.slug
+
+        return template_info
+
+    def _process_template(self, template: TemplateRecord) -> bool:
+        template_info = self._load_temp_info(template)
+
+        logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
+        # Fetch wikitext from Commons
+        wikitext = get_page_text(template.title, site=self.site)
+
+        if not wikitext:
+            template_info.status = "failed"
+            template_info.error = "Could not fetch wikitext from Commons"
+            self.result["pages_failed"].append(template_info.to_dict())
+            self.result["summary"]["failed"] += 1
+            logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
+            return False
+
+        template_data = {}
+        skip_msg = "No changes needed"
+
+        # ------------------
+        # template_info step # 1 main_file
+        try:
+            # Extract main file using find_main_title
+            main_file = find_main_title(wikitext)
+            if not main_file:
+                raise Exception("Could not find main file")
+
+            main_file = main_file.removeprefix("File:")
+        except Exception as e:
+            logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
+            main_file = None
+            self._update_step(template_info, "main_file", result="failed", msg=str(e))
+
+        if main_file:
+            if main_file != template.main_file:
+                # template_info.new_main_file = main_file
+                self._update_step(template_info, "main_file", result="updated", new_value=main_file)
+                template_data["main_file"] = main_file
+            else:
+                self._update_step(template_info, "main_file", result="skipped", msg="No changes")
+
+        # ------------------
+        # template_info step # 2 last_world_file
+        try:
+            last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
+            if not last_world_file:
+                raise Exception("Could not find newest world file")
+
+            last_world_file = last_world_file.removeprefix("File:")
+        except Exception as e:
+            logger.error(f"Job {self.job_id}: Error while extracting newest world file: {e}")
+            last_world_file = None
+            self._update_step(template_info, "last_world_file", result="failed", msg=str(e))
+
+        if last_world_file:
+            if last_world_file != template.last_world_file:
+                # template_info.last_world_file = last_world_file
+                self._update_step(template_info, "last_world_file", result="updated", new_value=last_world_file)
+                template_data["last_world_file"] = last_world_file
+            else:
+                self._update_step(template_info, "last_world_file", result="skipped", msg="No changes")
+
+        # ------------------
+        # template_info step # 3 source
+        try:
+            source = find_template_source(wikitext, check_grapher=False)
+            if not source:
+                raise Exception("Could not find source")
+        except Exception as e:
+            logger.error(f"Job {self.job_id}: Error while extracting source: {e}")
+            source = None
+            self._update_step(template_info, "source", result="failed", msg=str(e))
+
+        if source:
+            if source != template.source:
+                # template_info.source = source
+                self._update_step(template_info, "source", result="updated", new_value=source)
+                template_data["source"] = source
+            else:
+                self._update_step(template_info, "source", result="skipped", msg="No changes")
+
+        # ------------------
+        # template_info step # 4 slug
+        try:
+            _slug = self._load_slug(template.title, template_data.get("source", ""))
+            if not _slug:
+                raise Exception("Could not find slug")
+        except Exception as e:
+            logger.error(f"Job {self.job_id}: Error while extracting slug: {e}")
+            _slug = None
+            self._update_step(template_info, "slug", result="failed", msg=str(e))
+
+        if _slug:
+            if _slug != template.slug:
+                self._update_step(template_info, "slug", result="updated", new_value=_slug)
+                template_data["slug"] = _slug
+            else:
+                self._update_step(template_info, "slug", result="skipped", msg="No changes")
+
+        # ------------------
+        # update status
+        if not main_file and not last_world_file and not source:
+            template_info.status = "failed"
+            template_info.error = "Could not find (main file or newest world file or source) in wikitext"
+            self.result["pages_failed"].append(template_info.to_dict())
+            self.result["summary"]["failed"] += 1
+            logger.warning(
+                f"Job {self.job_id}: Could not find main file or newest world file or source for {template.title}"
+            )
+            return False
+
+        if not template_data:
+            template_info.status = "skipped"
+            template_info.error = skip_msg
+            self.result["pages_skipped"].append(template_info.to_dict())
+            logger.info(f"Job {self.job_id}: No changes for {template.title}")
+            return False
+
+        # Update template with main file
+        logger.info(
+            f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
+            f"and last_world_file: {last_world_file} "
+            f"and source: {source}"
+        )
+
+        try:
+            update_template_data(
+                template.id,
+                template_data,
+            )
+
+            template_info.status = "updated"
+            self.result["pages_updated"].append(template_info.to_dict())
+            return True
+
+        except Exception as e:
+            template_info.status = "failed"
+            template_info.error = f"Exception: {str(e)}"
+            template_info.error_type = type(e).__name__
+
+            self.result["pages_failed"].append(template_info.to_dict())
+            self.result["summary"]["failed"] += 1
+
+            logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
+
+        return False
+
+    def _load_slug(self, template_title, template_source):
+        _slug = None
+        if "/grapher/" in template_source:
+            _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+        if not _slug:
+            _slug = slugify_title(template_title)
+
+        if not _slug and "/grapher/" not in template_source:
+            raise Exception("source url does not have /grapher/")
+        return _slug
+
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
@@ -203,8 +397,8 @@ class CollectMainFilesWorker(BaseJobWorker):
             logger.info(f"Job {self.job_id}: Cancelled after adding templates.")
             return self.result
 
-        # Step 2: Get all templates (including newly added)
-        templates = list_templates()
+        # Step 2: Re-fetch all templates (including newly added)
+        templates: list[TemplateRecord] = list_templates()
         self.result["summary"]["total"] = len(templates)
 
         if self.update_all:
@@ -227,108 +421,10 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
-            template_info = TemplateInfo(
-                id=template.id,
-                title=template.title,
-                new_main_file="",
-                last_world_file="",
-                source="",
-                status="",
-            )
-            logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
-            # Fetch wikitext from Commons
-            wikitext = get_page_text(template.title, site=self.site)
 
-            if not wikitext:
-                template_info.status = "failed"
-                template_info.error = "Could not fetch wikitext from Commons"
-                self.result["pages_failed"].append(template_info.to_dict())
-                self.result["summary"]["failed"] += 1
-                logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
-                continue
+            _updated = self._process_template(template)
 
-            template_data = {}
-            skip_msg = "No changes needed"
-            try:
-                # Extract main file using find_main_title
-                main_file = find_main_title(wikitext)
-            except Exception as e:
-                logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
-                main_file = None
-
-            if main_file and main_file != template.main_file:
-                template_info.new_main_file = main_file
-                template_data["main_file"] = main_file
-
-            try:
-                last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
-            except Exception as e:
-                logger.error(f"Job {self.job_id}: Error while extracting last world file: {e}")
-                last_world_file = None
-
-            if last_world_file and last_world_file != template.last_world_file:
-                template_data["last_world_file"] = last_world_file
-                template_info.last_world_file = last_world_file
-
-            source = find_template_source(wikitext, check_grapher=False)
-            if source and source != template.source:
-                template_info.source = source
-                template_data["source"] = source
-                if "/grapher/" in source:
-                    slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
-                    template_data["slug"] = slug or None
-                else:
-                    skip_msg = "source url does not have /grapher/"
-
-            if not template.slug and not template_data.get("slug"):
-                _slug = slugify_title(template.title)
-                if _slug:
-                    template_data["slug"] = _slug
-
-            if not main_file and not last_world_file and not source:
-                template_info.status = "failed"
-                template_info.error = "Could not find (main file or last world file or source) in wikitext"
-                self.result["pages_failed"].append(template_info.to_dict())
-                self.result["summary"]["failed"] += 1
-                logger.warning(
-                    f"Job {self.job_id}: Could not find main file or last world file or source for {template.title}"
-                )
-                continue
-
-            if not template_data:
-                template_info.status = "skipped"
-                template_info.error = skip_msg
-                self.result["pages_skipped"].append(template_info.to_dict())
-                logger.info(f"Job {self.job_id}: No changes for {template.title}")
-                continue
-
-            # Update template with main file
-            logger.info(
-                f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
-                f"and last_world_file: {last_world_file} "
-                f"and source: {source}"
-            )
-
-            try:
-                update_template_data(
-                    template.id,
-                    template_data,
-                )
-
-                template_info.status = "updated"
-                self.result["pages_updated"].append(template_info.to_dict())
-
-            except Exception as e:
-                template_info.status = "failed"
-                template_info.error = f"Exception: {str(e)}"
-                template_info.error_type = type(e).__name__
-
-                self.result["pages_failed"].append(template_info.to_dict())
-                self.result["summary"]["failed"] += 1
-
-                logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
-
-            if template_info.status == "updated" and self.check_cancel_db_periodic():
+            if _updated and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
                 break
 

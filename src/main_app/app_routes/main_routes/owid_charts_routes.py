@@ -11,7 +11,7 @@ from flask import (
 
 from ...db.services import list_charts, list_published_charts
 
-bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owid-charts")
+bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owidcharts")
 logger = logging.getLogger(__name__)
 
 

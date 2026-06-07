@@ -1,6 +1,28 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
+{%- macro render_step_value(step) -%}
+{% if step %}
+{% if step.result == "updated" %}
+<span class="badge bg-success" title="{{ step.msg or step.new_value }}">
+    <i class="bi bi-check-lg"></i>
+</span>
+{% elif step.result == "failed" %}
+<span class="badge bg-danger" title="{{ step.msg }}">
+    <i class="bi bi-x-lg"></i>
+</span>
+{% elif step.result == "skipped" %}
+<span class="badge bg-secondary" title="{{ step.msg or step.value }}">
+    <i class="bi bi-dash"></i>
+</span>
+{% else %}
+<span class="text-muted" title="{{ step.msg or step.value }}">-</span>
+{% endif %}
+{% else %}
+<span class="text-muted">-</span>
+{% endif %}
+{%- endmacro -%}
+
 {% block job_summary %}
 {% set total_skipped = ( result_data.pages_skipped|length ) + (result_data.summary.already_had_main_file or 0) %}
 
@@ -63,37 +85,80 @@
 </div>
 {% endif %}
 
-<!-- Updated Templates -->
-{% if result_data.pages_updated %}
+{% macro pages_updated_table(data, table_title) %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Updated Templates (" ~ result_data.pages_updated|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-striped table-sm">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Title</th>
-                        <th>New Main File</th>
-                        <th>Last World File</th>
+                        <th><i class="bi bi-pencil me-3"></i></th>
+                        <th>Main File</th>
+                        <th>Newest World File</th>
                         <th>Source</th>
+                        <th>Slug</th>
+                        <th>Msg</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.pages_updated %}
+                    {% for template in data %}
                     <tr>
-                        <td>{{ template.id }}</td>
+                        <td>{{ loop.index }}</td>
                         <td>
                             <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                {{ template.title }}
+                                {{ template.title.removeprefix("Template:OWID/") }}
                             </a>
                         </td>
-                        <td><code>{{ template.new_main_file }}</code></td>
-                        <td><code>{{ template.last_world_file }}</code></td>
-                        <td><code>{{ template.source }}</code></td>
+                        <td>
+                            <a type="button" class="btn-outline-primary btn-sm"
+                                pup-target="{{ url_for('admin.templates.edit_by_title', template_title=template.title) }}"
+                                onclick="pup_window_new(this, 600, 600)">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step_value(template.steps.main_file) }}
+                            {% else %}
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.new_main_file }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.new_main_file }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step_value(template.steps.last_world_file) }}
+                            {% else %}
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.last_world_file }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ template.last_world_file }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step_value(template.steps.source) }}
+                            {% else %}
+                            <code>{{ template.source or "-"}}</code>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step_value(template.steps.slug) }}
+                            {% else %}
+                            <code>-</code>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code>{{ template.msg or template.error or template.reason }}</code>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -101,18 +166,27 @@
         </div>
     </div>
 </div>
-{% endif %}
+{%- endmacro -%}
 
-{% from "admins/jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
+<!-- Updated Templates -->
+{% if result_data.pages_updated %}
+{{ pages_updated_table(result_data.pages_updated, 'Updated Templates') }}
+{% endif %}
 
 <!-- Skipped Templates -->
 {% if result_data.pages_skipped %}
-{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Templates", job.id, job_type, expand_all) }}
+{{ pages_updated_table(result_data.pages_skipped, 'Skipped Templates') }}
 {% endif %}
 
 <!-- Failed Templates -->
 {% if result_data.pages_failed %}
-{{ pages_skipped_table(wiki_domain, result_data.pages_failed, "Failed Templates", job.id, job_type, expand_all) }}
+{{ pages_updated_table(result_data.pages_failed, 'Failed Templates') }}
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+</script>
 {% endblock %}

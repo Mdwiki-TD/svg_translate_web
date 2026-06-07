@@ -182,7 +182,7 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     assert result["summary"]["total"] == 1
     assert len(result["pages_updated"]) == 1
     assert len(result["pages_updated"]) == 1
-    assert result["pages_updated"][0]["new_main_file"] == "test.svg"
+    assert result["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
 
 
 def test_collect_templates_data_handles_missing_wikitext(mock_services):
@@ -227,7 +227,7 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["pages_failed"]) == 1
-    assert "Could not find (main file or last world file or source)" in result["pages_failed"][0]["error"]
+    assert "Could not find (main file or newest world file or source)" in result["pages_failed"][0]["error"]
 
 
 @pytest.mark.skip(reason="exceptions changes")
@@ -420,14 +420,14 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"main_file": "test.svg", "last_world_file": "File:test, World, 2021.svg", "slug": "test"}
+        1, {"main_file": "test.svg", "last_world_file": "test, World, 2021.svg", "slug": "test"}
     )
 
     # Should save result with correct data
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert len(result["pages_updated"]) == 1
-    assert result["pages_updated"][0]["new_main_file"] == "test.svg"
-    assert result["pages_updated"][0]["last_world_file"] == "File:test, World, 2021.svg"
+    assert result["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
+    assert result["pages_updated"][0]["steps"]["last_world_file"]["new_value"] == "test, World, 2021.svg"
 
 
 def test_collect_templates_data_cancellation_during_template_addition(mock_services):
@@ -493,7 +493,6 @@ def test_collect_templates_data_progress_saving_frequency(mock_services, monkeyp
     templates = [
         TemplateRecord(id=i, title=f"Template:Test{i}", main_file=None, last_world_file=None) for i in range(1, 26)
     ]
-
     mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["get_page_text"].return_value = "{{SVGLanguages|test.svg}}"
@@ -546,7 +545,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
 
     # Should update template with only last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"last_world_file": "File:test, World, 2021.svg", "slug": "test"}
+        1, {"last_world_file": "test, World, 2021.svg", "slug": "test"}
     )
 
     # Should save result as updated

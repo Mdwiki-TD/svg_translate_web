@@ -93,7 +93,7 @@ def create_side(active_route, path: str | None = None):
             SidebarItem(
                 id="owid_charts",
                 admin=1,
-                href=_safe_url_for("admin.owidcharts.dashboard", "/admin/owid-charts/"),
+                href=_safe_url_for("admin.owidcharts.dashboard", "/admin/owidcharts/"),
                 title="OWID Charts",
                 icon="bi-graph-up",
             ),

@@ -97,6 +97,12 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                                <tr>
+                                    <th>Last update:</th>
+                                    <td>
+                                        {{ result_data.last_update| format_long_date("-") }}
+                                    </td>
+                                </tr>
                             {% block job_info_extra %}{% endblock %}
                         </table>
                     </div>

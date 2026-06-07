@@ -1,9 +1,7 @@
 """Tests for crop_main_files/download module."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 import requests
 
 from src.main_app.jobs_workers.crop_main_files.download import download_file_for_cropping

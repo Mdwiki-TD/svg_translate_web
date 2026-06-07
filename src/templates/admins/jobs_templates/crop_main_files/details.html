@@ -1,5 +1,5 @@
 {% extends "admins/jobs_templates/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, render_step %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -90,25 +90,7 @@
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = file.steps.get(step_key) if file.steps else None %}
-                            {% if step %}
-                            {% if step.result == true %}
-                            <span class="badge bg-success" title="{{ step.msg }}">
-                                <i class="bi bi-check-lg"></i>
-                            </span>
-                            {% elif step.result == false %}
-                            <span class="badge bg-danger" title="{{ step.msg }}">
-                                <i class="bi bi-x-lg"></i>
-                            </span>
-                            {% elif step.result is none and step.msg %}
-                            <span class="badge bg-secondary" title="{{ step.msg }}">
-                                <i class="bi bi-dash"></i>
-                            </span>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
+                            {{ render_step(step) }}
                         </td>
                         {% endfor %}
                     </tr>

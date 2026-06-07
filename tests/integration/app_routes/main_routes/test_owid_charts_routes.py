@@ -72,7 +72,7 @@ class TestIndexRoute:
         """Test index page renders with published charts."""
         flask_client, mock_published, _ = owid_charts_client
 
-        response = flask_client.get("/owid-charts/")
+        response = flask_client.get("/owidcharts/")
 
         assert response.status_code == 200
         mock_published.assert_called_once()
@@ -81,7 +81,7 @@ class TestIndexRoute:
         """Test index page also calls list_charts for total count."""
         flask_client, _, mock_all = owid_charts_client
 
-        flask_client.get("/owid-charts/")
+        flask_client.get("/owidcharts/")
 
         mock_all.assert_called_once()
 
@@ -93,7 +93,7 @@ class TestAllChartsRoute:
         """Test all charts page renders."""
         flask_client, _, mock_all = owid_charts_client
 
-        response = flask_client.get("/owid-charts/all")
+        response = flask_client.get("/owidcharts/all")
 
         assert response.status_code == 200
         mock_all.assert_called_once()
@@ -103,7 +103,7 @@ class TestAllChartsRoute:
         flask_client, _, mock_all = owid_charts_client
         mock_all.return_value = [sample_unpublished_chart]
 
-        response = flask_client.get("/owid-charts/all")
+        response = flask_client.get("/owidcharts/all")
 
         assert response.status_code == 200
 
@@ -112,6 +112,6 @@ class TestAllChartsRoute:
         flask_client, _, mock_all = owid_charts_client
         mock_all.return_value = []
 
-        response = flask_client.get("/owid-charts/all")
+        response = flask_client.get("/owidcharts/all")
 
         assert response.status_code == 200

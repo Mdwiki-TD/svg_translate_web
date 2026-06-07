@@ -55,7 +55,7 @@
                             <div class="btn-group">
                                 <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
                                     class="btn btn-outline-primary btn-sm">
-                                    Details
+                                    <i class="bi bi-eye"></i> Details
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
                                 <form method="POST"
