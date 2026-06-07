@@ -296,6 +296,7 @@ class TestCreateOwidPagesWorkerSteps:
         assert info.steps["load_template_text"]["result"] is False
         assert worker.result["summary"]["failed"] == 1
 
+class TestCreateNewTextStep:
     def test_step_create_new_text_success(self, mock_services):
         """Test _step_create_new_text with successful text generation."""
         mock_services["create_new_text"].return_value = "New OWID page content"
@@ -328,8 +329,9 @@ class TestCreateOwidPagesWorkerSteps:
         assert info.steps["create_new_text"]["result"] is False
         assert "Invalid template format" in info.steps["create_new_text"]["msg"]
 
-    def test_step_check_exists_and_update_page_not_exists(self, mock_services):
-        """Test _step_check_exists_and_update when page does not exist."""
+class TestUpdateStep:
+    def test_step_update_page_not_exists(self, mock_services):
+        """Test _step_update when page does not exist."""
         mock_services["is_page_exists"].return_value = False
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
@@ -337,13 +339,13 @@ class TestCreateOwidPagesWorkerSteps:
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
-        result = worker._step_check_exists_and_update(info)
+        result = worker._step_update(info, "OWID/Test")
 
         assert result is True  # Should continue to create step
         mock_services["is_page_exists"].assert_called_once_with("OWID/Test", None)
 
-    def test_step_check_exists_and_update_page_identical_content(self, mock_services):
-        """Test _step_check_exists_and_update when page has identical content."""
+    def test_step_update_page_identical_content(self, mock_services):
+        """Test _step_update when page has identical content."""
         mock_services["is_page_exists"].return_value = True
         mock_services["get_page_text"].return_value = "New content"
 
@@ -352,15 +354,15 @@ class TestCreateOwidPagesWorkerSteps:
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
-        result = worker._step_check_exists_and_update(info)
+        result = worker._step_update(info, "OWID/Test")
 
         assert result is False  # Should not continue to create step
         assert info.status == "skipped"
         assert worker.result["summary"]["skipped"] == 1
         # assert worker.result["summary"]["processed"] == 1 # processed is now under _process_template
 
-    def test_step_check_exists_and_update_page_different_content(self, mock_services):
-        """Test _step_check_exists_and_update when page has different content."""
+    def test_step_update_page_different_content(self, mock_services):
+        """Test _step_update when page has different content."""
         mock_services["is_page_exists"].return_value = True
         mock_services["get_page_text"].return_value = "Old content"
         mock_services["create_page"].return_value = {"success": True}
@@ -370,7 +372,7 @@ class TestCreateOwidPagesWorkerSteps:
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
-        result = worker._step_check_exists_and_update(info)
+        result = worker._step_update(info, "OWID/Test")
 
         assert result is False  # Should not continue to create step (already updated)
         assert worker.result["summary"]["updated"] == 1
@@ -378,8 +380,8 @@ class TestCreateOwidPagesWorkerSteps:
         assert info.status == "completed"
         mock_services["create_page"].assert_called_once()
 
-    def test_step_check_exists_and_update_update_fails(self, mock_services):
-        """Test _step_check_exists_and_update when update fails."""
+    def test_step_update_update_fails(self, mock_services):
+        """Test _step_update when update fails."""
         mock_services["is_page_exists"].return_value = True
         mock_services["get_page_text"].return_value = "Old content"
         mock_services["create_page"].return_value = {"success": False, "error": "Edit conflict"}
@@ -389,12 +391,13 @@ class TestCreateOwidPagesWorkerSteps:
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
-        result = worker._step_check_exists_and_update(info)
+        result = worker._step_update(info, "OWID/Test")
 
         assert result is False
         assert info.status == "failed"
         assert info.steps["create_new_page"]["result"] is False
 
+class TestCreateNewPageStep:
     def test_step_create_new_page_success(self, mock_services):
         """Test _step_create_new_page with successful creation."""
         mock_services["create_page"].return_value = {"success": True}
@@ -535,7 +538,7 @@ class TestCreateOwidPagesWorkerProcess:
 
         assert result["status"] == "completed"
         assert result["summary"]["total"] == 1
-        assert result["summary"]["processed"] == 0 # processed is now under _process_template
+        assert result["summary"]["processed"] == 1 # processed is now under _process_template
         assert result["summary"]["created"] == 1
         assert result["summary"]["failed"] == 0
 

@@ -13,7 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import create_page, get_page_text, is_page_exists
+from ...api_services.pages_api import update_page_text, create_page, get_page_text, is_page_exists
 from ...data import get_slug_categories
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
@@ -105,7 +105,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
                 "skipped": 0,
             },
             "pages_processed": [],
-            "pages_success": [],
+            "pages_created": [],
+            "pages_updated": [],
             "pages_skipped": [],
             "pages_failed": [],
         }
@@ -191,29 +192,41 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self._append(file_info, key="pages_processed")
+            self._append(file_info, key="pages_failed")
             return False
 
         # ----------------------------------
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
-            self._append(file_info, key="pages_processed")
+            self._append(file_info, key="pages_failed")
             return False
 
         if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
         # ----------------------------------
-        # Step 3 - check if new page already exists then compare if text need to be updated
-        # if page text == new text then summary.skipped++ else summary.updated++
-        if not self._step_check_exists_and_update(file_info):
-            self._append(file_info, key="pages_processed")
-            return False
+        # Step 2 A) - check if new page already exists
+        new_title = self.create_new_page_title(file_info)
+
+        page_exists = is_page_exists(new_title, self.site)
+
+        if page_exists:
+            # ----------------------------------
+            # Step 3 - compare if text need to be updated
+            if not self._step_update(file_info, new_title):
+                self._append(file_info, key="pages_processed")
+                return False
+
+            file_info.status = "updated"
+            self._append(file_info, key="pages_updated")
+            return True
 
         # Step 4 - create_new_page
         if not self._step_create_new_page(file_info):
-            self._append(file_info, key="pages_processed")
+            self._append(file_info, key="pages_failed")
             return False
+        else:
+            self._append(file_info, key="pages_created")
 
         file_info.status = "completed"
         self._append(file_info, key="pages_processed")
@@ -245,17 +258,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._fail(info, "create_new_text", str(exc))
             return False
 
-    def _step_check_exists_and_update(self, info: TemplateProcessingInfo) -> bool:
+    def _step_update(self, info: TemplateProcessingInfo, new_title: str) -> bool | None:
         """
-        Check if the target OWID page exists and compare its content.
+        compare the target OWID page content.
         If identical, skip creation. If different, update here and return False.
         Returns True to continue to Step 4 (Creation) if page does not exist.
         """
-        new_title = self.create_new_page_title(info)
-
-        if not is_page_exists(new_title, self.site):
-            return True
-
         # Page exists, check if update is needed
         current_text = get_page_text(new_title, self.site)
         if current_text.strip() == info._new_text.strip():
@@ -263,14 +271,14 @@ class CreateOwidPagesWorker(BaseJobWorker):
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
-            return False
+            return None # nothing to update
 
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
         info._new_text = sort_categories(info._new_text)
 
         # Content is different, perform update
-        res = create_page(
+        res = update_page_text(
             new_title,
             info._new_text,
             self.site,

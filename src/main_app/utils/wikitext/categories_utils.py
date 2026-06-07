@@ -64,6 +64,8 @@ def extract_categories(wikitext: str) -> list[CategoryLink]:
     """
     Extracts category WikiLinks from the given wikitext.
     """
+    if not isinstance(wikitext, str):
+        return []
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
 
@@ -100,6 +102,9 @@ def merge_categories(old_text: str, new_text: str) -> str:
     """
     Appends categories found in old_text to new_text if they are not already present.
     """
+    if not new_text or not old_text:
+        return new_text
+
     # Parse categories from both versions of the text
     old_cats = extract_categories(old_text)
 

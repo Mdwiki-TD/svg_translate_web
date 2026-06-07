@@ -95,7 +95,7 @@ class TestCreatePage:
 
         assert result == {"success": True}
         mock_site.pages.__getitem__.assert_called_once_with("File:Test.svg")
-        mock_page.edit.assert_called_once_with("{{Information}}", summary="Test summary", nocreate=1)
+        mock_page.edit.assert_called_once_with("{{Information}}", summary="Test summary", nocreate=0)
 
     def test_create_page_without_summary(self) -> None:
         """Test page creation with default empty summary."""
@@ -111,7 +111,7 @@ class TestCreatePage:
         )
 
         assert result == {"success": True}
-        mock_page.edit.assert_called_once_with("{{Information}}", summary="", nocreate=1)
+        mock_page.edit.assert_called_once_with("{{Information}}", summary="", nocreate=0)
 
     def test_create_page_missing_page_name(self) -> None:
         """Test create_page returns error when page_name is missing."""

@@ -87,7 +87,7 @@ def create_page(
         logger.error(f"Missing required fields for create_page: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    return edit_page(site, page_name, wikitext, summary)
+    return edit_page(site, page_name, wikitext, summary, nocreate=0)
 
 
 def update_page_text(
@@ -114,7 +114,7 @@ def update_page_text(
         logger.error(f"Missing required fields for update_page_text: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    return edit_page(site, page_name, updated_text, summary)
+    return edit_page(site, page_name, updated_text, summary, nocreate=1)
 
 
 def get_page_text(
@@ -182,7 +182,7 @@ def update_file_text(
 
     summary = "Adding/updating {{Image extracted}}"
 
-    return edit_page(site, original_file, updated_file_text, summary)
+    return edit_page(site, original_file, updated_file_text, summary, nocreate=1)
 
 
 def get_file_text(

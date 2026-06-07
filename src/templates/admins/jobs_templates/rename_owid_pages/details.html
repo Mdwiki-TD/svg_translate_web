@@ -36,121 +36,34 @@
 {% endblock %}
 
 {% block job_details %}
-
-<!-- Renamed -->
-{% if renamed_pages %}
+{% macro pages_table(pages_list, title) %}
 <div class="card mb-3">
-    <div class="card-header bg-success bg-opacity-10">
-        {{ card_header("Renamed (" ~ renamed_pages|length ~ ")") }}
+    <div class="card-header bg-opacity-10">
+        {{ card_header(title ~ " (" ~ pages_list|length ~ ")") }}
     </div>
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm DataTable">
-                <thead>
-                    <tr>
-                        <th style="width: 4%">#</th>
-                        <th>Old title</th>
-                        <th>New title</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in renamed_pages %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.old_title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if item.new_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.new_title }}
-                            </a>
-                            {% else %} - {% endif %}
-                        </td>
-                        <td><small class="text-muted">{{ item.msg }}</small></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Skipped (target exists) -->
-{% if skipped_pages %}
-<div class="card mb-3">
-    <div class="card-header bg-secondary bg-opacity-10">
-        {{ card_header("Skipped (target exists) (" ~ skipped_pages|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm DataTable">
-                <thead>
-                    <tr>
-                        <th style="width: 4%">#</th>
-                        <th>Old title</th>
-                        <th>New title</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in skipped_pages %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.old_title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if item.new_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.new_title }}
-                            </a>
-                            {% else %} - {% endif %}
-                        </td>
-                        <td><small class="text-muted">{{ item.msg }}</small></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Redirected -->
-{% if redirected_pages %}
-<div class="card mb-3">
-    <div class="card-header bg-info bg-opacity-10">
-        {{ card_header("Redirected (" ~ redirected_pages|length ~ ")") }}
-    </div>
-    <div class="card-body">
+        {# Show alert only for redirected pages #}
+        {% if title == 'Redirected' %}
         <div class="alert alert-info mb-3">
             <i class="bi bi-arrow-right-circle"></i>
             Both the old and new page titles existed as real pages. The old (lowercase) page
             was turned into a redirect pointing to the new (capitalized) page.
         </div>
+        {% endif %}
+
         <div class="table-responsive">
             <table class="table table-striped table-sm DataTable">
                 <thead>
                     <tr>
                         <th style="width: 4%">#</th>
-                        <th>Old title (now redirect)</th>
-                        <th>New title (target)</th>
+                        {# Custom headers based on section type #}
+                        <th>{% if title == 'Redirected' %}Old title (now redirect){% else %}Old title{% endif %}</th>
+                        <th>{% if title == 'Redirected' %}New title (target){% else %}New title{% endif %}</th>
                         <th>Message</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in redirected_pages %}
+                    {% for item in pages_list %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -175,51 +88,26 @@
         </div>
     </div>
 </div>
+{% endmacro %}
+
+<!-- Renamed -->
+{% if renamed_pages %}
+{{ pages_table(renamed_pages, 'Renamed') }}
+{% endif %}
+
+<!-- Skipped (target exists) -->
+{% if skipped_pages %}
+{{ pages_table(skipped_pages, 'Skipped (target exists)') }}
+{% endif %}
+
+<!-- Redirected -->
+{% if redirected_pages %}
+{{ pages_table(redirected_pages, 'Redirected') }}
 {% endif %}
 
 <!-- Failed -->
 {% if failed_pages %}
-<div class="card mb-3">
-    <div class="card-header bg-danger bg-opacity-10">
-        {{ card_header("Failed (" ~ failed_pages|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm DataTable">
-                <thead>
-                    <tr>
-                        <th style="width: 4%">#</th>
-                        <th>Old title</th>
-                        <th>New title</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in failed_pages %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.old_title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if item.new_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.new_title }}
-                            </a>
-                            {% else %} - {% endif %}
-                        </td>
-                        <td><small class="text-muted">{{ item.msg }}</small></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{{ pages_table(failed_pages, 'Failed') }}
 {% endif %}
 
 {% endblock %}
