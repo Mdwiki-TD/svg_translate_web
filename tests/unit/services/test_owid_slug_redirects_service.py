@@ -43,11 +43,11 @@ def test_add_new_slug_redirect_existing(mock_db_session):
 
 
 def test_add_new_slug_redirect_update_target(mock_db_session):
-    existing_record = OwidSlugRedirectRecord(slug="old-slug", redirect_to="old-target")
-    mock_db_session.query().filter().first.return_value = existing_record
+    _existing = OwidSlugRedirectRecord(slug="old-slugz", redirect_to="old-target")
+    mock_db_session.query().filter().first.return_value = _existing
 
-    add_new_slug_redirect("old-slug", "new-target")
-
+    update_slug_redirect(_existing.id, {"redirect_to":"new-target"})
+    existing_record = get_slug_redirect_by_id(_existing.id)
     assert existing_record.redirect_to == "new-target"
     assert mock_db_session.commit.called
 
