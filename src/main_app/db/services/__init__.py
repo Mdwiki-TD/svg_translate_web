@@ -93,6 +93,8 @@ __all__ = [
     "update_slug_redirect",
     "delete_slug_redirect",
     "count_slug_redirects",
+    "bulk_update_slug_redirects",
+    "bulk_delete_slug_redirects",
     # settings_service
     "get_all_settings_ready",
     "get_all_settings_raw",
