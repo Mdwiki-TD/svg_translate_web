@@ -76,7 +76,6 @@ def add_template_data(
     return chart
 
 
-# @db_retry(default_return=None, msg="Failed to update template", max_retries=3, retry_delay=2.0)
 @db_guard(default_return=None)
 def update_template_data(
     template_id: int,
