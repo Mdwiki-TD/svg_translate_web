@@ -216,6 +216,12 @@ class CollectMainFilesWorker(BaseJobWorker):
         template_info.steps["source"]["value"] = template.source
         template_info.steps["slug"]["value"] = template.slug
 
+        if template_info.steps["main_file"]["value"]:
+            template_info.steps["main_file"]["value"] = template_info.steps["main_file"]["value"].removeprefix("File:")
+
+        if template_info.steps["last_world_file"]["value"]:
+            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"]["value"].removeprefix("File:")
+
         return template_info
 
     def _process_template(self, template: TemplateRecord) -> bool:
