@@ -92,6 +92,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_get_user_site,
     )
 
+    # Mock fetch_grapher_metadata (avoids real network calls)
+    mock_fetch_grapher_metadata = MagicMock(return_value=None)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
+        mock_fetch_grapher_metadata,
+    )
+
     return {
         "list_templates": mock_list_templates,
         "add_template_data": mock_add_template_data,

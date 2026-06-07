@@ -386,11 +386,12 @@ class CollectMainFilesWorker(BaseJobWorker):
         if _slug_to_check:
             # Find slug redirect
             metadata = fetch_grapher_metadata(_slug_to_check)
-            original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
-            if original_chart_url and "/grapher/" in original_chart_url:
-                original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
-                if original_slug != _slug_to_check:
-                    _slug = original_slug
+            if metadata:
+                original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+                if original_chart_url and "/grapher/" in original_chart_url:
+                    original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                    if original_slug != _slug_to_check:
+                        _slug = original_slug
 
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")
