@@ -38,7 +38,7 @@ StepResult = dict[str, Any]
 
 
 @dataclass
-class FileProcessingInfo:
+class TemplateInfo:
     """Holds all state for a single file being processed."""
 
     template_id: int
@@ -203,10 +203,13 @@ class CropMainFilesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
+    def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
 
-    def _process_template(self, template: TemplateRecord) -> None:
         cropped_filename = generate_cropped_filename(template.last_world_file)
-        file_info = FileProcessingInfo(
+
+        # file info
+        file_info = TemplateInfo(
             template_id=template.id,
             template_title=template.title,
             original_file=template.last_world_file,
@@ -232,34 +235,36 @@ class CropMainFilesWorker(BaseJobWorker):
                 self.result["summary"]["skipped"] += 1
 
             self._append(file_info)
-            return
+            return False
 
         # Step 1 - Download
         if not self._step_download(file_info, template):
             self._append(file_info)
-            return
+            return False
 
         # Step 2 - Crop
         cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
         if not self._step_crop(file_info, template, cropped_output_path):
             self._append(file_info)
-            return
+            return False
 
         # Upload disabled → mark skipped and move on
         if not self.upload_files:
             self._skip_upload_steps(file_info)
             self._append(file_info)
-            return
+            return False
 
         # Step 3 - Upload cropped file
         if not self._step_upload(file_info):
             self._append(file_info)
-            return
+            return False
 
         # Step 4 & 5 - Update wikitext references
         self.update_file_references(file_info)
 
-        self._append(file_info)
+        self._append(file_info, key="pages_success")
+
+        return True
 
     def update_file_references(self, file_info):
         # Step 4 - Update original file wikitext
@@ -272,7 +277,7 @@ class CropMainFilesWorker(BaseJobWorker):
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_download(self, file_info: FileProcessingInfo, template: TemplateRecord) -> bool:
+    def _step_download(self, file_info: TemplateInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
             session = create_commons_session(settings.other.user_agent)
@@ -301,7 +306,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _step_crop(
         self,
-        file_info: FileProcessingInfo,
+        file_info: TemplateInfo,
         template: TemplateRecord,
         cropped_path: Path,
     ) -> bool:
@@ -319,7 +324,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result["summary"]["cropped"] += 1
         return True
 
-    def _step_upload(self, file_info: FileProcessingInfo) -> bool:
+    def _step_upload(self, file_info: TemplateInfo) -> bool:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         wikitext = get_file_text(file_info.original_file, self.site)
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
@@ -358,7 +363,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result["summary"]["uploaded"] += 1
         return True
 
-    def _step_update_original(self, file_info: FileProcessingInfo) -> None:
+    def _step_update_original(self, file_info: TemplateInfo) -> None:
         """Update the original file's wikitext to reference the cropped version."""
         wikitext = get_file_text(file_info.original_file, self.site)
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
@@ -380,7 +385,7 @@ class CropMainFilesWorker(BaseJobWorker):
         else:
             file_info.steps["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
 
-    def _step_update_template(self, file_info: FileProcessingInfo) -> None:
+    def _step_update_template(self, file_info: TemplateInfo) -> None:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
         template_text = get_page_text(template_title, self.site)
@@ -411,18 +416,18 @@ class CropMainFilesWorker(BaseJobWorker):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fail(self, file_info: FileProcessingInfo, step: str, error: str) -> None:
+    def _fail(self, file_info: TemplateInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
         self.result["summary"]["failed"] += 1
 
-    def _skip_step(self, file_info: FileProcessingInfo, step: str, reason: str) -> None:
+    def _skip_step(self, file_info: TemplateInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _skip_upload_steps(self, file_info: FileProcessingInfo) -> None:
+    def _skip_upload_steps(self, file_info: TemplateInfo) -> None:
         for step in ("upload_cropped", "update_original", "update_template"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
@@ -430,8 +435,8 @@ class CropMainFilesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = None
 
-    def _append(self, file_info: FileProcessingInfo) -> None:
-        self.result["files_processed"].append(file_info.to_dict())
+    def _append(self, file_info: TemplateInfo, key: str = "files_processed") -> None:
+        self.result[key].append(file_info.to_dict())
 
 
 # ------------------------------------------------------------------

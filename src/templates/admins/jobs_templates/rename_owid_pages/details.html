@@ -1,10 +1,12 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
-{% set renamed_pages = (result_data.pages_processed | selectattr("status", "equalto", "renamed") | list) if result_data and result_data.pages_processed else [] %}
-{% set skipped_pages = (result_data.pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list) if result_data and result_data.pages_processed else [] %}
-{% set redirected_pages = (result_data.pages_processed | selectattr("status", "equalto", "redirected") | list) if result_data and result_data.pages_processed else [] %}
-{% set failed_pages = (result_data.pages_processed | selectattr("status", "equalto", "failed") | list) if result_data and result_data.pages_processed else [] %}
+{% set pages_processed = result_data.pages_processed if result_data and result_data.pages_processed else [] %}
+
+{% set renamed_pages = (pages_processed | selectattr("status", "equalto", "renamed") | list) or [] %}
+{% set skipped_pages = (pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list) or [] %}
+{% set redirected_pages = (pages_processed | selectattr("status", "equalto", "redirected") | list) or [] %}
+{% set failed_pages = (pages_processed | selectattr("status", "equalto", "failed") | list) or [] %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">

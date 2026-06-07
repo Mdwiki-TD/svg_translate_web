@@ -137,9 +137,10 @@ class BaseObjectsJobWorker(ABC):
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
-    def _save_progress(self) -> None:
+    def _save_progress(self, insert_last_update: bool = True) -> None:
         result = self.result.to_json()
-        result["last_update"] = datetime.now().isoformat()
+        if insert_last_update:
+            result["last_update"] = datetime.now().isoformat()
         try:
             save_job_result_by_name(self.result_file, result)
         except Exception:
@@ -192,7 +193,7 @@ class BaseObjectsJobWorker(ABC):
         """Standardize the result dictionary for a cancelled job."""
         self.result.status = "cancelled"
         self.result.cancelled_at = datetime.now().isoformat()
-        self._save_progress()
+        self._save_progress(insert_last_update=False)
 
     def get_priority(self, length) -> int:
         if length < 11:

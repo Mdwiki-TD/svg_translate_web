@@ -37,7 +37,7 @@
             </th>
             <th scope="col">Original Slug</th>
             <th scope="col">Redirect To</th>
-            <th scope="col" class="text-center">Should Replace</th>
+            <th scope="col" class="text-center">Should Replaced</th>
             <th scope="col">Created At</th>
             <th scope="col" class="text-center">Actions</th>
         </tr>
@@ -98,6 +98,32 @@
         <h3 class="headline mb-0">Slug Redirects</h3>
     </div>
     <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Total Records</h2>
+                        <p class="display-6 mb-0">{{ total }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Should Replaced</h2>
+                        <p class="display-6 mb-0">{{ total_should_be_replaced }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Should not be Replaced</h2>
+                        <p class="display-6 mb-0">{{ total_should_not_be_replaced }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive shadow-sm">
             {% set sr_table = render_table(show_bluk_form, records) %}
             {% if show_bluk_form %}
@@ -106,24 +132,6 @@
             {{ sr_table }}
             {% endif %}
         </div>
-        {% if total > per_page %}
-        <nav aria-label="Page navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% set total_pages = (total // per_page) + (1 if total % per_page > 0 else 0) %}
-                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=page-1) }}">Previous</a>
-                </li>
-                {% for p in range(1, total_pages + 1) %}
-                <li class="page-item {% if p == page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=p) }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=page+1) }}">Next</a>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
 

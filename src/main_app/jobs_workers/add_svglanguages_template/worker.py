@@ -132,6 +132,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def _process_template(self, template: TemplateRecord) -> bool:
         self.result["summary"]["processed"] += 1
 
+        # file info
         file_info = TemplateInfo(
             template_id=template.id,
             template_title=template.title,
