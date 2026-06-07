@@ -272,6 +272,7 @@ class TestCropMainFilesProcessorBeforeRun:
 
         assert result is False
 
+
 class TestCropMainFilesProcessorLoadTemplates:
     """Tests for _load_templates and _apply_limits."""
 

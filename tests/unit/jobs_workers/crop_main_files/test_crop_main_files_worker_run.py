@@ -147,7 +147,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     }
 
 
-
 class TestCropMainFilesProcessorRun:
     """Tests for run method."""
 
