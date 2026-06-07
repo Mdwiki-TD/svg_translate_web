@@ -26,6 +26,8 @@ from .owid_charts_service import (
 )
 from .owid_slugs_redirects_service import (
     add_new_slug_redirect,
+    bulk_delete_slug_redirects,
+    bulk_update_slug_redirects,
     count_slug_redirects,
     delete_slug_redirect,
     get_slug_redirect_by_id,
