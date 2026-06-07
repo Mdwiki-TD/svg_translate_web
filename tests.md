@@ -112,7 +112,7 @@ tests/
 │   │   │   ├── test_fix_nested_main_files_worker.py # FixNestedMainFilesWorker
 │   │   │   ├── crop_main_files/
 │   │   │   │   ├── test_crop_main_files_worker.py           # CropMainFilesWorker
-│   │   │   │   ├── test_process_new.py      # CropMainFilesProcessor, FileProcessingInfo
+│   │   │   │   ├── test_worker.py      # CropMainFilesProcessor, FileProcessingInfo
 │   │   │   │   ├── test_crop_file.py
 │   │   │   │   ├── test_download.py
 │   │   │   │   └── test_upload.py
