@@ -556,6 +556,7 @@ class CropMainFilesWorker(BaseJobWorker):
             "pages_success": [],
             "pages_skipped": [],
             "pages_failed": [],
+            "files_processed": [],
         }
 
     def before_run(self) -> bool:
