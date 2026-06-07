@@ -2,18 +2,7 @@
 
 {% block title %}Edit Template · Copy SVG Translation{% endblock %}
 
-{% block extra_css %}
-<style>
-    header {
-        display: none !important;
-    }
-
-    /* Option to remove top padding since navbar is gone */
-    body {
-        padding-top: 0 !important;
-    }
-</style>
-{% endblock %}
+{% set hide_navbar = 1 %}
 
 {% block content %}
 <div class="container mt-4">
@@ -61,8 +50,7 @@
 
                 <div class="mb-3">
                     <label for="slug" class="form-label">Slug (Auto-Extract from source)</label>
-                    <input type="text" class="form-control" id="slug" name="slug"
-                        value="{{ template.slug or '' }}" />
+                    <input type="text" class="form-control" id="slug" name="slug" value="{{ template.slug or '' }}" />
                 </div>
             </form>
 

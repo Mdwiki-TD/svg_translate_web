@@ -12,22 +12,7 @@ from .utils import db_guard_rollback
 logger = logging.getLogger(__name__)
 
 
-@db_guard_rollback
-def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
-    """
-    Add a new slug redirect record if it doesn't already exist.
-    """
-    existing = (
-        db.session.query(OwidSlugRedirectRecord)
-        .filter(OwidSlugRedirectRecord.slug == slug, OwidSlugRedirectRecord.redirect_to == redirect_to)
-        .first()
-    )
-
-    if not existing:
-        new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
-        db.session.add(new_record)
-        db.session.commit()
-        logger.info(f"Added new slug redirect: {slug} -> {redirect_to}")
+# ── SELECT ───────────────────────────────────────────────
 
 
 def list_slug_redirects(limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
@@ -49,7 +34,34 @@ def get_slug_redirect_by_id(redirect_id: int) -> OwidSlugRedirectRecord | None:
     return db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id == redirect_id).first()
 
 
+def count_slug_redirects() -> int:
+    """
+    Count total slug redirect records.
+    """
+    return db.session.query(OwidSlugRedirectRecord).count()
+
+
+# ── INSERT, UPDATE, SET ──────────────────────────────────
+
+
 @db_guard_rollback
+def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
+    """
+    Add a new slug redirect record if it doesn't already exist.
+    """
+    existing = (
+        db.session.query(OwidSlugRedirectRecord)
+        .filter(OwidSlugRedirectRecord.slug == slug, OwidSlugRedirectRecord.redirect_to == redirect_to)
+        .first()
+    )
+
+    if not existing:
+        new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
+        db.session.add(new_record)
+        db.session.commit()
+        logger.info(f"Added new slug redirect: {slug} -> {redirect_to}")
+
+
 @db_guard_rollback
 def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
     """
@@ -67,26 +79,6 @@ def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedi
 
 
 @db_guard_rollback
-def delete_slug_redirect(redirect_id: int) -> bool:
-    """
-    Delete a slug redirect record.
-    """
-    record = get_slug_redirect_by_id(redirect_id)
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
-
-
-def count_slug_redirects() -> int:
-    """
-    Count total slug redirect records.
-    """
-    return db.session.query(OwidSlugRedirectRecord).count()
-
-
-@db_guard_rollback
 def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) -> None:
     """
     Bulk update slug redirect records.
@@ -98,6 +90,22 @@ def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) ->
             update_data, synchronize_session=False
         )
         db.session.commit()
+
+
+# ── DELETE ───────────────────────────────────────────────
+
+
+@db_guard_rollback
+def delete_slug_redirect(redirect_id: int) -> bool:
+    """
+    Delete a slug redirect record.
+    """
+    record = get_slug_redirect_by_id(redirect_id)
+    if record:
+        db.session.delete(record)
+        db.session.commit()
+        return True
+    return False
 
 
 @db_guard_rollback

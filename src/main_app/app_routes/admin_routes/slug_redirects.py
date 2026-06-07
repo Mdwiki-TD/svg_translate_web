@@ -63,7 +63,11 @@ class SlugRedirects:
             total = count_slug_redirects()
 
             return render_template(
-                "admins/slug_redirects/list.html", records=records, page=page, total=total, per_page=per_page
+                "admins/slug_redirects/list.html",
+                records=records,
+                page=page,
+                total=total,
+                per_page=per_page,
             )
 
         @self.bp.get("/<int:redirect_id>/edit")
