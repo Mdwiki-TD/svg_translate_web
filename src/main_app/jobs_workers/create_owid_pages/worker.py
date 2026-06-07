@@ -78,8 +78,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
     ) -> None:
         self.job_id = job_id
         self.user = user
-        self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+        self.args = args or {}
         self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
@@ -109,6 +109,46 @@ class CreateOwidPagesWorker(BaseJobWorker):
             "pages_skipped": [],
             "pages_failed": [],
         }
+
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> Dict[str, Any]:
+
+        self.site = get_user_site(self.user)
+
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.result["status"] = "failed"
+            self.result["failed_at"] = datetime.now().isoformat()
+            return self.result
+
+        templates = self._load_templates()
+
+        self.result["summary"]["total"] = len(templates)
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+
+        per_item = self.get_priority(len(templates))
+
+        for n, template in enumerate(templates, start=1):
+            if self.is_cancelled():
+                break
+
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
+
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
+        if self.result.get("status") in ["pending", "running"]:
+            self.result["status"] = "completed"
+
+        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
@@ -292,44 +332,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
     def _append(self, file_info: TemplateProcessingInfo) -> None:
         self.result["pages_processed"].append(file_info.to_dict())
-
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def process(self):
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
-            return self.result
-
-        templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
-
-        per_item = self.get_priority(len(templates))
-
-        for n, template in enumerate(templates, start=1):
-            if self.is_cancelled():
-                break
-
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
-
-            if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
-                break
-
-            if n == 1 or n % per_item == 0:
-                self._save_progress()
-
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
-
-        return self.result
-
 
 def create_owid_pages_for_templates(
     *,
