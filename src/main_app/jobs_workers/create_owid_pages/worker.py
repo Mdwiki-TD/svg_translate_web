@@ -312,7 +312,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         info.new_page_title = new_title
         return True
 
-    def create_new_page_title(self, info):
+    def create_new_page_title(self, info: TemplateProcessingInfo) -> str:
         if info.template_title.startswith("Template:OWID/"):
             return info.template_title.replace("Template:OWID/", "OWID/", 1)
 

@@ -339,7 +339,7 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
         assert file_info.steps["download"]["result"] is True
-        assert processor.result["summary"]["processed"] == 1
+        assert processor.result["summary"]["processed"] == 0 # processed is now under _process_template
 
     def test_step_download_failure(self, mock_services):
         """Test _step_download when download fails."""
@@ -738,7 +738,7 @@ class TestCropMainFilesProcessorHelpers:
         assert processor.result["status"] == "cancelled"
 
     def test_append_adds_to_result(self, mock_services):
-        """Test _append adds info to files_processed list."""
+        """Test _append adds info to pages_processed list."""
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -754,8 +754,8 @@ class TestCropMainFilesProcessorHelpers:
 
         processor._append(file_info)
 
-        assert len(processor.result["files_processed"]) == 1
-        assert processor.result["files_processed"][0]["template_id"] == 1
+        assert len(processor.result["pages_processed"]) == 1
+        assert processor.result["pages_processed"][0]["template_id"] == 1
 
     def test_get_priority(self, mock_services):
         """Test get_priority calculates correct interval."""
@@ -805,8 +805,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip download, crop, and upload steps
-        assert processor.result["files_processed"][0]["steps"]["download"]["result"] is None
-        assert "Skipped" in processor.result["files_processed"][0]["steps"]["download"]["msg"]
+        assert processor.result["pages_processed"][0]["steps"]["download"]["result"] is None
+        assert "Skipped" in processor.result["pages_processed"][0]["steps"]["download"]["msg"]
 
     def test_process_template_full_pipeline(self, mock_services, tmp_path):
         """Test full pipeline for a new file."""
@@ -842,7 +842,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         processor._process_template(template)
 
-        file_result = processor.result["files_processed"][0]
+        file_result = processor.result["pages_uploaded"][0]
         assert file_result["steps"]["download"]["result"] is True
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
@@ -874,6 +874,6 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip upload steps
-        assert processor.result["files_processed"][0]["steps"]["upload_cropped"]["result"] is None
-        assert "upload disabled" in processor.result["files_processed"][0]["steps"]["upload_cropped"]["msg"].lower()
+        assert processor.result["pages_processed"][0]["steps"]["upload_cropped"]["result"] is None
+        assert "upload disabled" in processor.result["pages_processed"][0]["steps"]["upload_cropped"]["msg"].lower()
         assert processor.result["summary"]["skipped"] == 1
