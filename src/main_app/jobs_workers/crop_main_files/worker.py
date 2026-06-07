@@ -97,7 +97,12 @@ class CropMainFilesWorker(BaseJobWorker):
         self.job_id = job_id
         self.user = user
         self.args = args or {}
-        self.upload_limit = self.args.get("upload_limit")
+        try:
+            self.upload_limit = (
+                int(self.args.get("upload_limit")) if self.args.get("upload_limit") is not None else None
+            )
+        except (ValueError, TypeError):
+            self.upload_limit = None
         self.upload_files = bool(self.args.get("upload_files"))
 
         super().__init__(job_id, user, cancel_event)
@@ -146,7 +151,7 @@ class CropMainFilesWorker(BaseJobWorker):
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.result["status"] = "failed"
             self.result["failed_at"] = datetime.now().isoformat()
-            return False
+            return self.result
 
         templates = self._load_templates()
 
@@ -208,10 +213,12 @@ class CropMainFilesWorker(BaseJobWorker):
             cropped_filename=cropped_filename,
         )
 
-        file_exists = self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
+        file_exists = self.exists.get(cropped_filename.removeprefix("File:"))
+        if file_exists is None:
+            file_exists = is_page_exists(cropped_filename, self.site)
 
         # pre steps if the file already in commons, skip download/upload files.
-        if file_exists or is_page_exists(cropped_filename, self.site):
+        if file_exists:
             self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
