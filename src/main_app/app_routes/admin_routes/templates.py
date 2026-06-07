@@ -22,6 +22,7 @@ from ...db.services import (
     add_template_data,
     delete_template,
     get_template,
+    get_template_by_title,
     list_templates,
     update_template_data,
 )
@@ -193,6 +194,24 @@ def _edit_template(template_id: int) -> ResponseReturnValue:
     )
 
 
+def _edit_template_by_title(template_title: str) -> ResponseReturnValue:
+    """Render the edit template popup page."""
+    try:
+        template = get_template_by_title(template_title)
+    except LookupError:
+        return render_template(
+            "admins/template_edit.html",
+            error="Template not found",
+            template=None,
+        )
+
+    return render_template(
+        "admins/template_edit.html",
+        template=template,
+        error=None,
+    )
+
+
 class Templates:
 
     def __init__(self):
@@ -235,6 +254,11 @@ class Templates:
         @admin_required
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
+
+        @self.bp.get("/<path:template_title>/edit")
+        @admin_required
+        def edit_by_title(template_title: str) -> ResponseReturnValue:
+            return _edit_template_by_title(template_title)
 
         @self.bp.get("/download-json")
         @admin_required

@@ -227,7 +227,7 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
     assert result["summary"]["total"] == 1
     assert result["summary"]["failed"] == 1
     assert len(result["pages_failed"]) == 1
-    assert "Could not find (main file or last world file or source)" in result["pages_failed"][0]["error"]
+    assert "Could not find (main file or newest world file or source)" in result["pages_failed"][0]["error"]
 
 
 @pytest.mark.skip(reason="exceptions changes")

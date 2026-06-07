@@ -24,7 +24,9 @@
     {% else %}
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Edit Template: {{ template.title }}</h5>
+            <h5 class="mb-0">
+                Edit Template: <a href="https://{{ wiki_domain }}/wiki/{{ template.title }}" target="_blank">{{ template.title }}</a>
+            </h5>
         </div>
         <div class="card-body">
             <form id="updateForm" method="post" action="{{ url_for('admin.templates.update_template') }}">
@@ -45,7 +47,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="last_world_file" class="form-label">Last World File</label>
+                    <label for="last_world_file" class="form-label">Newest World File</label>
                     <input type="text" class="form-control" id="last_world_file" name="last_world_file"
                         value="{{ template.last_world_file or '' }}" />
                 </div>

@@ -1,5 +1,26 @@
 {# Shared Jinja macros. #}
 
+{%- macro render_step(step) -%}
+{% if step %}
+{% if step.result == true %}
+<span class="badge bg-success" title="{{ step.msg }}">
+    <i class="bi bi-check-lg"></i>
+</span>
+{% elif step.result == false %}
+<span class="badge bg-danger" title="{{ step.msg }}">
+    <i class="bi bi-x-lg"></i>
+</span>
+{% elif step.result is none and step.msg %}
+<span class="badge bg-secondary" title="{{ step.msg }}">
+    <i class="bi bi-dash"></i>
+</span>
+{% else %}
+<span class="text-muted">-</span>
+{% endif %}
+{% else %}
+<span class="text-muted">-</span>
+{% endif %}
+{%- endmacro -%}
 
 {%- macro csrf() -%}
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
