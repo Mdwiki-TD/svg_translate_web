@@ -18,10 +18,10 @@ def _ensure_last_world_year(template_data):
     if template_data.get("slug") and "/grapher/" in template_data["slug"]:
         template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
 
-    if "last_world_file" in template_data:
+    if template_data.get("last_world_file"):
         template_data["last_world_file"] = template_data["last_world_file"].removeprefix("File:")
 
-    if "main_file" in template_data:
+    if template_data.get("main_file"):
         template_data["main_file"] = template_data["main_file"].removeprefix("File:")
 
     return template_data
