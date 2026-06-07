@@ -13,6 +13,8 @@ from typing import Any, Dict
 
 import mwclient
 
+from ...api_services.clients.owid_client import fetch_grapher_metadata
+
 from ...api_services.category import get_category_members
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import get_page_text
@@ -307,7 +309,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         # ------------------
         # template_info step # 4 slug
         try:
-            _slug = self._load_slug(template.title, template_data.get("source", ""))
+            _slug = self._load_slug(template.title, template.slug, template_data.get("source", ""))
             if not _slug:
                 raise Exception("Could not find slug")
         except Exception as e:
@@ -370,7 +372,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         return False
 
-    def _load_slug(self, template_title: str, template_source: str) -> str | None:
+    def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
         _slug = None
         if "/grapher/" in template_source:
             _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
@@ -378,8 +380,20 @@ class CollectMainFilesWorker(BaseJobWorker):
         if not _slug:
             _slug = slugify_title(template_title)
 
+        _slug_to_check = _slug or template_slug
+
+        if _slug_to_check:
+            # Find slug redirect
+            metadata = fetch_grapher_metadata(_slug_to_check)
+            original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+            if original_chart_url and "/grapher/" in original_chart_url:
+                original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                if original_slug != _slug_to_check:
+                    _slug = original_slug
+
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")
+
         return _slug
 
     # ------------------------------------------------------------------
