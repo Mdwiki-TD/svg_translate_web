@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
-import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import (
@@ -113,7 +112,6 @@ class CropMainFilesProcessor:
         self.upload_files = upload_files
 
         self.site: mwclient.Site | None = None
-        self.session: requests.Session | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
         self.upload_limit = upload_limit
@@ -201,7 +199,6 @@ class CropMainFilesProcessor:
             )
             return False
 
-        self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.site:
@@ -298,10 +295,11 @@ class CropMainFilesProcessor:
     def _step_download(self, file_info: FileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
+            session = create_commons_session(settings.other.user_agent)
             download_result = download_file_for_cropping(
                 template.last_world_file,
                 self.original_dir,
-                session=self.session,
+                session=session,
             )
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
@@ -325,10 +323,10 @@ class CropMainFilesProcessor:
         self,
         file_info: FileProcessingInfo,
         template: TemplateRecord,
-        cropped_output_path: Path,
+        cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(file_info.downloaded_path, cropped_output_path)
+        crop_result = crop_svg_file(file_info.downloaded_path, cropped_path)
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
@@ -336,8 +334,8 @@ class CropMainFilesProcessor:
             self._fail(file_info, "crop", error_msg)
             return False
 
-        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
-        file_info.cropped_path = cropped_output_path
+        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
+        file_info.cropped_path = cropped_path
         self.result["summary"]["cropped"] += 1
         return True
 

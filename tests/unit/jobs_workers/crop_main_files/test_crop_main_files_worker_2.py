@@ -240,7 +240,6 @@ class TestCropMainFilesProcessorInitialization:
         assert processor.user == {"username": "test"}
         assert processor.upload_files is True
         assert processor.site is None
-        assert processor.session is None
 
     def test_processor_default_upload_files(self, mock_services):
         """Test processor defaults upload_files to False."""
@@ -285,7 +284,6 @@ class TestCropMainFilesProcessorBeforeRun:
 
         assert result is True
         assert processor.site is not None
-        assert processor.session is not None
         mock_services["update_job_status"].assert_called_once_with(
             1, "running", "test_result.json", job_type="crop_main_files"
         )
