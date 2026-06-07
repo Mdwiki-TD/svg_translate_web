@@ -63,11 +63,7 @@ class SlugRedirects:
             total = count_slug_redirects()
 
             return render_template(
-                "admins/slug_redirects/list.html",
-                records=records,
-                page=page,
-                total=total,
-                per_page=per_page
+                "admins/slug_redirects/list.html", records=records, page=page, total=total, per_page=per_page
             )
 
         @self.bp.get("/<int:redirect_id>/edit")
@@ -103,7 +99,7 @@ class SlugRedirects:
             else:
                 flash("Slug redirect not found.", "danger")
             return redirect(url_for("admin.slugredirects.dashboard"))
-            
+
         @self.bp.post("/bulk_action")
         @admin_required
         def bulk_action() -> ResponseReturnValue:

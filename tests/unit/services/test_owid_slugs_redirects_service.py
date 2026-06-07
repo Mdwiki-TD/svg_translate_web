@@ -32,7 +32,9 @@ def test_add_new_slug_redirect_new(mock_db_session):
 
 
 def test_add_new_slug_redirect_existing(mock_db_session):
-    mock_db_session.query().filter().first.return_value = OwidSlugRedirectRecord(slug="old-slug", redirect_to="new-slug")
+    mock_db_session.query().filter().first.return_value = OwidSlugRedirectRecord(
+        slug="old-slug", redirect_to="new-slug"
+    )
 
     add_new_slug_redirect("old-slug", "new-slug")
 

@@ -16,8 +16,8 @@ from ..admin_routes import (
     coordinators_module,
     jobs_module,
     owidcharts_module,
-    slug_redirects_module,
     settings_module,
+    slug_redirects_module,
     templates_module,
 )
 from ..utils.routes_utils import get_job_detail_url
