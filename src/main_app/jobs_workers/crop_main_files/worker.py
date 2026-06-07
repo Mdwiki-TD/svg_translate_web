@@ -74,7 +74,7 @@ class CropMainFilesWorker(BaseJobWorker):
         )
 
 
-def crop_main_files_for_templates(
+def crop_main_files_worker_entry(
     *,
     job_id: int,
     user: dict[str, Any],
@@ -98,6 +98,6 @@ def crop_main_files_for_templates(
 
 
 __all__ = [
-    "crop_main_files_for_templates",
+    "crop_main_files_worker_entry",
     "CropMainFilesWorker",
 ]

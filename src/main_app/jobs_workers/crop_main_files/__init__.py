@@ -5,10 +5,10 @@ from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
 from .process_new import process_crops
 from .upload import upload_cropped_file
-from .worker import crop_main_files_for_templates
+from .worker import crop_main_files_worker_entry
 
 __all__ = [
-    "crop_main_files_for_templates",
+    "crop_main_files_worker_entry",
     "generate_cropped_filename",
     "download_file_for_cropping",
     "upload_cropped_file",
