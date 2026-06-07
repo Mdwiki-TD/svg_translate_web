@@ -101,6 +101,7 @@
                         <th>Main File</th>
                         <th>Newest World File</th>
                         <th>Source</th>
+                        <th>Slug</th>
                         <th>Msg</th>
                     </tr>
                 </thead>
@@ -119,7 +120,7 @@
                                 pup-target="{{ url_for('admin.templates.edit_by_title', template_title=template.title) }}"
                                 onclick="pup_window_new(this)">
                                 <i class="bi bi-pencil"></i>
-                        </a>
+                            </a>
                         </td>
                         <td>
                             {% if template.steps %}
@@ -146,6 +147,13 @@
                             {{ render_step_value(template.steps.source) }}
                             {% else %}
                             <code>{{ template.source or "-"}}</code>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step_value(template.steps.slug) }}
+                            {% else %}
+                            <code>-</code>
                             {% endif %}
                         </td>
                         <td>
