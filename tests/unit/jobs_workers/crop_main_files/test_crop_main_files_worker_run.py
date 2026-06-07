@@ -24,6 +24,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "src.main_app.jobs_workers.base_worker.is_job_cancelled",
         mock_jobs_service,
     )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.update_job_status",
+        MagicMock(),
+    )
 
     # Mock list_templates
     mock_list_templates = MagicMock()

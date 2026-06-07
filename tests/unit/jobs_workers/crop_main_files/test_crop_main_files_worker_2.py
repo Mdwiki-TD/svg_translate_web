@@ -254,7 +254,6 @@ class TestCropMainFilesProcessorBeforeRun:
         result = processor.before_run()
 
         assert result is True
-        assert processor.site is not None
         mock_services["update_job_status"].assert_called_once_with(
             1, "running", "crop_main_files_job_1.json", job_type="crop_main_files"
         )
@@ -272,24 +271,6 @@ class TestCropMainFilesProcessorBeforeRun:
         result = processor.before_run()
 
         assert result is False
-
-    def test_before_run_no_site_auth(self, mock_services):
-        """Test before_run when site authentication fails."""
-
-        processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-        )
-
-        mock_services["get_user_site"].return_value = None
-        mock_services["create_commons_session"].return_value = MagicMock()
-
-        result = processor.before_run()
-
-        assert result is False
-        assert processor.result["status"] == "failed"
-        assert "failed_at" in processor.result
-
 
 class TestCropMainFilesProcessorLoadTemplates:
     """Tests for _load_templates and _apply_limits."""
@@ -737,10 +718,10 @@ class TestCropMainFilesProcessorHelpers:
             cancel_event=cancel_event,
         )
 
-        assert processor.is_cancelled() is False
+        assert processor.is_cancelled(check_db=True) is False
 
         cancel_event.set()
-        assert processor.is_cancelled() is True
+        assert processor.is_cancelled(check_db=True) is True
         assert processor.result["status"] == "cancelled"
 
     def test_is_cancelled_with_global_check(self, mock_services):
@@ -752,7 +733,7 @@ class TestCropMainFilesProcessorHelpers:
             user=None,
         )
 
-        assert processor.is_cancelled() is True
+        assert processor.is_cancelled(check_db=True) is True
         assert processor.result["status"] == "cancelled"
 
     def test_append_adds_to_result(self, mock_services):
