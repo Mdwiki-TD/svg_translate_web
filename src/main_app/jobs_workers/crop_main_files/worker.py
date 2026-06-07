@@ -37,9 +37,9 @@ from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 
-StepResult = dict[str, Any]
-
 logger = logging.getLogger(__name__)
+
+StepResult = dict[str, Any]
 
 
 @dataclass
@@ -560,9 +560,22 @@ class CropMainFilesWorker(BaseJobWorker):
         }
 
     def before_run(self) -> bool:
-        """Skip status update as process_crops handles it internally."""
-        # process_crops handles its own status updates, so we just return True
+        """Skip status update as process handles it internally."""
+        # process handles its own status updates, so we just return True
         return True
+
+    def process2(self) -> Dict[str, Any]:
+        """Execute the crop processing logic."""
+        processor = CropMainFilesProcessor(
+            job_id=self.job_id,
+            result=self.result,
+            result_file=self.result_file,
+            user=self.user,
+            cancel_event=self.cancel_event,
+            upload_files=True,
+            upload_limit=self.upload_limit,
+        )
+        return processor.run()
 
     def process(self) -> Dict[str, Any]:
         """Execute the crop processing logic."""
