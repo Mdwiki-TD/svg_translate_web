@@ -97,6 +97,13 @@ def create_side(active_route, path: str | None = None):
                 title="OWID Charts",
                 icon="bi-graph-up",
             ),
+            SidebarItem(
+                id="slug_redirects",
+                admin=1,
+                href=_safe_url_for("admin.slugredirects.dashboard", "/admin/slugredirects/"),
+                title="Slug Redirects",
+                icon="bi-arrow-right-circle",
+            ),
         ],
         "DB jobs": [
             SidebarItem(

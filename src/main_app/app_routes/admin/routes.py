@@ -16,6 +16,7 @@ from ..admin_routes import (
     coordinators_module,
     jobs_module,
     owidcharts_module,
+    slug_redirects_module,
     settings_module,
     templates_module,
 )
@@ -88,6 +89,7 @@ def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(settings_module.bp)
     bp_admin.register_blueprint(jobs_module.bp)
     bp_admin.register_blueprint(owidcharts_module.bp)
+    bp_admin.register_blueprint(slug_redirects_module.bp)
 
 
 register_blueprints(bp_admin)

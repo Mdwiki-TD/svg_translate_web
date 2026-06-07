@@ -99,6 +99,18 @@ CREATE TABLE IF NOT EXISTS owid_charts (
     KEY idx_published (is_published)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE IF NOT EXISTS owid_slug_redirects (
+    id INT NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(255) NOT NULL,
+    redirect_to VARCHAR(255) NOT NULL,
+    should_be_replaced TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_slug_redirect (slug, redirect_to),
+    KEY idx_slug (slug),
+    KEY idx_redirect_to (redirect_to)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
 CREATE OR REPLACE VIEW owid_charts_templates AS
 SELECT
     c.chart_id,
