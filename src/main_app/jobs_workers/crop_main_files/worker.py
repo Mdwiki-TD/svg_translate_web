@@ -481,29 +481,6 @@ class CropMainFilesProcessor:
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
 
-
-def process_crops(
-    job_id: int,
-    result: dict[str, Any],
-    result_file: str,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    upload_files: bool = False,
-    upload_limit: int | None = None,
-) -> dict[str, Any]:
-    """Thin shim kept for backwards compatibility."""
-    processor = CropMainFilesProcessor(
-        job_id=job_id,
-        result=result,
-        result_file=result_file,
-        user=user,
-        cancel_event=cancel_event,
-        upload_files=upload_files,
-        upload_limit=upload_limit,
-    )
-    return processor.run()
-
-
 class CropMainFilesWorker(BaseJobWorker):
     """Worker for cropping main files and uploading them with (cropped) suffix."""
 
@@ -592,5 +569,4 @@ __all__ = [
     "crop_main_files_worker_entry",
     "CropMainFilesWorker",
     "CropMainFilesProcessor",
-    "process_crops",
 ]
