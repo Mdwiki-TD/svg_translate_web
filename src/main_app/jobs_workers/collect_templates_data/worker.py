@@ -240,7 +240,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             return False
 
         template_data = {}
-        skip_msg = "No changes needed"
+        skip_msg = "No changes"
 
         # ------------------
         # template_info step # 1 main_file
@@ -257,7 +257,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             self._update_step(template_info, "main_file", result="failed", msg=str(e))
 
         if main_file:
-            if main_file != template.main_file:
+            if main_file != (template.main_file.removeprefix("File:") if template.main_file else ""):
                 # template_info.new_main_file = main_file
                 self._update_step(template_info, "main_file", result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
@@ -278,7 +278,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             self._update_step(template_info, "last_world_file", result="failed", msg=str(e))
 
         if last_world_file:
-            if last_world_file != template.last_world_file:
+            if last_world_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
                 # template_info.last_world_file = last_world_file
                 self._update_step(template_info, "last_world_file", result="updated", new_value=last_world_file)
                 template_data["last_world_file"] = last_world_file
