@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
-from src.main_app.db.services.owid_slugs_redirects_service import (
+from src.main_app.db.services.owid_slug_redirects_service import (
     add_new_slug_redirect,
     count_slug_redirects,
     delete_slug_redirect,
