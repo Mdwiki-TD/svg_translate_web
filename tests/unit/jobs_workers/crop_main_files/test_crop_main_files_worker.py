@@ -42,6 +42,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 # Fixture for a completed result returned by process()
 # ---------------------------------------------------------------------------
 
+
 def make_completed_result(summary_overrides=None):
     """Return a standard completed-result dict for use in mock process()."""
     result = {
@@ -104,9 +105,7 @@ def test_crop_main_files_worker_entry_with_user(mock_services):
     user = {"username": "testuser"}
 
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = make_completed_result(
-            {"total": 5, "processed": 5, "cropped": 5, "uploaded": 5}
-        )
+        mock_process.return_value = make_completed_result({"total": 5, "processed": 5, "cropped": 5, "uploaded": 5})
 
         worker.crop_main_files_worker_entry(job_id=1, user=user)
 
@@ -194,7 +193,9 @@ def test_crop_main_files_worker_entry_saves_final_result(mock_services):
 def test_crop_main_files_worker_entry_updates_final_status(mock_services):
     """Test that final job status is updated."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = make_completed_result({"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0})
+        mock_process.return_value = make_completed_result(
+            {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
+        )
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -267,7 +268,12 @@ def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
             "status": "cancelled",
             "cancelled_at": datetime.now().isoformat(),
             "summary": {
-                "total": 5, "processed": 2, "cropped": 2, "uploaded": 0, "failed": 0, "skipped": 0,
+                "total": 5,
+                "processed": 2,
+                "cropped": 2,
+                "uploaded": 0,
+                "failed": 0,
+                "skipped": 0,
             },
             "files_processed": [],
         }
@@ -286,7 +292,12 @@ def test_crop_main_files_worker_entry_preserves_failed_status(mock_services):
             "status": "failed",
             "error": "Some processing error",
             "summary": {
-                "total": 5, "processed": 1, "cropped": 0, "uploaded": 0, "failed": 5, "skipped": 0,
+                "total": 5,
+                "processed": 1,
+                "cropped": 0,
+                "uploaded": 0,
+                "failed": 5,
+                "skipped": 0,
             },
             "files_processed": [],
         }
@@ -376,7 +387,10 @@ def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_
 def test_crop_main_files_worker_entry_completed_status_default(mock_services):
     """Test that default status is completed when no other status is set."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = {"summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}, "files_processed": []}
+        mock_process.return_value = {
+            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
+            "files_processed": [],
+        }
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
