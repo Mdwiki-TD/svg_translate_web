@@ -28,7 +28,7 @@ class OwidSlugRedirectRecord(db.Model):
     __tablename__ = "owid_slug_redirects"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    slug = Column(String(255), nullable=False)
+    slug = Column(String(255), nullable=False, unique=True)
     redirect_to = Column(String(255), nullable=False)
     should_be_replaced = Column(Boolean, server_default="0", default=False)
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())

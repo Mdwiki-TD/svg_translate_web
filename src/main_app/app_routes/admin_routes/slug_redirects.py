@@ -15,6 +15,8 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ...db.services import (
+    bulk_delete_slug_redirects,
+    bulk_update_slug_redirects,
     count_slug_redirects,
     delete_slug_redirect,
     get_slug_redirect_by_id,
@@ -84,8 +86,10 @@ class SlugRedirects:
                 flash("Redirect ID is required.", "danger")
                 return redirect(url_for("admin.slugredirects.dashboard"))
 
-            update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced})
-            flash("Slug redirect updated.", "success")
+            if update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced}):
+                flash("Slug redirect updated.", "success")
+            else:
+                flash("Slug redirect not found.", "danger")
 
             if from_popup:
                 return render_template("admins/popup_action.html")
@@ -94,8 +98,10 @@ class SlugRedirects:
         @self.bp.post("/<int:redirect_id>/delete")
         @admin_required
         def delete_slug_redirect_data(redirect_id: int) -> ResponseReturnValue:
-            delete_slug_redirect(redirect_id)
-            flash("Slug redirect deleted.", "success")
+            if delete_slug_redirect(redirect_id):
+                flash("Slug redirect deleted.", "success")
+            else:
+                flash("Slug redirect not found.", "danger")
             return redirect(url_for("admin.slugredirects.dashboard"))
 
         @self.bp.post("/bulk_action")
