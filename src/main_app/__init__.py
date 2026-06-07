@@ -11,7 +11,6 @@ from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .app_routes import register_blueprints
-from .jobs_workers.cli_jobs import register_cli_jobs
 from .app_routes.utils import context_user
 from .config import ensure_directories, settings
 from .core.cookies import CookieHeaderClient
@@ -20,6 +19,7 @@ from .db import init_db
 from .db.exceptions import DatabaseInitError
 from .extensions import db as _db
 from .extensions import migrate
+from .jobs_workers.cli_jobs import register_cli_jobs
 
 logger = logging.getLogger(__name__)
 

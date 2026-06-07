@@ -6,7 +6,7 @@ from typing import Any, List
 from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..models.templates import TemplateRecord
-from .utils import db_retry, db_guard
+from .utils import db_guard, db_retry
 
 logger = logging.getLogger(__name__)
 
