@@ -1,31 +1,24 @@
-PS I:\SVG\svg_repo\src> python -m directory_tree --ignore-list __pycache__
+```
 src/
-├── __init__.py
-├── app.py
-├── example.env
-├── import_owid_charts.py
-├── logger_config.py
 ├── main_app/
-│   ├── __init__.py
 │   ├── api_services/
-│   │   ├── __init__.py
-│   │   ├── category.py
 │   │   ├── clients/
 │   │   │   ├── __init__.py
 │   │   │   ├── commons_client.py
+│   │   │   ├── owid_client.py
 │   │   │   └── wiki_client.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   └── download_file_utils.py
+│   │   ├── __init__.py
+│   │   ├── category.py
 │   │   ├── mwclient_page.py
 │   │   ├── pages_api.py
-│   │   ├── text_bot.py
-│   │   ├── upload_bot.py
-│   │   └── utils/
-│   │       ├── __init__.py
-│   │       └── download_file_utils.py
+│   │   ├── query_api.py
+│   │   └── upload_bot.py
 │   ├── app_routes/
-│   │   ├── __init__.py
 │   │   ├── admin/
 │   │   │   ├── __init__.py
-│   │   │   ├── admin_routes/
 │   │   │   ├── admins_required.py
 │   │   │   ├── routes.py
 │   │   │   └── sidebar.py
@@ -34,63 +27,75 @@ src/
 │   │   │   ├── coordinators.py
 │   │   │   ├── jobs.py
 │   │   │   ├── owid_charts.py
+│   │   │   ├── results_utils.py
 │   │   │   ├── settings.py
 │   │   │   └── templates.py
-│   │   ├── api_routes.py
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   ├── cookie.py
 │   │   │   ├── oauth.py
 │   │   │   ├── rate_limit.py
-│   │   │   └── routes.py
-│   │   ├── fix_nested/
-│   │   │   ├── __init__.py
 │   │   │   ├── routes.py
-│   │   │   └── worker.py
+│   │   │   └── utils.py
 │   │   ├── main_routes/
 │   │   │   ├── __init__.py
 │   │   │   ├── explorer_routes.py
 │   │   │   ├── extract_routes.py
 │   │   │   ├── owid_charts_routes.py
 │   │   │   └── routes.py
-│   │   ├── public_jobs.py
-│   │   └── utils/
-│   │       ├── __init__.py
-│   │       ├── args_utils.py
-│   │       ├── compare.py
-│   │       ├── explorer_utils.py
-│   │       ├── fix_nested_utils.py
-│   │       ├── routes_utils.py
-│   │       └── thumbnail_utils.py
-│   ├── config.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── compare.py
+│   │   │   ├── explorer_utils.py
+│   │   │   ├── routes_utils.py
+│   │   │   └── thumbnail_utils.py
+│   │   ├── __init__.py
+│   │   ├── api_routes.py
+│   │   └── public_jobs.py
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── classes.py
+│   │   ├── flask_config.py
+│   │   └── main_settings.py
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── cookies.py
-│   │   └── crypto.py
+│   │   ├── crypto.py
+│   │   └── jinja_filters.py
 │   ├── data/
 │   │   ├── __init__.py
 │   │   ├── owid_charts.csv
 │   │   ├── templates_slugs_topics.json
 │   │   └── topics_categories.json
 │   ├── db/
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── jobs.py
+│   │   │   ├── owid_charts.py
+│   │   │   ├── settings.py
+│   │   │   ├── templates.py
+│   │   │   ├── users.py
+│   │   │   └── views.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── admin_service.py
+│   │   │   ├── jobs_service.py
+│   │   │   ├── owid_charts_service.py
+│   │   │   ├── settings_service.py
+│   │   │   ├── template_need_update_service.py
+│   │   │   ├── template_service.py
+│   │   │   ├── user_token_service.py
+│   │   │   └── utils.py
 │   │   ├── __init__.py
-│   │   ├── db_class.py
-│   │   ├── db_CoordinatorsDB.py
-│   │   ├── db_Jobs.py
-│   │   ├── db_OwidCharts.py
-│   │   ├── db_Settings.py
-│   │   ├── db_Templates.py
-│   │   ├── exceptions.py
-│   │   ├── fix_nested_task_store.py
-│   │   ├── sql_schema_tables.py
-│   │   └── user_tokens.py
+│   │   └── exceptions.py
 │   ├── jobs_workers/
-│   │   ├── __init__.py
 │   │   ├── add_svglanguages_template/
 │   │   │   ├── __init__.py
+│   │   │   ├── utils.py
 │   │   │   └── worker.py
-│   │   ├── base_worker.py
-│   │   ├── collect_templates_data_worker.py
+│   │   ├── collect_templates_data/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
 │   │   ├── create_owid_pages/
 │   │   │   ├── __init__.py
 │   │   │   ├── owid_template_converter.py
@@ -98,60 +103,86 @@ src/
 │   │   ├── crop_main_files/
 │   │   │   ├── __init__.py
 │   │   │   ├── crop_file.py
+│   │   │   ├── crop_utils.py
 │   │   │   ├── download.py
+│   │   │   ├── objects.py
 │   │   │   ├── upload.py
 │   │   │   └── worker.py
-│   │   ├── download_main_files_worker.py
-│   │   ├── fix_nested_main_files_worker.py
-│   │   ├── jobs_worker.py
-│   │   ├── utils/
+│   │   ├── download_main_files/
 │   │   │   ├── __init__.py
-│   │   │   ├── add_svglanguages_template_utils.py
-│   │   │   └── crop_main_files_utils.py
+│   │   │   └── worker.py
+│   │   ├── fix_nested_main_files/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
+│   │   ├── rename_owid_pages/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
+│   │   ├── update_owid_charts/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
+│   │   ├── utils/
+│   │   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── base_worker.py
+│   │   ├── base_worker_object.py
+│   │   ├── cli_jobs.py
+│   │   ├── jobs_worker.py
+│   │   ├── shared_objects.py
 │   │   └── workers_list.py
 │   ├── public_jobs_workers/
+│   │   ├── copy_svg_langs/
+│   │   │   ├── steps/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── download.py
+│   │   │   │   ├── extract_text.py
+│   │   │   │   ├── extract_titles.py
+│   │   │   │   ├── extract_translations.py
+│   │   │   │   ├── fix_nested.py
+│   │   │   │   ├── inject.py
+│   │   │   │   └── upload.py
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
+│   │   ├── fix_nested_jobs/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
 │   │   ├── __init__.py
-│   │   └── copy_svg_langs/
-│   │       ├── __init__.py
-│   │       ├── job.py
-│   │       ├── service.py
-│   │       ├── steps/
-│   │       │   ├── __init__.py
-│   │       │   ├── download.py
-│   │       │   ├── extract_text.py
-│   │       │   ├── extract_titles.py
-│   │       │   ├── extract_translations.py
-│   │       │   ├── fix_nested.py
-│   │       │   ├── inject.py
-│   │       │   └── upload.py
-│   │       └── worker.py
-│   ├── services/
+│   │   └── workers_list_public.py
+│   ├── shared/
+│   │   ├── fix_nested/
+│   │   │   ├── __init__.py
+│   │   │   └── worker.py
 │   │   ├── __init__.py
-│   │   ├── admin_service.py
-│   │   ├── jobs_service.py
-│   │   ├── owid_charts_service.py
-│   │   ├── template_service.py
+│   │   └── decode_bytes.py
+│   ├── su_services/
+│   │   ├── __init__.py
+│   │   ├── auth_service.py
+│   │   ├── current_user.py
+│   │   ├── jobs_files_service.py
 │   │   └── users_service.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── jinja_filters.py
-│       ├── verify.py
-│       └── wikitext/
-│           ├── __init__.py
-│           ├── before_methods.py
-│           ├── categories_utils.py
-│           ├── files_text.py
-│           ├── other_versions.py
-│           ├── temp_source.py
-│           ├── template_page.py
-│           ├── temps_bot.py
-│           └── titles_utils/
-│               ├── __init__.py
-│               ├── last_world_file_utils.py
-│               └── main_file.py
-├── offline/
+│   ├── utils/
+│   │   ├── wikitext/
+│   │   │   ├── titles_utils/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── last_world_file_utils.py
+│   │   │   │   └── main_file.py
+│   │   │   ├── __init__.py
+│   │   │   ├── before_methods.py
+│   │   │   ├── categories_utils.py
+│   │   │   ├── files_text.py
+│   │   │   ├── other_versions.py
+│   │   │   ├── temp_source.py
+│   │   │   ├── template_page.py
+│   │   │   └── temps_bot.py
+│   │   ├── __init__.py
+│   │   └── verify.py
 │   ├── __init__.py
-│   └── collect_templates_data.py
+│   └── extensions.py
+├── offline/
+│   ├── owid_metadata/
+│   ├── __init__.py
+│   ├── collect_templates_data.py
+│   ├── error.txt
+│   └── sitemap.py
 ├── static/
 │   ├── css/
 │   │   ├── navbar.css
@@ -166,71 +197,29 @@ src/
 │   │   ├── sidebar.js
 │   │   └── SVGLanguages.js
 │   └── translate.svg
-├── svg_config.py
 ├── templates/
-│   ├── _macros.html
-│   ├── _navbar.html
 │   ├── admins/
-│   │   ├── _sidebar.html
-│   │   ├── admin.html
-│   │   ├── base1.html
-│   │   ├── compare_crop_files.html
-│   │   ├── coordinators.html
 │   │   ├── jobs_templates/
+│   │   │   ├── _help_templates/
 │   │   │   ├── add_svglanguages_template/
-│   │   │   │   ├── details.html
-│   │   │   │   └── list.html
-│   │   │   ├── base_details.html
-│   │   │   ├── base_list.html
 │   │   │   ├── collect_templates_data/
-│   │   │   │   ├── details.html
-│   │   │   │   └── list.html
 │   │   │   ├── create_owid_pages/
-│   │   │   │   ├── details.html
-│   │   │   │   └── list.html
 │   │   │   ├── crop_main_files/
-│   │   │   │   ├── details.html
-│   │   │   │   └── list.html
 │   │   │   ├── download_main_files/
-│   │   │   │   ├── details.html
-│   │   │   │   └── list.html
-│   │   │   └── fix_nested_main_files/
-│   │   │       ├── details.html
-│   │   │       └── list.html
-│   │   ├── owid_charts/
-│   │   │   ├── add.html
-│   │   │   ├── edit.html
-│   │   │   └── list.html
-│   │   ├── popup_action.html
-│   │   ├── settings.html
-│   │   ├── template_edit.html
-│   │   ├── templates.html
-│   │   └── templates_need_update.html
-│   ├── admins.html
-│   ├── base.html
+│   │   │   ├── fix_nested_main_files/
+│   │   │   ├── rename_owid_pages/
+│   │   │   └── update_owid_charts/
+│   │   └── owid_charts/
 │   ├── explorer/
-│   │   ├── compare.html
-│   │   ├── explore_files.html
-│   │   ├── folder.html
-│   │   └── index.html
 │   ├── extract/
-│   │   ├── form.html
-│   │   └── result.html
-│   ├── fix_nested/
-│   │   ├── compare.html
-│   │   ├── form.html
-│   │   ├── task_detail.html
-│   │   ├── tasks_list.html
-│   │   └── upload_form.html
-│   ├── index.html
 │   ├── jobs_templates/
-│   │   ├── base_details_public.html
-│   │   ├── base_list_public.html
-│   │   └── copy_svg_langs/
-│   │       ├── details.html
-│   │       └── list.html
+│   │   ├── copy_svg_langs/
+│   │   └── fix_nested_jobs/
 │   └── owid_charts/
-│       ├── all_charts.html
-│       └── index.html
+├── __init__.py
+├── app.py
+├── import_owid_charts.py
+├── logger_config.py
 └── uwsgi.ini
-PS I:\SVG\svg_repo\src>
+
+```
