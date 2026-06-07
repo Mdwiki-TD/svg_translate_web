@@ -12,24 +12,19 @@ from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
-import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import (
     get_file_text,
     get_page_text,
+    is_page_exists,
     update_file_text,
     update_page_text,
 )
 from ...api_services.query_api import is_pages_exists
 from ...config import settings
 from ...db.models import TemplateRecord
-from ...db.services import (
-    is_job_cancelled,
-    list_templates,
-    update_job_status,
-)
-from ...su_services import jobs_files_service
+from ...db.services import list_templates
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..base_worker import BaseJobWorker
 from .crop_file import crop_svg_file
@@ -80,19 +75,7 @@ class FileProcessingInfo:
         }
 
 
-def is_cropped_file_existing(
-    cropped_filename: str,
-    site: mwclient.Site | None,
-) -> bool:
-    page = site.pages[cropped_filename]
-
-    if page.exists:
-        logger.warning(f"File {cropped_filename} already exists on Commons")
-        return True
-    return False
-
-
-class CropMainFilesProcessor:
+class CropMainFilesWorker(BaseJobWorker):
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 
@@ -107,80 +90,80 @@ class CropMainFilesProcessor:
     def __init__(
         self,
         job_id: int,
-        result: dict[str, Any],
-        result_file: str,
         user: dict[str, Any],
-        *,
         cancel_event: threading.Event | None = None,
-        upload_files: bool = False,
-        upload_limit: int | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
-        self.result = result
-        self.result_file = result_file
         self.user = user
-        self.exists = {}
-        self.cancel_event = cancel_event
-        self.upload_files = upload_files
+        self.args = args or {}
+        try:
+            self.upload_limit = (
+                int(self.args.get("upload_limit")) if self.args.get("upload_limit") is not None else None
+            )
+        except (ValueError, TypeError):
+            self.upload_limit = None
+        self.upload_files = bool(self.args.get("upload_files"))
 
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
+
+        self.exists = {}
         self.site: mwclient.Site | None = None
-        self.session: requests.Session | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
-        self.upload_limit = upload_limit
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "crop_main_files"
+
+    def get_initial_result(self) -> Dict[str, Any]:
+        """Return the initial result structure."""
+        return {
+            "status": "pending",
+            "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
+            "summary": {
+                "total": 0,
+                "processed": 0,
+                "cropped": 0,
+                "uploaded": 0,
+                "failed": 0,
+                "skipped": 0,
+            },
+            "pages_processed": [],
+            "pages_success": [],
+            "pages_skipped": [],
+            "pages_failed": [],
+            "files_processed": [],
+        }
 
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def run(self) -> dict[str, Any]:
-        """Run the full crop pipeline and return the populated result dict."""
-        if not self.before_run():
+    def process(self) -> Dict[str, Any]:
+
+        self.site = get_user_site(self.user)
+
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.result["status"] = "failed"
+            self.result["failed_at"] = datetime.now().isoformat()
             return self.result
 
-        self.process()
-
-        self.after_run()
-
-        return self.result
-
-    def get_priority(self, length) -> int:
-        if length < 11:
-            return 1
-        # Calculate the interval for progress updates to aim for about 10 updates.
-        return min(10, length // 10)
-
-    def _save_progress(self):
-        result = self.result
-        result["last_update"] = datetime.now().isoformat()
-        try:
-            jobs_files_service.save_job_result_by_name(self.result_file, result)
-        except Exception as exc:
-            logger.exception(
-                f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                exc_info=exc,
-            )
-
-    def check_exists(self, templates) -> None:
-        cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
-        exists_files = is_pages_exists(cropped_filenames, self.site)
-
-        for file in exists_files:
-            self.exists[file.removeprefix("File:")] = exists_files[file]
-
-        logger.info(f"self.exists: {len(self.exists)}")
-
-    def process(self):
         templates = self._load_templates()
+
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
-        self.check_exists(templates)
+        self._check_exists(templates)
 
         per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
-            if self._is_cancelled():
+            if self.is_cancelled():
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
@@ -188,40 +171,21 @@ class CropMainFilesProcessor:
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-                try:
-                    result = self.result
-                    result["last_update"] = datetime.now().isoformat()
-                    jobs_files_service.save_job_result_by_name(self.result_file, result)
-                except Exception as exc:
-                    logger.exception(
-                        f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                        exc_info=exc,
-                    )
+
+        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def before_run(self) -> bool:
-        """Set up job status, auth session, and site. Returns False on failure."""
-        try:
-            update_job_status(self.job_id, "running", self.result_file, job_type="crop_main_files")
-        except LookupError:
-            logger.exception(
-                f"Job {self.job_id}: Could not update status to running - job record might have been deleted."
-            )
-            return False
+    def _check_exists(self, templates) -> None:
+        cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
+        exists_files = is_pages_exists(cropped_filenames, self.site)
 
-        self.session = create_commons_session(settings.other.user_agent)
-        self.site = get_user_site(self.user)
+        for file in exists_files:
+            self.exists[file.removeprefix("File:")] = exists_files[file]
 
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
-            return False
-
-        return True
+        logger.info(f"self.exists: {len(self.exists)}")
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
@@ -249,9 +213,9 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
-        file_exists = (
-            self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
-        ) or is_cropped_file_existing(cropped_filename, self.site)
+        file_exists = self.exists.get(cropped_filename.removeprefix("File:"))
+        if file_exists is None:
+            file_exists = is_page_exists(cropped_filename, self.site)
 
         # pre steps if the file already in commons, skip download/upload files.
         if file_exists:
@@ -311,10 +275,11 @@ class CropMainFilesProcessor:
     def _step_download(self, file_info: FileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
+            session = create_commons_session(settings.other.user_agent)
             download_result = download_file_for_cropping(
                 template.last_world_file,
                 self.original_dir,
-                session=self.session,
+                session=session,
             )
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
@@ -338,10 +303,10 @@ class CropMainFilesProcessor:
         self,
         file_info: FileProcessingInfo,
         template: TemplateRecord,
-        cropped_output_path: Path,
+        cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(file_info.downloaded_path, cropped_output_path)
+        crop_result = crop_svg_file(file_info.downloaded_path, cropped_path)
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
@@ -349,8 +314,8 @@ class CropMainFilesProcessor:
             self._fail(file_info, "crop", error_msg)
             return False
 
-        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
-        file_info.cropped_path = cropped_output_path
+        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
+        file_info.cropped_path = cropped_path
         self.result["summary"]["cropped"] += 1
         return True
 
@@ -465,129 +430,13 @@ class CropMainFilesProcessor:
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = None
 
-    def _is_cancelled(self) -> bool:
-        if self.cancel_event and self.cancel_event.is_set():
-            logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
-            self.result["status"] = "cancelled"
-            self.result["cancelled_at"] = datetime.now().isoformat()
-            return True
-
-        if is_job_cancelled(self.job_id, job_type="crop_main_files"):
-            logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
-            self.result["status"] = "cancelled"
-            self.result["cancelled_at"] = datetime.now().isoformat()
-            return True
-
-        return False
-
     def _append(self, file_info: FileProcessingInfo) -> None:
         self.result["files_processed"].append(file_info.to_dict())
-
-    def after_run(self) -> None:
-        # Mark as completed if not cancelled or failed
-        if self.result.get("status") != "cancelled":
-            self.result["status"] = "completed"
-            logger.info(f"Job {self.job_id}: Crop processing completed")
 
 
 # ------------------------------------------------------------------
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
-
-
-def process_crops(
-    job_id: int,
-    result: dict[str, Any],
-    result_file: str,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    upload_files: bool = False,
-    upload_limit: int | None = None,
-) -> dict[str, Any]:
-    """Thin shim kept for backwards compatibility."""
-    processor = CropMainFilesProcessor(
-        job_id=job_id,
-        result=result,
-        result_file=result_file,
-        user=user,
-        cancel_event=cancel_event,
-        upload_files=upload_files,
-        upload_limit=upload_limit,
-    )
-    return processor.run()
-
-
-class CropMainFilesWorker(BaseJobWorker):
-    """Worker for cropping main files and uploading them with (cropped) suffix."""
-
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.args = args or {}
-        self.upload_limit = args.get("upload_limit") if args else None
-
-        super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "crop_main_files"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "status": "pending",
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "cropped": 0,
-                "uploaded": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-            "files_processed": [],
-        }
-
-    def before_run(self) -> bool:
-        """Skip status update as process handles it internally."""
-        # process handles its own status updates, so we just return True
-        return True
-
-    def process2(self) -> Dict[str, Any]:
-        """Execute the crop processing logic."""
-        processor = CropMainFilesProcessor(
-            job_id=self.job_id,
-            result=self.result,
-            result_file=self.result_file,
-            user=self.user,
-            cancel_event=self.cancel_event,
-            upload_files=True,
-            upload_limit=self.upload_limit,
-        )
-        return processor.run()
-
-    def process(self) -> Dict[str, Any]:
-        """Execute the crop processing logic."""
-        return process_crops(
-            self.job_id,
-            self.result,
-            self.result_file,
-            self.user,
-            cancel_event=self.cancel_event,
-            upload_files=True,
-            upload_limit=self.upload_limit,
-        )
 
 
 def crop_main_files_worker_entry(
@@ -609,13 +458,16 @@ def crop_main_files_worker_entry(
     if args and args.get("crop_newest_upload_limit"):
         args.update({"upload_limit": args.get("crop_newest_upload_limit")})
 
-    worker = CropMainFilesWorker(job_id, user, cancel_event, args)
+    worker = CropMainFilesWorker(
+        job_id=job_id,
+        user=user,
+        cancel_event=cancel_event,
+        args=args,
+    )
     worker.run()
 
 
 __all__ = [
     "crop_main_files_worker_entry",
     "CropMainFilesWorker",
-    "CropMainFilesProcessor",
-    "process_crops",
 ]

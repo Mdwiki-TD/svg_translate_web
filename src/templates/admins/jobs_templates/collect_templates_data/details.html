@@ -112,7 +112,7 @@
                         <td>
                             <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                {{ template.title.removeprefix("Template:OWID/") }}
+                                {{ template.title | replace("Template:OWID/", "", 1) }}
                             </a>
                         </td>
                         <td>

@@ -12,6 +12,7 @@ import pytest
 from cryptography.fernet import Fernet
 from flask.app import Flask
 from flask.testing import FlaskClient
+from pytest_socket import disable_socket
 from sqlalchemy import text
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
@@ -48,6 +49,11 @@ def disable_network(mocker):
     mocker.patch("requests.get", side_effect=Exception("Network disabled in tests"))
     mocker.patch("requests.post", side_effect=Exception("Network disabled in tests"))
     mocker.patch("urllib.request.urlopen", side_effect=Exception("Network disabled in tests"))
+
+
+@pytest.fixture(autouse=True)
+def stop_nets():
+    disable_socket(allow_unix_socket=True)
 
 
 @pytest.fixture

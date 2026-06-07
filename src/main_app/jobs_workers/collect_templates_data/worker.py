@@ -364,7 +364,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         return False
 
-    def _load_slug(self, template_title, template_source):
+    def _load_slug(self, template_title: str, template_source: str) -> str | None:
         _slug = None
         if "/grapher/" in template_source:
             _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
