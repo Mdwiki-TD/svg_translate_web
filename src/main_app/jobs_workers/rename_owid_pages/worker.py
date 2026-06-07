@@ -167,7 +167,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         for n, (namespace, _full_prefix, old_title, new_title) in enumerate(candidates, start=1):
             if self.is_cancelled():
                 break
-            self.result["summary"]["processed"] += 1
+
             logger.info(f"Job {self.job_id}: Renaming {n}/{total}: {old_title} -> {new_title}")
 
             changed = self._rename_one(namespace, old_title, new_title)
@@ -201,6 +201,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
         )
 
     def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
+        self.result["summary"]["processed"] += 1
+
         info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
         # Pre-flight: don't even try to move if the target already exists.

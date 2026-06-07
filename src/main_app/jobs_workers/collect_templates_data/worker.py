@@ -229,6 +229,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         return template_info
 
     def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
+
         template_info = self._load_temp_info(template)
 
         logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
@@ -434,6 +436,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
+
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -442,7 +445,6 @@ class CollectMainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
 
             _updated = self._process_template(template)

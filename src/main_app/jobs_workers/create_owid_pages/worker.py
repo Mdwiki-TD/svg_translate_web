@@ -156,13 +156,13 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
-        templates = [t for t in templates if t.title.startswith("Template:OWID/")]
-        return self._apply_limits(templates)
+        _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
+        return self._apply_limits(_templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
+            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} item")
             return templates[:_limit]
 
         return templates
@@ -180,38 +180,43 @@ class CreateOwidPagesWorker(BaseJobWorker):
         return new_text
 
     def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
+
+        # file info
         file_info = TemplateProcessingInfo(
             template_id=template.id,
             template_title=template.title,
         )
 
+        # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
+        # ----------------------------------
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
         if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
+        # ----------------------------------
         # Step 3 - check if new page already exists then compare if text need to be updated
         # if page text == new text then summary.skipped++ else summary.updated++
         if not self._step_check_exists_and_update(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
         # Step 4 - create_new_page
         if not self._step_create_new_page(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
         file_info.status = "completed"
-        self.result["summary"]["processed"] += 1
-        self._append(file_info)
+        self._append(file_info, key="pages_processed")
         return True
 
     # ------------------------------------------------------------------
@@ -258,7 +263,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
-            self.result["summary"]["processed"] += 1
             return False
 
         # extend categories from current text
@@ -279,7 +283,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return False
 
         self.result["summary"]["updated"] += 1
-        self.result["summary"]["processed"] += 1
         info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
         info.new_page_title = new_title
         info.status = "completed"
@@ -330,8 +333,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _append(self, file_info: TemplateProcessingInfo) -> None:
-        self.result["pages_processed"].append(file_info.to_dict())
+    def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
+        self.result[key].append(file_info.to_dict())
+
 
 def create_owid_pages_for_templates(
     *,

@@ -110,6 +110,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()
+        self.session: requests.Session = None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -145,6 +146,59 @@ class DownloadMainFilesWorker(BaseJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 
+    def _process_template(self, template) -> None:
+        self.result["summary"]["processed"] += 1
+
+        file_info = {
+            "template_id": template.id,
+            "template_title": template.title,
+            "filename": template.main_file,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        # Extract just the filename part (remove "File:" prefix if present)
+        clean_filename = template.main_file
+        clean_filename = clean_filename.removeprefix("File:")
+
+        # Check if file already exists
+        # out_path = self.output_dir / clean_filename
+        # if out_path.exists(): self.result["summary"]["exists"] += 1
+
+        try:
+            # Download the file (will overwrite if exists)
+            download_result = download_file_from_commons(
+                clean_filename,
+                self.output_dir,
+                session=self.session,
+            )
+
+            if download_result["success"]:
+                file_info["status"] = "downloaded"
+                file_info["path"] = download_result["path"]
+                file_info["size_bytes"] = download_result["size_bytes"]
+                self.result["files_downloaded"].append(file_info)
+                self.result["summary"]["success"] += 1
+            else:
+                file_info["status"] = "failed"
+                file_info["reason"] = download_result["error"]
+                self.result["files_failed"].append(file_info)
+                self.result["summary"]["failed"] += 1
+                logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {download_result['error']}")
+
+        except Exception as e:
+            file_info["status"] = "failed"
+            file_info["reason"] = f"Exception: {str(e)}"
+            file_info["error_type"] = type(e).__name__
+            self.result["files_failed"].append(file_info)
+            self.result["summary"]["failed"] += 1
+            logger.exception(f"Job {self.job_id}: Error processing {template.title}")
+            return False
+
+        if file_info["status"] == "downloaded":
+            return True
+
+        return False
+
     def process(self) -> Dict[str, Any]:
         """Execute the download processing logic."""
         templates_with_files = self._load_templates()
@@ -158,72 +212,30 @@ class DownloadMainFilesWorker(BaseJobWorker):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a shared session for all downloads
-        session = create_commons_session(settings.other.user_agent)
+        self.session = create_commons_session(settings.other.user_agent)
 
         per_item = self.get_priority(len(templates_with_files))
 
         for n, template in enumerate(templates_with_files, start=1):
+
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
+
             # Check for cancellation
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
 
+            self.result["summary"]["processed"] += 1
+
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                return False
+
             # Save progress periodically
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-
-            self.result["summary"]["processed"] += 1
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
-
-            file_info = {
-                "template_id": template.id,
-                "template_title": template.title,
-                "filename": template.main_file,
-                "timestamp": datetime.now().isoformat(),
-            }
-
-            # Extract just the filename part (remove "File:" prefix if present)
-            clean_filename = template.main_file
-            clean_filename = clean_filename.removeprefix("File:")
-
-            # Check if file already exists
-            # out_path = self.output_dir / clean_filename
-            # if out_path.exists(): self.result["summary"]["exists"] += 1
-
-            try:
-                # Download the file (will overwrite if exists)
-                download_result = download_file_from_commons(
-                    clean_filename,
-                    self.output_dir,
-                    session=session,
-                )
-
-                if download_result["success"]:
-                    file_info["status"] = "downloaded"
-                    file_info["path"] = download_result["path"]
-                    file_info["size_bytes"] = download_result["size_bytes"]
-                    self.result["files_downloaded"].append(file_info)
-                    self.result["summary"]["success"] += 1
-                else:
-                    file_info["status"] = "failed"
-                    file_info["reason"] = download_result["error"]
-                    self.result["files_failed"].append(file_info)
-                    self.result["summary"]["failed"] += 1
-                    logger.warning(
-                        f"Job {self.job_id}: Failed to download {clean_filename}: {download_result['error']}"
-                    )
-
-            except Exception as e:
-                file_info["status"] = "failed"
-                file_info["reason"] = f"Exception: {str(e)}"
-                file_info["error_type"] = type(e).__name__
-                self.result["files_failed"].append(file_info)
-                self.result["summary"]["failed"] += 1
-                logger.exception(f"Job {self.job_id}: Error processing {template.title}")
-
-            if file_info["status"] == "downloaded" and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
-                break
 
         # Final save
         self.result["completed_at"] = datetime.now().isoformat()

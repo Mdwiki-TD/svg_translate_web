@@ -7,10 +7,12 @@
 {# Filter pages by their specific statuses #}
 {% set skipped_pages = result_data.pages_skipped or (_processed | selectattr("status", "equalto", "skipped") | list) %}
 {% set failed_pages = result_data.pages_failed or (_processed | selectattr("status", "equalto", "failed") | list) %}
-{% set success_pages = result_data.pages_success or (_processed | selectattr("status", "equalto", "success") | list) %}
+
+{% set uploaded_pages = result_data.pages_uploaded or (_processed | selectattr("status", "equalto", "uploaded") | list) %}
+{% set updated_pages = result_data.pages_updated or (_processed | selectattr("status", "equalto", "updated") | list) %}
 
 {# Filter out any items that match the three statuses above #}
-{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success"]) | list %}
+{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success", "uploaded", "updated"]) | list %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -20,7 +22,10 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Success', ( success_pages | length ) or result_data.summary.uploaded, "success", "") }}
+                {{ stats_card('Uploaded', ( uploaded_pages | length ) or result_data.summary.uploaded, "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Updated', ( updated_pages | length ) or result_data.summary.updated, "info", "") }}
             </div>
             <div class="col">
                 {{ stats_card('skipped', ( skipped_pages | length ) or result_data.summary.skipped, "secondary", "") }}
@@ -35,7 +40,7 @@
 
 {% block job_details %}
 
-{% macro pages_updated_table(data, table_title) %}
+{% macro pages_table(data, table_title) %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -111,24 +116,29 @@
 </div>
 {%- endmacro -%}
 
-<!-- Success Files -->
-{% if success_pages %}
-{{ pages_updated_table(success_pages, 'Success Files') }}
+<!-- Uploaded -->
+{% if uploaded_pages %}
+{{ pages_table(uploaded_pages, 'Uploaded') }}
 {% endif %}
 
-<!-- Processed Files -->
+<!-- Updated -->
+{% if updated_pages %}
+{{ pages_table(updated_pages, 'Updated') }}
+{% endif %}
+
+<!-- Processed -->
 {% if files_processed %}
-{{ pages_updated_table(files_processed, 'Files Processed') }}
+{{ pages_table(files_processed, 'Processed') }}
 {% endif %}
 
-<!-- Skipped Files -->
+<!-- Skipped -->
 {% if skipped_pages %}
-{{ pages_updated_table(skipped_pages, 'Skipped Files') }}
+{{ pages_table(skipped_pages, 'Skipped') }}
 {% endif %}
 
-<!-- Failed Files -->
+<!-- Failed -->
 {% if failed_pages %}
-{{ pages_updated_table(failed_pages, 'Failed Files') }}
+{{ pages_table(failed_pages, 'Failed') }}
 {% endif %}
 
 {% endblock %}

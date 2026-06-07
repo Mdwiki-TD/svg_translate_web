@@ -38,7 +38,7 @@ StepResult = dict[str, Any]
 
 
 @dataclass
-class TemplateInfo:
+class TemplateProcessingInfo:
     """Holds all state for a single file being processed."""
 
     template_id: int
@@ -96,6 +96,7 @@ class CropMainFilesWorker(BaseJobWorker):
     ) -> None:
         self.job_id = job_id
         self.user = user
+        self.site: mwclient.Site | None = None
         self.args = args or {}
         try:
             self.upload_limit = (
@@ -109,7 +110,6 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result: Dict[str, Any] = self.get_initial_result()
 
         self.exists = {}
-        self.site: mwclient.Site | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
 
@@ -129,14 +129,15 @@ class CropMainFilesWorker(BaseJobWorker):
                 "processed": 0,
                 "cropped": 0,
                 "uploaded": 0,
-                "failed": 0,
+                "updated": 0,
                 "skipped": 0,
+                "failed": 0,
             },
             "pages_processed": [],
-            "pages_success": [],
+            "pages_uploaded": [],
+            "pages_updated": [],
             "pages_skipped": [],
             "pages_failed": [],
-            "files_processed": [],
         }
 
     # ------------------------------------------------------------------
@@ -167,10 +168,17 @@ class CropMainFilesWorker(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            self._process_template(template)
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
+
+        if self.result.get("status") in ["pending", "running"]:
+            self.result["status"] = "completed"
 
         return self.result
 
@@ -189,13 +197,13 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
-        templates_with_files = [t for t in templates if t.last_world_file]
-        return self._apply_limits(templates_with_files)
+        _templates = [t for t in templates if t.last_world_file]
+        return self._apply_limits(_templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.upload_limit if isinstance(self.upload_limit, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id} limiting from {len(templates)} to {_limit} item")
+            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} item")
             return templates[:_limit]
 
         return templates
@@ -209,7 +217,7 @@ class CropMainFilesWorker(BaseJobWorker):
         cropped_filename = generate_cropped_filename(template.last_world_file)
 
         # file info
-        file_info = TemplateInfo(
+        file_info = TemplateProcessingInfo(
             template_id=template.id,
             template_title=template.title,
             original_file=template.last_world_file,
@@ -234,50 +242,65 @@ class CropMainFilesWorker(BaseJobWorker):
                 file_info.status = "skipped"
                 self.result["summary"]["skipped"] += 1
 
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
+        # ----------------------------------
         # Step 1 - Download
         if not self._step_download(file_info, template):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
+        # ----------------------------------
         # Step 2 - Crop
         cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
         if not self._step_crop(file_info, template, cropped_output_path):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
         # Upload disabled → mark skipped and move on
         if not self.upload_files:
             self._skip_upload_steps(file_info)
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
 
+        # ----------------------------------
         # Step 3 - Upload cropped file
+        uploaded = True
         if not self._step_upload(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_processed")
             return False
+        else:
+            uploaded = True
 
         # Step 4 & 5 - Update wikitext references
-        self.update_file_references(file_info)
+        updated = self.update_file_references(file_info)
 
-        self._append(file_info, key="pages_success")
+        if uploaded:
+            self._append(file_info, key="pages_uploaded")
+            return True
 
-        return True
+        elif updated:
+            self._append(file_info, key="pages_updated")
+            return True
 
-    def update_file_references(self, file_info):
+        self._append(file_info, key="pages_processed")
+        return False
+
+    def update_file_references(self, file_info) -> bool:
         # Step 4 - Update original file wikitext
-        self._step_update_original(file_info)
+        updated = self._step_update_original(file_info)
 
         # Step 5 - Update template page reference
-        self._step_update_template(file_info)
+        updated2 = self._step_update_template(file_info)
+
+        return updated or updated2
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_download(self, file_info: TemplateInfo, template: TemplateRecord) -> bool:
+    def _step_download(self, file_info: TemplateProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
             session = create_commons_session(settings.other.user_agent)
@@ -301,12 +324,12 @@ class CropMainFilesWorker(BaseJobWorker):
         downloaded_path = download_result["path"]
         file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
         file_info.downloaded_path = downloaded_path
-        self.result["summary"]["processed"] += 1
+
         return True
 
     def _step_crop(
         self,
-        file_info: TemplateInfo,
+        file_info: TemplateProcessingInfo,
         template: TemplateRecord,
         cropped_path: Path,
     ) -> bool:
@@ -324,7 +347,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result["summary"]["cropped"] += 1
         return True
 
-    def _step_upload(self, file_info: TemplateInfo) -> bool:
+    def _step_upload(self, file_info: TemplateProcessingInfo) -> bool:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         wikitext = get_file_text(file_info.original_file, self.site)
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
@@ -363,7 +386,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result["summary"]["uploaded"] += 1
         return True
 
-    def _step_update_original(self, file_info: TemplateInfo) -> None:
+    def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
         wikitext = get_file_text(file_info.original_file, self.site)
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
@@ -371,21 +394,24 @@ class CropMainFilesWorker(BaseJobWorker):
         if wikitext == updated_text:
             logger.info(f"Job {self.job_id}: No update needed for original file text of {file_info.original_file}")
             file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
-            return
+            return False
 
         update_result = update_file_text(file_info.original_file, updated_text, self.site)
-        if not update_result["success"]:
-            error = update_result.get("error", "Unknown error")
-            logger.warning(
-                f"Job {self.job_id}: Failed to update original file text for "
-                f"{file_info.original_file} (reason: {error})"
-            )
-            # self._fail(file_info, "update_original", error)
-            file_info.steps["update_original"] = {"result": False, "msg": error}
-        else:
-            file_info.steps["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
 
-    def _step_update_template(self, file_info: TemplateInfo) -> None:
+        if update_result["success"]:
+            file_info.steps["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
+            return True
+
+        error = update_result.get("error", "Unknown error")
+        logger.warning(
+            f"Job {self.job_id}: Failed to update original file text for "
+            f"{file_info.original_file} (reason: {error})"
+        )
+        # self._fail(file_info, "update_original", error)
+        file_info.steps["update_original"] = {"result": False, "msg": error}
+        return False
+
+    def _step_update_template(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
         template_text = get_page_text(template_title, self.site)
@@ -399,35 +425,38 @@ class CropMainFilesWorker(BaseJobWorker):
         if template_text == updated_text:
             logger.info(f"Job {self.job_id}: No update needed for template page {template_title}")
             file_info.steps["update_template"] = {"result": None, "msg": "No update needed"}
-            return
+            return False
 
         summary = f"Update file reference to [[File:{file_info.cropped_filename.removeprefix('File:')}]]"
         update_result = update_page_text(template_title, updated_text, self.site, summary=summary)
 
-        if not update_result["success"]:
-            error = update_result.get("error", "Unknown error")
-            logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} (reason: {error})")
-            # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
-            file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
-        else:
+        if update_result["success"]:
             file_info.steps["update_template"] = {"result": True, "msg": f"Updated template {template_title}"}
+            return True
+
+        error = update_result.get("error", "Unknown error")
+        logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} (reason: {error})")
+        # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
+        file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
+
+        return False
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fail(self, file_info: TemplateInfo, step: str, error: str) -> None:
+    def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
         self.result["summary"]["failed"] += 1
 
-    def _skip_step(self, file_info: TemplateInfo, step: str, reason: str) -> None:
+    def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _skip_upload_steps(self, file_info: TemplateInfo) -> None:
+    def _skip_upload_steps(self, file_info: TemplateProcessingInfo) -> None:
         for step in ("upload_cropped", "update_original", "update_template"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
@@ -435,7 +464,7 @@ class CropMainFilesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = None
 
-    def _append(self, file_info: TemplateInfo, key: str = "files_processed") -> None:
+    def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
         self.result[key].append(file_info.to_dict())
 
 
