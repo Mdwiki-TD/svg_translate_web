@@ -87,6 +87,7 @@ class BaseJobWorker(ABC):
         try:
             update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             self.result["status"] = "running"
+            self._save_progress()
             return True
         except LookupError:
             logger.exception(
