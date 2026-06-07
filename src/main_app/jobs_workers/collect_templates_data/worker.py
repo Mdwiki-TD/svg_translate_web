@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
@@ -16,6 +16,7 @@ import mwclient
 from ...api_services.category import get_category_members
 from ...api_services.clients import get_user_site
 from ...api_services.pages_api import get_page_text
+from ...db.models import TemplateRecord
 from ...db.services import (
     add_template_data,
     get_chart_by_slug,
@@ -30,6 +31,8 @@ from ...utils.wikitext.titles_utils import (
 from ..base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
+
+STEPS_DEFAULT = {"result": None, "value": "", "new_value": "", "msg": ""}
 
 
 @dataclass
@@ -46,21 +49,19 @@ class TemplateInfo:
     status: str = "processing"
     error: str | None = None
     error_type: str | None = None
+    steps: dict[str, dict[str, Any]] = field(
+        default_factory=lambda: {
+            "main_file": STEPS_DEFAULT,
+            "last_world_file": STEPS_DEFAULT,
+            "source": STEPS_DEFAULT,
+        }
+    )
 
     def to_dict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {
-            "id": self.id,
-            "title": self.title,
-            "new_main_file": self.new_main_file,
-            "last_world_file": self.last_world_file,
-            "source": self.source,
-            "status": self.status,
-        }
-        if self.error is not None:
-            result["error"] = self.error
-        if self.error_type is not None:
-            result["error_type"] = self.error_type
-        return result
+        """
+        convert to dict.
+        """
+        return asdict(self)
 
 
 def slugify_title(title: str) -> str:
@@ -186,6 +187,11 @@ class CollectMainFilesWorker(BaseJobWorker):
 
                 self.result["pages_failed"].append(tmp_info.to_dict())
 
+    def _update_step(self, file_info: TemplateInfo, step: str, **kwargs) -> None:
+        for k, v in kwargs.items():
+            if k in file_info.steps[step]:
+                file_info.steps[step][k] = v
+
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
@@ -227,14 +233,9 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
-            template_info = TemplateInfo(
-                id=template.id,
-                title=template.title,
-                new_main_file="",
-                last_world_file="",
-                source="",
-                status="",
-            )
+
+            template_info = self._load_temp_info(template)
+
             logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
             # Fetch wikitext from Commons
             wikitext = get_page_text(template.title, site=self.site)
@@ -249,36 +250,63 @@ class CollectMainFilesWorker(BaseJobWorker):
 
             template_data = {}
             skip_msg = "No changes needed"
+
+            # ------------------
+            # template_info step # 1 main_file
             try:
                 # Extract main file using find_main_title
                 main_file = find_main_title(wikitext)
+                if not main_file:
+                    raise Exception("Could not find main file")
             except Exception as e:
                 logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
                 main_file = None
+                self._update_step(template_info, "main_file", result="failed", msg=str(e))
 
-            if main_file and main_file != template.main_file:
-                template_info.new_main_file = main_file
-                template_data["main_file"] = main_file
+            if main_file:
+                if main_file != template.main_file:
+                    self._update_step(template_info, "main_file", result="updated", new_value=main_file)
+                    template_info.new_main_file = main_file
+                    template_data["main_file"] = main_file
 
+            # ------------------
+            # template_info step # 2 last_world_file
             try:
                 last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
+                if not last_world_file:
+                    raise Exception("Could not find last world file")
             except Exception as e:
                 logger.error(f"Job {self.job_id}: Error while extracting last world file: {e}")
                 last_world_file = None
+                self._update_step(template_info, "last_world_file", result="failed", msg=str(e))
 
-            if last_world_file and last_world_file != template.last_world_file:
-                template_data["last_world_file"] = last_world_file
-                template_info.last_world_file = last_world_file
+            if last_world_file:
+                if last_world_file != template.last_world_file:
+                    self._update_step(template_info, "last_world_file", result="updated", new_value=last_world_file)
+                    template_data["last_world_file"] = last_world_file
+                    template_info.last_world_file = last_world_file
 
-            source = find_template_source(wikitext, check_grapher=False)
-            if source and source != template.source:
-                template_info.source = source
-                template_data["source"] = source
-                if "/grapher/" in source:
-                    slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
-                    template_data["slug"] = slug or None
-                else:
-                    skip_msg = "source url does not have /grapher/"
+            # ------------------
+            # template_info step # 3 source
+            try:
+                source = find_template_source(wikitext, check_grapher=False)
+                if not source:
+                    raise Exception("Could not find source")
+            except Exception as e:
+                logger.error(f"Job {self.job_id}: Error while extracting source: {e}")
+                source = None
+                self._update_step(template_info, "source", result="failed", msg=str(e))
+
+            if source:
+                if source != template.source:
+                    self._update_step(template_info, "source", result="updated", new_value=source)
+                    template_info.source = source
+                    template_data["source"] = source
+                    if "/grapher/" in source:
+                        slug = source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                        template_data["slug"] = slug or None
+                    else:
+                        skip_msg = "source url does not have /grapher/"
 
             if not template.slug and not template_data.get("slug"):
                 _slug = slugify_title(template.title)
@@ -342,6 +370,22 @@ class CollectMainFilesWorker(BaseJobWorker):
         )
 
         return self.result
+
+    def _load_temp_info(self, template: TemplateRecord) -> TemplateInfo:
+        template_info = TemplateInfo(
+            id=template.id,
+            title=template.title,
+            new_main_file="",
+            last_world_file="",
+            source="",
+            status="",
+        )
+
+        template_info.steps["main_file"]["value"] = template.main_file
+        template_info.steps["last_world_file"]["value"] = template.last_world_file
+        template_info.steps["source"]["value"] = template.source
+
+        return template_info
 
 
 def collect_templates_data_entry(
