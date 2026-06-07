@@ -564,7 +564,7 @@ class CropMainFilesWorker(BaseJobWorker):
         # process handles its own status updates, so we just return True
         return True
 
-    def process2(self) -> Dict[str, Any]:
+    def process(self) -> Dict[str, Any]:
         """Execute the crop processing logic."""
         processor = CropMainFilesProcessor(
             job_id=self.job_id,
@@ -576,18 +576,6 @@ class CropMainFilesWorker(BaseJobWorker):
             upload_limit=self.upload_limit,
         )
         return processor.run()
-
-    def process(self) -> Dict[str, Any]:
-        """Execute the crop processing logic."""
-        return process_crops(
-            self.job_id,
-            self.result,
-            self.result_file,
-            self.user,
-            cancel_event=self.cancel_event,
-            upload_files=True,
-            upload_limit=self.upload_limit,
-        )
 
 
 def crop_main_files_worker_entry(
