@@ -103,7 +103,7 @@ class SlugRedirects:
             else:
                 flash("Slug redirect not found.", "danger")
             return redirect(url_for("admin.slugredirects.dashboard"))
-
+            
         @self.bp.post("/bulk_action")
         @admin_required
         def bulk_action() -> ResponseReturnValue:
@@ -115,17 +115,16 @@ class SlugRedirects:
                 return redirect(url_for("admin.slugredirects.dashboard"))
 
             if action == "mark_replace":
-                for rid in selected_ids:
-                    update_slug_redirect(rid, {"should_be_replaced": True})
+                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
                 flash(f"Marked {len(selected_ids)} redirects as 'replace'.", "success")
             elif action == "mark_no_replace":
-                for rid in selected_ids:
-                    update_slug_redirect(rid, {"should_be_replaced": False})
+                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": False})
                 flash(f"Marked {len(selected_ids)} redirects as 'do not replace'.", "success")
             elif action == "delete":
-                for rid in selected_ids:
-                    delete_slug_redirect(rid)
+                bulk_delete_slug_redirects(selected_ids)
                 flash(f"Deleted {len(selected_ids)} redirects.", "success")
+            else:
+                flash("Invalid action.", "danger")
 
             return redirect(url_for("admin.slugredirects.dashboard"))
 
