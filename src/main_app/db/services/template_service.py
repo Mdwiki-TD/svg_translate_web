@@ -6,7 +6,7 @@ from typing import Any, List
 from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..models.templates import TemplateRecord
-from .utils import db_guard, db_retry
+from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,12 @@ def _ensure_last_world_year(template_data):
 
     if template_data.get("slug") and "/grapher/" in template_data["slug"]:
         template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+
+    if template_data.get("last_world_file"):
+        template_data["last_world_file"] = template_data["last_world_file"].removeprefix("File:")
+
+    if template_data.get("main_file"):
+        template_data["main_file"] = template_data["main_file"].removeprefix("File:")
 
     return template_data
 
@@ -55,23 +61,21 @@ def add_template_data(
 
     data = _ensure_last_world_year(data)
 
-    if "last_world_file" in data:
-        data["last_world_file"] = data["last_world_file"].removeprefix("File:")
-
-    if "main_file" in data:
-        data["main_file"] = data["main_file"].removeprefix("File:")
-
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
     chart = TemplateRecord(**temp_data)
 
     db.session.add(chart)
-    db.session.commit()
-    db.session.refresh(chart)
+
+    try:
+        db.session.commit()
+        db.session.refresh(chart)
+    except Exception as exc:
+        db.session.rollback()
+        raise exc
 
     return chart
 
 
-# @db_retry(default_return=None, msg="Failed to update template", max_retries=3, retry_delay=2.0)
 @db_guard(default_return=None)
 def update_template_data(
     template_id: int,
@@ -91,6 +95,7 @@ def update_template_data(
     return template
 
 
+@db_guard_rollback
 def delete_template(template_id: int) -> bool:
     """Delete a template."""
     record = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()

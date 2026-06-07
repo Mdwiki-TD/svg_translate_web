@@ -5,6 +5,7 @@ from typing import Any
 
 from ...extensions import db
 from ..models.settings import SettingRecord
+from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +78,7 @@ def get_setting_by_key(key: str) -> SettingRecord:
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
 
+@db_guard_rollback
 def delete_setting(key: str) -> bool:
     """delete a setting by key."""
     record = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
@@ -87,6 +89,7 @@ def delete_setting(key: str) -> bool:
     return False
 
 
+@db_guard_rollback
 def update_setting(
     key: str,
     value: Any,
@@ -110,6 +113,7 @@ def update_setting(
     return setting
 
 
+@db_guard_rollback
 def update_setting_bool(
     key: str,
     value: Any,

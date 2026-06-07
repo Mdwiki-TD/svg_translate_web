@@ -118,7 +118,7 @@ def inject_step(
         elif title in inject_files:
             results[title] = {
                 "result": True if file_data.get("no_changes") else False,
-                "msg": file_data.get("error") or "No changes needed",
+                "msg": file_data.get("error") or "No changes",
                 "new_languages": 0,
             }
         else:

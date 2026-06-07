@@ -163,7 +163,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             owid_variable_id=chart.owid_variable_id,
         )
 
-        # 1. Fetch metadata
+        # 1 A). Fetch metadata
         metadata = fetch_grapher_metadata(chart.slug)
         if metadata is None:
             info.status = "failed"
@@ -177,14 +177,22 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             )
             return False
 
+        data = {}
+
+        # 1 B) Find slug redirect
+        original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+        if original_chart_url and "/grapher/" in original_chart_url:
+            original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+            if original_slug != chart.slug:
+                data["slug"] = original_slug
+                # TODO: find any template use slug and replace it by new slug, or create database table for slug redirects
+
         # 2. Find a timespan
         columns = metadata.get("columns", {})
         timespan_raw = _first_value(columns, "timespan")
         owid_variable_id = _first_value(columns, "owidVariableId")
 
-        data = {}
-
-        if not timespan_raw and not owid_variable_id:
+        if not timespan_raw and not owid_variable_id and not data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
             self.result["skipped_charts"].append(

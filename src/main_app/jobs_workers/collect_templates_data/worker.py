@@ -15,6 +15,7 @@ import mwclient
 
 from ...api_services.category import get_category_members
 from ...api_services.clients import get_user_site
+from ...api_services.clients.owid_client import fetch_grapher_metadata
 from ...api_services.pages_api import get_page_text
 from ...db.models import TemplateRecord
 from ...db.services import (
@@ -220,7 +221,9 @@ class CollectMainFilesWorker(BaseJobWorker):
             template_info.steps["main_file"]["value"] = template_info.steps["main_file"]["value"].removeprefix("File:")
 
         if template_info.steps["last_world_file"]["value"]:
-            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"]["value"].removeprefix("File:")
+            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"][
+                "value"
+            ].removeprefix("File:")
 
         return template_info
 
@@ -240,7 +243,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             return False
 
         template_data = {}
-        skip_msg = "No changes needed"
+        skip_msg = "No changes"
 
         # ------------------
         # template_info step # 1 main_file
@@ -257,7 +260,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             self._update_step(template_info, "main_file", result="failed", msg=str(e))
 
         if main_file:
-            if main_file != template.main_file:
+            if main_file != (template.main_file.removeprefix("File:") if template.main_file else ""):
                 # template_info.new_main_file = main_file
                 self._update_step(template_info, "main_file", result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
@@ -278,7 +281,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             self._update_step(template_info, "last_world_file", result="failed", msg=str(e))
 
         if last_world_file:
-            if last_world_file != template.last_world_file:
+            if last_world_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
                 # template_info.last_world_file = last_world_file
                 self._update_step(template_info, "last_world_file", result="updated", new_value=last_world_file)
                 template_data["last_world_file"] = last_world_file
@@ -307,7 +310,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         # ------------------
         # template_info step # 4 slug
         try:
-            _slug = self._load_slug(template.title, template_data.get("source", ""))
+            _slug = self._load_slug(template.title, template.slug, template_data.get("source", ""))
             if not _slug:
                 raise Exception("Could not find slug")
         except Exception as e:
@@ -370,7 +373,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         return False
 
-    def _load_slug(self, template_title: str, template_source: str) -> str | None:
+    def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
         _slug = None
         if "/grapher/" in template_source:
             _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
@@ -378,8 +381,21 @@ class CollectMainFilesWorker(BaseJobWorker):
         if not _slug:
             _slug = slugify_title(template_title)
 
+        _slug_to_check = _slug or template_slug
+
+        if _slug_to_check:
+            # Find slug redirect
+            metadata = fetch_grapher_metadata(_slug_to_check)
+            if metadata:
+                original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+                if original_chart_url and "/grapher/" in original_chart_url:
+                    original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+                    if original_slug != _slug_to_check:
+                        _slug = original_slug
+
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")
+
         return _slug
 
     # ------------------------------------------------------------------
