@@ -18,6 +18,12 @@ def _ensure_last_world_year(template_data):
     if template_data.get("slug") and "/grapher/" in template_data["slug"]:
         template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
 
+    if "last_world_file" in template_data:
+        template_data["last_world_file"] = template_data["last_world_file"].removeprefix("File:")
+
+    if "main_file" in template_data:
+        template_data["main_file"] = template_data["main_file"].removeprefix("File:")
+
     return template_data
 
 
@@ -54,12 +60,6 @@ def add_template_data(
         raise ValueError(f"Template '{title}' already exists")
 
     data = _ensure_last_world_year(data)
-
-    if "last_world_file" in data:
-        data["last_world_file"] = data["last_world_file"].removeprefix("File:")
-
-    if "main_file" in data:
-        data["main_file"] = data["main_file"].removeprefix("File:")
 
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
     chart = TemplateRecord(**temp_data)
