@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import AdminUserRecord
-from .utils import db_guard
+from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +78,7 @@ def add_coordinator(username: str) -> AdminUserRecord:
     return record
 
 
+@db_guard_rollback
 def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
     """Toggle coordinator activity."""
     # record = get_coordinator_by_id(coordinator_id)
@@ -92,6 +93,7 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
 # ── DELETE ───────────────────────────────────────────────
 
 
+@db_guard_rollback
 def delete_coordinator(coordinator_id: int) -> bool:
     """
     Delete a coordinator efficiently.

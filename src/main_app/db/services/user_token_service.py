@@ -13,6 +13,7 @@ from sqlalchemy.orm import defer
 from ...core.crypto import encrypt_value
 from ...extensions import db
 from ..models import UserTokenRecord
+from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
+@db_guard_rollback
 def create_user(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
     """Create a user identity row. Idempotent — returns existing if present."""
     username = (username or "").strip()
@@ -85,15 +87,12 @@ def create_user(username: str, access_key: str, access_secret: str) -> UserToken
         rotated_at=None,
     )
     db.session.add(record)
-    try:
-        db.session.commit()
-        db.session.refresh(record)
-    except Exception:
-        db.session.rollback()
-        raise
+    db.session.commit()
+    db.session.refresh(record)
     return record
 
 
+@db_guard_rollback
 def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
     """
     update the encrypted OAuth credentials for a user.
@@ -118,6 +117,7 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
 # ── DELETE ───────────────────────────────────────────────
 
 
+@db_guard_rollback
 def delete_user_token(user_id: int) -> bool:
     """
     Delete the stored OAuth token only. User identity row persists.

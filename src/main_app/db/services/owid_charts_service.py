@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
+from .utils import db_guard_rollback
 
 # from ..models.views import OwidChartTemplateRecord
 
@@ -86,6 +86,7 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
     )
 
 
+@db_guard_rollback
 def add_chart(
     **chart_data: dict[str, Any],
 ) -> OwidChartRecord:
@@ -105,18 +106,13 @@ def add_chart(
     }
     chart = OwidChartRecord(**chart_data)
     db.session.add(chart)
-    try:
-        db.session.commit()
-        db.session.refresh(chart)
-    except IntegrityError as exc:
-        db.session.rollback()
-        raise exc
-    except Exception as exc:
-        db.session.rollback()
-        raise exc
+    db.session.commit()
+    db.session.refresh(chart)
 
     return chart
 
+
+@db_guard_rollback
 def update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
@@ -130,19 +126,13 @@ def update_chart_data(
             if value is not None and hasattr(OwidChartRecord, key):
                 setattr(chart, key, value)
 
-    try:
-        db.session.commit()
-        db.session.refresh(chart)
-    except IntegrityError as exc:
-        db.session.rollback()
-        raise exc
-    except Exception as exc:
-        db.session.rollback()
-        raise exc
+    db.session.commit()
+    db.session.refresh(chart)
 
     return chart
 
 
+@db_guard_rollback
 def delete_chart(chart_id: int) -> bool:
     """Delete a chart."""
     record = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()

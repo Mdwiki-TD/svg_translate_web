@@ -13,10 +13,9 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...api_services.clients.owid_client import fetch_grapher_metadata
-
 from ...api_services.category import get_category_members
 from ...api_services.clients import get_user_site
+from ...api_services.clients.owid_client import fetch_grapher_metadata
 from ...api_services.pages_api import get_page_text
 from ...db.models import TemplateRecord
 from ...db.services import (
@@ -222,7 +221,9 @@ class CollectMainFilesWorker(BaseJobWorker):
             template_info.steps["main_file"]["value"] = template_info.steps["main_file"]["value"].removeprefix("File:")
 
         if template_info.steps["last_world_file"]["value"]:
-            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"]["value"].removeprefix("File:")
+            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"][
+                "value"
+            ].removeprefix("File:")
 
         return template_info
 

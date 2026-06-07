@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Any, Callable, ParamSpec, TypeVar
 
-from sqlalchemy.exc import OperationalError, PendingRollbackError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, OperationalError, PendingRollbackError, SQLAlchemyError
 
 from ...extensions import db
 
@@ -15,6 +15,26 @@ logger = logging.getLogger(__name__)
 # Define generic types for strict type hinting
 P = ParamSpec("P")
 R = TypeVar("R")
+
+
+def db_guard_rollback() -> Callable[..., Callable[P, R]]:
+    """ """
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            try:
+                return func(*args, **kwargs)
+            except IntegrityError as exc:
+                db.session.rollback()
+                raise exc
+            except Exception as exc:
+                db.session.rollback()
+                raise exc
+
+        return wrapper
+
+    return decorator
 
 
 def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callable[P, R]]:

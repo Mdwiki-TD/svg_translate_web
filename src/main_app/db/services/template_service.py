@@ -6,7 +6,7 @@ from typing import Any, List
 from ...extensions import db
 from ...utils.wikitext.titles_utils import match_last_world_year
 from ..models.templates import TemplateRecord
-from .utils import db_guard, db_retry
+from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +65,13 @@ def add_template_data(
     chart = TemplateRecord(**temp_data)
 
     db.session.add(chart)
-    db.session.commit()
-    db.session.refresh(chart)
+
+    try:
+        db.session.commit()
+        db.session.refresh(chart)
+    except Exception as exc:
+        db.session.rollback()
+        raise exc
 
     return chart
 
@@ -91,6 +96,7 @@ def update_template_data(
     return template
 
 
+@db_guard_rollback
 def delete_template(template_id: int) -> bool:
     """Delete a template."""
     record = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
