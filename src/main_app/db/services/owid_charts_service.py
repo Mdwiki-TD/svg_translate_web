@@ -117,7 +117,6 @@ def add_chart(
 
     return chart
 
-
 def update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
@@ -130,8 +129,17 @@ def update_chart_data(
         for key, value in chart_data.items():
             if value is not None and hasattr(OwidChartRecord, key):
                 setattr(chart, key, value)
-    db.session.commit()
-    db.session.refresh(chart)
+
+    try:
+        db.session.commit()
+        db.session.refresh(chart)
+    except IntegrityError as exc:
+        db.session.rollback()
+        raise exc
+    except Exception as exc:
+        db.session.rollback()
+        raise exc
+
     return chart
 
 
