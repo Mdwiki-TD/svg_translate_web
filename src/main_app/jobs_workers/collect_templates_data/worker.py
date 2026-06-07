@@ -137,7 +137,7 @@ class CollectMainFilesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # pre process step
     # ------------------------------------------------------------------
-    def _fetch_and_add_new_templates(self, existing_titles: list[str]) -> None:
+    def _fetch_and_add_new_templates(self) -> None:
         """
         Fetch templates from the category and add new ones to the database.
 
@@ -145,6 +145,9 @@ class CollectMainFilesWorker(BaseJobWorker):
             Number of new templates added
         """
         logger.info(f"Job {self.job_id}: Fetching templates from category")
+
+        templates: list[TemplateRecord] = list_templates()
+        existing_titles = {t.title for t in templates}
 
         # Get templates from category
         category_templates = get_category_members("Category:Pages using gadget owidslider")
@@ -387,19 +390,15 @@ class CollectMainFilesWorker(BaseJobWorker):
             self.result["failed_at"] = datetime.now().isoformat()
             return self.result
 
-        templates: list[TemplateRecord] = list_templates()
-
         # Step 1: Fetch new templates from category and add them
-
-        existing_titles = {t.title for t in templates}
-
-        self._fetch_and_add_new_templates(existing_titles)
+        self._fetch_and_add_new_templates()
 
         if self.is_cancelled():
             logger.info(f"Job {self.job_id}: Cancelled after adding templates.")
             return self.result
 
-        # Step 2: Get all templates (including newly added)
+        # Step 2: Re-fetch all templates (including newly added)
+        templates: list[TemplateRecord] = list_templates()
         self.result["summary"]["total"] = len(templates)
 
         if self.update_all:
