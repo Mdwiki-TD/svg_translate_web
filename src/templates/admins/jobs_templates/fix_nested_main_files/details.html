@@ -68,11 +68,10 @@
 </div>
 {% endif %}
 
-<!-- Failed Files -->
-{% if result_data.pages_failed %}
+{%- macro result_table(table_title, data) -%}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Failed Files (" ~ result_data.pages_failed|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -86,7 +85,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for template in result_data.pages_failed %}
+                    {% for template in data %}
                     <tr>
                         <td>{{ template.id }}</td>
                         <td>
@@ -111,50 +110,15 @@
         </div>
     </div>
 </div>
+{% endmacro -%}
+
+<!-- Failed Files -->
+{% if result_data.pages_failed %}
+{{ result_table('Failed Files', result_data.pages_failed) }}
 {% endif %}
 
 <!-- Skipped Files -->
 {% if result_data.pages_skipped %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Skipped Files (" ~ result_data.pages_skipped|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Main File</th>
-                        <th>Reason</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in result_data.pages_skipped %}
-                    <tr>
-                        <td>{{ template.id }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.main_file }}
-                            </a>
-                            {% endif %}
-                        </td>
-                        <td>{{ template.reason or template.error }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{{ result_table('Skipped Files', result_data.pages_skipped) }}
 {% endif %}
 {% endblock %}
