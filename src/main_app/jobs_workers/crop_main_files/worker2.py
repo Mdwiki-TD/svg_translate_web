@@ -24,12 +24,7 @@ from ...api_services.pages_api import (
 from ...api_services.query_api import is_pages_exists
 from ...config import settings
 from ...db.models import TemplateRecord
-from ...db.services import (
-    is_job_cancelled,
-    list_templates,
-    update_job_status,
-)
-from ...su_services import jobs_files_service
+from ...db.services import list_templates
 from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
 from ..base_worker import BaseJobWorker
 from .crop_file import crop_svg_file
@@ -93,23 +88,6 @@ def is_cropped_file_existing(
 
 
 class CropMainFilesWorker(BaseJobWorker):
-    """Worker for cropping main files and uploading them with (cropped) suffix."""
-
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.args = args or {}
-        self.upload_limit = args.get("upload_limit") if args else None
-
-        super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
-
-
-class CropMainFilesProcessor:
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 
@@ -124,27 +102,24 @@ class CropMainFilesProcessor:
     def __init__(
         self,
         job_id: int,
-        result: dict[str, Any],
-        result_file: str,
         user: dict[str, Any],
-        *,
         cancel_event: threading.Event | None = None,
-        upload_files: bool = False,
-        upload_limit: int | None = None,
+        args: dict[str, Any] | None = None,
     ) -> None:
         self.job_id = job_id
-        self.result = result
-        self.result_file = result_file
         self.user = user
-        self.exists = {}
-        self.cancel_event = cancel_event
-        self.upload_files = upload_files
+        self.args = args or {}
+        self.upload_limit = self.args.get("upload_limit")
+        self.upload_files = bool(self.args.get("upload_files"))
 
+        super().__init__(job_id, user, cancel_event)
+        self.result: Dict[str, Any] = self.get_initial_result()
+
+        self.exists = {}
         self.site: mwclient.Site | None = None
         self.session: requests.Session | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
-        self.upload_limit = upload_limit
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -205,15 +180,7 @@ class CropMainFilesProcessor:
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-                try:
-                    result = self.result
-                    result["last_update"] = datetime.now().isoformat()
-                    jobs_files_service.save_job_result_by_name(self.result_file, result)
-                except Exception as exc:
-                    logger.exception(
-                        f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                        exc_info=exc,
-                    )
+
         return self.result
 
     # ------------------------------------------------------------------
@@ -488,14 +455,16 @@ def process_crops(
     upload_limit: int | None = None,
 ) -> dict[str, Any]:
     """Thin shim kept for backwards compatibility."""
-    processor = CropMainFilesProcessor(
+    args = {
+        "upload_limit": upload_limit,
+        "upload_files": upload_files,
+    }
+
+    processor = CropMainFilesWorker(
         job_id=job_id,
-        result=result,
-        result_file=result_file,
         user=user,
         cancel_event=cancel_event,
-        upload_files=upload_files,
-        upload_limit=upload_limit,
+        args=args,
     )
     return processor.run()
 
@@ -519,13 +488,17 @@ def crop_main_files_worker_entry(
     if args and args.get("crop_newest_upload_limit"):
         args.update({"upload_limit": args.get("crop_newest_upload_limit")})
 
-    worker = CropMainFilesWorker(job_id, user, cancel_event, args)
+    worker = CropMainFilesWorker(
+        job_id=job_id,
+        user=user,
+        cancel_event=cancel_event,
+        args=args,
+    )
     worker.run()
 
 
 __all__ = [
     "crop_main_files_worker_entry",
     "CropMainFilesWorker",
-    "CropMainFilesProcessor",
     "process_crops",
 ]
