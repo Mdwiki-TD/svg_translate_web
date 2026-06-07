@@ -86,6 +86,32 @@ def count_slug_redirects() -> int:
     return db.session.query(OwidSlugRedirectRecord).count()
 
 
+@db_guard_rollback
+def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) -> None:
+    """
+    Bulk update slug redirect records.
+    """
+    allowed_keys = {"should_be_replaced"}
+    update_data = {k: v for k, v in data.items() if k in allowed_keys}
+    if update_data and redirect_ids:
+        db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).update(
+            update_data, synchronize_session=False
+        )
+        db.session.commit()
+
+
+@db_guard_rollback
+def bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
+    """
+    Bulk delete slug redirect records.
+    """
+    if redirect_ids:
+        db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).delete(
+            synchronize_session=False
+        )
+        db.session.commit()
+
+
 __all__ = [
     "add_new_slug_redirect",
     "list_slug_redirects",
@@ -93,4 +119,6 @@ __all__ = [
     "update_slug_redirect",
     "delete_slug_redirect",
     "count_slug_redirects",
+    "bulk_update_slug_redirects",
+    "bulk_delete_slug_redirects",
 ]
