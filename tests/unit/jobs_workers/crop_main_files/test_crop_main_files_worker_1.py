@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.crop_main_files.worker2 import (
-    CropMainFilesWorker,
+from src.main_app.jobs_workers.crop_main_files.worker import (
+    CropMainFilesProcessor,
     FileProcessingInfo,
 )
 
@@ -210,7 +210,7 @@ class TestFileProcessingInfo:
 
 
 class TestCropMainFilesProcessorInitialization:
-    """Tests for CropMainFilesWorker initialization."""
+    """Tests for CropMainFilesProcessor initialization."""
 
     def test_processor_initialization(self, mock_services):
         """Test processor initializes correctly."""
@@ -227,12 +227,12 @@ class TestCropMainFilesProcessorInitialization:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user={"username": "test"},
-            args={"upload_files": True},
+            upload_files=True,
         )
 
         assert processor.job_id == 1
@@ -249,10 +249,10 @@ class TestCropMainFilesProcessorInitialization:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -270,10 +270,10 @@ class TestCropMainFilesProcessorBeforeRun:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user={"username": "test"},
         )
 
@@ -296,10 +296,10 @@ class TestCropMainFilesProcessorBeforeRun:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user={"username": "test"},
         )
 
@@ -317,10 +317,10 @@ class TestCropMainFilesProcessorBeforeRun:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -352,10 +352,10 @@ class TestCropMainFilesProcessorLoadTemplates:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -378,12 +378,12 @@ class TestCropMainFilesProcessorLoadTemplates:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
-            args={"upload_limit": 2},
+            upload_limit=2,
         )
 
         result = processor._apply_limits(templates)
@@ -404,10 +404,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -436,10 +436,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -469,10 +469,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -500,10 +500,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -534,10 +534,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -570,10 +570,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -604,10 +604,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -637,10 +637,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -671,10 +671,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -704,10 +704,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -736,10 +736,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -767,10 +767,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -800,10 +800,10 @@ class TestCropMainFilesProcessorSteps:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -832,10 +832,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -861,10 +861,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -888,10 +888,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -921,10 +921,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
             cancel_event=cancel_event,
         )
@@ -945,10 +945,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -963,10 +963,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -990,10 +990,10 @@ class TestCropMainFilesProcessorHelpers:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 
@@ -1031,12 +1031,12 @@ class TestCropMainFilesProcessorProcessTemplate:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
-            args={"upload_files": True},
+            upload_files=True,
         )
         processor.site = mock_site
 
@@ -1075,12 +1075,12 @@ class TestCropMainFilesProcessorProcessTemplate:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
-            args={"upload_files": True},
+            upload_files=True,
         )
         processor.site = mock_site
         processor.original_dir = tmp_path / "original"
@@ -1114,12 +1114,12 @@ class TestCropMainFilesProcessorProcessTemplate:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
-            args={"upload_files": False},
+            upload_files=False,
         )
         processor.site = mock_site
         processor.original_dir = tmp_path / "original"
@@ -1169,12 +1169,12 @@ class TestCropMainFilesProcessorRun:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
-            args={"upload_files": True},
+            upload_files=True,
         )
 
         result = processor.run()
@@ -1195,10 +1195,10 @@ class TestCropMainFilesProcessorRun:
             "files_processed": [],
         }
 
-        processor = CropMainFilesWorker(
+        processor = CropMainFilesProcessor(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
+            result=initial_result,
+            result_file="test_result.json",
             user=None,
         )
 

@@ -148,7 +148,7 @@ class CropMainFilesProcessor:
                 exc_info=exc,
             )
 
-    def check_exists(self, templates) -> None:
+    def _check_exists(self, templates) -> None:
         cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
@@ -159,15 +159,16 @@ class CropMainFilesProcessor:
 
     def process(self):
         templates = self._load_templates()
+
         self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
-        self.check_exists(templates)
+        self._check_exists(templates)
 
         per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
-            if self._is_cancelled():
+            if self.is_cancelled():
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
@@ -175,15 +176,8 @@ class CropMainFilesProcessor:
 
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-                try:
-                    result = self.result
-                    result["last_update"] = datetime.now().isoformat()
-                    jobs_files_service.save_job_result_by_name(self.result_file, result)
-                except Exception as exc:
-                    logger.exception(
-                        f"Job {self.job_id}: Failed to persist periodic progress; continuing",
-                        exc_info=exc,
-                    )
+
+        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
@@ -450,7 +444,7 @@ class CropMainFilesProcessor:
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = None
 
-    def _is_cancelled(self) -> bool:
+    def is_cancelled(self) -> bool:
         if self.cancel_event and self.cancel_event.is_set():
             logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
             self.result["status"] = "cancelled"
