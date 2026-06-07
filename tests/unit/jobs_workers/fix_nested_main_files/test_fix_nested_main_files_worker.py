@@ -93,7 +93,7 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
     )
 
     # Should save result
-    mock_fix_nested_services["save_job_result_by_name"].assert_called_once()
+    assert mock_fix_nested_services["save_job_result_by_name"].call_count == 2
     result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result["summary"]["total"] == 0
 
