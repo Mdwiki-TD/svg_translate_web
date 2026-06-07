@@ -12,12 +12,12 @@ from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
-import requests
 
 from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import (
     get_file_text,
     get_page_text,
+    is_page_exists,
     update_file_text,
     update_page_text,
 )
@@ -73,18 +73,6 @@ class FileProcessingInfo:
             "cropped_path": str(self.cropped_path) if self.cropped_path else None,
             "steps": self.steps,
         }
-
-
-def is_cropped_file_existing(
-    cropped_filename: str,
-    site: mwclient.Site | None,
-) -> bool:
-    page = site.pages[cropped_filename]
-
-    if page.exists:
-        logger.warning(f"File {cropped_filename} already exists on Commons")
-        return True
-    return False
 
 
 class CropMainFilesWorker(BaseJobWorker):
@@ -223,7 +211,7 @@ class CropMainFilesWorker(BaseJobWorker):
         file_exists = self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
 
         # pre steps if the file already in commons, skip download/upload files.
-        if file_exists:
+        if file_exists or is_page_exists(cropped_filename, self.site):
             self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
@@ -308,10 +296,10 @@ class CropMainFilesWorker(BaseJobWorker):
         self,
         file_info: FileProcessingInfo,
         template: TemplateRecord,
-        cropped_output_path: Path,
+        cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(file_info.downloaded_path, cropped_output_path)
+        crop_result = crop_svg_file(file_info.downloaded_path, cropped_path)
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
@@ -319,8 +307,8 @@ class CropMainFilesWorker(BaseJobWorker):
             self._fail(file_info, "crop", error_msg)
             return False
 
-        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_output_path}"}
-        file_info.cropped_path = cropped_output_path
+        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
+        file_info.cropped_path = cropped_path
         self.result["summary"]["cropped"] += 1
         return True
 

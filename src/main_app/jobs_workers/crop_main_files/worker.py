@@ -18,6 +18,7 @@ from ...api_services.clients import create_commons_session, get_user_site
 from ...api_services.pages_api import (
     get_file_text,
     get_page_text,
+    is_page_exists,
     update_file_text,
     update_page_text,
 )
@@ -78,18 +79,6 @@ class FileProcessingInfo:
             "cropped_path": str(self.cropped_path) if self.cropped_path else None,
             "steps": self.steps,
         }
-
-
-def is_cropped_file_existing(
-    cropped_filename: str,
-    site: mwclient.Site | None,
-) -> bool:
-    page = site.pages[cropped_filename]
-
-    if page.exists:
-        logger.warning(f"File {cropped_filename} already exists on Commons")
-        return True
-    return False
 
 
 class CropMainFilesProcessor:
@@ -249,12 +238,10 @@ class CropMainFilesProcessor:
             cropped_filename=cropped_filename,
         )
 
-        file_exists = (
-            self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
-        ) or is_cropped_file_existing(cropped_filename, self.site)
+        file_exists = self.exists and self.exists.get(cropped_filename.removeprefix("File:"))
 
         # pre steps if the file already in commons, skip download/upload files.
-        if file_exists:
+        if file_exists or is_page_exists(cropped_filename, self.site):
             self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")

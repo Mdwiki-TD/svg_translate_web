@@ -12,7 +12,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.crop_main_files.worker import (
     CropMainFilesProcessor,
     FileProcessingInfo,
-    is_cropped_file_existing,
 )
 
 
@@ -208,32 +207,6 @@ class TestFileProcessingInfo:
 
         assert result["downloaded_path"] is None
         assert result["cropped_path"] is None
-
-
-class TestIsCroppedFileExisting:
-    """Tests for is_cropped_file_existing function."""
-
-    def test_file_exists(self):
-        """Test when cropped file already exists."""
-        mock_site = MagicMock()
-        mock_page = MagicMock()
-        mock_page.exists = True
-        mock_site.pages = {"File:test (cropped).svg": mock_page}
-
-        result = is_cropped_file_existing("File:test (cropped).svg", mock_site)
-
-        assert result is True
-
-    def test_file_does_not_exist(self):
-        """Test when cropped file does not exist."""
-        mock_site = MagicMock()
-        mock_page = MagicMock()
-        mock_page.exists = False
-        mock_site.pages = {"File:test (cropped).svg": mock_page}
-
-        result = is_cropped_file_existing("File:test (cropped).svg", mock_site)
-
-        assert result is False
 
 
 class TestCropMainFilesProcessorInitialization:
