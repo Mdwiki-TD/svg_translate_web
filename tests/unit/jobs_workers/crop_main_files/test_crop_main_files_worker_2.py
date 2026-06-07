@@ -339,7 +339,7 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
         assert file_info.steps["download"]["result"] is True
-        assert processor.result["summary"]["processed"] == 0 # processed is now under _process_template
+        assert processor.result["summary"]["processed"] == 0  # processed is now under _process_template
 
     def test_step_download_failure(self, mock_services):
         """Test _step_download when download fails."""

@@ -253,7 +253,7 @@ class CropMainFilesWorker(BaseJobWorker):
         # Step 3 - Upload cropped file
         up_step = self._step_upload(file_info)
         if up_step is False:
-            self._append(file_info, key="pages_processed")
+            self._append(file_info, key="pages_failed")
             return False
 
         elif up_step is None:
@@ -310,17 +310,16 @@ class CropMainFilesWorker(BaseJobWorker):
             self._fail(file_info, "download", error_msg)
             return False
 
-        if not download_result["success"]:
-            error_msg = download_result.get("error", "Unknown download error")
-            logger.warning(f"Job {self.job_id}: Failed to download {template.last_world_file}")
-            self._fail(file_info, "download", error_msg)
-            return False
+        if download_result["success"]:
+            downloaded_path = download_result["path"]
+            file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
+            file_info.downloaded_path = downloaded_path
+            return True
 
-        downloaded_path = download_result["path"]
-        file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
-        file_info.downloaded_path = downloaded_path
-
-        return True
+        error_msg = download_result.get("error", "Unknown download error")
+        logger.warning(f"Job {self.job_id}: Failed to download {template.last_world_file}")
+        self._fail(file_info, "download", error_msg)
+        return False
 
     def _step_crop(
         self,
@@ -380,7 +379,6 @@ class CropMainFilesWorker(BaseJobWorker):
         self._fail(file_info, "upload_cropped", error)
         file_info.cropped_filename = None
         return False
-
 
     def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
@@ -446,10 +444,10 @@ class CropMainFilesWorker(BaseJobWorker):
         self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
 
-            # Step 4 & 5 - Update wikitext references
+        # Step 4 & 5 - Update wikitext references
         self.update_file_references(file_info)
 
-            # if all file_info.steps "result" is None do:
+        # if all file_info.steps "result" is None do:
         if all(step["result"] is None for step in file_info.steps.values()):
             file_info.status = "skipped"
             self.result["summary"]["skipped"] += 1

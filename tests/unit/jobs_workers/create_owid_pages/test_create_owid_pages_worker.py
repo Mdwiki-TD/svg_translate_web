@@ -296,6 +296,7 @@ class TestCreateOwidPagesWorkerSteps:
         assert info.steps["load_template_text"]["result"] is False
         assert worker.result["summary"]["failed"] == 1
 
+
 class TestCreateNewTextStep:
     def test_step_create_new_text_success(self, mock_services):
         """Test _step_create_new_text with successful text generation."""
@@ -328,6 +329,7 @@ class TestCreateNewTextStep:
         assert info.status == "failed"
         assert info.steps["create_new_text"]["result"] is False
         assert "Invalid template format" in info.steps["create_new_text"]["msg"]
+
 
 class TestUpdateStep:
     def test_step_update_page_not_exists(self, mock_services):
@@ -396,6 +398,7 @@ class TestUpdateStep:
         assert result is False
         assert info.status == "failed"
         assert info.steps["create_new_page"]["result"] is False
+
 
 class TestCreateNewPageStep:
     def test_step_create_new_page_success(self, mock_services):
@@ -538,7 +541,7 @@ class TestCreateOwidPagesWorkerProcess:
 
         assert result["status"] == "completed"
         assert result["summary"]["total"] == 1
-        assert result["summary"]["processed"] == 1 # processed is now under _process_template
+        assert result["summary"]["processed"] == 1  # processed is now under _process_template
         assert result["summary"]["created"] == 1
         assert result["summary"]["failed"] == 0
 
@@ -583,7 +586,7 @@ class TestCreateOwidPagesWorkerProcess:
         result = worker.process()
 
         assert result["summary"]["total"] == 3
-        assert result["summary"]["processed"] == 3 # processed is now under _process_template
+        assert result["summary"]["processed"] == 3  # processed is now under _process_template
         assert result["summary"]["failed"] == 1
         assert result["summary"]["created"] == 2
 

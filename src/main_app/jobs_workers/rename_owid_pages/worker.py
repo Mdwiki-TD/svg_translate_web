@@ -25,7 +25,7 @@ from typing import Any, Dict, Iterable
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import edit_page, is_page_exists, is_redirect, move_page
+from ...api_services.pages_api import is_page_exists, is_redirect, move_page, update_page_text
 from ...db.services import get_template_by_title, update_template_data
 from ..base_worker import BaseJobWorker
 
@@ -267,7 +267,12 @@ class RenameOwidPagesWorker(BaseJobWorker):
         redirect_text = f"#REDIRECT [[{new_title}]]"
         summary = f"Redirecting to [[{new_title}]] (capitalize first letter of OWID subpage)"
 
-        res = edit_page(self.site, old_title, redirect_text, summary)
+        res = update_page_text(
+            page_name=old_title,
+            updated_text=redirect_text,
+            site=self.site,
+            summary=summary,
+        )
 
         edit_success = bool(res.get("success"))
         if edit_success:

@@ -355,6 +355,7 @@ class TestRepairNestedSvgTags:
 # Additional worker tests
 # =============================================================================
 
+
 def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_nested_services):
     """Test that worker handles general fix failure properly."""
     templates = [

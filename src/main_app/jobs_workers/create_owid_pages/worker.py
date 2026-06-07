@@ -13,7 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import update_page_text, create_page, get_page_text, is_page_exists
+from ...api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
 from ...data import get_slug_categories
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
@@ -213,21 +213,26 @@ class CreateOwidPagesWorker(BaseJobWorker):
         if page_exists:
             # ----------------------------------
             # Step 3 - compare if text need to be updated
-            if not self._step_update(file_info, new_title):
-                self._append(file_info, key="pages_processed")
-                return False
+            upd_step = self._step_update(file_info, new_title)
+            if upd_step is False:
+                self._append(file_info, key="pages_failed")
+            elif upd_step is None:
+                self._append(file_info, key="pages_skipped")
+            else:
+                self._append(file_info, key="pages_updated")
 
-            file_info.status = "updated"
-            self._append(file_info, key="pages_updated")
-            return True
+            return upd_step is True
 
         # Step 4 - create_new_page
-        if not self._step_create_new_page(file_info):
+        create_step = self._step_create_new_page(file_info)
+        if create_step is False:
             self._append(file_info, key="pages_failed")
             return False
-        else:
+        elif create_step is True:
             self._append(file_info, key="pages_created")
+            return True
 
+        # dead code?
         file_info.status = "completed"
         self._append(file_info, key="pages_processed")
         return True
@@ -271,7 +276,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
-            return None # nothing to update
+            return None  # nothing to update
 
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
@@ -279,23 +284,21 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         # Content is different, perform update
         res = update_page_text(
-            new_title,
-            info._new_text,
-            self.site,
+            page_name=new_title,
+            updated_text=info._new_text,
+            site=self.site,
             summary=f"Updating OWID page from [[{info.template_title}]]",
         )
 
-        if not res["success"]:
-            err = res.get("error", "Unknown error")
-            self._fail(info, "create_new_page", err)
-            return False
+        if res["success"]:
+            self.result["summary"]["updated"] += 1
+            info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
+            info.new_page_title = new_title
+            info.status = "updated"
+            return True
 
-        self.result["summary"]["updated"] += 1
-        info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
-        info.new_page_title = new_title
-        info.status = "completed"
-
-        # return False to skip _step_create_new_page step
+        err = res.get("error", "Unknown error")
+        self._fail(info, "create_new_page", err)
         return False
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
@@ -316,8 +319,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return False
 
         self.result["summary"]["created"] += 1
-        info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
+        info.steps["create_new_page"] = {"result": True, "msg": f"Created: {new_title}"}
         info.new_page_title = new_title
+        info.status = "created"
         return True
 
     def create_new_page_title(self, info: TemplateProcessingInfo) -> str:
