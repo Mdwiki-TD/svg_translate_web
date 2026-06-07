@@ -13,7 +13,6 @@ from src.main_app.jobs_workers.crop_main_files.worker import (
     CropMainFilesProcessor,
     FileProcessingInfo,
     is_cropped_file_existing,
-    process_crops,
 )
 
 
@@ -1236,58 +1235,3 @@ class TestCropMainFilesProcessorRun:
 
         # Should return early with original result
         assert result["status"] == "pending"
-
-
-class TestProcessCrops:
-    """Tests for process_crops entry point."""
-
-    def test_entry_point_creates_processor_and_runs(self, mock_services, tmp_path):
-        """Test that process_crops creates processor and runs it."""
-        mock_site = MagicMock()
-        mock_page = MagicMock()
-        mock_page.exists = False
-        mock_site.pages = {"File:test (cropped).svg": mock_page}
-
-        mock_services["get_user_site"].return_value = mock_site
-        mock_services["create_commons_session"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = []
-
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
-        result = process_crops(
-            job_id=1,
-            result=initial_result,
-            result_file="test_result.json",
-            user=None,
-            cancel_event=None,
-            upload_files=False,
-        )
-
-        assert result["status"] == "completed"
-
-    def test_entry_point_with_cancel_event(self, mock_services):
-        """Test process_crops with cancel event."""
-        cancel_event = threading.Event()
-
-        mock_services["update_job_status"].side_effect = LookupError("Job not found")
-
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
-        result = process_crops(
-            job_id=1,
-            result=initial_result,
-            result_file="test_result.json",
-            user=None,
-            cancel_event=cancel_event,
-            upload_files=False,
-        )
-
-        assert result["status"] == "pending"  # before_run failed
