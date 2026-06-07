@@ -24,6 +24,14 @@ from .owid_charts_service import (
     list_published_charts,
     update_chart_data,
 )
+from .owid_slugs_redirects_service import (
+    add_new_slug_redirect,
+    count_slug_redirects,
+    delete_slug_redirect,
+    get_slug_redirect_by_id,
+    list_slug_redirects,
+    update_slug_redirect,
+)
 from .settings_service import (
     create_setting,
     delete_setting,
@@ -78,6 +86,13 @@ __all__ = [
     "delete_chart",
     "list_charts",
     "list_published_charts",
+    # owid_slugs_redirects_service
+    "add_new_slug_redirect",
+    "list_slug_redirects",
+    "get_slug_redirect_by_id",
+    "update_slug_redirect",
+    "delete_slug_redirect",
+    "count_slug_redirects",
     # settings_service
     "get_all_settings_ready",
     "get_all_settings_raw",

@@ -19,6 +19,7 @@ from ...api_services.clients.owid_client import fetch_grapher_metadata
 from ...api_services.pages_api import get_page_text
 from ...db.models import TemplateRecord
 from ...db.services import (
+    add_new_slug_redirect,
     add_template_data,
     get_chart_by_slug,
     list_templates,
@@ -391,7 +392,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 if original_chart_url and "/grapher/" in original_chart_url:
                     original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
                     if original_slug != _slug_to_check:
-                        _slug = original_slug
+                        add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug)
 
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")
