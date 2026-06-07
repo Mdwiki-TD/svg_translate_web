@@ -117,7 +117,6 @@ class CropMainFilesWorker(BaseJobWorker):
 
         self.exists = {}
         self.site: mwclient.Site | None = None
-        self.session: requests.Session | None = None
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
 
@@ -153,7 +152,6 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def process(self) -> Dict[str, Any]:
 
-        self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
 
         if not self.site:
@@ -282,10 +280,11 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_download(self, file_info: FileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
+            session = create_commons_session(settings.other.user_agent)
             download_result = download_file_for_cropping(
                 template.last_world_file,
                 self.original_dir,
-                session=self.session,
+                session=session,
             )
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
