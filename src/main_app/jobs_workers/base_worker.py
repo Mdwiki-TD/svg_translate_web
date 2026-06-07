@@ -100,8 +100,9 @@ class BaseJobWorker(ABC):
         # Finalize timestamps
         self.result["completed_at"] = datetime.now().isoformat()
         final_status = self.result.get("status") or "completed"
-        if final_status in ("running", "pending"):
+        if final_status == "running":
             final_status = "completed"
+        self.result["status"] = final_status
 
         # Save final results
         self._save_progress()
