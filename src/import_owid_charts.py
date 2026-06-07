@@ -208,9 +208,9 @@ def main():
             logger.info("Import completed successfully!")
             print("\n✓ All charts imported successfully!")
             print("\nView charts at:")
-            print("  - Admin:  http://localhost:5000/admin/owid-charts")
-            print("  - Public: http://localhost:5000/owid-charts/")
-            print("  - Test:   http://localhost:5000/owid-charts/all")
+            print("  - Admin:  http://localhost:5000/admin/owidcharts")
+            print("  - Public: http://localhost:5000/owidcharts/")
+            print("  - Test:   http://localhost:5000/owidcharts/all")
 
     except Exception as e:
         logger.exception(f"Import failed: {e}")

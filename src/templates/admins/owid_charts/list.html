@@ -10,7 +10,7 @@
                 <i class="bi bi-copy"></i> Copy data
             </a>
             <button type="button" class="btn btn-outline-primary"
-                pup-target="{{ url_for('admin.owidcharts.add_chart_popup') }}" onclick="pup_window_new(this)">
+                pup-target="{{ url_for('admin.owidcharts.add_chart_popup') }}" onclick="pup_window_new(this, 700, 650)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
             <a href="{{ url_for('admin.owidcharts.download_owid_charts_json') }}" class="btn btn-outline-success">
@@ -152,7 +152,7 @@
 
         const table = $("#chartsTable").DataTable({
             ajax: {
-                url: `/api/owid-charts/{{ selected_template }}`,
+                url: `/api/owidcharts/{{ selected_template }}`,
                 type: "GET",
                 dataSrc: function (json) {
                     if (json.summary) {
@@ -236,7 +236,10 @@
                 {
                     data: "chart_id",
                     render: function (data, type, row) {
-                        return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="/admin/owid-charts/${data}/edit" onclick="pup_window_new(this)"><i class="bi bi-pencil"></i> Edit</button>`;
+                        // const edit_url = `/admin/owidcharts/${data}/edit`;
+                        const base_url = "{{ url_for('admin.owidcharts.edit_chart', chart_id='550000000055') }}";
+                        const edit_url = base_url.replace('550000000055', data);
+                        return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="${edit_url}" onclick="pup_window_new(this, 700, 650)"><i class="bi bi-pencil"></i> Edit</button>`;
                     },
                 }
             ],
@@ -244,13 +247,5 @@
             processing: true
         });
     });
-    function pup_window_new(element) {
-        var target = $(element).attr("pup-target");
-        window.open(
-            target,
-            "",
-            "width=700,height=650,left=100,top=100,location=no"
-        );
-    }
 </script>
 {% endblock %}

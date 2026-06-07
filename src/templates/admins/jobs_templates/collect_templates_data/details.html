@@ -118,7 +118,7 @@
                         <td>
                             <a type="button" class="btn-outline-primary btn-sm"
                                 pup-target="{{ url_for('admin.templates.edit_by_title', template_title=template.title) }}"
-                                onclick="pup_window_new(this)">
+                                onclick="pup_window_new(this, 600, 600)">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </td>
@@ -188,14 +188,5 @@
 {% block extra_js %}
 
 <script>
-    function pup_window_new(element) {
-        var target = $(element).attr("pup-target");
-        window.open(
-            target,
-            "",
-            "width=600,height=550,left=100,top=100,location=no"
-        );
-    }
-
 </script>
 {% endblock %}

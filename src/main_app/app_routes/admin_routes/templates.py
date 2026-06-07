@@ -255,7 +255,7 @@ class Templates:
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
 
-        @self.bp.get("/<path:template_title>/edit")
+        @self.bp.get("/<path:template_title>/edit_by_title")
         @admin_required
         def edit_by_title(template_title: str) -> ResponseReturnValue:
             return _edit_template_by_title(template_title)

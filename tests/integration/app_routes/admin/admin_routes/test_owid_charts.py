@@ -71,7 +71,7 @@ class TestOwidChartsDashboard:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.list_charts.return_value = []
 
-        response = flask_client.get("/admin/owid-charts")
+        response = flask_client.get("/admin/owidcharts")
 
         assert response.status_code == 200
 
@@ -80,7 +80,7 @@ class TestOwidChartsDashboard:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.list_charts.return_value = [sample_chart_record]
 
-        response = flask_client.get("/admin/owid-charts")
+        response = flask_client.get("/admin/owidcharts")
 
         assert response.status_code == 200
 
@@ -117,7 +117,7 @@ class TestOwidChartsDashboard:
         )
         mock_service.list_charts.return_value = [chart_with_template, chart_without_template]
 
-        response = flask_client.get("/admin/owid-charts?template=has_template")
+        response = flask_client.get("/admin/owidcharts?template=has_template")
 
         assert response.status_code == 200
 
@@ -139,7 +139,7 @@ class TestOwidChartsDashboard:
         )
         mock_service.list_charts.return_value = [chart_without_template]
 
-        response = flask_client.get("/admin/owid-charts?template=no_template")
+        response = flask_client.get("/admin/owidcharts?template=no_template")
 
         assert response.status_code == 200
 
@@ -151,7 +151,7 @@ class TestAddChartPopup:
         """Test add chart popup renders."""
         flask_client, _ = owid_charts_admin_client
 
-        response = flask_client.get("/admin/owid-charts/add")
+        response = flask_client.get("/admin/owidcharts/add")
 
         assert response.status_code == 200
 
@@ -165,7 +165,7 @@ class TestAddChart:
         mock_service.add_chart.return_value = sample_chart_record
 
         response = flask_client.post(
-            "/admin/owid-charts/add",
+            "/admin/owidcharts/add",
             data={
                 "slug": "new-chart",
                 "title": "New Chart",
@@ -183,7 +183,7 @@ class TestAddChart:
         flask_client, mock_service = owid_charts_admin_client
 
         response = flask_client.post(
-            "/admin/owid-charts/add",
+            "/admin/owidcharts/add",
             data={
                 "slug": "",
                 "title": "New Chart",
@@ -199,7 +199,7 @@ class TestAddChart:
         flask_client, _ = owid_charts_admin_client
 
         response = flask_client.post(
-            "/admin/owid-charts/add",
+            "/admin/owidcharts/add",
             data={
                 "slug": "new-chart",
                 "title": "",
@@ -215,7 +215,7 @@ class TestAddChart:
         mock_service.add_chart.side_effect = ValueError("Slug already exists")
 
         response = flask_client.post(
-            "/admin/owid-charts/add",
+            "/admin/owidcharts/add",
             data={
                 "slug": "existing",
                 "title": "Existing Chart",
@@ -231,7 +231,7 @@ class TestAddChart:
         mock_service.add_chart.return_value = sample_chart_record
 
         _response = flask_client.post(
-            "/admin/owid-charts/add",
+            "/admin/owidcharts/add",
             data={
                 "slug": "full-chart",
                 "title": "Full Chart",
@@ -267,7 +267,7 @@ class TestUpdateChart:
         mock_service.update_chart_data.return_value = sample_chart_record
 
         response = flask_client.post(
-            "/admin/owid-charts/update",
+            "/admin/owidcharts/update",
             data={
                 "chart_id": "1",
                 "slug": "updated-chart",
@@ -284,7 +284,7 @@ class TestUpdateChart:
         flask_client, _ = owid_charts_admin_client
 
         response = flask_client.post(
-            "/admin/owid-charts/update",
+            "/admin/owidcharts/update",
             data={
                 "slug": "updated",
                 "title": "Updated",
@@ -299,7 +299,7 @@ class TestUpdateChart:
         flask_client, _ = owid_charts_admin_client
 
         response = flask_client.post(
-            "/admin/owid-charts/update",
+            "/admin/owidcharts/update",
             data={
                 "chart_id": "1",
                 "slug": "",
@@ -316,7 +316,7 @@ class TestUpdateChart:
         mock_service.update_chart_data.return_value = sample_chart_record
 
         response = flask_client.post(
-            "/admin/owid-charts/update",
+            "/admin/owidcharts/update",
             data={
                 "chart_id": "1",
                 "slug": "updated",
@@ -333,7 +333,7 @@ class TestUpdateChart:
         mock_service.update_chart_data.side_effect = LookupError("Chart not found")
 
         response = flask_client.post(
-            "/admin/owid-charts/update",
+            "/admin/owidcharts/update",
             data={
                 "chart_id": "999",
                 "slug": "missing",
@@ -353,7 +353,7 @@ class TestDeleteChart:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.delete_chart.return_value = sample_chart_record
 
-        response = flask_client.post("/admin/owid-charts/1/delete", follow_redirects=True)
+        response = flask_client.post("/admin/owidcharts/1/delete", follow_redirects=True)
 
         mock_service.delete_chart.assert_called_once_with(1)
         assert response.status_code == 200
@@ -363,7 +363,7 @@ class TestDeleteChart:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.delete_chart.side_effect = LookupError("Chart not found")
 
-        response = flask_client.post("/admin/owid-charts/999/delete", follow_redirects=True)
+        response = flask_client.post("/admin/owidcharts/999/delete", follow_redirects=True)
 
         assert response.status_code == 200
 
@@ -373,7 +373,7 @@ class TestDeleteChart:
         mock_service.delete_chart.return_value = sample_chart_record
 
         response = flask_client.post(
-            "/admin/owid-charts/1/delete",
+            "/admin/owidcharts/1/delete",
             data={
                 "from_popup": "1",
             },
@@ -390,7 +390,7 @@ class TestEditChart:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.get_chart_by_id.return_value = sample_chart_record
 
-        response = flask_client.get("/admin/owid-charts/1/edit")
+        response = flask_client.get("/admin/owidcharts/1/edit")
 
         assert response.status_code == 200
 
@@ -399,7 +399,7 @@ class TestEditChart:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.get_chart_by_id.side_effect = LookupError("Not found")
 
-        response = flask_client.get("/admin/owid-charts/999/edit")
+        response = flask_client.get("/admin/owidcharts/999/edit")
 
         assert response.status_code == 200
 
@@ -412,7 +412,7 @@ class TestDownloadJson:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.list_charts.return_value = [sample_chart_record]
 
-        response = flask_client.get("/admin/owid-charts/download-json")
+        response = flask_client.get("/admin/owidcharts/download-json")
 
         assert response.status_code == 200
         assert response.content_type == "application/json"
@@ -425,7 +425,7 @@ class TestDownloadJson:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.list_charts.return_value = []
 
-        response = flask_client.get("/admin/owid-charts/download-json", follow_redirects=True)
+        response = flask_client.get("/admin/owidcharts/download-json", follow_redirects=True)
 
         assert response.status_code == 200
 
@@ -450,7 +450,7 @@ class TestDownloadJson:
         ]
         mock_service.list_charts.return_value = charts
 
-        response = flask_client.get("/admin/owid-charts/download-json")
+        response = flask_client.get("/admin/owidcharts/download-json")
 
         data = json.loads(response.data)
         assert len(data) == 3
@@ -462,7 +462,7 @@ class TestDownloadJson:
         flask_client, mock_service = owid_charts_admin_client
         mock_service.list_charts.return_value = [sample_chart_record]
 
-        response = flask_client.get("/admin/owid-charts/download-json")
+        response = flask_client.get("/admin/owidcharts/download-json")
 
         data = json.loads(response.data)[0]
         expected_fields = [

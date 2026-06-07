@@ -43,8 +43,8 @@ def templates_need_update_list():
     return jsonify({"data": data})
 
 
-@bp_api.get("/owid-charts")
-@bp_api.get("/owid-charts/<string:template_filter>")
+@bp_api.get("/owidcharts")
+@bp_api.get("/owidcharts/<string:template_filter>")
 def owid_charts_list(template_filter: str = ""):
     all_charts: list[OwidChartRecord] = list_charts()
 

@@ -211,6 +211,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         template_info.steps["main_file"]["value"] = template.main_file
         template_info.steps["last_world_file"]["value"] = template.last_world_file
         template_info.steps["source"]["value"] = template.source
+        template_info.steps["slug"]["value"] = template.slug
 
         return template_info
 
