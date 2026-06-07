@@ -55,7 +55,7 @@ class SlugRedirects:
         @self.bp.get("/")
         @admin_required
         def dashboard():
-            page = request.args.get("page", 1, type=int)
+            page = max(1, request.args.get("page", 1, type=int))
             per_page = 50
             offset = (page - 1) * per_page
 
