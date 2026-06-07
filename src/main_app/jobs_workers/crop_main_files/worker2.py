@@ -431,6 +431,7 @@ class CropMainFilesWorker(BaseJobWorker):
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
 
+
 def crop_main_files_worker_entry(
     *,
     job_id: int,

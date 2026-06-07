@@ -473,6 +473,7 @@ class CropMainFilesProcessor:
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
 
+
 class CropMainFilesWorker(BaseJobWorker):
     """Worker for cropping main files and uploading them with (cropped) suffix."""
 

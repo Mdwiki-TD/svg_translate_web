@@ -214,45 +214,23 @@ class TestCropMainFilesProcessorInitialization:
 
     def test_processor_initialization(self, mock_services):
         """Test processor initializes correctly."""
-        initial_result = {
-            "status": "pending",
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "cropped": 0,
-                "uploaded": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user={"username": "test"},
             args={"upload_files": True},
         )
 
         assert processor.job_id == 1
-        assert processor.result_file == "test_result.json"
+        assert processor.result_file == "crop_main_files_job_1.json"
         assert processor.user == {"username": "test"}
         assert processor.upload_files is True
         assert processor.site is None
 
     def test_processor_default_upload_files(self, mock_services):
         """Test processor defaults upload_files to False."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -264,16 +242,9 @@ class TestCropMainFilesProcessorBeforeRun:
 
     def test_before_run_success(self, mock_services):
         """Test before_run with successful initialization."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user={"username": "test"},
         )
 
@@ -285,21 +256,14 @@ class TestCropMainFilesProcessorBeforeRun:
         assert result is True
         assert processor.site is not None
         mock_services["update_job_status"].assert_called_once_with(
-            1, "running", "test_result.json", job_type="crop_main_files"
+            1, "running", "crop_main_files_job_1.json", job_type="crop_main_files"
         )
 
     def test_before_run_lookup_error(self, mock_services):
         """Test before_run when job record not found."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user={"username": "test"},
         )
 
@@ -311,16 +275,9 @@ class TestCropMainFilesProcessorBeforeRun:
 
     def test_before_run_no_site_auth(self, mock_services):
         """Test before_run when site authentication fails."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -330,8 +287,8 @@ class TestCropMainFilesProcessorBeforeRun:
         result = processor.before_run()
 
         assert result is False
-        assert initial_result["status"] == "failed"
-        assert "failed_at" in initial_result
+        assert processor.result["status"] == "failed"
+        assert "failed_at" in processor.result
 
 
 class TestCropMainFilesProcessorLoadTemplates:
@@ -346,16 +303,8 @@ class TestCropMainFilesProcessorLoadTemplates:
         ]
         mock_services["list_templates"].return_value = templates
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -372,16 +321,8 @@ class TestCropMainFilesProcessorLoadTemplates:
             TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg", last_world_file="test3_2020.svg"),
         ]
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             args={"upload_limit": 2},
         )
@@ -398,16 +339,8 @@ class TestCropMainFilesProcessorSteps:
         """Test _step_download with successful download."""
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -424,22 +357,14 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
         assert file_info.steps["download"]["result"] is True
-        assert initial_result["summary"]["processed"] == 1
+        assert processor.result["summary"]["processed"] == 1
 
     def test_step_download_failure(self, mock_services):
         """Test _step_download when download fails."""
         mock_services["download_file"].return_value = {"success": False, "error": "Network error"}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -457,22 +382,14 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.status == "failed"
         assert file_info.steps["download"]["result"] is False
         assert "Network error" in file_info.steps["download"]["msg"]
-        assert initial_result["summary"]["failed"] == 1
+        assert processor.result["summary"]["failed"] == 1
 
     def test_step_download_exception(self, mock_services):
         """Test _step_download when exception occurs."""
         mock_services["download_file"].side_effect = ConnectionError("Connection refused")
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -494,16 +411,8 @@ class TestCropMainFilesProcessorSteps:
         """Test _step_crop with successful crop."""
         mock_services["crop_svg_file"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -522,22 +431,14 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert file_info.cropped_path == cropped_output_path
         assert file_info.steps["crop"]["result"] is True
-        assert initial_result["summary"]["cropped"] == 1
+        assert processor.result["summary"]["cropped"] == 1
 
     def test_step_crop_failure(self, mock_services, tmp_path):
         """Test _step_crop when crop fails."""
         mock_services["crop_svg_file"].return_value = {"success": False, "error": "Invalid SVG"}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -557,23 +458,15 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.status == "failed"
         assert file_info.steps["crop"]["result"] is False
         assert "Invalid SVG" in file_info.steps["crop"]["msg"]
-        assert initial_result["summary"]["failed"] == 1
+        assert processor.result["summary"]["failed"] == 1
 
     def test_step_upload_success(self, mock_services, tmp_path):
         """Test _step_upload with successful upload."""
         mock_services["get_file_text"].return_value = "Original file text"
         mock_services["upload_cropped_file"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -591,23 +484,15 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert file_info.status == "uploaded"
         assert file_info.steps["upload_cropped"]["result"] is True
-        assert initial_result["summary"]["uploaded"] == 1
+        assert processor.result["summary"]["uploaded"] == 1
 
     def test_step_upload_file_exists(self, mock_services, tmp_path):
         """Test _step_upload when file already exists."""
         mock_services["get_file_text"].return_value = "Original file text"
         mock_services["upload_cropped_file"].return_value = {"success": False, "file_exists": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -624,23 +509,15 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is True  # Should continue to wikitext updates
         assert file_info.status == "skipped"
-        assert initial_result["summary"]["skipped"] == 1
+        assert processor.result["summary"]["skipped"] == 1
 
     def test_step_upload_failure(self, mock_services, tmp_path):
         """Test _step_upload when upload fails."""
         mock_services["get_file_text"].return_value = "Original file text"
         mock_services["upload_cropped_file"].return_value = {"success": False, "error": "Upload failed"}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -658,23 +535,15 @@ class TestCropMainFilesProcessorSteps:
         assert result is False
         assert file_info.status == "failed"
         assert file_info.error == "Upload failed"
-        assert initial_result["summary"]["failed"] == 1
+        assert processor.result["summary"]["failed"] == 1
 
     def test_step_update_original_no_change(self, mock_services):
         """Test _step_update_original when no update is needed."""
         mock_services["get_file_text"].return_value = "Original file text"
         mock_services["update_original_file_text"].return_value = "Original file text"  # No change
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -698,16 +567,8 @@ class TestCropMainFilesProcessorSteps:
         mock_services["update_original_file_text"].return_value = "Updated file text"
         mock_services["update_file_text"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -730,16 +591,8 @@ class TestCropMainFilesProcessorSteps:
         mock_services["update_original_file_text"].return_value = "Updated file text"
         mock_services["update_file_text"].return_value = {"success": False, "error": "Edit conflict"}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -761,16 +614,8 @@ class TestCropMainFilesProcessorSteps:
         mock_services["get_page_text"].return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Template text"  # No change
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -794,16 +639,8 @@ class TestCropMainFilesProcessorSteps:
         mock_services["update_template_page_file_reference"].return_value = "Updated template text"
         mock_services["update_page_text"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
         processor.site = MagicMock()
@@ -826,16 +663,9 @@ class TestCropMainFilesProcessorHelpers:
 
     def test_fail_updates_status_and_result(self, mock_services):
         """Test _fail updates info status and result summary."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -851,20 +681,13 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.status == "failed"
         assert file_info.error == "Download failed"
         assert file_info.steps["download"]["result"] is False
-        assert initial_result["summary"]["failed"] == 1
+        assert processor.result["summary"]["failed"] == 1
 
     def test_skip_step_updates_step_status(self, mock_services):
         """Test _skip_step updates step status."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -882,16 +705,9 @@ class TestCropMainFilesProcessorHelpers:
 
     def test_skip_upload_steps(self, mock_services):
         """Test _skip_upload_steps marks upload steps as skipped."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -908,23 +724,15 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["upload_cropped"]["result"] is None
         assert file_info.steps["update_original"]["result"] is None
         assert file_info.steps["update_template"]["result"] is None
-        assert initial_result["summary"]["skipped"] == 1
+        assert processor.result["summary"]["skipped"] == 1
         assert file_info.cropped_filename is None
 
     def test_is_cancelled_with_event(self, mock_services):
         """Test is_cancelled with cancel event."""
         cancel_event = threading.Event()
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             cancel_event=cancel_event,
         )
@@ -933,40 +741,25 @@ class TestCropMainFilesProcessorHelpers:
 
         cancel_event.set()
         assert processor.is_cancelled() is True
-        assert initial_result["status"] == "cancelled"
+        assert processor.result["status"] == "cancelled"
 
     def test_is_cancelled_with_global_check(self, mock_services):
         """Test is_cancelled with global job cancellation check."""
         mock_services["is_job_cancelled"].return_value = True
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
         assert processor.is_cancelled() is True
-        assert initial_result["status"] == "cancelled"
+        assert processor.result["status"] == "cancelled"
 
     def test_append_adds_to_result(self, mock_services):
         """Test _append adds info to files_processed list."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -979,21 +772,14 @@ class TestCropMainFilesProcessorHelpers:
 
         processor._append(file_info)
 
-        assert len(initial_result["files_processed"]) == 1
-        assert initial_result["files_processed"][0]["template_id"] == 1
+        assert len(processor.result["files_processed"]) == 1
+        assert processor.result["files_processed"][0]["template_id"] == 1
 
     def test_get_priority(self, mock_services):
         """Test get_priority calculates correct interval."""
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
 
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
@@ -1025,16 +811,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
         mock_services["update_page_text"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             args={"upload_files": True},
         )
@@ -1045,8 +823,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip download, crop, and upload steps
-        assert initial_result["files_processed"][0]["steps"]["download"]["result"] is None
-        assert "Skipped" in initial_result["files_processed"][0]["steps"]["download"]["msg"]
+        assert processor.result["files_processed"][0]["steps"]["download"]["result"] is None
+        assert "Skipped" in processor.result["files_processed"][0]["steps"]["download"]["msg"]
 
     def test_process_template_full_pipeline(self, mock_services, tmp_path):
         """Test full pipeline for a new file."""
@@ -1069,16 +847,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
         mock_services["update_page_text"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             args={"upload_files": True},
         )
@@ -1090,7 +860,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         processor._process_template(template)
 
-        file_result = initial_result["files_processed"][0]
+        file_result = processor.result["files_processed"][0]
         assert file_result["steps"]["download"]["result"] is True
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
@@ -1108,16 +878,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             args={"upload_files": False},
         )
@@ -1130,9 +892,9 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip upload steps
-        assert initial_result["files_processed"][0]["steps"]["upload_cropped"]["result"] is None
-        assert "upload disabled" in initial_result["files_processed"][0]["steps"]["upload_cropped"]["msg"].lower()
-        assert initial_result["summary"]["skipped"] == 1
+        assert processor.result["files_processed"][0]["steps"]["upload_cropped"]["result"] is None
+        assert "upload disabled" in processor.result["files_processed"][0]["steps"]["upload_cropped"]["msg"].lower()
+        assert processor.result["summary"]["skipped"] == 1
 
 
 class TestCropMainFilesProcessorRun:
@@ -1163,16 +925,8 @@ class TestCropMainFilesProcessorRun:
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
         mock_services["update_page_text"].return_value = {"success": True}
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
             args={"upload_files": True},
         )
@@ -1189,16 +943,8 @@ class TestCropMainFilesProcessorRun:
         """Test run when before_run returns False."""
         mock_services["update_job_status"].side_effect = LookupError("Job not found")
 
-        initial_result = {
-            "status": "pending",
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
-        }
-
         processor = CropMainFilesWorker(
             job_id=1,
-            # result=initial_result,
-            # result_file="test_result.json",
             user=None,
         )
 
