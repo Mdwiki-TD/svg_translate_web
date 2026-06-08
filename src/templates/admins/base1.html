@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-mobile.css') }}">
 {% endblock %}
 
-{% block content %}
+{% block content_fluid %}
 <div class="container-fluid">
     <div class="row content">
         <div class="col-md-2 px-0 colmd2 border">
@@ -15,7 +15,7 @@
         </div>
         <div class="px-0 col-md-10 colmd10">
             <div class="container-fluid">
-                {% block contents %}{% endblock %}
+                {% block admin_contents %}{% endblock %}
             </div>
         </div>
     </div>

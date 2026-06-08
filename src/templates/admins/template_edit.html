@@ -1,10 +1,7 @@
-{% extends "base.html" %}
-
+{% extends "admins/popup_action.html" %}
 {% block title %}Edit Template · Copy SVG Translation{% endblock %}
 
-{% set hide_navbar = 1 %}
-
-{% block content %}
+{% block popup_action_content %}
 <div class="container mt-4">
     {% if error %}
     <div class="alert alert-danger" role="alert">
