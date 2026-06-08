@@ -1,6 +1,6 @@
 {% extends "admins/base1.html" %}
 
-{% block title %}Coordinators · Copy SVG Translation{% endblock %}
+{% block title %}Coordinators · {{ tool_title }}{% endblock %}
 
 {%- macro update_active_form(coordinator) -%}
 <form method="post" action="{{ url_for('admin.coordinators.update_active', coordinator_id=coordinator.id) }}"

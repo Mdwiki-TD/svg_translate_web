@@ -2,7 +2,7 @@
 {% from "_macros.html" import card_header, stats_card, status_icon, csrf, job_errors_div %}
 {% from "_macros/forms.html" import from_start_job, from_cancel_job, from_delete_job %}
 
-{% block title %}{{ detail_title }} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
+{% block title %}{{ detail_title }} Job #{{ job.id }} · {{ tool_title }}{% endblock %}
 
 {% block admin_contents %}
 <div class="card">
