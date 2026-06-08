@@ -98,7 +98,7 @@ def create_page(
         logger.error(f"Missing required fields for create_page: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    return _edit_page(site, page_name, wikitext, summary, nocreate=0)
+    return MwClientPage(page_name, site).create_page(wikitext, summary)
 
 
 def update_page_text(
