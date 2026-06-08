@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_icon, csrf %}
-{% from "_macros/forms.html" import from_start_job, from_cancel_job, from_delete_job %}
+{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
 {% block title %}{{ list_title }}{% endblock %}
 
@@ -12,7 +12,7 @@
             <div class="d-flex gap-2">
                 {% block header_actions %}{% endblock %}
                 {% if not hide_start_button %}
-                {{ from_start_job(url_for('public_jobs.start_job', job_type=job_type), start_confirm_message) }}
+                {{ form_start_job(url_for('public_jobs.start_job', job_type=job_type), start_confirm_message) }}
                 {% endif %}
             </div>
         </div>
@@ -52,10 +52,10 @@
                                         <i class="bi bi-eye"></i> Details
                                     </a>
                                     {% if (current_username == job.username) and (job.status == 'running' or job.status == 'pending') %}
-                                    {{ from_cancel_job(url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+                                    {{ form_cancel_job(url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
                                     {% endif %}
                                     {% if is_admin %}
-                                    {{ from_delete_job(url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id)) }}
+                                    {{ form_delete_job(url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id)) }}
                                     {% endif %}
                                     {% block table_extra_actions %}{% endblock %}
                                 </div>
