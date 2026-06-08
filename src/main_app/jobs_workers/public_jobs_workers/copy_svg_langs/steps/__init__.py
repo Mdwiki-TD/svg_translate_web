@@ -1,4 +1,4 @@
-from .download import download_step
+from .download_step import download_step
 from .extract_text import extract_text_step
 from .extract_titles import extract_titles_step
 from .extract_translations import extract_translations_step

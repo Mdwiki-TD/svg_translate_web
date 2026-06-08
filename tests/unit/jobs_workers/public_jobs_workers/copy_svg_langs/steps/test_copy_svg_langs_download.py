@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download import download_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download_step import download_step
 
 
 class TestDownloadStep:
