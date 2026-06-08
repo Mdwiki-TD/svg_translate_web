@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import Any
 
 import mwclient
 
@@ -19,7 +20,7 @@ class MwClientPage:
         self.load_page_error = ""
         self.page = None
 
-    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
+    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
         try:
             save = page.edit(text, summary=summary, nocreate=nocreate) or {}
             return {"success": True, **save}
@@ -47,7 +48,7 @@ class MwClientPage:
             logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             return {"success": False, "error": str(exc)}
 
-    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
+    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
@@ -73,7 +74,7 @@ class MwClientPage:
         reason: str,
         move_talk: bool,
         no_redirect: bool,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         try:
             page.move(
                 new_title,
@@ -105,7 +106,7 @@ class MwClientPage:
         reason: str,
         move_talk: bool,
         no_redirect: bool,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
@@ -166,7 +167,7 @@ class MwClientPage:
             logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
             return False
 
-    def edit_page(self, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
+    def edit_page(self, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
         page = self.load_page()
 
         if not page:
@@ -186,7 +187,7 @@ class MwClientPage:
         reason: str = "",
         move_talk: bool = True,
         no_redirect: bool = False,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Move (rename) the page, with rate-limit retry handling."""
         page = self.load_page()
 

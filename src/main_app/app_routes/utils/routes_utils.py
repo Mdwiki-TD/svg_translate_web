@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from flask import g, url_for
 
-from ...public_jobs_workers.workers_list_public import jobs_data_public
+from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def _is_admin(user: Any) -> bool:
     return bool(user and getattr(user, "is_active_admin", False))
 
 
-def context_user(wiki_domain: str, static_server: str) -> dict[str, Any]:
+def context_user(wiki_domain: str, static_server: str, tool_title: str = "Copy SVG Translations") -> dict[str, Any]:
     """
     Used in @app.context_processor to inject variables into templates.
     """
@@ -31,6 +31,7 @@ def context_user(wiki_domain: str, static_server: str) -> dict[str, Any]:
         "is_admin": _is_admin(user),
         "wiki_domain": wiki_domain,
         "static_server": static_server,
+        "tool_title": tool_title,
     }
 
 

@@ -1,4 +1,4 @@
-from .download_main_files.worker import create_main_files_zip
+from .admin_jobs_workers.download_main_files.worker import create_main_files_zip
 
 __all__ = [
     "create_main_files_zip",

@@ -11,7 +11,7 @@ from flask import (
 )
 
 from ...db.services import list_jobs, list_users
-from ...jobs_workers.workers_list import jobs_data
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
 from ..admin_routes import (
     coordinators_module,
     jobs_module,
@@ -65,7 +65,10 @@ def admin_dashboard():
             }
         )
 
-    return render_template("admins/admin.html", jobs=enhanced_jobs)
+    return render_template(
+        "admins/admin.html",
+        jobs=enhanced_jobs,
+    )
 
 
 @bp_admin.get("/users")
@@ -93,3 +96,8 @@ def register_blueprints(bp_admin) -> None:
 
 
 register_blueprints(bp_admin)
+
+
+__all__ = [
+    "bp_admin",
+]

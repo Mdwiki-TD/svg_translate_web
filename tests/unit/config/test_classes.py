@@ -89,9 +89,12 @@ def test_Settings():
 
     jobs_config = JobsConfig(
         disable_uploads="",
+        jobs_max_workers=10,
+        jobs_log_lines=10,
     )
 
     security_config = SecurityConfig(
+        salt="svg-translate",
         secret_key="secret",
         max_content_length=100 * 1024 * 1024,
         max_form_memory_size=16 * 1024 * 1024,

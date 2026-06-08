@@ -11,7 +11,7 @@ import pytest
 import requests
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.download_main_files import worker
+from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import worker
 
 
 @pytest.fixture
@@ -20,7 +20,9 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock list_templates
     mock_list_templates = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.list_templates", mock_list_templates)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates", mock_list_templates
+    )
 
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
@@ -42,7 +44,9 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_settings.oauth = MagicMock()
     mock_settings.other.user_agent = "TestBot/1.0"
     mock_settings.jobs = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -140,7 +144,9 @@ def test_download_file_from_commons_unexpected_error(tmp_path):
 
 def test_download_file_from_commons_creates_session_if_none():
     """Test that a session is created if none is provided."""
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_response = Mock()
         mock_response.content = b"content"
@@ -204,7 +210,9 @@ def test_download_main_files_downloads_template_with_main_file(mock_services, tm
     mock_response.content = b"SVG content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -228,7 +236,9 @@ def test_download_main_files_handles_download_failure(mock_services, tmp_path):
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
     # Mock requests with error
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.side_effect = requests.RequestException("404 Not Found")
         mock_session_class.return_value = mock_session
@@ -252,7 +262,9 @@ def test_download_main_files_handles_exception(mock_services, tmp_path):
     mock_services["settings"].paths.main_files_path = str(tmp_path)
 
     # Mock requests with unexpected exception
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.side_effect = Exception("Unexpected error")
         mock_session_class.return_value = mock_session
@@ -287,7 +299,9 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
         elif "test3" in url:
             raise requests.RequestException("404")
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.side_effect = get_side_effect
         mock_session_class.return_value = mock_session
@@ -315,7 +329,7 @@ def test_download_main_files_respects_cancellation(mock_services, tmp_path):
     cancel_event = threading.Event()
     cancel_event.set()  # Set immediately to cancel
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session"):
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"):
         worker.download_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     # Should save result with cancelled status
@@ -337,7 +351,9 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
     mock_response.content = b"SVG content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -367,7 +383,9 @@ def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
     mock_response.content = b"new content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -402,7 +420,9 @@ def test_generate_main_files_zip_success(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Generate the zip file
     zip_path = worker.generate_main_files_zip()
@@ -426,7 +446,9 @@ def test_generate_main_files_zip_no_files(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Should raise RuntimeError when no files found
     with pytest.raises(RuntimeError, match="No files found to zip"):
@@ -441,7 +463,9 @@ def test_generate_main_files_zip_directory_not_exists(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Should raise FileNotFoundError
     with pytest.raises(FileNotFoundError):
@@ -458,7 +482,9 @@ def test_generate_main_files_zip_excludes_self(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Generate the zip file
     zip_path = worker.generate_main_files_zip()
@@ -487,10 +513,12 @@ def test_create_main_files_zip_success(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Mock send_file to return a mock response
-    with patch("src.main_app.jobs_workers.download_main_files.worker.send_file") as mock_send:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.send_file") as mock_send:
         mock_response = Mock()
         mock_send.return_value = mock_response
 
@@ -517,7 +545,9 @@ def test_create_main_files_zip_not_found(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     response, status_code = worker.create_main_files_zip()
 
@@ -533,7 +563,9 @@ def test_create_main_files_zip_directory_not_exists(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     response, status_code = worker.create_main_files_zip()
 
@@ -552,7 +584,9 @@ def test_create_main_files_zip_empty_file(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     response, status_code = worker.create_main_files_zip()
 
@@ -574,10 +608,12 @@ def test_create_main_files_zip_empty_directory(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Mock send_file to return a mock response
-    with patch("src.main_app.jobs_workers.download_main_files.worker.send_file") as mock_send:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.send_file") as mock_send:
         mock_response = Mock()
         mock_send.return_value = mock_response
 
@@ -606,10 +642,12 @@ def test_create_main_files_zip_ignores_subdirectories(tmp_path, monkeypatch):
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.paths.main_files_path = str(main_files_path)
-    monkeypatch.setattr("src.main_app.jobs_workers.download_main_files.worker.settings", mock_settings)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.settings", mock_settings
+    )
 
     # Mock send_file to return a mock response
-    with patch("src.main_app.jobs_workers.download_main_files.worker.send_file") as mock_send:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.send_file") as mock_send:
         mock_response = Mock()
         mock_send.return_value = mock_response
 
@@ -635,7 +673,9 @@ def test_download_main_files_saves_progress_periodically(mock_services, tmp_path
     mock_response.content = b"SVG content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -703,7 +743,9 @@ def test_download_main_files_creates_output_directory(mock_services, tmp_path):
     mock_response.content = b"SVG content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -734,7 +776,9 @@ def test_download_main_files_handles_job_deletion_during_final_status_update(moc
 
     mock_services["update_job_status"].side_effect = update_status_side_effect
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -778,7 +822,9 @@ def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path
     mock_response.content = b"SVG content"
     mock_response.raise_for_status = Mock()
 
-    with patch("src.main_app.jobs_workers.download_main_files.worker.requests.Session") as mock_session_class:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.requests.Session"
+    ) as mock_session_class:
         mock_session = Mock()
         mock_session.get.return_value = mock_response
         mock_session_class.return_value = mock_session
@@ -943,7 +989,9 @@ class TestDownloadMainFilesEntryPointArgsMapping:
         """Test that download_main_files_limit_items is mapped to limit_items."""
         mock_services["list_templates"].return_value = []
 
-        with patch("src.main_app.jobs_workers.download_main_files.worker.DownloadMainFilesWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -961,7 +1009,9 @@ class TestDownloadMainFilesEntryPointArgsMapping:
         """Test that args are passed unchanged when key is absent."""
         mock_services["list_templates"].return_value = []
 
-        with patch("src.main_app.jobs_workers.download_main_files.worker.DownloadMainFilesWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -979,7 +1029,9 @@ class TestDownloadMainFilesEntryPointArgsMapping:
         mock_services["list_templates"].return_value = []
 
         for falsy_value in [0, None, "", False]:
-            with patch("src.main_app.jobs_workers.download_main_files.worker.DownloadMainFilesWorker") as MockWorker:
+            with patch(
+                "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker"
+            ) as MockWorker:
                 mock_instance = MagicMock()
                 MockWorker.return_value = mock_instance
 
@@ -996,7 +1048,9 @@ class TestDownloadMainFilesEntryPointArgsMapping:
         """Test that entry point works correctly when args is None."""
         mock_services["list_templates"].return_value = []
 
-        with patch("src.main_app.jobs_workers.download_main_files.worker.DownloadMainFilesWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 

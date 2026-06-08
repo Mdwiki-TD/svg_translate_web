@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import DuplicateJobError
 from ..models.jobs import JobRecord
-from .utils import db_guard_rollback
+from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,7 @@ def _update_running_status(job_id: int, result_file: str | None = None, *, job_t
 # ── SELECT ───────────────────────────────────────────────
 
 
+@db_guard(default_return=False)
 def is_job_cancelled(job_id: int, job_type: str) -> bool:
     """
     Check if a job is marked as cancelled.

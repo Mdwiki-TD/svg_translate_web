@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.crop_main_files import worker
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import worker
 
 
 @pytest.fixture
@@ -154,8 +154,8 @@ def test_crop_main_files_worker_entry_handles_exception(mock_services):
     # Check the last saved result has error details
     last_saved = save_calls[-1][0][1]
     assert last_saved["status"] == "failed"
-    assert "Database connection failed" in last_saved["errors"][1]["error"]
-    assert last_saved["errors"][1]["error_type"] == "RuntimeError"
+    assert "Database connection failed" in last_saved["errors"][0]["error"]
+    assert last_saved["errors"][0]["error_type"] == "RuntimeError"
 
 
 def test_crop_main_files_worker_entry_sets_completed_timestamp(mock_services):
@@ -329,7 +329,7 @@ def test_crop_main_files_worker_entry_different_exception_types(mock_services):
         save_calls = mock_services["save_job_result_by_name"].call_args_list
         assert len(save_calls) >= 1
         last_saved = save_calls[-1][0][1]
-        assert last_saved["errors"][1]["error_type"] == expected_type
+        assert last_saved["errors"][0]["error_type"] == expected_type
 
 
 def test_crop_main_files_worker_entry_upload_files_flag(mock_services):
@@ -443,7 +443,7 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_services):
     """Test that crop_newest_upload_limit is mapped to upload_limit in args."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
@@ -457,7 +457,7 @@ def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_service
 
 def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services):
     """Test that args are passed unchanged when crop_newest_upload_limit is absent."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
@@ -471,7 +471,9 @@ def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services
 def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_services):
     """Test that mapping is skipped when crop_newest_upload_limit value is falsy."""
     for falsy_value in [0, None, "", False]:
-        with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -484,7 +486,7 @@ def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_service
 
 def test_crop_main_files_worker_entry_does_not_modify_args_when_none(mock_services):
     """Test that entry point works correctly when args is None."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 

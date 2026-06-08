@@ -3,15 +3,15 @@
 {%- macro render_step(step) -%}
 {% if step %}
 {% if step.result == true %}
-<span class="badge bg-success" title="{{ step.msg }}">
+<span class="badge bg-success" title="{{ step.msg or step.message }}">
     <i class="bi bi-check-lg"></i>
 </span>
 {% elif step.result == false %}
-<span class="badge bg-danger" title="{{ step.msg }}">
+<span class="badge bg-danger" title="{{ step.msg or step.message }}">
     <i class="bi bi-x-lg"></i>
 </span>
-{% elif step.result is none and step.msg %}
-<span class="badge bg-secondary" title="{{ step.msg }}">
+{% elif step.result is none %}
+<span class="badge bg-secondary" title="{{ step.msg or step.message }}">
     <i class="bi bi-dash"></i>
 </span>
 {% else %}

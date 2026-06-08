@@ -893,6 +893,5 @@ def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client,
     # send_from_directory should handle path traversal attempts
     with patch("src.main_app.app_routes.admin_routes.jobs.send_from_directory") as mock_send:
         mock_send.return_value = Response("safe response")
-        _response = admin_jobs_client.get("/admin/jobs/download-main-files/file/../../../etc/passwd")
-        # send_from_directory will be called with the attempted path
-        mock_send.assert_called_once()
+        response = admin_jobs_client.get("/admin/jobs/download-main-files/file/../../../etc/passwd")
+        assert response.status_code == 404

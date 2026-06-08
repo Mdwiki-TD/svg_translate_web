@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Copy SVG Translation{% endblock %}
+{% block title %} {{ tool_title }} {% endblock %}
 
-{% block content %}
-
+{% block content_fluid %}
 <div class="container">
-    <h1 class="mb-3">Copy SVG Translation</h1>
+    <h1 class="mb-3">Copy SVG Translations</h1>
     <form method="post" action="{{ url_for('public_jobs.start_job', job_type='copy_svg_langs') }}"
         class="row gy-2 gx-3 align-items-center mb-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -43,7 +42,8 @@
                 </div>
                 <div class="col-sm-12">
                     <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" value="" id="overwrite_downloads" name="overwrite_downloads"
+                        <input class="form-check-input" type="checkbox" value="" id="overwrite_downloads"
+                            name="overwrite_downloads"
                             {{ 'checked' if form and form.overwrite_downloads == "1" else '' }}>
                         <label class="form-check-label" for="overwrite_downloads">
                             Overwrite download files

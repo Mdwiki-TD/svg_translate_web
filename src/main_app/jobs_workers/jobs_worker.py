@@ -15,9 +15,9 @@ from ..db.services import (
     create_job,
     get_all_settings_ready,
 )
-from ..public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services.jobs_files_service import create_job_cancelled_file
-from .workers_list import JobData, jobs_data
+from .admin_jobs_workers.workers_list import JobData, jobs_data
+from .public_jobs_workers.workers_list_public import jobs_data_public
 
 logger = logging.getLogger(__name__)
 
@@ -136,9 +136,9 @@ def start_job(
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
         raise
-    except Exception as e:
+    except Exception:
         logger.exception(f"Failed to create job record for job type {job_type}")
-        raise e
+        raise
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
@@ -194,9 +194,9 @@ def start_job_cli(
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
         raise
-    except Exception as e:
+    except Exception:
         logger.exception(f"Failed to create job record for job type {job_type}")
-        raise e
+        raise
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
@@ -218,5 +218,6 @@ def start_job_cli(
 
 __all__ = [
     "start_job",
+    "start_job_cli",
     "cancel_job_worker",
 ]

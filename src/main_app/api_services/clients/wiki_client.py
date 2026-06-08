@@ -35,6 +35,7 @@ def get_cronjob_site() -> mwclient.Site | None:
         site = mwclient.Site(
             settings.other.wiki_domain,
             scheme="https",
+            clients_useragent=settings.other.user_agent,
             force_login=False,
         )
     except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction

@@ -1,0 +1,10 @@
+{% extends "jobs_templates/admin/base_list.html" %}
+
+{% block list_info %}
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    This job reads OWID template pages and generates corresponding showcase pages:
+    <br>
+    <code>Template:OWID/Some map</code> → <code>OWID/Some map</code>
+</div>
+{% endblock %}

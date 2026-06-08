@@ -1,0 +1,7 @@
+{% extends "jobs_templates/admin/base_list.html" %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin.jobs.download_all_main_files') }}" class="btn btn-outline-success">
+    <i class="bi bi-download"></i> Download All as ZIP
+</a>
+{% endblock %}

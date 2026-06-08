@@ -1,0 +1,144 @@
+{% extends "jobs_templates/admin/base_details.html" %}
+{% from "_macros.html" import card_header, stats_card, render_step %}
+
+{# Processed files or pages fallback #}
+{% set _processed = result_data.files_processed or result_data.pages_processed or [] %}
+
+{# Filter pages by their specific statuses #}
+{% set skipped_pages = result_data.pages_skipped or (_processed | selectattr("status", "equalto", "skipped") | list) %}
+{% set failed_pages = result_data.pages_failed or (_processed | selectattr("status", "equalto", "failed") | list) %}
+
+{% set uploaded_pages = result_data.pages_uploaded or (_processed | selectattr("status", "equalto", "uploaded") | list) %}
+{% set updated_pages = result_data.pages_updated or (_processed | selectattr("status", "equalto", "updated") | list) %}
+
+{# Filter out any items that match the three statuses above #}
+{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success", "uploaded", "updated"]) | list %}
+
+{% block job_summary %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Uploaded', ( uploaded_pages | length ) or result_data.summary.uploaded, "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Updated', ( updated_pages | length ) or result_data.summary.updated, "info", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('skipped', ( skipped_pages | length ) or result_data.summary.skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', ( failed_pages | length ) or result_data.summary.failed, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block job_details %}
+
+{% macro pages_table(data, table_title) %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Template</th>
+                        <th>File</th>
+                        <th>Cropped</th>
+                        <th>Compare</th>
+                        <th>Download</th>
+                        <th>Crop</th>
+                        <th>Upload</th>
+                        <th title="Add Template:Image extracted to original file">
+                            Update File
+                        </th>
+                        <th>Update Template</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in data %}
+                    <tr>
+                        <td> {{ loop.index }} </td>
+                        <td style="width: 30%;">
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}" target="_blank"
+                                rel="noopener noreferrer">
+                                File
+                            </a>
+                        </td>
+                        <td>
+                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
+                            <a href="https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}" target="_blank"
+                                rel="noopener noreferrer">
+                                Cropped
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
+                            <a href="{{ url_for('admin.jobs.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
+                                target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
+                            {% endif %}
+                        </td>
+                        {% set step_keys = [
+                            'download',
+                            'crop',
+                            'upload_cropped',
+                            'update_original',
+                            'update_template'
+                        ] %}
+                        {% for step_key in step_keys %}
+                        <td>
+                            {% set step = file.steps.get(step_key) if file.steps else None %}
+                            {{ render_step(step) }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{%- endmacro -%}
+
+<!-- Uploaded -->
+{% if uploaded_pages %}
+{{ pages_table(uploaded_pages, 'Uploaded') }}
+{% endif %}
+
+<!-- Updated -->
+{% if updated_pages %}
+{{ pages_table(updated_pages, 'Updated') }}
+{% endif %}
+
+<!-- Processed -->
+{% if files_processed %}
+{{ pages_table(files_processed, 'Processed') }}
+{% endif %}
+
+<!-- Skipped -->
+{% if skipped_pages %}
+{{ pages_table(skipped_pages, 'Skipped') }}
+{% endif %}
+
+<!-- Failed -->
+{% if failed_pages %}
+{{ pages_table(failed_pages, 'Failed') }}
+{% endif %}
+
+{% endblock %}

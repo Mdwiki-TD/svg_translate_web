@@ -1,0 +1,16 @@
+{% extends "jobs_templates/admin/base_list.html" %}
+
+{% block list_info %}
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    This job lists all pages under <code>Template:OWID/</code> and <code>OWID/</code> on
+    Wikimedia Commons and renames any whose first character after <code>OWID/</code> is a
+    lowercase letter, capitalizing it. Example:
+    <br>
+    <code>Template:OWID/daily_meat_consumption_per_person</code>
+    &rarr; <code>Template:OWID/Daily_meat_consumption_per_person</code>
+    <br>
+    Renames are performed using your own OAuth account; a redirect is left
+    behind at the old title.
+</div>
+{% endblock %}

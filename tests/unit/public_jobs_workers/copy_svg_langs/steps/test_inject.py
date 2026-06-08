@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.inject import inject_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject import inject_step
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.inject.start_injects")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject.start_injects")
 def test_inject_task_success(mock_start, tmp_path):
     mock_start.return_value = {"success": 2, "failed": 0, "no_changes": 1, "nested_files": 0, "files": {}}
     files = {"f1.svg": str(tmp_path / "f1.svg"), "f2.svg": str(tmp_path / "f2.svg")}

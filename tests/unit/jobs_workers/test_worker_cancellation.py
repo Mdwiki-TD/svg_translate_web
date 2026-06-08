@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.collect_templates_data import worker as collect_worker
-from src.main_app.jobs_workers.fix_nested_main_files import worker as fix_worker
+from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker as collect_worker
+from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker as fix_worker
 
 
 @pytest.fixture
@@ -22,7 +22,9 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_generate_result_file_name = MagicMock(return_value="result.json")
 
     # Mock for collect_templates_data_worker (now accessed via base_worker)
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates
+    )
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
     monkeypatch.setattr(
@@ -31,7 +33,9 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     )
 
     # Mock for fix_nested_main_files_worker (now accessed via base_worker)
-    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -52,21 +56,21 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     # Mock get_category_members to return empty list (no new templates to add)
     mock_get_category_members = MagicMock(return_value=[])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_category_members",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
         mock_get_category_members,
     )
 
     # Mock add_template_data to avoid database calls
     mock_add_template_data = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.add_template_data",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.add_template_data",
         mock_add_template_data,
     )
 
     # Mock get_user_site to return a non-None site so the worker reaches the processing loop
     mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_user_site",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
         mock_get_user_site,
     )
 
@@ -80,15 +84,19 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     mock_update_template.side_effect = side_effect
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_page_text", lambda t, **kwargs: "some wikitext"
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_page_text",
+        lambda t, **kwargs: "some wikitext",
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.find_main_title", lambda x: "file.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+        lambda x: "file.svg",
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         lambda x: None,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.update_template_data",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
         mock_update_template,
     )
 
@@ -120,7 +128,8 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
         return {"success": True, "message": "OK"}
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags", mock_repair_nested_svg_tags
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags",
+        mock_repair_nested_svg_tags,
     )
 
     fix_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)

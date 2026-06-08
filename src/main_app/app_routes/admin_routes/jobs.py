@@ -29,8 +29,8 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.download_main_files.worker import create_main_files_zip
-from ...jobs_workers.workers_list import jobs_data
+from ...jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
 from ...su_services import load_job_result, save_job_result_by_name
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
@@ -135,7 +135,9 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
         flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
     except DuplicateJobError:
-        logger.warning("User '%s' attempted to start duplicate job type '%s'", user.username, job_type)
+        logger.warning(
+            "User '%s' attempted to start duplicate job type '%s'", getattr(user, "username", "N/A"), job_type
+        )
         flash("A job of this type is already running. Please wait for it to complete.", "warning")
     except Exception:
         logger.exception("Failed to start job")
@@ -286,7 +288,7 @@ class Jobs:
         # download-main-files routes
         # ================================
 
-        @self.bp.get("/download-main-files/file/<path:filename>")
+        @self.bp.get("/download-main-files/file/<string:filename>")
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """
@@ -315,7 +317,7 @@ class Jobs:
         # crop-main-files routes
         # ================================
 
-        @self.bp.get("/crop-main-files/original/<path:filename>")
+        @self.bp.get("/crop-main-files/original/<string:filename>")
         @admin_required
         def serve_crop_original_file(filename: str) -> Response:
             """
@@ -327,7 +329,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/cropped/<path:filename>")
+        @self.bp.get("/crop-main-files/cropped/<string:filename>")
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
@@ -339,7 +341,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/compare/<path:original>/<path:cropped>")
+        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
         @admin_required
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
@@ -352,8 +354,8 @@ class Jobs:
                 file_cropped=cropped,
             )
 
-        @self.bp.get("/read-job-result-file/<path:result_file>")
-        @self.bp.get("/read-job-result-file/<path:result_file>/<string:job_type>")
+        @self.bp.get("/read-job-result-file/<string:result_file>")
+        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
         @admin_required
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """

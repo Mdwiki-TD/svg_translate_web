@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.create_owid_pages.worker import (
+from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
     create_owid_pages_for_templates,
@@ -45,14 +45,14 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock template_service
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.list_templates",
         mock_list_templates,
     )
 
     # Mock get_user_site
     mock_get_user_site = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.get_user_site",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_user_site",
         mock_get_user_site,
     )
 
@@ -62,26 +62,26 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_create_page = MagicMock()
     mock_update_page_text = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.get_page_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_page_text",
         mock_get_page_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.is_page_exists",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.is_page_exists",
         mock_is_page_exists,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.create_page",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.create_page",
         mock_create_page,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.update_page_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.update_page_text",
         mock_update_page_text,
     )
 
     # Mock create_new_text
     mock_create_new_text = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.create_owid_pages.worker.create_new_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.create_new_text",
         mock_create_new_text,
     )
 
@@ -386,7 +386,7 @@ class TestUpdateStep:
 
         assert result is False
         assert info.status == "failed"
-        assert info.steps["create_new_page"]["result"] is False
+        assert info.steps["create_new_page"]["result"] is None
 
 
 class TestCreateNewPageStep:

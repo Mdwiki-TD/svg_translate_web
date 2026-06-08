@@ -4,14 +4,14 @@ python3 src/offline/collect_templates_data.py
 2026-06-06 03:19:57 - main_app - DEBUG - Setting up logging for 'main_app' with level '10'
 2026-06-06 03:19:57 - __main__ - DEBUG - Setting up logging for '__main__' with level '10'
 2026-06-06 03:19:57 - __main__ - INFO - Starting collect templates data offline job with job_id=262.
-2026-06-06 03:19:57 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Starting job 262: collect templates data
-2026-06-06 03:19:57 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Job 262: Fetching templates from category
+2026-06-06 03:19:57 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Starting job 262: collect templates data
+2026-06-06 03:19:57 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Job 262: Fetching templates from category
 2026-06-06 03:19:58 - src.main_app.api_services.category - DEBUG - Found 4004 pages in category Category:Pages using gadget owidslider
 
 
 
-2026-06-06 03:24:28 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Job 262: Updating Template:OWID/Share living with less than 1 int per day with main_file: File:Share living with less than 1 int  per day, World, 1963.svg and last_world_file: File:Share living with less than 1 int  per day, World, 2025.svg and source: https://ourworldindata.org/grapher/share-living-with-less-than-1-int--per-day
-2026-06-06 03:24:28 - src.main_app.jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Share living with less than 1 int per day
+2026-06-06 03:24:28 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Job 262: Updating Template:OWID/Share living with less than 1 int per day with main_file: File:Share living with less than 1 int  per day, World, 1963.svg and last_world_file: File:Share living with less than 1 int  per day, World, 2025.svg and source: https://ourworldindata.org/grapher/share-living-with-less-than-1-int--per-day
+2026-06-06 03:24:28 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Share living with less than 1 int per day
 Traceback (most recent call last):
   File "./venv/lib/python3.13/site-packages/pymysql/connections.py", line 813, in _write_bytes
     self._sock.sendall(data)
@@ -167,10 +167,10 @@ WHERE templates.id = %(id_1)s
  LIMIT %(param_1)s]
 [parameters: {'id_1': 31023, 'param_1': 1}]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
-2026-06-06 03:24:28 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1604/2000: Template:OWID/Share living with less than 10 int per day
+2026-06-06 03:24:28 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1604/2000: Template:OWID/Share living with less than 10 int per day
 
 
-2026-06-06 03:24:28 - src.main_app.jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Share living with less than upper middle income poverty line
+2026-06-06 03:24:28 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Share living with less than upper middle income poverty line
 Traceback (most recent call last):
   File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/jobs_workers/collect_templates_data/worker.py", line 313, in process
     update_template_data(
@@ -250,10 +250,10 @@ Traceback (most recent call last):
     ...<4 lines>...
     )
 sqlalchemy.exc.PendingRollbackError: Can't reconnect until invalid transaction is rolled back.  Please rollback() fully before proceeding (Background on this error at: https://sqlalche.me/e/20/8s2b)
-2026-06-06 03:24:28 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1607/2000: Template:OWID/Share manufacture exports
+2026-06-06 03:24:28 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1607/2000: Template:OWID/Share manufacture exports
 
 
-2026-06-06 03:24:55 - src.main_app.jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Smalsmall scale industries loan
+2026-06-06 03:24:55 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Smalsmall scale industries loan
 Traceback (most recent call last):
   File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/jobs_workers/collect_templates_data/worker.py", line 313, in process
     update_template_data(
@@ -333,10 +333,10 @@ Traceback (most recent call last):
     ...<4 lines>...
     )
 sqlalchemy.exc.PendingRollbackError: Can't reconnect until invalid transaction is rolled back.  Please rollback() fully before proceeding (Background on this error at: https://sqlalche.me/e/20/8s2b)
-2026-06-06 03:24:55 - src.main_app.jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1773/2000: Template:OWID/Smoking bans in public places
+2026-06-06 03:24:55 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - INFO - Job 262: Processing template 1773/2000: Template:OWID/Smoking bans in public places
 
 
-2026-06-06 03:25:18 - src.main_app.jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Tuberculosis deaths who
+2026-06-06 03:25:18 - src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker - ERROR - Job 262: Error processing template Template:OWID/Tuberculosis deaths who
 Traceback (most recent call last):
   File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/jobs_workers/collect_templates_data/worker.py", line 313, in process
     update_template_data(

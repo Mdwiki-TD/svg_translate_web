@@ -1,0 +1,67 @@
+{% extends "admins/base1.html" %}
+{% from "_macros.html" import status_icon %}
+{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
+
+{% block title %}{{ list_title }} · {{ tool_title }}{% endblock %}
+
+{% block admin_contents %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="headline mb-0">{{ list_headline }} Jobs</h3>
+        <div class="d-flex gap-2">
+            {% block header_actions %}{% endblock %}
+            {% if not hide_start_button %}
+            {{ form_start_job(url_for('admin.jobs.start_job', job_type=job_type), start_confirm_message) }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        {% block list_info %}{% endblock %}
+        <div class="table-responsive shadow-sm">
+            <table class="table table-striped table-hover align-middle mb-0 DataTable">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 5%">#</th>
+                        <th scope="col" style="width: 5%">ID</th>
+                        <th scope="col" style="width: 10%">Status</th>
+                        <th scope="col" style="width: 15%">User</th>
+                        <th scope="col" style="width: 15%">Created</th>
+                        <th scope="col" style="width: 15%">Started</th>
+                        <th scope="col" style="width: 15%">Completed</th>
+                        <th scope="col" class="text-center" style="width: 10%">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td> {{ loop.index }} </td>
+                        <td>{{ job.id }}</td>
+                        <td>
+                            {{ status_icon(job.status) }}
+                        </td>
+                        <td>{{ job.username if job.username else '-' }}</td>
+                        <td>{{ job.created_at | format_long_date("-") }}</td>
+                        <td>{{ job.started_at | format_short_date("-") }}</td>
+                        <td>{{ job.completed_at | format_short_date("-") }}</td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
+                                    class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+                                {% if job.status == 'running' or job.status == 'pending' %}
+                                {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+                                {% endif %}
+                                {% block table_extra_actions %}{% endblock %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

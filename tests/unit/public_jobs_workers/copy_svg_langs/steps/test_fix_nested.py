@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested import fix_nested_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested import fix_nested_step
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_file")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_file")
 def test_fix_nested_task_success(mock_fix, mock_match):
     mock_match.side_effect = [["tag1"], []]
     mock_fix.return_value = True
@@ -22,7 +22,7 @@ def test_fix_nested_task_success(mock_fix, mock_match):
     assert result["summary"]["total"] == 1
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
 def test_fix_nested_task_no_nested(mock_match):
     mock_match.return_value = []
 

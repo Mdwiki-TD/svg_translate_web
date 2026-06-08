@@ -1,0 +1,122 @@
+{% extends "jobs_templates/admin/base_details.html" %}
+{% from "_macros.html" import card_header, stats_card %}
+
+{% block job_info_extra %}
+<tr>
+    <th>Output Path:</th>
+    <td><code>{{ result_data.output_path if result_data and result_data.output_path else '-' }}</code></td>
+</tr>
+{% endblock %}
+
+{% block job_summary %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ (result_data.summary.total or result_data.summary.to_rename or 0), "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Downloaded', ( result_data.files_downloaded | length ) or result_data.summary.success, "info", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Skipped', result_data.summary.skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', ( result_data.files_failed | length ) or result_data.summary.failed, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block job_details %}
+<!-- Downloaded Files -->
+{% if result_data.files_downloaded %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header("Downloaded Files (" ~ result_data.files_downloaded|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Filename</th>
+                        <th>View</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in result_data.files_downloaded %}
+                    <tr>
+                        <td>{{ file.template_id }}</td>
+                        <td>
+                            <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ file.filename }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.jobs.serve_download_main_file', filename=file.path) }}"
+                                class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
+                                Details
+                            </a>
+                        </td>
+                        <td>{{ file.size_bytes|default('-') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{%- macro result_table(table_title, data) -%}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Template Title</th>
+                        <th>Filename</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in data %}
+                    <tr>
+                        <td>{{ file.template_id }}</td>
+                        <td>
+                            <a href='https://commons.wikimedia.org/wiki/{{ file.template_title }}' target='_blank'
+                                rel='noopener noreferrer'>
+                                {{ file.template_title }}
+                            </a>
+                        </td>
+                        <td><code>{{ file.filename }}</code></td>
+                        <td>{{ file.reason }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endmacro -%}
+
+<!-- Skipped Files -->
+{% if result_data.files_skipped %}
+{{ result_table('Skipped Files (Already Exist)', result_data.files_skipped) }}
+{% endif %}
+
+<!-- Failed Files -->
+{% if result_data.files_failed %}
+{{ result_table('Failed Files', result_data.files_failed) }}
+{% endif %}
+{% endblock %}
