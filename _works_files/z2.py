@@ -39,9 +39,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
     test_base_unit = Path(test_root) / "unit"
     test_base_integration = Path(test_root) / "integration"
 
-    list_of_all_tests_files = [
-        x.name for x in Path(test_root).rglob("*.py")
-    ]
+    list_of_all_tests_files = [x.name for x in Path(test_root).rglob("*.py")]
     duplicate_names = []
 
     for root, _dirs, files in os.walk(src_path):
@@ -169,6 +167,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     f.write(content_new)
 
     print(f"Duplicate file names: {len(duplicate_names):,}")
+
 
 if __name__ == "__main__":
     main_path = Path(__file__).parent.parent
