@@ -267,7 +267,7 @@ class JobsPublicRoutes:
         # download-main-files routes
         # ================================
 
-        @self.bp.get("/download-main-files/file/<str:filename>")
+        @self.bp.get("/download-main-files/file/<string:filename>")
         def serve_download_main_file(filename: str) -> Response:
             """
             Serve a downloaded main file from the main_files_path directory.
@@ -294,7 +294,7 @@ class JobsPublicRoutes:
         # crop-main-files routes
         # ================================
 
-        @self.bp.get("/crop-main-files/original/<str:filename>")
+        @self.bp.get("/crop-main-files/original/filename>")
         def serve_crop_original_file(filename: str) -> Response:
             """
             Serve an original file from the crop_main_files_path/original directory.
@@ -305,7 +305,7 @@ class JobsPublicRoutes:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/cropped/<str:filename>")
+        @self.bp.get("/crop-main-files/cropped/<string:filename>")
         def serve_crop_cropped_file(filename: str) -> Response:
             """
             Serve a cropped file from the crop_main_files_path/cropped directory.
@@ -316,7 +316,7 @@ class JobsPublicRoutes:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/compare/<str:original>/<str:cropped>")
+        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
 
@@ -328,8 +328,8 @@ class JobsPublicRoutes:
                 file_cropped=cropped,
             )
 
-        @self.bp.get("/read-job-result-file/<str:result_file>")
-        @self.bp.get("/read-job-result-file/<str:result_file>/<string:job_type>")
+        @self.bp.get("/read-job-result-file/<string:result_file>")
+        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
             result_data = load_job_result(result_file)

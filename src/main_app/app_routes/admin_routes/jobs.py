@@ -286,7 +286,7 @@ class Jobs:
         # download-main-files routes
         # ================================
 
-        @self.bp.get("/download-main-files/file/<str:filename>")
+        @self.bp.get("/download-main-files/file/<string:filename>")
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """
@@ -315,7 +315,7 @@ class Jobs:
         # crop-main-files routes
         # ================================
 
-        @self.bp.get("/crop-main-files/original/<str:filename>")
+        @self.bp.get("/crop-main-files/original/<string:filename>")
         @admin_required
         def serve_crop_original_file(filename: str) -> Response:
             """
@@ -327,7 +327,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/cropped/<str:filename>")
+        @self.bp.get("/crop-main-files/cropped/<string:filename>")
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
@@ -339,7 +339,7 @@ class Jobs:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/compare/<str:original>/<str:cropped>")
+        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
         @admin_required
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
@@ -352,8 +352,8 @@ class Jobs:
                 file_cropped=cropped,
             )
 
-        @self.bp.get("/read-job-result-file/<str:result_file>")
-        @self.bp.get("/read-job-result-file/<str:result_file>/<string:job_type>")
+        @self.bp.get("/read-job-result-file/<string:result_file>")
+        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
         @admin_required
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """

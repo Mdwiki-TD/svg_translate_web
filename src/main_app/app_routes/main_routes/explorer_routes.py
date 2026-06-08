@@ -107,7 +107,7 @@ def main():
     return render_template("explorer/index.html", data=data)
 
 
-@bp_explorer.route("/media/<title_dir>/<subdir>/<str:filename>")
+@bp_explorer.route("/media/<title_dir>/<subdir>/<string:filename>")
 def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
     """
     Serve SVG files
@@ -122,7 +122,7 @@ def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
     return response
 
 
-@bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<str:filename>")
+@bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")
 def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     # ---
     dir_path = svg_data_path / title_dir / subdir
@@ -144,7 +144,7 @@ def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     return response
 
 
-@bp_explorer.route("/compare/<title_dir>/<str:filename>")
+@bp_explorer.route("/compare/<title_dir>/<string:filename>")
 def compare(title_dir: str, filename: str):
     """Compare SVG files"""
     # ---
