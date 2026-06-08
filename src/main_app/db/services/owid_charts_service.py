@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
-from .utils import db_guard_rollback
+from .utils import db_guard, db_guard_rollback
 
 # from ..models.views import OwidChartTemplateRecord
 
@@ -132,7 +132,7 @@ def update_chart_data(
     return chart
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def delete_chart(chart_id: int) -> bool:
     """Delete a chart."""
     record = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()

@@ -23,12 +23,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
-from ..slugs_helpers import check_slugs
-
 from ....api_services.clients.owid_client import fetch_grapher_metadata
 from ....db.models.owid_charts import OwidChartRecord
 from ....db.services import owid_charts_service
 from ...base_worker import BaseJobWorker
+from ..slugs_helpers import check_slugs
 
 logger = logging.getLogger(__name__)
 

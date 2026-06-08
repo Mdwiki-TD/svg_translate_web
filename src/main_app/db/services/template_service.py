@@ -95,7 +95,7 @@ def update_template_data(
     return template
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def delete_template(template_id: int) -> bool:
     """Delete a template."""
     record = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()

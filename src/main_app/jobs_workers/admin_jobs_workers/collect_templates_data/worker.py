@@ -29,8 +29,8 @@ from ....utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
-from ..slugs_helpers import check_slugs
 from ...base_worker import BaseJobWorker
+from ..slugs_helpers import check_slugs
 
 logger = logging.getLogger(__name__)
 

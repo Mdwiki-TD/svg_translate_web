@@ -110,18 +110,21 @@ class SlugRedirects:
             if not selected_ids:
                 flash("No items selected.", "warning")
                 return redirect(url_for("admin.slugredirects.dashboard"))
-
-            if action == "mark_replace":
-                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
-                flash(f"Marked {len(selected_ids)} redirects as 'replace'.", "success")
-            elif action == "mark_no_replace":
-                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": False})
-                flash(f"Marked {len(selected_ids)} redirects as 'do not replace'.", "success")
-            elif action == "delete":
-                bulk_delete_slug_redirects(selected_ids)
-                flash(f"Deleted {len(selected_ids)} redirects.", "success")
-            else:
-                flash("Invalid action.", "danger")
+            try:
+                if action == "mark_replace":
+                    bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
+                    flash(f"Marked {len(selected_ids)} redirects as 'replace'.", "success")
+                elif action == "mark_no_replace":
+                    bulk_update_slug_redirects(selected_ids, {"should_be_replaced": False})
+                    flash(f"Marked {len(selected_ids)} redirects as 'do not replace'.", "success")
+                elif action == "delete":
+                    bulk_delete_slug_redirects(selected_ids)
+                    flash(f"Deleted {len(selected_ids)} redirects.", "success")
+                else:
+                    flash("Invalid action.", "danger")
+            except Exception:
+                logger.error("Error in bulk action")
+                flash("An error occurred.", "danger")
 
             return redirect(url_for("admin.slugredirects.dashboard"))
 
