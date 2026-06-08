@@ -1,9 +1,11 @@
 {% extends "base.html" %}
+
 {% block title %}Action Completed · Copy SVG Translation{% endblock %}
 
 {% set hide_navbar = 1 %}
 
 {% block content_fluid %}
+{% block popup_action_content %}
 <div class="container mt-5 text-center">
     <div class="card shadow-sm">
         <div class="card-body py-5">
@@ -15,6 +17,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
 {% endblock %}
 
 {% block extra_js %}

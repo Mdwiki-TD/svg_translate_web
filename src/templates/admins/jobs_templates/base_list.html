@@ -1,5 +1,6 @@
 {% extends "admins/base1.html" %}
 {% from "_macros.html" import status_icon %}
+{% from "_macros/forms.html" import from_cancel_job %}
 
 {% block title %}{{ list_title }} · Copy SVG Translation{% endblock %}
 
@@ -11,11 +12,9 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            <form method="post" action="{{ url_for('admin.jobs.start_job', job_type=job_type) }}"
-                class="d-inline">
+            <form method="post" action="{{ url_for('admin.jobs.start_job', job_type=job_type) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit" class="btn btn-outline-primary"
-                    data-confirm-message="{{ start_confirm_message }}"
+                <button type="submit" class="btn btn-outline-primary" data-confirm-message="{{ start_confirm_message }}"
                     onclick="return confirm(this.dataset.confirmMessage);">
                     <i class="bi bi-play-circle"></i> Start New Job
                 </button>
@@ -58,15 +57,7 @@
                                     <i class="bi bi-eye"></i> Details
                                 </a>
                                 {% if job.status == 'running' or job.status == 'pending' %}
-                                <form method="POST"
-                                    action="{{ url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id) }}"
-                                    class="d-inline">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <button type="submit" class="btn btn-outline-warning text-muted btn-sm"
-                                        onclick="return confirm('Are you sure you want to cancel this job?');">
-                                        <i class="bi bi-x-circle"></i> Cancel
-                                    </button>
-                                </form>
+                                {{ from_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
                                 {% endif %}
                                 {% block table_extra_actions %}{% endblock %}
                             </div>

@@ -7,14 +7,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Copy SVG Translation{% endblock %}</title>
+    <link rel='stylesheet' href='{{ static_server }}/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <link rel='stylesheet' href='{{ static_server }}/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css'>
     <link rel='stylesheet' href='{{ static_server }}/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css'>
     <link rel='stylesheet' href='{{ static_server }}/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css'>
-    <link rel="stylesheet" href="{{ static_server }}/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
-
     <link rel='stylesheet' href='{{ static_server }}/ajax/libs/datatables.net-bs5/2.3.4/dataTables.bootstrap5.min.css'>
+    <link rel='stylesheet' href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel='stylesheet' href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel='stylesheet'
         href='{{ static_server }}/ajax/libs/datatables.net-responsive-bs5/3.0.4/responsive.bootstrap5.min.css'>
     {% block extra_css %}{% endblock %}
@@ -27,18 +26,15 @@
     {% include "_navbar.html" %}
     {% endif %}
     {{ flash_messages() }}
-
-    <div class="py-1">
-        {% block content_fluid %}{% endblock %}
-    </div>
-
+    {% block content_fluid %}{% endblock %}
     <script src='{{ static_server }}/ajax/libs/jquery/3.7.1/jquery.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js'></script>
-    <script src='{{ static_server }}/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js'></script>
-
+    <script src='{{ static_server }}/ajax/libs/popper.js/2.11.8/umd/popper.min.js'></script>
+    <script src='{{ static_server }}/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/datatables.net/2.3.4/dataTables.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/datatables.net-bs5/2.3.4/dataTables.bootstrap5.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/datatables-responsive/3.0.4/dataTables.responsive.min.js'></script>
+    <script src='{{ static_server }}/ajax/libs/ace/1.42.0/ace.js'></script>
     <!-- Autocomplete script -->
     <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
     <!-- Dark mode toggle script -->
@@ -51,11 +47,15 @@
     {% block extra_js %}{% endblock %}
     <script>
         $(document).ready(function () {
+            // $('[data-toggle="tooltip"]').tooltip();
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
             $('.DataTable').DataTable({
                 responsive: true,
                 pageLength: 100,
             });
-            const WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php";
+            const WIKIMEDIA_API_URL = "https://{{ wiki_domain }}/w/api.php";
             setupWikiAutocomplete(".wiki-autocomplete", WIKIMEDIA_API_URL);
         });
         function pup_window_new(element, width = 700, height = 650) {
