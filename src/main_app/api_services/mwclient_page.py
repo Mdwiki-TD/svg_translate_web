@@ -20,9 +20,9 @@ class MwClientPage:
         self.load_page_error = ""
         self.page = None
 
-    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
         try:
-            save = page.edit(text, summary=summary, nocreate=nocreate) or {}
+            save = page.edit(text, summary=summary, **kwargs) or {}
             return {"success": True, **save}
 
         except mwclient.errors.ProtectedPageError as exc:
@@ -88,12 +88,12 @@ class MwClientPage:
     # retry logic
     # ------------------------------------------------------------------
 
-    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
-        edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
+    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
+        edit_result = self._edit_page(page, text, summary=summary, **kwargs)
         if edit_result.get("error") != "ratelimited":
             return edit_result
             
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=True):
             logger.warning(
                 f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}'. Retrying in {delay}s..."
@@ -120,7 +120,7 @@ class MwClientPage:
         if move_result.get("error") != "ratelimited":
             return move_result
             
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=True):
             logger.warning(
                 f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
@@ -180,13 +180,24 @@ class MwClientPage:
             logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
             return False
 
-    def edit_page(self, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
         page = self.load_page()
 
         if not page:
             return {"success": False, "error": self.load_page_error}
 
         return self._edit_with_retry(page, text, summary, nocreate=nocreate)
+    
+    def create_page(self, text: str, summary: str) -> dict[str, Any]:
+        page = self.load_page()
+
+        if not page:
+            return {"success": False, "error": self.load_page_error}
+
+        if page.exists:
+            return {"success": False, "error": "page exists"}
+
+        return self._edit_with_retry(page, text, summary, onlycreate=True)
 
     def move_page(
         self,
