@@ -92,29 +92,50 @@
 </div>
 {%- endmacro -%}
 
+{% macro pages_table_expand(data, table_title, expand_all) %}
+{% if data|length > 100 and not expand_all %}
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+            <h5 class="mb-0">{{ table_title }} ({{ data|length }})</h5>
+            <div class="card-tools">
+                <button type="button" class="btn-tool">
+                    <a href="{{ url_for('admin.jobs.job_detail_expand', job_type=job_type, job_id=job.id) }}">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+{{ pages_table(data, table_title) }}
+{% endif %}
+{%- endmacro -%}
+
 <!-- Created -->
 {% if created_pages %}
-{{ pages_table(created_pages, 'Created') }}
+{{ pages_table_expand(created_pages, 'Created', expand_all) }}
 {% endif %}
 
 <!-- Updated -->
 {% if updated_pages %}
-{{ pages_table(updated_pages, 'Updated') }}
+{{ pages_table_expand(updated_pages, 'Updated', expand_all) }}
 {% endif %}
 
 <!-- Processed -->
 {% if files_processed %}
-{{ pages_table(files_processed, 'Processed') }}
+{{ pages_table_expand(files_processed, 'Processed', expand_all) }}
 {% endif %}
 
 <!-- Skipped -->
 {% if skipped_pages %}
-{{ pages_table(skipped_pages, 'Skipped') }}
+{{ pages_table_expand(skipped_pages, 'Skipped', expand_all) }}
 {% endif %}
 
 <!-- Failed -->
 {% if failed_pages %}
-{{ pages_table(failed_pages, 'Failed') }}
+{{ pages_table_expand(failed_pages, 'Failed', expand_all) }}
 {% endif %}
 
 {% endblock %}
