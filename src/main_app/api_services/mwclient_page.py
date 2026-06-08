@@ -48,21 +48,6 @@ class MwClientPage:
             logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
             return {"success": False, "error": str(exc)}
 
-    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(
-                f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
-                f"for page '{self.title}'. Retrying in {delay}s..."
-            )
-            time.sleep(delay)
-
-            edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
-
-            if edit_result.get("error") != "ratelimited":
-                return edit_result
-
-        return {"success": False, "error": "ratelimited"}
-
     # ------------------------------------------------------------------
     # Move (rename) page
     # ------------------------------------------------------------------
@@ -99,6 +84,30 @@ class MwClientPage:
             logger.exception(f"Failed to move page {self.title} -> {new_title}", exc_info=exc)
             return {"success": False, "error": str(exc)}
 
+    # ------------------------------------------------------------------
+    # retry logic
+    # ------------------------------------------------------------------
+
+    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+        edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
+        if edit_result.get("error") != "ratelimited":
+            return edit_result
+            
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+            logger.warning(
+                f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
+                f"for page '{self.title}'. Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+
+            edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
+
+            if edit_result.get("error") != "ratelimited":
+                return edit_result
+                
+
+        return {"success": False, "error": "ratelimited"}
+
     def _move_with_retry(
         self,
         page: mwclient.page.Page,
@@ -107,18 +116,22 @@ class MwClientPage:
         move_talk: bool,
         no_redirect: bool,
     ) -> dict[str, Any]:
+        move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
+        if move_result.get("error") != "ratelimited":
+            return move_result
+            
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
             )
             time.sleep(delay)
-
             move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
 
             if move_result.get("error") != "ratelimited":
                 return move_result
-
+                
+            
         return {"success": False, "error": "ratelimited"}
 
     # ------------------------------------------------------------------
@@ -173,12 +186,6 @@ class MwClientPage:
         if not page:
             return {"success": False, "error": self.load_page_error}
 
-        edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
-
-        if edit_result.get("error") != "ratelimited":
-            return edit_result
-
-        # handle retry
         return self._edit_with_retry(page, text, summary, nocreate=nocreate)
 
     def move_page(
@@ -197,10 +204,4 @@ class MwClientPage:
         if not page.exists:
             return {"success": False, "error": "missing"}
 
-        move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
-
-        if move_result.get("error") != "ratelimited":
-            return move_result
-
-        # handle retry
         return self._move_with_retry(page, new_title, reason, move_talk, no_redirect)
