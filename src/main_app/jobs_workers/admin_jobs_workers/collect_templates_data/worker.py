@@ -19,7 +19,6 @@ from ....api_services.clients.owid_client import fetch_grapher_metadata
 from ....api_services.pages_api import get_page_text
 from ....db.models import TemplateRecord
 from ....db.services import (
-    add_new_slug_redirect,
     add_template_data,
     get_chart_by_slug,
     list_templates,
@@ -30,6 +29,7 @@ from ....utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
+from ..slugs_helpers import check_slugs
 from ...base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
@@ -395,11 +395,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             # Find slug redirect
             metadata = fetch_grapher_metadata(_slug_to_check)
             if metadata:
-                original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
-                if original_chart_url and "/grapher/" in original_chart_url:
-                    original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
-                    if original_slug != _slug_to_check:
-                        add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug)
+                check_slugs(_slug_to_check, metadata)
 
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")
