@@ -20,7 +20,9 @@ class TestDownloadFileForCropping:
     def test_filename_without_file_prefix(self, tmp_path):
         """Test downloading file without File: prefix."""
         mock_session = MagicMock(spec=requests.Session)
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.return_value = {
                 "result": "success",
                 "path": str(tmp_path / "test.svg"),
@@ -39,7 +41,9 @@ class TestDownloadFileForCropping:
     def test_filename_with_file_prefix(self, tmp_path):
         """Test downloading file with File: prefix."""
         mock_session = MagicMock(spec=requests.Session)
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.return_value = {
                 "result": "success",
                 "path": str(tmp_path / "test.svg"),
@@ -57,7 +61,9 @@ class TestDownloadFileForCropping:
     def test_download_failure(self, tmp_path):
         """Test handling of download failure."""
         mock_session = MagicMock(spec=requests.Session)
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.return_value = {
                 "result": "failed",
             }
@@ -68,7 +74,9 @@ class TestDownloadFileForCropping:
     def test_existing_file_result(self, tmp_path):
         """Test handling of existing file result."""
         mock_session = MagicMock(spec=requests.Session)
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.return_value = {
                 "result": "existing",
                 "path": str(tmp_path / "test.svg"),
@@ -80,7 +88,9 @@ class TestDownloadFileForCropping:
     def test_download_exception(self, tmp_path):
         """Test handling of download exception."""
         mock_session = MagicMock(spec=requests.Session)
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.side_effect = Exception("Network error")
             result = download_file_for_cropping("test.svg", tmp_path, mock_session)
             assert result["success"] is False
@@ -89,7 +99,9 @@ class TestDownloadFileForCropping:
 
     def test_no_session_provided(self, tmp_path):
         """Test download without providing a session."""
-        with patch("src.main_app.jobs_workers.crop_main_files.download.download_one_file") as mock_download:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download.download_one_file"
+        ) as mock_download:
             mock_download.return_value = {
                 "result": "success",
                 "path": str(tmp_path / "test.svg"),

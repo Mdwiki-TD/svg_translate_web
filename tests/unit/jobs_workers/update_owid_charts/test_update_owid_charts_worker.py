@@ -142,7 +142,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_creates_worker_and_runs(self, mock_jobs_service):
         """Test that entry point creates worker and runs it."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -159,7 +161,9 @@ class TestUpdateOwidChartsWorkerEntry:
     def test_entry_point_with_cancel_event(self, mock_jobs_service):
         """Test entry point with cancel event."""
         cancel_event = threading.Event()
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -170,7 +174,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_accepts_args_keyword_param(self, mock_jobs_service):
         """Test that the entry point accepts args= keyword-only param."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -180,7 +186,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_args_defaults_to_none(self, mock_jobs_service):
         """Test that args defaults to None and entry point works without it."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -191,7 +199,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self, mock_jobs_service):
         """Test that owid_charts_limit_items is mapped to limit_items in args."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -206,7 +216,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_does_not_map_when_key_absent(self, mock_jobs_service):
         """Test that args are passed unchanged when owid_charts_limit_items is absent."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -222,7 +234,9 @@ class TestUpdateOwidChartsWorkerEntry:
     def test_entry_point_does_not_map_when_value_falsy(self, mock_jobs_service):
         """Test that mapping is skipped when owid_charts_limit_items value is falsy."""
         for falsy_value in [0, None, "", False]:
-            with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+            with patch(
+                "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+            ) as MockWorker:
                 mock_instance = MagicMock()
                 MockWorker.return_value = mock_instance
 
@@ -237,7 +251,9 @@ class TestUpdateOwidChartsWorkerEntry:
 
     def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_jobs_service):
         """Test that entry point works correctly when args is None."""
-        with patch("src.main_app.jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 

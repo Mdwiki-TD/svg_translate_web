@@ -264,7 +264,9 @@ def test_crop_svg_file_exception_handling(tmp_path):
     file_path.write_text(create_test_svg(include_footer=True))
 
     # Mock remove_footer_and_adjust_height to raise an exception
-    with patch("src.main_app.jobs_workers.crop_main_files.crop_file.remove_footer_and_adjust_height") as mock_remove:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.crop_file.remove_footer_and_adjust_height"
+    ) as mock_remove:
         mock_remove.side_effect = Exception("Test exception")
 
         result = crop_file.crop_svg_file(file_path, cropped_output_path)

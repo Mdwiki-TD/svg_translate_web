@@ -15,7 +15,7 @@ def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
     mock = MagicMock(return_value=None)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock,
     )
     return mock
@@ -26,7 +26,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
     """Mock find_template_source to return empty string by default."""
     mock = MagicMock(return_value="")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.find_template_source",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_template_source",
         mock,
     )
     return mock
@@ -40,13 +40,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_list_templates = MagicMock()
     mock_add_template_data = MagicMock()
     mock_update_template_data = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.add_template_data",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.add_template_data",
         mock_add_template_data,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.update_template_data",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
         mock_update_template_data,
     )
 
@@ -68,34 +70,41 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock get_category_members
     mock_get_category_members = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_category_members", mock_get_category_members
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
+        mock_get_category_members,
     )
 
     # Mock get_page_text
     mock_get_page_text = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.get_page_text", mock_get_page_text)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_page_text", mock_get_page_text
+    )
 
     # Mock find_main_title
     mock_find_main_title = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.collect_templates_data.worker.find_main_title", mock_find_main_title)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+        mock_find_main_title,
+    )
 
     # Mock get_chart_by_slug so slugify_title can return a slug
     mock_get_chart_by_slug = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_chart_by_slug", mock_get_chart_by_slug
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_chart_by_slug",
+        mock_get_chart_by_slug,
     )
 
     # Mock get_user_site
     mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.get_user_site",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
         mock_get_user_site,
     )
 
     # Mock fetch_grapher_metadata (avoids real network calls)
     mock_fetch_grapher_metadata = MagicMock(return_value=None)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
         mock_fetch_grapher_metadata,
     )
 
@@ -419,7 +428,7 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
     # Mock find_last_world_file_from_owidslidersrcs
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock_find_last_world,
     )
 
@@ -544,7 +553,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     # Mock find_last_world_file_from_owidslidersrcs
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
         mock_find_last_world,
     )
 

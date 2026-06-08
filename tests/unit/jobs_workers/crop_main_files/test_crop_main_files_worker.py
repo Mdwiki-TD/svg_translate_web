@@ -443,7 +443,7 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_services):
     """Test that crop_newest_upload_limit is mapped to upload_limit in args."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
@@ -457,7 +457,7 @@ def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_service
 
 def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services):
     """Test that args are passed unchanged when crop_newest_upload_limit is absent."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
@@ -471,7 +471,9 @@ def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services
 def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_services):
     """Test that mapping is skipped when crop_newest_upload_limit value is falsy."""
     for falsy_value in [0, None, "", False]:
-        with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -484,7 +486,7 @@ def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_service
 
 def test_crop_main_files_worker_entry_does_not_modify_args_when_none(mock_services):
     """Test that entry point works correctly when args is None."""
-    with patch("src.main_app.jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
