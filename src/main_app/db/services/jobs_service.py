@@ -72,7 +72,7 @@ def _update_running_status(job_id: int, result_file: str | None = None, *, job_t
 # ── SELECT ───────────────────────────────────────────────
 
 
-@db_guard
+@db_guard(default_return=False)
 def is_job_cancelled(job_id: int, job_type: str) -> bool:
     """
     Check if a job is marked as cancelled.
