@@ -135,7 +135,7 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
         flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
     except DuplicateJobError:
-        logger.warning("User '%s' attempted to start duplicate job type '%s'", user.username, job_type)
+        logger.warning("User '%s' attempted to start duplicate job type '%s'", getattr(user, "username", "N/A"), job_type)
         flash("A job of this type is already running. Please wait for it to complete.", "warning")
     except Exception:
         logger.exception("Failed to start job")
