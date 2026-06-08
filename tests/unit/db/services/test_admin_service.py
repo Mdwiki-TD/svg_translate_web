@@ -1,3 +1,6 @@
+"""
+TODO: write tests
+"""
 from unittest.mock import MagicMock, patch
 
 from src.main_app.db.services.admin_service import (
