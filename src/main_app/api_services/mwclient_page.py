@@ -57,15 +57,13 @@ class MwClientPage:
         page: mwclient.page.Page,
         new_title: str,
         reason: str,
-        move_talk: bool,
-        no_redirect: bool,
+        **kwargs,
     ) -> dict[str, Any]:
         try:
             save = page.move(
                 new_title,
                 reason=reason,
-                move_talk=move_talk,
-                no_redirect=no_redirect,
+                **kwargs,
             ) or {}
             return {"success": True, **save}
 
@@ -100,7 +98,7 @@ class MwClientPage:
             )
             time.sleep(delay)
 
-            edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
+            edit_result = self._edit_page(page, text, summary=summary, **kwargs)
 
             if edit_result.get("error") != "ratelimited":
                 return edit_result
@@ -113,10 +111,9 @@ class MwClientPage:
         page: mwclient.page.Page,
         new_title: str,
         reason: str,
-        move_talk: bool,
-        no_redirect: bool,
+        **kwargs,
     ) -> dict[str, Any]:
-        move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
+        move_result = self._move_page(page, new_title, reason, **kwargs)
         if move_result.get("error") != "ratelimited":
             return move_result
             
@@ -126,7 +123,7 @@ class MwClientPage:
                 f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
             )
             time.sleep(delay)
-            move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
+            move_result = self._move_page(page, new_title, reason, **kwargs)
 
             if move_result.get("error") != "ratelimited":
                 return move_result
