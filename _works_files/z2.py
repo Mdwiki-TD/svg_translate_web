@@ -39,6 +39,11 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
     test_base_unit = Path(test_root) / "unit"
     test_base_integration = Path(test_root) / "integration"
 
+    list_of_all_tests_files = [
+        x.name for x in Path(test_root).rglob("*.py")
+    ]
+    duplicate_names = []
+
     for root, _dirs, files in os.walk(src_path):
         current_path = Path(root)
 
@@ -79,6 +84,10 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 
                 if "routes_routes" in test_filename:
                     test_filename = test_filename.replace("routes_routes", "routes")
+
+                if test_filename in list_of_all_tests_files:
+                    duplicate_names.append(test_filename)
+                    continue
 
                 # Create the directory if it doesn't exist
                 target_dir.mkdir(parents=True, exist_ok=True)
@@ -159,6 +168,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                 with open(test_file_path, "w", encoding="utf-8") as f:
                     f.write(content_new)
 
+    print(f"Duplicate file names: {len(duplicate_names):,}")
 
 if __name__ == "__main__":
     main_path = Path(__file__).parent.parent
