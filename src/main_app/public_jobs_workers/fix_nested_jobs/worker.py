@@ -57,7 +57,7 @@ class FixNestedJobsProcessor(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -290,12 +290,6 @@ class FixNestedJobsProcessor(BaseJobWorker):
 
         if not self._run_stage("upload", self._upload_step):
             return self.result
-
-        # ----------------------------------------------
-        # Finalize
-        self.result["status"] = "completed"
-        self.result["completed_at"] = datetime.now().isoformat()
-        self._save_progress()
 
         return self.result
 

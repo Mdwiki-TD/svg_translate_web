@@ -133,7 +133,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -299,6 +299,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         charts = self._load_charts()
         total = len(charts)
+
         self.result["summary"]["total"] = total
         logger.info(f"Job {self.job_id}: Found {total} charts to process")
 

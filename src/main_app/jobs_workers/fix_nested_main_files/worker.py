@@ -119,7 +119,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),

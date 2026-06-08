@@ -107,7 +107,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -132,9 +132,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["error"] = "No authenticated user site available. Please log in via OAuth."
-            self.result["failed_at"] = datetime.now().isoformat()
+            self.log_no_site_error()
             return self.result
 
         # First pass: collect candidates so progress is bounded and we can
@@ -161,9 +159,10 @@ class RenameOwidPagesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: {total} page(s) need renaming")
 
         # Save progress immediately so the UI reflects the discovery phase.
+        self.result["summary"]["total"] = total
+
         self._save_progress()
 
-        self.result["summary"]["total"] = total
         per_item = self.get_priority(total) if total else 1
 
         # Second pass: actually move.

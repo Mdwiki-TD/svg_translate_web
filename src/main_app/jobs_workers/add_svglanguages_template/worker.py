@@ -93,7 +93,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -255,12 +255,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self):
+    def process(self) -> Dict[str, Any]:
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
+            self.log_no_site_error()
             return self.result
 
         templates = self._load_templates()

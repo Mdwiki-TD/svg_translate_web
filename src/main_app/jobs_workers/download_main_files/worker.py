@@ -120,7 +120,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [ { "error": "", "error_type": "" } ],
+            "errors": [{"error": "", "error_type": ""}],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -177,19 +177,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 session=self.session,
             )
 
-            if download_result["success"]:
-                file_info["status"] = "downloaded"
-                file_info["path"] = download_result["path"]
-                file_info["size_bytes"] = download_result["size_bytes"]
-                self.result["files_downloaded"].append(file_info)
-                self.result["summary"]["success"] += 1
-            else:
-                file_info["status"] = "failed"
-                file_info["reason"] = download_result["error"]
-                self.result["files_failed"].append(file_info)
-                self.result["summary"]["failed"] += 1
-                logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {download_result['error']}")
-
         except Exception as e:
             file_info["status"] = "failed"
             file_info["reason"] = f"Exception: {str(e)}"
@@ -199,8 +186,22 @@ class DownloadMainFilesWorker(BaseJobWorker):
             logger.exception(f"Job {self.job_id}: Error processing {template.title}")
             return False
 
-        if file_info["status"] == "downloaded":
+        # download_result = { "success": False, "path": None, "size_bytes": None, "error": None}
+        if download_result.get("success"):
+            file_info["status"] = "downloaded"
+            file_info["path"] = download_result.get("path")
+            file_info["size_bytes"] = download_result.get("size_bytes")
+            self.result["files_downloaded"].append(file_info)
+            self.result["summary"]["success"] += 1
             return True
+
+        error = download_result.get("error")
+
+        file_info["status"] = "failed"
+        file_info["reason"] = error
+        self.result["files_failed"].append(file_info)
+        self.result["summary"]["failed"] += 1
+        logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {error}")
 
         return False
 
@@ -241,9 +242,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
             # Save progress periodically
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-
-        # Final save
-        self.result["completed_at"] = datetime.now().isoformat()
 
         # Generate zip file after successful completion
         if self.result.get("status") != "cancelled":
