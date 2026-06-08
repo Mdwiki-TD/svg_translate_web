@@ -76,13 +76,13 @@ class MwClientPage:
         no_redirect: bool,
     ) -> dict[str, Any]:
         try:
-            page.move(
+            save = page.move(
                 new_title,
                 reason=reason,
                 move_talk=move_talk,
                 no_redirect=no_redirect,
-            )
-            return {"success": True}
+            ) or {}
+            return {"success": True, **save}
 
         except mwclient.errors.AssertUserFailedError:
             return {"success": False, "error": "assertuserfailed"}
