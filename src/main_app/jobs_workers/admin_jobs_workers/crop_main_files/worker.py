@@ -245,7 +245,6 @@ class CropMainFilesWorker(BaseJobWorker):
             self._append(file_info, key="pages_skipped")
             return False
 
-
         # ----------------------------------
         # Step 1 - Download
         if not self._step_download(file_info, template):
@@ -459,7 +458,6 @@ class CropMainFilesWorker(BaseJobWorker):
         self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
-
 
     def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
