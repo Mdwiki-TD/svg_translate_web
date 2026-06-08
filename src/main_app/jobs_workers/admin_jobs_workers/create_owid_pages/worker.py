@@ -303,16 +303,16 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
             return False
 
+        # extend categories from current text
+        info._new_text = merge_categories(current_text, info._new_text)
+        info._new_text = sort_categories(info._new_text)
+
         if current_text.strip() == info._new_text.strip():
             self._skip_step(info, "update_text", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
             return None  # nothing to update
-
-        # extend categories from current text
-        info._new_text = merge_categories(current_text, info._new_text)
-        info._new_text = sort_categories(info._new_text)
 
         # Content is different, perform update
         res = update_page_text(
