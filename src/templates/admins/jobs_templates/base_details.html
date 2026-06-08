@@ -1,6 +1,6 @@
 {% extends "admins/base1.html" %}
 {% from "_macros.html" import card_header, stats_card, status_icon, csrf, job_errors_div %}
-{% from "_macros/forms.html" import from_cancel_job %}
+{% from "_macros/forms.html" import from_start_job, from_cancel_job, from_delete_job %}
 
 {% block title %}{{ detail_title }} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
@@ -12,13 +12,7 @@
             {% if job.status == 'running' or job.status == 'pending' %}
             {{ from_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
             {% endif %}
-            <form method="POST" action="{{ url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id) }}"
-                onsubmit="return confirm('Are you sure you want to DELETE this job? This action cannot be undone!');">
-                {{ csrf() }}
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-            </form>
+            {{ from_delete_job(url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id)) }}
             <a href="{{ url_for('admin.jobs.jobs_list', job_type=job_type) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
