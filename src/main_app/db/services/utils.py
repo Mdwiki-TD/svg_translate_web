@@ -40,7 +40,7 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callab
 
     On success, the original return value is passed through.
     On *any* exception, the session is rolled back, the error is logged,
-    and the specified ``default_return`` value is returned.
+    and the specified `default_return` value is returned.
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:

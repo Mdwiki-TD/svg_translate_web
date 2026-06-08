@@ -135,7 +135,7 @@ def _load_oauth_config() -> OAuthConfig:
 
 def _get_paths() -> Paths:
     """
-    Compute the filesystem paths the application uses for SVG data, thumbnails, logs, fix data, and SVG job files and ensure those directories exist.
+    Compute the filesystem paths the application will use.
 
     The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
 
@@ -211,12 +211,17 @@ def load_cookie_config() -> CookieConfig:
 
 
 def _load_jobs_config() -> JobsConfig:
-    # Load download configuration
+    # Background job runner sizing.
+    jobs_max_workers = max(1, _env_int("JOBS_MAX_WORKERS", 2))
+    jobs_log_lines = max(10, _env_int("JOBS_LOG_LINES", 200))
+
     priority_per_item = _env_int("PRIORITY_PER_ITEM", None, safe=True)
 
     _config = JobsConfig(
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
+        jobs_max_workers=jobs_max_workers,
+        jobs_log_lines=jobs_log_lines,
         priority_per_item=priority_per_item,
+        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
     )
 
     return _config

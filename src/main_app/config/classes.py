@@ -22,6 +22,8 @@ class OtherConfig:
 class JobsConfig:
     """Configuration for jobs."""
 
+    jobs_max_workers: int
+    jobs_log_lines: int
     disable_uploads: str
     priority_per_item: int | None = None
 
