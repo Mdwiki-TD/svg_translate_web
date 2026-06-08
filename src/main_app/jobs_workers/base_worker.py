@@ -207,7 +207,7 @@ class BaseJobWorker(ABC):
 
     def log_errors(self, error: str, error_type: str = "") -> None:
         """ """
-        if not self.result["errors"]:
+        if "errors" not in self.result:
             self.result["errors"] = []
         if error:
             self.result["errors"].append({"error": error, "error_type": error_type})

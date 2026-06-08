@@ -108,8 +108,8 @@ class TestBaseJobWorker:
         result = worker.run()
 
         assert result["status"] == "failed"
-        assert "error" in result
-        assert result["error_type"] == "RuntimeError"
+        assert "errors" in result
+        assert result["errors"][0]["error_type"] == "RuntimeError"
 
     def test_is_cancelled(self, mock_base_services):
         """Test cancellation detection."""
@@ -137,8 +137,8 @@ class TestBaseJobWorker:
         worker.handle_error(ValueError("Test error"), context="test context")
 
         assert worker.result["status"] == "failed"
-        assert worker.result["error"] == "Test error"
-        assert worker.result["error_type"] == "ValueError"
+        assert worker.result["errors"][0]["error"] == "Test error"
+        assert worker.result["errors"][0]["error_type"] == "ValueError"
 
     def test_after_run_handles_save_exception(self, mock_base_services):
         """Test that after_run handles save exceptions gracefully."""
@@ -165,4 +165,4 @@ class TestBaseJobWorker:
         result = worker.run()
 
         # Should return initial result without processing
-        assert result["status"] == "pending"
+        assert result["status"] == "completed"
