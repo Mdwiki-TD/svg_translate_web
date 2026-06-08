@@ -211,3 +211,89 @@ class TestEditWithRetry:
             result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
         assert result == {"success": False, "error": "assertuserfailed"}
         assert mock_exists_page.edit.call_count == 2
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# _move_page
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestMovePageInternal:
+    """Tests for _move_page: verifies that the move() return value is captured
+    and merged into the success response dict."""
+
+    def test_success_move_returns_none_gives_success_only(self, mw_client, mock_exists_page):
+        """When page.move() returns None, result is {"success": True} with no extra keys."""
+        mock_exists_page.move.return_value = None
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="test", move_talk=True, no_redirect=False)
+        assert result == {"success": True}
+
+    def test_success_move_returns_empty_dict_gives_success_only(self, mw_client, mock_exists_page):
+        """When page.move() returns {}, result is {"success": True} with no extra keys."""
+        mock_exists_page.move.return_value = {}
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="test", move_talk=True, no_redirect=False)
+        assert result == {"success": True}
+
+    def test_success_move_return_value_merged_into_result(self, mw_client, mock_exists_page):
+        """When page.move() returns a dict, its contents are merged into the success response."""
+        mock_exists_page.move.return_value = {"from": "Old Title", "to": "New Title", "redirect": ""}
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="test", move_talk=True, no_redirect=False)
+        assert result["success"] is True
+        assert result["from"] == "Old Title"
+        assert result["to"] == "New Title"
+        assert result["redirect"] == ""
+
+    def test_success_move_result_contains_partial_api_data(self, mw_client, mock_exists_page):
+        """When page.move() returns partial data, only that data is merged."""
+        mock_exists_page.move.return_value = {"from": "Old Title"}
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="test", move_talk=True, no_redirect=False)
+        assert result == {"success": True, "from": "Old Title"}
+
+    def test_move_called_with_correct_arguments(self, mw_client, mock_exists_page):
+        """Verifies that page.move() is called with the expected arguments."""
+        mock_exists_page.move.return_value = None
+        mw_client._move_page(
+            mock_exists_page,
+            "New Title",
+            reason="rename reason",
+            move_talk=False,
+            no_redirect=True,
+        )
+        mock_exists_page.move.assert_called_once_with(
+            "New Title",
+            reason="rename reason",
+            move_talk=False,
+            no_redirect=True,
+        )
+
+    def test_assert_user_failed(self, mw_client, mock_exists_page):
+        """AssertUserFailedError is returned as assertuserfailed error."""
+        mock_exists_page.move.side_effect = mwclient.errors.AssertUserFailedError()
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="", move_talk=True, no_redirect=False)
+        assert result == {"success": False, "error": "assertuserfailed"}
+
+    def test_user_blocked(self, mw_client, mock_exists_page):
+        """UserBlocked is returned as userblocked error."""
+        mock_exists_page.move.side_effect = mwclient.errors.UserBlocked(MagicMock())
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="", move_talk=True, no_redirect=False)
+        assert result == {"success": False, "error": "userblocked"}
+
+    def test_api_error_ratelimited(self, mw_client, mock_exists_page):
+        """APIError with code 'ratelimited' is mapped to ratelimited error."""
+        mock_exists_page.move.side_effect = make_api_error("ratelimited", "Rate limited")
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="", move_talk=True, no_redirect=False)
+        assert result == {"success": False, "error": "ratelimited"}
+
+    def test_api_error_other_code(self, mw_client, mock_exists_page):
+        """Non-ratelimited APIError is mapped to the error code with details."""
+        mock_exists_page.move.side_effect = make_api_error("articleexists", "Target page exists")
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="", move_talk=True, no_redirect=False)
+        assert result["success"] is False
+        assert result["error"] == "articleexists"
+        assert "details" in result
+
+    def test_generic_exception(self, mw_client, mock_exists_page):
+        """Generic exceptions are caught and returned as the error string."""
+        mock_exists_page.move.side_effect = Exception("network failure")
+        result = mw_client._move_page(mock_exists_page, "New Title", reason="", move_talk=True, no_redirect=False)
+        assert result == {"success": False, "error": "network failure"}
