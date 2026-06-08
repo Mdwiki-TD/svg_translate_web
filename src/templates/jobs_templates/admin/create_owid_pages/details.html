@@ -70,7 +70,7 @@
                         <td>
                             <a href="https://commons.wikimedia.org/wiki/{{ item.template_title }}" target="_blank"
                                 rel="noopener noreferrer">
-                                {{ item.template_title }}
+                                {{ item.template_title | replace("Template:OWID/", "", 1) }}
                             </a>
                         </td>
                         <td>
