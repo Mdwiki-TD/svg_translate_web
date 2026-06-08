@@ -13,6 +13,34 @@ logger = logging.getLogger(__name__)
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
+def _handle_api_error(exc: Exception) -> dict[str, Any] | None:
+    """Map common mwclient exceptions to a failure dict.
+
+    Returns a ``{"success": False, ...}`` dict for known errors, or
+    ``None`` if the exception is unrecognised (caller should log and
+    handle it themselves).
+    """
+    if isinstance(exc, mwclient.errors.ProtectedPageError):
+        return {"success": False, "error": "protectedpageerror",
+                "details": str({"code": exc.code, "info": exc.info})}
+
+    if isinstance(exc, mwclient.errors.EditError):
+        return {"success": False, "error": "editerror", "details": str(exc)}
+
+    if isinstance(exc, mwclient.errors.AssertUserFailedError):
+        return {"success": False, "error": "assertuserfailed"}
+
+    if isinstance(exc, mwclient.errors.UserBlocked):
+        return {"success": False, "error": "userblocked"}
+
+    if isinstance(exc, mwclient.errors.APIError):
+        if exc.code == "ratelimited":
+            return {"success": False, "error": "ratelimited"}
+        return {"success": False, "error": exc.code, "details": str(exc)}
+
+    return None  # unrecognised — let the caller log and handle
+
+
 class MwClientPage:
     def __init__(self, title: str, site: mwclient.Site) -> None:
         self.title = title
@@ -28,26 +56,10 @@ class MwClientPage:
         try:
             save = page.edit(text, summary=summary, **kwargs) or {}
             return {"success": True, **save}
-
-        except mwclient.errors.ProtectedPageError as exc:
-            details = {"code": exc.code, "info": exc.info}
-            return {"success": False, "error": "protectedpageerror", "details": str(details)}
-
-        except mwclient.errors.EditError as exc:
-            return {"success": False, "error": "editerror", "details": str(exc)}
-
-        except mwclient.errors.AssertUserFailedError:
-            return {"success": False, "error": "assertuserfailed"}
-
-        except mwclient.errors.UserBlocked:
-            return {"success": False, "error": "userblocked"}
-
-        except mwclient.errors.APIError as exc:
-            if exc.code == "ratelimited":
-                return {"success": False, "error": "ratelimited"}
-            return {"success": False, "error": exc.code, "details": str(exc)}
-
         except Exception as exc:
+            result = _handle_api_error(exc)
+            if result is not None:
+                return result
             logger.exception(f"Failed to edit page '{self.title}'")
             return {"success": False, "error": str(exc)}
 
@@ -62,19 +74,10 @@ class MwClientPage:
         try:
             save = page.move(new_title, reason=reason, move_talk=move_talk, no_redirect=no_redirect) or {}
             return {"success": True, **save}
-
-        except mwclient.errors.AssertUserFailedError:
-            return {"success": False, "error": "assertuserfailed"}
-
-        except mwclient.errors.UserBlocked:
-            return {"success": False, "error": "userblocked"}
-
-        except mwclient.errors.APIError as exc:
-            if exc.code == "ratelimited":
-                return {"success": False, "error": "ratelimited"}
-            return {"success": False, "error": exc.code, "details": str(exc)}
-
         except Exception as exc:
+            result = _handle_api_error(exc)
+            if result is not None:
+                return result
             logger.exception(f"Failed to move page '{self.title}' -> '{new_title}'")
             return {"success": False, "error": str(exc)}
 
@@ -114,7 +117,6 @@ class MwClientPage:
             logger.error(f"Title '{self.title}' is invalid")
             self.load_page_error = "invalidpagetitle"
             return None
-
         except Exception as exc:
             self.load_page_error = str(exc)
             logger.exception(f"Failed to load page '{self.title}'")
