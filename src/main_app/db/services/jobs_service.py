@@ -275,7 +275,7 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
 # ── DELETE ───────────────────────────────────────────────
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def delete_job(job_id: int, job_type: str) -> bool:
     """Delete a job by ID and job type efficiently."""
     affected_rows = (

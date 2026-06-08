@@ -1,4 +1,5 @@
 {% from "_macros.html" import card_header, diff_link, wiki_domain_link, status_icon %}
+{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {# Jobs Shared Jinja macros. #}
 
@@ -20,7 +21,10 @@
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_changed -%} #}
 
-{% macro template_pages_changed(domain, title, data, title_columns={"title": "Title"}) %}
+{% macro template_pages_changed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, title, job_id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(title ~ " (" ~ data|length ~ ")") }}
@@ -54,12 +58,15 @@
         </div>
     </div>
 </div>
-
+{% endif %}
 {%- endmacro -%}
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_processed -%} #}
 
-{% macro template_pages_processed(domain, title, data, title_columns={"title": "Title"}) %}
+{% macro template_pages_processed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, title, job_id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(title ~ " (" ~ data|length ~ ")") }}
@@ -97,13 +104,15 @@
         </div>
     </div>
 </div>
-
-
+{% endif %}
 {%- endmacro -%}
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_errors -%} #}
 
-{% macro template_pages_errors(domain, title, data, title_columns={"title": "Title"}) %}
+{% macro template_pages_errors(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, title, job_id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(title ~ " (" ~ data|length ~ ")") }}
@@ -139,13 +148,17 @@
         </div>
     </div>
 </div>
+{% endif %}
 {%- endmacro -%}
 
 
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_only_title -%} #}
 
-{% macro template_pages_only_title(domain, title, data) %}
+{% macro template_pages_only_title(domain, title, data, job_id, job_type, expand_all=False) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, title, job_id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(title ~ " (" ~ data|length ~ ")") }}
@@ -173,4 +186,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {%- endmacro -%}

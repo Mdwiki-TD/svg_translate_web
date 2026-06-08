@@ -93,7 +93,7 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
 # ── DELETE ───────────────────────────────────────────────
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def delete_coordinator(coordinator_id: int) -> bool:
     """
     Delete a coordinator efficiently.

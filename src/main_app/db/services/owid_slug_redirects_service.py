@@ -7,7 +7,7 @@ from sqlalchemy import desc
 
 from ...extensions import db
 from ..models.owid_slug_redirects import OwidSlugRedirectRecord
-from .utils import db_guard_rollback
+from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
         logger.info(f"Added new slug redirect: {slug} -> {redirect_to}")
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
     """
     Update a slug redirect record.
@@ -95,7 +95,7 @@ def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) ->
 # ── DELETE ───────────────────────────────────────────────
 
 
-@db_guard_rollback
+@db_guard(default_return=False)
 def delete_slug_redirect(redirect_id: int) -> bool:
     """
     Delete a slug redirect record.

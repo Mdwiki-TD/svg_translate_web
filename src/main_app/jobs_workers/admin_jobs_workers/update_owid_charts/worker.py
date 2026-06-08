@@ -25,11 +25,11 @@ from typing import Any, Dict
 
 from ....api_services.clients.owid_client import fetch_grapher_metadata
 from ....db.models.owid_charts import OwidChartRecord
-from ....db.services import add_new_slug_redirect, owid_charts_service
+from ....db.services import owid_charts_service
 from ...base_worker import BaseJobWorker
+from ..slugs_helpers import check_slugs
 
 logger = logging.getLogger(__name__)
-
 
 # ---------------------------------------------------------------------------
 # Timespan helpers
@@ -185,11 +185,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         data = {}
 
         # 1 B) Find slug redirect
-        original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
-        if original_chart_url and "/grapher/" in original_chart_url:
-            original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
-            if original_slug != chart.slug:
-                add_new_slug_redirect(slug=chart.slug, redirect_to=original_slug)
+        check_slugs(chart.slug, metadata)
 
         # 2. Find a timespan
         columns = metadata.get("columns", {})

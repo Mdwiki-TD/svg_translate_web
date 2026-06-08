@@ -408,7 +408,11 @@ class CropMainFilesWorker(BaseJobWorker):
         update_result = update_file_text(file_info.original_file, updated_text, self.site)
 
         if update_result["success"]:
-            file_info.steps["update_original"] = {"result": True, "msg": "Updated original file wikitext"}
+            file_info.steps["update_original"] = {
+                "result": True,
+                "msg": "Updated original file wikitext",
+                "newrevid": update_result.get("newrevid", 0),
+            }
             return True
 
         error = update_result.get("error", "Unknown error")
@@ -440,7 +444,11 @@ class CropMainFilesWorker(BaseJobWorker):
         update_result = update_page_text(template_title, updated_text, self.site, summary=summary)
 
         if update_result["success"]:
-            file_info.steps["update_template"] = {"result": True, "msg": f"Updated template {template_title}"}
+            file_info.steps["update_template"] = {
+                "result": True,
+                "msg": f"Updated template {template_title}",
+                "newrevid": update_result.get("newrevid", 0),
+            }
             return True
 
         error = update_result.get("error", "Unknown error")

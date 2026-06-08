@@ -47,6 +47,7 @@ class RenameInfo:
     namespace: int
     old_title: str
     new_title: str | None = None
+    newrevid: int | None = None
     status: str = "pending"  # renamed | skipped_target_exists | failed
     msg: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -250,6 +251,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         edit_success = bool(res.get("success"))
         if res.get("success"):
             info.status = "renamed"
+            info.newrevid = res.get("newrevid", 0)
             info.msg = f"Moved {old_title} -> {new_title}"
             self.result["summary"]["renamed"] += 1
             # Update the title in the database
@@ -279,6 +281,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         edit_success = bool(res.get("success"))
         if edit_success:
             info.status = "redirected"
+            info.newrevid = res.get("newrevid", 0)
             info.msg = f"Redirected {old_title} -> {new_title}"
             self.result["summary"]["redirected"] += 1
             self._update_template_title(old_title, new_title)
