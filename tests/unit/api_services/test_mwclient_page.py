@@ -43,13 +43,13 @@ class TestLoadPage:
     def test_invalid_page_title(self, mw_client, mock_site):
         mock_site.pages.__getitem__.side_effect = mwclient.errors.InvalidPageTitle("bad title")
         result = mw_client.load_page()
-        assert result is False
+        assert result is None
         assert mw_client.load_page_error == "invalidpagetitle"
 
     def test_generic_exception(self, mw_client, mock_site):
         mock_site.pages.__getitem__.side_effect = Exception("connection error")
         result = mw_client.load_page()
-        assert result is False
+        assert result is None
         assert mw_client.load_page_error == "connection error"
 
 
@@ -192,15 +192,15 @@ class TestEditWithRetry:
     def test_succeeds_on_first_retry(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = [None]  # succeeds immediately
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
+            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
         assert result == {"success": True}
 
     def test_returns_ratelimited_after_all_retries(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = make_api_error("ratelimited")
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary", nocreate=1)
+            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary", nocreate=1)
         assert result == {"success": False, "error": "ratelimited"}
-        assert mock_exists_page.edit.call_count == len(_RETRY_DELAYS)
+        assert mock_exists_page.edit.call_count == 1 + len(_RETRY_DELAYS)
 
     def test_stops_early_on_non_ratelimited_error(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = [
@@ -208,7 +208,7 @@ class TestEditWithRetry:
             mwclient.errors.AssertUserFailedError(),
         ]
         with patch("src.main_app.api_services.mwclient_page.time.sleep"):
-            result = mw_client._edit_with_retry(mock_exists_page, "text", "summary")
+            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
         assert result == {"success": False, "error": "assertuserfailed"}
         assert mock_exists_page.edit.call_count == 2
 
