@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.db.models import JobRecord
-from src.main_app.db.services import jobs_service
 from src.main_app.db.services.jobs_service import (
     create_job,
     delete_job,
@@ -99,10 +98,10 @@ def test_update_job_status_with_result_file():
 def test_delete_job():
     """Test deleting a job."""
     job = create_job("collect_templates_data", username="z")
-    assert len(jobs_service.list_jobs()) == 1
+    assert len(list_jobs()) == 1
 
     delete_job(job.id, "collect_templates_data")
-    jobs_len = len(jobs_service.list_jobs())
+    jobs_len = len(list_jobs())
     assert jobs_len == 0
 
 
@@ -110,7 +109,7 @@ def test_delete_job_with_correct_type():
     """Test deleting a job with correct job type."""
     job1 = create_job("collect_templates_data", username="z")
     job2 = create_job("fix_nested_main_files", username="z")
-    assert len(jobs_service.list_jobs()) == 2
+    assert len(list_jobs()) == 2
 
     delete_job(job1.id, "collect_templates_data")
 
@@ -122,7 +121,7 @@ def test_delete_job_with_correct_type():
 def test_delete_job_with_wrong_type():
     """Test deleting a job with wrong job type doesn't delete it."""
     job = create_job("collect_templates_data", username="z")
-    assert len(jobs_service.list_jobs()) == 1
+    assert len(list_jobs()) == 1
 
     # Try to delete with wrong job type
     delete_job(job.id, "fix_nested_main_files")
@@ -139,7 +138,7 @@ def test_delete_nonexistent_job():
     delete_job(999, "collect_templates_data")
 
     # No jobs should exist
-    assert len(jobs_service.list_jobs()) == 0
+    assert len(list_jobs()) == 0
 
 
 def test_list_jobs_filtered_by_type():
