@@ -30,7 +30,7 @@ from ..db.services import (
 )
 from ..jobs_workers import jobs_worker
 from ..jobs_workers.download_main_files.worker import create_main_files_zip
-from ..public_jobs_workers.workers_list_public import jobs_data_public
+from ..public_jobs.workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload

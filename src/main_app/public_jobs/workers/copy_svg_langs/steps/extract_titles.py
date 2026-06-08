@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....utils.wikitext import get_files_list_data
+from .....utils.wikitext import get_files_list_data
 
 logger = logging.getLogger(__name__)
 

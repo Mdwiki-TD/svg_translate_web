@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs.worker import (
+from src.main_app.public_jobs.workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
     copy_svg_langs_worker_entry,
 )
@@ -101,7 +101,7 @@ class TestCopySvgLangsWorker:
 
 class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_missing_title(self) -> None:
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
                 job_id="1",
                 args={"title": ""},
@@ -109,7 +109,7 @@ class TestCopySvgLangsWorkerEntry:
             )
 
     def test_worker_entry_missing_args(self) -> None:
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker"):
             copy_svg_langs_worker_entry(
                 job_id="1",
                 args={"title": "Test.svg"},
@@ -117,7 +117,7 @@ class TestCopySvgLangsWorkerEntry:
             )
 
     def test_worker_entry_creates_worker(self) -> None:
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -137,7 +137,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_with_cancel_event(self) -> None:
         cancel_event = threading.Event()
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -154,7 +154,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_args_is_keyword_only(self) -> None:
         """Test that args is a keyword-only parameter in the new signature."""
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -172,7 +172,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_args_defaults_to_none(self) -> None:
         """Test that args defaults to None when not provided."""
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -189,7 +189,7 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_user_is_second_positional(self) -> None:
         """Test that user is the second positional parameter (after job_id)."""
         user = {"username": "testuser"}
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -201,7 +201,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_maps_copy_svg_langs_upload_limit(self) -> None:
         """Test that copy_svg_langs_upload_limit is mapped to upload_limit in args."""
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -216,7 +216,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_does_not_map_when_key_absent(self) -> None:
         """Test that args are passed unchanged when copy_svg_langs_upload_limit is absent."""
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -232,7 +232,7 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_does_not_map_when_value_falsy(self) -> None:
         """Test that mapping is skipped when copy_svg_langs_upload_limit value is falsy."""
         for falsy_value in [0, None, "", False]:
-            with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+            with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
                 mock_instance = MagicMock()
                 MockWorker.return_value = mock_instance
 
@@ -247,7 +247,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_does_not_modify_args_when_none(self) -> None:
         """Test that entry point works correctly when args is None."""
-        with patch("src.main_app.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
+        with patch("src.main_app.public_jobs.workers.copy_svg_langs.worker.CopySvgLangsWorker") as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 

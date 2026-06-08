@@ -15,7 +15,7 @@ from ..db.services import (
     create_job,
     get_all_settings_ready,
 )
-from ..public_jobs_workers.workers_list_public import jobs_data_public
+from ..public_jobs.workers.workers_list_public import jobs_data_public
 from ..su_services.jobs_files_service import create_job_cancelled_file
 from .workers_list import JobData, jobs_data
 

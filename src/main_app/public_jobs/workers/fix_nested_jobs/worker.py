@@ -13,9 +13,9 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...api_services.clients import get_user_site
-from ...jobs_workers.base_worker import BaseJobWorker
-from ...shared.fix_nested.worker import (
+from ....api_services.clients import get_user_site
+from ....jobs_workers.base_worker import BaseJobWorker
+from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
     fix_nested_tags,

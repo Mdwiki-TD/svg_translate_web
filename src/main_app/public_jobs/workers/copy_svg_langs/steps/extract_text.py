@@ -7,7 +7,7 @@ from typing import Any
 
 import mwclient
 
-from ....api_services.pages_api import get_page_text
+from .....api_services.pages_api import get_page_text
 
 logger = logging.getLogger(__name__)
 

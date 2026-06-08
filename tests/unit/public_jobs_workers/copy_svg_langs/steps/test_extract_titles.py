@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-from src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
+from src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles import extract_titles_step
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
+@patch("src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
 def test_titles_task_success(mock_get_files):
     mock_get_files.return_value = {"main_title": "Main.svg", "titles": ["f1.svg", "f2.svg"]}
 
@@ -14,7 +14,7 @@ def test_titles_task_success(mock_get_files):
     assert len(data["titles"]) == 2
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
+@patch("src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
 def test_titles_task_manual_title(mock_get_files):
     mock_get_files.return_value = {"main_title": "Main.svg", "titles": ["f1.svg"]}
 
@@ -23,7 +23,7 @@ def test_titles_task_manual_title(mock_get_files):
     assert data["main_title"] == "Manual.svg"
 
 
-@patch("src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
+@patch("src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles.get_files_list_data")
 def test_titles_task_fail(mock_get_files):
     mock_get_files.return_value = {"main_title": None, "titles": []}
 
@@ -34,7 +34,7 @@ def test_titles_task_fail(mock_get_files):
 
 def test_extract_titles_step_success(mocker):
     mock_get_files_list_data = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
+        "src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
     )
     mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
 
@@ -48,7 +48,7 @@ def test_extract_titles_step_success(mocker):
 
 def test_extract_titles_step_manual_title(mocker):
     mock_get_files_list_data = mocker.patch(
-        "src.main_app.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
+        "src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_titles.get_files_list_data"
     )
     mock_get_files_list_data.return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
 

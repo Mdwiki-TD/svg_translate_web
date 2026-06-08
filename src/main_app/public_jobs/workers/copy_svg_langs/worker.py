@@ -15,9 +15,9 @@ from typing import Any, Dict
 import mwclient
 import requests
 
-from ...api_services.clients import create_commons_session, get_user_site
-from ...config import settings
-from ...jobs_workers.base_worker import BaseJobWorker
+from ....api_services.clients import create_commons_session, get_user_site
+from ....config import settings
+from ....jobs_workers.base_worker import BaseJobWorker
 from .steps import (
     download_step,
     extract_text_step,

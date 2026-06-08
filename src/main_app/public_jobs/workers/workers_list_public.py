@@ -1,4 +1,4 @@
-from ..jobs_workers.workers_list import JobData
+from ...jobs_workers.workers_list import JobData
 from .copy_svg_langs.worker import copy_svg_langs_worker_entry
 from .fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 

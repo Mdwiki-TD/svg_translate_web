@@ -129,7 +129,7 @@ src/
 │   │   ├── jobs_worker.py
 │   │   ├── shared_objects.py
 │   │   └── workers_list.py
-│   ├── public_jobs_workers/
+│   ├── public_jobs/workers/
 │   │   ├── copy_svg_langs/
 │   │   │   ├── steps/
 │   │   │   │   ├── __init__.py

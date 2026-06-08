@@ -42,7 +42,7 @@ tests/
 │   │   ├── create_owid_pages/
 │   │   ├── crop_main_files/
 │   │   └── utils/
-│   ├── public_jobs_workers/
+│   ├── public_jobs/workers/
 │   │   └── copy_svg_langs/
 │   │       └── steps/
 │   ├── services/
@@ -127,7 +127,7 @@ tests/
 │   │   ├── test_jobs_files_service.py
 │   │   ├── test_jobs_worker.py
 │   │   └── test_worker_cancellation.py
-│   ├── public_jobs_workers/
+│   ├── public_jobs/workers/
 │   │   ├── copy_svg_langs/
 │   │   │   ├── steps/
 │   │   │   │   ├── test_copy_svg_langs_download.py
