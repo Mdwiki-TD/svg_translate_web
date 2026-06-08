@@ -73,6 +73,7 @@ def _load_security_config() -> SecurityConfig:
     secret_key = os.getenv("FLASK_SECRET_KEY", "")
 
     security_config = SecurityConfig(
+        salt="svg-translate",
         secret_key=secret_key,
         max_content_length=max_content_length,
         max_form_memory_size=max_form_memory_size,

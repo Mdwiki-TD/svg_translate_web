@@ -90,6 +90,7 @@ class SecurityConfig:
     """Security configuration for Flask 3.1+ features."""
 
     secret_key: str
+    salt: str
     max_content_length: int  # Maximum request size in bytes
     max_form_memory_size: int  # Maximum form data in memory in bytes
     max_form_parts: int  # Maximum number of form fields

@@ -28,7 +28,6 @@ def coerce_encrypted(value: object) -> bytes | None:
         return value.encode("utf-8")
     return None
 
-
 def get_cronjob_site() -> mwclient.Site | None:
 
     try:

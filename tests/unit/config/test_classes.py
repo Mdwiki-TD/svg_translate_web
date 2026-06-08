@@ -92,6 +92,7 @@ def test_Settings():
     )
 
     security_config = SecurityConfig(
+        salt="svg-translate",
         secret_key="secret",
         max_content_length=100 * 1024 * 1024,
         max_form_memory_size=16 * 1024 * 1024,

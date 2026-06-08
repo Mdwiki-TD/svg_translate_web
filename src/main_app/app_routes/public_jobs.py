@@ -10,7 +10,6 @@ from flask import (
     Blueprint,
     abort,
     flash,
-    g,
     jsonify,
     redirect,
     render_template,
@@ -34,14 +33,9 @@ from ..public_jobs.workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .utils.routes_utils import load_auth_payload
+from .auth.utils import load_user
 
 logger = logging.getLogger(__name__)
-
-
-def load_user():
-    user = getattr(g, "_current_user", None)
-    return user
-
 
 def _can_manage_job(job: Any, user: Any) -> bool:
     """Check if the current user can manage (cancel/delete) a job.
@@ -60,12 +54,27 @@ def _can_manage_job(job: Any, user: Any) -> bool:
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
-    if jobs_worker.cancel_job_worker(job_id, job_type):
+    user = load_user()
+    if not user:
+        flash("You must be logged in to cancel jobs.", "danger")
+        return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
+
+    try:
+        job = get_job(job_id, job_type)
+    except LookupError:
+        flash("Job not found.", "warning")
+        return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+
+    if not _can_manage_job(job, user):
+        flash("You don't have permission to cancel this job.", "danger")
+        return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
+
+    if jobs_worker.cancel_job_worker(job_id, job_type, job):
         flash(f"Job {job_id} cancellation requested.", "success")
     else:
         flash(f"Job {job_id} is not running or already cancelled.", "warning")
 
-    return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+    return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
@@ -98,11 +107,18 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     try:
         # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
+    except Exception:
+        logger.exception("Failed to load auth payload")
+        flash("Failed to load auth payload. Please try again.", "danger")
+        return None
+
+    try:
         job_id = jobs_worker.start_job(auth_payload, job_type, args)
-        flash(f"Job {job_id} started to {job_type.replace('_', ' ')}.", "success")
+        flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
-    except DuplicateJobError as exc:
-        flash(str(exc), "warning")
+    except DuplicateJobError:
+        logger.warning("User '%s' attempted to start duplicate job type '%s'", user.username, job_type)
+        flash("A job of this type is already running. Please wait for it to complete.", "warning")
     except Exception:
         logger.exception("Failed to start job")
         flash("Failed to start job. Please try again.", "danger")
@@ -118,7 +134,12 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
 def _jobs_list(job_type: str) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
-    jobs = list_jobs(limit=100, job_type=job_type)
+    try:
+        jobs = list_jobs(limit=100, job_type=job_type)
+    except Exception:  # pragma: no cover - defensive guard
+        logger.exception("Unable to load jobs list.")
+        flash("Unable to load jobs list.", "danger")
+        jobs = []
 
     template_data = jobs_data_public.get(job_type)
 
@@ -153,7 +174,9 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
+    # Load template data
     template_data = jobs_data_public.get(job_type)
+
     if not template_data:
         abort(404)
 
@@ -171,7 +194,7 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
 
 
 class JobsPublicRoutes:
-    """Collect Templates data Jobs management routes."""
+    """Jobs management routes."""
 
     def __init__(self):
         self.bp = Blueprint("public_jobs", __name__, url_prefix="/jobs")
@@ -186,22 +209,8 @@ class JobsPublicRoutes:
         @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data_public:
+                flash("Job type not found.", "warning")
                 abort(404)
-
-            user = load_user()
-            if not user:
-                flash("You must be logged in to cancel jobs.", "danger")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-
-            try:
-                job = get_job(job_id, job_type)
-            except LookupError:
-                flash("Job not found.", "warning")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
-
-            if not _can_manage_job(job, user):
-                flash("You don't have permission to cancel this job.", "danger")
-                return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
             return _cancel_job(job_id, job_type)
 
@@ -235,9 +244,11 @@ class JobsPublicRoutes:
                 abort(404)
 
             args = request.form.to_dict()
+
             job_id = _start_job(job_type, args)
             if not job_id:
                 return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
+
             return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
