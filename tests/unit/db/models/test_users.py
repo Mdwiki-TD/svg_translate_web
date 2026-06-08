@@ -6,7 +6,8 @@ Classes to test: UsersRecord, AdminUserRecord, UserTokenRecord
 TODO: write tests
 """
 
-
 from src.main_app.db.models.users import (
-    UsersRecord, AdminUserRecord, UserTokenRecord,
+    AdminUserRecord,
+    UsersRecord,
+    UserTokenRecord,
 )

@@ -6,7 +6,7 @@ Classes to test: TemplateNeedUpdateRecord, OwidChartTemplateRecord
 TODO: write tests
 """
 
-
 from src.main_app.db.models.views import (
-    TemplateNeedUpdateRecord, OwidChartTemplateRecord,
+    OwidChartTemplateRecord,
+    TemplateNeedUpdateRecord,
 )

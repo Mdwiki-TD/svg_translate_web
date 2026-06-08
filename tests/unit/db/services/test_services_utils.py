@@ -6,7 +6,7 @@ Functions to test: db_guard_rollback, db_guard
 TODO: write tests
 """
 
-
 from src.main_app.db.services.utils import (
-    db_guard_rollback, db_guard,
+    db_guard,
+    db_guard_rollback,
 )
