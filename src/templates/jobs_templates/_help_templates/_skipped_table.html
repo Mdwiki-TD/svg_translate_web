@@ -2,8 +2,7 @@
 
 <!-- Skipped Templates -->
 
-{% macro pages_skipped_table(domain, data, table_title, job_id, job_type, expand_all) %}
-{% if data|length > 100 and not expand_all %}
+{% macro table_header_to_expand(data, table_title, job_id, job_type) %}
 <div class="card mb-3">
     <div class="card-header">
         <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
@@ -18,6 +17,11 @@
         </div>
     </div>
 </div>
+{%- endmacro -%}
+
+{% macro pages_skipped_table(domain, data, table_title, job_id, job_type, expand_all) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, table_title, job_id, job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">

@@ -1,5 +1,6 @@
 {% extends "jobs_templates/admin/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
+{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% set pages_processed = result_data.pages_processed if result_data and result_data.pages_processed else [] %}
 
@@ -37,6 +38,9 @@
 
 {% block job_details %}
 {% macro pages_table(pages_list, title) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, table_title, job.id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header bg-opacity-10">
         {{ card_header(title ~ " (" ~ pages_list|length ~ ")") }}
@@ -88,6 +92,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endmacro %}
 
 <!-- Renamed -->

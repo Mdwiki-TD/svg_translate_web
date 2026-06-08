@@ -1,5 +1,7 @@
 {% extends "jobs_templates/admin/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step %}
+{% from "jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
+{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -23,6 +25,9 @@
 {% endblock %}
 
 {% macro pages_processed_table(data, table_title) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, table_title, job.id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -64,6 +69,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 {%- endmacro -%}
 
 {% block job_details %}
@@ -78,7 +84,6 @@
 {{ pages_processed_table(result_data.pages_success, 'Templates success') }}
 {% endif %}
 
-{% from "jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
 
 <!-- Skipped Templates -->
 {% if result_data.pages_skipped %}

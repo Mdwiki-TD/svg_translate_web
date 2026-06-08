@@ -1,5 +1,6 @@
 {% extends "jobs_templates/admin/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step %}
+{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {# Processed files or pages fallback #}
 {% set _processed = result_data.files_processed or result_data.pages_processed or [] %}
@@ -41,6 +42,9 @@
 {% block job_details %}
 
 {% macro pages_table(data, table_title) %}
+{% if data|length > 100 and not expand_all %}
+{{ table_header_to_expand(data, table_title, job.id, job_type) }}
+{% else %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -114,52 +118,32 @@
         </div>
     </div>
 </div>
-{%- endmacro -%}
-
-{% macro pages_table_expand(data, table_title, expand_all) %}
-{% if data|length > 100 and not expand_all %}
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-            <h5 class="mb-0">{{ table_title }} ({{ data|length }})</h5>
-            <div class="card-tools">
-                <button type="button" class="btn-tool">
-                    <a href="{{ url_for('admin.jobs.job_detail_expand', job_type=job_type, job_id=job.id) }}">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-{% else %}
-{{ pages_table(data, table_title) }}
 {% endif %}
 {%- endmacro -%}
 
 <!-- Uploaded -->
 {% if uploaded_pages %}
-{{ pages_table_expand(uploaded_pages, 'Uploaded', expand_all) }}
+{{ pages_table(uploaded_pages, 'Uploaded') }}
 {% endif %}
 
 <!-- Updated -->
 {% if updated_pages %}
-{{ pages_table_expand(updated_pages, 'Updated', expand_all) }}
+{{ pages_table(updated_pages, 'Updated') }}
 {% endif %}
 
 <!-- Processed -->
 {% if files_processed %}
-{{ pages_table_expand(files_processed, 'Processed', expand_all) }}
+{{ pages_table(files_processed, 'Processed') }}
 {% endif %}
 
 <!-- Skipped -->
 {% if skipped_pages %}
-{{ pages_table_expand(skipped_pages, 'Skipped', expand_all) }}
+{{ pages_table(skipped_pages, 'Skipped') }}
 {% endif %}
 
 <!-- Failed -->
 {% if failed_pages %}
-{{ pages_table_expand(failed_pages, 'Failed', expand_all) }}
+{{ pages_table(failed_pages, 'Failed') }}
 {% endif %}
 
 {% endblock %}
