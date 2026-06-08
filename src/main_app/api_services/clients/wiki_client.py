@@ -40,9 +40,8 @@ def get_cronjob_site() -> mwclient.Site | None:
     except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction
         logger.error(f"Failed to build OAuth site, {str(exc)}")
         return None
-    except requests.exceptions.ConnectionError as exc: # pragma: no cover - network interaction
+    except requests.exceptions.ConnectionError:  # pragma: no cover - network interaction
         logger.error("Failed to build OAuth site, connection error")
-        logger.error(dir(exc))
         return None
     except Exception as exc:  # pragma: no cover - network interaction
         logger.exception("Failed to build OAuth site", exc_info=exc)
@@ -79,9 +78,8 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
     except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction
         logger.error(f"Failed to build OAuth site, {str(exc)}")
         return None
-    except requests.exceptions.ConnectionError as exc: # pragma: no cover - network interaction
+    except requests.exceptions.ConnectionError:  # pragma: no cover - network interaction
         logger.error("Failed to build OAuth site, connection error")
-        logger.error(dir(exc))
         return None
     except Exception as exc:  # pragma: no cover - network interaction
         logger.exception("Failed to build OAuth site", exc_info=exc)

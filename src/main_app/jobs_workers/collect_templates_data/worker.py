@@ -120,15 +120,13 @@ class CollectMainFilesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "status": "pending",
+            "errors": [ { "error": "", "error_type": "" } ],
+            "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "args": {},
-            "errors": [
-                {
-                    "error": "",
-                    "error_type": "",
-                }
-            ],
+            "completed_at": None,
+            "cancelled_at": None,
             "summary": {
                 "total": 0,
                 "processed": 0,

@@ -93,6 +93,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
+            "errors": [ { "error": "", "error_type": "" } ],
+            "args": {},
+            "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,

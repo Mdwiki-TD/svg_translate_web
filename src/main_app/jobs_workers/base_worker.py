@@ -203,6 +203,16 @@ class BaseJobWorker(ABC):
         self.result["error"] = str(error)
         self.result["error_type"] = type(error).__name__
 
+    def log_errors(self, error, error_type) -> None:
+        """ """
+        if error:
+            self.result["errors"].append(
+                {
+                    "error": error,
+                    "error_type": error_type,
+                }
+            )
+
     def run(self) -> Dict[str, Any]:
         """Execute the complete job lifecycle.
 

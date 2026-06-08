@@ -119,9 +119,13 @@ class DownloadMainFilesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "status": "pending",
+            "errors": [ { "error": "", "error_type": "" } ],
+            "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
-            "output_path": str(self.output_dir),
+            "completed_at": None,
+            "cancelled_at": None,
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -129,6 +133,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 "failed": 0,
                 "skipped": 0,
             },
+            "output_path": str(self.output_dir),
             "files_downloaded": [],
             "files_failed": [],
         }
