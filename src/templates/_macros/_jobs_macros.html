@@ -18,7 +18,7 @@
 {% endfor %}
 {%- endmacro -%}
 
-{# {%- from "jobs_templates/_help_templates/_jobs_macros.html" import template_pages_changed -%} #}
+{# {%- from "_macros/_jobs_macros.html" import template_pages_changed -%} #}
 
 {% macro template_pages_changed(domain, title, data, title_columns={"title": "Title"}) %}
 <div class="card mb-3">
@@ -57,7 +57,7 @@
 
 {%- endmacro -%}
 
-{# {%- from "jobs_templates/_help_templates/_jobs_macros.html" import template_pages_processed -%} #}
+{# {%- from "_macros/_jobs_macros.html" import template_pages_processed -%} #}
 
 {% macro template_pages_processed(domain, title, data, title_columns={"title": "Title"}) %}
 <div class="card mb-3">
@@ -101,7 +101,7 @@
 
 {%- endmacro -%}
 
-{# {%- from "jobs_templates/_help_templates/_jobs_macros.html" import template_pages_errors -%} #}
+{# {%- from "_macros/_jobs_macros.html" import template_pages_errors -%} #}
 
 {% macro template_pages_errors(domain, title, data, title_columns={"title": "Title"}) %}
 <div class="card mb-3">
@@ -143,7 +143,7 @@
 
 
 
-{# {%- from "jobs_templates/_help_templates/_jobs_macros.html" import template_pages_only_title -%} #}
+{# {%- from "_macros/_jobs_macros.html" import template_pages_only_title -%} #}
 
 {% macro template_pages_only_title(domain, title, data) %}
 <div class="card mb-3">
