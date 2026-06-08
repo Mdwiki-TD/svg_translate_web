@@ -20,12 +20,12 @@
 </form>
 {%- endmacro -%}
 
-{% macro form_start_job(end_point, start_confirm_message) %}
+{% macro form_start_job(end_point, start_confirm_message, start_title="Start New Job") %}
 <form method="post" action="{{ end_point }}" data-confirm-message="{{ start_confirm_message }}"
     onsubmit="return confirm(this.dataset.confirmMessage);" class="d-inline">
     {{ csrf() }}
     <button type="submit" class="btn btn-outline-primary">
-        <i class="bi bi-play-circle"></i> Start New Job
+        <i class="bi bi-play-circle"></i> {{ start_title }}
     </button>
 </form>
 {%- endmacro -%}

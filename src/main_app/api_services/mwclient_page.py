@@ -1,16 +1,43 @@
-""" """
+"""Wrapper around mwclient for editing, creating, and moving wiki pages."""
 
 from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, Callable
 
 import mwclient
 
 logger = logging.getLogger(__name__)
 
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
+
+
+def _handle_api_error(exc: Exception) -> dict[str, Any] | None:
+    """Map common mwclient exceptions to a failure dict.
+
+    Returns a ``{"success": False, ...}`` dict for known errors, or
+    ``None`` if the exception is unrecognised (caller should log and
+    handle it themselves).
+    """
+    if isinstance(exc, mwclient.errors.ProtectedPageError):
+        return {"success": False, "error": "protectedpageerror", "details": str({"code": exc.code, "info": exc.info})}
+
+    if isinstance(exc, mwclient.errors.EditError):
+        return {"success": False, "error": "editerror", "details": str(exc)}
+
+    if isinstance(exc, mwclient.errors.AssertUserFailedError):
+        return {"success": False, "error": "assertuserfailed"}
+
+    if isinstance(exc, mwclient.errors.UserBlocked):
+        return {"success": False, "error": "userblocked"}
+
+    if isinstance(exc, mwclient.errors.APIError):
+        if exc.code == "ratelimited":
+            return {"success": False, "error": "ratelimited"}
+        return {"success": False, "error": exc.code, "details": str(exc)}
+
+    return None  # unrecognised — let the caller log and handle
 
 
 class MwClientPage:
@@ -20,104 +47,55 @@ class MwClientPage:
         self.load_page_error = ""
         self.page = None
 
-    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
+
+    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
         try:
-            save = page.edit(text, summary=summary, nocreate=nocreate) or {}
+            save = page.edit(text, summary=summary, **kwargs) or {}
             return {"success": True, **save}
-
-        except mwclient.errors.ProtectedPageError as exc:
-            details = {"code": exc.code, "info": exc.info}
-            return {"success": False, "error": "protectedpageerror", "details": str(details)}
-
-        except mwclient.errors.EditError as exc:
-            return {"success": False, "error": "editerror", "details": str(exc)}
-
-        except mwclient.errors.AssertUserFailedError:
-            return {"success": False, "error": "assertuserfailed"}
-
-        except mwclient.errors.UserBlocked:
-            return {"success": False, "error": "userblocked"}
-
-        except mwclient.errors.APIError as exc:
-            if exc.code == "ratelimited":
-                return {"success": False, "error": "ratelimited"}
-
-            return {"success": False, "error": exc.code, "details": str(exc)}
-
         except Exception as exc:
-            logger.exception(f"Failed to edit page {self.title}", exc_info=exc)
+            result = _handle_api_error(exc)
+            if result is not None:
+                return result
+            logger.exception(f"Failed to edit page '{self.title}'")
             return {"success": False, "error": str(exc)}
-
-    def _edit_with_retry(self, page: mwclient.page.Page, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(
-                f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
-                f"for page '{self.title}'. Retrying in {delay}s..."
-            )
-            time.sleep(delay)
-
-            edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
-
-            if edit_result.get("error") != "ratelimited":
-                return edit_result
-
-        return {"success": False, "error": "ratelimited"}
-
-    # ------------------------------------------------------------------
-    # Move (rename) page
-    # ------------------------------------------------------------------
 
     def _move_page(
         self,
         page: mwclient.page.Page,
         new_title: str,
         reason: str,
-        move_talk: bool,
-        no_redirect: bool,
+        move_talk: bool = True,
+        no_redirect: bool = False,
     ) -> dict[str, Any]:
         try:
-            page.move(
-                new_title,
-                reason=reason,
-                move_talk=move_talk,
-                no_redirect=no_redirect,
-            )
-            return {"success": True}
-
-        except mwclient.errors.AssertUserFailedError:
-            return {"success": False, "error": "assertuserfailed"}
-
-        except mwclient.errors.UserBlocked:
-            return {"success": False, "error": "userblocked"}
-
-        except mwclient.errors.APIError as exc:
-            if exc.code == "ratelimited":
-                return {"success": False, "error": "ratelimited"}
-            return {"success": False, "error": exc.code, "details": str(exc)}
-
+            save = page.move(new_title, reason=reason, move_talk=move_talk, no_redirect=no_redirect) or {}
+            return {"success": True, **save}
         except Exception as exc:
-            logger.exception(f"Failed to move page {self.title} -> {new_title}", exc_info=exc)
+            result = _handle_api_error(exc)
+            if result is not None:
+                return result
+            logger.exception(f"Failed to move page '{self.title}' -> '{new_title}'")
             return {"success": False, "error": str(exc)}
 
-    def _move_with_retry(
-        self,
-        page: mwclient.page.Page,
-        new_title: str,
-        reason: str,
-        move_talk: bool,
-        no_redirect: bool,
-    ) -> dict[str, Any]:
+    # ------------------------------------------------------------------
+    # Unified retry logic
+    # ------------------------------------------------------------------
+
+    def _with_retry(self, operation: Callable[..., dict[str, Any]], *args, **kwargs) -> dict[str, Any]:
+        """Call *operation* and retry up to len(_RETRY_DELAYS) times on rate-limit errors."""
+        result = operation(*args, **kwargs)
+        if result.get("error") != "ratelimited":
+            return result
+
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(
-                f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
-                f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
-            )
+            logger.warning(f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). " f"Retrying in {delay}s...")
             time.sleep(delay)
-
-            move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
-
-            if move_result.get("error") != "ratelimited":
-                return move_result
+            result = operation(*args, **kwargs)
+            if result.get("error") != "ratelimited":
+                return result
 
         return {"success": False, "error": "ratelimited"}
 
@@ -125,32 +103,35 @@ class MwClientPage:
     # Public
     # ------------------------------------------------------------------
 
-    def load_page(self) -> mwclient.page.Page | bool:
+    def load_page(self) -> mwclient.page.Page | None:
         if self.page:
             return self.page
 
         try:
             self.page = self.site.pages[self.title]
         except mwclient.errors.InvalidPageTitle:
-            logger.error(f"Title {self.title} is invalid")
+            logger.error(f"Title '{self.title}' is invalid")
             self.load_page_error = "invalidpagetitle"
-            return False
-
+            return None
         except Exception as exc:
             self.load_page_error = str(exc)
-            logger.exception(f"Failed to load page {self.title}", exc_info=exc)
-            return False
+            logger.exception(f"Failed to load page '{self.title}'")
+            return None
 
         return self.page
 
     def check_exists(self) -> bool:
         page = self.load_page()
 
-        if not page or not page.exists:
-            logger.warning(f"Title {self.title} does not exist")
+        if not page:
+            logger.warning(f"Failed to load page '{self.title}'")
             return False
 
-        logger.info(f"Title {self.title} exists")
+        if not page.exists:
+            logger.warning(f"Page '{self.title}' does not exist")
+            return False
+
+        logger.info(f"Page '{self.title}' exists")
         return True
 
     def is_redirect(self) -> bool:
@@ -167,19 +148,24 @@ class MwClientPage:
             logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
             return False
 
-    def edit_page(self, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
         page = self.load_page()
 
         if not page:
             return {"success": False, "error": self.load_page_error}
 
-        edit_result = self._edit_page(page, text, summary=summary, nocreate=nocreate)
+        return self._with_retry(self._edit_page, page, text, summary, nocreate=nocreate)
 
-        if edit_result.get("error") != "ratelimited":
-            return edit_result
+    def create_page(self, text: str, summary: str) -> dict[str, Any]:
+        page = self.load_page()
 
-        # handle retry
-        return self._edit_with_retry(page, text, summary, nocreate=nocreate)
+        if not page:
+            return {"success": False, "error": self.load_page_error}
+
+        if page.exists:
+            return {"success": False, "error": "page exists"}
+
+        return self._with_retry(self._edit_page, page, text, summary, createonly=True)
 
     def move_page(
         self,
@@ -197,10 +183,4 @@ class MwClientPage:
         if not page.exists:
             return {"success": False, "error": "missing"}
 
-        move_result = self._move_page(page, new_title, reason, move_talk, no_redirect)
-
-        if move_result.get("error") != "ratelimited":
-            return move_result
-
-        # handle retry
-        return self._move_with_retry(page, new_title, reason, move_talk, no_redirect)
+        return self._with_retry(self._move_page, page, new_title, reason, move_talk, no_redirect)

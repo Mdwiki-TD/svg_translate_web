@@ -14,6 +14,7 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
+from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
@@ -77,11 +78,14 @@ class CreateOwidPagesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
+        self.update_all = False
         self.job_id = job_id
         self.user = user
         self.site: mwclient.Site | None = None
         self.args = args or {}
         self.limit_items = args.get("limit_items") if args else 0
+        if args and str(args.get("update_all", "")).lower() == "true":
+            self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()
@@ -120,6 +124,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
 
     def process(self) -> Dict[str, Any]:
+        self.result["args"].update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
@@ -128,9 +133,14 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return self.result
 
         templates = self._load_templates()
+        self.result["summary"]["total"] = len(templates)
+        self._save_progress()
+
+        if not self.update_all:
+            templates = self.filter_created(templates)
 
         self.result["summary"]["total"] = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
 
         per_item = self.get_priority(len(templates))
 
@@ -156,6 +166,22 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
+
+    def filter_created(self, templates) -> list[TemplateRecord]:
+        owid_pages = [t.title.removeprefix("Template:") for t in templates]
+        pages_created = is_pages_exists(owid_pages, self.site)
+        already_created = [x for x, v in pages_created.items() if v is True]
+
+        if not already_created:
+            logger.warning("filter_created failed returning all templates")
+            return templates
+
+        logger.debug(f"len of OWID already created pages: {len(already_created):,}")
+
+        templates = [t for t in templates if t.title.removeprefix("Template:") not in already_created]
+        logger.debug(f"len of templates after filter created pages: {len(templates):,}")
+
+        return templates
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
@@ -277,16 +303,16 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
             return False
 
+        # extend categories from current text
+        info._new_text = merge_categories(current_text, info._new_text)
+        info._new_text = sort_categories(info._new_text)
+
         if current_text.strip() == info._new_text.strip():
             self._skip_step(info, "update_text", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
             return None  # nothing to update
-
-        # extend categories from current text
-        info._new_text = merge_categories(current_text, info._new_text)
-        info._new_text = sort_categories(info._new_text)
 
         # Content is different, perform update
         res = update_page_text(
