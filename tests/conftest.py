@@ -57,7 +57,7 @@ def stop_nets():
 
 
 @pytest.fixture
-def app() -> Generator[Flask, Any]:
+def app() -> Generator[Flask, Any, None]:
     """Create and configure a test Flask application.
 
     Yields:

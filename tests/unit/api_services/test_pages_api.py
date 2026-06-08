@@ -59,7 +59,7 @@ class TestIsPageExists:
             result = is_page_exists("File:Existing.svg", mock_site)
 
         assert result is True
-        assert "Title File:Existing.svg exists" in caplog.text
+        assert "Page 'File:Existing.svg' exists" in caplog.text
 
     def test_page_not_exists_logs_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test that is_page_exists logs a warning when page not exists."""
@@ -73,7 +73,7 @@ class TestIsPageExists:
             result = is_page_exists("File:Not-existing.svg", mock_site)
 
         assert result is False
-        assert "Title File:Not-existing.svg does not exist" in caplog.text
+        assert "Page 'File:Not-existing.svg' does not exist" in caplog.text
 
 
 class TestCreatePage:
@@ -83,6 +83,7 @@ class TestCreatePage:
         """Test successful page creation."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_page.exists = False
         mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
@@ -95,12 +96,13 @@ class TestCreatePage:
 
         assert result == {"success": True}
         mock_site.pages.__getitem__.assert_called_once_with("File:Test.svg")
-        mock_page.edit.assert_called_once_with("{{Information}}", summary="Test summary", nocreate=0)
+        mock_page.edit.assert_called_once_with("{{Information}}", summary="Test summary", onlycreate=True)
 
     def test_create_page_without_summary(self) -> None:
         """Test page creation with default empty summary."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_page.exists = False
         mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 
@@ -111,7 +113,7 @@ class TestCreatePage:
         )
 
         assert result == {"success": True}
-        mock_page.edit.assert_called_once_with("{{Information}}", summary="", nocreate=0)
+        mock_page.edit.assert_called_once_with("{{Information}}", summary="", onlycreate=True)
 
     def test_create_page_missing_page_name(self) -> None:
         """Test create_page returns error when page_name is missing."""
@@ -168,12 +170,13 @@ class TestCreatePage:
 
         assert result["success"] is False
         assert "Page load failed" in result["error"]
-        assert "Failed to load page File:Test.svg" in caplog.text
+        assert "Failed to load page 'File:Test.svg'" in caplog.text
 
     def test_create_page_edit_exception(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test create_page handles exception when edit fails."""
         mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
+        mock_page.exists = False
         mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
         mock_page.edit = MagicMock(side_effect=Exception("Edit failed"))
@@ -188,7 +191,7 @@ class TestCreatePage:
 
         assert result["success"] is False
         assert "Edit failed" in result["error"]
-        assert "Failed to edit page File:Test.svg" in caplog.text
+        assert "Failed to edit page 'File:Test.svg'" in caplog.text
 
 
 class TestUpdateFileText:
