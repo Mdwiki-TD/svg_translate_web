@@ -6,7 +6,7 @@ import secrets
 import sys
 from pathlib import Path
 from typing import Any, Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from cryptography.fernet import Fernet
@@ -57,7 +57,7 @@ def stop_nets():
 
 
 @pytest.fixture
-def app() -> Generator[Flask, Any, None]:
+def app() -> Generator[Flask, Any]:
     """Create and configure a test Flask application.
 
     Yields:

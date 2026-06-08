@@ -65,9 +65,13 @@ class CopySvgLangsWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
+            "errors": [{"error": "", "error_type": ""}],
+            "args": {},
+            "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,
+            "summary": {},
             "title": None,
             "stages": {
                 "text": {"status": "Pending", "message": "Getting text"},
@@ -78,7 +82,6 @@ class CopySvgLangsWorker(BaseJobWorker):
                 "inject": {"status": "Pending", "message": "Injecting translations"},
                 "upload": {"status": "Pending", "message": "Uploading files"},
             },
-            "summary": {},
             "results_summary": {},
             "files_processed": {},
         }
@@ -387,10 +390,6 @@ class CopySvgLangsWorker(BaseJobWorker):
 
         self._save_files_stats(stats_data)
 
-        # Finalize
-        self.result["status"] = "completed"
-        self.result["completed_at"] = datetime.now().isoformat()
-
         # Compile final results for database
         self.result["results_summary"].update(
             {
@@ -407,7 +406,6 @@ class CopySvgLangsWorker(BaseJobWorker):
             }
         )
 
-        self._save_progress()
         return self.result
 
     def log_upload_error(self, _msg, result, status):

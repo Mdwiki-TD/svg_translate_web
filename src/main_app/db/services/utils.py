@@ -16,6 +16,7 @@ FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 P = ParamSpec("P")
 R = TypeVar("R")
 
+
 def db_guard_rollback(func: FuncType) -> FuncType:  # noqa: UP047
     """Decorator that requires a full OAuth credential bundle."""
 
@@ -32,6 +33,7 @@ def db_guard_rollback(func: FuncType) -> FuncType:  # noqa: UP047
             raise exc
 
     return cast(FuncType, wrapper)
+
 
 def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callable[P, R]]:
     """Decorator factory to wrap a DB service function.

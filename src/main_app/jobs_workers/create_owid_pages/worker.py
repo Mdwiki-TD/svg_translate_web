@@ -13,7 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import create_page, get_page_text, is_page_exists
+from ...api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
 from ...data import get_slug_categories
 from ...db.models import TemplateRecord
 from ...db.services import list_templates
@@ -78,8 +78,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
     ) -> None:
         self.job_id = job_id
         self.user = user
-        self.cancel_event = cancel_event
         self.site: mwclient.Site | None = None
+        self.args = args or {}
         self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
@@ -93,6 +93,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
+            "errors": [{"error": "", "error_type": ""}],
+            "args": {},
+            "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,
@@ -105,10 +108,49 @@ class CreateOwidPagesWorker(BaseJobWorker):
                 "skipped": 0,
             },
             "pages_processed": [],
-            "pages_success": [],
+            "pages_created": [],
+            "pages_updated": [],
             "pages_skipped": [],
             "pages_failed": [],
         }
+
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> Dict[str, Any]:
+
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.log_no_site_error()
+            return self.result
+
+        templates = self._load_templates()
+
+        self.result["summary"]["total"] = len(templates)
+        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+
+        per_item = self.get_priority(len(templates))
+
+        for n, template in enumerate(templates, start=1):
+            if self.is_cancelled():
+                break
+
+            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                break
+
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
+        if self.result.get("status") in ["pending", "running"]:
+            self.result["status"] = "completed"
+
+        return self.result
 
     # ------------------------------------------------------------------
     # Initialisation helpers
@@ -116,13 +158,13 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
-        templates = [t for t in templates if t.title.startswith("Template:OWID/")]
-        return self._apply_limits(templates)
+        _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
+        return self._apply_limits(_templates)
 
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
+            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} item")
             return templates[:_limit]
 
         return templates
@@ -140,38 +182,60 @@ class CreateOwidPagesWorker(BaseJobWorker):
         return new_text
 
     def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
+
+        # file info
         file_info = TemplateProcessingInfo(
             template_id=template.id,
             template_title=template.title,
         )
 
+        # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_failed")
             return False
 
+        # ----------------------------------
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
-            self._append(file_info)
+            self._append(file_info, key="pages_failed")
             return False
 
         if file_info._new_text and template.source:
             file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
 
-        # Step 3 - check if new page already exists then compare if text need to be updated
-        # if page text == new text then summary.skipped++ else summary.updated++
-        if not self._step_check_exists_and_update(file_info):
-            self._append(file_info)
-            return False
+        # ----------------------------------
+        # Step 2 A) - check if new page already exists
+        new_title = self.create_new_page_title(file_info)
+
+        page_exists = is_page_exists(new_title, self.site)
+
+        if page_exists:
+            # ----------------------------------
+            # Step 3 - compare if text need to be updated
+            upd_step = self._step_update(file_info, new_title)
+            if upd_step is False:
+                self._append(file_info, key="pages_failed")
+            elif upd_step is None:
+                self._append(file_info, key="pages_skipped")
+            else:
+                self._append(file_info, key="pages_updated")
+
+            return upd_step is True
 
         # Step 4 - create_new_page
-        if not self._step_create_new_page(file_info):
-            self._append(file_info)
+        create_step = self._step_create_new_page(file_info)
+        if create_step is False:
+            self._append(file_info, key="pages_failed")
             return False
+        elif create_step is True:
+            self._append(file_info, key="pages_created")
+            return True
 
+        # dead code?
         file_info.status = "completed"
-        self.result["summary"]["processed"] += 1
-        self._append(file_info)
+        self._append(file_info, key="pages_processed")
         return True
 
     # ------------------------------------------------------------------
@@ -200,17 +264,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._fail(info, "create_new_text", str(exc))
             return False
 
-    def _step_check_exists_and_update(self, info: TemplateProcessingInfo) -> bool:
+    def _step_update(self, info: TemplateProcessingInfo, new_title: str) -> bool | None:
         """
-        Check if the target OWID page exists and compare its content.
+        compare the target OWID page content.
         If identical, skip creation. If different, update here and return False.
         Returns True to continue to Step 4 (Creation) if page does not exist.
         """
-        new_title = self.create_new_page_title(info)
-
-        if not is_page_exists(new_title, self.site):
-            return True
-
         # Page exists, check if update is needed
         current_text = get_page_text(new_title, self.site)
         if current_text.strip() == info._new_text.strip():
@@ -218,33 +277,29 @@ class CreateOwidPagesWorker(BaseJobWorker):
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
-            self.result["summary"]["processed"] += 1
-            return False
+            return None  # nothing to update
 
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
         info._new_text = sort_categories(info._new_text)
 
         # Content is different, perform update
-        res = create_page(
-            new_title,
-            info._new_text,
-            self.site,
+        res = update_page_text(
+            page_name=new_title,
+            updated_text=info._new_text,
+            site=self.site,
             summary=f"Updating OWID page from [[{info.template_title}]]",
         )
 
-        if not res["success"]:
-            err = res.get("error", "Unknown error")
-            self._fail(info, "create_new_page", err)
-            return False
+        if res["success"]:
+            self.result["summary"]["updated"] += 1
+            info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
+            info.new_page_title = new_title
+            info.status = "updated"
+            return True
 
-        self.result["summary"]["updated"] += 1
-        self.result["summary"]["processed"] += 1
-        info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
-        info.new_page_title = new_title
-        info.status = "completed"
-
-        # return False to skip _step_create_new_page step
+        err = res.get("error", "Unknown error")
+        self._fail(info, "create_new_page", err)
         return False
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
@@ -265,11 +320,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return False
 
         self.result["summary"]["created"] += 1
-        info.steps["create_new_page"] = {"result": True, "msg": f"Created/Updated page: {new_title}"}
+        info.steps["create_new_page"] = {"result": True, "msg": f"Created: {new_title}"}
         info.new_page_title = new_title
+        info.status = "created"
         return True
 
-    def create_new_page_title(self, info):
+    def create_new_page_title(self, info: TemplateProcessingInfo) -> str:
         if info.template_title.startswith("Template:OWID/"):
             return info.template_title.replace("Template:OWID/", "OWID/", 1)
 
@@ -290,45 +346,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _append(self, file_info: TemplateProcessingInfo) -> None:
-        self.result["pages_processed"].append(file_info.to_dict())
-
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def process(self):
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
-            return self.result
-
-        templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
-
-        per_item = self.get_priority(len(templates))
-
-        for n, template in enumerate(templates, start=1):
-            if self.is_cancelled():
-                break
-
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
-
-            if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
-                break
-
-            if n == 1 or n % per_item == 0:
-                self._save_progress()
-
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
-
-        return self.result
+    def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
+        self.result[key].append(file_info.to_dict())
 
 
 def create_owid_pages_for_templates(

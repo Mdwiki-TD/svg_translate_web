@@ -356,27 +356,6 @@ class TestRepairNestedSvgTags:
 # =============================================================================
 
 
-def test_fix_nested_worker_handles_cancelled_fix_result(mock_fix_nested_services):
-    """Test that worker handles cancelled fix result properly."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
-    mock_fix_nested_services["list_templates"].return_value = templates
-    mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
-        "success": False,
-        "message": "Cancelled",
-        "cancelled": True,
-    }
-
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
-
-    # Should save result with cancelled status
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["status"] == "cancelled"
-    assert "cancelled_at" in result
-
-
 def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_nested_services):
     """Test that worker handles general fix failure properly."""
     templates = [

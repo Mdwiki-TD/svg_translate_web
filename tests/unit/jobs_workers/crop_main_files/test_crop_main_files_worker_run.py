@@ -206,4 +206,4 @@ class TestCropMainFilesProcessorRun:
         result = processor.run()
 
         # Should return early with original result
-        assert result["status"] == "pending"
+        assert result["status"] == "completed"

@@ -25,7 +25,7 @@ from typing import Any, Dict, Iterable
 import mwclient
 
 from ...api_services.clients import get_user_site
-from ...api_services.pages_api import edit_page, is_page_exists, is_redirect, move_page
+from ...api_services.pages_api import is_page_exists, is_redirect, move_page, update_page_text
 from ...db.services import get_template_by_title, update_template_data
 from ..base_worker import BaseJobWorker
 
@@ -107,6 +107,9 @@ class RenameOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         return {
             "status": "pending",
+            "errors": [{"error": "", "error_type": ""}],
+            "args": {},
+            "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "completed_at": None,
             "cancelled_at": None,
@@ -129,9 +132,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["error"] = "No authenticated user site available. Please log in via OAuth."
-            self.result["failed_at"] = datetime.now().isoformat()
+            self.log_no_site_error()
             return self.result
 
         # First pass: collect candidates so progress is bounded and we can
@@ -158,16 +159,17 @@ class RenameOwidPagesWorker(BaseJobWorker):
         logger.info(f"Job {self.job_id}: {total} page(s) need renaming")
 
         # Save progress immediately so the UI reflects the discovery phase.
+        self.result["summary"]["total"] = total
+
         self._save_progress()
 
-        self.result["summary"]["total"] = total
         per_item = self.get_priority(total) if total else 1
 
         # Second pass: actually move.
         for n, (namespace, _full_prefix, old_title, new_title) in enumerate(candidates, start=1):
             if self.is_cancelled():
                 break
-            self.result["summary"]["processed"] += 1
+
             logger.info(f"Job {self.job_id}: Renaming {n}/{total}: {old_title} -> {new_title}")
 
             changed = self._rename_one(namespace, old_title, new_title)
@@ -201,6 +203,8 @@ class RenameOwidPagesWorker(BaseJobWorker):
         )
 
     def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
+        self.result["summary"]["processed"] += 1
+
         info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
         # Pre-flight: don't even try to move if the target already exists.
@@ -265,7 +269,12 @@ class RenameOwidPagesWorker(BaseJobWorker):
         redirect_text = f"#REDIRECT [[{new_title}]]"
         summary = f"Redirecting to [[{new_title}]] (capitalize first letter of OWID subpage)"
 
-        res = edit_page(self.site, old_title, redirect_text, summary)
+        res = update_page_text(
+            page_name=old_title,
+            updated_text=redirect_text,
+            site=self.site,
+            summary=summary,
+        )
 
         edit_success = bool(res.get("success"))
         if edit_success:

@@ -1,6 +1,19 @@
 {% extends "admins/jobs_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step %}
 
+{# Processed files or pages fallback #}
+{% set _processed = result_data.files_processed or result_data.pages_processed or [] %}
+
+{# Filter pages by their specific statuses #}
+{% set skipped_pages = result_data.pages_skipped or (_processed | selectattr("status", "equalto", "skipped") | list) %}
+{% set failed_pages = result_data.pages_failed or (_processed | selectattr("status", "equalto", "failed") | list) %}
+
+{% set uploaded_pages = result_data.pages_uploaded or (_processed | selectattr("status", "equalto", "uploaded") | list) %}
+{% set updated_pages = result_data.pages_updated or (_processed | selectattr("status", "equalto", "updated") | list) %}
+
+{# Filter out any items that match the three statuses above #}
+{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success", "uploaded", "updated"]) | list %}
+
 {% block job_summary %}
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -9,16 +22,16 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Cropped', ( result_data.cropped_files | length ) or result_data.summary.cropped, "success", "") }}
+                {{ stats_card('Uploaded', ( uploaded_pages | length ) or result_data.summary.uploaded, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Uploaded', ( result_data.uploaded_files | length ) or result_data.summary.uploaded, "info", "") }}
+                {{ stats_card('Updated', ( updated_pages | length ) or result_data.summary.updated, "info", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.skipped_files | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('skipped', ( skipped_pages | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', ( result_data.failed_files | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( failed_pages | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
@@ -26,10 +39,11 @@
 {% endblock %}
 
 {% block job_details %}
-{% if result_data.files_processed %}
+
+{% macro pages_table(data, table_title) %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Files Processed (" ~ result_data.files_processed|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -51,7 +65,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for file in result_data.files_processed %}
+                    {% for file in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td style="width: 30%;">
@@ -100,5 +114,31 @@
         </div>
     </div>
 </div>
+{%- endmacro -%}
+
+<!-- Uploaded -->
+{% if uploaded_pages %}
+{{ pages_table(uploaded_pages, 'Uploaded') }}
 {% endif %}
+
+<!-- Updated -->
+{% if updated_pages %}
+{{ pages_table(updated_pages, 'Updated') }}
+{% endif %}
+
+<!-- Processed -->
+{% if files_processed %}
+{{ pages_table(files_processed, 'Processed') }}
+{% endif %}
+
+<!-- Skipped -->
+{% if skipped_pages %}
+{{ pages_table(skipped_pages, 'Skipped') }}
+{% endif %}
+
+<!-- Failed -->
+{% if failed_pages %}
+{{ pages_table(failed_pages, 'Failed') }}
+{% endif %}
+
 {% endblock %}

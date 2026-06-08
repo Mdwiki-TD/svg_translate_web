@@ -24,7 +24,7 @@ from .owid_charts_service import (
     list_published_charts,
     update_chart_data,
 )
-from .owid_slugs_redirects_service import (
+from .owid_slug_redirects_service import (
     add_new_slug_redirect,
     bulk_delete_slug_redirects,
     bulk_update_slug_redirects,
@@ -88,7 +88,7 @@ __all__ = [
     "delete_chart",
     "list_charts",
     "list_published_charts",
-    # owid_slugs_redirects_service
+    # owid_slug_redirects_service
     "add_new_slug_redirect",
     "list_slug_redirects",
     "get_slug_redirect_by_id",

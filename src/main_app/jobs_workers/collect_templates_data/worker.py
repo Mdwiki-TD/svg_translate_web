@@ -120,8 +120,13 @@ class CollectMainFilesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "status": "pending",
+            "errors": [{"error": "", "error_type": ""}],
+            "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -229,6 +234,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         return template_info
 
     def _process_template(self, template: TemplateRecord) -> bool:
+        self.result["summary"]["processed"] += 1
+
         template_info = self._load_temp_info(template)
 
         logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
@@ -405,12 +412,12 @@ class CollectMainFilesWorker(BaseJobWorker):
 
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
+        self.result["args"].update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.result["status"] = "failed"
-            self.result["failed_at"] = datetime.now().isoformat()
+            self.log_no_site_error()
             return self.result
 
         # Step 1: Fetch new templates from category and add them
@@ -434,6 +441,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
+
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -442,7 +450,6 @@ class CollectMainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-            self.result["summary"]["processed"] += 1
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
 
             _updated = self._process_template(template)

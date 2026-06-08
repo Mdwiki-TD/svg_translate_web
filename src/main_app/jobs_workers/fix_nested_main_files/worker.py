@@ -118,8 +118,13 @@ class FixNestedMainFilesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "status": "pending",
+            "errors": [{"error": "", "error_type": ""}],
+            "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
+            "completed_at": None,
+            "cancelled_at": None,
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -171,6 +176,50 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         self.result["pages_failed"].append(template_info)
         self.result["summary"]["failed"] += 1
 
+    def _process_template(self, template) -> None:
+        self.result["summary"]["processed"] += 1
+
+        template_info = {
+            "id": template.id,
+            "title": template.title,
+            "main_file": template.main_file,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        # Skip if template doesn't have a main_file
+        if not template.main_file:
+            self._log_skipped_no_main_file(template_info)
+            return False
+
+        fix_result = {}
+        try:
+            # Process without job_id and db_store since we're tracking in the job
+            fix_result = repair_nested_svg_tags(
+                filename=template.main_file,
+                user=self.user,
+            )
+
+        except Exception as e:
+            self._log_failure(template_info, f"Exception: {str(e)}", type(e).__name__)
+            logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
+            return False
+
+        if fix_result.get("success"):
+            self._log_success(template_info, fix_result)
+            logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
+            return True
+
+        elif fix_result.get("no_nested_tags", False):
+            self._log_skipped_no_nested_tags(template_info, fix_result)
+            logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
+            return False
+        else:
+            self._log_failed_fix(template_info, fix_result)
+            message = fix_result.get("message")
+            logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
+
+        return False
+
     def process(self) -> Dict[str, Any]:
         """Execute the fix nested tags processing logic."""
         # Get all templates
@@ -187,59 +236,16 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
-            self.result["summary"]["processed"] += 1
+
+            ok = self._process_template(template)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                return False
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-
-            template_info = {
-                "id": template.id,
-                "title": template.title,
-                "main_file": template.main_file,
-                "timestamp": datetime.now().isoformat(),
-            }
-
-            # Skip if template doesn't have a main_file
-            if not template.main_file:
-                self._log_skipped_no_main_file(template_info)
-                continue
-
-            fix_result = {}
-            try:
-                # Process without job_id and db_store since we're tracking in the job
-                fix_result = repair_nested_svg_tags(
-                    filename=template.main_file,
-                    user=self.user,
-                )
-
-            except Exception as e:
-                self._log_failure(template_info, f"Exception: {str(e)}", type(e).__name__)
-                logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
-                continue
-
-            if fix_result.get("cancelled"):
-                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
-                self.result["status"] = "cancelled"
-                self.result["cancelled_at"] = datetime.now().isoformat()
-                break
-
-            if fix_result["success"]:
-                self._log_success(template_info, fix_result)
-                logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
-
-                if self.check_cancel_db_periodic():
-                    logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
-                    break
-
-            elif fix_result.get("no_nested_tags", False):
-                self._log_skipped_no_nested_tags(template_info, fix_result)
-                logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
-
-            else:
-                self._log_failed_fix(template_info, fix_result)
-                message = fix_result.get("message")
-                logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
 
         # Update summary skipped count
         self.result["summary"]["skipped"] = len(self.result["pages_skipped"])

@@ -7,7 +7,7 @@ import threading
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Final, Optional
+from typing import Any, Dict, Final, List, Optional
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -21,6 +21,8 @@ from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
 
+WorkerError = Dict[str, Any]
+
 
 @dataclass
 class WorkerObject:
@@ -30,6 +32,7 @@ class WorkerObject:
     cancelled_at: Optional[str] = None
     last_update: Optional[str] = ""
     failed_at: Optional[str] = None
+    errors: List[WorkerError] = field(default_factory=list)
     error: Optional[str] = None
     error_type: Optional[str] = None
 
@@ -121,8 +124,10 @@ class BaseObjectsJobWorker(ABC):
         self.result.completed_at = datetime.now().isoformat()
         final_status = self.result.status or "completed"
 
-        if final_status in ("running", "pending"):
+        if final_status in ["running", "pending"]:
             final_status = "completed"
+
+        self.result.status = final_status
 
         # Save final results
         self._save_progress()
@@ -137,9 +142,10 @@ class BaseObjectsJobWorker(ABC):
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
-    def _save_progress(self) -> None:
+    def _save_progress(self, insert_last_update: bool = True) -> None:
         result = self.result.to_json()
-        result["last_update"] = datetime.now().isoformat()
+        if insert_last_update:
+            result["last_update"] = datetime.now().isoformat()
         try:
             save_job_result_by_name(self.result_file, result)
         except Exception:
@@ -191,8 +197,9 @@ class BaseObjectsJobWorker(ABC):
     def _mark_as_cancelled_in_result(self) -> None:
         """Standardize the result dictionary for a cancelled job."""
         self.result.status = "cancelled"
-        self.result.cancelled_at = datetime.now().isoformat()
-        self._save_progress()
+        if self.result.cancelled_at is None:
+            self.result.cancelled_at = datetime.now().isoformat()
+        self._save_progress(insert_last_update=False)
 
     def get_priority(self, length) -> int:
         if length < 11:
@@ -218,8 +225,19 @@ class BaseObjectsJobWorker(ABC):
 
         self.result.status = "failed"
         self.result.failed_at = datetime.now().isoformat()
-        self.result.error = str(error)
-        self.result.error_type = type(error).__name__
+
+        self.log_errors(str(error), type(error).__name__)
+
+    def log_errors(self, error: str, error_type: str = "") -> None:
+        """ """
+        if error:
+            self.result.errors.append({"error": error, "error_type": error_type})
+
+    def log_no_site_error(self) -> None:
+        """ """
+        self.result.status = "failed"
+        self.result.failed_at = datetime.now().isoformat()
+        self.log_errors("No authenticated user site available.")
 
     def run(self) -> Dict[str, Any]:
         """Execute the complete job lifecycle.

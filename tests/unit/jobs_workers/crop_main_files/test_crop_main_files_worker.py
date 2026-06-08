@@ -55,7 +55,7 @@ def make_completed_result(summary_overrides=None):
             "failed": 2,
             "skipped": 0,
         },
-        "files_processed": [],
+        "pages_processed": [],
     }
     if summary_overrides:
         result["summary"].update(summary_overrides)
@@ -97,7 +97,7 @@ def test_crop_main_files_worker_entry_initializes_result(mock_services):
     assert result["summary"]["uploaded"] == 0
     assert result["summary"]["failed"] == 0
     assert result["summary"]["skipped"] == 0
-    assert result["files_processed"] == []
+    assert result["pages_processed"] == []
 
 
 def test_crop_main_files_worker_entry_with_user(mock_services):
@@ -126,7 +126,7 @@ def test_crop_main_files_worker_entry_with_cancel_event(mock_services):
             "status": "cancelled",
             "cancelled_at": datetime.now().isoformat(),
             "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
+            "pages_processed": [],
         }
         mock_process.return_value = cancelled_result
 
@@ -154,8 +154,8 @@ def test_crop_main_files_worker_entry_handles_exception(mock_services):
     # Check the last saved result has error details
     last_saved = save_calls[-1][0][1]
     assert last_saved["status"] == "failed"
-    assert "Database connection failed" in last_saved["error"]
-    assert last_saved["error_type"] == "RuntimeError"
+    assert "Database connection failed" in last_saved["errors"][1]["error"]
+    assert last_saved["errors"][1]["error_type"] == "RuntimeError"
 
 
 def test_crop_main_files_worker_entry_sets_completed_timestamp(mock_services):
@@ -275,7 +275,7 @@ def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
                 "failed": 0,
                 "skipped": 0,
             },
-            "files_processed": [],
+            "pages_processed": [],
         }
         mock_process.return_value = cancelled_result
 
@@ -299,7 +299,7 @@ def test_crop_main_files_worker_entry_preserves_failed_status(mock_services):
                 "failed": 5,
                 "skipped": 0,
             },
-            "files_processed": [],
+            "pages_processed": [],
         }
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
@@ -329,7 +329,7 @@ def test_crop_main_files_worker_entry_different_exception_types(mock_services):
         save_calls = mock_services["save_job_result_by_name"].call_args_list
         assert len(save_calls) >= 1
         last_saved = save_calls[-1][0][1]
-        assert last_saved["error_type"] == expected_type
+        assert last_saved["errors"][1]["error_type"] == expected_type
 
 
 def test_crop_main_files_worker_entry_upload_files_flag(mock_services):
@@ -389,7 +389,7 @@ def test_crop_main_files_worker_entry_completed_status_default(mock_services):
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
         mock_process.return_value = {
             "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "files_processed": [],
+            "pages_processed": [],
         }
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)

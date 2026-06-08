@@ -179,3 +179,22 @@
     {{ title }}
 </a>
 {%- endmacro -%}
+
+{# Errors alerts #}
+{% macro job_errors_div(errors) %}
+{# Filter out errors where 'error' is empty, null, or whitespace #}
+{% set valid_errors = errors | selectattr("error") | list %}
+
+{# Only render the alert if there is at least one valid error message #}
+{% if valid_errors | length > 0 %}
+<div class="alert alert-danger" role="alert">
+    <h5 class="alert-heading">Error!</h5>
+    {% for err in valid_errors %}
+    <div>
+        <strong>{{ err.error_type if err.error_type else 'Error' }}:</strong>
+        {{ err.error }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{%- endmacro -%}

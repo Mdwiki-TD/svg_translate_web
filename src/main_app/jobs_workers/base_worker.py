@@ -100,8 +100,10 @@ class BaseJobWorker(ABC):
         # Finalize timestamps
         self.result["completed_at"] = datetime.now().isoformat()
         final_status = self.result.get("status") or "completed"
-        if final_status == "running":
+
+        if final_status in ["running", "pending"]:
             final_status = "completed"
+
         self.result["status"] = final_status
 
         # Save final results
@@ -117,9 +119,10 @@ class BaseJobWorker(ABC):
 
         logger.info(f"Job {self.job_id}: Finished with status {final_status}")
 
-    def _save_progress(self) -> None:
+    def _save_progress(self, insert_last_update: bool = True) -> None:
         result = self.result
-        result["last_update"] = datetime.now().isoformat()
+        if insert_last_update:
+            result["last_update"] = datetime.now().isoformat()
         try:
             save_job_result_by_name(self.result_file, result)
         except Exception:
@@ -171,10 +174,9 @@ class BaseJobWorker(ABC):
     def _mark_as_cancelled_in_result(self) -> None:
         """Standardize the result dictionary for a cancelled job."""
         self.result["status"] = "cancelled"
-        # if "cancelled_at" not in self.result:
         if self.result.get("cancelled_at") is None:
             self.result["cancelled_at"] = datetime.now().isoformat()
-        self._save_progress()
+        self._save_progress(insert_last_update=False)
 
     def get_priority(self, length) -> int:
         if length < 11:
@@ -199,8 +201,22 @@ class BaseJobWorker(ABC):
         logger.exception(prefix)
 
         self.result["status"] = "failed"
-        self.result["error"] = str(error)
-        self.result["error_type"] = type(error).__name__
+        self.result["failed_at"] = datetime.now().isoformat()
+
+        self.log_errors(str(error), type(error).__name__)
+
+    def log_errors(self, error: str, error_type: str = "") -> None:
+        """ """
+        if "errors" not in self.result:
+            self.result["errors"] = []
+        if error:
+            self.result["errors"].append({"error": error, "error_type": error_type})
+
+    def log_no_site_error(self) -> None:
+        """ """
+        self.result["status"] = "failed"
+        self.result["failed_at"] = datetime.now().isoformat()
+        self.log_errors("No authenticated user site available.")
 
     def run(self) -> Dict[str, Any]:
         """Execute the complete job lifecycle.

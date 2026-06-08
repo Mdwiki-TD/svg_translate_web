@@ -2,102 +2,136 @@
 {% block title %}Slug Redirects · Copy SVG Translation{% endblock %}
 {% block contents %}
 
+{% set show_bluk_form = false %}
+
+{% macro render_bluk_form(table) %}
+<form id="bulkActionForm" action="{{ url_for('admin.slugredirects.bulk_action') }}" method="POST">
+    <div class="d-flex justify-content-between mb-3">
+        <div class="input-group" style="width: auto;">
+            <select name="action" class="form-select form-select-sm">
+                <option value="">Bulk Actions</option>
+                <option value="mark_replace">Mark as Replace</option>
+                <option value="mark_no_replace">Mark as Do Not Replace</option>
+                <option value="delete">Delete</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button>
+        </div>
+        <div>
+            <span class="text-muted">Total: {{ total }}</span>
+        </div>
+    </div>
+    {{ table }}
+</form>
+{% endmacro %}
+
+{% macro render_table(show_bluk_form, records) %}
+<table class="table table-hover align-middle mb-0 table-striped table-sm DataTable">
+    <thead>
+        <tr>
+            <th scope="col" style="width: 40px;">
+                {% if show_bluk_form %}
+                <input type="checkbox" id="selectAll">
+                {% else %}
+                #
+                {% endif %}
+            </th>
+            <th scope="col">Original Slug</th>
+            <th scope="col">Redirect To</th>
+            <th scope="col" class="text-center">Should Replaced</th>
+            <th scope="col">Created At</th>
+            <th scope="col" class="text-center">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in records %}
+        <tr>
+            <th>
+                {% if show_bluk_form %}
+                <input type="checkbox" name="selected_ids" value="{{ record.id }}" class="select-item">
+                {% else %}
+                {{ loop.index }}
+                {% endif %}
+            </th>
+            <td>
+                <a href="https://ourworldindata.org/grapher/{{ record.slug }}"
+                    target="_blank"><code>{{ record.slug }}</code></a>
+            </td>
+            <td>
+                <a href="https://ourworldindata.org/grapher/{{ record.redirect_to }}"
+                    target="_blank"><code>{{ record.redirect_to }}</code></a>
+            </td>
+            <td class="text-center">
+                {% if record.should_be_replaced %}
+                <span class="badge bg-success">Yes</span>
+                {% else %}
+                <span class="badge bg-secondary">No</span>
+                {% endif %}
+            </td>
+            <td>
+                {{ record.created_at | format_long_date("-") }}
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                    pup-target="{{ url_for('admin.slugredirects.edit_slug_redirect', redirect_id=record.id) }}"
+                    onclick="pup_window_new(this, 600, 400)">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <form action="{{ url_for('admin.slugredirects.delete_slug_redirect_data', redirect_id=record.id) }}"
+                    method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-center text-muted">No redirect records found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">Slug Redirects</h3>
     </div>
     <div class="card-body">
-        <form id="bulkActionForm" action="{{ url_for('admin.slugredirects.bulk_action') }}" method="POST">
-            <div class="d-flex justify-content-between mb-3">
-                <div class="input-group" style="width: auto;">
-                    <select name="action" class="form-select form-select-sm">
-                        <option value="">Bulk Actions</option>
-                        <option value="mark_replace">Mark as Replace</option>
-                        <option value="mark_no_replace">Mark as Do Not Replace</option>
-                        <option value="delete">Delete</option>
-                    </select>
-                    <button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button>
-                </div>
-                <div>
-                    <span class="text-muted">Total: {{ total }}</span>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Total Records</h2>
+                        <p class="display-6 mb-0">{{ total }}</p>
+                    </div>
                 </div>
             </div>
-
-            <div class="table-responsive shadow-sm">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col" style="width: 40px;">
-                                <input type="checkbox" id="selectAll">
-                            </th>
-                            <th scope="col">Original Slug</th>
-                            <th scope="col">Redirect To</th>
-                            <th scope="col" class="text-center">Should Replace</th>
-                            <th scope="col">Created At</th>
-                            <th scope="col" class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records %}
-                        <tr>
-                            <td>
-                                <input type="checkbox" name="selected_ids" value="{{ record.id }}" class="select-item">
-                            </td>
-                            <td>
-                                <a href="https://ourworldindata.org/grapher/{{ record.slug }}" target="_blank"><code>{{ record.slug }}</code></a>
-                            </td>
-                            <td>
-                                <a href="https://ourworldindata.org/grapher/{{ record.redirect_to }}" target="_blank"><code>{{ record.redirect_to }}</code></a>
-                            </td>
-                            <td class="text-center">
-                                {% if record.should_be_replaced %}
-                                <span class="badge bg-success">Yes</span>
-                                {% else %}
-                                <span class="badge bg-secondary">No</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-outline-primary btn-sm"
-                                    pup-target="{{ url_for('admin.slugredirects.edit_slug_redirect', redirect_id=record.id) }}"
-                                    onclick="pup_window_new(this, 600, 400)">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
-                                <form action="{{ url_for('admin.slugredirects.delete_slug_redirect_data', redirect_id=record.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted">No redirect records found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Should Replaced</h2>
+                        <p class="display-6 mb-0">{{ total_should_be_replaced }}</p>
+                    </div>
+                </div>
             </div>
-        </form>
-
-        {% if total > per_page %}
-        <nav aria-label="Page navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% set total_pages = (total // per_page) + (1 if total % per_page > 0 else 0) %}
-                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=page-1) }}">Previous</a>
-                </li>
-                {% for p in range(1, total_pages + 1) %}
-                <li class="page-item {% if p == page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=p) }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.slugredirects.dashboard', page=page+1) }}">Next</a>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">Should not be Replaced</h2>
+                        <p class="display-6 mb-0">{{ total_should_not_be_replaced }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive shadow-sm">
+            {% set sr_table = render_table(show_bluk_form, records) %}
+            {% if show_bluk_form %}
+            {{ render_bluk_form(sr_table) }}
+            {% else %}
+            {{ sr_table }}
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -105,12 +139,12 @@
 
 {% block extra_js %}
 <script>
-    $(document).ready(function() {
-        $('#selectAll').on('click', function() {
+    $(document).ready(function () {
+        $('#selectAll').on('click', function () {
             $('.select-item').prop('checked', this.checked);
         });
 
-        $('.select-item').on('click', function() {
+        $('.select-item').on('click', function () {
             if (!this.checked) {
                 $('#selectAll').prop('checked', false);
             }

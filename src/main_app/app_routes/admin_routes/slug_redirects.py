@@ -17,7 +17,6 @@ from flask.typing import ResponseReturnValue
 from ...db.services import (
     bulk_delete_slug_redirects,
     bulk_update_slug_redirects,
-    count_slug_redirects,
     delete_slug_redirect,
     get_slug_redirect_by_id,
     list_slug_redirects,
@@ -55,19 +54,17 @@ class SlugRedirects:
         @self.bp.get("/")
         @admin_required
         def dashboard():
-            page = max(1, request.args.get("page", 1, type=int))
-            per_page = 50
-            offset = (page - 1) * per_page
-
-            records = list_slug_redirects(limit=per_page, offset=offset)
-            total = count_slug_redirects()
+            records = list_slug_redirects()
+            total = len(records)  # count_slug_redirects()
+            total_should_be_replaced = len([r for r in records if r.should_be_replaced])
+            total_should_not_be_replaced = total - total_should_be_replaced
 
             return render_template(
                 "admins/slug_redirects/list.html",
                 records=records,
-                page=page,
                 total=total,
-                per_page=per_page
+                total_should_be_replaced=total_should_be_replaced,
+                total_should_not_be_replaced=total_should_not_be_replaced,
             )
 
         @self.bp.get("/<int:redirect_id>/edit")
@@ -103,7 +100,7 @@ class SlugRedirects:
             else:
                 flash("Slug redirect not found.", "danger")
             return redirect(url_for("admin.slugredirects.dashboard"))
-            
+
         @self.bp.post("/bulk_action")
         @admin_required
         def bulk_action() -> ResponseReturnValue:

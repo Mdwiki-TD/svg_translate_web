@@ -3,8 +3,8 @@
 from .coordinators import coordinators_module
 from .jobs import jobs_module
 from .owid_charts import owidcharts_module
-from .slug_redirects import slug_redirects_module
 from .settings import settings_module
+from .slug_redirects import slug_redirects_module
 from .templates import templates_module
 
 __all__ = [
