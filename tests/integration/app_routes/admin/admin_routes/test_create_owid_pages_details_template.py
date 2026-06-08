@@ -15,7 +15,9 @@ from __future__ import annotations
 import json
 from html import unescape
 from types import SimpleNamespace
+from typing import Any, Generator, NoReturn
 
+from flask.testing import FlaskClient
 import pytest
 
 from src.main_app import create_app
@@ -25,7 +27,7 @@ from src.main_app.extensions import db as _db
 
 
 @pytest.fixture
-def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
+def admin_jobs_client(monkeypatch: pytest.MonkeyPatch) -> Generator[FlaskClient, Any, NoReturn]:
     """Flask test client with admin auth mocked out."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     admin_user = SimpleNamespace(username="admin", is_active_admin=True)
