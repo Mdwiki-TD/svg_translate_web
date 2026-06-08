@@ -489,7 +489,7 @@ class TestCropMainFilesProcessorSteps:
 
         result = processor._step_upload(file_info)
 
-        assert result is True  # Should continue to wikitext updates
+        assert result is None  # Should continue to wikitext updates
         assert file_info.status == "skipped"
         assert processor.result["summary"]["skipped"] == 1
 
@@ -754,6 +754,8 @@ class TestCropMainFilesProcessorHelpers:
 
         processor._append(file_info)
 
+        assert "pages_processed" in processor.result.keys()
+        assert processor.result["pages_processed"] != []
         assert len(processor.result["pages_processed"]) == 1
         assert processor.result["pages_processed"][0]["template_id"] == 1
 
@@ -805,8 +807,10 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip download, crop, and upload steps
-        assert processor.result["pages_processed"][0]["steps"]["download"]["result"] is None
-        assert "Skipped" in processor.result["pages_processed"][0]["steps"]["download"]["msg"]
+        assert "pages_skipped" in processor.result.keys()
+        assert processor.result["pages_skipped"] != []
+        assert processor.result["pages_skipped"][0]["steps"]["download"]["result"] is None
+        assert "Skipped" in processor.result["pages_skipped"][0]["steps"]["download"]["msg"]
 
     def test_process_template_full_pipeline(self, mock_services, tmp_path):
         """Test full pipeline for a new file."""
@@ -874,6 +878,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip upload steps
-        assert processor.result["pages_processed"][0]["steps"]["upload_cropped"]["result"] is None
-        assert "upload disabled" in processor.result["pages_processed"][0]["steps"]["upload_cropped"]["msg"].lower()
+        assert "pages_skipped" in processor.result.keys()
+        assert processor.result["pages_skipped"] != []
+        assert processor.result["pages_skipped"][0]["steps"]["upload_cropped"]["result"] is None
+        assert "upload disabled" in processor.result["pages_skipped"][0]["steps"]["upload_cropped"]["msg"].lower()
         assert processor.result["summary"]["skipped"] == 1
