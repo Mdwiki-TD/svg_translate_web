@@ -44,14 +44,6 @@ from src.main_app.extensions import db as _db  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def disable_network(mocker):
-    """Disable all network requests during testing"""
-    mocker.patch("requests.get", side_effect=Exception("Network disabled in tests"))
-    mocker.patch("requests.post", side_effect=Exception("Network disabled in tests"))
-    mocker.patch("urllib.request.urlopen", side_effect=Exception("Network disabled in tests"))
-
-
-@pytest.fixture(autouse=True)
 def stop_nets():
     disable_socket(allow_unix_socket=True)
 
