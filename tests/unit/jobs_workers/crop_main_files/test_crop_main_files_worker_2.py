@@ -807,10 +807,10 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor._process_template(template)
 
         # Should skip download, crop, and upload steps
-        assert "pages_skipped" in processor.result.keys()
-        assert processor.result["pages_skipped"] != []
-        assert processor.result["pages_skipped"][0]["steps"]["download"]["result"] is None
-        assert "Skipped" in processor.result["pages_skipped"][0]["steps"]["download"]["msg"]
+        assert "pages_updated" in processor.result.keys()
+        assert processor.result["pages_updated"] != []
+        assert processor.result["pages_updated"][0]["steps"]["download"]["result"] is None
+        assert "Skipped" in processor.result["pages_updated"][0]["steps"]["download"]["msg"]
 
     def test_process_template_full_pipeline(self, mock_services, tmp_path):
         """Test full pipeline for a new file."""

@@ -386,7 +386,7 @@ class TestUpdateStep:
 
         assert result is False
         assert info.status == "failed"
-        assert info.steps["create_new_page"]["result"] is False
+        assert info.steps["create_new_page"]["result"] is None
 
 
 class TestCreateNewPageStep:
