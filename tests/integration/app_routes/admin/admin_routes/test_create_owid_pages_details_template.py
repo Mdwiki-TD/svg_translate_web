@@ -17,8 +17,8 @@ from html import unescape
 from types import SimpleNamespace
 from typing import Any, Generator, NoReturn
 
-from flask.testing import FlaskClient
 import pytest
+from flask.testing import FlaskClient
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig

@@ -33,7 +33,7 @@ def extract_classes_and_functions(file_path):
     return classes, functions
 
 
-def generate_domain_test_placeholders(src_root, test_root, src_name: str ="src") -> None:
+def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src") -> None:
     """Generates test placeholders based on the source directory structure."""
     src_path = Path(src_root)
     test_base_unit = Path(test_root) / "unit"
