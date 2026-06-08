@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.config import settings
-from src.main_app.jobs_workers.add_svglanguages_template.worker import (
+from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker import (
     AddSvgSVGLanguagesTemplate,
     TemplateInfo,
     add_svglanguages_template_to_templates,

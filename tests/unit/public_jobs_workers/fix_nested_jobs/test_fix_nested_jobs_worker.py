@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.public_jobs.workers.fix_nested_jobs.worker import (
+from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import (
     FixNestedJobsProcessor,
     fix_nested_jobs_worker_entry,
 )
@@ -75,7 +75,7 @@ class TestFixNestedJobsProcessor:
 
 class TestFixNestedJobsProcessorEntry:
     def test_worker_entry_missing_args(self) -> None:
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor"):
+        with patch("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"):
             fix_nested_jobs_worker_entry(
                 job_id="1",
                 args={},
@@ -83,7 +83,9 @@ class TestFixNestedJobsProcessorEntry:
             )
 
     def test_worker_entry_creates_worker(self) -> None:
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -97,7 +99,9 @@ class TestFixNestedJobsProcessorEntry:
             mock_instance.run.assert_called_once()
 
     def test_worker_entry_with_user(self) -> None:
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
             user = {"username": "testuser"}
@@ -112,7 +116,9 @@ class TestFixNestedJobsProcessorEntry:
             assert call_kwargs["user"] == user
 
     def test_worker_entry_with_cancel_event(self) -> None:
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
             cancel_event = threading.Event()
@@ -129,7 +135,9 @@ class TestFixNestedJobsProcessorEntry:
 
     def test_worker_entry_args_is_keyword_only(self) -> None:
         """Test that args is a keyword-only parameter in the new signature."""
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -147,7 +155,9 @@ class TestFixNestedJobsProcessorEntry:
 
     def test_worker_entry_args_defaults_to_none(self) -> None:
         """Test that args defaults to None when not provided."""
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
@@ -164,7 +174,9 @@ class TestFixNestedJobsProcessorEntry:
     def test_worker_entry_user_is_second_positional(self) -> None:
         """Test that user is the second positional parameter (after job_id)."""
         user = {"username": "testuser"}
-        with patch("src.main_app.public_jobs.workers.fix_nested_jobs.worker.FixNestedJobsProcessor") as MockWorker:
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"
+        ) as MockWorker:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 

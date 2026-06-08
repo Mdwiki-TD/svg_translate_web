@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-from src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_text import extract_text_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
 
 
-@patch("src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_text.get_page_text")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text")
 def test_text_task_success(mock_get):
     mock_get.return_value = "content"
 
@@ -13,7 +13,7 @@ def test_text_task_success(mock_get):
     assert result["text"] == "content"
 
 
-@patch("src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_text.get_page_text")
+@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text")
 def test_text_task_fail(mock_get):
     mock_get.return_value = None
 
@@ -25,7 +25,7 @@ def test_text_task_fail(mock_get):
 
 def test_extract_text_step_success(mocker):
     mock_get_page_text = mocker.patch(
-        "src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_text.get_page_text"
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text"
     )
     mock_get_page_text.return_value = "some wikitext"
 
@@ -39,7 +39,7 @@ def test_extract_text_step_success(mocker):
 
 def test_extract_text_step_fail(mocker):
     mock_get_page_text = mocker.patch(
-        "src.main_app.public_jobs.workers.copy_svg_langs.steps.extract_text.get_page_text"
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text"
     )
     mock_get_page_text.return_value = ""
 

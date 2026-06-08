@@ -24,10 +24,10 @@ from typing import Any, Dict, Iterable
 
 import mwclient
 
-from ...api_services.clients import get_user_site
-from ...api_services.pages_api import is_page_exists, is_redirect, move_page, update_page_text
-from ...db.services import get_template_by_title, update_template_data
-from ..base_worker import BaseJobWorker
+from ....api_services.clients import get_user_site
+from ....api_services.pages_api import is_page_exists, is_redirect, move_page, update_page_text
+from ....db.services import get_template_by_title, update_template_data
+from ...base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
 

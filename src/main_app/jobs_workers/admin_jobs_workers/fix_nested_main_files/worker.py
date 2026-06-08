@@ -11,15 +11,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from ...db.services import list_templates
-from ...shared.fix_nested.worker import (
+from ....db.services import list_templates
+from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
     fix_nested_tags,
     upload_fixed_svg,
     verify_fix,
 )
-from ..base_worker import BaseJobWorker
+from ...base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-from src.main_app.jobs_workers.rename_owid_pages.worker import (
+from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker import (
     RenameOwidPagesWorker,
     rename_owid_pages_for_templates,
 )

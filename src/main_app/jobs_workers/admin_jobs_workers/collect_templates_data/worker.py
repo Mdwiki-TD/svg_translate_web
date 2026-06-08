@@ -13,24 +13,24 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...api_services.category import get_category_members
-from ...api_services.clients import get_user_site
-from ...api_services.clients.owid_client import fetch_grapher_metadata
-from ...api_services.pages_api import get_page_text
-from ...db.models import TemplateRecord
-from ...db.services import (
+from ....api_services.category import get_category_members
+from ....api_services.clients import get_user_site
+from ....api_services.clients.owid_client import fetch_grapher_metadata
+from ....api_services.pages_api import get_page_text
+from ....db.models import TemplateRecord
+from ....db.services import (
     add_new_slug_redirect,
     add_template_data,
     get_chart_by_slug,
     list_templates,
     update_template_data,
 )
-from ...utils.wikitext import find_template_source
-from ...utils.wikitext.titles_utils import (
+from ....utils.wikitext import find_template_source
+from ....utils.wikitext.titles_utils import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
-from ..base_worker import BaseJobWorker
+from ...base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
 

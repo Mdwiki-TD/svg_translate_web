@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.public_jobs.workers.copy_svg_langs.steps.download import download_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download import download_step
 
 
 class TestDownloadStep:
@@ -31,7 +31,7 @@ class TestDownloadStep:
         mock_success_result: dict,
     ) -> None:
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value=mock_success_result,
         ):
             result = download_step(
@@ -63,7 +63,7 @@ class TestDownloadStep:
             return True
 
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value={"result": "success", "path": "/path", "msg": "ok"},
         ):
             result = download_step(
@@ -82,7 +82,7 @@ class TestDownloadStep:
     ) -> None:
         mock_existing_result["path"] = str(output_dir / "File_Existing.svg")
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value=mock_existing_result,
         ):
             result = download_step(
@@ -100,7 +100,7 @@ class TestDownloadStep:
         mock_failure_result: dict,
     ) -> None:
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value=mock_failure_result,
         ):
             result = download_step(
@@ -123,7 +123,7 @@ class TestDownloadStep:
             progress_calls.append({"index": index, "total": total, "msg": msg})
 
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value=mock_success_result,
         ):
             result = download_step(
@@ -139,7 +139,7 @@ class TestDownloadStep:
         output_dir = tmp_path / "new" / "nested" / "dir"
 
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value={"result": "success", "path": str(output_dir / "file.svg"), "msg": "ok"},
         ):
             download_step(titles=["File:Test.svg"], output_dir=output_dir)
@@ -158,7 +158,7 @@ class TestDownloadStep:
             return {"result": "success", "path": f"/path/{title}", "msg": "ok"}
 
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             side_effect=mock_download,
         ):
             result = download_step(
@@ -175,7 +175,7 @@ class TestDownloadStep:
         mock_session = MagicMock()
 
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value={"result": "success", "path": "/path", "msg": "ok"},
         ) as mock_dl:
             download_step(
@@ -189,7 +189,7 @@ class TestDownloadStep:
 
     def test_download_step_overwrite_flag(self, output_dir: Path) -> None:
         with patch(
-            "src.main_app.public_jobs.workers.copy_svg_langs.steps.download.download_one_file",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.download.download_one_file",
             return_value={"result": "success", "path": "/path", "msg": "ok"},
         ) as mock_dl:
             download_step(

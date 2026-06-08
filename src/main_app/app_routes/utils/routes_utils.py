@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from flask import g, url_for
 
-from ...public_jobs.workers.workers_list_public import jobs_data_public
+from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 
 logger = logging.getLogger(__name__)
 

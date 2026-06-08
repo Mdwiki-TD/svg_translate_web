@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.update_owid_charts.worker import (
+from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
     update_owid_charts_worker_entry,
 )

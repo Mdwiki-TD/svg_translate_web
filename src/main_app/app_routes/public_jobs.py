@@ -28,14 +28,15 @@ from ..db.services import (
     list_jobs,
 )
 from ..jobs_workers import jobs_worker
-from ..jobs_workers.download_main_files.worker import create_main_files_zip
-from ..public_jobs.workers.workers_list_public import jobs_data_public
+from ..jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
+from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
-from .utils.routes_utils import load_auth_payload
 from .auth.utils import load_user
+from .utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
+
 
 def _can_manage_job(job: Any, user: Any) -> bool:
     """Check if the current user can manage (cancel/delete) a job.

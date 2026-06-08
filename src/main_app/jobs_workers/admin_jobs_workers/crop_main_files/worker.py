@@ -13,20 +13,20 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...api_services.clients import create_commons_session, get_user_site
-from ...api_services.pages_api import (
+from ....api_services.clients import create_commons_session, get_user_site
+from ....api_services.pages_api import (
     get_file_text,
     get_page_text,
     is_page_exists,
     update_file_text,
     update_page_text,
 )
-from ...api_services.query_api import is_pages_exists
-from ...config import settings
-from ...db.models import TemplateRecord
-from ...db.services import list_templates
-from ...utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
-from ..base_worker import BaseJobWorker
+from ....api_services.query_api import is_pages_exists
+from ....config import settings
+from ....db.models import TemplateRecord
+from ....db.services import list_templates
+from ....utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
+from ...base_worker import BaseJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping

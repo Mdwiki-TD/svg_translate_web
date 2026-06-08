@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.create_owid_pages.worker import (
+from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
     create_owid_pages_for_templates,

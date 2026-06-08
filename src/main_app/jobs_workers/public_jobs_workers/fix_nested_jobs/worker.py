@@ -14,7 +14,6 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import get_user_site
-from ....jobs_workers.base_worker import BaseJobWorker
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
@@ -22,6 +21,7 @@ from ....shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
+from ...base_worker import BaseJobWorker
 
 logger = logging.getLogger(__name__)
 

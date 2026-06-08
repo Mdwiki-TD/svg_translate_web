@@ -12,11 +12,11 @@ from typing import Any, Dict
 
 import mwclient
 
-from ...api_services.clients import get_user_site
-from ...api_services.pages_api import get_page_text, update_page_text
-from ...db.models import TemplateRecord
-from ...db.services import list_templates
-from ..base_worker import BaseJobWorker
+from ....api_services.clients import get_user_site
+from ....api_services.pages_api import get_page_text, update_page_text
+from ....db.models import TemplateRecord
+from ....db.services import list_templates
+from ...base_worker import BaseJobWorker
 from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.crop_main_files import worker
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import worker
 
 
 @pytest.fixture

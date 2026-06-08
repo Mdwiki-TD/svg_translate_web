@@ -29,8 +29,8 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.download_main_files.worker import create_main_files_zip
-from ...jobs_workers.workers_list import jobs_data
+from ...jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
 from ...su_services import load_job_result, save_job_result_by_name
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user

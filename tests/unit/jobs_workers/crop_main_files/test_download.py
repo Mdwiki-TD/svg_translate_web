@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from src.main_app.jobs_workers.crop_main_files.download import download_file_for_cropping
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.download import download_file_for_cropping
 
 
 class TestDownloadFileForCropping:
