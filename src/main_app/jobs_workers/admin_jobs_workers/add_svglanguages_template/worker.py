@@ -227,7 +227,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         )
 
         if update_result["success"]:
-            info.steps["save_new_text"] = {"result": True, "msg": "Template page updated."}
+            info.steps["save_new_text"] = {
+                "result": True,
+                "msg": "Template page updated.",
+                "newrevid": update_result.get("newrevid", 0),
+            }
             return True
 
         err = update_result.get("error", "Unknown error")

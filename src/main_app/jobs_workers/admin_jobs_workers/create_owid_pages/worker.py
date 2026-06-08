@@ -298,7 +298,11 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         if res["success"]:
             self.result["summary"]["updated"] += 1
-            info.steps["update_text"] = {"result": True, "msg": f"Updated page: {new_title}"}
+            info.steps["update_text"] = {
+                "result": True,
+                "msg": f"Updated page: {new_title}",
+                "newrevid": res.get("newrevid", 0),
+            }
             info.new_page_title = new_title
             info.status = "updated"
             return True
@@ -325,7 +329,11 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return False
 
         self.result["summary"]["created"] += 1
-        info.steps["create_new_page"] = {"result": True, "msg": f"Created: {new_title}"}
+        info.steps["create_new_page"] = {
+            "result": True,
+            "msg": f"Created: {new_title}",
+            "newrevid": res.get("newrevid", 0),
+        }
         info.new_page_title = new_title
         info.status = "created"
         return True
