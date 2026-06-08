@@ -1,4 +1,5 @@
 {% extends "jobs_templates/admin/base_list.html" %}
+{% from "_macros/forms.html" import form_start_job %}
 
 {% block list_info %}
 <div class="alert alert-info mb-3">
@@ -7,4 +8,16 @@
     <br>
     <code>Template:OWID/Some map</code> → <code>OWID/Some map</code>
 </div>
+{% endblock %}
+{% set hide_start_button = True %}
+{% block header_actions %}
+<form method="post" action="{{ url_for('admin.jobs.start_job', job_type=job_type) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="update_all" value="true" />
+    <button type="submit" class="btn btn-outline-warning text-muted"
+        onclick="return confirm('This will update ALL OWID pages (including those already created). This may take a long time. Continue?');">
+        <i class="bi bi-arrow-repeat"></i> Update All
+    </button>
+</form>
+{{ form_start_job(url_for('admin.jobs.start_job', job_type=job_type), start_confirm_message, start_title="Create OWID pages") }}
 {% endblock %}
