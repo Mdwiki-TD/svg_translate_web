@@ -77,6 +77,9 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str ="src")
                     else:
                         test_filename = f"test_{parent_name}_init.py"
 
+                if "routes_routes" in test_filename:
+                    test_filename = test_filename.replace("routes_routes", "routes")
+
                 # Create the directory if it doesn't exist
                 target_dir.mkdir(parents=True, exist_ok=True)
                 test_file_path = target_dir / test_filename
