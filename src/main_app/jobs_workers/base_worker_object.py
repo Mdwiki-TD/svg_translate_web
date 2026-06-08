@@ -7,7 +7,7 @@ import threading
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Final, Optional, List
+from typing import Any, Dict, Final, List, Optional
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -22,6 +22,7 @@ from .utils import generate_result_file_name
 logger = logging.getLogger(__name__)
 
 WorkerError = Dict[str, Any]
+
 
 @dataclass
 class WorkerObject:
