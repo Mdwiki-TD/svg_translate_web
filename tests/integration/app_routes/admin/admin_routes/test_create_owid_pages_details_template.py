@@ -168,9 +168,9 @@ class TestTemplateTitleFilter:
 
         link_texts = re.findall(r'rel="noopener noreferrer">\s*(.*?)\s*</a>', page, re.DOTALL)
         template_links = [t.strip() for t in link_texts if "health-expenditure" in t]
-        assert any(t == "health-expenditure" for t in template_links), (
-            f"Expected stripped title as link text, got: {template_links}"
-        )
+        assert any(
+            t == "health-expenditure" for t in template_links
+        ), f"Expected stripped title as link text, got: {template_links}"
 
     def test_prefix_only_stripped_once(self, admin_jobs_client, tmp_path):
         """The replace filter with count=1 strips only the first occurrence of the prefix."""
@@ -194,9 +194,9 @@ class TestTemplateTitleFilter:
         link_texts = re.findall(r'rel="noopener noreferrer">\s*(.*?)\s*</a>', page, re.DOTALL)
         template_links = [t.strip() for t in link_texts if "double-prefix" in t]
         # Only one prefix should be stripped; remaining text starts with "Template:OWID/"
-        assert any("Template:OWID/double-prefix" in t for t in template_links), (
-            f"Expected only one prefix stripped, got: {template_links}"
-        )
+        assert any(
+            "Template:OWID/double-prefix" in t for t in template_links
+        ), f"Expected only one prefix stripped, got: {template_links}"
 
     def test_title_without_owid_prefix_unchanged(self, admin_jobs_client, tmp_path):
         """Titles without 'Template:OWID/' prefix are displayed unchanged."""
@@ -219,9 +219,9 @@ class TestTemplateTitleFilter:
 
         link_texts = re.findall(r'rel="noopener noreferrer">\s*(.*?)\s*</a>', page, re.DOTALL)
         template_links = [t.strip() for t in link_texts if "SomeOtherTemplate" in t]
-        assert any("Template:SomeOtherTemplate" in t for t in template_links), (
-            f"Expected full title unchanged, got: {template_links}"
-        )
+        assert any(
+            "Template:SomeOtherTemplate" in t for t in template_links
+        ), f"Expected full title unchanged, got: {template_links}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -21,8 +21,7 @@ def _handle_api_error(exc: Exception) -> dict[str, Any] | None:
     handle it themselves).
     """
     if isinstance(exc, mwclient.errors.ProtectedPageError):
-        return {"success": False, "error": "protectedpageerror",
-                "details": str({"code": exc.code, "info": exc.info})}
+        return {"success": False, "error": "protectedpageerror", "details": str({"code": exc.code, "info": exc.info})}
 
     if isinstance(exc, mwclient.errors.EditError):
         return {"success": False, "error": "editerror", "details": str(exc)}
@@ -92,10 +91,7 @@ class MwClientPage:
             return result
 
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(
-                f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). "
-                f"Retrying in {delay}s..."
-            )
+            logger.warning(f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). " f"Retrying in {delay}s...")
             time.sleep(delay)
             result = operation(*args, **kwargs)
             if result.get("error") != "ratelimited":
