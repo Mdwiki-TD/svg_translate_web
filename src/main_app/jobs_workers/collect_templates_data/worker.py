@@ -122,6 +122,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         return {
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
+            "args": {},
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -425,6 +426,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         # Step 2: Re-fetch all templates (including newly added)
         templates: list[TemplateRecord] = list_templates()
         self.result["summary"]["total"] = len(templates)
+
+        self.result["args"].update({"update_all": str(self.update_all)})
 
         if self.update_all:
             tmps_to_process = templates

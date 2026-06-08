@@ -40,7 +40,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <table class="table table-sm">
+                        <table class="table table-striped table-sm">
                             <tr>
                                 <th style="width: 40%">Status:</th>
                                 <td>
@@ -97,12 +97,12 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                                <tr>
-                                    <th>Last update:</th>
-                                    <td>
-                                        {{ result_data.last_update| format_long_date("-") }}
-                                    </td>
-                                </tr>
+                            <tr>
+                                <th>Last update:</th>
+                                <td>
+                                    {{ result_data.last_update| format_long_date("-") }}
+                                </td>
+                            </tr>
                             {% block job_info_extra %}{% endblock %}
                         </table>
                     </div>
