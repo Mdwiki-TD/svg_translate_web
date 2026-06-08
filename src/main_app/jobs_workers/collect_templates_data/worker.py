@@ -123,6 +123,12 @@ class CollectMainFilesWorker(BaseJobWorker):
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "args": {},
+            "errors": [
+                {
+                    "error": "",
+                    "error_type": "",
+                }
+            ],
             "summary": {
                 "total": 0,
                 "processed": 0,
@@ -409,6 +415,8 @@ class CollectMainFilesWorker(BaseJobWorker):
     def process(self) -> Dict[str, Any]:
         """Execute the collection processing logic."""
 
+        self.result["args"].update({"update_all": str(self.update_all)})
+
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -426,8 +434,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         # Step 2: Re-fetch all templates (including newly added)
         templates: list[TemplateRecord] = list_templates()
         self.result["summary"]["total"] = len(templates)
-
-        self.result["args"].update({"update_all": str(self.update_all)})
 
         if self.update_all:
             tmps_to_process = templates

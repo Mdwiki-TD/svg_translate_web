@@ -1,5 +1,5 @@
 {% extends "admins/base1.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon %}
+{% from "_macros.html" import card_header, stats_card, status_icon, job_errors_div %}
 
 {% block title %}{{ detail_title }} Job #{{ job.id }} · Copy SVG Translation{% endblock %}
 
@@ -126,6 +126,9 @@
                     <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
                     {{ result_data.error }}
                 </div>
+                {% endif %}
+                {% if result_data.errors %}
+                {{ job_errors_div(result_data.errors) }}
                 {% endif %}
             </div>
         </div>
