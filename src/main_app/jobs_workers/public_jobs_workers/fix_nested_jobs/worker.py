@@ -57,7 +57,7 @@ class FixNestedJobsProcessor(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [{"error": "", "error_type": ""}],
+            "errors": [],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),

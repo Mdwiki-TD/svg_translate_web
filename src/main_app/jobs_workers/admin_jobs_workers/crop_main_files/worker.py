@@ -121,7 +121,7 @@ class CropMainFilesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [{"error": "", "error_type": ""}],
+            "errors": [],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -228,8 +228,23 @@ class CropMainFilesWorker(BaseJobWorker):
         # pre steps if the file already in commons, skip download/upload files.
         if self._check_file_exists(cropped_filename):
             self._skip_process(file_info)
+            # Step 4 & 5 - Update wikitext references
+            updated = self.update_file_references(file_info)
+
+            if updated:
+                file_info.status = "completed"
+                self.result["summary"]["updated"] += 1
+                self._append(file_info, key="pages_updated")
+                return True
+            else:
+                # if all file_info.steps "result" is None do:
+                if all(step["result"] is None for step in file_info.steps.values()):
+                    file_info.status = "skipped"
+                    self.result["summary"]["skipped"] += 1
+
             self._append(file_info, key="pages_skipped")
             return False
+
 
         # ----------------------------------
         # Step 1 - Download
@@ -445,13 +460,6 @@ class CropMainFilesWorker(BaseJobWorker):
         self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
 
-        # Step 4 & 5 - Update wikitext references
-        self.update_file_references(file_info)
-
-        # if all file_info.steps "result" is None do:
-        if all(step["result"] is None for step in file_info.steps.values()):
-            file_info.status = "skipped"
-            self.result["summary"]["skipped"] += 1
 
     def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""

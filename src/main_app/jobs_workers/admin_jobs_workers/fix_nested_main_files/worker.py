@@ -119,7 +119,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [{"error": "", "error_type": ""}],
+            "errors": [],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -241,7 +241,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
-                return False
+                break
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:

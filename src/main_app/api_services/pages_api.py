@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import mwclient
 
@@ -21,11 +22,11 @@ def is_redirect(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).is_redirect()
 
 
-def _edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: int = 1) -> dict[str, any]:
+def _edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
     return MwClientPage(title, site).edit_page(text, summary, nocreate=nocreate)
 
 
-def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, any]:
+def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[str, Any]:
     """ """
     missing_fields = verify_required_fields({"title": title, "text": text, "site": site})
     if missing_fields:
@@ -42,7 +43,7 @@ def move_page(
     reason: str = "",
     move_talk: bool = True,
     no_redirect: bool = False,
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """
     Move (rename) a page on Wikimedia Commons.
 

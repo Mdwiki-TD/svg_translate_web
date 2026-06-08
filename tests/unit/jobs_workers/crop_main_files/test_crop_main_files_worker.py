@@ -154,8 +154,8 @@ def test_crop_main_files_worker_entry_handles_exception(mock_services):
     # Check the last saved result has error details
     last_saved = save_calls[-1][0][1]
     assert last_saved["status"] == "failed"
-    assert "Database connection failed" in last_saved["errors"][1]["error"]
-    assert last_saved["errors"][1]["error_type"] == "RuntimeError"
+    assert "Database connection failed" in last_saved["errors"][0]["error"]
+    assert last_saved["errors"][0]["error_type"] == "RuntimeError"
 
 
 def test_crop_main_files_worker_entry_sets_completed_timestamp(mock_services):
@@ -329,7 +329,7 @@ def test_crop_main_files_worker_entry_different_exception_types(mock_services):
         save_calls = mock_services["save_job_result_by_name"].call_args_list
         assert len(save_calls) >= 1
         last_saved = save_calls[-1][0][1]
-        assert last_saved["errors"][1]["error_type"] == expected_type
+        assert last_saved["errors"][0]["error_type"] == expected_type
 
 
 def test_crop_main_files_worker_entry_upload_files_flag(mock_services):

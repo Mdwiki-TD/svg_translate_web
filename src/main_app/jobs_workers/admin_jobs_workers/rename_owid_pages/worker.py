@@ -107,7 +107,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         return {
             "status": "pending",
-            "errors": [{"error": "", "error_type": ""}],
+            "errors": [],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),

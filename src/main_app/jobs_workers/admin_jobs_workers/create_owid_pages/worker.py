@@ -39,6 +39,7 @@ class TemplateProcessingInfo:
         default_factory=lambda: {
             "load_template_text": {"result": None, "msg": ""},
             "create_new_text": {"result": None, "msg": ""},
+            "update_text": {"result": None, "msg": ""},
             "create_new_page": {"result": None, "msg": ""},
         }
     )
@@ -93,7 +94,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """Return the initial result structure."""
         return {
             "status": "pending",
-            "errors": [{"error": "", "error_type": ""}],
+            "errors": [],
             "args": {},
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
@@ -272,8 +273,12 @@ class CreateOwidPagesWorker(BaseJobWorker):
         """
         # Page exists, check if update is needed
         current_text = get_page_text(new_title, self.site)
+        if not current_text:
+            self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
+            return False
+
         if current_text.strip() == info._new_text.strip():
-            self._skip_step(info, "create_new_page", "Skipped - page content is already identical")
+            self._skip_step(info, "update_text", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result["summary"]["skipped"] += 1
@@ -293,13 +298,13 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         if res["success"]:
             self.result["summary"]["updated"] += 1
-            info.steps["create_new_page"] = {"result": True, "msg": f"Updated page: {new_title}"}
+            info.steps["update_text"] = {"result": True, "msg": f"Updated page: {new_title}"}
             info.new_page_title = new_title
             info.status = "updated"
             return True
 
         err = res.get("error", "Unknown error")
-        self._fail(info, "create_new_page", err)
+        self._fail(info, "update_text", err)
         return False
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
