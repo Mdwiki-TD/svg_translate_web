@@ -91,7 +91,7 @@ class MwClientPage:
         if edit_result.get("error") != "ratelimited":
             return edit_result
             
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=True):
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 f"Rate limited on attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}'. Retrying in {delay}s..."
@@ -117,7 +117,7 @@ class MwClientPage:
         if move_result.get("error") != "ratelimited":
             return move_result
             
-        for attempt, delay in enumerate(_RETRY_DELAYS, start=True):
+        for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 f"Rate limited on move attempt {attempt}/{len(_RETRY_DELAYS)} "
                 f"for page '{self.title}' -> '{new_title}'. Retrying in {delay}s..."
