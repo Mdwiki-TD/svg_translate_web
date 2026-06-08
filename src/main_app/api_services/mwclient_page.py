@@ -169,7 +169,7 @@ class MwClientPage:
         if page.exists:
             return {"success": False, "error": "page exists"}
 
-        return self._with_retry(self._edit_page, page, text, summary, onlycreate=True)
+        return self._with_retry(self._edit_page, page, text, summary, createonly=True)
 
     def move_page(
         self,
