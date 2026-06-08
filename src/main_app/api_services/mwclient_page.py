@@ -135,7 +135,7 @@ class MwClientPage:
     # Public
     # ------------------------------------------------------------------
 
-    def load_page(self) -> mwclient.page.Page | bool:
+    def load_page(self) -> mwclient.page.Page | None:
         if self.page:
             return self.page
 
@@ -144,12 +144,12 @@ class MwClientPage:
         except mwclient.errors.InvalidPageTitle:
             logger.error(f"Title {self.title} is invalid")
             self.load_page_error = "invalidpagetitle"
-            return False
+            return None
 
         except Exception as exc:
             self.load_page_error = str(exc)
             logger.exception(f"Failed to load page {self.title}", exc_info=exc)
-            return False
+            return None
 
         return self.page
 
