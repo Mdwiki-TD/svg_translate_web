@@ -1,4 +1,4 @@
-{% extends "admins/jobs_templates/base_details.html" %}
+{% extends "jobs_templates/admin/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 
 {% set updated_charts = result_data.updated_charts or (result_data.charts_processed | selectattr("status", "equalto", "updated") | list) %}

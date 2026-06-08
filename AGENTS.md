@@ -160,7 +160,7 @@ src/
       crop_main_files/   # Crop newest world files
     utils/               # Helper utilities
   templates/             # Jinja2 templates
-    admins/jobs_templates/  # Job-specific detail/list templates
+    jobs_templates/admin/  # Job-specific detail/list templates
   app.py                 # WSGI entry point
 tests/                   # Test files (mirror src structure)
 _works_files/            # Offline CLI tools (not part of Flask app)
@@ -176,7 +176,7 @@ _works_files/            # Offline CLI tools (not part of Flask app)
 3. Create `__init__.py` exporting the entry-point function
 4. Register in `workers_list.py`: add to `jobs_data` (or `jobs_data_public` for public jobs)
 5. Add sidebar item in `app_routes/admin/sidebar.py`
-6. Create templates: `src/templates/admins/jobs_templates/<job_name>/list.html` and `details.html`
+6. Create templates: `src/templates/jobs_templates/admin/<job_name>/list.html` and `details.html`
 
 ### MwClientPage Pattern
 

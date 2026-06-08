@@ -15,8 +15,8 @@ and updates the database record when values have changed.
 | --- | --------------------------------------------------------------------- | ----------------------------------- |
 | 1   | `src/main_app/jobs_workers/update_owid_charts/__init__.py`            | Exports entry-point function        |
 | 2   | `src/main_app/jobs_workers/update_owid_charts/worker.py`              | Worker class + entry-point function |
-| 3   | `src/templates/admins/jobs_templates/update_owid_charts/list.html`    | Job list template                   |
-| 4   | `src/templates/admins/jobs_templates/update_owid_charts/details.html` | Job detail template                 |
+| 3   | `src/templates/jobs_templates/admin/update_owid_charts/list.html`    | Job list template                   |
+| 4   | `src/templates/jobs_templates/admin/update_owid_charts/details.html` | Job detail template                 |
 
 ## 2. Files to Modify
 
@@ -182,8 +182,8 @@ from .update_owid_charts import update_owid_charts_for_templates
 "update_owid_charts": JobData(
     job_type="update_owid_charts",
     job_name="Update OWID Charts",
-    job_details_template="admins/jobs_templates/update_owid_charts/details.html",
-    job_list_template="admins/jobs_templates/update_owid_charts/list.html",
+    job_details_template="jobs_templates/admin/update_owid_charts/details.html",
+    job_list_template="jobs_templates/admin/update_owid_charts/list.html",
     job_callable=update_owid_charts_for_templates,
 ),
 ```
