@@ -185,7 +185,8 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     worker.collect_templates_data_entry(job_id=1, user=None)
 
     # Should fetch wikitext
-    mock_services["MwClientPage"].return_value.get_text.assert_called_once_with("Template:Test", site=magic)
+    mock_services["MwClientPage"].return_value.get_text.assert_called_once()
+    mock_services["MwClientPage"].assert_called_once_with("Template:Test", magic)
 
     # Should find main title
     mock_services["find_main_title"].assert_called_once()
