@@ -245,11 +245,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Step 2 A) - check if new page already exists
         new_title = self.create_new_page_title(file_info)
 
-        # page_exists = is_page_exists(new_title, self.site)
         page = MwClientPage(new_title, self.site)
 
         if page.exists():
-            # if page_exists:
             # ----------------------------------
             # Step 3 - compare if text need to be updated
             upd_step = self._step_update(file_info, new_title)

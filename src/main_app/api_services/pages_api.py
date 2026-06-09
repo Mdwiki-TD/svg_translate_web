@@ -161,10 +161,10 @@ def get_page_text(
 
 
 __all__ = [
-    "create_page",
-    "get_page_text",
     "is_page_exists",
     "is_redirect",
+    "create_page",
+    "get_page_text",
     "move_page",
     "update_page_text",
 ]
