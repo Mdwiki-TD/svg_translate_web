@@ -7,7 +7,7 @@ import pytest
 from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
