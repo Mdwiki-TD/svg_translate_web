@@ -1,20 +1,22 @@
 ---
 name: patch-to-fixture
 description: >
-  Refactor pytest test boilerplate into reusable fixtures. Covers two patterns:
-  (1) repeated @patch decorators → pytest.fixture with monkeypatch.setattr,
-  (2) repeated in-body mock setup blocks (e.g. MagicMock objects built the same way in every test) → parametrized or factory fixtures.
-  Use this skill whenever the user wants to clean up pytest tests, reduce repeated mock setup, mentions "pytest fixture",
-  "monkeypatch", "patch decorator", or points out boilerplate in test files. Trigger even if only 2 occurrences exist.
+    Refactor pytest test boilerplate into reusable fixtures. Covers two patterns:
+    (1) repeated @patch decorators → pytest.fixture with monkeypatch.setattr,
+    (2) repeated in-body mock setup blocks (e.g. MagicMock objects built the same way in every test) → parametrized or factory fixtures.
+    Use this skill whenever the user wants to clean up pytest tests, reduce repeated mock setup, mentions "pytest fixture",
+    "monkeypatch", "patch decorator", or points out boilerplate in test files. Trigger even if only 2 occurrences exist.
 ---
 
 # Skill: Reduce pytest Boilerplate with Fixtures
 
 ## Goal
-Two distinct patterns both warrant extraction into fixtures:
+
+Three distinct patterns warrant extraction into fixtures:
 
 1. **Repeated `@patch` decorators** — replace with a fixture using `monkeypatch.setattr`
 2. **Repeated in-body mock setup** — replace with a fixture (optionally parametrized or factory-based)
+3. **Grouped Service Mocks (Bundle)** — replace multiple related mocks with a single "service bundle" fixture.
 
 ---
 
@@ -23,6 +25,7 @@ Two distinct patterns both warrant extraction into fixtures:
 ### Steps
 
 #### 1. Analyze the File
+
 Find `@patch("some.module.path")` applied to multiple test functions where **the same path appears ≥ 2 times**.
 
 #### 2. Write the Fixture
@@ -46,6 +49,7 @@ Example: `src.app.utils.download_core` → `mock_download_core`
 Remove the `@patch(...)` decorator and its corresponding positional argument (right after `self`). Keep the body unchanged.
 
 #### 4. Update Imports
+
 Add `import pytest` and `from unittest.mock import MagicMock`. Remove `from unittest.mock import patch` if no longer used.
 
 ### Subvariant: Patching a Class (with instance)
@@ -65,10 +69,11 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 Tests access the instance via `mock_worker_class.return_value` — no per-test setup needed.
 
 ### Notes
-- **Stacked `@patch`:** injection order is **reversed** (bottom decorator → first param after `self`).
-- **Single-use patches:** convert or leave based on user preference.
-- **Placement:** module level (after imports) or `conftest.py` for cross-file sharing.
-- **Never touch** unrelated fixtures like `temp_output_dir`, `tmp_path`, etc.
+
+-   **Stacked `@patch`:** injection order is **reversed** (bottom decorator → first param after `self`).
+-   **Single-use patches:** convert or leave based on user preference.
+-   **Placement:** module level (after imports) or `conftest.py` for cross-file sharing.
+-   **Never touch** unrelated fixtures like `temp_output_dir`, `tmp_path`, etc.
 
 ---
 
@@ -129,16 +134,18 @@ def mock_site() -> MagicMock:
 ```
 
 ### Choosing between A and B
-| Situation | Use |
-|---|---|
+
+| Situation                                                                                        | Use             |
+| ------------------------------------------------------------------------------------------------ | --------------- |
 | The varying value is meaningful to the test (e.g. `exists=True` vs `False` drives the assertion) | **Factory (A)** |
-| All tests use the same default and override only what they need | **Fixed (B)** |
-| No variation at all | **Fixed (B)** |
+| All tests use the same default and override only what they need                                  | **Fixed (B)**   |
+| No variation at all                                                                              | **Fixed (B)**   |
 
 ### Notes
-- The factory fixture name uses `make_` prefix: `make_mock_site`, `make_mock_page`, etc.
-- Keep the factory signature explicit with typed parameters (`page_exists: bool`).
-- Tests that set additional attributes after calling the factory (e.g. `mock_site.extra = ...`) are fine — the factory gives a starting point.
+
+-   The factory fixture name uses `make_` prefix: `make_mock_site`, `make_mock_page`, etc.
+-   Keep the factory signature explicit with typed parameters (`page_exists: bool`).
+-   Tests that set additional attributes after calling the factory (e.g. `mock_site.extra = ...`) are fine — the factory gives a starting point.
 
 ---
 
@@ -169,6 +176,7 @@ def mock_detect_nested_tags(monkeypatch): ...
 Each test then lists all of them as parameters: `def test_x(self, mock_save_job_result, mock_is_job_cancelled, mock_download_svg_file, ...)` — long, repetitive signatures.
 
 **Sub-case B — One fixture returning a `dict` of mocks:**
+
 ```python
 return {
     "create_page": mock_create_page,
@@ -176,6 +184,7 @@ return {
     ...  # 5+ keys
 }
 ```
+
 Accessing via `mock_services["create_page"]` has no autocomplete and is prone to silent key typos.
 
 **The fix for both:** merge everything into **one fixture** that returns a typed `@dataclass`.
@@ -227,17 +236,19 @@ def test_something(self, mock_services: MockServices):
 ```
 
 ### Threshold: when to apply
-| Number of mocks in the dict | Recommendation |
-|---|---|
-| ≤ 4 | Dict is fine, skip this pattern |
-| 5–7 | Consider dataclass |
-| 8+ | Always use dataclass |
+
+| Number of mocks in the dict | Recommendation                  |
+| --------------------------- | ------------------------------- |
+| ≤ 4                         | Dict is fine, skip this pattern |
+| 5–7                         | Consider dataclass              |
+| 8+                          | Always use dataclass            |
 
 ### Notes
-- Place the `@dataclass` class **just above** the fixture that uses it, not at the top of the file.
-- Add the type annotation to every test parameter that receives this fixture: `mock_services: MockServices` — this is what enables IDE autocomplete.
-- `dataclass` is preferred over `NamedTuple` here because fields may need to be reassigned in tests (`mock_services.create_page.return_value = ...` already works; no mutation of the dataclass itself is needed).
-- Do **not** add `frozen=True` — tests may do `mock_services.some_mock.return_value = x` which mutates the mock, not the dataclass.
+
+-   Place the `@dataclass` class **just above** the fixture that uses it, not at the top of the file.
+-   Add the type annotation to every test parameter that receives this fixture: `mock_services: MockServices` — this is what enables IDE autocomplete.
+-   `dataclass` is preferred over `NamedTuple` here because fields may need to be reassigned in tests (`mock_services.create_page.return_value = ...` already works; no mutation of the dataclass itself is needed).
+-   Do **not** add `frozen=True` — tests may do `mock_services.some_mock.return_value = x` which mutates the mock, not the dataclass.
 
 ---
 
@@ -246,6 +257,7 @@ def test_something(self, mock_services: MockServices):
 ### Example 1 — Patching a function (`@patch` → fixture)
 
 **Original:**
+
 ```python
 from unittest.mock import patch
 
@@ -265,6 +277,7 @@ class TestDownloadCommonsSvgs:
 ```
 
 **Result:**
+
 ```python
 import pytest
 from unittest.mock import MagicMock
@@ -298,6 +311,7 @@ class TestDownloadCommonsSvgs:
 ### Example 2 — Patching a class (with instance)
 
 **Original:**
+
 ```python
 class TestAddSvgLanguages:
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
@@ -322,6 +336,7 @@ class TestAddSvgLanguages:
 ```
 
 **Result:**
+
 ```python
 @pytest.fixture
 def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -356,6 +371,7 @@ class TestAddSvgLanguages:
 ### Example 3 — Repeated in-body setup (factory fixture)
 
 **Original:**
+
 ```python
 class TestIsPageExists:
     def test_page_exists_returns_true(self) -> None:
@@ -395,6 +411,7 @@ class TestCreatePage:
 ```
 
 **Result:**
+
 ```python
 import pytest
 from unittest.mock import MagicMock
@@ -439,15 +456,17 @@ class TestCreatePage:
 ```
 
 Key changes:
-- 5-line setup block removed from every test
-- `page_exists` is now explicit in the call — makes test intent immediately clear
-- The fixture is shared across `TestIsPageExists` **and** `TestCreatePage` since both needed the same object
+
+-   5-line setup block removed from every test
+-   `page_exists` is now explicit in the call — makes test intent immediately clear
+-   The fixture is shared across `TestIsPageExists` **and** `TestCreatePage` since both needed the same object
 
 ---
 
 ### Example 4 — Large fixture dict → dataclass
 
 **Original:**
+
 ```python
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
@@ -484,6 +503,7 @@ class TestCreateOwidPages:
 ```
 
 **Result:**
+
 ```python
 from dataclasses import dataclass
 
@@ -532,15 +552,17 @@ class TestCreateOwidPages:
 ```
 
 Key changes:
-- `dict` access `mock_services["key"]` → attribute access `mock_services.key`
-- Type annotation on test parameter enables IDE autocomplete
-- `@dataclass` defined just above the fixture
+
+-   `dict` access `mock_services["key"]` → attribute access `mock_services.key`
+-   Type annotation on test parameter enables IDE autocomplete
+-   `@dataclass` defined just above the fixture
 
 ---
 
 ### Example 5 — Many individual fixtures → one dataclass fixture (Sub-case A)
 
 **Original:**
+
 ```python
 @pytest.fixture
 def mock_save_job_result(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -603,6 +625,7 @@ class TestFixNestedJobs:
 ```
 
 **Result:**
+
 ```python
 from dataclasses import dataclass
 
@@ -664,7 +687,8 @@ class TestFixNestedJobs:
 ```
 
 Key changes:
-- 7 separate fixtures → 1 fixture with 1 dataclass
-- Test signature: 7 parameters → 1 parameter (`mock_deps: MockFixNestedJobsDeps`)
-- Path prefixes extracted into local variables (`_base`, `_worker`) to reduce repetition
-- Full IDE autocomplete on `mock_deps.<TAB>`
+
+-   7 separate fixtures → 1 fixture with 1 dataclass
+-   Test signature: 7 parameters → 1 parameter (`mock_deps: MockFixNestedJobsDeps`)
+-   Path prefixes extracted into local variables (`_base`, `_worker`) to reduce repetition
+-   Full IDE autocomplete on `mock_deps.<TAB>`

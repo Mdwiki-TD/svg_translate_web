@@ -106,7 +106,7 @@ class MwClientPage:
                 logger.warning(f"Page '{self.title}' does not exist")
                 return False
         except Exception as exc:
-            logger.debug(f"Could not check if page '{self.title}' exists: {exc}")
+            logger.warning(f"Could not check if page '{self.title}' exists: {exc}")
             return False
 
         logger.info(f"Page '{self.title}' exists")
@@ -118,8 +118,8 @@ class MwClientPage:
 
         try:
             return self.page.text()
-        except Exception as exc:
-            logger.exception(f"Failed to retrieve wikitext for {self.title}", exc_info=exc)
+        except Exception:
+            logger.exception(f"Failed to retrieve wikitext for {self.title}")
         return ""
 
     def get_redirect_target(self) -> str | None:
@@ -141,7 +141,7 @@ class MwClientPage:
         return self.get_redirect_target() is not None
 
     def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
-        if not text:
+        if text is None:
             return {"success": False, "error": "missing text"}
 
         page = self.load_page()

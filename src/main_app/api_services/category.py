@@ -28,11 +28,9 @@ def get_category_members_api(category, project, limit=None):
         "action": "query",
         "list": "categorymembers",
         "cmtitle": category,
-        # "cmlimit": limit,
         "format": "json",
     }
-    if limit is not None:
-        params["cmlimit"] = limit
+    params["cmlimit"] = limit if limit is not None else "max"
 
     pages = []
     try:
