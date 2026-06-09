@@ -14,7 +14,7 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import create_page, get_page_text, update_page_text
+from ....api_services.pages_api import get_page_text, update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
@@ -354,10 +354,10 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Expected pattern: Template:OWID/... -> OWID/...
         new_title = self.create_new_page_title(info)
 
-        res = create_page(
-            new_title,
+        new_title_page = MwClientPage(new_title, self.site)
+
+        res = new_title_page.create(
             info._new_text,
-            self.site,
             summary=f"Creating OWID page from [[{info.template_title}]]",
         )
 
