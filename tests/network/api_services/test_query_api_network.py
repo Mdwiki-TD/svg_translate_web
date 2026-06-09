@@ -37,7 +37,7 @@ class TestIsPagesExistsNetwork(TestNetwork):
 
     def test_basic_test_site(self) -> None:
         """
-        test_site uses test-commons.wikimedia.org
+        test_site uses test.wikipedia.org
         """
         result = is_pages_exists(["OWID/Academic freedom index", "Main_Page"], self.test_site)
         assert result == {"OWID/Academic freedom index": False, "Main_Page": True}

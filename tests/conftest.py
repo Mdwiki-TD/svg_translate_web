@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import MagicMock
 
+import mwclient
 import pytest
 from cryptography.fernet import Fernet
 from flask.app import Flask
@@ -26,7 +27,7 @@ os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
-os.environ.setdefault("WIKI_DOMAIN", "test-commons.wikimedia.org")
+os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
 # ── Now safe to import third-party and src packages ──────────────────────────
 
@@ -39,7 +40,6 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 
 # Import after environment setup
 from src.main_app import create_app  # noqa: E402
-from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import TestingConfig  # noqa: E402
 from src.main_app.extensions import db as _db  # noqa: E402
 
@@ -215,19 +215,7 @@ def sample_multiple_owidslidersrcs() -> str:
 
 @pytest.fixture
 def mock_site() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_exists_page() -> MagicMock:
-    page = MagicMock()
-    page.exists = True
-    return page
-
-
-@pytest.fixture
-def mw_client(mock_site: MagicMock) -> MwClientPage:
-    return MwClientPage("Test Page", mock_site)
+    return MagicMock(spec=mwclient.Site)
 
 
 @pytest.fixture(autouse=True)

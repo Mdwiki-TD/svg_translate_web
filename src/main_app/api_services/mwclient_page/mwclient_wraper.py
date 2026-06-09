@@ -8,36 +8,11 @@ from typing import Any, Callable
 
 import mwclient
 
+from .mwclient_error import handle_mwclient_error
+
 logger = logging.getLogger(__name__)
 
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
-
-
-def _handle_api_error(exc: Exception) -> dict[str, Any] | None:
-    """Map common mwclient exceptions to a failure dict.
-
-    Returns a ``{"success": False, ...}`` dict for known errors, or
-    ``None`` if the exception is unrecognised (caller should log and
-    handle it themselves).
-    """
-    if isinstance(exc, mwclient.errors.ProtectedPageError):
-        return {"success": False, "error": "protectedpageerror", "details": str({"code": exc.code, "info": exc.info})}
-
-    if isinstance(exc, mwclient.errors.EditError):
-        return {"success": False, "error": "editerror", "details": str(exc)}
-
-    if isinstance(exc, mwclient.errors.AssertUserFailedError):
-        return {"success": False, "error": "assertuserfailed"}
-
-    if isinstance(exc, mwclient.errors.UserBlocked):
-        return {"success": False, "error": "userblocked"}
-
-    if isinstance(exc, mwclient.errors.APIError):
-        if exc.code == "ratelimited":
-            return {"success": False, "error": "ratelimited"}
-        return {"success": False, "error": exc.code, "details": str(exc)}
-
-    return None  # unrecognised — let the caller log and handle
 
 
 class MwClientPage:
@@ -56,7 +31,7 @@ class MwClientPage:
             save = page.edit(text, summary=summary, **kwargs) or {}
             return {"success": True, **save}
         except Exception as exc:
-            result = _handle_api_error(exc)
+            result = handle_mwclient_error(exc)
             if result is not None:
                 return result
             logger.exception(f"Failed to edit page '{self.title}'")
@@ -74,7 +49,7 @@ class MwClientPage:
             save = page.move(new_title, reason=reason, move_talk=move_talk, no_redirect=no_redirect) or {}
             return {"success": True, **save}
         except Exception as exc:
-            result = _handle_api_error(exc)
+            result = handle_mwclient_error(exc)
             if result is not None:
                 return result
             logger.exception(f"Failed to move page '{self.title}' -> '{new_title}'")
@@ -217,3 +192,8 @@ class MwClientPage:
 
     def create_page(self, text: str, summary: str) -> dict[str, Any]:
         return self.create(text, summary)
+
+
+__all__ = [
+    "MwClientPage",
+]

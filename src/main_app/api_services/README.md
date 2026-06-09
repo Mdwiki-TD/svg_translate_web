@@ -9,7 +9,7 @@ MediaWiki API integration layer wrapping the `mwclient` library. Provides authen
 ```
 api_services/
 ├── __init__.py         # Re-exports MwClientPage, get_user_site
-├── mwclient_page.py    # MwClientPage — page CRUD with rate-limit retry
+├── mwclient_page/mwclient_wraper.py    # MwClientPage — page CRUD with rate-limit retry
 ├── pages_api.py        # High-level page operations
 ├── query_api.py        # Query API helpers (templates, redirects, search, links)
 ├── category.py         # Category member fetching
@@ -23,7 +23,7 @@ api_services/
 
 ## Key Components
 
-### MwClientPage (`mwclient_page.py`)
+### MwClientPage (`mwclient_page/mwclient_wraper.py`)
 
 Wraps `mwclient.page.Page` with comprehensive error handling and rate-limit retry.
 

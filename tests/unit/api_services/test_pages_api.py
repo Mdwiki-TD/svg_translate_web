@@ -198,14 +198,14 @@ class TestUpdatePageText:
 
     def test_valid_inputs_calls_edit(self):
         """Test with valid inputs calls page.edit."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         result = update_page_text("Template:Test", "new wikitext", mock_site, summary="test edit")
         assert result["success"] is True
         mock_site.pages.__getitem__.assert_called_once_with("Template:Test")
 
     def test_missing_page_name_returns_error(self, caplog):
         """Test that missing page_name returns error dict."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         with caplog.at_level(logging.ERROR):
             result = update_page_text(None, "new wikitext", mock_site)
         assert result["success"] is False
@@ -213,7 +213,7 @@ class TestUpdatePageText:
 
     def test_missing_updated_text_returns_error(self, caplog):
         """Test that missing updated_text returns error dict."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         with caplog.at_level(logging.ERROR):
             result = update_page_text("Template:Test", None, mock_site)
         assert result["success"] is False
@@ -228,7 +228,7 @@ class TestUpdatePageText:
 
     def test_edit_exception_returns_error(self, caplog):
         """Test that exception from page.edit returns error dict."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_page.edit.side_effect = Exception("Edit conflict")
         mock_site.pages.__getitem__.return_value = mock_page
@@ -239,7 +239,7 @@ class TestUpdatePageText:
 
     def test_default_empty_summary(self):
         """Test that default empty summary is used."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         mock_page = MagicMock()
         mock_site.pages.__getitem__.return_value = mock_page
         update_page_text("Template:Test", "new wikitext", mock_site)

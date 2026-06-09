@@ -148,7 +148,7 @@ src/
       main_routes/       # Public routes
     api_services/        # MediaWiki API clients
       clients/           # mwclient site builders (wiki_client, commons_client)
-      mwclient_page.py   # MwClientPage class (edit, move, redirect check with retry)
+      mwclient_page/mwclient_wraper.py   # MwClientPage class (edit, move, redirect check with retry)
       pages_api.py       # Thin wrappers: is_page_exists, is_redirect, edit_page, move_page
       category.py        # Category member listing
     sqlalchemy_db/       # SQLAlchemy models & services

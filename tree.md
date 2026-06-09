@@ -12,7 +12,7 @@ src/
 │   │   │   └── download_file_utils.py
 │   │   ├── __init__.py
 │   │   ├── category.py
-│   │   ├── mwclient_page.py
+│   │   ├── mwclient_page/mwclient_wraper.py
 │   │   ├── pages_api.py
 │   │   ├── query_api.py
 │   │   └── upload_bot.py

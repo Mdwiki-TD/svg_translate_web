@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
+import mwclient
 import pytest
 
 from src.main_app.db.models import TemplateRecord
@@ -428,7 +429,7 @@ class TestCreateNewPageStep:
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         worker.result = worker.get_initial_result()
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         worker.site = mock_site
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New OWID page content"

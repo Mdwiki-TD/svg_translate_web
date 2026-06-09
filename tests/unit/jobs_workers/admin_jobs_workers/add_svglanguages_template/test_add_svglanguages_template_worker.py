@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
+import mwclient
 import pytest
 
 # from src.main_app.config import settings
@@ -475,7 +476,7 @@ class TestProcessMethod:
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates")
     def test_process_success(self, mcok_list_templates, mock_get_user_site, mock_jobs_service):
         """Test successful processing of all templates."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         mock_get_user_site.return_value = mock_site
 
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
@@ -507,7 +508,7 @@ class TestProcessMethod:
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates")
     def test_process_handles_cancellation(self, mcok_list_templates, mock_get_user_site, mock_jobs_service):
         """Test that process stops when cancelled."""
-        mock_site = MagicMock()
+        mock_site = MagicMock(spec=mwclient.Site)
         mock_get_user_site.return_value = mock_site
 
         mock_templates = [
