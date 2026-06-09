@@ -245,7 +245,7 @@ class TestEdit:
 
     def test_assert_user_failed_propagates(self):
         wrapper, mock_page = _mwclient_page()
-        mock_page.edit.side_effect = mwclient.errors.AssertUserFailedError(MagicMock())
+        mock_page.edit.side_effect = mwclient.errors.AssertUserFailedError()
         result = wrapper.edit("content", "summary")
         assert result == {"success": False, "error": "assertuserfailed"}
 

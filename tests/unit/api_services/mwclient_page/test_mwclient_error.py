@@ -34,7 +34,7 @@ class TestHandleApiError:
         assert result["error"] == "editerror"
 
     def test_assert_user_failed(self):
-        exc = mwclient.errors.AssertUserFailedError(MagicMock())
+        exc = mwclient.errors.AssertUserFailedError()
         result = handle_mwclient_error(exc)
         assert result == {"success": False, "error": "assertuserfailed"}
 
