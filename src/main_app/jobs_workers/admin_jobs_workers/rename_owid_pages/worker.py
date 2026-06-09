@@ -24,8 +24,9 @@ from typing import Any, Dict, Iterable
 
 import mwclient
 
+from ....api_services.mwclient_page import MwClientPage
+
 from ....api_services.clients import get_user_site
-from ....api_services.pages_api import is_page_exists, is_redirect, move_page, update_page_text
 from ....db.services import get_template_by_title, update_template_data
 from ...base_worker import BaseJobWorker
 
@@ -210,23 +211,18 @@ class RenameOwidPagesWorker(BaseJobWorker):
         info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
         # Pre-flight: don't even try to move if the target already exists.
-        try:
-            target_exists = is_page_exists(new_title, self.site)
-        except Exception as exc:
-            target_exists = False
-            logger.exception(f"Job {self.job_id}: Failed to check existence of {new_title}", exc_info=exc)
+        new_title_page = MwClientPage(new_title, self.site)
+        old_title_page = MwClientPage(old_title, self.site)
 
-        if target_exists:
+        if new_title_page.exists():
             # Both old_title and new_title exist on the wiki.
             # Check redirect relationships to decide what to do:
-            target_is_redirect = is_redirect(new_title, self.site)
-            source_is_redirect = is_redirect(old_title, self.site)
 
-            if target_is_redirect:
+            if new_title_page.is_redirect():
                 # Target is a redirect (e.g. left behind by a previous move),
                 # the move API will overwrite it — proceed with the move below.
                 pass
-            elif source_is_redirect:
+            elif old_title_page.is_redirect():
                 # The old page is already a redirect to the new one — just
                 # update the DB title to match the capitalized version.
                 info.status = "skipped_target_exists"
@@ -238,17 +234,14 @@ class RenameOwidPagesWorker(BaseJobWorker):
             else:
                 # Neither page redirects to the other — both are real pages.
                 # Redirect the old (lowercase) page to the new (capitalized) one.
-                return self._redirect_old_to_new(info, old_title, new_title)
+                return self._redirect_old_to_new(info, old_title_page, new_title)
 
-        res = move_page(
-            self.site,
-            old_title,
+        res = old_title_page.move(
             new_title,
             reason=MOVE_REASON,
             move_talk=True,
             no_redirect=False,
         )
-
         edit_success = bool(res.get("success"))
         if res.get("success"):
             info.status = "renamed"
@@ -267,15 +260,14 @@ class RenameOwidPagesWorker(BaseJobWorker):
         self.result["pages_processed"].append(info.to_dict())
         return edit_success
 
-    def _redirect_old_to_new(self, info: RenameInfo, old_title: str, new_title: str) -> None:
+    def _redirect_old_to_new(self, info: RenameInfo, old_title_page: MwClientPage, new_title: str) -> None:
         """Turn the old (lowercase) page into a redirect to the new (capitalized) page."""
         redirect_text = f"#REDIRECT [[{new_title}]]"
         summary = f"Redirecting to [[{new_title}]] (capitalize first letter of OWID subpage)"
+        old_title = old_title_page.title
 
-        res = update_page_text(
-            page_name=old_title,
-            updated_text=redirect_text,
-            site=self.site,
+        res = old_title_page.edit(
+            text=redirect_text,
             summary=summary,
         )
 
