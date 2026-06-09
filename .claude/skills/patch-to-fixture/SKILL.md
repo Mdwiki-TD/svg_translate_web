@@ -96,9 +96,49 @@ If `from unittest.mock import patch` is no longer used anywhere, remove it.
 -   **Fixture placement:** Place new fixtures at module level (after imports, before any class), or in `conftest.py` if the user wants them shared across multiple test files.
 -   **Leave existing fixtures alone:** Do not modify unrelated fixtures like `temp_output_dir`, `tmp_path`, etc.
 
+### Patching a Class (with instance pattern)
+
+When the patched target is a **class** (not a plain function), tests often create an instance mock from `mock_class.return_value`:
+
+```python
+mock_worker_instance = MagicMock()
+mock_worker_class.return_value = mock_worker_instance
+```
+
+In this case, the fixture patches the class and also exposes the pre-wired instance via `return_value`, so tests can assert on both the constructor call and the instance's methods:
+
+```python
+@pytest.fixture
+def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock_class = MagicMock()
+    _mock_instance = MagicMock()
+    _mock_class.return_value = _mock_instance
+    monkeypatch.setattr(
+        "src.module.path.WorkerClassName",
+        _mock_class,
+    )
+    return _mock_class
+```
+
+Tests then access the instance through `mock_worker_class.return_value` — no need to recreate it per test:
+
+```python
+def test_example(self, mock_worker_class):
+    mock_worker_instance = mock_worker_class.return_value  # already wired
+
+    call_function_under_test()
+
+    mock_worker_class.assert_called_once_with(...)
+    mock_worker_instance.run.assert_called_once()
+```
+
+**How to detect this pattern:** look for `mock_X.return_value = MagicMock()` or `mock_X.return_value = mock_instance` inside test bodies — this signals the patch target is a class being instantiated.
+
 ---
 
-## Complete Example
+## Complete Examples
+
+### Example 1 — Patching a function
 
 ### Original:
 
@@ -160,3 +200,75 @@ class TestDownloadCommonsSvgs:
         result = download_commons_svgs(["NetworkError.svg"], temp_output_dir)
         assert len(result) == 0
 ```
+
+---
+
+### Example 2 — Patching a class (with instance)
+
+### Original:
+
+```python
+from unittest.mock import patch, MagicMock
+
+class TestAddSvgLanguages:
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_args_defaults_to_none(self, mock_worker_class):
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        add_svglanguages_template_to_templates(job_id=2, user=None)
+
+        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
+        mock_worker_instance.run.assert_called_once()
+
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
+    def test_function_maps_limit_items(self, mock_worker_class):
+        mock_worker_instance = MagicMock()
+        mock_worker_class.return_value = mock_worker_instance
+
+        add_svglanguages_template_to_templates(job_id=1, user=None, args={"add_svglanguages_limit_items": 10})
+
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"]["limit_items"] == 10
+```
+
+### Result:
+
+```python
+import pytest
+from unittest.mock import MagicMock
+
+
+@pytest.fixture
+def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock_class = MagicMock()
+    _mock_instance = MagicMock()
+    _mock_class.return_value = _mock_instance
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate",
+        _mock_class,
+    )
+    return _mock_class
+
+
+class TestAddSvgLanguages:
+    def test_function_args_defaults_to_none(self, mock_worker_class):
+        mock_worker_instance = mock_worker_class.return_value  # already wired in fixture
+
+        add_svglanguages_template_to_templates(job_id=2, user=None)
+
+        mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
+        mock_worker_instance.run.assert_called_once()
+
+    def test_function_maps_limit_items(self, mock_worker_class):
+        add_svglanguages_template_to_templates(job_id=1, user=None, args={"add_svglanguages_limit_items": 10})
+
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"]["limit_items"] == 10
+```
+
+Key differences from Example 1:
+
+-   The fixture pre-wires `_mock_class.return_value = _mock_instance` so tests don't repeat the setup
+-   Tests that need the instance access it via `mock_worker_class.return_value`
+-   Tests that don't need the instance can omit it entirely
