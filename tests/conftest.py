@@ -26,6 +26,7 @@ os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
+os.environ.setdefault("WIKI_DOMAIN", "test-commons.wikimedia.org")
 
 # ── Now safe to import third-party and src packages ──────────────────────────
 

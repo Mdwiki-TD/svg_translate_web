@@ -32,8 +32,15 @@ class TestIsPagesExistsNetwork(TestNetwork):
     """Real Tests for the is_pages_exists function."""
 
     def test_basic(self) -> None:
-        result = is_pages_exists(["OWID/Academic freedom index"], self.site)
-        assert result == {"OWID/Academic freedom index": True}
+        result = is_pages_exists(["OWID/Academic freedom index", "Main_Page"], self.site)
+        assert result == {"OWID/Academic freedom index": True, "Main_Page": True}
+
+    def test_basic_test_site(self) -> None:
+        """
+        test_site uses test-commons.wikimedia.org
+        """
+        result = is_pages_exists(["OWID/Academic freedom index", "Main_Page"], self.test_site)
+        assert result == {"OWID/Academic freedom index": False, "Main_Page": True}
 
 
 class TestResolveRedirectsNetwork(TestNetwork):

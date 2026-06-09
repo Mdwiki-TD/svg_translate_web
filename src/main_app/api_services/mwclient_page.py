@@ -134,6 +134,9 @@ class MwClientPage:
         logger.info(f"Page '{self.title}' exists")
         return True
 
+    def exists(self) -> bool:
+        return self.check_exists()
+
     def is_redirect(self) -> bool:
         """Check if the page is a redirect using page.redirects_to()."""
         page = self.load_page()

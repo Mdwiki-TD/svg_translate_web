@@ -57,17 +57,17 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     )
 
     # Mock API services
+    mock_mwclientpage = MagicMock()
+    mock_mwclientpage.exists = MagicMock()
     mock_get_page_text = MagicMock()
-    mock_is_page_exists = MagicMock()
     mock_create_page = MagicMock()
     mock_update_page_text = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_page_text",
-        mock_get_page_text,
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MwClientPage", mock_mwclientpage
     )
+
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.is_page_exists",
-        mock_is_page_exists,
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_page_text", mock_get_page_text
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.create_page",
@@ -86,13 +86,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     )
 
     return {
+        "MwClientPage": mock_mwclientpage,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
         "list_templates": mock_list_templates,
         "get_user_site": mock_get_user_site,
         "get_page_text": mock_get_page_text,
-        "is_page_exists": mock_is_page_exists,
         "create_new_text": mock_create_new_text,
         "is_job_cancelled": mock_jobs_service,
         "create_page": mock_create_page,
@@ -522,7 +522,7 @@ class TestCreateOwidPagesWorkerProcess:
         ]
         mock_services["get_page_text"].return_value = "Template content"
         mock_services["create_new_text"].return_value = "New OWID content"
-        mock_services["is_page_exists"].return_value = False
+        mock_services["MwClientPage"].exists.return_value = False
         mock_services["create_page"].return_value = {"success": True}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
@@ -542,7 +542,7 @@ class TestCreateOwidPagesWorkerProcess:
         ]
         mock_services["get_page_text"].return_value = "Template content"
         mock_services["create_new_text"].return_value = "New OWID content"
-        mock_services["is_page_exists"].return_value = True
+        mock_services["MwClientPage"].exists.return_value = True
         mock_services["get_page_text"].return_value = "New OWID content"
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
@@ -568,7 +568,7 @@ class TestCreateOwidPagesWorkerProcess:
 
         mock_services["get_page_text"].side_effect = get_page_text_side_effect
         mock_services["create_new_text"].return_value = "New OWID content"
-        mock_services["is_page_exists"].return_value = False
+        mock_services["MwClientPage"].exists.return_value = False
         mock_services["create_page"].return_value = {"success": True}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
@@ -590,7 +590,7 @@ class TestCreateOwidPagesWorkerProcess:
         ]
         mock_services["get_page_text"].return_value = "Template content"
         mock_services["create_new_text"].return_value = "New OWID content"
-        mock_services["is_page_exists"].return_value = False
+        mock_services["MwClientPage"].exists.return_value = False
         mock_services["create_page"].return_value = {"success": True}
         mock_services["is_job_cancelled"].return_value = True
 
