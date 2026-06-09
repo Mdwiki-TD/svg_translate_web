@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.api_services.pages_api import (
-    create_page,
+    create_pagezz,
     update_page_text,
 )
 
@@ -26,7 +26,7 @@ class TestCreatePage:
     def test_create_page_success(self, mock_site_not_exists_pages, mock_page) -> None:
         """Test successful page creation."""
 
-        result = create_page(
+        result = create_pagezz(
             page_name="File:Test.svg",
             wikitext="{{Information}}",
             site=mock_site_not_exists_pages,
@@ -40,7 +40,7 @@ class TestCreatePage:
     def test_create_page_without_summary(self, mock_site_not_exists_pages, mock_page) -> None:
         """Test page creation with default empty summary."""
 
-        result = create_page(
+        result = create_pagezz(
             page_name="File:Test.svg",
             wikitext="{{Information}}",
             site=mock_site_not_exists_pages,
@@ -52,7 +52,7 @@ class TestCreatePage:
     def test_create_page_missing_page_name(self, mock_site) -> None:
         """Test create_page returns error when page_name is missing."""
 
-        result = create_page(
+        result = create_pagezz(
             page_name="",
             wikitext="{{Information}}",
             site=mock_site,
@@ -65,7 +65,7 @@ class TestCreatePage:
     def test_create_page_missing_wikitext(self, mock_site) -> None:
         """Test create_page returns error when wikitext is missing."""
 
-        result = create_page(
+        result = create_pagezz(
             page_name="File:Test.svg",
             wikitext="",
             site=mock_site,
@@ -77,7 +77,7 @@ class TestCreatePage:
 
     def test_create_page_missing_site(self, mock_site) -> None:
         """Test create_page returns error when site is None."""
-        result = create_page(
+        result = create_pagezz(
             page_name="File:Test.svg",
             wikitext="{{Information}}",
             site=None,
@@ -93,7 +93,7 @@ class TestCreatePage:
         mock_site.pages.__getitem__ = MagicMock(side_effect=Exception("Page load failed"))
 
         with caplog.at_level(logging.ERROR):
-            result = create_page(
+            result = create_pagezz(
                 page_name="File:Test.svg",
                 wikitext="{{Information}}",
                 site=mock_site,
@@ -111,7 +111,7 @@ class TestCreatePage:
         mock_page.edit = MagicMock(side_effect=Exception("Edit failed"))
 
         with caplog.at_level(logging.ERROR):
-            result = create_page(
+            result = create_pagezz(
                 page_name="File:Test.svg",
                 wikitext="{{Information}}",
                 site=mock_site_not_exists_pages,

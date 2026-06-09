@@ -7,7 +7,7 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.api_services.pages_api import (
-    create_page,
+    create_pagezz,
     move_page,
     update_page_text,
 )

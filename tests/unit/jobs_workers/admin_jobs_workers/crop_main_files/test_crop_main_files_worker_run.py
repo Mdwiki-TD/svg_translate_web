@@ -61,12 +61,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MwClientPage",
         mock_mwclientpage,
     )
-    mock_update_page_text = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_page_text",
-        mock_update_page_text,
-    )
-
     # Mock query_api functions
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
@@ -130,7 +124,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "get_user_site": mock_get_user_site,
         "create_commons_session": mock_create_commons_session,
         "MwClientPage": mock_mwclientpage,
-        "update_page_text": mock_update_page_text,
         "download_file": mock_download_file,
         "crop_svg_file": mock_crop_svg_file,
         "upload_cropped_file": mock_upload_cropped_file,
@@ -536,13 +529,13 @@ class TestCropMainFilesProcessorSteps:
 
         assert file_info.steps["update_original"]["result"] is None
         assert file_info.steps["update_original"]["msg"] == "No update needed"
-        mock_services["update_page_text"].assert_not_called()
+        mock_services["MwClientPage"].return_value.edit.assert_not_called()
 
     def test_step_update_original_with_update(self, mock_services):
         """Test _step_update_original when update is performed."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
         mock_services["update_original_file_text"].return_value = "Updated file text"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -560,13 +553,13 @@ class TestCropMainFilesProcessorSteps:
         processor._step_update_original(file_info)
 
         assert file_info.steps["update_original"]["result"] is True
-        mock_services["update_page_text"].assert_called_once()
+        mock_services["MwClientPage"].return_value.edit.assert_called_once()
 
     def test_step_update_original_update_fails(self, mock_services):
         """Test _step_update_original when update fails."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
         mock_services["update_original_file_text"].return_value = "Updated file text"
-        mock_services["update_page_text"].return_value = {"success": False, "error": "Edit conflict"}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -608,13 +601,13 @@ class TestCropMainFilesProcessorSteps:
 
         assert file_info.steps["update_template"]["result"] is None
         assert file_info.steps["update_template"]["msg"] == "No update needed"
-        mock_services["update_page_text"].assert_not_called()
+        mock_services["MwClientPage"].return_value.edit.assert_not_called()
 
     def test_step_update_template_with_update(self, mock_services):
         """Test _step_update_template when update is performed."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Updated template text"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -632,7 +625,7 @@ class TestCropMainFilesProcessorSteps:
         processor._step_update_template(file_info)
 
         assert file_info.steps["update_template"]["result"] is True
-        mock_services["update_page_text"].assert_called_once()
+        mock_services["MwClientPage"].return_value.edit.assert_called_once()
 
 
 class TestCropMainFilesProcessorHelpers:
@@ -778,10 +771,10 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["get_user_site"].return_value = _site
         mock_services["MwClientPage"].return_value.exists.return_value = True
         mock_services["update_original_file_text"].return_value = "Updated original"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -812,7 +805,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -879,7 +872,7 @@ class TestCropMainFilesProcessorRun:
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             job_id=1,
