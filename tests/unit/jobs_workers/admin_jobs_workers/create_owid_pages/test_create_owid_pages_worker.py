@@ -578,12 +578,12 @@ class TestCreateOwidPagesWorkerProcess:
                 instance.get_text.return_value = ""
             else:
                 instance.get_text.return_value = f"Content for {title}"
+            instance.exists.return_value = False
+            instance.create.return_value = {"success": True}
             return instance
 
         mock_services["MwClientPage"].side_effect = _mwclientpage_side_effect
         mock_services["create_new_text"].return_value = "New OWID content"
-        mock_services["page_instance"].exists.return_value = False
-        mock_services["page_instance"].create.return_value = {"success": True}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
