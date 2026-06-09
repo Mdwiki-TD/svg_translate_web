@@ -49,21 +49,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     )
 
     # Mock pages_api functions
-    mock_get_file_text = MagicMock()
     mock_get_page_text = MagicMock()
-    mock_update_file_text = MagicMock()
     mock_update_page_text = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.get_file_text",
-        mock_get_file_text,
-    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.get_page_text",
         mock_get_page_text,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_file_text",
-        mock_update_file_text,
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_page_text",
@@ -131,9 +121,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "list_templates": mock_list_templates,
         "get_user_site": mock_get_user_site,
         "create_commons_session": mock_create_commons_session,
-        "get_file_text": mock_get_file_text,
         "get_page_text": mock_get_page_text,
-        "update_file_text": mock_update_file_text,
         "update_page_text": mock_update_page_text,
         "download_file": mock_download_file,
         "crop_svg_file": mock_crop_svg_file,
@@ -167,10 +155,8 @@ class TestCropMainFilesProcessorRun:
         ]
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
-        mock_services["get_file_text"].return_value = "Original file text"
         mock_services["upload_cropped_file"].return_value = {"success": True}
         mock_services["update_original_file_text"].return_value = "Updated original"
-        mock_services["update_file_text"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Template text"
         mock_services["update_template_page_file_reference"].return_value = "Updated template"
         mock_services["update_page_text"].return_value = {"success": True}

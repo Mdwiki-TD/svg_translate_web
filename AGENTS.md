@@ -76,7 +76,7 @@ from .utils.verify import verify_required_fields
 Use type hints throughout. Use `|` for union types (Python 3.11+):
 
 ```python
-def get_file_text(file_name: str, site: mwclient.Site | None) -> str:
+def get_page_text(file_name: str, site: mwclient.Site | None) -> str:
     ...
 ```
 

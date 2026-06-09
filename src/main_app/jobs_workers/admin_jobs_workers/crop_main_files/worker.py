@@ -15,17 +15,20 @@ import mwclient
 
 from ....api_services.clients import create_commons_session, get_user_site
 from ....api_services.pages_api import (
-    get_file_text,
     get_page_text,
     is_page_exists,
-    update_file_text,
     update_page_text,
 )
 from ....api_services.query_api import is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ....utils.wikitext import create_cropped_file_text, update_original_file_text, update_template_page_file_reference
+from ....utils.wikitext import (
+    create_cropped_file_text,
+    ensure_file_prefix,
+    update_original_file_text,
+    update_template_page_file_reference,
+)
 from ...base_worker import BaseJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
@@ -358,7 +361,8 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _step_upload(self, file_info: TemplateProcessingInfo) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
-        wikitext = get_file_text(file_info.original_file, self.site)
+        file_name = ensure_file_prefix(file_info.original_file)
+        wikitext = get_page_text(file_name, self.site)
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
 
         upload_result = upload_cropped_file(
@@ -397,7 +401,8 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
-        wikitext = get_file_text(file_info.original_file, self.site)
+        original_file_name = ensure_file_prefix(file_info.original_file)
+        wikitext = get_page_text(original_file_name, self.site)
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
@@ -405,7 +410,12 @@ class CropMainFilesWorker(BaseJobWorker):
             file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
             return False
 
-        update_result = update_file_text(file_info.original_file, updated_text, self.site)
+        update_result = update_page_text(
+            original_file_name,
+            updated_text,
+            self.site,
+            summary="Adding/updating {{Image extracted}}",
+        )
 
         if update_result["success"]:
             file_info.steps["update_original"] = {

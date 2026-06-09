@@ -44,7 +44,13 @@ from src.main_app.extensions import db as _db  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def stop_nets():
+def stop_nets(request):
+    # Check if 'network' mark is present in the current test item
+    if "network" in request.node.keywords:
+        # Do nothing and allow network access for this specific test
+        return
+
+    # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
 
 

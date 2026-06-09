@@ -7,7 +7,7 @@ from ..config import settings
 logger = logging.getLogger(__name__)
 
 
-def get_category_members_api(category, project, limit=500):
+def get_category_members_api(category, project, limit=None):
     """
     Fetch all pages belonging to a given category from a Wikimedia project.
 
@@ -28,9 +28,11 @@ def get_category_members_api(category, project, limit=500):
         "action": "query",
         "list": "categorymembers",
         "cmtitle": category,
-        "cmlimit": limit,
+        # "cmlimit": limit,
         "format": "json",
     }
+    if limit is not None:
+        params["cmlimit"] = limit
 
     pages = []
     try:
@@ -54,17 +56,6 @@ def get_category_members_api(category, project, limit=500):
     return pages
 
 
-def get_category_members(category="Category:Pages using gadget owidslider", project="commons.wikimedia.org", limit=500):
-    result = get_category_members_api(category, project, limit)
-
-    logger.info(f"Found {len(result)} pages in category {category}")
-
-    EXCLUDED_TEMPLATES = {"template:owidslider", "template:owid"}
-    result = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
-    return result
-
-
 __all__ = [
     "get_category_members_api",
-    "get_category_members",
 ]
