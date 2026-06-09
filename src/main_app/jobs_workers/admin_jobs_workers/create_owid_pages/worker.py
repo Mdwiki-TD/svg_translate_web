@@ -98,6 +98,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "note": "",
             "status": "pending",
             "errors": [],
             "args": {},
@@ -134,13 +135,20 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return self.result
 
         templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
+        len_all = len(templates)
+        self.result["summary"]["total"] = len_all
         self._save_progress()
 
         if not self.update_all:
             templates = self.filter_created(templates)
+            if not templates:
+                self.result["summary"]["skipped"] = len_all
+                self.result["status"] = "skipped"
+                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exists"
+                logger.warning(f"Job {self.job_id}: No templates to process")
+                return self.result
 
-        self.result["summary"]["total"] = len(templates)
+        # self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
 
         per_item = self.get_priority(len(templates))

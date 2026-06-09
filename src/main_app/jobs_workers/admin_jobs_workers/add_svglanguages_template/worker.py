@@ -92,6 +92,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "note": "",
             "status": "pending",
             "errors": [],
             "args": {},

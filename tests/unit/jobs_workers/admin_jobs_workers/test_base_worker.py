@@ -30,6 +30,7 @@ class ConcreteTestWorker(BaseJobWorker):
 
     def get_initial_result(self) -> Dict[str, Any]:
         return {
+            "note": "",
             "job_id": self.job_id,
             "started_at": datetime.now().isoformat(),
             "status": "pending",

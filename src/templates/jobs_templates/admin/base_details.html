@@ -122,6 +122,16 @@
                     {{ result_data.error }}
                 </div>
                 {% endif %}
+
+                {% if result_data.note %}
+                <div class="alert alert-warning" role="alert">
+                    <h5 class="alert-heading">Note!</h5>
+                    <div>
+                        {{ result_data.note }}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% if result_data.errors %}
                 {{ job_errors_div(result_data.errors) }}
                 {% endif %}

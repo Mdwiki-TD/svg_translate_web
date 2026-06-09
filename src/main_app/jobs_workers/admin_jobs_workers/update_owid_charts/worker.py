@@ -132,6 +132,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
 
     def get_initial_result(self) -> Dict[str, Any]:
         return {
+            "note": "",
             "status": "pending",
             "errors": [],
             "args": {},
