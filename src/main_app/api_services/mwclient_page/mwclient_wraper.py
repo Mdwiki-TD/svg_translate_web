@@ -146,6 +146,9 @@ class MwClientPage:
         return self.get_redirect_target() is not None
 
     def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+        if not text:
+            return {"success": False, "error": "missing text"}
+
         page = self.load_page()
 
         if not page:
@@ -172,6 +175,10 @@ class MwClientPage:
         no_redirect: bool = False,
     ) -> dict[str, Any]:
         """Move (rename) the page, with rate-limit retry handling."""
+        if not new_title:
+            logger.error("Missing new_title for move page")
+            return {"success": False, "error": "Missing new_title"}
+
         page = self.load_page()
 
         if not page:
