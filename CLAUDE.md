@@ -136,7 +136,7 @@ Jobs use the current user's OAuth session (via `get_user_site(user)`) for wiki o
 
 ### MediaWiki Page Operations (`api_services/pages_api.py`)
 
-All wiki page operations go through `MwClientPage` (`api_services/mwclient_page.py`) which handles:
+All wiki page operations go through `MwClientPage` (`api_services/mwclient_page/mwclient_wraper.py`) which handles:
 - Page loading, existence checks, redirect detection
 - Editing with rate-limit retry (5s, 15s, 30s delays)
 - Moving (renaming) with rate-limit retry

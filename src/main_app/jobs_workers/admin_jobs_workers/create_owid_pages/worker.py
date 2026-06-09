@@ -13,6 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import get_user_site
+from ....api_services.mwclient_page import MwClientPage
 from ....api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
@@ -236,9 +237,11 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Step 2 A) - check if new page already exists
         new_title = self.create_new_page_title(file_info)
 
-        page_exists = is_page_exists(new_title, self.site)
+        # page_exists = is_page_exists(new_title, self.site)
+        page = MwClientPage(new_title, self.site)
 
-        if page_exists:
+        if page.exists():
+            # if page_exists:
             # ----------------------------------
             # Step 3 - compare if text need to be updated
             upd_step = self._step_update(file_info, new_title)

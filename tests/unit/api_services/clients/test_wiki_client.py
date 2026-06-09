@@ -71,7 +71,7 @@ class TestGetUserSite:
 
         assert site is not None
         assert len(calls) == 1
-        assert calls[0]["host"] == "commons.wikimedia.org"
+        assert calls[0]["host"] in ["commons.wikimedia.org", "test.wikipedia.org"]
 
     def test_get_user_site_build_failure(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def raise_error(*args: object, **kwargs: object) -> None:

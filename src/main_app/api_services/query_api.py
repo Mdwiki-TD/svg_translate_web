@@ -46,8 +46,6 @@ def is_pages_exists(
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
 
-        group = [f"File:{file.removeprefix('File:')}" for file in group]
-
         json1 = site.get("query", titles="|".join(group))
 
         query_data = json1.get("query", {})
@@ -132,6 +130,54 @@ def search_pages(
     return titles
 
 
+def get_double_redirects(site: mwclient.Site) -> list[dict[str, str]]:
+    """
+    Return resolved double-redirect pairs ``[{"from", "to"}, ...]``.
+
+    site API return example: {
+        "batchcomplete": true,
+        "limits": { "querypage": 5000 },
+        "query": {
+            "redirects": [
+                { "from": "WPM:Wiki Project Med/Board", "to": "WikiProjectMed:Wiki Project Med/Board" },
+                { "from": "WikiProjectMed:Wiki Project Med/Board", "to": "WikiProjectMed:Board" }
+            ],
+            "pages": [{
+                "pageid": 4669,
+                "ns": 4,
+                "title": "WikiProjectMed:Board",
+                "redirects": [
+                    {
+                        "pageid": 4846,
+                        "ns": 4,
+                        "title": "WikiProjectMed:Wiki Project Med/Board"
+                    }
+                ]
+            }]
+        }
+    }
+    """
+    params = {
+        # "action": "query",
+        "format": "json",
+        "prop": "redirects",
+        "generator": "querypage",
+        "redirects": 1,
+        "utf8": 1,
+        "formatversion": "2",
+        "gqppage": "DoubleRedirects",
+        "gqplimit": "max",
+        # "gqpoffset": "",
+    }
+    data = site.get("query", **params)
+
+    if not data:
+        return []
+
+    query = data.get("query") or {}
+    return query.get("redirects") or []
+
+
 def get_page_links(
     title: str,
     site: mwclient.Site,
@@ -168,4 +214,5 @@ __all__ = [
     "is_pages_exists",
     "resolve_redirects",
     "search_pages",
+    "get_double_redirects",
 ]

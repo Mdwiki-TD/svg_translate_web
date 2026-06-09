@@ -8,7 +8,6 @@ from typing import Any
 import mwclient
 
 from ..utils.verify import verify_required_fields
-from ..utils.wikitext import ensure_file_prefix
 from .mwclient_page import MwClientPage
 
 logger = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ def is_redirect(page_title: str, site: mwclient.Site) -> bool:
     return MwClientPage(page_title, site).is_redirect()
 
 
-def _edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: int = 1) -> dict[str, Any]:
+def _edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
     return MwClientPage(title, site).edit_page(text, summary, nocreate=nocreate)
 
 
@@ -33,7 +32,7 @@ def edit_page(site: mwclient.Site, title: str, text: str, summary: str) -> dict[
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for edit_page: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
-    return _edit_page(site, title, text, summary, nocreate=1)
+    return _edit_page(site, title, text, summary, nocreate=True)
 
 
 def move_page(
@@ -125,7 +124,7 @@ def update_page_text(
         logger.error(f"Missing required fields for update_page_text: {list_str}")
         return {"success": False, "error": f"Missing required fields: {list_str}"}
 
-    return _edit_page(site, page_name, updated_text, summary, nocreate=1)
+    return _edit_page(site, page_name, updated_text, summary, nocreate=True)
 
 
 def get_page_text(
@@ -161,52 +160,6 @@ def get_page_text(
         return ""
 
 
-def update_file_text(
-    original_file: str,
-    updated_file_text: str,
-    site: mwclient.Site | None,
-) -> dict:
-    """
-    Update the wikitext of the original file.
-
-    Args:
-        original_file: The name of the original file on Commons.
-        updated_file_text: The new wikitext content.
-        site: Authenticated mwclient.Site object for Commons.
-
-    Returns:
-        A dictionary with 'success' (bool) and optionally 'error' (str) on failure.
-    """
-    missing_fields = verify_required_fields(
-        {
-            "original_file": original_file,
-            "updated_file_text": updated_file_text,
-            "site": site,
-        }
-    )
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for update_file_text: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    original_file = ensure_file_prefix(original_file)
-
-    summary = "Adding/updating {{Image extracted}}"
-
-    return _edit_page(site, original_file, updated_file_text, summary, nocreate=1)
-
-
-def get_file_text(
-    file_name: str,
-    site: mwclient.Site | None,
-) -> str:
-    """
-    Get the wikitext of a file on Wikimedia Commons.
-    """
-    file_name = ensure_file_prefix(file_name)
-    return get_page_text(file_name, site)
-
-
 __all__ = [
     "create_page",
     "get_page_text",
@@ -214,6 +167,4 @@ __all__ = [
     "is_redirect",
     "move_page",
     "update_page_text",
-    "update_file_text",
-    "get_file_text",
 ]

@@ -58,7 +58,7 @@ tests/
 │   │   ├── utils/
 │   │   │   └── test_download_file_utils.py
 │   │   ├── test_category.py
-│   │   ├── test_mwclient_page.py
+│   │   ├── test_mwclient_page/mwclient_wraper.py
 │   │   ├── test_mwclient_page2.py
 │   │   ├── test_pages_api.py
 │   │   ├── test_text_api.py

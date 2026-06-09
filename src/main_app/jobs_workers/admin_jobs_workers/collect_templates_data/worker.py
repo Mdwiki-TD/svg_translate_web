@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.category import get_category_members
+from ....api_services.category import get_category_members_api
 from ....api_services.clients import get_user_site
 from ....api_services.clients.owid_client import fetch_grapher_metadata
 from ....api_services.pages_api import get_page_text
@@ -157,7 +157,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         existing_titles = {t.title for t in templates}
 
         # Get templates from category
-        category_templates = get_category_members("Category:Pages using gadget owidslider")
+        category_templates = self._get_category_members()
+
         logger.info(f"Job {self.job_id}: Found {len(category_templates)} templates in category")
 
         if not category_templates:
@@ -198,6 +199,16 @@ class CollectMainFilesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _get_category_members(self) -> list:
+        category = "Category:Pages using gadget owidslider"
+        result = get_category_members_api(category, "commons.wikimedia.org")
+
+        logger.info(f"Found {len(result)} pages in category {category}")
+
+        EXCLUDED_TEMPLATES = {"template:owidslider", "template:owid"}
+        category_templates = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
+        return category_templates
 
     def _update_step(self, file_info: TemplateInfo, step: str, **kwargs) -> None:
         for k, v in kwargs.items():

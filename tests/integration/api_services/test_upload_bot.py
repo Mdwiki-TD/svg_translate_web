@@ -7,9 +7,14 @@ import pytest
 from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 
 
-@pytest.fixture
-def mock_site() -> MagicMock:
-    return MagicMock()
+@pytest.fixture(autouse=True)
+def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.api_services.upload_bot.time.sleep",
+        _mock,
+    )
+    return _mock
 
 
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
@@ -60,33 +65,29 @@ class TestUpload:
                 make_upload_response(),
             ]
         )
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = u.upload()
+        result = u.upload()
         assert result["result"] == "Success"
 
     def test_rate_limited_exhausts_all_retries(self, mock_site, tmp_file):
         u = self._make_uploader(mock_site, tmp_file)
         u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = u.upload()
+        result = u.upload()
         assert result["error"] == "ratelimited"
         # 1 initial attempt + len(_RETRY_DELAYS) retries
         assert u._upload_file.call_count == 1 + len(_RETRY_DELAYS)
 
-    def test_rate_limited_sleeps_correct_delays(self, mock_site, tmp_file):
+    def test_rate_limited_sleeps_correct_delays(self, mock_site, tmp_file, mock_sleep):
         u = self._make_uploader(mock_site, tmp_file)
         u._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep") as mock_sleep:
-            u.upload()
+        u.upload()
         sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
         assert sleep_calls == list(_RETRY_DELAYS)
 
-    def test_non_ratelimited_error_no_retry(self, mock_site, tmp_file):
+    def test_non_ratelimited_error_no_retry(self, mock_site, tmp_file, mock_sleep):
         """Errors other than ratelimited should not trigger retry."""
         u = self._make_uploader(mock_site, tmp_file)
         u._upload_file = MagicMock(return_value=_err("userblocked", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep") as mock_sleep:
-            result = u.upload()
+        result = u.upload()
         assert result["error"] == "userblocked"
         mock_sleep.assert_not_called()
         assert u._upload_file.call_count == 1

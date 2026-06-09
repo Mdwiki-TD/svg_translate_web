@@ -26,6 +26,7 @@ os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-
 os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
 os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
 os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
+os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
 # ── Now safe to import third-party and src packages ──────────────────────────
 
@@ -38,21 +39,19 @@ if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
 
 # Import after environment setup
 from src.main_app import create_app  # noqa: E402
-from src.main_app.api_services.mwclient_page import MwClientPage  # noqa: E402
 from src.main_app.config import TestingConfig  # noqa: E402
 from src.main_app.extensions import db as _db  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def disable_network(mocker):
-    """Disable all network requests during testing"""
-    mocker.patch("requests.get", side_effect=Exception("Network disabled in tests"))
-    mocker.patch("requests.post", side_effect=Exception("Network disabled in tests"))
-    mocker.patch("urllib.request.urlopen", side_effect=Exception("Network disabled in tests"))
+def stop_nets(request):
+    # Check if 'network' mark is present in the current test item
+    if "network" in request.node.keywords:
+        from pytest_socket import enable_socket
 
-
-@pytest.fixture(autouse=True)
-def stop_nets():
+        enable_socket()
+        return
+    # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
 
 
@@ -220,15 +219,22 @@ def mock_site() -> MagicMock:
 
 
 @pytest.fixture
-def mock_exists_page() -> MagicMock:
-    page = MagicMock()
-    page.exists = True
-    return page
+def mock_page() -> MagicMock:
+    return MagicMock()
 
 
 @pytest.fixture
-def mw_client(mock_site: MagicMock) -> MwClientPage:
-    return MwClientPage("Test Page", mock_site)
+def mock_site_pages(mock_site, mock_page):
+    def _factory(page_exists: bool) -> MagicMock:
+        mock_page.exists = page_exists
+
+        mock_pages = MagicMock()
+        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
+
+        mock_site.pages = mock_pages
+        return mock_site
+
+    return _factory
 
 
 @pytest.fixture(autouse=True)
