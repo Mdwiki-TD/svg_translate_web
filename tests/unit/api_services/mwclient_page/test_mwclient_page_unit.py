@@ -151,11 +151,12 @@ class TestGetRedirectTarget:
     def test_returns_target_for_redirect_page(self):
         wrapper, mock_page = _mwclient_page()
         target = MagicMock(name="redirect_target")
+        target.name = "Redirect Target Title"
         mock_page.redirects_to.return_value = target
 
         result = wrapper.get_redirect_target()
 
-        assert result is target
+        assert result == "Redirect Target Title"
 
     def test_returns_none_for_non_redirect(self):
         wrapper, mock_page = _mwclient_page()

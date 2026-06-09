@@ -14,7 +14,7 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
+from ....api_services.pages_api import create_page, get_page_text, update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
@@ -317,6 +317,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
         info._new_text = sort_categories(info._new_text)
+
+        # sort current_text categories to compare with new text
+        current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
             self._skip_step(info, "update_text", "Skipped - page content is already identical")

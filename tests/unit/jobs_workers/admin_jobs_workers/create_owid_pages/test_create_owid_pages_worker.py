@@ -541,7 +541,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
 
-        assert result["status"] == "completed"
+        assert result["status"] == "skipped"
         assert result["summary"]["total"] == 0
         assert result["summary"]["processed"] == 0
 
