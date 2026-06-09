@@ -91,7 +91,7 @@ class MwClientPage:
             return result
 
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). " f"Retrying in {delay}s...")
+            logger.warning(f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). Retrying in {delay}s...")
             time.sleep(delay)
             result = operation(*args, **kwargs)
             if result.get("error") != "ratelimited":
@@ -134,19 +134,25 @@ class MwClientPage:
         logger.info(f"Page '{self.title}' exists")
         return True
 
-    def is_redirect(self) -> bool:
-        """Check if the page is a redirect using page.redirects_to()."""
+    def get_redirect_target(self) -> str | None:
+        """ """
         page = self.load_page()
 
         if not page or not page.exists:
-            return False
+            return None
 
         try:
             target = page.redirects_to()
-            return target is not None
+            if target is None:
+                raise Exception("Page is not a redirect")
+            return target
         except Exception as exc:
-            logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
-            return False
+            logger.debug(f"Could not get redirect of '{self.title}': {exc}")
+            return None
+
+    def is_redirect(self) -> bool:
+        """Check if the page is a redirect using page.redirects_to()."""
+        return self.get_redirect_target() is not None
 
     def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
         page = self.load_page()
