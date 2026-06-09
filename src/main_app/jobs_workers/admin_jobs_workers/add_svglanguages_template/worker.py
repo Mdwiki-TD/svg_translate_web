@@ -13,7 +13,7 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import get_user_site
-from ....api_services.pages_api import get_page_text, update_page_text
+from ....api_services.mwclient_page import MwClientPage
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker import BaseJobWorker
@@ -142,8 +142,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             template_title=template.title,
         )
 
+        page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
-        if not self._step_load_template_text(file_info):
+        if not self._step_load_template_text(file_info, page):
             self._append(file_info, key="pages_failed")
             return False
 
@@ -166,7 +167,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             return False
 
         # Step 4 save_new_text
-        if not self._step_save_new_text(file_info):
+        if not self._step_save_new_text(file_info, page):
             self._append(file_info, key="pages_failed")
             return False
 
@@ -180,9 +181,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_load_template_text(self, info: TemplateInfo) -> bool:
+    def _step_load_template_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
         """Download the original Template wikitext. Returns True on success."""
-        text = get_page_text(info.template_title, self.site)
+        text = page.get_text()
         if not text:
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
@@ -217,13 +218,12 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         info.steps["add_template_text"] = {"result": True, "msg": "Wikitext updated"}
         return True
 
-    def _step_save_new_text(self, info: TemplateInfo) -> bool:
+    def _step_save_new_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
-        update_result = update_page_text(
-            info.template_title,
+
+        update_result = page.edit(
             info._new_text,
-            self.site,
             summary=f"Adding {info._template_text}",
         )
 

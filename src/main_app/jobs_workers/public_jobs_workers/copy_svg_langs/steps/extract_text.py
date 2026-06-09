@@ -7,7 +7,7 @@ from typing import Any
 
 import mwclient
 
-from .....api_services.pages_api import get_page_text
+from .....api_services.mwclient_page import MwClientPage
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def extract_text_step(title: str, site: mwclient.Site | None = None) -> dict[str
         logger.error("No title found")
         return {"success": False, "text": "", "error": "No title found"}
 
-    text = get_page_text(title, site)
+    text = MwClientPage(title, site).get_text()
 
     if not text:
         logger.error(f"No wikitext found for title: {title}")

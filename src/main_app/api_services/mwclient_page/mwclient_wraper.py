@@ -101,13 +101,26 @@ class MwClientPage:
         if not page:
             logger.warning(f"Failed to load page '{self.title}'")
             return False
-
-        if not page.exists:
-            logger.warning(f"Page '{self.title}' does not exist")
+        try:
+            if not page.exists:
+                logger.warning(f"Page '{self.title}' does not exist")
+                return False
+        except Exception as exc:
+            logger.debug(f"Could not check if page '{self.title}' exists: {exc}")
             return False
 
         logger.info(f"Page '{self.title}' exists")
         return True
+
+    def get_text(self) -> str:
+        if not self.exists():
+            return ""
+
+        try:
+            return self.page.text()
+        except Exception as exc:
+            logger.exception(f"Failed to retrieve wikitext for {self.title}", exc_info=exc)
+        return ""
 
     def get_redirect_target(self) -> str | None:
         """Get the redirect target page name if the page is a redirect."""
@@ -128,6 +141,9 @@ class MwClientPage:
         return self.get_redirect_target() is not None
 
     def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+        if not text:
+            return {"success": False, "error": "missing text"}
+
         page = self.load_page()
 
         if not page:
@@ -154,6 +170,10 @@ class MwClientPage:
         no_redirect: bool = False,
     ) -> dict[str, Any]:
         """Move (rename) the page, with rate-limit retry handling."""
+        if not new_title:
+            logger.error("Missing new_title for move page")
+            return {"success": False, "error": "Missing new_title"}
+
         page = self.load_page()
 
         if not page:

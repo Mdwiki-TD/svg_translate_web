@@ -14,11 +14,7 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import create_commons_session, get_user_site
-from ....api_services.pages_api import (
-    get_page_text,
-    is_page_exists,
-    update_page_text,
-)
+from ....api_services.mwclient_page import MwClientPage
 from ....api_services.query_api import is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
@@ -298,7 +294,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _check_file_exists(self, cropped_filename):
         file_exists = self.exists.get(cropped_filename.removeprefix("File:"))
         if file_exists is None:
-            file_exists = is_page_exists(cropped_filename, self.site)
+            file_exists = MwClientPage(cropped_filename, self.site).exists()
         return file_exists
 
     def update_file_references(self, file_info: TemplateProcessingInfo) -> bool:
@@ -363,7 +359,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_upload(self, file_info: TemplateProcessingInfo) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = get_page_text(file_name, self.site)
+        wikitext = MwClientPage(file_name, self.site).get_text()
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
 
         upload_result = upload_cropped_file(
@@ -403,7 +399,9 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
         original_file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = get_page_text(original_file_name, self.site)
+        original_page = MwClientPage(original_file_name, self.site)
+
+        wikitext = original_page.get_text()
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
@@ -411,10 +409,8 @@ class CropMainFilesWorker(BaseJobWorker):
             file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
             return False
 
-        update_result = update_page_text(
-            original_file_name,
+        update_result = original_page.edit(
             updated_text,
-            self.site,
             summary="Adding/updating {{Image extracted}}",
         )
 
@@ -438,7 +434,8 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_template(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
-        template_text = get_page_text(template_title, self.site)
+        template_page = MwClientPage(template_title, self.site)
+        template_text = template_page.get_text()
 
         updated_text = update_template_page_file_reference(
             file_info.original_file,
@@ -452,7 +449,7 @@ class CropMainFilesWorker(BaseJobWorker):
             return False
 
         summary = f"Update file reference to [[File:{file_info.cropped_filename.removeprefix('File:')}]]"
-        update_result = update_page_text(template_title, updated_text, self.site, summary=summary)
+        update_result = template_page.edit(updated_text, summary)
 
         if update_result["success"]:
             file_info.steps["update_template"] = {

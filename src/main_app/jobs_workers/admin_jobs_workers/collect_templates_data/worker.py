@@ -16,7 +16,7 @@ import mwclient
 from ....api_services.category import get_category_members_api
 from ....api_services.clients import get_user_site
 from ....api_services.clients.owid_client import fetch_grapher_metadata
-from ....api_services.pages_api import get_page_text
+from ....api_services.mwclient_page import MwClientPage
 from ....db.models import TemplateRecord
 from ....db.services import (
     add_template_data,
@@ -252,7 +252,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
         # Fetch wikitext from Commons
-        wikitext = get_page_text(template.title, site=self.site)
+        wikitext = MwClientPage(template.title, self.site).get_text()
 
         if not wikitext:
             template_info.status = "failed"

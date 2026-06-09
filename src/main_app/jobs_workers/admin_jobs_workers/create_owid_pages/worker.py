@@ -14,7 +14,6 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import create_page, get_page_text, update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
@@ -245,11 +244,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Step 2 A) - check if new page already exists
         new_title = self.create_new_page_title(file_info)
 
-        # page_exists = is_page_exists(new_title, self.site)
         page = MwClientPage(new_title, self.site)
 
         if page.exists():
-            # if page_exists:
             # ----------------------------------
             # Step 3 - compare if text need to be updated
             upd_step = self._step_update(file_info, new_title)
@@ -282,7 +279,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
     def _step_load_template_text(self, info: TemplateProcessingInfo) -> bool:
         """Download the original Template wikitext. Returns True on success."""
-        text = get_page_text(info.template_title, self.site)
+        text = MwClientPage(info.template_title, self.site).get_text()
         if not text:
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
@@ -309,7 +306,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         Returns True to continue to Step 4 (Creation) if page does not exist.
         """
         # Page exists, check if update is needed
-        current_text = get_page_text(new_title, self.site)
+        new_title_page = MwClientPage(new_title, self.site)
+
+        current_text = new_title_page.get_text()
         if not current_text:
             self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
             return False
@@ -329,11 +328,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return None  # nothing to update
 
         # Content is different, perform update
-        res = update_page_text(
-            page_name=new_title,
-            updated_text=info._new_text,
-            site=self.site,
-            summary=f"Updating OWID page from [[{info.template_title}]]",
+        res = new_title_page.edit(
+            info._new_text,
+            f"Updating OWID page from [[{info.template_title}]]",
         )
 
         if res["success"]:
@@ -356,10 +353,10 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # Expected pattern: Template:OWID/... -> OWID/...
         new_title = self.create_new_page_title(info)
 
-        res = create_page(
-            new_title,
+        new_title_page = MwClientPage(new_title, self.site)
+
+        res = new_title_page.create(
             info._new_text,
-            self.site,
             summary=f"Creating OWID page from [[{info.template_title}]]",
         )
 
