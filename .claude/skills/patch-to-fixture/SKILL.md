@@ -1,22 +1,20 @@
 ---
 name: patch-to-fixture
 description: >
-    Refactor pytest test boilerplate into reusable fixtures. Covers two patterns:
-    (1) repeated @patch decorators → pytest.fixture with monkeypatch.setattr,
-    (2) repeated in-body mock setup blocks (e.g. MagicMock objects built the same way in every test) → parametrized or factory fixtures.
-    Use this skill whenever the user wants to clean up pytest tests, reduce repeated mock setup, mentions "pytest fixture",
-    "monkeypatch", "patch decorator", or points out boilerplate in test files. Trigger even if only 2 occurrences exist.
+  Refactor pytest test boilerplate into reusable fixtures. Covers two patterns:
+  (1) repeated @patch decorators → pytest.fixture with monkeypatch.setattr,
+  (2) repeated in-body mock setup blocks (e.g. MagicMock objects built the same way in every test) → parametrized or factory fixtures.
+  Use this skill whenever the user wants to clean up pytest tests, reduce repeated mock setup, mentions "pytest fixture",
+  "monkeypatch", "patch decorator", or points out boilerplate in test files. Trigger even if only 2 occurrences exist.
 ---
 
 # Skill: Reduce pytest Boilerplate with Fixtures
 
 ## Goal
+Two distinct patterns both warrant extraction into fixtures:
 
-Three distinct patterns warrant extraction into fixtures:
-
-1. **Repeated `@patch` decorators** — replace with a fixture using `monkeypatch.setattr`.
-2. **Repeated in-body mock setup** — replace with a factory or fixed fixture.
-3. **Grouped Service Mocks (Bundle)** — replace multiple related mocks with a single "service bundle" fixture.
+1. **Repeated `@patch` decorators** — replace with a fixture using `monkeypatch.setattr`
+2. **Repeated in-body mock setup** — replace with a fixture (optionally parametrized or factory-based)
 
 ---
 
@@ -25,7 +23,6 @@ Three distinct patterns warrant extraction into fixtures:
 ### Steps
 
 #### 1. Analyze the File
-
 Find `@patch("some.module.path")` applied to multiple test functions where **the same path appears ≥ 2 times**.
 
 #### 2. Write the Fixture
@@ -49,7 +46,6 @@ Example: `src.app.utils.download_core` → `mock_download_core`
 Remove the `@patch(...)` decorator and its corresponding positional argument (right after `self`). Keep the body unchanged.
 
 #### 4. Update Imports
-
 Add `import pytest` and `from unittest.mock import MagicMock`. Remove `from unittest.mock import patch` if no longer used.
 
 ### Subvariant: Patching a Class (with instance)
@@ -69,11 +65,10 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 Tests access the instance via `mock_worker_class.return_value` — no per-test setup needed.
 
 ### Notes
-
--   **Stacked `@patch`:** injection order is **reversed** (bottom decorator → first param after `self`).
--   **Single-use patches:** convert or leave based on user preference.
--   **Placement:** module level (after imports) or `conftest.py` for cross-file sharing.
--   **Never touch** unrelated fixtures like `temp_output_dir`, `tmp_path`, etc.
+- **Stacked `@patch`:** injection order is **reversed** (bottom decorator → first param after `self`).
+- **Single-use patches:** convert or leave based on user preference.
+- **Placement:** module level (after imports) or `conftest.py` for cross-file sharing.
+- **Never touch** unrelated fixtures like `temp_output_dir`, `tmp_path`, etc.
 
 ---
 
@@ -134,138 +129,115 @@ def mock_site() -> MagicMock:
 ```
 
 ### Choosing between A and B
-
-| Situation                                                                                        | Use             |
-| ------------------------------------------------------------------------------------------------ | --------------- |
+| Situation | Use |
+|---|---|
 | The varying value is meaningful to the test (e.g. `exists=True` vs `False` drives the assertion) | **Factory (A)** |
-| All tests use the same default and override only what they need                                  | **Fixed (B)**   |
-| No variation at all                                                                              | **Fixed (B)**   |
+| All tests use the same default and override only what they need | **Fixed (B)** |
+| No variation at all | **Fixed (B)** |
 
 ### Notes
-
--   The factory fixture name uses `make_` prefix: `make_mock_site`, `make_mock_page`, etc.
--   Keep the factory signature explicit with typed parameters (`page_exists: bool`).
--   Tests that set additional attributes after calling the factory (e.g. `mock_site.extra = ...`) are fine — the factory gives a starting point.
+- The factory fixture name uses `make_` prefix: `make_mock_site`, `make_mock_page`, etc.
+- Keep the factory signature explicit with typed parameters (`page_exists: bool`).
+- Tests that set additional attributes after calling the factory (e.g. `mock_site.extra = ...`) are fine — the factory gives a starting point.
 
 ---
 
-## Pattern 3: Grouped Service Mocks (The "Bundle" Pattern)
+## Pattern 3: Many Fixtures → One `dataclass` Fixture
 
 ### When to apply
 
-Use this when a test file has many individual fixtures for different functions within the same module, or when a test needs 5+ mocks to run. Instead of injecting 10 different mocks into every test, bundle them into one.
+Two sub-cases, same solution:
 
-### Steps
-
-#### 1. Define the Bundle Fixture
-
-Return a dictionary containing all the mocks.
+**Sub-case A — Many individual fixtures with identical structure:**
+When the file defines 5+ separate fixtures that all follow the same `monkeypatch.setattr` shape:
 
 ```python
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
-    """Mock the services used by fix_nested_main_files_worker."""
+def mock_save_job_result(monkeypatch): ...
 
-    # Mock template_service
-    mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
-    )
+@pytest.fixture
+def mock_is_job_cancelled(monkeypatch): ...
 
-    # Mock jobs_service (now accessed via base_worker)
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
+@pytest.fixture
+def mock_download_svg_file(monkeypatch): ...
 
-    mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mock_save_job_result,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mock_generate_result_file_name,
-    )
-
-    return {
-        "list_templates": mock_list_templates,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "generate_result_file_name": mock_generate_result_file_name,
-    }
-
+@pytest.fixture
+def mock_detect_nested_tags(monkeypatch): ...
+# ... and so on
 ```
 
-#### 2. Update Test Methods
+Each test then lists all of them as parameters: `def test_x(self, mock_save_job_result, mock_is_job_cancelled, mock_download_svg_file, ...)` — long, repetitive signatures.
 
-Access individual mocks via the dictionary key.
+**Sub-case B — One fixture returning a `dict` of mocks:**
+```python
+return {
+    "create_page": mock_create_page,
+    "update_page_text": mock_update_page_text,
+    ...  # 5+ keys
+}
+```
+Accessing via `mock_services["create_page"]` has no autocomplete and is prone to silent key typos.
+
+**The fix for both:** merge everything into **one fixture** that returns a typed `@dataclass`.
+
+### How to apply
+
+#### 1. Define a dataclass next to the fixture
 
 ```python
-def test_worker_flow(self, mock_services):
-    mock_services["list_templates"].return_value = ["Template1", "Template2"]
-    # Run code...
-    mock_services["generate_result_file_name"].assert_called_once()
+from dataclasses import dataclass
 
+@dataclass
+class MockServices:
+    create_page: MagicMock
+    update_page_text: MagicMock
+    list_templates: MagicMock
+    get_user_site: MagicMock
+    # ... one field per mock
 ```
+
+**Naming convention:** `Mock<WorkerOrContextName>` (e.g. `MockServices`, `MockWorkerDeps`, `MockSiteServices`)
+
+#### 2. Change the fixture return type and return statement
+
+```python
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
+    # ... all monkeypatch.setattr calls unchanged ...
+
+    return MockServices(
+        create_page=mock_create_page,
+        update_page_text=mock_update_page_text,
+        list_templates=mock_list_templates,
+        get_user_site=mock_get_user_site,
+        # ...
+    )
+```
+
+#### 3. Update tests to use attribute access
+
+```python
+# Before
+def test_something(self, mock_services):
+    mock_services["create_page"].assert_called_once()
+
+# After
+def test_something(self, mock_services: MockServices):
+    mock_services.create_page.assert_called_once()
+```
+
+### Threshold: when to apply
+| Number of mocks in the dict | Recommendation |
+|---|---|
+| ≤ 4 | Dict is fine, skip this pattern |
+| 5–7 | Consider dataclass |
+| 8+ | Always use dataclass |
 
 ### Notes
-
-* **Naming:** Use a plural or collective name like `mock_services`, `mock_worker_env`, or `mock_api_bundle`.
-* **Mixing:** You can still use `monkeypatch` inside the bundle fixture to handle complex side effects or predefined return values.
-* **English Comments:** All comments inside the code must be in English.
-
----
-
-## Complete Example: Grouping Multiple Patches
-
-**Original (Too many fixtures):**
-
-```python
-@pytest.fixture
-def mock_download(monkeypatch):
-    m = MagicMock()
-    monkeypatch.setattr("worker.download_file", m)
-    return m
-
-@pytest.fixture
-def mock_upload(monkeypatch):
-    m = MagicMock()
-    monkeypatch.setattr("worker.upload_file", m)
-    return m
-
-def test_process(self, mock_download, mock_upload):
-    # Test logic
-    pass
-
-```
-
-**Result (Bundled):**
-
-```python
-@pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch) -> dict:
-    """Bundle all worker-related mocks into a single fixture."""
-    mocks = {
-        "download": MagicMock(),
-        "upload": MagicMock(),
-        "save_result": MagicMock()
-    }
-
-    # Apply all patches using monkeypatch
-    monkeypatch.setattr("worker.download_file", mocks["download"])
-    monkeypatch.setattr("worker.upload_file", mocks["upload"])
-    monkeypatch.setattr("worker.save_job_result", mocks["save_result"])
-
-    return mocks
-
-def test_process(self, mock_services):
-    # Access via dictionary
-    mock_services["download"].return_value = "data"
-    # Run logic...
-    assert mock_services["upload"].called
-
-```
+- Place the `@dataclass` class **just above** the fixture that uses it, not at the top of the file.
+- Add the type annotation to every test parameter that receives this fixture: `mock_services: MockServices` — this is what enables IDE autocomplete.
+- `dataclass` is preferred over `NamedTuple` here because fields may need to be reassigned in tests (`mock_services.create_page.return_value = ...` already works; no mutation of the dataclass itself is needed).
+- Do **not** add `frozen=True` — tests may do `mock_services.some_mock.return_value = x` which mutates the mock, not the dataclass.
 
 ---
 
@@ -274,7 +246,6 @@ def test_process(self, mock_services):
 ### Example 1 — Patching a function (`@patch` → fixture)
 
 **Original:**
-
 ```python
 from unittest.mock import patch
 
@@ -294,7 +265,6 @@ class TestDownloadCommonsSvgs:
 ```
 
 **Result:**
-
 ```python
 import pytest
 from unittest.mock import MagicMock
@@ -328,7 +298,6 @@ class TestDownloadCommonsSvgs:
 ### Example 2 — Patching a class (with instance)
 
 **Original:**
-
 ```python
 class TestAddSvgLanguages:
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
@@ -353,7 +322,6 @@ class TestAddSvgLanguages:
 ```
 
 **Result:**
-
 ```python
 @pytest.fixture
 def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -388,7 +356,6 @@ class TestAddSvgLanguages:
 ### Example 3 — Repeated in-body setup (factory fixture)
 
 **Original:**
-
 ```python
 class TestIsPageExists:
     def test_page_exists_returns_true(self) -> None:
@@ -428,7 +395,6 @@ class TestCreatePage:
 ```
 
 **Result:**
-
 ```python
 import pytest
 from unittest.mock import MagicMock
@@ -473,7 +439,232 @@ class TestCreatePage:
 ```
 
 Key changes:
+- 5-line setup block removed from every test
+- `page_exists` is now explicit in the call — makes test intent immediately clear
+- The fixture is shared across `TestIsPageExists` **and** `TestCreatePage` since both needed the same object
 
--   5-line setup block removed from every test
--   `page_exists` is now explicit in the call — makes test intent immediately clear
--   The fixture is shared across `TestIsPageExists` **and** `TestCreatePage` since both needed the same object
+---
+
+### Example 4 — Large fixture dict → dataclass
+
+**Original:**
+```python
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+    mock_create_page = MagicMock()
+    monkeypatch.setattr("...worker.create_page", mock_create_page)
+
+    mock_update_page_text = MagicMock()
+    monkeypatch.setattr("...worker.update_page_text", mock_update_page_text)
+
+    mock_list_templates = MagicMock()
+    monkeypatch.setattr("...worker.list_templates", mock_list_templates)
+
+    mock_get_user_site = MagicMock()
+    monkeypatch.setattr("...worker.get_user_site", mock_get_user_site)
+
+    mock_is_pages_exists = MagicMock(return_value={})
+    monkeypatch.setattr("...worker.is_pages_exists", mock_is_pages_exists)
+
+    return {
+        "create_page": mock_create_page,
+        "update_page_text": mock_update_page_text,
+        "list_templates": mock_list_templates,
+        "get_user_site": mock_get_user_site,
+        "is_pages_exists": mock_is_pages_exists,
+    }
+
+
+class TestCreateOwidPages:
+    def test_creates_new_page(self, mock_services):
+        mock_services["list_templates"].return_value = [...]
+        mock_services["is_pages_exists"].return_value = {}
+        ...
+        mock_services["create_page"].assert_called_once()
+```
+
+**Result:**
+```python
+from dataclasses import dataclass
+
+
+@dataclass
+class MockServices:
+    create_page: MagicMock
+    update_page_text: MagicMock
+    list_templates: MagicMock
+    get_user_site: MagicMock
+    is_pages_exists: MagicMock
+
+
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service) -> MockServices:
+    mock_create_page = MagicMock()
+    monkeypatch.setattr("...worker.create_page", mock_create_page)
+
+    mock_update_page_text = MagicMock()
+    monkeypatch.setattr("...worker.update_page_text", mock_update_page_text)
+
+    mock_list_templates = MagicMock()
+    monkeypatch.setattr("...worker.list_templates", mock_list_templates)
+
+    mock_get_user_site = MagicMock()
+    monkeypatch.setattr("...worker.get_user_site", mock_get_user_site)
+
+    mock_is_pages_exists = MagicMock(return_value={})
+    monkeypatch.setattr("...worker.is_pages_exists", mock_is_pages_exists)
+
+    return MockServices(
+        create_page=mock_create_page,
+        update_page_text=mock_update_page_text,
+        list_templates=mock_list_templates,
+        get_user_site=mock_get_user_site,
+        is_pages_exists=mock_is_pages_exists,
+    )
+
+
+class TestCreateOwidPages:
+    def test_creates_new_page(self, mock_services: MockServices):
+        mock_services.list_templates.return_value = [...]
+        mock_services.is_pages_exists.return_value = {}
+        ...
+        mock_services.create_page.assert_called_once()
+```
+
+Key changes:
+- `dict` access `mock_services["key"]` → attribute access `mock_services.key`
+- Type annotation on test parameter enables IDE autocomplete
+- `@dataclass` defined just above the fixture
+
+---
+
+### Example 5 — Many individual fixtures → one dataclass fixture (Sub-case A)
+
+**Original:**
+```python
+@pytest.fixture
+def mock_save_job_result(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_is_job_cancelled(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_download_svg_file(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_detect_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_fix_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_verify_fix(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.verify_fix", _mock)
+    return _mock
+
+@pytest.fixture
+def mock_upload_fixed_svg(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg", _mock)
+    return _mock
+
+
+class TestFixNestedJobs:
+    def test_something(
+        self,
+        mock_save_job_result,
+        mock_is_job_cancelled,
+        mock_download_svg_file,
+        mock_detect_nested_tags,
+        mock_fix_nested_tags,
+        mock_verify_fix,
+        mock_upload_fixed_svg,
+    ):
+        mock_download_svg_file.return_value = b"<svg/>"
+        mock_detect_nested_tags.return_value = True
+        ...
+        mock_upload_fixed_svg.assert_called_once()
+```
+
+**Result:**
+```python
+from dataclasses import dataclass
+
+
+@dataclass
+class MockFixNestedJobsDeps:
+    save_job_result: MagicMock
+    is_job_cancelled: MagicMock
+    download_svg_file: MagicMock
+    detect_nested_tags: MagicMock
+    fix_nested_tags: MagicMock
+    verify_fix: MagicMock
+    upload_fixed_svg: MagicMock
+
+
+@pytest.fixture
+def mock_deps(monkeypatch: pytest.MonkeyPatch) -> MockFixNestedJobsDeps:
+    _base = "src.main_app.jobs_workers.base_worker"
+    _worker = "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker"
+
+    mock_save_job_result = MagicMock()
+    monkeypatch.setattr(f"{_base}.save_job_result_by_name", mock_save_job_result)
+
+    mock_is_job_cancelled = MagicMock()
+    monkeypatch.setattr(f"{_base}.is_job_cancelled", mock_is_job_cancelled)
+
+    mock_download_svg_file = MagicMock()
+    monkeypatch.setattr(f"{_worker}.download_svg_file", mock_download_svg_file)
+
+    mock_detect_nested_tags = MagicMock()
+    monkeypatch.setattr(f"{_worker}.detect_nested_tags", mock_detect_nested_tags)
+
+    mock_fix_nested_tags = MagicMock()
+    monkeypatch.setattr(f"{_worker}.fix_nested_tags", mock_fix_nested_tags)
+
+    mock_verify_fix = MagicMock()
+    monkeypatch.setattr(f"{_worker}.verify_fix", mock_verify_fix)
+
+    mock_upload_fixed_svg = MagicMock()
+    monkeypatch.setattr(f"{_worker}.upload_fixed_svg", mock_upload_fixed_svg)
+
+    return MockFixNestedJobsDeps(
+        save_job_result=mock_save_job_result,
+        is_job_cancelled=mock_is_job_cancelled,
+        download_svg_file=mock_download_svg_file,
+        detect_nested_tags=mock_detect_nested_tags,
+        fix_nested_tags=mock_fix_nested_tags,
+        verify_fix=mock_verify_fix,
+        upload_fixed_svg=mock_upload_fixed_svg,
+    )
+
+
+class TestFixNestedJobs:
+    def test_something(self, mock_deps: MockFixNestedJobsDeps):
+        mock_deps.download_svg_file.return_value = b"<svg/>"
+        mock_deps.detect_nested_tags.return_value = True
+        ...
+        mock_deps.upload_fixed_svg.assert_called_once()
+```
+
+Key changes:
+- 7 separate fixtures → 1 fixture with 1 dataclass
+- Test signature: 7 parameters → 1 parameter (`mock_deps: MockFixNestedJobsDeps`)
+- Path prefixes extracted into local variables (`_base`, `_worker`) to reduce repetition
+- Full IDE autocomplete on `mock_deps.<TAB>`
