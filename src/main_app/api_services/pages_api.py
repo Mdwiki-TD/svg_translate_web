@@ -13,14 +13,6 @@ from .mwclient_page import MwClientPage
 logger = logging.getLogger(__name__)
 
 
-def is_page_exists(page_title: str, site: mwclient.Site) -> bool:
-    return MwClientPage(page_title, site).check_exists()
-
-
-def is_redirect(page_title: str, site: mwclient.Site) -> bool:
-    return MwClientPage(page_title, site).is_redirect()
-
-
 def _edit_page(site: mwclient.Site, title: str, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
     return MwClientPage(title, site).edit_page(text, summary, nocreate=nocreate)
 
@@ -151,18 +143,10 @@ def get_page_text(
         list_str = ", ".join(missing_fields)
         logger.error(f"Missing required fields for get_page_text: {list_str}")
         return ""
-
-    try:
-        page = site.pages[page_title]
-        return page.text()
-    except Exception as exc:
-        logger.exception(f"Failed to retrieve wikitext for {page_title}", exc_info=exc)
-        return ""
+    return MwClientPage(page_title, site).get_text()
 
 
 __all__ = [
-    "is_page_exists",
-    "is_redirect",
     "create_page",
     "get_page_text",
     "move_page",

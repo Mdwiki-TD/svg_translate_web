@@ -14,9 +14,9 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import create_commons_session, get_user_site
+from ....api_services.mwclient_page import MwClientPage
 from ....api_services.pages_api import (
     get_page_text,
-    is_page_exists,
     update_page_text,
 )
 from ....api_services.query_api import is_pages_exists
@@ -298,7 +298,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _check_file_exists(self, cropped_filename):
         file_exists = self.exists.get(cropped_filename.removeprefix("File:"))
         if file_exists is None:
-            file_exists = is_page_exists(cropped_filename, self.site)
+            file_exists = MwClientPage(cropped_filename, self.site).exists()
         return file_exists
 
     def update_file_references(self, file_info: TemplateProcessingInfo) -> bool:

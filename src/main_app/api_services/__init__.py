@@ -7,8 +7,6 @@ from .mwclient_page import MwClientPage
 from .pages_api import (
     create_page,
     get_page_text,
-    is_page_exists,
-    is_redirect,
     move_page,
     update_page_text,
 )
@@ -30,8 +28,6 @@ __all__ = [
     "search_pages",
     "create_page",
     "get_page_text",
-    "is_page_exists",
-    "is_redirect",
     "move_page",
     "update_page_text",
     "get_category_members_api",

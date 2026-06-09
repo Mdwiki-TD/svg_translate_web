@@ -9,18 +9,12 @@ import pytest
 from src.main_app.api_services.pages_api import (
     create_page,
     get_page_text,
-    is_page_exists,
-    is_redirect,
     move_page,
     update_page_text,
 )
 from tests.network.network_conftest import TestNetwork
 
 pytestmark = pytest.mark.network
-
-
-class TestIsPageExistsNetwork(TestNetwork):
-    """Real Tests for the is_page_exists function."""
 
 
 class TestCreatePageNetwork(TestNetwork):
