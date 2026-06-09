@@ -56,6 +56,7 @@ class TemplateProcessingInfo:
             "upload_cropped": {"result": None, "msg": ""},
             "update_original": {"result": None, "msg": ""},
             "update_template": {"result": None, "msg": ""},
+            "update_page": {"result": None, "msg": ""},
         }
     )
 
@@ -84,6 +85,7 @@ class CropMainFilesWorker(BaseJobWorker):
         3. Upload    - upload the cropped version under a new filename
         4. Update original  - add a link to the cropped file in the original file's wikitext
         5. Update template  - point the template page at the cropped file
+        6. Update page      - point the content page at the cropped file
     """
 
     def __init__(
@@ -302,9 +304,25 @@ class CropMainFilesWorker(BaseJobWorker):
         updated = self._step_update_original(file_info)
 
         # Step 5 - Update template page reference
-        updated2 = self._step_update_template(file_info)
+        updated2 = self._step_update_page_reference(
+            file_info,
+            file_info.template_title,
+            "update_template",
+        )
 
-        return updated or updated2
+        # Step 6 - Update corresponding content page
+        template_title = file_info.template_title
+        if template_title.lower().startswith("template:"):
+            updated3 = self._step_update_page_reference(
+                file_info,
+                template_title[9:],
+                "update_page",
+            )
+        else:
+            self._skip_step(file_info, "update_page", "Skipped - title does not start with Template:")
+            updated3 = False
+
+        return updated or updated2 or updated3
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
@@ -391,6 +409,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
         self._skip_step(file_info, "update_original", "Skipped - upload failed")
         self._skip_step(file_info, "update_template", "Skipped - upload was not successful")
+        self._skip_step(file_info, "update_page", "Skipped - upload was not successful")
 
         self._fail(file_info, "upload_cropped", error)
         file_info.cropped_filename = None
@@ -431,38 +450,68 @@ class CropMainFilesWorker(BaseJobWorker):
         file_info.steps["update_original"] = {"result": False, "msg": error}
         return False
 
-    def _step_update_template(self, file_info: TemplateProcessingInfo) -> bool:
-        """Update the template page to reference the cropped file."""
-        template_title = file_info.template_title
-        template_page = MwClientPage(template_title, self.site)
-        template_text = template_page.get_text()
+    def _step_update_page_reference(
+        self,
+        file_info: TemplateProcessingInfo,
+        page_title: str,
+        step_name: str,
+    ) -> bool:
+        """Update a page to reference the cropped file."""
+
+        page = MwClientPage(page_title, self.site)
+
+        if not page.exists():
+            logger.warning(f"Job {self.job_id}: Page does not exist: {page_title}")
+            file_info.steps[step_name] = {
+                "result": None,
+                "msg": f"Page does not exist: {page_title}",
+            }
+            return False
+
+        page_text = page.get_text()
+
+        if not page_text:
+            logger.warning(f"Job {self.job_id}: Empty page text for {page_title}")
+            file_info.steps[step_name] = {
+                "result": False,
+                "msg": f"Empty page text: {page_title}",
+            }
+            return False
 
         updated_text = update_template_page_file_reference(
             file_info.original_file,
             file_info.cropped_filename,
-            template_text,
+            page_text,
         )
 
-        if template_text == updated_text:
-            logger.info(f"Job {self.job_id}: No update needed for template page {template_title}")
-            file_info.steps["update_template"] = {"result": None, "msg": "No update needed"}
+        if page_text == updated_text:
+            logger.info(f"Job {self.job_id}: No update needed for page {page_title}")
+            file_info.steps[step_name] = {
+                "result": None,
+                "msg": "No update needed",
+            }
             return False
 
         summary = f"Update file reference to [[File:{file_info.cropped_filename.removeprefix('File:')}]]"
-        update_result = template_page.edit(updated_text, summary)
 
-        if update_result["success"]:
-            file_info.steps["update_template"] = {
+        update_result = page.edit(updated_text, summary)
+
+        if update_result.get("success"):
+            file_info.steps[step_name] = {
                 "result": True,
-                "msg": f"Updated template {template_title}",
+                "msg": f"Updated page {page_title}",
                 "newrevid": update_result.get("newrevid", 0),
             }
             return True
 
         error = update_result.get("error", "Unknown error")
-        logger.warning(f"Job {self.job_id}: Failed to update template page {template_title} (reason: {error})")
-        # self._fail(file_info, "update_template", f"Failed to update template {template_title}")
-        file_info.steps["update_template"] = {"result": False, "msg": f"Failed to update template {template_title}"}
+
+        logger.warning(f"Job {self.job_id}: Failed to update page {page_title} (reason: {error})")
+
+        file_info.steps[step_name] = {
+            "result": False,
+            "msg": f"Failed to update page {page_title}: {error}",
+        }
 
         return False
 
@@ -487,7 +536,7 @@ class CropMainFilesWorker(BaseJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _skip_upload_steps(self, file_info: TemplateProcessingInfo) -> None:
-        for step in ("upload_cropped", "update_original", "update_template"):
+        for step in ("upload_cropped", "update_original", "update_template", "update_page"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result["summary"]["skipped"] += 1
