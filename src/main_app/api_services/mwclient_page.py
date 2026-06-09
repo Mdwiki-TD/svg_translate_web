@@ -120,7 +120,7 @@ class MwClientPage:
 
         return self.page
 
-    def check_exists(self) -> bool:
+    def exists(self) -> bool:
         page = self.load_page()
 
         if not page:
@@ -133,9 +133,6 @@ class MwClientPage:
 
         logger.info(f"Page '{self.title}' exists")
         return True
-
-    def exists(self) -> bool:
-        return self.check_exists()
 
     def is_redirect(self) -> bool:
         """Check if the page is a redirect using page.redirects_to()."""
@@ -151,7 +148,7 @@ class MwClientPage:
             logger.warning(f"Could not check redirect status of '{self.title}': {exc}")
             return False
 
-    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+    def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
         page = self.load_page()
 
         if not page:
@@ -159,7 +156,7 @@ class MwClientPage:
 
         return self._with_retry(self._edit_page, page, text, summary, nocreate=nocreate)
 
-    def create_page(self, text: str, summary: str) -> dict[str, Any]:
+    def create(self, text: str, summary: str) -> dict[str, Any]:
         page = self.load_page()
 
         if not page:
@@ -170,7 +167,7 @@ class MwClientPage:
 
         return self._with_retry(self._edit_page, page, text, summary, createonly=True)
 
-    def move_page(
+    def move(
         self,
         new_title: str,
         reason: str = "",
@@ -187,3 +184,30 @@ class MwClientPage:
             return {"success": False, "error": "missing"}
 
         return self._with_retry(self._move_page, page, new_title, reason, move_talk, no_redirect)
+
+    # ------------------------------------------------------------------
+    # Aliases
+    # ------------------------------------------------------------------
+
+    def check_exists(self) -> bool:
+        return self.check_exists()
+
+    def move_page(
+        self,
+        new_title: str,
+        reason: str = "",
+        move_talk: bool = True,
+        no_redirect: bool = False,
+    ) -> dict[str, Any]:
+        return self.move(
+            new_title,
+            reason,
+            move_talk,
+            no_redirect,
+        )
+
+    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+        return self.edit(text, summary, nocreate)
+
+    def create_page(self, text: str, summary: str) -> dict[str, Any]:
+        return self.create(text, summary)
