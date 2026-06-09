@@ -250,48 +250,42 @@ def test_runner_passes_none_args_by_default():
     mock_target.assert_called_once_with(job_id=job_id, user=user, cancel_event=event, args=None)
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_param(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_param(mock_services):
     """Test that start_job passes args to the background thread."""
     mock_job = JobRecord(id=10, job_type="collect_templates_data", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     args = {"update_all": "true"}
     job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data", args=args)
 
     assert job_id == 10
-    mock_thread.assert_called_once()
-    thread_args = mock_thread.call_args[1]["args"]
+    mock_services["Thread"].assert_called_once()
+    thread_args = mock_services["Thread"].call_args[1]["args"]
     # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
     assert thread_args[5] == args
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_without_args_passes_none(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_without_args_passes_none(mock_services):
     """Test that start_job passes args=None to the thread when no args given."""
     mock_job = JobRecord(id=11, job_type="collect_templates_data", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
 
     assert job_id == 11
-    thread_args = mock_thread.call_args[1]["args"]
+    thread_args = mock_services["Thread"].call_args[1]["args"]
     # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
     assert thread_args[5] == {}
 
@@ -301,25 +295,22 @@ def test_start_job_is_alias_for_start_job():
     assert jobs_worker.start_job is jobs_worker.start_job
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_job_alias_works(mock_current_app, mock_thread, mock_create_job):
+def test_start_job_alias_works(mock_services):
     """Test that the start_job alias behaves identically to start_job."""
     mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     args = {"update_all": "true"}
     user = {"username": "alias_user"}
     job_id = jobs_worker.start_job(user, "collect_templates_data", args)
 
     assert job_id == 12
-    mock_create_job.assert_called_once_with("collect_templates_data", "alias_user")
-    thread_args = mock_thread.call_args[1]["args"]
+    mock_services["create_job"].assert_called_once_with("collect_templates_data", "alias_user")
+    thread_args = mock_services["Thread"].call_args[1]["args"]
     assert thread_args[5] == args
