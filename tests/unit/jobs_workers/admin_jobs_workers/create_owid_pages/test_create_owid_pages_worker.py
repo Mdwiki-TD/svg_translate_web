@@ -60,14 +60,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_mwclientpage = MagicMock()
     mock_page_instance = MagicMock()
     mock_mwclientpage.return_value = mock_page_instance
-    mock_update_page_text = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MwClientPage", mock_mwclientpage
-    )
-
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.update_page_text",
-        mock_update_page_text,
     )
 
     # Mock create_new_text
@@ -113,7 +107,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "get_user_site": mock_get_user_site,
         "create_new_text": mock_create_new_text,
         "is_job_cancelled": mock_jobs_service,
-        "update_page_text": mock_update_page_text,
         "is_pages_exists": mock_is_pages_exists,
         "merge_categories": mock_merge_categories,
         "sort_categories": mock_sort_categories,
@@ -378,7 +371,7 @@ class TestUpdateStep:
     def test_step_update_page_different_content(self, mock_services):
         """Test _step_update when page has different content."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Old content"
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["page_instance"].edit.return_value = {"success": True}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         worker.result = worker.get_initial_result()
@@ -391,12 +384,12 @@ class TestUpdateStep:
         assert worker.result["summary"]["updated"] == 1
         # assert worker.result["summary"]["processed"] == 1 # processed is now under _process_template
         assert info.status == "updated"
-        mock_services["update_page_text"].assert_called_once()
+        mock_services["page_instance"].edit.assert_called_once()
 
     def test_step_update_update_fails(self, mock_services):
         """Test _step_update when update fails."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Old content"
-        mock_services["update_page_text"].return_value = {"success": False, "error": "Edit conflict"}
+        mock_services["page_instance"].edit.return_value = {"success": False, "error": "Edit conflict"}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         worker.result = worker.get_initial_result()

@@ -14,7 +14,6 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import update_page_text
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker import BaseJobWorker
@@ -221,10 +220,10 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def _step_save_new_text(self, info: TemplateInfo) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
-        update_result = update_page_text(
-            info.template_title,
+        page = MwClientPage(info.template_title, self.site)
+
+        update_result = page.edit(
             info._new_text,
-            self.site,
             summary=f"Adding {info._template_text}",
         )
 

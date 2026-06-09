@@ -15,7 +15,6 @@ import mwclient
 
 from ....api_services.clients import create_commons_session, get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
@@ -400,7 +399,9 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
         original_file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = MwClientPage(original_file_name, self.site).get_text()
+        original_page = MwClientPage(original_file_name, self.site)
+
+        wikitext = original_page.get_text()
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
@@ -408,10 +409,8 @@ class CropMainFilesWorker(BaseJobWorker):
             file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
             return False
 
-        update_result = update_page_text(
-            original_file_name,
+        update_result = original_page.edit(
             updated_text,
-            self.site,
             summary="Adding/updating {{Image extracted}}",
         )
 
@@ -435,7 +434,8 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_template(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
-        template_text = MwClientPage(template_title, self.site).get_text()
+        template_page = MwClientPage(template_title, self.site)
+        template_text = template_page.get_text()
 
         updated_text = update_template_page_file_reference(
             file_info.original_file,
@@ -449,7 +449,7 @@ class CropMainFilesWorker(BaseJobWorker):
             return False
 
         summary = f"Update file reference to [[File:{file_info.cropped_filename.removeprefix('File:')}]]"
-        update_result = update_page_text(template_title, updated_text, self.site, summary=summary)
+        update_result = template_page.edit(updated_text, summary)
 
         if update_result["success"]:
             file_info.steps["update_template"] = {

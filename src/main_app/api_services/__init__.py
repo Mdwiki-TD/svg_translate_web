@@ -6,7 +6,6 @@ from .clients.commons_client import create_commons_session, download_commons_fil
 from .mwclient_page import MwClientPage
 from .pages_api import (
     create_page,
-    update_page_text,
 )
 from .query_api import (
     get_page_links,
@@ -25,7 +24,6 @@ __all__ = [
     "resolve_redirects",
     "search_pages",
     "create_page",
-    "update_page_text",
     "get_category_members_api",
     "create_commons_session",
     "download_commons_file_core",

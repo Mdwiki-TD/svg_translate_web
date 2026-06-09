@@ -14,7 +14,6 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord

@@ -48,26 +48,6 @@ def create_page(
 
     return MwClientPage(page_name, site).create_page(wikitext, summary)
 
-
-def update_page_text(
-    page_name: str,
-    updated_text: str,
-    site: mwclient.Site | None,
-    summary: str = "",
-) -> dict:
-    """
-    Update the wikitext of any page on Wikimedia Commons.
-    """
-    missing_fields = verify_required_fields({"page_name": page_name, "updated_text": updated_text, "site": site})
-    if missing_fields:
-        list_str = ", ".join(missing_fields)
-        logger.error(f"Missing required fields for update_page_text: {list_str}")
-        return {"success": False, "error": f"Missing required fields: {list_str}"}
-
-    return MwClientPage(page_name, site).edit_page(updated_text, summary, nocreate=True)
-
-
 __all__ = [
     "create_page",
-    "update_page_text",
 ]
