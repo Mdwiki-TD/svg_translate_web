@@ -15,17 +15,20 @@ from src.main_app.api_services.pages_api import (
     update_page_text,
 )
 
+@pytest.fixture
+def mock_site_not_exists_pages(mock_site_pages):
+    return mock_site_pages(False)
 
 class TestIsPageExists:
     """Tests for the is_page_exists function."""
 
-    def test_page_exists_returns_true(self, mock_site_exists_pages) -> None:
+    def test_page_exists_returns_true(self, mock_site_pages) -> None:
         """Test that is_page_exists returns True when page exists."""
-
-        result = is_page_exists("File:Test.svg", mock_site_exists_pages)
+        _site =  mock_site_pages(True)
+        result = is_page_exists("File:Test.svg", _site)
 
         assert result is True
-        mock_site_exists_pages.pages.__getitem__.assert_called_once_with("File:Test.svg")
+        _site.pages.__getitem__.assert_called_once_with("File:Test.svg")
 
     def test_page_not_exists_returns_false(self, mock_site_not_exists_pages) -> None:
         """Test that is_page_exists returns False when page does not exist."""
@@ -35,11 +38,11 @@ class TestIsPageExists:
         assert result is False
         mock_site_not_exists_pages.pages.__getitem__.assert_called_once_with("File:NonExistent.svg")
 
-    def test_page_exists_logs_info(self, caplog: pytest.LogCaptureFixture, mock_site_exists_pages) -> None:
+    def test_page_exists_logs_info(self, caplog: pytest.LogCaptureFixture, mock_site_pages) -> None:
         """Test that is_page_exists logs a info when page exists."""
-
+        _site =  mock_site_pages(True)
         with caplog.at_level(logging.INFO):
-            result = is_page_exists("File:Existing.svg", mock_site_exists_pages)
+            result = is_page_exists("File:Existing.svg", _site)
 
         assert result is True
         assert "Page 'File:Existing.svg' exists" in caplog.text

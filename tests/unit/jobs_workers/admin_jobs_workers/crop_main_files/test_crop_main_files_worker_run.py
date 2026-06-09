@@ -771,10 +771,10 @@ class TestCropMainFilesProcessorHelpers:
 class TestCropMainFilesProcessorProcessTemplate:
     """Tests for _process_template method."""
 
-    def test_process_template_file_already_exists(self, mock_services, mock_site_exists_pages):
+    def test_process_template_file_already_exists(self, mock_services, mock_site_pages):
         """Test processing when cropped file already exists on Commons."""
-
-        mock_services["get_user_site"].return_value = mock_site_exists_pages
+        _site =  mock_site_pages(True)
+        mock_services["get_user_site"].return_value =_site
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["update_page_text"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Template text"
@@ -786,7 +786,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": True},
         )
-        processor.site = mock_site_exists_pages
+        processor.site = _site
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
@@ -798,10 +798,11 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert processor.result["pages_updated"][0]["steps"]["download"]["result"] is None
         assert "Skipped" in processor.result["pages_updated"][0]["steps"]["download"]["msg"]
 
-    def test_process_template_full_pipeline(self, mock_services, tmp_path, mock_site_not_exists_pages):
+    def test_process_template_full_pipeline(self, mock_services, tmp_path, mock_site_pages):
         """Test full pipeline for a new file."""
 
-        mock_services["get_user_site"].return_value = mock_site_not_exists_pages
+        _site =  mock_site_pages(False)
+        mock_services["get_user_site"].return_value = _site
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Original file text"
@@ -816,7 +817,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": True},
         )
-        processor.site = mock_site_not_exists_pages
+        processor.site = _site
         processor.original_dir = tmp_path / "original"
         processor.cropped_dir = tmp_path / "cropped"
 
@@ -829,7 +830,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
 
-    def test_process_template_upload_disabled(self, mock_services, tmp_path, mock_site_not_exists_pages):
+    def test_process_template_upload_disabled(self, mock_services, tmp_path, mock_site_pages):
         """Test processing when upload_files is False."""
 
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
@@ -840,7 +841,8 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": False},
         )
-        processor.site = mock_site_not_exists_pages
+        _site =  mock_site_pages(False)
+        processor.site = _site
         processor.original_dir = tmp_path / "original"
         processor.cropped_dir = tmp_path / "cropped"
 
@@ -859,10 +861,11 @@ class TestCropMainFilesProcessorProcessTemplate:
 class TestCropMainFilesProcessorRun:
     """Tests for run method."""
 
-    def test_run_full_workflow(self, mock_services, tmp_path, mock_site_not_exists_pages):
+    def test_run_full_workflow(self, mock_services, tmp_path, mock_site_pages):
         """Test complete run workflow."""
+        _site =  mock_site_pages(False)
 
-        mock_services["get_user_site"].return_value = mock_site_not_exists_pages
+        mock_services["get_user_site"].return_value = _site
 
         mock_services["create_commons_session"].return_value = MagicMock()
         mock_services["list_templates"].return_value = [
