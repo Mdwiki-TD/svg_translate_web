@@ -18,7 +18,7 @@ def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:
     handle it themselves).
     """
     if isinstance(exc, mwclient.errors.ProtectedPageError):
-        return {"success": False, "error": "protectedpageerror", "details": str({"code": exc.code, "info": exc.info})}
+        return {"success": False, "error": "protectedpageerror", "details": f"code: {exc.code}, info: {exc.info}"}
 
     if isinstance(exc, mwclient.errors.EditError):
         return {"success": False, "error": "editerror", "details": str(exc)}

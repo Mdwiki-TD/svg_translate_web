@@ -29,7 +29,10 @@ def coerce_encrypted(value: object) -> bytes | None:
     return None
 
 
-def get_cronjob_site(domain: str = settings.other.wiki_domain) -> mwclient.Site | None:
+def get_cronjob_site(domain: str | None = None) -> mwclient.Site | None:
+
+    if domain is None:
+        domain = settings.other.wiki_domain
 
     try:
         site = mwclient.Site(
