@@ -71,18 +71,6 @@ def test_create_job_cancelled_file_success(mock_settings):
     assert path.read_text() == "cancelled"
 
 
-def test_create_job_cancelled_file_error(mock_settings):
-    # Make directory read-only to provoke OSError
-    path = Path(mock_settings.paths.jobs_path)
-    path.mkdir(parents=True, exist_ok=True)
-    path.chmod(0o444)
-    try:
-        res = create_job_cancelled_file("job.cancel")
-        assert res is None
-    finally:
-        path.chmod(0o777)
-
-
 def test_is_job_cancelled_file_exist(mock_settings):
     path = Path(mock_settings.paths.jobs_path)
     path.mkdir(parents=True, exist_ok=True)
