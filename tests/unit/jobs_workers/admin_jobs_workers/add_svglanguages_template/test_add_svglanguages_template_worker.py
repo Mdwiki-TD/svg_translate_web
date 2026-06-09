@@ -219,7 +219,7 @@ class TestProcessTemplate:
         mock_services["RE_SVG_LANG"].search = MagicMock(return_value=None)
 
         # Mock all steps to succeed, with side_effects to set required state
-        def mock_load(info):
+        def mock_load(info, page):
             info._text = "some text"
             return True
 
@@ -275,7 +275,7 @@ class TestProcessTemplate:
         # Mock regex to not match (so it proceeds past the skip check)
         mock_services["RE_SVG_LANG"].search = MagicMock(return_value=None)
 
-        def mock_load(info):
+        def mock_load(info, page):
             info._text = "some text"
             return True
 
@@ -298,12 +298,11 @@ class TestStepLoadTemplateText:
 
     def test_load_template_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful loading of template text."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = (
-            "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
-        )
+        mock_page = MagicMock()
+        mock_page.get_text.return_value = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        result = mock_add_svg_worker._step_load_template_text(info)
+        result = mock_add_svg_worker._step_load_template_text(info, mock_page)
 
         assert result is True
         assert info._text is not None
@@ -311,10 +310,11 @@ class TestStepLoadTemplateText:
 
     def test_load_template_text_returns_empty_string(self, mock_services, mock_add_svg_worker):
         """Test failure when get_page_text returns empty string."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = ""
+        mock_page = MagicMock()
+        mock_page.get_text.return_value = ""
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        result = mock_add_svg_worker._step_load_template_text(info)
+        result = mock_add_svg_worker._step_load_template_text(info, mock_page)
 
         assert result is False
         assert info.status == "failed"
@@ -329,7 +329,7 @@ class TestStepLoadTemplateText:
         mock_match = MagicMock()
         mock_services["RE_SVG_LANG"].search = MagicMock(return_value=mock_match)
 
-        def mock_load(info):
+        def mock_load(info, page):
             info._text = "{{SVGLanguages|test.svg}}\nSome content"
             return True
 
@@ -412,27 +412,29 @@ class TestStepSaveNewText:
 
     def test_save_new_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful saving of new text."""
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_page = MagicMock()
+        mock_page.edit.return_value = {"success": True}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_add_svg_worker._step_save_new_text(info)
+        result = mock_add_svg_worker._step_save_new_text(info, mock_page)
 
         assert result is True
         assert info.steps["save_new_text"]["result"] is True
-        mock_services["MwClientPage"].return_value.edit.assert_called_once()
+        mock_page.edit.assert_called_once()
 
     def test_save_new_text_failure(self, mock_services, mock_add_svg_worker):
         """Test failure when edit fails."""
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "API error"}
+        mock_page = MagicMock()
+        mock_page.edit.return_value = {"success": False, "error": "API error"}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_add_svg_worker._step_save_new_text(info)
+        result = mock_add_svg_worker._step_save_new_text(info, mock_page)
 
         assert result is False
         assert info.status == "failed"
