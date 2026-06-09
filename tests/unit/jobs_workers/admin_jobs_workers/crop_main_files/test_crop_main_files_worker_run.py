@@ -159,6 +159,7 @@ class TestFileProcessingInfo:
         assert "download" in info.steps
         assert "crop" in info.steps
         assert "upload_cropped" in info.steps
+        assert "update_page" in info.steps
 
     def test_to_dict(self):
         """Test to_dict serialization."""
@@ -579,10 +580,11 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["update_original"]["result"] is False
         assert "Edit conflict" in file_info.steps["update_original"]["msg"]
 
-    def test_step_update_template_no_change(self, mock_services):
-        """Test _step_update_template when no update is needed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
-        mock_services["update_template_page_file_reference"].return_value = "Template text"  # No change
+    def test_step_update_page_reference_no_change(self, mock_services):
+        """Test _step_update_page_reference when no update is needed."""
+        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_services["MwClientPage"].return_value.exists.return_value = True
+        mock_services["update_template_page_file_reference"].return_value = "Some text"  # No change
 
         processor = CropMainFilesWorker(
             job_id=1,
@@ -597,16 +599,17 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_template(file_info)
+        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
 
         assert file_info.steps["update_template"]["result"] is None
         assert file_info.steps["update_template"]["msg"] == "No update needed"
         mock_services["MwClientPage"].return_value.edit.assert_not_called()
 
-    def test_step_update_template_with_update(self, mock_services):
-        """Test _step_update_template when update is performed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
-        mock_services["update_template_page_file_reference"].return_value = "Updated template text"
+    def test_step_update_page_reference_with_update(self, mock_services):
+        """Test _step_update_page_reference when update is performed."""
+        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_services["MwClientPage"].return_value.exists.return_value = True
+        mock_services["update_template_page_file_reference"].return_value = "Updated text"
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
@@ -622,7 +625,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_template(file_info)
+        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
 
         assert file_info.steps["update_template"]["result"] is True
         mock_services["MwClientPage"].return_value.edit.assert_called_once()
@@ -694,6 +697,7 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["upload_cropped"]["result"] is None
         assert file_info.steps["update_original"]["result"] is None
         assert file_info.steps["update_template"]["result"] is None
+        assert file_info.steps["update_page"]["result"] is None
         assert processor.result["summary"]["skipped"] == 1
         assert file_info.cropped_filename is None
 
@@ -772,8 +776,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["MwClientPage"].return_value.exists.return_value = True
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
-        mock_services["update_template_page_file_reference"].return_value = "Updated template"
+        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_services["update_template_page_file_reference"].return_value = "Updated text"
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
