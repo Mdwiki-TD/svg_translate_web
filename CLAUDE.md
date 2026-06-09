@@ -44,7 +44,7 @@ isort .                         # Sort imports
 Configuration files are in `0/` directory:
 
 ```bash
-flake8 --config=0/.flake8 src    # Linting (max line: 100)
+flake8 --config=0/.flake8 src    # Linting (max line: 120)
 pylint --rcfile=0/.pylintrc src  # Additional linting
 mypy --config-file=0/mypy.ini src # Type checking
 ```
