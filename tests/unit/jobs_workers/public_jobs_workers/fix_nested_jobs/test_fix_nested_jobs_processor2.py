@@ -68,12 +68,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_verify_fix = MagicMock()
     mock_upload_fixed_svg = MagicMock()
 
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled", mock_is_job_cancelled
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", mock_is_job_cancelled)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
         mock_download_svg_file,

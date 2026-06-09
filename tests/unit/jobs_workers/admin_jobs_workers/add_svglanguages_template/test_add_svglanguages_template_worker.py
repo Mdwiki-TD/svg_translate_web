@@ -14,7 +14,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
     add_svglanguages_template_to_templates,
 )
 
-
 # ── Module-level monkeypatch fixtures ────────────────────────────────────────
 
 
@@ -305,7 +304,9 @@ class TestStepLoadTemplateText:
 
     def test_load_template_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful loading of template text."""
-        mock_services["get_page_text"].return_value = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        mock_services["get_page_text"].return_value = (
+            "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        )
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         result = mock_add_svg_worker._step_load_template_text(info)
