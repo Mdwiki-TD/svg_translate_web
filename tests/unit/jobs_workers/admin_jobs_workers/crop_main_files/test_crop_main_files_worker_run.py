@@ -54,7 +54,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_create_commons_session,
     )
 
-    # Mock pages_api / MwClientPage
+    # Mock MwClientPage
     mock_mwclientpage = MagicMock()
     mock_mwclientpage.return_value.exists.return_value = False
     monkeypatch.setattr(
