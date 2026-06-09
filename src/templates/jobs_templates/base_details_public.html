@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header, status_icon, csrf %}
+{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
 {% block title %}{{ detail_title }} Job #{{ job.id }}{% endblock %}
@@ -41,7 +41,9 @@
                                 </tr>
                                 <tr>
                                     <th>User:</th>
-                                    <td>{{ job.username if job.username else '-' }}</td>
+                                    <td>
+                                        {{ job.username if job.username else '-' }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Created:</th>
@@ -52,7 +54,7 @@
                                 <tr>
                                     <th>Started:</th>
                                     <td>
-                                        {{ job.started_at | format_long_date("-") }}
+                                        {{ job.started_at | format_short_date("-") }}
                                     </td>
                                 </tr>
                             </table>
@@ -62,7 +64,7 @@
                                 <tr>
                                     <th style="width: 40%">Completed:</th>
                                     <td>
-                                        {{ job.completed_at | format_long_date("-") }}
+                                        {{ job.completed_at | format_short_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}
@@ -123,6 +125,17 @@
                         <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
                         {{ result_data.error }}
                     </div>
+                    {% endif %}
+                    {% if result_data.note %}
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">Note!</h5>
+                        <div>
+                            {{ result_data.note }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if result_data.errors %}
+                    {{ job_errors_div(result_data.errors) }}
                     {% endif %}
                 </div>
             </div>
