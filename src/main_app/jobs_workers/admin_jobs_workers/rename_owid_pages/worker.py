@@ -259,7 +259,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         self.result["pages_processed"].append(info.to_dict())
         return edit_success
 
-    def _redirect_old_to_new(self, info: RenameInfo, old_title_page: MwClientPage, new_title: str) -> None:
+    def _redirect_old_to_new(self, info: RenameInfo, old_title_page: MwClientPage, new_title: str) -> bool:
         """Turn the old (lowercase) page into a redirect to the new (capitalized) page."""
         redirect_text = f"#REDIRECT [[{new_title}]]"
         summary = f"Redirecting to [[{new_title}]] (capitalize first letter of OWID subpage)"
