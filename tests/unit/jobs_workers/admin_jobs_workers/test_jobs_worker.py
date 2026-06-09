@@ -55,27 +55,24 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     }
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_collect_templates_data_job(mock_current_app, mock_thread, mock_create_job):
+def test_start_collect_templates_data_job(mock_services):
     """Test starting a collect templates data job."""
     mock_job = JobRecord(id=1, job_type="collect_templates_data", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
 
     assert job_id == 1
-    mock_create_job.assert_called_once_with("collect_templates_data", "22")
-    mock_thread.assert_called_once()
+    mock_services["create_job"].assert_called_once_with("collect_templates_data", "22")
+    mock_services["Thread"].assert_called_once()
     # Verify the thread was started with correct arguments
-    args = mock_thread.call_args[1]["args"]
+    args = mock_services["Thread"].call_args[1]["args"]
     assert args[0] == 1  # job_id
     assert args[1] == {"username": "22"}  # user
     assert isinstance(args[2], threading.Event)
