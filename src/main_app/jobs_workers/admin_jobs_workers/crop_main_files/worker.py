@@ -311,11 +311,16 @@ class CropMainFilesWorker(BaseJobWorker):
         )
 
         # Step 6 - Update corresponding content page
-        updated3 = self._step_update_page_reference(
-            file_info,
-            file_info.template_title.removeprefix("Template:"),
-            "update_page",
-        )
+        template_title = file_info.template_title
+        if template_title.lower().startswith("template:"):
+            updated3 = self._step_update_page_reference(
+                file_info,
+                template_title[9:],
+                "update_page",
+            )
+        else:
+            self._skip_step(file_info, "update_page", "Skipped - title does not start with Template:")
+            updated3 = False
 
         return updated or updated2 or updated3
 
@@ -458,7 +463,7 @@ class CropMainFilesWorker(BaseJobWorker):
         if not page.exists():
             logger.warning(f"Job {self.job_id}: Page does not exist: {page_title}")
             file_info.steps[step_name] = {
-                "result": False,
+                "result": None,
                 "msg": f"Page does not exist: {page_title}",
             }
             return False
