@@ -396,7 +396,8 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
     mock_services["add_template_data"].assert_called_once_with({"title": "Template:NewFromCategory"})
 
     # Should process the new template (fetch wikitext) - existing has all fields so it's skipped
-    mock_services["MwClientPage"].return_value.get_text.assert_called_once_with("Template:NewFromCategory", site=magic)
+    mock_services["MwClientPage"].return_value.get_text.assert_called_once()
+    mock_services["MwClientPage"].assert_called_once_with("Template:NewFromCategory", magic)
 
     # Should update the new template with main file
     mock_services["update_template_data"].assert_called_once_with(
