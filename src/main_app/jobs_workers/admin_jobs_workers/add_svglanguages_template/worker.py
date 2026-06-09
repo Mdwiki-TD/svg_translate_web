@@ -13,7 +13,8 @@ from typing import Any, Dict
 import mwclient
 
 from ....api_services.clients import get_user_site
-from ....api_services.pages_api import get_page_text, update_page_text
+from ....api_services.mwclient_page import MwClientPage
+from ....api_services.pages_api import update_page_text
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker import BaseJobWorker
@@ -182,7 +183,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
     def _step_load_template_text(self, info: TemplateInfo) -> bool:
         """Download the original Template wikitext. Returns True on success."""
-        text = get_page_text(info.template_title, self.site)
+        text = MwClientPage(info.template_title, self.site).get_text()
         if not text:
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False

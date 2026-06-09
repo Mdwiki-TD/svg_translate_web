@@ -7,16 +7,16 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch):
-    mock_get_page_text = MagicMock()
+    mock_mwclientpage = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text",
-        mock_get_page_text,
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.MwClientPage",
+        mock_mwclientpage,
     )
-    return {"get_page_text": mock_get_page_text}
+    return {"MwClientPage": mock_mwclientpage}
 
 
 def test_text_task_success(mock_services):
-    mock_services["get_page_text"].return_value = "content"
+    mock_services["MwClientPage"].return_value.get_text.return_value = "content"
 
     result = extract_text_step("Title")
 
@@ -25,7 +25,7 @@ def test_text_task_success(mock_services):
 
 
 def test_text_task_fail(mock_services):
-    mock_services["get_page_text"].return_value = None
+    mock_services["MwClientPage"].return_value.get_text.return_value = None
 
     result = extract_text_step("Title")
 
@@ -34,18 +34,18 @@ def test_text_task_fail(mock_services):
 
 
 def test_extract_text_step_success(mock_services):
-    mock_services["get_page_text"].return_value = "some wikitext"
+    mock_services["MwClientPage"].return_value.get_text.return_value = "some wikitext"
 
     result = extract_text_step("File:Example.svg")
 
     assert result["success"] is True
     assert result["text"] == "some wikitext"
     assert result["error"] is None
-    mock_services["get_page_text"].assert_called_once_with("File:Example.svg", None)
+    mock_services["MwClientPage"].assert_called_once_with("File:Example.svg", None)
 
 
 def test_extract_text_step_fail(mock_services):
-    mock_services["get_page_text"].return_value = ""
+    mock_services["MwClientPage"].return_value.get_text.return_value = ""
 
     result = extract_text_step("File:Example.svg")
 

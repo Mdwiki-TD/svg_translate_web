@@ -15,10 +15,7 @@ import mwclient
 
 from ....api_services.clients import create_commons_session, get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import (
-    get_page_text,
-    update_page_text,
-)
+from ....api_services.pages_api import update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
@@ -363,7 +360,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_upload(self, file_info: TemplateProcessingInfo) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = get_page_text(file_name, self.site)
+        wikitext = MwClientPage(file_name, self.site).get_text()
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
 
         upload_result = upload_cropped_file(
@@ -403,7 +400,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
         original_file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = get_page_text(original_file_name, self.site)
+        wikitext = MwClientPage(original_file_name, self.site).get_text()
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
@@ -438,7 +435,7 @@ class CropMainFilesWorker(BaseJobWorker):
     def _step_update_template(self, file_info: TemplateProcessingInfo) -> bool:
         """Update the template page to reference the cropped file."""
         template_title = file_info.template_title
-        template_text = get_page_text(template_title, self.site)
+        template_text = MwClientPage(template_title, self.site).get_text()
 
         updated_text = update_template_page_file_reference(
             file_info.original_file,

@@ -8,7 +8,6 @@ import pytest
 
 from src.main_app.api_services.pages_api import (
     create_page,
-    get_page_text,
     move_page,
     update_page_text,
 )

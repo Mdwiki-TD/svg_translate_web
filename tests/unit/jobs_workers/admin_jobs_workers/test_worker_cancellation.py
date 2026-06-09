@@ -84,8 +84,8 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     mock_update_template.side_effect = side_effect
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_page_text",
-        lambda t, **kwargs: "some wikitext",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
+        lambda title, site: MagicMock(get_text=MagicMock(return_value="some wikitext")),
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
