@@ -64,6 +64,7 @@ class CopySvgLangsWorker(BaseJobWorker):
     def get_initial_result(self) -> dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "note": "",
             "status": "pending",
             "errors": [],
             "args": {},

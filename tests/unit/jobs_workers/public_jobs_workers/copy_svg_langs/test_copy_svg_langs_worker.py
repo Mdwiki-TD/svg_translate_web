@@ -3,12 +3,26 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
     copy_svg_langs_worker_entry,
 )
+
+
+@pytest.fixture
+def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock_class = MagicMock()
+    _mock_instance = MagicMock()
+    _mock_class.return_value = _mock_instance
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker",
+        _mock_class,
+    )
+    return _mock_class
 
 
 class TestCopySvgLangsWorker:
@@ -32,7 +46,7 @@ class TestCopySvgLangsWorker:
         assert result["started_at"] is not None
         assert result["completed_at"] is None
         assert result["cancelled_at"] is None
-        assert result["title"] is None  # title comes from args, not set until processor runs
+        assert result["title"] is None
         assert "stages" in result
         assert "text" in result["stages"]
         assert "titles" in result["stages"]
@@ -100,176 +114,112 @@ class TestCopySvgLangsWorker:
 
 
 class TestCopySvgLangsWorkerEntry:
-    def test_worker_entry_missing_title(self) -> None:
-        with patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
-            copy_svg_langs_worker_entry(
-                job_id="1",
-                args={"title": ""},
-                user=None,
-            )
+    def test_worker_entry_missing_title(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(
+            job_id="1",
+            args={"title": ""},
+            user=None,
+        )
 
-    def test_worker_entry_missing_args(self) -> None:
-        with patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"):
-            copy_svg_langs_worker_entry(
-                job_id="1",
-                args={"title": "Test.svg"},
-                user=None,
-            )
+    def test_worker_entry_missing_args(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(
+            job_id="1",
+            args={"title": "Test.svg"},
+            user=None,
+        )
 
-    def test_worker_entry_creates_worker(self) -> None:
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+    def test_worker_entry_creates_worker(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(
+            job_id="123",
+            args={"title": "Test.svg"},
+            user={"id": 1},
+        )
 
-            copy_svg_langs_worker_entry(
-                job_id="123",
-                args={"title": "Test.svg"},
-                user={"id": 1},
-            )
+        mock_worker_class.assert_called_once_with(
+            job_id="123",
+            args={"title": "Test.svg"},
+            user={"id": 1},
+            cancel_event=None,
+        )
+        mock_worker_class.return_value.run.assert_called_once()
 
-            MockWorker.assert_called_once_with(
-                job_id="123",
-                args={"title": "Test.svg"},
-                user={"id": 1},
-                cancel_event=None,
-            )
-            mock_instance.run.assert_called_once()
-
-    def test_worker_entry_with_cancel_event(self) -> None:
+    def test_worker_entry_with_cancel_event(self, mock_worker_class) -> None:
         cancel_event = threading.Event()
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
 
-            copy_svg_langs_worker_entry(
-                job_id="456",
-                args={"title": "Another.svg"},
-                user=None,
-                cancel_event=cancel_event,
-            )
+        copy_svg_langs_worker_entry(
+            job_id="456",
+            args={"title": "Another.svg"},
+            user=None,
+            cancel_event=cancel_event,
+        )
 
-            MockWorker.assert_called_once()
-            _, kwargs = MockWorker.call_args
-            assert kwargs["cancel_event"] is cancel_event
+        _, kwargs = mock_worker_class.call_args
+        assert kwargs["cancel_event"] is cancel_event
 
-    def test_worker_entry_args_is_keyword_only(self) -> None:
-        """Test that args is a keyword-only parameter in the new signature."""
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+    def test_worker_entry_args_is_keyword_only(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(job_id="1", user=None, args={"title": "Test.svg"})
 
-            # New signature: (job_id, user, *, cancel_event=None, args=None)
-            # args must be keyword-only; user is now the 2nd positional
-            copy_svg_langs_worker_entry(job_id="1", user=None, args={"title": "Test.svg"})
+        mock_worker_class.assert_called_once_with(
+            job_id="1",
+            args={"title": "Test.svg"},
+            user=None,
+            cancel_event=None,
+        )
+        mock_worker_class.return_value.run.assert_called_once()
 
-            MockWorker.assert_called_once_with(
-                job_id="1",
-                args={"title": "Test.svg"},
-                user=None,
-                cancel_event=None,
-            )
-            mock_instance.run.assert_called_once()
+    def test_worker_entry_args_defaults_to_none(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(job_id="99", user={"username": "tester"})
 
-    def test_worker_entry_args_defaults_to_none(self) -> None:
-        """Test that args defaults to None when not provided."""
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+        mock_worker_class.assert_called_once_with(
+            job_id="99",
+            args=None,
+            user={"username": "tester"},
+            cancel_event=None,
+        )
 
-            # Call without args - should default to None
-            copy_svg_langs_worker_entry(job_id="99", user={"username": "tester"})
-
-            MockWorker.assert_called_once_with(
-                job_id="99",
-                args=None,
-                user={"username": "tester"},
-                cancel_event=None,
-            )
-
-    def test_worker_entry_user_is_second_positional(self) -> None:
-        """Test that user is the second positional parameter (after job_id)."""
+    def test_worker_entry_user_is_second_positional(self, mock_worker_class) -> None:
         user = {"username": "testuser"}
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
 
-            # Pass user as 2nd positional arg (new signature)
-            copy_svg_langs_worker_entry(job_id=123, user=user)
+        copy_svg_langs_worker_entry(job_id=123, user=user)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["user"] is user
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["user"] is user
 
-    def test_worker_entry_maps_copy_svg_langs_upload_limit(self) -> None:
-        """Test that copy_svg_langs_upload_limit is mapped to upload_limit in args."""
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+    def test_worker_entry_maps_copy_svg_langs_upload_limit(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(
+            job_id="1",
+            user=None,
+            args={"copy_svg_langs_upload_limit": 5},
+        )
 
-            copy_svg_langs_worker_entry(
-                job_id="1",
-                user=None,
-                args={"copy_svg_langs_upload_limit": 5},
-            )
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"]["upload_limit"] == 5
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["args"]["upload_limit"] == 5
+    def test_worker_entry_does_not_map_when_key_absent(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(
+            job_id="1",
+            user=None,
+            args={"other_key": "value"},
+        )
 
-    def test_worker_entry_does_not_map_when_key_absent(self) -> None:
-        """Test that args are passed unchanged when copy_svg_langs_upload_limit is absent."""
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert "upload_limit" not in call_kwargs["args"]
 
-            copy_svg_langs_worker_entry(
-                job_id="1",
-                user=None,
-                args={"other_key": "value"},
-            )
-
-            call_kwargs = MockWorker.call_args.kwargs
-            assert "upload_limit" not in call_kwargs["args"]
-
-    def test_worker_entry_does_not_map_when_value_falsy(self) -> None:
-        """Test that mapping is skipped when copy_svg_langs_upload_limit value is falsy."""
+    def test_worker_entry_does_not_map_when_value_falsy(self, mock_worker_class) -> None:
         for falsy_value in [0, None, "", False]:
-            with patch(
-                "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-            ) as MockWorker:
-                mock_instance = MagicMock()
-                MockWorker.return_value = mock_instance
+            mock_worker_class.reset_mock()
 
-                copy_svg_langs_worker_entry(
-                    job_id="1",
-                    user=None,
-                    args={"copy_svg_langs_upload_limit": falsy_value},
-                )
+            copy_svg_langs_worker_entry(
+                job_id="1",
+                user=None,
+                args={"copy_svg_langs_upload_limit": falsy_value},
+            )
 
-                call_kwargs = MockWorker.call_args.kwargs
-                assert "upload_limit" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
+            call_kwargs = mock_worker_class.call_args.kwargs
+            assert "upload_limit" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
 
-    def test_worker_entry_does_not_modify_args_when_none(self) -> None:
-        """Test that entry point works correctly when args is None."""
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
+    def test_worker_entry_does_not_modify_args_when_none(self, mock_worker_class) -> None:
+        copy_svg_langs_worker_entry(job_id="1", user=None, args=None)
 
-            copy_svg_langs_worker_entry(job_id="1", user=None, args=None)
-
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["args"] is None
+        call_kwargs = mock_worker_class.call_args.kwargs
+        assert call_kwargs["args"] is None

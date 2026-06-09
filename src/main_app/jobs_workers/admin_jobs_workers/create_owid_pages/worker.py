@@ -14,7 +14,7 @@ import mwclient
 
 from ....api_services.clients import get_user_site
 from ....api_services.mwclient_page import MwClientPage
-from ....api_services.pages_api import create_page, get_page_text, is_page_exists, update_page_text
+from ....api_services.pages_api import create_page, get_page_text, update_page_text
 from ....api_services.query_api import is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
@@ -98,6 +98,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     def get_initial_result(self) -> Dict[str, Any]:
         """Return the initial result structure."""
         return {
+            "note": "",
             "status": "pending",
             "errors": [],
             "args": {},
@@ -134,13 +135,20 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return self.result
 
         templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
+        len_all = len(templates)
+        self.result["summary"]["total"] = len_all
         self._save_progress()
 
         if not self.update_all:
             templates = self.filter_created(templates)
+            if not templates:
+                self.result["summary"]["skipped"] = len_all
+                self.result["status"] = "skipped"
+                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exist"
+                logger.warning(f"Job {self.job_id}: No templates to process")
+                return self.result
 
-        self.result["summary"]["total"] = len(templates)
+        # self.result["summary"]["total"] = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
 
         per_item = self.get_priority(len(templates))
@@ -309,6 +317,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         # extend categories from current text
         info._new_text = merge_categories(current_text, info._new_text)
         info._new_text = sort_categories(info._new_text)
+
+        # sort current_text categories to compare with new text
+        current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
             self._skip_step(info, "update_text", "Skipped - page content is already identical")

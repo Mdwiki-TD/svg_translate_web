@@ -33,7 +33,7 @@ def _update_status(job_id: int, status: str, result_file: str | None, job_type: 
 
     job.status = status
 
-    if status in ("completed", "failed", "cancelled"):
+    if status in ("completed", "failed", "cancelled", "skipped"):
         job.completed_at = datetime.now(UTC)
         job.is_running = None
 

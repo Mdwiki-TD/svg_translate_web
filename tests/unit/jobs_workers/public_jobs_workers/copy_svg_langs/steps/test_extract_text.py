@@ -1,11 +1,22 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock
+
+import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
 
 
-@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text")
-def test_text_task_success(mock_get):
-    mock_get.return_value = "content"
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    mock_get_page_text = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text",
+        mock_get_page_text,
+    )
+    return {"get_page_text": mock_get_page_text}
+
+
+def test_text_task_success(mock_services):
+    mock_services["get_page_text"].return_value = "content"
 
     result = extract_text_step("Title")
 
@@ -13,9 +24,8 @@ def test_text_task_success(mock_get):
     assert result["text"] == "content"
 
 
-@patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text")
-def test_text_task_fail(mock_get):
-    mock_get.return_value = None
+def test_text_task_fail(mock_services):
+    mock_services["get_page_text"].return_value = None
 
     result = extract_text_step("Title")
 
@@ -23,25 +33,19 @@ def test_text_task_fail(mock_get):
     assert result["text"] == ""
 
 
-def test_extract_text_step_success(mocker):
-    mock_get_page_text = mocker.patch(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text"
-    )
-    mock_get_page_text.return_value = "some wikitext"
+def test_extract_text_step_success(mock_services):
+    mock_services["get_page_text"].return_value = "some wikitext"
 
     result = extract_text_step("File:Example.svg")
 
     assert result["success"] is True
     assert result["text"] == "some wikitext"
     assert result["error"] is None
-    mock_get_page_text.assert_called_once_with("File:Example.svg", None)
+    mock_services["get_page_text"].assert_called_once_with("File:Example.svg", None)
 
 
-def test_extract_text_step_fail(mocker):
-    mock_get_page_text = mocker.patch(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.get_page_text"
-    )
-    mock_get_page_text.return_value = ""
+def test_extract_text_step_fail(mock_services):
+    mock_services["get_page_text"].return_value = ""
 
     result = extract_text_step("File:Example.svg")
 

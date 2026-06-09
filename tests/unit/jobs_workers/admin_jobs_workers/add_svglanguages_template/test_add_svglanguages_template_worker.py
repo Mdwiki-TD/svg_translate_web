@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -13,6 +13,74 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
     TemplateInfo,
     add_svglanguages_template_to_templates,
 )
+
+# ── Module-level monkeypatch fixtures ────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    """Mock the services used by add_svglanguages_template worker."""
+
+    mock_re_svg_lang = MagicMock()
+    mock_get_page_text = MagicMock()
+    mock_add_template_to_text = MagicMock()
+    mock_update_page_text = MagicMock()
+    mock_get_user_site = MagicMock()
+    mock_list_templates = MagicMock()
+
+    _mock_class = MagicMock()
+    _mock_instance = MagicMock()
+    _mock_class.return_value = _mock_instance
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG",
+        mock_re_svg_lang,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_page_text",
+        mock_get_page_text,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.add_template_to_text",
+        mock_add_template_to_text,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.update_page_text",
+        mock_update_page_text,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site",
+        mock_get_user_site,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates",
+        mock_list_templates,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate",
+        _mock_class,
+    )
+
+    return {
+        "RE_SVG_LANG": mock_re_svg_lang,
+        "get_page_text": mock_get_page_text,
+        "add_template_to_text": mock_add_template_to_text,
+        "update_page_text": mock_update_page_text,
+        "get_user_site": mock_get_user_site,
+        "list_templates": mock_list_templates,
+        "AddSvgSVGLanguagesTemplate": _mock_class,
+    }
+
+
+@pytest.fixture
+def mock_add_svg_worker(mock_jobs_service) -> AddSvgSVGLanguagesTemplate:
+    worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
+    worker.site = MagicMock()
+    worker.result = worker.get_initial_result()
+    return worker
+
+
+# ── Test classes ─────────────────────────────────────────────────────────────
 
 
 class TestTemplateInfo:
@@ -129,8 +197,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
 class TestLoadTemplates:
     """Tests for _load_templates and _apply_limits methods."""
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates")
-    def test_load_templates_filters_owid_templates(self, mcok_list_templates, mock_jobs_service):
+    def test_load_templates_filters_owid_templates(self, mock_services, mock_jobs_service):
         """Test that only OWID templates are loaded."""
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
@@ -138,7 +205,7 @@ class TestLoadTemplates:
             MagicMock(id=3, title="Template:Other/not_owid"),
             MagicMock(id=4, title="Template:OWID/test3"),
         ]
-        mcok_list_templates.return_value = mock_templates
+        mock_services["list_templates"].return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         templates = worker._load_templates()
@@ -150,21 +217,12 @@ class TestLoadTemplates:
 class TestProcessTemplate:
     """Tests for _process_template method."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
-    def test_process_template_success_flow(self, mock_re_svg_lang, mock_worker):
+    def test_process_template_success_flow(self, mock_services, mock_add_svg_worker):
         """Test successful processing of a template."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
         # Mock regex to not match (template doesn't have SVGLanguages yet)
-        mock_re_svg_lang.search = MagicMock(return_value=None)
+        mock_services["RE_SVG_LANG"].search = MagicMock(return_value=None)
 
         # Mock all steps to succeed, with side_effects to set required state
         def mock_load(info):
@@ -179,162 +237,144 @@ class TestProcessTemplate:
             info._new_text = "updated text"
             return True
 
-        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
-        mock_worker._step_generate_template_text = MagicMock(side_effect=mock_generate)
-        mock_worker._step_add_template = MagicMock(side_effect=mock_add)
-        mock_worker._step_save_new_text = MagicMock(return_value=True)
-        mock_worker._append = MagicMock()
+        mock_add_svg_worker._step_load_template_text = MagicMock(side_effect=mock_load)
+        mock_add_svg_worker._step_generate_template_text = MagicMock(side_effect=mock_generate)
+        mock_add_svg_worker._step_add_template = MagicMock(side_effect=mock_add)
+        mock_add_svg_worker._step_save_new_text = MagicMock(return_value=True)
+        mock_add_svg_worker._append = MagicMock()
 
-        mock_worker._process_template(template)
+        mock_add_svg_worker._process_template(template)
 
         # Verify all steps were called
-        mock_worker._step_load_template_text.assert_called_once()
-        mock_worker._step_generate_template_text.assert_called_once()
-        mock_worker._step_add_template.assert_called_once()
-        mock_worker._step_save_new_text.assert_called_once()
-        mock_worker._append.assert_called_once()
+        mock_add_svg_worker._step_load_template_text.assert_called_once()
+        mock_add_svg_worker._step_generate_template_text.assert_called_once()
+        mock_add_svg_worker._step_add_template.assert_called_once()
+        mock_add_svg_worker._step_save_new_text.assert_called_once()
+        mock_add_svg_worker._append.assert_called_once()
 
         # Verify summary was updated
-        assert mock_worker.result["summary"]["processed"] == 1
+        assert mock_add_svg_worker.result["summary"]["processed"] == 1
 
-    def test_process_template_load_step_fails(self, mock_worker):
+    def test_process_template_load_step_fails(self, mock_add_svg_worker):
         """Test that processing stops when load step fails."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
-        mock_worker._step_load_template_text = MagicMock(return_value=False)
-        mock_worker._step_generate_template_text = MagicMock()
-        mock_worker._step_add_template = MagicMock()
-        mock_worker._step_save_new_text = MagicMock()
-        mock_worker._append = MagicMock()
+        mock_add_svg_worker._step_load_template_text = MagicMock(return_value=False)
+        mock_add_svg_worker._step_generate_template_text = MagicMock()
+        mock_add_svg_worker._step_add_template = MagicMock()
+        mock_add_svg_worker._step_save_new_text = MagicMock()
+        mock_add_svg_worker._append = MagicMock()
 
-        mock_worker._process_template(template)
+        mock_add_svg_worker._process_template(template)
 
         # Only load step should be called
-        mock_worker._step_load_template_text.assert_called_once()
-        mock_worker._step_generate_template_text.assert_not_called()
-        mock_worker._step_add_template.assert_not_called()
-        mock_worker._step_save_new_text.assert_not_called()
-        mock_worker._append.assert_called_once()
+        mock_add_svg_worker._step_load_template_text.assert_called_once()
+        mock_add_svg_worker._step_generate_template_text.assert_not_called()
+        mock_add_svg_worker._step_add_template.assert_not_called()
+        mock_add_svg_worker._step_save_new_text.assert_not_called()
+        mock_add_svg_worker._append.assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
-    def test_process_template_generate_step_fails(self, mock_re_svg_lang, mock_worker):
+    def test_process_template_generate_step_fails(self, mock_services, mock_add_svg_worker):
         """Test that processing stops when generate step fails."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
         # Mock regex to not match (so it proceeds past the skip check)
-        mock_re_svg_lang.search = MagicMock(return_value=None)
+        mock_services["RE_SVG_LANG"].search = MagicMock(return_value=None)
 
         def mock_load(info):
             info._text = "some text"
             return True
 
-        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
-        mock_worker._step_generate_template_text = MagicMock(return_value=False)
-        mock_worker._step_add_template = MagicMock()
-        mock_worker._step_save_new_text = MagicMock()
-        mock_worker._append = MagicMock()
+        mock_add_svg_worker._step_load_template_text = MagicMock(side_effect=mock_load)
+        mock_add_svg_worker._step_generate_template_text = MagicMock(return_value=False)
+        mock_add_svg_worker._step_add_template = MagicMock()
+        mock_add_svg_worker._step_save_new_text = MagicMock()
+        mock_add_svg_worker._append = MagicMock()
 
-        mock_worker._process_template(template)
+        mock_add_svg_worker._process_template(template)
 
-        mock_worker._step_load_template_text.assert_called_once()
-        mock_worker._step_generate_template_text.assert_called_once()
-        mock_worker._step_add_template.assert_not_called()
-        mock_worker._step_save_new_text.assert_not_called()
+        mock_add_svg_worker._step_load_template_text.assert_called_once()
+        mock_add_svg_worker._step_generate_template_text.assert_called_once()
+        mock_add_svg_worker._step_add_template.assert_not_called()
+        mock_add_svg_worker._step_save_new_text.assert_not_called()
 
 
 class TestStepLoadTemplateText:
     """Tests for _step_load_template_text method."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_page_text")
-    def test_load_template_text_success(self, mock_get_page_text, mock_worker):
+    def test_load_template_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful loading of template text."""
-        mock_get_page_text.return_value = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        mock_services["get_page_text"].return_value = (
+            "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
+        )
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        result = mock_worker._step_load_template_text(info)
+        result = mock_add_svg_worker._step_load_template_text(info)
 
         assert result is True
         assert info._text is not None
         assert info.steps["load_template_text"]["result"] is True
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_page_text")
-    def test_load_template_text_returns_empty_string(self, mock_get_page_text, mock_worker):
+    def test_load_template_text_returns_empty_string(self, mock_services, mock_add_svg_worker):
         """Test failure when get_page_text returns empty string."""
-        mock_get_page_text.return_value = ""
+        mock_services["get_page_text"].return_value = ""
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        result = mock_worker._step_load_template_text(info)
+        result = mock_add_svg_worker._step_load_template_text(info)
 
         assert result is False
         assert info.status == "failed"
         assert info.error is not None
         assert info.steps["load_template_text"]["result"] is False
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG")
-    def test_load_template_text_skips_if_already_has_svglanguages(self, mock_re_svg_lang, mock_worker):
+    def test_load_template_text_skips_if_already_has_svglanguages(self, mock_services, mock_add_svg_worker):
         """Test that _process_template skips if template already has SVGLanguages."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
         # Mock regex to match (template already has SVGLanguages)
         mock_match = MagicMock()
-        mock_re_svg_lang.search = MagicMock(return_value=mock_match)
+        mock_services["RE_SVG_LANG"].search = MagicMock(return_value=mock_match)
 
         def mock_load(info):
             info._text = "{{SVGLanguages|test.svg}}\nSome content"
             return True
 
-        mock_worker._step_load_template_text = MagicMock(side_effect=mock_load)
-        mock_worker._step_generate_template_text = MagicMock()
-        mock_worker._step_add_template = MagicMock()
-        mock_worker._step_save_new_text = MagicMock()
-        mock_worker._append = MagicMock()
-        mock_worker._skip_step = MagicMock()
+        mock_add_svg_worker._step_load_template_text = MagicMock(side_effect=mock_load)
+        mock_add_svg_worker._step_generate_template_text = MagicMock()
+        mock_add_svg_worker._step_add_template = MagicMock()
+        mock_add_svg_worker._step_save_new_text = MagicMock()
+        mock_add_svg_worker._append = MagicMock()
+        mock_add_svg_worker._skip_step = MagicMock()
 
-        result = mock_worker._process_template(template)
+        result = mock_add_svg_worker._process_template(template)
 
         assert result is False
-        mock_worker._step_load_template_text.assert_called_once()
-        mock_worker._step_generate_template_text.assert_not_called()
+        mock_add_svg_worker._step_load_template_text.assert_called_once()
+        mock_add_svg_worker._step_generate_template_text.assert_not_called()
         # mock_worker._skip_step.assert_called_once()
-        mock_worker._append.assert_called_once()
+        mock_add_svg_worker._append.assert_called_once()
 
 
 class TestStepGenerateTemplateText:
     """Tests for _step_generate_template_text method."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    def test_generate_template_text_success(self, mock_worker):
+    def test_generate_template_text_success(self, mock_add_svg_worker):
         """Test successful generation of template text."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test-file.svg"
 
-        result = mock_worker._step_generate_template_text(info)
+        result = mock_add_svg_worker._step_generate_template_text(info)
 
         assert result is True
         assert info._template_text == "{{SVGLanguages|test-file.svg}}"
         assert info.steps["generate_template_text"]["result"] is True
 
-    def test_generate_template_text_no_translate_link(self, mock_worker):
+    def test_generate_template_text_no_translate_link(self, mock_add_svg_worker):
         """Test failure when no Translate link is found."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "Some content without translate link"
 
-        result = mock_worker._step_generate_template_text(info)
+        result = mock_add_svg_worker._step_generate_template_text(info)
 
         assert result is False
         assert info.status == "failed"
@@ -344,39 +384,29 @@ class TestStepGenerateTemplateText:
 class TestStepAddTemplate:
     """Tests for _step_add_template method."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.add_template_to_text")
-    def test_add_template_success(self, mock_add_template, mock_worker):
+    def test_add_template_success(self, mock_services, mock_add_svg_worker):
         """Test successful addition of template to text."""
-        mock_add_template.return_value = "original text\n*{{SVGLanguages|test.svg}}"
+        mock_services["add_template_to_text"].return_value = "original text\n*{{SVGLanguages|test.svg}}"
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "original text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_worker._step_add_template(info)
+        result = mock_add_svg_worker._step_add_template(info)
 
         assert result is True
         assert info._new_text is not None
-        mock_add_template.assert_called_once_with("original text", "{{SVGLanguages|test.svg}}")
+        mock_services["add_template_to_text"].assert_called_once_with("original text", "{{SVGLanguages|test.svg}}")
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.add_template_to_text")
-    def test_add_template_skips_if_identical(self, mock_add_template, mock_worker):
+    def test_add_template_skips_if_identical(self, mock_services, mock_add_svg_worker):
         """Test that step is skipped if new text is identical to original."""
-        mock_add_template.return_value = "original text"
+        mock_services["add_template_to_text"].return_value = "original text"
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "original text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_worker._step_add_template(info)
+        result = mock_add_svg_worker._step_add_template(info)
 
         assert result is False
         assert info.status == "skipped"
@@ -386,39 +416,29 @@ class TestStepAddTemplate:
 class TestStepSaveNewText:
     """Tests for _step_save_new_text method."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.update_page_text")
-    def test_save_new_text_success(self, mock_update_page_text, mock_worker):
+    def test_save_new_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful saving of new text."""
-        mock_update_page_text.return_value = {"success": True}
+        mock_services["update_page_text"].return_value = {"success": True}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_worker._step_save_new_text(info)
+        result = mock_add_svg_worker._step_save_new_text(info)
 
         assert result is True
         assert info.steps["save_new_text"]["result"] is True
-        mock_update_page_text.assert_called_once()
+        mock_services["update_page_text"].assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.update_page_text")
-    def test_save_new_text_failure(self, mock_update_page_text, mock_worker):
+    def test_save_new_text_failure(self, mock_services, mock_add_svg_worker):
         """Test failure when update_page_text fails."""
-        mock_update_page_text.return_value = {"success": False, "error": "API error"}
+        mock_services["update_page_text"].return_value = {"success": False, "error": "API error"}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
         info._template_text = "{{SVGLanguages|test.svg}}"
 
-        result = mock_worker._step_save_new_text(info)
+        result = mock_add_svg_worker._step_save_new_text(info)
 
         assert result is False
         assert info.status == "failed"
@@ -429,56 +449,46 @@ class TestStepSaveNewText:
 class TestHelperMethods:
     """Tests for helper methods _fail, _skip_step, _append."""
 
-    @pytest.fixture
-    def mock_worker(self, mock_jobs_service):
-        """Create a worker with mocked dependencies."""
-        worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        worker.site = MagicMock()
-        worker.result = worker.get_initial_result()
-        return worker
-
-    def test_fail_marks_step_and_file_as_failed(self, mock_worker):
+    def test_fail_marks_step_and_file_as_failed(self, mock_add_svg_worker):
         """Test that _fail correctly marks step and file as failed."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
 
-        mock_worker._fail(info, "test_step", "Test error message")
+        mock_add_svg_worker._fail(info, "test_step", "Test error message")
 
         assert info.steps["test_step"]["result"] is False
         assert info.steps["test_step"]["msg"] == "Test error message"
         assert info.status == "failed"
         assert info.error == "Test error message"
 
-    def test_skip_step_marks_step_as_skipped(self, mock_worker):
+    def test_skip_step_marks_step_as_skipped(self, mock_add_svg_worker):
         """Test that _skip_step correctly marks step as skipped."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
 
-        mock_worker._skip_step(info, "test_step", "Skip reason")
+        mock_add_svg_worker._skip_step(info, "test_step", "Skip reason")
 
         assert info.steps["test_step"]["result"] is None
         assert info.steps["test_step"]["msg"] == "Skip reason"
 
-    def test_append_adds_template_to_result(self, mock_worker):
+    def test_append_adds_template_to_result(self, mock_add_svg_worker):
         """Test that _append adds template info to result."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info.status = "completed"
 
-        mock_worker._append(info)
+        mock_add_svg_worker._append(info)
 
-        assert len(mock_worker.result["pages_processed"]) == 1
-        assert mock_worker.result["pages_processed"][0]["template_id"] == 1
+        assert len(mock_add_svg_worker.result["pages_processed"]) == 1
+        assert mock_add_svg_worker.result["pages_processed"][0]["template_id"] == 1
 
 
 class TestProcessMethod:
     """Tests for the main process() method."""
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site")
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates")
-    def test_process_success(self, mcok_list_templates, mock_get_user_site, mock_jobs_service, mock_site):
+    def test_process_success(self, mock_services, mock_jobs_service, mock_site):
         """Test successful processing of all templates."""
-        mock_get_user_site.return_value = mock_site
+        mock_services["get_user_site"].return_value = mock_site
 
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
-        mcok_list_templates.return_value = mock_templates
+        mock_services["list_templates"].return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
@@ -489,12 +499,11 @@ class TestProcessMethod:
 
         assert result["status"] == "completed"
         assert result["summary"]["total"] == 1
-        mock_get_user_site.assert_called_once()
+        mock_services["get_user_site"].assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site")
-    def test_process_fails_without_site(self, mock_get_user_site, mock_jobs_service):
+    def test_process_fails_without_site(self, mock_services, mock_jobs_service):
         """Test that process fails when site authentication is not available."""
-        mock_get_user_site.return_value = None
+        mock_services["get_user_site"].return_value = None
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         result = worker.process()
@@ -502,18 +511,16 @@ class TestProcessMethod:
         assert result["status"] == "failed"
         assert "failed_at" in result
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site")
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates")
-    def test_process_handles_cancellation(self, mcok_list_templates, mock_get_user_site, mock_jobs_service, mock_site):
+    def test_process_handles_cancellation(self, mock_services, mock_jobs_service, mock_site):
         """Test that process stops when cancelled."""
-        mock_get_user_site.return_value = mock_site
+        mock_services["get_user_site"].return_value = mock_site
 
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
             MagicMock(id=2, title="Template:OWID/test2"),
             MagicMock(id=3, title="Template:OWID/test3"),
         ]
-        mcok_list_templates.return_value = mock_templates
+        mock_services["list_templates"].return_value = mock_templates
 
         cancel_event = threading.Event()
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"}, cancel_event=cancel_event)
@@ -537,11 +544,10 @@ class TestProcessMethod:
 class TestAddSvgSVGLanguagesTemplateToTemplates:
     """Tests for the add_svglanguages_template_to_templates function."""
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_creates_and_runs_worker(self, mock_worker_class, mock_jobs_service):
+    def test_function_creates_and_runs_worker(self, mock_services, mock_jobs_service):
         """Test that the function creates and runs a worker."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_instance = mock_worker_class.return_value
 
         user = {"username": "test_user"}
         cancel_event = threading.Event()
@@ -551,22 +557,20 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_accepts_args_keyword_param(self, mock_worker_class, mock_jobs_service):
+    def test_function_accepts_args_keyword_param(self, mock_services, mock_jobs_service):
         """Test that the entry point accepts args= keyword-only param (unified signature)."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_instance = mock_worker_class.return_value
 
         # Should not raise TypeError; args is accepted but unused
         add_svglanguages_template_to_templates(job_id=1, user=None, args={"some_key": "some_value"})
 
         mock_worker_instance.run.assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_args_defaults_to_none(self, mock_worker_class, mock_jobs_service):
+    def test_function_args_defaults_to_none(self, mock_services, mock_jobs_service):
         """Test that args defaults to None and the entry point works without it."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_instance = mock_worker_class.return_value
 
         # Call with no args param at all
         add_svglanguages_template_to_templates(job_id=2, user=None)
@@ -574,11 +578,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_maps_add_svglanguages_limit_items_to_limit_items(self, mock_worker_class, mock_jobs_service):
+    def test_function_maps_limit_items(self, mock_services, mock_jobs_service):
         """Test that add_svglanguages_limit_items is mapped to limit_items in args."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
             job_id=1,
@@ -589,11 +591,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"]["limit_items"] == 10
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_does_not_map_when_key_absent(self, mock_worker_class, mock_jobs_service):
+    def test_function_does_not_map_when_key_absent(self, mock_services, mock_jobs_service):
         """Test that args are passed unchanged when add_svglanguages_limit_items is absent."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
             job_id=1,
@@ -604,13 +604,11 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "limit_items" not in call_kwargs["args"]
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_does_not_map_when_value_falsy(self, mock_worker_class, mock_jobs_service):
+    def test_function_does_not_map_when_value_falsy(self, mock_services, mock_jobs_service):
         """Test that mapping is skipped when add_svglanguages_limit_items value is falsy."""
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
         for falsy_value in [0, None, "", False]:
             mock_worker_class.reset_mock()
-            mock_worker_instance = MagicMock()
-            mock_worker_class.return_value = mock_worker_instance
 
             add_svglanguages_template_to_templates(
                 job_id=1,
@@ -621,11 +619,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
             call_kwargs = mock_worker_class.call_args.kwargs
             assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_does_not_modify_args_when_args_is_none(self, mock_worker_class, mock_jobs_service):
+    def test_function_does_not_modify_args_when_args_is_none(self, mock_services, mock_jobs_service):
         """Test that entry point works correctly when args is None."""
-        mock_worker_instance = MagicMock()
-        mock_worker_class.return_value = mock_worker_instance
+        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(job_id=1, user=None, args=None)
 

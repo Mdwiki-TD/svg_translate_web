@@ -3,9 +3,17 @@
 {%- macro render_step(step) -%}
 {% if step %}
 {% if step.result == true %}
+{% if step.newrevid and step.newrevid != 0 %}
+<a href="https://commons.wikimedia.org/w/index.php?diff={{ step.newrevid }}" target="_blank">
+    <span class="badge bg-success" title="{{ step.msg or step.message }}">
+        <i class="bi bi-check-lg"></i> Diff
+    </span>
+</a>
+{% else %}
 <span class="badge bg-success" title="{{ step.msg or step.message }}">
     <i class="bi bi-check-lg"></i>
 </span>
+{% endif %}
 {% elif step.result == false %}
 <span class="badge bg-danger" title="{{ step.msg or step.message }}">
     <i class="bi bi-x-lg"></i>
@@ -168,7 +176,7 @@
 
 {# Diff link #}
 {% macro diff_link(domain, newrevid) %}
-<a href="https://{{ domain }}/w/index.php?diff={{ newrevid }}" target="_blank">
+<a href="https://{{ domain}}/w/index.php?diff={{ newrevid }}" target="_blank">
     Diff
 </a>
 {%- endmacro -%}
