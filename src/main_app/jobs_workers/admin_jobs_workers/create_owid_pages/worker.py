@@ -307,7 +307,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
         Returns True to continue to Step 4 (Creation) if page does not exist.
         """
         # Page exists, check if update is needed
-        current_text = get_page_text(new_title, self.site)
+        new_title_page = MwClientPage(new_title, self.site)
+
+        current_text = new_title_page.get_text()
         if not current_text:
             self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
             return False
@@ -327,11 +329,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             return None  # nothing to update
 
         # Content is different, perform update
-        res = update_page_text(
-            page_name=new_title,
-            updated_text=info._new_text,
-            site=self.site,
-            summary=f"Updating OWID page from [[{info.template_title}]]",
+        res = new_title_page.edit(
+            info._new_text,
+            f"Updating OWID page from [[{info.template_title}]]",
         )
 
         if res["success"]:
