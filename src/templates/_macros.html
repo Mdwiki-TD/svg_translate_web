@@ -2,28 +2,28 @@
 
 {%- macro render_step(step) -%}
 {% if step %}
-{% if step.result == true %}
+{% if step.result == true or step.result == "updated" %}
 {% if step.newrevid and step.newrevid != 0 %}
 <a href="https://commons.wikimedia.org/w/index.php?diff={{ step.newrevid }}" target="_blank">
-    <span class="badge bg-success" title="{{ step.msg or step.message }}">
+    <span class="badge bg-success" title="{{ step.msg or step.message or step.new_value }}">
         <i class="bi bi-check-lg"></i> Diff
     </span>
 </a>
 {% else %}
-<span class="badge bg-success" title="{{ step.msg or step.message }}">
+<span class="badge bg-success" title="{{ step.msg or step.message or step.new_value }}">
     <i class="bi bi-check-lg"></i>
 </span>
 {% endif %}
-{% elif step.result == false %}
+{% elif step.result == false or step.result == "failed" %}
 <span class="badge bg-danger" title="{{ step.msg or step.message }}">
     <i class="bi bi-x-lg"></i>
 </span>
-{% elif step.result is none %}
-<span class="badge bg-secondary" title="{{ step.msg or step.message }}">
+{% elif step.result is none or step.result == "skipped" %}
+<span class="badge bg-secondary" title="{{ step.msg or step.message or step.value }}">
     <i class="bi bi-dash"></i>
 </span>
 {% else %}
-<span class="text-muted">-</span>
+<span class="text-muted" title="{{ step.msg or step.message or step.value }}">-</span>
 {% endif %}
 {% else %}
 <span class="text-muted">-</span>
