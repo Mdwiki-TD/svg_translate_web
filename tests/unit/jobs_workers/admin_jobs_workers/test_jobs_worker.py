@@ -82,26 +82,23 @@ def test_start_collect_templates_data_job(mock_services):
     assert jobs_worker._get_jobs_cancel_event(1) is not None
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_fix_nested_main_files_job(mock_current_app, mock_thread, mock_create_job):
+def test_start_fix_nested_main_files_job(mock_services):
     """Test starting a fix nested main files job."""
     mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
     job_id = jobs_worker.start_job(user, "fix_nested_main_files")
 
     assert job_id == 2
-    mock_create_job.assert_called_once_with("fix_nested_main_files", "test_user")
-    mock_thread.assert_called_once()
+    mock_services["create_job"].assert_called_once_with("fix_nested_main_files", "test_user")
+    mock_services["Thread"].assert_called_once()
 
     # Verify event was registered
     assert jobs_worker._get_jobs_cancel_event(2) is not None
@@ -153,26 +150,23 @@ def test_runner_calls_target_and_cleans_up():
     assert jobs_worker._get_jobs_cancel_event(job_id) is None
 
 
-@patch("src.main_app.jobs_workers.jobs_worker.create_job")
-@patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
-@patch("src.main_app.jobs_workers.jobs_worker.current_app")
-def test_start_download_main_files_job(mock_current_app, mock_thread, mock_create_job):
+def test_start_download_main_files_job(mock_services):
     """Test starting a download main files job."""
     mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
-    mock_create_job.return_value = mock_job
+    mock_services["create_job"].return_value = mock_job
 
     mock_app = MagicMock()
-    mock_current_app._get_current_object.return_value = mock_app
+    mock_services["current_app"]._get_current_object.return_value = mock_app
 
     mock_thread_instance = MagicMock()
-    mock_thread.return_value = mock_thread_instance
+    mock_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
     job_id = jobs_worker.start_job(user, "download_main_files")
 
     assert job_id == 3
-    mock_create_job.assert_called_once_with("download_main_files", "test_user")
-    mock_thread.assert_called_once()
+    mock_services["create_job"].assert_called_once_with("download_main_files", "test_user")
+    mock_services["Thread"].assert_called_once()
 
     # Verify event was registered
     assert jobs_worker._get_jobs_cancel_event(3) is not None
