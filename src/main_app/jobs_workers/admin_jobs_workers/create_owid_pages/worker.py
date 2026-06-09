@@ -144,7 +144,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             if not templates:
                 self.result["summary"]["skipped"] = len_all
                 self.result["status"] = "skipped"
-                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exists"
+                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exist"
                 logger.warning(f"Job {self.job_id}: No templates to process")
                 return self.result
 
