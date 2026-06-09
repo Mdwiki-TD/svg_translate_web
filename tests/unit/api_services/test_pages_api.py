@@ -137,7 +137,9 @@ class TestCreatePage:
         assert "Page load failed" in result["error"]
         assert "Failed to load page 'File:Test.svg'" in caplog.text
 
-    def test_create_page_edit_exception(self, caplog: pytest.LogCaptureFixture, mock_site_not_exists_pages, mock_page) -> None:
+    def test_create_page_edit_exception(
+        self, caplog: pytest.LogCaptureFixture, mock_site_not_exists_pages, mock_page
+    ) -> None:
         """Test create_page handles exception when edit fails."""
 
         mock_page.edit = MagicMock(side_effect=Exception("Edit failed"))

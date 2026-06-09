@@ -13,6 +13,7 @@ from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 # Fixtures & Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
@@ -21,6 +22,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
         _mock,
     )
     return _mock
+
 
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
     """Helper to match the expected return structure of UploadFile."""
@@ -177,6 +179,7 @@ class TestUploadFileInternal:
 # ══════════════════════════════════════════════════════════════════════════════
 # _upload_with_retry
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestUploadWithRetry:
     def test_succeeds_on_first_retry(self, uploader):

@@ -28,14 +28,17 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return _mock
 
+
 def _make_site() -> MagicMock:
     """Return a minimal mock mwclient.Site."""
     return MagicMock(name="site")
+
 
 @pytest.fixture
 def mwclient_wrapper(mock_site) -> MwClientPage:
     site = mock_site
     return MwClientPage("T", site)
+
 
 def _make_page(*, exists: bool = True, is_redirect: bool = False) -> MagicMock:
     """Return a mock mwclient.page.Page."""
@@ -370,7 +373,6 @@ class TestWithRetry:
         assert result == {"success": True}
         assert op.call_count == 1
 
-
     def test_retries_on_rate_limit_then_succeeds(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(
             side_effect=[
@@ -385,7 +387,6 @@ class TestWithRetry:
         assert op.call_count == 2
         mock_sleep.assert_called_once()  # one sleep between the two attempts
 
-
     def test_exhausts_all_retries_and_returns_ratelimited(self, mwclient_wrapper, mock_sleep):
         # Always rate-limited — first call + 3 retries = 4 total calls
         op = MagicMock(return_value={"success": False, "error": "ratelimited"})
@@ -396,7 +397,6 @@ class TestWithRetry:
         assert op.call_count == 4  # 1 initial + 3 retries
         assert mock_sleep.call_count == 3  # sleep before each retry
 
-
     def test_sleep_durations_match_retry_delays(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(return_value={"success": False, "error": "ratelimited"})
 
@@ -404,7 +404,6 @@ class TestWithRetry:
 
         sleep_args = [c.args[0] for c in mock_sleep.call_args_list]
         assert sleep_args == [5, 15, 30]
-
 
     def test_stops_retrying_once_non_ratelimit_error_received(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(
@@ -420,7 +419,6 @@ class TestWithRetry:
         assert op.call_count == 2
         mock_sleep.assert_called_once()
 
-
     def test_edit_retries_on_rate_limit(self, mock_sleep):
         """Full integration of edit() + _with_retry."""
         wrapper, mock_page = _mwclient_page(exists=True)
@@ -434,7 +432,6 @@ class TestWithRetry:
         assert result["success"] is True
         assert mock_page.edit.call_count == 2
         mock_sleep.assert_called_once_with(5)
-
 
     def test_move_retries_on_rate_limit(self):
         """Full integration of move() + _with_retry."""

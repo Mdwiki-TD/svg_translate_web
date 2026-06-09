@@ -14,6 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
     TemplateProcessingInfo,
 )
 
+
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     """Mock the services used by worker module."""

@@ -16,6 +16,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return _mock
 
+
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
     """Helper to match the expected return structure of UploadFile."""
     return {"success": False, "error": message, "error_details": error_details}

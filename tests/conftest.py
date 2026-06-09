@@ -221,6 +221,7 @@ def mock_site() -> MagicMock:
 def mock_page() -> MagicMock:
     return MagicMock()
 
+
 def _site_pages(mock_site: MagicMock, mock_page, exists) -> MagicMock:
     mock_page.exists = exists
     # Use a MagicMock for Pages to handle any key access

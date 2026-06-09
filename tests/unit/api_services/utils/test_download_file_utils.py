@@ -29,10 +29,19 @@ def temp_output_dir(tmp_path):
     return output_dir
 
 
+@pytest.fixture
+def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.api_services.utils.download_file_utils.download_commons_file_core",
+        _mock,
+    )
+    return _mock
+
+
 class TestDownloadCommonsSvgs:
     """Test download_commons_svgs function."""
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_single_file(self, mock_download_core, temp_output_dir):
         """Test downloading a single SVG file."""
         mock_download_core.return_value = b"<svg>content</svg>"
@@ -43,7 +52,6 @@ class TestDownloadCommonsSvgs:
         assert len(result) == 1
         assert (temp_output_dir / "Example.svg").exists()
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_multiple_files(self, mock_download_core, temp_output_dir):
         """Test downloading multiple SVG files."""
         mock_download_core.return_value = b"<svg>content</svg>"
@@ -55,7 +63,6 @@ class TestDownloadCommonsSvgs:
         for title in titles:
             assert (temp_output_dir / title).exists()
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_skips_existing_files(self, mock_download_core, temp_output_dir):
         """Test that existing files are skipped."""
         # Create existing file
@@ -71,7 +78,6 @@ class TestDownloadCommonsSvgs:
         # Content should remain unchanged
         assert existing_file.read_bytes() == b"<svg>old content</svg>"
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_handles_network_error(self, mock_download_core, temp_output_dir):
         """Test handling of network errors."""
         import requests
@@ -84,7 +90,6 @@ class TestDownloadCommonsSvgs:
         # Should return empty list for failed downloads
         assert len(result) == 0
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_handles_404_error(self, mock_download_core, temp_output_dir):
         """Test handling of 404 not found errors."""
         import requests
@@ -97,7 +102,6 @@ class TestDownloadCommonsSvgs:
         # File should not be in result
         assert len(result) == 0
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_empty_list(self, mock_download_core, temp_output_dir):
         """Test downloading with empty titles list."""
         result = download_commons_svgs([], temp_output_dir)
@@ -109,7 +113,6 @@ class TestDownloadCommonsSvgs:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_with_special_characters_in_filename(self, mock_download_core, temp_output_dir):
         """Test downloading files with special characters in names."""
         mock_download_core.return_value = b"<svg>content</svg>"
@@ -119,7 +122,6 @@ class TestEdgeCases:
 
         assert len(result) == 2
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_with_unicode_filename(self, mock_download_core, temp_output_dir):
         """Test downloading files with unicode characters in names."""
         mock_download_core.return_value = b"<svg>content</svg>"
@@ -129,7 +131,6 @@ class TestEdgeCases:
 
         assert len(result) == 2
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
     def test_download_timeout_handling(self, mock_download_core, temp_output_dir):
         """Test handling of request timeouts."""
         import requests

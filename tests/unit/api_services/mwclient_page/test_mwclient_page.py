@@ -23,6 +23,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return _mock
 
+
 @pytest.fixture
 def mock_exists_page() -> MagicMock:
     page = MagicMock()
@@ -147,7 +148,6 @@ class TestEditPageRateLimit:
         result = mw_client._edit_page(mock_exists_page, "text", "summary", nocreate=True)
         assert result == {"success": False, "error": "ratelimited"}
 
-
     def test_ratelimited_then_success(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         rate_exc = make_api_error("ratelimited", "Rate limited")
@@ -159,7 +159,6 @@ class TestEditPageRateLimit:
         result = mw_client.edit_page("text", "summary")
         assert result == {"success": True}
         mock_sleep.assert_called_once_with(5)  # first delay only
-
 
     def test_ratelimited_exhausts_all_retries(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
@@ -174,7 +173,6 @@ class TestEditPageRateLimit:
         assert mock_exists_page.edit.call_count == 4
         assert mock_sleep.call_count == 3
         mock_sleep.assert_has_calls([call(5), call(15), call(30)])
-
 
     def test_ratelimited_then_other_api_error(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
@@ -194,7 +192,6 @@ class TestEditPageRateLimit:
         assert result["success"] is False
         assert result["error"] == "editerror"
         mock_exists_page.edit.assert_called_once()  # no retry on EditError
-
 
     def test_retry_sleep_delays_are_correct(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         """Verify the exact delay sequence: 5s, 15s, 30s."""
@@ -364,7 +361,6 @@ class TestEditPageProtectedErrors:
         assert result["success"] is False
         assert result["error"] == "protectedpageerror"
         mock_exists_page.edit.assert_called_once()  # no retry on ProtectedPageError
-
 
     def test_ratelimited_then_protected(self, mock_protected_page, mw_client, mock_site, mock_exists_page):
         """Non-ratelimited error during retry should be returned immediately."""
