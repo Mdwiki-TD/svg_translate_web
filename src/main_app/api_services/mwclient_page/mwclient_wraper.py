@@ -101,9 +101,12 @@ class MwClientPage:
         if not page:
             logger.warning(f"Failed to load page '{self.title}'")
             return False
-
-        if not page.exists:
-            logger.warning(f"Page '{self.title}' does not exist")
+        try:
+            if not page.exists:
+                logger.warning(f"Page '{self.title}' does not exist")
+                return False
+        except Exception as exc:
+            logger.debug(f"Could not check if page '{self.title}' exists: {exc}")
             return False
 
         logger.info(f"Page '{self.title}' exists")
