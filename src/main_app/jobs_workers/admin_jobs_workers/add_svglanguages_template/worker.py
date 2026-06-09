@@ -142,8 +142,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             template_title=template.title,
         )
 
+        page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
-        if not self._step_load_template_text(file_info):
+        if not self._step_load_template_text(file_info, page):
             self._append(file_info, key="pages_failed")
             return False
 
@@ -166,7 +167,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             return False
 
         # Step 4 save_new_text
-        if not self._step_save_new_text(file_info):
+        if not self._step_save_new_text(file_info, page):
             self._append(file_info, key="pages_failed")
             return False
 
@@ -180,9 +181,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_load_template_text(self, info: TemplateInfo) -> bool:
+    def _step_load_template_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
         """Download the original Template wikitext. Returns True on success."""
-        text = MwClientPage(info.template_title, self.site).get_text()
+        text = page.get_text()
         if not text:
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
@@ -217,10 +218,9 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         info.steps["add_template_text"] = {"result": True, "msg": "Wikitext updated"}
         return True
 
-    def _step_save_new_text(self, info: TemplateInfo) -> bool:
+    def _step_save_new_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
-        page = MwClientPage(info.template_title, self.site)
 
         update_result = page.edit(
             info._new_text,

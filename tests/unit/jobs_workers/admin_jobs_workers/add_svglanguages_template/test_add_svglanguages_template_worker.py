@@ -24,7 +24,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_re_svg_lang = MagicMock()
     mock_mwclientpage = MagicMock()
     mock_add_template_to_text = MagicMock()
-    mock_update_page_text = MagicMock()
     mock_get_user_site = MagicMock()
     mock_list_templates = MagicMock()
 
@@ -45,10 +44,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_add_template_to_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.update_page_text",
-        mock_update_page_text,
-    )
-    monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site",
         mock_get_user_site,
     )
@@ -65,7 +60,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "RE_SVG_LANG": mock_re_svg_lang,
         "MwClientPage": mock_mwclientpage,
         "add_template_to_text": mock_add_template_to_text,
-        "update_page_text": mock_update_page_text,
         "get_user_site": mock_get_user_site,
         "list_templates": mock_list_templates,
         "AddSvgSVGLanguagesTemplate": _mock_class,
@@ -418,7 +412,7 @@ class TestStepSaveNewText:
 
     def test_save_new_text_success(self, mock_services, mock_add_svg_worker):
         """Test successful saving of new text."""
-        mock_services["update_page_text"].return_value = {"success": True}
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
@@ -428,11 +422,11 @@ class TestStepSaveNewText:
 
         assert result is True
         assert info.steps["save_new_text"]["result"] is True
-        mock_services["update_page_text"].assert_called_once()
+        mock_services["MwClientPage"].return_value.edit.assert_called_once()
 
     def test_save_new_text_failure(self, mock_services, mock_add_svg_worker):
-        """Test failure when update_page_text fails."""
-        mock_services["update_page_text"].return_value = {"success": False, "error": "API error"}
+        """Test failure when edit fails."""
+        mock_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "API error"}
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
