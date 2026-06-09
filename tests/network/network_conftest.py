@@ -5,13 +5,16 @@ import functools
 import mwclient
 import pytest
 
-from src.main_app.api_services.clients import get_cronjob_site
-
 
 @functools.lru_cache(maxsize=10)
 def shared_site_resource(domain: str) -> mwclient.Site:
     # This runs only once when the file starts
-    return get_cronjob_site(domain=domain)
+    return mwclient.Site(
+        domain,
+        scheme="https",
+        clients_useragent="TestClient/1.0",
+        force_login=False,
+    )
 
 
 class TestNetwork:

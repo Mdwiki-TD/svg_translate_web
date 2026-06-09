@@ -196,7 +196,7 @@ class MwClientPage:
     # ------------------------------------------------------------------
 
     def check_exists(self) -> bool:
-        return self.check_exists()
+        return self.exists()
 
     def move_page(
         self,
