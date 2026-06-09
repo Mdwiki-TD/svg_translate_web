@@ -5,7 +5,6 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
-import mwclient
 import pytest
 
 from src.main_app.db.models import TemplateRecord
@@ -423,13 +422,12 @@ class TestUpdateStep:
 
 
 class TestCreateNewPageStep:
-    def test_step_create_new_page_success(self, mock_services):
+    def test_step_create_new_page_success(self, mock_services, mock_site):
         """Test _step_create_new_page with successful creation."""
         mock_services["create_page"].return_value = {"success": True}
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         worker.result = worker.get_initial_result()
-        mock_site = MagicMock(spec=mwclient.Site)
         worker.site = mock_site
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New OWID page content"

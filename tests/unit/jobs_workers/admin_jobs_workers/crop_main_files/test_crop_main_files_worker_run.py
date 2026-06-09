@@ -6,7 +6,6 @@ import threading
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import mwclient
 import pytest
 
 from src.main_app.db.models import TemplateRecord
@@ -14,7 +13,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
     CropMainFilesWorker,
     TemplateProcessingInfo,
 )
-
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
@@ -772,17 +770,10 @@ class TestCropMainFilesProcessorHelpers:
 class TestCropMainFilesProcessorProcessTemplate:
     """Tests for _process_template method."""
 
-    def test_process_template_file_already_exists(self, mock_services):
+    def test_process_template_file_already_exists(self, mock_services, mock_site_exists_pages):
         """Test processing when cropped file already exists on Commons."""
-        mock_site = MagicMock(spec=mwclient.Site)
-        mock_page = MagicMock()
-        mock_page.exists = True
-        # Use a MagicMock for Pages to handle any key access
-        mock_pages = MagicMock()
-        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.pages = mock_pages
 
-        mock_services["get_user_site"].return_value = mock_site
+        mock_services["get_user_site"].return_value = mock_site_exists_pages
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["update_page_text"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Template text"
@@ -794,7 +785,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": True},
         )
-        processor.site = mock_site
+        processor.site = mock_site_exists_pages
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
@@ -806,17 +797,10 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert processor.result["pages_updated"][0]["steps"]["download"]["result"] is None
         assert "Skipped" in processor.result["pages_updated"][0]["steps"]["download"]["msg"]
 
-    def test_process_template_full_pipeline(self, mock_services, tmp_path):
+    def test_process_template_full_pipeline(self, mock_services, tmp_path, mock_site_not_exists_pages):
         """Test full pipeline for a new file."""
-        mock_site = MagicMock(spec=mwclient.Site)
-        mock_page = MagicMock()
-        mock_page.exists = False
-        # Use a MagicMock for Pages to handle any key access
-        mock_pages = MagicMock()
-        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.pages = mock_pages
 
-        mock_services["get_user_site"].return_value = mock_site
+        mock_services["get_user_site"].return_value = mock_site_not_exists_pages
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Original file text"
@@ -831,7 +815,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": True},
         )
-        processor.site = mock_site
+        processor.site = mock_site_not_exists_pages
         processor.original_dir = tmp_path / "original"
         processor.cropped_dir = tmp_path / "cropped"
 
@@ -844,15 +828,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
 
-    def test_process_template_upload_disabled(self, mock_services, tmp_path):
+    def test_process_template_upload_disabled(self, mock_services, tmp_path, mock_site_not_exists_pages):
         """Test processing when upload_files is False."""
-        mock_site = MagicMock(spec=mwclient.Site)
-        mock_page = MagicMock()
-        mock_page.exists = False
-        # Use a MagicMock for Pages to handle any key access
-        mock_pages = MagicMock()
-        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.pages = mock_pages
 
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
@@ -862,7 +839,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": False},
         )
-        processor.site = mock_site
+        processor.site = mock_site_not_exists_pages
         processor.original_dir = tmp_path / "original"
         processor.cropped_dir = tmp_path / "cropped"
 
@@ -881,17 +858,11 @@ class TestCropMainFilesProcessorProcessTemplate:
 class TestCropMainFilesProcessorRun:
     """Tests for run method."""
 
-    def test_run_full_workflow(self, mock_services, tmp_path):
+    def test_run_full_workflow(self, mock_services, tmp_path, mock_site_not_exists_pages):
         """Test complete run workflow."""
-        mock_site = MagicMock(spec=mwclient.Site)
-        mock_page = MagicMock()
-        mock_page.exists = False
-        # Use a MagicMock for Pages to handle any key access
-        mock_pages = MagicMock()
-        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-        mock_site.pages = mock_pages
 
-        mock_services["get_user_site"].return_value = mock_site
+        mock_services["get_user_site"].return_value = mock_site_not_exists_pages
+
         mock_services["create_commons_session"].return_value = MagicMock()
         mock_services["list_templates"].return_value = [
             TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg"),

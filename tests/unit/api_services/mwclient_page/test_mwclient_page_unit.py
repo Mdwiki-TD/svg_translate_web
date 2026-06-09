@@ -10,6 +10,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import mwclient.errors
+import pytest
 
 from src.main_app.api_services.mwclient_page.mwclient_wraper import MwClientPage
 
@@ -18,10 +19,23 @@ from src.main_app.api_services.mwclient_page.mwclient_wraper import MwClientPage
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture(autouse=True)
+def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep",
+        _mock,
+    )
+    return _mock
+
 def _make_site() -> MagicMock:
     """Return a minimal mock mwclient.Site."""
     return MagicMock(name="site")
 
+@pytest.fixture
+def mwclient_wrapper(mock_site) -> MwClientPage:
+    site = mock_site
+    return MwClientPage("T", site)
 
 def _make_page(*, exists: bool = True, is_redirect: bool = False) -> MagicMock:
     """Return a mock mwclient.page.Page."""
@@ -31,12 +45,12 @@ def _make_page(*, exists: bool = True, is_redirect: bool = False) -> MagicMock:
     return page
 
 
-def _mwclient_page(title: str = "Test Page", *, exists: bool = True) -> tuple[MwClientPage, MagicMock]:
+def _mwclient_page(exists: bool = True) -> tuple[MwClientPage, MagicMock]:
     """Return (MwClientPage, inner_mock_page) with load_page pre-wired."""
-    site = _make_site()
+    _site = MagicMock()
     mock_page = _make_page(exists=exists)
-    site.pages.__getitem__ = MagicMock(return_value=mock_page)
-    wrapper = MwClientPage(title, site)
+    _site.pages.__getitem__ = MagicMock(return_value=mock_page)
+    wrapper = MwClientPage("Test Page", _site)
     return wrapper, mock_page
 
 
@@ -46,8 +60,8 @@ def _mwclient_page(title: str = "Test Page", *, exists: bool = True) -> tuple[Mw
 
 
 class TestInit:
-    def test_initial_state(self):
-        site = _make_site()
+    def test_initial_state(self, mock_site):
+        site = mock_site
         wrapper = MwClientPage("Some Title", site)
 
         assert wrapper.title == "Some Title"
@@ -75,24 +89,24 @@ class TestLoadPage:
         assert first is second
         assert wrapper.site.pages.__getitem__.call_count == 1
 
-    def test_sets_error_on_invalid_title(self):
-        site = _make_site()
+    def test_sets_error_on_invalid_title(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = mwclient.errors.InvalidPageTitle(MagicMock(), "")
         wrapper = MwClientPage("[Bad<Title>]", site)
         result = wrapper.load_page()
         assert result is None
         assert wrapper.load_page_error == "invalidpagetitle"
 
-    def test_sets_error_on_generic_exception(self):
-        site = _make_site()
+    def test_sets_error_on_generic_exception(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("network down")
         wrapper = MwClientPage("Any Title", site)
         result = wrapper.load_page()
         assert result is None
         assert "network down" in wrapper.load_page_error
 
-    def test_returns_none_when_already_failed(self):
-        site = _make_site()
+    def test_returns_none_when_already_failed(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = mwclient.errors.InvalidPageTitle(MagicMock(), "")
         wrapper = MwClientPage("Bad", site)
         wrapper.load_page()  # first call sets the error
@@ -114,8 +128,8 @@ class TestExists:
         wrapper, _ = _mwclient_page(exists=False)
         assert wrapper.exists() is False
 
-    def test_false_when_load_page_fails(self):
-        site = _make_site()
+    def test_false_when_load_page_fails(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("offline")
         wrapper = MwClientPage("Any", site)
         assert wrapper.exists() is False
@@ -159,8 +173,8 @@ class TestGetRedirectTarget:
         result = wrapper.get_redirect_target()
         assert result is None
 
-    def test_returns_none_when_load_fails(self):
-        site = _make_site()
+    def test_returns_none_when_load_fails(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError
         wrapper = MwClientPage("Any", site)
         assert wrapper.get_redirect_target() is None
@@ -210,8 +224,8 @@ class TestEdit:
 
         mock_page.edit.assert_called_once_with("content", summary="summary", nocreate=False)
 
-    def test_returns_failure_when_load_page_fails(self):
-        site = _make_site()
+    def test_returns_failure_when_load_page_fails(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("down")
         wrapper = MwClientPage("X", site)
 
@@ -270,8 +284,8 @@ class TestCreate:
         result = wrapper.create("content", "summary")
         assert result == {"success": False, "error": "page exists"}
 
-    def test_fails_when_load_page_fails(self):
-        site = _make_site()
+    def test_fails_when_load_page_fails(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("down")
         wrapper = MwClientPage("New", site)
         result = wrapper.create("content", "summary")
@@ -311,8 +325,8 @@ class TestMove:
         result = wrapper.move("New Title")
         assert result == {"success": False, "error": "missing"}
 
-    def test_fails_when_load_page_fails(self):
-        site = _make_site()
+    def test_fails_when_load_page_fails(self, mock_site):
+        site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("down")
         wrapper = MwClientPage("Old", site)
         result = wrapper.move("New")
@@ -348,22 +362,16 @@ class TestMove:
 class TestWithRetry:
     """Tests for the internal _with_retry mechanism."""
 
-    def _make_wrapper(self) -> MwClientPage:
-        site = _make_site()
-        return MwClientPage("T", site)
-
-    def test_succeeds_immediately_when_no_rate_limit(self):
-        wrapper = self._make_wrapper()
+    def test_succeeds_immediately_when_no_rate_limit(self, mwclient_wrapper):
         op = MagicMock(return_value={"success": True})
 
-        result = wrapper._with_retry(op)
+        result = mwclient_wrapper._with_retry(op)
 
         assert result == {"success": True}
         assert op.call_count == 1
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
-    def test_retries_on_rate_limit_then_succeeds(self, mock_sleep):
-        wrapper = self._make_wrapper()
+
+    def test_retries_on_rate_limit_then_succeeds(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(
             side_effect=[
                 {"success": False, "error": "ratelimited"},
@@ -371,37 +379,34 @@ class TestWithRetry:
             ]
         )
 
-        result = wrapper._with_retry(op)
+        result = mwclient_wrapper._with_retry(op)
 
         assert result["success"] is True
         assert op.call_count == 2
         mock_sleep.assert_called_once()  # one sleep between the two attempts
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
-    def test_exhausts_all_retries_and_returns_ratelimited(self, mock_sleep):
-        wrapper = self._make_wrapper()
+
+    def test_exhausts_all_retries_and_returns_ratelimited(self, mwclient_wrapper, mock_sleep):
         # Always rate-limited — first call + 3 retries = 4 total calls
         op = MagicMock(return_value={"success": False, "error": "ratelimited"})
 
-        result = wrapper._with_retry(op)
+        result = mwclient_wrapper._with_retry(op)
 
         assert result == {"success": False, "error": "ratelimited"}
         assert op.call_count == 4  # 1 initial + 3 retries
         assert mock_sleep.call_count == 3  # sleep before each retry
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
-    def test_sleep_durations_match_retry_delays(self, mock_sleep):
-        wrapper = self._make_wrapper()
+
+    def test_sleep_durations_match_retry_delays(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(return_value={"success": False, "error": "ratelimited"})
 
-        wrapper._with_retry(op)
+        mwclient_wrapper._with_retry(op)
 
         sleep_args = [c.args[0] for c in mock_sleep.call_args_list]
         assert sleep_args == [5, 15, 30]
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
-    def test_stops_retrying_once_non_ratelimit_error_received(self, mock_sleep):
-        wrapper = self._make_wrapper()
+
+    def test_stops_retrying_once_non_ratelimit_error_received(self, mwclient_wrapper, mock_sleep):
         op = MagicMock(
             side_effect=[
                 {"success": False, "error": "ratelimited"},
@@ -409,13 +414,13 @@ class TestWithRetry:
             ]
         )
 
-        result = wrapper._with_retry(op)
+        result = mwclient_wrapper._with_retry(op)
 
         assert result["error"] == "protectedpageerror"
         assert op.call_count == 2
         mock_sleep.assert_called_once()
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
+
     def test_edit_retries_on_rate_limit(self, mock_sleep):
         """Full integration of edit() + _with_retry."""
         wrapper, mock_page = _mwclient_page(exists=True)
@@ -430,8 +435,8 @@ class TestWithRetry:
         assert mock_page.edit.call_count == 2
         mock_sleep.assert_called_once_with(5)
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
-    def test_move_retries_on_rate_limit(self, mock_sleep):
+
+    def test_move_retries_on_rate_limit(self):
         """Full integration of move() + _with_retry."""
         wrapper, mock_page = _mwclient_page(exists=True)
         mock_page.move.side_effect = [

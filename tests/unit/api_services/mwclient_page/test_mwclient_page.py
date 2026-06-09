@@ -5,7 +5,7 @@ src/main_app/api_services/mwclient_page/mwclient_wraper.py
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call
 
 import mwclient.errors
 import pytest
@@ -13,6 +13,15 @@ import pytest
 from src.main_app.api_services.mwclient_page import MwClientPage
 from src.main_app.api_services.mwclient_page.mwclient_wraper import _RETRY_DELAYS
 
+
+@pytest.fixture(autouse=True)
+def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep",
+        _mock,
+    )
+    return _mock
 
 @pytest.fixture
 def mock_exists_page() -> MagicMock:
@@ -138,7 +147,7 @@ class TestEditPageRateLimit:
         result = mw_client._edit_page(mock_exists_page, "text", "summary", nocreate=True)
         assert result == {"success": False, "error": "ratelimited"}
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
+
     def test_ratelimited_then_success(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         rate_exc = make_api_error("ratelimited", "Rate limited")
@@ -151,7 +160,7 @@ class TestEditPageRateLimit:
         assert result == {"success": True}
         mock_sleep.assert_called_once_with(5)  # first delay only
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
+
     def test_ratelimited_exhausts_all_retries(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         rate_exc = make_api_error("ratelimited", "Rate limited")
@@ -166,7 +175,7 @@ class TestEditPageRateLimit:
         assert mock_sleep.call_count == 3
         mock_sleep.assert_has_calls([call(5), call(15), call(30)])
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
+
     def test_ratelimited_then_other_api_error(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         rate_exc = make_api_error("ratelimited", "Rate limited")
@@ -186,7 +195,7 @@ class TestEditPageRateLimit:
         assert result["error"] == "editerror"
         mock_exists_page.edit.assert_called_once()  # no retry on EditError
 
-    @patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep")
+
     def test_retry_sleep_delays_are_correct(self, mock_sleep, mw_client, mock_site, mock_exists_page):
         """Verify the exact delay sequence: 5s, 15s, 30s."""
         mock_site.pages.__getitem__.return_value = mock_exists_page
@@ -205,14 +214,12 @@ class TestEditPageRateLimit:
 class TestEditWithRetry:
     def test_succeeds_on_first_retry(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = [None]  # succeeds immediately
-        with patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep"):
-            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
+        result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
         assert result == {"success": True}
 
     def test_returns_ratelimited_after_all_retries(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = make_api_error("ratelimited")
-        with patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep"):
-            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary", nocreate=True)
+        result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary", nocreate=True)
         assert result == {"success": False, "error": "ratelimited"}
         assert mock_exists_page.edit.call_count == 1 + len(_RETRY_DELAYS)
 
@@ -221,8 +228,7 @@ class TestEditWithRetry:
             make_api_error("ratelimited"),
             mwclient.errors.AssertUserFailedError(),
         ]
-        with patch("src.main_app.api_services.mwclient_page.mwclient_wraper.time.sleep"):
-            result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
+        result = mw_client._with_retry(mw_client._edit_page, mock_exists_page, "text", "summary")
         assert result == {"success": False, "error": "assertuserfailed"}
         assert mock_exists_page.edit.call_count == 2
 
@@ -359,8 +365,8 @@ class TestEditPageProtectedErrors:
         assert result["error"] == "protectedpageerror"
         mock_exists_page.edit.assert_called_once()  # no retry on ProtectedPageError
 
-    @patch("src.main_app.api_services.mwclient_page.time.sleep")
-    def test_ratelimited_then_protected(self, mock_sleep, mock_protected_page, mw_client, mock_site, mock_exists_page):
+
+    def test_ratelimited_then_protected(self, mock_protected_page, mw_client, mock_site, mock_exists_page):
         """Non-ratelimited error during retry should be returned immediately."""
         mock_site.pages.__getitem__.return_value = mock_exists_page
         mock_exists_page.edit.side_effect = [

@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import MagicMock
 
-import mwclient
 import pytest
 from cryptography.fernet import Fernet
 from flask.app import Flask
@@ -215,7 +214,30 @@ def sample_multiple_owidslidersrcs() -> str:
 
 @pytest.fixture
 def mock_site() -> MagicMock:
-    return MagicMock(spec=mwclient.Site)
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_page() -> MagicMock:
+    return MagicMock()
+
+def _site_pages(mock_site: MagicMock, mock_page, exists) -> MagicMock:
+    mock_page.exists = exists
+    # Use a MagicMock for Pages to handle any key access
+    mock_pages = MagicMock()
+    mock_pages.__getitem__ = MagicMock(return_value=mock_page)
+    mock_site.pages = mock_pages
+    return mock_site
+
+
+@pytest.fixture
+def mock_site_not_exists_pages(mock_site: MagicMock, mock_page: MagicMock) -> MagicMock:
+    return _site_pages(mock_site, mock_page, exists=False)
+
+
+@pytest.fixture
+def mock_site_exists_pages(mock_site: MagicMock, mock_page: MagicMock) -> MagicMock:
+    return _site_pages(mock_site, mock_page, exists=True)
 
 
 @pytest.fixture(autouse=True)

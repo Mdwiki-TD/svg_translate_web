@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import mwclient.errors
 import pytest
@@ -13,6 +13,14 @@ from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 # Fixtures & Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
+@pytest.fixture(autouse=True)
+def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.api_services.upload_bot.time.sleep",
+        _mock,
+    )
+    return _mock
 
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
     """Helper to match the expected return structure of UploadFile."""
@@ -113,11 +121,9 @@ class TestCheckKwargs:
         u = UploadFile("Test.jpg", tmp_file, mock_site, new_file=False)
         assert u._check_kwargs() == {"success": True, "error": None}
 
-    def test_all_valid_new_file(self, mock_site, tmp_file):
-        mock_page = MagicMock()
-        mock_page.exists = False
-        mock_site.pages.__getitem__.return_value = mock_page
-        u = UploadFile("Test.jpg", tmp_file, mock_site, new_file=True)
+    def test_all_valid_new_file(self, mock_site_not_exists_pages, tmp_file):
+
+        u = UploadFile("Test.jpg", tmp_file, mock_site_not_exists_pages, new_file=True)
         assert u._check_kwargs() == {"success": True, "error": None}
 
 
@@ -172,25 +178,21 @@ class TestUploadFileInternal:
 # _upload_with_retry
 # ══════════════════════════════════════════════════════════════════════════════
 
-
 class TestUploadWithRetry:
     def test_succeeds_on_first_retry(self, uploader):
         uploader._upload_file = MagicMock(return_value=make_upload_response())
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = uploader._upload_with_retry()
+        result = uploader._upload_with_retry()
         assert result["result"] == "Success"
 
     def test_exhausts_all_retries(self, uploader):
         uploader._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = uploader._upload_with_retry()
+        result = uploader._upload_with_retry()
         assert result["error"] == "ratelimited"
         assert uploader._upload_file.call_count == len(_RETRY_DELAYS)
 
-    def test_sleeps_correct_delays(self, uploader):
+    def test_sleeps_correct_delays(self, uploader: MagicMock, mock_sleep):
         uploader._upload_file = MagicMock(return_value=_err("ratelimited", ""))
-        with patch("src.main_app.api_services.upload_bot.time.sleep") as mock_sleep:
-            uploader._upload_with_retry()
+        uploader._upload_with_retry()
         sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
         assert sleep_calls == list(_RETRY_DELAYS)
 
@@ -202,8 +204,7 @@ class TestUploadWithRetry:
                 _err("userblocked", "User is blocked"),
             ]
         )
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = uploader._upload_with_retry()
+        result = uploader._upload_with_retry()
         assert result["error"] == "userblocked"
         assert uploader._upload_file.call_count == 2
 
@@ -215,7 +216,6 @@ class TestUploadWithRetry:
                 make_upload_response(),
             ]
         )
-        with patch("src.main_app.api_services.upload_bot.time.sleep"):
-            result = uploader._upload_with_retry()
+        result = uploader._upload_with_retry()
         assert result["result"] == "Success"
         assert uploader._upload_file.call_count == 3
