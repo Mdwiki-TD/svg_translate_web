@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -35,6 +35,24 @@ def clean_cancel_events():
     yield
     with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
         jobs_worker.JOBS_CANCEL_EVENTS.clear()
+
+
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    """Mock create_job, Thread, and current_app for job worker tests."""
+    mock_create_job = MagicMock()
+    mock_thread = MagicMock()
+    mock_current_app = MagicMock()
+
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job", mock_create_job)
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.threading.Thread", mock_thread)
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.current_app", mock_current_app)
+
+    return {
+        "create_job": mock_create_job,
+        "Thread": mock_thread,
+        "current_app": mock_current_app,
+    }
 
 
 @patch("src.main_app.jobs_workers.jobs_worker.create_job")
