@@ -773,8 +773,8 @@ class TestCropMainFilesProcessorProcessTemplate:
 
     def test_process_template_file_already_exists(self, mock_services, mock_site_pages):
         """Test processing when cropped file already exists on Commons."""
-        _site =  mock_site_pages(True)
-        mock_services["get_user_site"].return_value =_site
+        _site = mock_site_pages(True)
+        mock_services["get_user_site"].return_value = _site
         mock_services["update_original_file_text"].return_value = "Updated original"
         mock_services["update_page_text"].return_value = {"success": True}
         mock_services["get_page_text"].return_value = "Template text"
@@ -801,7 +801,7 @@ class TestCropMainFilesProcessorProcessTemplate:
     def test_process_template_full_pipeline(self, mock_services, tmp_path, mock_site_pages):
         """Test full pipeline for a new file."""
 
-        _site =  mock_site_pages(False)
+        _site = mock_site_pages(False)
         mock_services["get_user_site"].return_value = _site
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
         mock_services["crop_svg_file"].return_value = {"success": True}
@@ -841,7 +841,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             user=None,
             args={"upload_files": False},
         )
-        _site =  mock_site_pages(False)
+        _site = mock_site_pages(False)
         processor.site = _site
         processor.original_dir = tmp_path / "original"
         processor.cropped_dir = tmp_path / "cropped"
@@ -863,7 +863,7 @@ class TestCropMainFilesProcessorRun:
 
     def test_run_full_workflow(self, mock_services, tmp_path, mock_site_pages):
         """Test complete run workflow."""
-        _site =  mock_site_pages(False)
+        _site = mock_site_pages(False)
 
         mock_services["get_user_site"].return_value = _site
 

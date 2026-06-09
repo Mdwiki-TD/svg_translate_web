@@ -221,6 +221,7 @@ def mock_site() -> MagicMock:
 def mock_page() -> MagicMock:
     return MagicMock()
 
+
 @pytest.fixture
 def mock_site_pages(mock_site, mock_page):
     def _factory(page_exists: bool) -> MagicMock:
@@ -231,7 +232,9 @@ def mock_site_pages(mock_site, mock_page):
 
         mock_site.pages = mock_pages
         return mock_site
+
     return _factory
+
 
 @pytest.fixture(autouse=True)
 def setup_db(app):

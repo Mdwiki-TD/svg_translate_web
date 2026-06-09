@@ -125,7 +125,7 @@ class TestCheckKwargs:
 
     def test_all_valid_new_file(self, mock_site_pages, tmp_file):
 
-        _site =  mock_site_pages(False)
+        _site = mock_site_pages(False)
 
         u = UploadFile("Test.jpg", tmp_file, _site, new_file=True)
         assert u._check_kwargs() == {"success": True, "error": None}

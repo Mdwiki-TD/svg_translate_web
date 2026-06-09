@@ -15,16 +15,18 @@ from src.main_app.api_services.pages_api import (
     update_page_text,
 )
 
+
 @pytest.fixture
 def mock_site_not_exists_pages(mock_site_pages):
     return mock_site_pages(False)
+
 
 class TestIsPageExists:
     """Tests for the is_page_exists function."""
 
     def test_page_exists_returns_true(self, mock_site_pages) -> None:
         """Test that is_page_exists returns True when page exists."""
-        _site =  mock_site_pages(True)
+        _site = mock_site_pages(True)
         result = is_page_exists("File:Test.svg", _site)
 
         assert result is True
@@ -40,7 +42,7 @@ class TestIsPageExists:
 
     def test_page_exists_logs_info(self, caplog: pytest.LogCaptureFixture, mock_site_pages) -> None:
         """Test that is_page_exists logs a info when page exists."""
-        _site =  mock_site_pages(True)
+        _site = mock_site_pages(True)
         with caplog.at_level(logging.INFO):
             result = is_page_exists("File:Existing.svg", _site)
 
