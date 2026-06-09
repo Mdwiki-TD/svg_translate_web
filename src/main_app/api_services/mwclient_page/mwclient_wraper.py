@@ -110,17 +110,15 @@ class MwClientPage:
         return True
 
     def get_redirect_target(self) -> str | None:
-        """ """
+        """Get the redirect target page name if the page is a redirect."""
         page = self.load_page()
-
-        if not page or not page.exists:
+        if not page:
             return None
-
         try:
+            if not page.exists:
+                return None
             target = page.redirects_to()
-            if target is None:
-                raise Exception("Page is not a redirect")
-            return target
+            return target.name if target is not None else None
         except Exception as exc:
             logger.debug(f"Could not get redirect of '{self.title}': {exc}")
             return None
