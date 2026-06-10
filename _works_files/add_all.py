@@ -56,6 +56,10 @@ def add_all_to_source_files(src_root):
 
             file_path = current_path / file
 
+            text = file_path.read_text(encoding="utf-8")
+            if 'if __name__ == "__main__":' in text:
+                continue
+
             # Extract items and check for existing __all__
             classes, functions, has_all = extract_exportable_items(file_path)
             items_to_export = classes + functions
