@@ -54,12 +54,12 @@ def test_user_token_record(app: Flask) -> None:
         token = encrypt_value("access_token_val")
         secret = encrypt_value("access_secret_val")
 
-        user_token = UserTokenRecord(user_id=123, access_token=token, access_secret=secret)
+        user_token = UserTokenRecord(user_id=123, username="model_token_user", access_token=token, access_secret=secret)
         db.session.add(user_token)
         db.session.commit()
 
         assert user_token.user_id == 123
-        assert user_token.user.username == "model_token_user"
+        assert user_token.username == "model_token_user"
 
         assert user_token.access_token != b"access_token_val"  # encrypted
         assert user_token.access_secret != b"access_secret_val"
