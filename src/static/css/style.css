@@ -73,7 +73,7 @@ a {
     to { transform: rotate(360deg); }
 }
 
-#auto-refresh-indicator .bi-arrow-repeat {
+#auto-refresh-indicator.spin {
     display: inline-block;
     animation: spin 1s linear infinite;
 }
