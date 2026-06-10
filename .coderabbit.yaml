@@ -2,20 +2,20 @@
 language: "en"
 early_access: false
 reviews:
-  profile: "chill"
-  request_changes_workflow: false
-  high_level_summary: true
-  poem: true
-  review_status: true
-  collapse_walkthrough: false
-  auto_review:
-    enabled: true
-    ignore_title_keywords:
-      - "WIP"
-      - "DO NOT MERGE"
-    drafts: false
-    path_filters:
-      - "!**/old/**"
+    profile: "chill"
+    request_changes_workflow: false
+    high_level_summary: true
+    poem: true
+    review_status: true
+    collapse_walkthrough: false
+    auto_review:
+        enabled: true
+        ignore_title_keywords:
+            - "WIP"
+            - "DO NOT MERGE"
+        drafts: false
+        path_filters:
+            - "!**/old/**"
 
 chat:
-  auto_reply: true
+    auto_reply: true

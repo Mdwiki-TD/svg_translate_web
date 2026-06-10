@@ -35,13 +35,13 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
     )
     return session
 
-
 def download_commons_file_core(
     filename: str,
     session: requests.Session,
     timeout: int = 60,
 ) -> bytes:
-    """Download a file from Wikimedia Commons and return raw content.
+    """
+    Download a file from Wikimedia Commons and return raw content.
 
     This is the lowest-level download function that handles the actual HTTP
     request to Commons. It performs no file I/O or application-level validation;

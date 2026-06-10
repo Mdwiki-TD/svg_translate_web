@@ -13,10 +13,11 @@ def get_category_members(
     category_title: str,
     namespace: int = 0,
     limit: int | str | None = None,
-) -> list[mwclient.page.Page]:
+) -> list[str]:
     """
     Retrieve all members of a specified category from a MediaWiki site.
     """
+    logger.debug(f"load category members for {category_title}")
     try:
         category = site.pages[category_title]
         # Use list comprehension for efficiency - consumes the generator
@@ -29,14 +30,14 @@ def get_category_members(
             end=None,
             generator=True,
         )
-        return list(members)
+        list_members = list(members)
+        return [p if isinstance(p, str) else p.name for p in list_members]
     except mwclient.errors.APIError as e:
         logger.warning(f"API error getting category members for {category_title}: {e}")
         return []
     except KeyError as e:
         logger.warning(f"Key error in API response for {category_title}: {e}")
         return []
-
 
 def get_category_members_api(category, project, limit=None):
     """

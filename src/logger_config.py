@@ -30,7 +30,7 @@ def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Pa
 
 def setup_logging(
     level: str = "WARNING",
-    name: str = "svg_translate_web",
+    name: str = "main_app",
     log_file: str | None = None,
     error_log_file: str | None = None,
     use_colorlog: bool = False,
