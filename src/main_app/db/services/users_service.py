@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 
 from ...extensions import db
-from ..exceptions import UserNotFoundError
+# from ..exceptions import UserNotFoundError
 from ..models import UsersRecord
 
 logger = logging.getLogger(__name__)
@@ -56,35 +56,6 @@ def create_user(username: str) -> UsersRecord:
         db.session.rollback()
         raise
     return record
-
-
-def toggle_can_run_jobs(user_id: int, value: bool) -> UsersRecord:
-    """Toggle can_run_jobs."""
-    record = get_user(user_id)
-
-    if not record:
-        raise UserNotFoundError("User record not found")
-
-    record.can_run_jobs = value
-    db.session.commit()
-    db.session.refresh(record)
-
-    return record
-
-
-def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UsersRecord:
-    """Toggle can_run_bg_jobs."""
-    record = get_user(user_id)
-
-    if not record:
-        raise UserNotFoundError("User record not found")
-
-    record.can_run_bg_jobs = value
-    db.session.commit()
-    db.session.refresh(record)
-
-    return record
-
 
 # ── DELETE ───────────────────────────────────────────────
 
