@@ -82,3 +82,9 @@ def find_template_source(wikitext: str, check_grapher=True) -> str:
     if check_grapher and "/grapher/" not in url:
         return ""
     return url
+
+
+__all__ = [
+    "check_url",
+    "find_template_source",
+]

@@ -102,3 +102,12 @@ def upload_fixed_svg(
         "ok": True,
         "result": result,
     }
+
+
+__all__ = [
+    "download_svg_file",
+    "detect_nested_tags",
+    "fix_nested_tags",
+    "verify_fix",
+    "upload_fixed_svg",
+]
