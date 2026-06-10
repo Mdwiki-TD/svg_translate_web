@@ -3,12 +3,14 @@ Unit tests for src/main_app/extensions.py module.
 
 Classes to test: BaseModel
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 
 from flask.app import Flask
 from sqlalchemy import Column, DateTime, Integer, String
+
 from src.main_app.extensions import db
 
 
@@ -28,4 +30,3 @@ def test_base_model_to_dict(app: Flask) -> None:
         assert data["id"] == 1
         assert data["name"] == "test"
         assert data["created_at"] == "2025-01-01T12:00:00"
-

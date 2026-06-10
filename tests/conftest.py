@@ -5,6 +5,7 @@ real protection path) and provide helpers for scraping CSRF tokens and
 for switching session identity. Each test gets a fresh JobStore so jobs
 don't leak across tests.
 """
+
 from __future__ import annotations
 
 import logging

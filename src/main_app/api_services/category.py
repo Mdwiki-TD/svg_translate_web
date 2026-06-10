@@ -39,6 +39,7 @@ def get_category_members(
         logger.warning(f"Key error in API response for {category_title}: {e}")
         return []
 
+
 def get_category_members_api(category, project, limit=None):
     """
     Fetch all pages belonging to a given category from a Wikimedia project.

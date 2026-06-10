@@ -8,10 +8,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from src.main_app.db.services.admin_service import (
     add_coordinator,
-    get_coordinator_by_id,
     delete_coordinator,
+    get_coordinator_by_id,
     list_coordinators,
     set_coordinator_active,
 )

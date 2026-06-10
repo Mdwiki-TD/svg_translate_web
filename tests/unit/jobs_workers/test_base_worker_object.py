@@ -6,6 +6,7 @@ import threading
 from unittest.mock import patch
 
 import pytest
+
 from src.main_app.jobs_workers.base_worker_object import (
     BaseObjectsJobWorker,
     WorkerObject,

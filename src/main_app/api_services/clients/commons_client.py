@@ -35,6 +35,7 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
     )
     return session
 
+
 def download_commons_file_core(
     filename: str,
     session: requests.Session,

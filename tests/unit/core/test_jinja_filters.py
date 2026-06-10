@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
+
 from src.main_app.core.jinja_filters import (
     filters,
     format_long_date,

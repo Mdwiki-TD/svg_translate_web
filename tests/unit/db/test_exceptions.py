@@ -5,15 +5,17 @@ Classes to test: DatabaseInitError, MaxUserConnectionsError, UserNotFoundError, 
 
 TODO: write tests
 """
+
 from __future__ import annotations
 
 import pytest
+
 from src.main_app.db.exceptions import (
     DatabaseInitError,
     DuplicateJobError,
-    UserNotFoundError,
     InsufficientDatabaseConfigError,
     MaxUserConnectionsError,
+    UserNotFoundError,
 )
 
 

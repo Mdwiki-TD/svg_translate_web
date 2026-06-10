@@ -11,10 +11,12 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from sqlalchemy.exc import SQLAlchemyError
+
 from src.main_app.db.services.utils import (
     db_guard,
     db_guard_rollback,
 )
+
 
 class TestDbGuard:
     def test_returns_func_result_on_success(self):
