@@ -30,6 +30,9 @@ def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
     )
     if limit is not None:
         query = query.limit(limit)
+
+    # owid_charts_service.py:33: SAWarning: Multiple rows returned with uselist=False for
+    # eagerly-loaded attribute 'OwidChartRecord._template_info'
     return query.all()
 
 

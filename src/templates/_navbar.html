@@ -2,11 +2,11 @@
 {% from "_macros.html" import nav_link_with_args %}
 {% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
 
-<header>
-    <nav class="navbar navbar-expand-lg mb-4 border-bottom bg-body-tertiary">
+<header class="mb-3 border-bottom">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                Copy SVG Translations
+            <a class="navbar-brand mb-0 h1" href="{{ url_for('main.index') }}">
+                {{ tool_title }}
             </a>
             <div class="d-flex align-items-center order-lg-last">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -64,16 +64,27 @@
                     </li>
                 </ul>
                 <hr class="d-lg-none text-dark-subtle text-50">
-                <div class="d-flex align-items-center">
+                <ul class="d-flex align-items-center navbar-nav flex-row flex-wrap bd-navbar-nav">
                     {% if current_username %}
-                    <span class="navbar-text me-3">
-                        {{ current_username }}
-                    </span>
-                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
+                    {% set profile_href = url_for('profile.dashboard', user_name=current_username) %}
+                    <li class="{{ nav_item_class }}">
+                        <a class="nav-link d-inline-block me-3 {{ profile_href | check_active_route }}"
+                            href="{{ profile_href }}">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span class="navbar-text">
+                                {{ current_username }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="{{ nav_item_class }}">
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
                     {% else %}
-                    <a class="btn btn-outline-success btn-sm" href="{{ url_for('auth.login') }}">Login</a>
+                    <li class="{{ nav_item_class }}">
+                        <a class="btn btn-outline-success btn-sm" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
                     {% endif %}
-                </div>
+                </ul>
             </div>
         </div>
     </nav>

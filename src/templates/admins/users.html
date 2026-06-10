@@ -37,7 +37,9 @@
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
-                            {{ user.username }}
+                            <a href="{{ url_for('profile.dashboard', user_name=user.username) }}" target="_blank">
+                                {{ user.username }}
+                            </a>
                         </td>
                         <td class="text-center">
                             {{ user.created_at }}
