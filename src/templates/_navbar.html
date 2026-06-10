@@ -64,9 +64,9 @@
                     </li>
                 </ul>
                 <hr class="d-lg-none text-dark-subtle text-50">
-                {% set profile_href = url_for('profile.dashboard', user_name=current_username) %}
                 <ul class="d-flex align-items-center navbar-nav flex-row flex-wrap bd-navbar-nav">
                     {% if current_username %}
+                    {% set profile_href = url_for('profile.dashboard', user_name=current_username) %}
                     <li class="{{ nav_item_class }}">
                         <a class="nav-link d-inline-block me-3 {{ profile_href | check_active_route }}"
                             href="{{ profile_href }}">

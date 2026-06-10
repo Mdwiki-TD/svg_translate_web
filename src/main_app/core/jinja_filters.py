@@ -98,7 +98,7 @@ def short_url(value: str) -> str:
     url = url.split("?")[0].strip()
     return url
 
-def check_active_route(route_name: str) -> bool:
+def check_active_route(route_name: str) -> str:
     route_name = route_name.replace("%20", " ")
     if route_name == request.path:
         return "active fw-bold"

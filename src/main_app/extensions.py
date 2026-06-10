@@ -8,12 +8,14 @@ This prevents circular imports when models/services import `db`.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 
+logger = logging.getLogger(__name__)
 
 class BaseModel(Model):
     """Base model providing a generic to_dict() for all records."""
@@ -31,9 +33,10 @@ class BaseModel(Model):
 def _commit(db: SQLAlchemy) -> None:
     try:
         db.session.commit()
-    except Exception as exc:
+    except Exception:
         db.session.rollback()
-        raise exc
+        logger.exception("Database commit failed; transaction rolled back.")
+        raise
 
 # expire_on_commit=False preserves current behavior where objects
 # remain accessible after commit without triggering new queries.
@@ -45,5 +48,4 @@ migrate = Migrate()
 __all__ = [
     "db",
     "migrate",
-    "_commit",
 ]

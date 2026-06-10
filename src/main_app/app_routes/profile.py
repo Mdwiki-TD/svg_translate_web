@@ -40,7 +40,10 @@ def dashboard(user_name: str = ""):
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to load user stats.")
         flash("Unable to load user job statistics.", "danger")
-        data = {"stats": {}, "recent_jobs": []}
+        data = {
+            "stats": {"total": 0, "completed": 0, "failed": 0, "cancelled": 0},
+            "recent_jobs": [],
+        }
 
     return render_template(
         "profile.html",

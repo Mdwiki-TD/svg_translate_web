@@ -13,6 +13,10 @@ from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
+def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 500) -> int:
+    if limit is None or limit <= 0:
+        return default
+    return min(limit, max_limit)
 
 # ------------------
 # private API
@@ -142,8 +146,7 @@ def get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str,
     """
     Get user jobs
     """
-    if limit is None:
-        limit = 100
+    limit = _normalize_limit(limit)
 
     base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
 
@@ -186,8 +189,7 @@ def get_user_jobs_stats(
     if jobs_types is None or not jobs_types:
         return get_all_user_jobs_stats(username, limit)
 
-    if limit is None:
-        limit = 100
+    limit = _normalize_limit(limit)
 
     base_query = db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
 
