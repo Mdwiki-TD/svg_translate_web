@@ -206,3 +206,16 @@
 </div>
 {% endif %}
 {%- endmacro -%}
+
+{# Auto-refresh toggle for running jobs #}
+{% macro auto_refresh_status() -%}
+<div>
+    <small id="auto-refresh-indicator" class="text-muted d-none">
+        <i class="bi bi-arrow-repeat"></i>
+    </small>
+    <span id="job-status-container" class="cursor-pointer user-select-none"
+        title="Click to auto-refresh every 5 seconds" onclick="toggleAutoRefresh()">
+        Auto Refresh
+    </span>
+</div>
+{%- endmacro -%}

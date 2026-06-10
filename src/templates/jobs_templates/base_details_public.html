@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div %}
+{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
 {% block title %}{{ detail_title }} Job #{{ job.id }}{% endblock %}
@@ -35,8 +35,14 @@
                                 <tr>
                                     <th style="width: 40%">Status:</th>
                                     <td>
-                                        {{ job.status }}
-                                        {# status_icon(job.status) #}
+                                        <div
+                                            class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                                            {{ job.status }}
+                                            {% if job.status == 'running' %}
+                                            {{ auto_refresh_status() }}
+                                            {% endif %}
+                                        </div>
+
                                     </td>
                                 </tr>
                                 <tr>
@@ -152,4 +158,8 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
 {% endblock %}
