@@ -1,7 +1,7 @@
 """ """
 
 import re
-import urllib
+from urllib.parse import urlparse, unquote
 
 import wikitextparser as wtp
 
@@ -28,14 +28,14 @@ def match_main_title_from_url_new(text):
     url = match.group("url").rstrip("]')\">}")
 
     try:
-        parsed = urllib.parse.urlparse(url)
+        parsed = urlparse(url)
     except ValueError:
         return None
 
     if parsed.netloc.lower() != "svgtranslate.toolforge.org":
         return None
 
-    path = urllib.parse.unquote(parsed.path.lstrip("/"))
+    path = unquote(parsed.path.lstrip("/"))
     if not path.lower().endswith(".svg"):
         return None
 

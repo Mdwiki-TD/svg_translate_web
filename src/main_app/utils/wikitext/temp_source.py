@@ -1,12 +1,12 @@
 """ """
 
 import re
-import urllib.parse
+from urllib.parse import urlparse
 
 
 def check_url(url: str) -> bool:
     try:
-        parsed = urllib.parse.urlparse(url)
+        parsed = urlparse(url)
     except ValueError:
         return False
 

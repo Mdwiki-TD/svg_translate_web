@@ -65,7 +65,7 @@ All functions use `verify_required_fields()` for input validation.
 
 ### category.py
 
-`get_category_members(category, project, limit)` — Paginated category member fetching using raw `requests`.
+`get_category_members( site: mwclient.Site, category_title: str, namespace: int = 0, )` — Paginated category member fetching using raw `requests`.
 
 ### clients/wiki_client.py
 
@@ -74,7 +74,7 @@ All functions use `verify_required_fields()` for input validation.
 ## Testing
 
 ```bash
-pytest tests/unit/api_services --cov=flask_app/main_app/api_services
+pytest tests/unit/api_services --cov=src/main_app/api_services
 ```
 
 ## Strengths
