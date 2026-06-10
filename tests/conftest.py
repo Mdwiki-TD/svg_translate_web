@@ -1,4 +1,11 @@
-"""Configuration and fixtures for pytest"""
+"""Shared pytest fixtures.
+
+Boot a Flask app once per session with CSRF on (so tests exercise the
+real protection path) and provide helpers for scraping CSRF tokens and
+for switching session identity. Each test gets a fresh JobStore so jobs
+don't leak across tests.
+"""
+from __future__ import annotations
 
 import logging
 import os
@@ -14,6 +21,11 @@ from flask.app import Flask
 from flask.testing import FlaskClient
 from pytest_socket import disable_socket
 from sqlalchemy import text
+
+# Make the src/ directory importable as `main_app`. The repo's prod
+# entrypoint src/app.py does the same trick.
+_REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_REPO / "src"))
 
 # ── Set ALL env vars before any src.* import ─────────────────────────────────
 # config.py executes get_settings() at module level and raises RuntimeError

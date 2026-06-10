@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import threading
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
+from src.main_app.jobs_workers.base_worker_object import (
+    BaseObjectsJobWorker,
+    WorkerObject,
+)
 
-from src.main_app.jobs_workers.base_worker_object import BaseObjectsJobWorker, WorkerObject
 
-
-class ConcreteWorker(BaseObjectsJobWorker):
+class MockWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
-        return "test_job"
+        return "mock_job"
 
     def process(self) -> WorkerObject:
         return self.result
@@ -37,7 +39,7 @@ def mock_db_services():
 @pytest.fixture
 def worker():
     user = {"username": "testuser"}
-    worker = ConcreteWorker(job_id=123, user=user)
+    worker = MockWorker(job_id=123, user=user)
     worker.result = WorkerObject()
     return worker
 
@@ -52,7 +54,7 @@ def test_worker_object_to_json():
 class TestBaseObjectsJobWorker:
     def test_before_run_success(self, worker, mock_db_services):
         assert worker.before_run() is True
-        mock_db_services["update"].assert_called_once_with(123, "running", worker.result_file, job_type="test_job")
+        mock_db_services["update"].assert_called_once_with(123, "running", worker.result_file, job_type="mock_job")
         assert worker.result.status == "running"
 
     def test_before_run_lookup_error(self, worker, mock_db_services):
@@ -64,7 +66,7 @@ class TestBaseObjectsJobWorker:
         worker.after_run()
         assert worker.result.status == "completed"
         assert worker.result.completed_at is not None
-        mock_db_services["update"].assert_called_with(123, "completed", worker.result_file, job_type="test_job")
+        mock_db_services["update"].assert_called_with(123, "completed", worker.result_file, job_type="mock_job")
 
     def test_after_run_db_error(self, worker, mock_db_services):
         mock_db_services["update"].side_effect = Exception("DB Fail")
@@ -120,7 +122,7 @@ class TestBaseObjectsJobWorker:
         assert result["status"] == "pending"  # remains pending if before_run fails
 
     def test_run_exception(self, worker, mock_db_services):
-        with patch.object(ConcreteWorker, "process", side_effect=Exception("Process failed")):
+        with patch.object(MockWorker, "process", side_effect=Exception("Process failed")):
             result = worker.run()
             assert result["status"] == "failed"
             assert result["errors"][0]["error"] == "Process failed"

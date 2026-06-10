@@ -34,7 +34,9 @@ def replicate_test_structure(source_dir, target_roots):
 
             # Create the directory
             new_target_dir.mkdir(parents=True, exist_ok=True)
-
+            # if dir empty create empty .gitkeep file
+            if not any(new_target_dir.iterdir()):
+                (new_target_dir / ".gitkeep").touch()
             print(f"Created: {new_target_dir}")
 
 
@@ -42,7 +44,10 @@ if __name__ == "__main__":
     # Define paths relative to the current script's location
     main_dir = Path(__file__).parent.parent
     SOURCE = main_dir / "src/main_app"
-    TARGETS = [main_dir / "tests/integration", main_dir / "tests/unit", main_dir / "tests/functional"]
+    TARGETS = [
+        # Path(main_dir / "tests/integration"),
+        Path(main_dir / "tests/unit"),
+    ]
 
     replicate_test_structure(SOURCE, TARGETS)
     print("\nTask completed successfully. Cache directories were excluded.")
