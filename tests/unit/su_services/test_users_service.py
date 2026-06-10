@@ -14,7 +14,7 @@ def mock_db_services():
     with (
         patch("src.main_app.su_services.users_service.get_user_token_by_username") as m_get_by_name,
         patch("src.main_app.su_services.users_service.update_user_token") as m_update,
-        patch("src.main_app.su_services.users_service.create_user") as m_create,
+        patch("src.main_app.su_services.users_service.create_user_token") as m_create,
         patch("src.main_app.su_services.users_service.get_user_token") as m_get_token,
         patch("src.main_app.su_services.users_service.is_active_coordinator") as m_is_coord,
         patch("src.main_app.su_services.users_service.get_authenticated_user_token") as m_get_auth,
