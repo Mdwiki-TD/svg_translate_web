@@ -21,15 +21,19 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-@db_guard(default_return=False, msg="Failed to check coordinator status")
 def is_active_coordinator(username: str) -> bool:
     """Check whether a single username is an active coordinator."""
-    return (
-        db.session.query(AdminUserRecord)
-        .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
-        .first()
-        is not None
-    )
+    try:
+        record = (
+            db.session.query(AdminUserRecord)
+            .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
+            .first()
+        )
+        return record is not None
+    except Exception:
+        logger.exception("Failed to check coordinator status")
+    return False
+
 
 
 def list_coordinators() -> List[AdminUserRecord]:

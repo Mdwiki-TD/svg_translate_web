@@ -63,6 +63,11 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callab
                 logger.exception(f"{msg}: %s", exc)
                 db.session.rollback()
                 return default_return
+            except Exception as exc:
+                logger.error("Unexpected error in %s", func.__qualname__)
+                logger.exception(f"{msg}: %s", exc)
+                db.session.rollback()
+                return default_return
 
         return wrapper
 
