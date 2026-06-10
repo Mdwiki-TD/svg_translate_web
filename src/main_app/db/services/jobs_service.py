@@ -137,10 +137,12 @@ def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
     return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
 
-def get_user_jobs_stats(username: str) -> dict[str, dict[str, int] | list[JobRecord]]:
+def get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
     """
     Get user jobs
     """
+    if limit is None:
+        limit = 100
 
     base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
 
@@ -151,7 +153,44 @@ def get_user_jobs_stats(username: str) -> dict[str, dict[str, int] | list[JobRec
         .all()
     )
 
-    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(50).all()
+    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+
+    total_jobs = sum(status_counts.values())
+
+    stats = {
+        "total": total_jobs,
+        "completed": status_counts.get("completed", 0),
+        "failed": status_counts.get("failed", 0),
+        "cancelled": status_counts.get("cancelled", 0),
+        # "running": status_counts.get("running", 0),
+        # "pending": status_counts.get("pending", 0),
+    }
+
+    data = {
+        "stats": stats,
+        "recent_jobs": recent_jobs,
+    }
+
+    return data
+
+
+def get_public_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
+    """
+    Get user jobs
+    """
+    if limit is None:
+        limit = 100
+
+    base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
+
+    status_counts = dict(
+        db.session.query(JobRecord.status, func.count(JobRecord.id))
+        .filter(JobRecord.username == username)
+        .group_by(JobRecord.status)
+        .all()
+    )
+
+    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
     total_jobs = sum(status_counts.values())
 
@@ -296,5 +335,6 @@ __all__ = [
     "cancel_job_db",
     "is_job_cancelled",
     "delete_job",
-    "get_user_jobs_stats",
+    "get_all_user_jobs_stats",
+    "get_public_user_jobs_stats",
 ]

@@ -7,6 +7,8 @@ from .admin_service import (
     set_coordinator_active,
 )
 from .jobs_service import (
+    get_all_user_jobs_stats,
+    get_public_user_jobs_stats,
     cancel_job_db,
     create_job,
     delete_job,
@@ -120,6 +122,8 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
+    "get_all_user_jobs_stats",
+    "get_public_user_jobs_stats",
     "cancel_job_db",
     "is_job_cancelled",
 ]

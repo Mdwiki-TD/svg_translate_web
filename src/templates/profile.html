@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_icon, stats_card %}
+
+{% block content_fluid %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="bi bi-person-circle me-2"></i>
+                {% if username %}{{ username }}'s Profile{% else %}Profile{% endif %}
+            </h2>
+        </div>
+    </div>
+
+    {% if not username %}
+    <div class="alert alert-warning mt-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Please <a href="{{ url_for('auth.login') }}">log in</a> to view your profile dashboard.
+    </div>
+    {% else %}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            {{ stats_card('Total Jobs', stats.total, "primary", "bi bi-collection fs-1 opacity-50") }}
+        </div>
+        <div class="col-lg-3 col-md-6">
+            {{ stats_card('Completed', stats.completed, "success", "bi bi-check-circle fs-1 opacity-50") }}
+        </div>
+        <div class="col-lg-3 col-md-6">
+            {{ stats_card('Failed', stats.failed, "danger", "bi bi-x-circle fs-1 opacity-50") }}
+        </div>
+        <div class="col-lg-3 col-md-6">
+            {{ stats_card('Cancelled', stats.cancelled, "secondary", "bi bi-stop-circle fs-1 opacity-50") }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-clock-history me-2"></i>Recent Jobs</span>
+            <small class="text-muted">Showing {{ recent_jobs | length }} job(s)</small>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_jobs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="jobs-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Completed</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in recent_jobs %}
+                        {% set job_pb = 'public_jobs' if job.job_type in jobs_data_public else 'admin.jobs' %}
+                        <tr>
+                            <td>{{ job.id }}</td>
+                            <td>
+                                <a href="{{ url_for(job_pb ~ '.jobs_list', job_type=job.job_type) }}">
+                                    {{ job.job_type.replace('_', ' ') | title }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ status_icon(job.status) }}
+                            </td>
+                            <td>
+                                {{ job.started_at | format_long_date("-") }}
+                            </td>
+                            <td>
+                                {{ job.completed_at | format_long_date("-") }}
+                            </td>
+                            <td>
+                                <a href="{{ url_for(job_pb ~ '.job_detail', job_type=job.job_type, job_id=job.id) }}">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                No jobs yet. Start a job from the <a href="{{ url_for('main.index') }}">tools page</a>.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        $('#jobs-table').DataTable({
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: true,
+            order: [[0, 'desc']],
+        });
+    });
+</script>
+{% endblock %}

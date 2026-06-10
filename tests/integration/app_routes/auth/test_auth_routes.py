@@ -19,7 +19,7 @@ def app_mock(monkeypatch: pytest.MonkeyPatch) -> Flask:
     app.add_url_rule("/callback", "auth.callback", lambda: "callback")
 
     cookie = types.SimpleNamespace(
-        name="uid_enc",
+        name="uid_enc_copy",
         httponly=True,
         secure=False,
         samesite="Lax",
@@ -108,7 +108,7 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         cookie_header = response.headers.get("Set-Cookie", "")
 
         assert response.status_code == 302
-        assert "uid_enc" in cookie_header
+        assert "uid_enc_copy" in cookie_header
         assert session["uid"] == 123
         assert g._current_user is not None
 

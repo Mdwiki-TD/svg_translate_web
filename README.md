@@ -102,7 +102,7 @@ OAUTH_ENCRYPTION_KEY=your_fernet_key_here
 #### Authentication & Security
 
 ```bash
-AUTH_COOKIE_NAME=uid_enc
+AUTH_COOKIE_NAME=uid_enc_copy
 AUTH_COOKIE_MAX_AGE=2592000  # 30 days
 SESSION_COOKIE_SECURE=True
 SESSION_COOKIE_HTTPONLY=True

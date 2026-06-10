@@ -200,7 +200,7 @@ def load_cookie_config() -> CookieConfig:
     session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 
     cookie = CookieConfig(
-        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
+        name=os.getenv("AUTH_COOKIE_NAME", "uid_enc_copy"),
         max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
         secure=session_cookie_secure,
         httponly=session_cookie_httponly,
