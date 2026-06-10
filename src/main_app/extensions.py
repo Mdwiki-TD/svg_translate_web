@@ -28,8 +28,22 @@ class BaseModel(Model):
         return data
 
 
+def _commit(db: SQLAlchemy) -> None:
+    try:
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        raise exc
+
 # expire_on_commit=False preserves current behavior where objects
 # remain accessible after commit without triggering new queries.
 # (The existing engine.py uses sessionmaker(expire_on_commit=False))
 db = SQLAlchemy(model_class=BaseModel, session_options={"expire_on_commit": False})
+
 migrate = Migrate()
+
+__all__ = [
+    "db",
+    "migrate",
+    "_commit",
+]

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # private API
 # ------------------
 
-
+@db_guard_rollback
 def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
     """
     Update job status and result file.
@@ -41,11 +41,12 @@ def _update_status(job_id: int, status: str, result_file: str | None, job_type: 
         job.result_file = result_file
 
     db.session.commit()
+
     db.session.refresh(job)
 
     return job
 
-
+@db_guard_rollback
 def _update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
     """
     Update running job status and optional result file.
@@ -174,18 +175,26 @@ def get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str,
     return data
 
 
-def get_public_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
+def get_user_jobs_stats(
+    username: str,
+    jobs_types: list | None = None,
+    limit: int | None = 100,
+) -> dict[str, dict[str, int] | list[JobRecord]]:
     """
     Get user jobs
     """
+    if jobs_types is None or not jobs_types:
+        return get_all_user_jobs_stats(username, limit)
+
     if limit is None:
         limit = 100
 
-    base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
+    base_query = db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
 
     status_counts = dict(
         db.session.query(JobRecord.status, func.count(JobRecord.id))
         .filter(JobRecord.username == username)
+        .filter(JobRecord.job_type.in_(jobs_types))
         .group_by(JobRecord.status)
         .all()
     )
@@ -248,6 +257,7 @@ def create_job(job_type: str, username: str) -> JobRecord:
     """
     job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
     db.session.add(job)
+
     try:
         db.session.commit()
     except IntegrityError as exc:
@@ -272,7 +282,7 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
 
     return _update_status(job_id, status, result_file, job_type)
 
-
+@db_guard_rollback
 def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
     """
     Mark a job as cancelled.
@@ -286,29 +296,25 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
         return rowcount > 0
     """
 
-    try:
-        query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-        if job_type:
-            query = query.filter(JobRecord.job_type == job_type)
+    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+    if job_type:
+        query = query.filter(JobRecord.job_type == job_type)
 
-        job = query.filter(
-            JobRecord.status.in_(["pending", "running"]),
-            JobRecord.is_running == 1,
-        ).first()
+    job = query.filter(
+        JobRecord.status.in_(["pending", "running"]),
+        JobRecord.is_running == 1,
+    ).first()
 
-        if job:
-            job.status = "cancelled"
-            job.completed_at = datetime.now(UTC)
-            job.is_running = None
-            db.session.commit()
-            db.session.refresh(job)
-            return True
+    if not job:
+        return False
 
-    except Exception:  # pragma: no cover - defensive guard
-        logger.exception("Failed to cancel job %s in database.", job_id)
-        db.session.rollback()
+    job.status = "cancelled"
+    job.completed_at = datetime.now(UTC)
+    job.is_running = None
 
-    return False
+    db.session.commit()
+    db.session.refresh(job)
+    return True
 
 
 # ── DELETE ───────────────────────────────────────────────
@@ -336,5 +342,5 @@ __all__ = [
     "is_job_cancelled",
     "delete_job",
     "get_all_user_jobs_stats",
-    "get_public_user_jobs_stats",
+    "get_user_jobs_stats",
 ]

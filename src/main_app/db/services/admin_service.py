@@ -83,11 +83,13 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
     """Toggle coordinator activity."""
     # record = get_coordinator_by_id(coordinator_id)
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
-    if record:
-        record.is_active = is_active
-        db.session.commit()
-        db.session.refresh(record)
-        return record
+    if not record:
+        return None
+
+    record.is_active = is_active
+    db.session.commit()
+    db.session.refresh(record)
+    return record
 
 
 # ── DELETE ───────────────────────────────────────────────

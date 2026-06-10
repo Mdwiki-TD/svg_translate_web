@@ -4,11 +4,9 @@ import logging
 
 from flask import Blueprint, flash, render_template
 
-from .auth.utils import load_user
-
+from ..db.services import get_all_user_jobs_stats, get_user_jobs_stats
 from ..jobs_workers.jobs_worker import jobs_data_public
-
-from ..db.services import get_all_user_jobs_stats, get_public_user_jobs_stats
+from .auth.utils import load_user
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,10 @@ def dashboard(user_name: str = ""):
         if show_all:
             data = get_all_user_jobs_stats(user_name)
         else:
-            data = get_public_user_jobs_stats(user_name)
+            data = get_user_jobs_stats(
+                username=user_name,
+                jobs_types=list(jobs_data_public.keys()),
+            )
 
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to load user stats.")

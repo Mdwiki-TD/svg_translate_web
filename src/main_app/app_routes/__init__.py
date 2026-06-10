@@ -9,8 +9,8 @@ from .main_routes.explorer_routes import bp_explorer
 from .main_routes.extract_routes import bp_extract
 from .main_routes.owid_charts_routes import bp_owid_charts
 from .main_routes.routes import bp_main
-from .public_jobs import jobs_public_module
 from .profile import bp_profile
+from .public_jobs import jobs_public_module
 
 
 def register_blueprints(app: Flask) -> None:

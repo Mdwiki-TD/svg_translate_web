@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
+from flask import request
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,12 +98,19 @@ def short_url(value: str) -> str:
     url = url.split("?")[0].strip()
     return url
 
+def check_active_route(route_name: str) -> bool:
+    route_name = route_name.replace("%20", " ")
+    if route_name == request.path:
+        return "active fw-bold"
+    logger.debug(f"route_name: {route_name} != request.path: {request.path}")
+    return ""
 
 filters = {
     "format_long_date": format_long_date,
     "format_short_date": format_short_date,
     "get_status_class": get_status_class,
     "short_url": short_url,
+    "check_active_route": check_active_route,
 }
 
 __all__ = [

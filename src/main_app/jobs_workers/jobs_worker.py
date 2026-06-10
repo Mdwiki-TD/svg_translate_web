@@ -95,9 +95,14 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
         cancelled_file = create_job_cancelled_file(f"{job.result_file}.cancelled")
 
     # 3. Persist cancellation to DB (for cross-process detection)
-    db_cancelled = cancel_job_db(job_id, job_type)
-    if db_cancelled:
-        logger.info(f"Database cancellation requested for job {job_id}")
+    try:
+        db_cancelled = cancel_job_db(job_id, job_type)
+        if db_cancelled:
+            logger.info(f"Database cancellation requested for job {job_id}")
+
+    except Exception:  # pragma: no cover - defensive guard
+        logger.exception("Failed to cancel job %s in database.", job_id)
+        db_cancelled = False
 
     return local_cancelled or cancelled_file or db_cancelled
 
