@@ -1,5 +1,7 @@
 """
-SQLAlchemy-based service for managing user tokens.
+SQLAlchemy-based service for managing users and user tokens.
+
+Users table is the stable identity layer. Tokens are a child of users.
 """
 
 from __future__ import annotations
@@ -21,14 +23,9 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_users() -> list[UserTokenRecord]:
-    """Return all users."""
-    records = (
-        db.session.query(UserTokenRecord)
-        .options(defer(UserTokenRecord.access_token), defer(UserTokenRecord.access_secret))
-        .all()
-    )
-    return records
+def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
+    """Fetch the CurrentUser composite for session restoration."""
+    return get_user_token(user_id)
 
 
 def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
@@ -43,11 +40,6 @@ def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
     return orm_obj
 
 
-def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
-    """Fetch the CurrentUser composite for session restoration."""
-    return get_user_token(user_id)
-
-
 def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
     """Fetch the encrypted OAuth credentials for a user by username."""
     username = username.strip()
@@ -59,6 +51,16 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
         return None
     return orm_obj
 
+
+
+def list_users() -> list[UserTokenRecord]:
+    """Return all users."""
+    records = (
+        db.session.query(UserTokenRecord)
+        .options(defer(UserTokenRecord.access_token), defer(UserTokenRecord.access_secret))
+        .all()
+    )
+    return records
 
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
@@ -87,8 +89,10 @@ def create_user_token(username: str, access_key: str, access_secret: str) -> Use
         rotated_at=None,
     )
     db.session.add(record)
+
     db.session.commit()
     db.session.refresh(record)
+
     return record
 
 
@@ -111,6 +115,23 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
         db.session.commit()
         db.session.refresh(orm_obj)
+    return orm_obj
+
+
+@db_guard_rollback
+def upsert_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+    """
+    Upsert the encrypted OAuth credentials for a user.
+    Creates a new token row if one does not exist.
+    """
+
+    # record = db.session.get(UserTokenRecord, user_id)
+    record = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+    if record:
+        orm_obj = update_user_token(user_id, access_key, access_secret)
+    else:
+        orm_obj = create_user_token(user_id, access_key, access_secret)
+
     return orm_obj
 
 
@@ -139,8 +160,8 @@ def delete_user_token(user_id: int) -> bool:
 
 __all__ = [
     "list_users",
-    "update_user_token",
-    "get_user_token",
     "delete_user_token",
+    "get_user_token",
     "get_user_token_by_username",
+    "update_user_token",
 ]
