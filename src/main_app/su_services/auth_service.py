@@ -28,7 +28,7 @@ def extract_token_credentials(access_token: Any) -> Tuple[str, str]:
     if (
         not (token_key and token_secret)
         and isinstance(access_token, Sequence)
-        and not isinstance(access_token, (str, bytes, bytearray))
+        and not isinstance(access_token, str | bytes | bytearray)
     ):
         if len(access_token) >= 2:
             token_key = access_token[0]

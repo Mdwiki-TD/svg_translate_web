@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..db.models import OwidChartRecord, TemplateRecord
 from ..db.services import (

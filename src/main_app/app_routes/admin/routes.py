@@ -10,7 +10,7 @@ from flask import (
     request,
 )
 
-from ...db.services import list_jobs, list_users
+from ...db.services import list_jobs
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
 from ..admin_routes import (
     coordinators_module,
