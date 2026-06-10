@@ -37,7 +37,7 @@
                                     <td>
                                         <div
                                             class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-                                            {{ job.status }}
+                                            {{ status_icon(job.status) }}
                                             {% if job.status == 'running' %}
                                             {{ auto_refresh_status() }}
                                             {% endif %}
