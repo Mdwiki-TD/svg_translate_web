@@ -64,7 +64,7 @@ def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
 
 
 @db_guard_rollback
-def create_user(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
+def create_user_token(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
     """Create a user identity row. Idempotent — returns existing if present."""
     username = (username or "").strip()
 
