@@ -16,13 +16,11 @@ class TestUserTokenRecord:
         """Test creating a UserTokenRecord."""
         record = UserTokenRecord(
             user_id=123,
-            username="testuser",
             access_token=b"encrypted_token",
             access_secret=b"encrypted_secret",
         )
 
         assert record.user_id == 123
-        assert record.username == "testuser"
         assert record.access_token == b"encrypted_token"
         assert record.access_secret == b"encrypted_secret"
         assert record.created_at is None
@@ -34,7 +32,6 @@ class TestUserTokenRecord:
         """Test creating a UserTokenRecord with timestamps."""
         record = UserTokenRecord(
             user_id=456,
-            username="anothertest",
             access_token=b"token",
             access_secret=b"secret",
             created_at="2024-01-01 00:00:00",
@@ -53,7 +50,6 @@ class TestUserTokenRecord:
 
         record = UserTokenRecord(
             user_id=789,
-            username="testuser",
             access_token=b"encrypted_token",
             access_secret=b"encrypted_secret",
         )

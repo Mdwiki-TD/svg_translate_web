@@ -6,6 +6,9 @@ on:
             - main
 jobs:
     update:
+        concurrency:
+            group: toolforge-deploy
+            cancel-in-progress: false
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository

@@ -12,9 +12,9 @@ from src.main_app.su_services.users_service import UserService
 @pytest.fixture
 def mock_db_services():
     with (
-        patch("src.main_app.su_services.users_service.get_user_token_by_username") as m_get_by_name,
-        patch("src.main_app.su_services.users_service.update_user_token") as m_update,
-        patch("src.main_app.su_services.users_service.create_user_token") as m_create,
+        patch("src.main_app.su_services.users_service.get_user_by_username") as m_get_by_name,
+        patch("src.main_app.su_services.users_service.upsert_user_token") as m_update,
+        patch("src.main_app.su_services.users_service.create_user") as m_create,
         patch("src.main_app.su_services.users_service.get_user_token") as m_get_token,
         patch("src.main_app.su_services.users_service.is_active_coordinator") as m_is_coord,
         patch("src.main_app.su_services.users_service.get_authenticated_user_token") as m_get_auth,
@@ -68,7 +68,9 @@ class TestUserService:
 
     def test_get_authenticated_user_success(self, mock_db_services):
         mock_db_services["get_auth"].return_value = MagicMock(
-            username="authuser", access_token="atk", access_secret="as"
+            user=MagicMock(username="authuser"),
+            access_token="atk",
+            access_secret="as",
         )
         mock_db_services["is_coord"].return_value = True
 

@@ -75,17 +75,17 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     user = load_user()
     if not user:
         flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for("new_jobs.job_detail", job_type=job_type, job_id=job_id))
+        return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
-        return redirect(url_for("new_jobs.jobs_list", job_type=job_type))
+        return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
 
     if not _can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
-        return redirect(url_for("new_jobs.job_detail", job_type=job_type, job_id=job_id))
+        return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
     if jobs_worker.cancel_job_worker(job_id, job_type, job):
         flash(f"Job {job_id} cancellation requested.", "success")
@@ -229,7 +229,9 @@ class Jobs:
         @admin_required
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in jobs_data:
+                flash("Job type not found.", "warning")
                 abort(404)
+
             return _cancel_job(job_id, job_type)
 
         # ================================
@@ -313,6 +315,14 @@ class Jobs:
 
             return response
 
+        @self.bp.get("/read-job-result-file/<string:result_file>")
+        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
+        @admin_required
+        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
+            """ """
+            result_data = load_job_result_and_fix(result_file, job_type)
+            return jsonify(result_data)
+
         # ================================
         # crop-main-files routes
         # ================================
@@ -353,14 +363,6 @@ class Jobs:
                 file_original=original,
                 file_cropped=cropped,
             )
-
-        @self.bp.get("/read-job-result-file/<string:result_file>")
-        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
-        @admin_required
-        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
-            """ """
-            result_data = load_job_result_and_fix(result_file, job_type)
-            return jsonify(result_data)
 
 
 jobs_module = Jobs()

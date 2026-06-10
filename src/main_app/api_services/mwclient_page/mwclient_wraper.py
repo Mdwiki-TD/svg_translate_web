@@ -95,14 +95,20 @@ class MwClientPage:
 
         return self.page
 
-    def exists(self) -> bool:
-        page = self.load_page()
+    @property
+    def namespace(self) -> str | None:
+        if not self.load_page():
+            return None
 
-        if not page:
+        return self.page.namespace
+
+    def exists(self) -> bool:
+
+        if not self.load_page():
             logger.warning(f"Failed to load page '{self.title}'")
             return False
         try:
-            if not page.exists:
+            if not self.page.exists:
                 logger.warning(f"Page '{self.title}' does not exist")
                 return False
         except Exception as exc:
@@ -124,13 +130,12 @@ class MwClientPage:
 
     def get_redirect_target(self) -> str | None:
         """Get the redirect target page name if the page is a redirect."""
-        page = self.load_page()
-        if not page:
+        if not self.load_page():
             return None
         try:
-            if not page.exists:
+            if not self.page.exists:
                 return None
-            target = page.redirects_to()
+            target = self.page.redirects_to()
             return target.name if target is not None else None
         except Exception as exc:
             logger.debug(f"Could not get redirect of '{self.title}': {exc}")
@@ -144,23 +149,19 @@ class MwClientPage:
         if text is None:
             return {"success": False, "error": "missing text"}
 
-        page = self.load_page()
-
-        if not page:
+        if not self.load_page():
             return {"success": False, "error": self.load_page_error}
 
-        return self._with_retry(self._edit_page, page, text, summary, nocreate=nocreate)
+        return self._with_retry(self._edit_page, self.page, text, summary, nocreate=nocreate)
 
     def create(self, text: str, summary: str) -> dict[str, Any]:
-        page = self.load_page()
-
-        if not page:
+        if not self.load_page():
             return {"success": False, "error": self.load_page_error}
 
-        if page.exists:
+        if self.page.exists:
             return {"success": False, "error": "page exists"}
 
-        return self._with_retry(self._edit_page, page, text, summary, createonly=True)
+        return self._with_retry(self._edit_page, self.page, text, summary, createonly=True)
 
     def move(
         self,
@@ -174,15 +175,13 @@ class MwClientPage:
             logger.error("Missing new_title for move page")
             return {"success": False, "error": "Missing new_title"}
 
-        page = self.load_page()
-
-        if not page:
+        if not self.load_page():
             return {"success": False, "error": self.load_page_error}
 
-        if not page.exists:
+        if not self.page.exists:
             return {"success": False, "error": "missing"}
 
-        return self._with_retry(self._move_page, page, new_title, reason, move_talk, no_redirect)
+        return self._with_retry(self._move_page, self.page, new_title, reason, move_talk, no_redirect)
 
     # ------------------------------------------------------------------
     # Aliases

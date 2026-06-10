@@ -6,6 +6,7 @@ from .owid_charts import owidcharts_module
 from .settings import settings_module
 from .slug_redirects import slug_redirects_module
 from .templates import templates_module
+from .users import users_module
 
 __all__ = [
     "coordinators_module",
@@ -14,4 +15,5 @@ __all__ = [
     "slug_redirects_module",
     "settings_module",
     "templates_module",
+    "users_module",
 ]

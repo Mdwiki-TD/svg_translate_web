@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import defer
+from sqlalchemy.orm import joinedload
 
 from ...core.crypto import encrypt_value
 from ...extensions import db
@@ -25,7 +25,19 @@ logger = logging.getLogger(__name__)
 
 def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
     """Fetch the CurrentUser composite for session restoration."""
-    return get_user_token(user_id)
+    try:
+        token = (
+            db.session.query(UserTokenRecord)
+            .options(joinedload(UserTokenRecord.user))
+            .filter(UserTokenRecord.user_id == user_id)
+            .first()
+        )
+        if not token or not token.user:
+            return None
+        return token
+    except Exception as e:
+        logger.error("Error loading user for ID %s: %s", user_id, e)
+        return None
 
 
 def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
@@ -40,53 +52,19 @@ def get_user_token(user_id: str | int) -> Optional[UserTokenRecord]:
     return orm_obj
 
 
-def get_user_token_by_username(username: str) -> Optional[UserTokenRecord]:
-    """Fetch the encrypted OAuth credentials for a user by username."""
-    username = username.strip()
-    if not username:
-        return None
-
-    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
-    if not orm_obj:
-        return None
-    return orm_obj
-
-
-
-def list_users() -> list[UserTokenRecord]:
-    """Return all users."""
-    records = (
-        db.session.query(UserTokenRecord)
-        .options(defer(UserTokenRecord.access_token), defer(UserTokenRecord.access_secret))
-        .all()
-    )
-    return records
-
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
 @db_guard_rollback
-def create_user_token(username: str, access_key: str, access_secret: str) -> UserTokenRecord:
-    """Create a user identity row. Idempotent — returns existing if present."""
-    username = (username or "").strip()
-
-    existing = db.session.query(UserTokenRecord).filter(UserTokenRecord.username == username).first()
-    if existing:
-        return existing
-
+def create_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+    """ """
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
 
-    now = func.current_timestamp()
-
     record = UserTokenRecord(
-        username=username,
+        user_id=user_id,
         access_token=encrypted_token,
         access_secret=encrypted_secret,
-        created_at=now,
-        updated_at=now,
-        last_used_at=now,
-        rotated_at=None,
     )
     db.session.add(record)
 
@@ -159,9 +137,8 @@ def delete_user_token(user_id: int) -> bool:
 
 
 __all__ = [
-    "list_users",
+    "upsert_user_token",
     "delete_user_token",
     "get_user_token",
-    "get_user_token_by_username",
     "update_user_token",
 ]

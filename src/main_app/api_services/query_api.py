@@ -29,7 +29,7 @@ def get_template_pages(
     query_data = result.get("query", {})
     query_pages = query_data.get("pages", {})
 
-    # { "pageid": 2973452, "ns": 100, "title": "بوابة:سباق الدراجات الهوائية" }
+    # { "pageid": 2973452, "ns": 100, "title": "title" }
     pages = [x["title"] for x in query_pages]
     # ---
     logger.info(f"find {len(pages)} pages.")
@@ -92,8 +92,8 @@ def resolve_redirects(
         # Per-page redirects array: pages that redirect TO this title.
         for page in (query.get("pages", {}) or {}).values():
             target = page.get("title", "")
-            for src in page.get("redirects", []) or []:
-                from_to[src["title"]] = target
+            for t in page.get("redirects", []) or []:
+                from_to[t["title"]] = target
 
     result = {
         "normalized": normalized,
