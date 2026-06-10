@@ -1,5 +1,5 @@
 {% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, render_step %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% block job_info_extra %}
@@ -75,27 +75,6 @@
 </div>
 {% endif %}
 
-{%- macro render_step_value(step) -%}
-{% if step %}
-{% if step.result == "updated" %}
-<span class="badge bg-success" title="{{ step.msg or step.new_value }}">
-    <i class="bi bi-check-lg"></i>
-</span>
-{% elif step.result == "failed" %}
-<span class="badge bg-danger" title="{{ step.msg }}">
-    <i class="bi bi-x-lg"></i>
-</span>
-{% elif step.result == "skipped" %}
-<span class="badge bg-secondary" title="{{ step.msg or step.value }}">
-    <i class="bi bi-dash"></i>
-</span>
-{% else %}
-<span class="text-muted" title="{{ step.msg or step.value }}">-</span>
-{% endif %}
-{% else %}
-<span class="text-muted">-</span>
-{% endif %}
-{%- endmacro -%}
 
 
 {% macro pages_updated_table(data, table_title) %}
@@ -140,7 +119,7 @@
                         </td>
                         <td>
                             {% if template.steps %}
-                            {{ render_step_value(template.steps.main_file) }}
+                            {{ render_step(template.steps.main_file) }}
                             {% else %}
                             <a href='https://commons.wikimedia.org/wiki/{{ template.new_main_file }}' target='_blank'
                                 rel='noopener noreferrer'>
@@ -150,7 +129,7 @@
                         </td>
                         <td>
                             {% if template.steps %}
-                            {{ render_step_value(template.steps.last_world_file) }}
+                            {{ render_step(template.steps.last_world_file) }}
                             {% else %}
                             <a href='https://commons.wikimedia.org/wiki/{{ template.last_world_file }}' target='_blank'
                                 rel='noopener noreferrer'>
@@ -160,14 +139,14 @@
                         </td>
                         <td>
                             {% if template.steps %}
-                            {{ render_step_value(template.steps.source) }}
+                            {{ render_step(template.steps.source) }}
                             {% else %}
                             <code>{{ template.source or "-"}}</code>
                             {% endif %}
                         </td>
                         <td>
                             {% if template.steps %}
-                            {{ render_step_value(template.steps.slug) }}
+                            {{ render_step(template.steps.slug) }}
                             {% else %}
                             <code>-</code>
                             {% endif %}

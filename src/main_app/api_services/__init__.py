@@ -1,6 +1,6 @@
 """"""
 
-from .category import get_category_members_api
+from .category import get_category_members
 from .clients import get_user_site
 from .clients.commons_client import create_commons_session, download_commons_file_core
 from .mwclient_page import MwClientPage
@@ -20,7 +20,7 @@ __all__ = [
     "is_pages_exists",
     "resolve_redirects",
     "search_pages",
-    "get_category_members_api",
+    "get_category_members",
     "create_commons_session",
     "download_commons_file_core",
 ]

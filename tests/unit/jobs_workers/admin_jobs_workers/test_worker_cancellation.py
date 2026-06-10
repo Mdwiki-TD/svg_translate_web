@@ -53,11 +53,11 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     ]
     mock_common_services["list_templates"].return_value = templates
 
-    # Mock get_category_members_api to return empty list (no new templates to add)
-    mock_get_category_members_api = MagicMock(return_value=[])
+    # Mock get_category_members to return empty list (no new templates to add)
+    mock_get_category_members = MagicMock(return_value=[])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members_api",
-        mock_get_category_members_api,
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
+        mock_get_category_members,
     )
 
     # Mock add_template_data to avoid database calls

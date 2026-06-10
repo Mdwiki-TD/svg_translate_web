@@ -67,11 +67,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_before_run,
     )
 
-    # Mock get_category_members_api
-    mock_get_category_members_api = MagicMock()
+    # Mock get_category_members
+    mock_get_category_members = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members_api",
-        mock_get_category_members_api,
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
+        mock_get_category_members,
     )
 
     # Mock MwClientPage
@@ -114,7 +114,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "update_template_data": mock_update_template_data,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
-        "get_category_members_api": mock_get_category_members_api,
+        "get_category_members": mock_get_category_members,
         "MwClientPage": mock_mwclientpage,
         "find_main_title": mock_find_main_title,
         "get_chart_by_slug": mock_get_chart_by_slug,
@@ -125,7 +125,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
 def test_collect_templates_data_with_no_templates(mock_services):
     """Test collect_templates_data_entry when there are no templates."""
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = []
 
     worker.collect_templates_data_entry(job_id=1, user=None)
@@ -155,7 +155,7 @@ def test_collect_templates_data_skips_templates_with_main_file(mock_services, mo
             id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg", source="test"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     worker.collect_templates_data_entry(job_id=1, user=None)
@@ -174,7 +174,7 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
@@ -207,7 +207,7 @@ def test_collect_templates_data_handles_missing_wikitext(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = None
 
@@ -229,7 +229,7 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "some wikitext without SVGLanguages"
     mock_services["find_main_title"].return_value = None
@@ -253,7 +253,7 @@ def test_collect_templates_data_handles_exception(mock_services):
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.side_effect = Exception("Network error")
 
@@ -274,7 +274,7 @@ def test_collect_templates_data_processes_multiple_templates(mock_services):
         TemplateRecord(id=2, title="Template:Test2", main_file="already.svg", last_world_file=None),
         TemplateRecord(id=3, title="Template:Test3", main_file=None, last_world_file=None),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     # First template: success
@@ -324,7 +324,7 @@ def test_collect_templates_data_adds_new_templates_from_category(mock_services):
         "Template:New2",  # New
     ]
 
-    mock_services["get_category_members_api"].return_value = category_templates
+    mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
 
     worker.collect_templates_data_entry(job_id=1, user=None)
@@ -353,7 +353,7 @@ def test_collect_templates_data_handles_add_template_value_error(mock_services):
     ]
     category_templates = ["Template:New1"]
 
-    mock_services["get_category_members_api"].return_value = category_templates
+    mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
@@ -381,7 +381,7 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
 
     category_templates = ["Template:Existing", "Template:NewFromCategory"]
 
-    mock_services["get_category_members_api"].return_value = category_templates
+    mock_services["get_category_members"].return_value = category_templates
     # First call returns existing, second call returns existing + new
     mock_services["list_templates"].side_effect = [existing_templates, existing_templates + [new_template]]
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
@@ -415,7 +415,7 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     wikitext_with_owidslidersrcs = """
@@ -459,7 +459,7 @@ def test_collect_templates_data_cancellation_during_template_addition(mock_servi
     cancel_event.set()  # Cancel immediately
 
     category_templates = ["Template:New1", "Template:New2"]
-    mock_services["get_category_members_api"].return_value = category_templates
+    mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = []
 
     worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
@@ -483,7 +483,7 @@ def test_collect_templates_data_cancellation_during_processing(mock_services):
         TemplateRecord(id=3, title="Template:Test3", main_file=None, last_world_file=None),
     ]
 
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     # Cancel after processing first template
@@ -516,7 +516,7 @@ def test_collect_templates_data_progress_saving_frequency(mock_services, monkeyp
     templates = [
         TemplateRecord(id=i, title=f"Template:Test{i}", main_file=None, last_world_file=None) for i in range(1, 26)
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
@@ -544,7 +544,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     wikitext_without_main = """
@@ -581,7 +581,7 @@ def test_collect_templates_data_template_with_existing_main_file_only(mock_servi
     templates = [
         TemplateRecord(id=1, title="Template:Test", main_file="existing.svg", last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
     mock_services["find_main_title"].return_value = "test.svg"
@@ -600,7 +600,7 @@ def test_collect_templates_data_add_template_generic_exception(mock_services):
     existing_templates = []
     category_templates = ["Template:New1"]
 
-    mock_services["get_category_members_api"].return_value = category_templates
+    mock_services["get_category_members"].return_value = category_templates
     mock_services["list_templates"].return_value = existing_templates
     mock_services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
@@ -676,7 +676,7 @@ def test_collect_templates_data_update_all_processes_all_templates(mock_services
             id=2, title="Template:Test2", main_file="test2.svg", last_world_file="test2_2020.svg", source="src2"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
@@ -695,7 +695,7 @@ def test_collect_templates_data_default_skips_complete_templates(mock_services):
             id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg", source="src1"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     # Without args (update_all=False by default), complete templates are skipped
@@ -712,7 +712,7 @@ def test_collect_templates_data_entry_with_update_all_true_string(mock_services,
             id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
@@ -730,7 +730,7 @@ def test_collect_templates_data_entry_with_update_all_false_string(mock_services
             id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     worker.collect_templates_data_entry(job_id=1, user=None, args={"update_all": "false"})
@@ -746,7 +746,7 @@ def test_collect_templates_data_entry_with_args_none(mock_services):
             id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
 
     worker.collect_templates_data_entry(job_id=1, user=None, args=None)
@@ -762,7 +762,7 @@ def test_collect_templates_data_entry_update_all_case_insensitive(mock_services,
             id=1, title="Template:Test1", main_file="existing.svg", last_world_file="world.svg", source="src"
         ),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
@@ -778,7 +778,7 @@ def test_collect_templates_data_entry_cancel_event_is_keyword_only(mock_services
     import threading
 
     cancel_event = threading.Event()
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = []
 
     # Should not raise a TypeError - cancel_event must be passed as keyword arg
@@ -796,7 +796,7 @@ def test_collect_templates_data_entry_update_all_summary_counts(mock_services, m
         ),
         TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None, source=""),
     ]
-    mock_services["get_category_members_api"].return_value = []
+    mock_services["get_category_members"].return_value = []
     mock_services["list_templates"].return_value = templates
     mock_services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
     mock_services["find_main_title"].return_value = "newfile.svg"
