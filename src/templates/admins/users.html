@@ -27,9 +27,6 @@
                         <th scope="col" style="width: 5%">ID</th>
                         <th scope="col">User</th>
                         <th scope="col" class="text-center">Create at</th>
-                        <th scope="col" class="text-center">Update at</th>
-                        <th scope="col" class="text-center">Last used at</th>
-                        <th scope="col" class="text-center">Rotated at</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,15 +40,6 @@
                         </td>
                         <td class="text-center">
                             {{ user.created_at }}
-                        </td>
-                        <td class="text-center">
-                            {{ user.updated_at }}
-                        </td>
-                        <td class="text-center">
-                            {{ user.last_used_at }}
-                        </td>
-                        <td class="text-center">
-                            {{ user.rotated_at or "-" }}
                         </td>
                     </tr>
                     {% endfor %}

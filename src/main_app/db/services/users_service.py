@@ -10,6 +10,7 @@ import logging
 from typing import Optional
 
 from ...extensions import db
+
 # from ..exceptions import UserNotFoundError
 from ..models import UsersRecord
 
@@ -56,6 +57,7 @@ def create_user(username: str) -> UsersRecord:
         db.session.rollback()
         raise
     return record
+
 
 # ── DELETE ───────────────────────────────────────────────
 

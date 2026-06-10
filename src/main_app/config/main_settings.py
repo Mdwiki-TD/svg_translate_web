@@ -184,6 +184,7 @@ def load_other_config() -> OtherConfig:
         "USER_AGENT",
         "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
     )
+
     _config = OtherConfig(
         csrf_time_limit=csrf_time_limit,
         user_agent=user_agent,

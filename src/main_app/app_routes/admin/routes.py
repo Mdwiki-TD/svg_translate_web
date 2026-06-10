@@ -19,6 +19,7 @@ from ..admin_routes import (
     settings_module,
     slug_redirects_module,
     templates_module,
+    users_module,
 )
 from ..utils.routes_utils import get_job_detail_url
 from .admins_required import admin_required
@@ -71,23 +72,9 @@ def admin_dashboard():
     )
 
 
-@bp_admin.get("/users")
-@admin_required
-def users_dashboard() -> str:
-    """Render the coordinator management dashboard."""
-
-    users = list_users()
-    total = len(users)
-
-    return render_template(
-        "admins/users.html",
-        users=users,
-        total_users=total,
-    )
-
-
 def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(coordinators_module.bp)
+    bp_admin.register_blueprint(users_module.bp)
     bp_admin.register_blueprint(templates_module.bp)
     bp_admin.register_blueprint(settings_module.bp)
     bp_admin.register_blueprint(jobs_module.bp)
