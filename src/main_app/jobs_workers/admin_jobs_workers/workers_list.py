@@ -1,6 +1,4 @@
-from dataclasses import dataclass
-from typing import Callable
-
+from ..objects import JobData
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_templates_data.worker import collect_templates_data_entry
 from .create_owid_pages import create_owid_pages_for_templates
@@ -9,19 +7,6 @@ from .download_main_files.worker import download_main_files_for_templates
 from .fix_nested_main_files.worker import fix_nested_main_files_for_templates
 from .rename_owid_pages import rename_owid_pages_for_templates
 from .update_owid_charts.worker import update_owid_charts_worker_entry
-
-
-@dataclass
-class JobData:
-    job_type: str
-    job_name: str
-    job_details_template: str
-    job_list_template: str
-
-    job_callable: Callable
-    job_args: list | None = None
-    start_confirm_message: str | None = None
-
 
 jobs_data = {
     "collect_templates_data": JobData(

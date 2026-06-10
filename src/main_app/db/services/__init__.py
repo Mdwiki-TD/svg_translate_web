@@ -91,6 +91,16 @@ __all__ = [
     "set_coordinator_active",
     "get_coordinator_by_id",
     "delete_coordinator",
+    # jobs_service
+    "delete_job",
+    "create_job",
+    "get_job",
+    "list_jobs",
+    "update_job_status",
+    "get_all_user_jobs_stats",
+    "get_user_jobs_stats",
+    "cancel_job_db",
+    "is_job_cancelled",
     # owid_charts_service
     "get_chart_by_id",
     "get_chart_by_slug",
@@ -125,14 +135,4 @@ __all__ = [
     "delete_template",
     # template_need_update_service
     "list_templates_need_update",
-    # jobs_service
-    "delete_job",
-    "create_job",
-    "get_job",
-    "list_jobs",
-    "update_job_status",
-    "get_all_user_jobs_stats",
-    "get_user_jobs_stats",
-    "cancel_job_db",
-    "is_job_cancelled",
 ]
