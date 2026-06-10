@@ -119,8 +119,8 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
     (thumbs / "topic" / "files").mkdir(parents=True)
     (base / "topic" / "files" / "file.svg").write_text("<svg/>", encoding="utf-8")
 
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda : base)
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_thumb_path", lambda : thumbs)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda: base)
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_thumb_path", lambda: thumbs)
 
     def fake_save(src: Path, dest: Path) -> None:
         dest.write_text("thumb", encoding="utf-8")

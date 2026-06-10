@@ -12,22 +12,25 @@ from flask import (
 )
 from flask.wrappers import Response
 
+from ...config import settings
 from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
 )
 from ..utils.thumbnail_utils import save_thumb
-from ...config import settings
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)
 
+
 def load_thumb_path() -> Path:
     return Path(settings.paths.svg_data_thumb)
 
+
 def load_svg_data_path() -> Path:
     return Path(settings.paths.svg_data)
+
 
 @bp_explorer.get("/<title_dir>/downloads")
 def by_title_downloaded(title_dir: str):
@@ -149,6 +152,7 @@ def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
+
 
 @bp_explorer.route("/compare/<title_dir>/<string:filename>")
 def compare(title_dir: str, filename: str):

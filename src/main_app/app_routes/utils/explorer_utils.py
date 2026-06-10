@@ -12,6 +12,7 @@ def load_svg_data_path() -> Path:
     # return Path(__name__).parent.parent.parent / "svg_data"
     return Path(settings.paths.svg_data)
 
+
 def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     """Resolve and validate that title/sub_dir is confined under BASE_SVG."""
     svg_data_path = load_svg_data_path()
