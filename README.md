@@ -173,6 +173,19 @@ pytest tests/test_task_routes.py
 pytest --cov=src
 ```
 
+### Linting & Formatting
+
+```bash
+ruff check src/           # Lint
+ruff check --fix src/     # Lint with auto-fix
+mypy src/                 # Type check
+black .                   # Format
+isort .                   # Sort imports
+pyright src/              # Type check
+```
+
+Line length is 120 across all tools.
+
 ### Project Structure
 
 ```
