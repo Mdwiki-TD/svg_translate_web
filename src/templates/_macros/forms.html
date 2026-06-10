@@ -1,20 +1,20 @@
 {% from "_macros.html" import csrf %}
 
-{% macro form_cancel_job(end_point) %}
+{% macro form_cancel_job(end_point, btn_class="btn btn-warning") %}
 <form method="POST" action="{{ end_point }}" onsubmit="return confirm('Are you sure you want to cancel this job?');"
     class="d-inline">
     {{ csrf() }}
-    <button type="submit" class="btn btn-warning">
+    <button type="submit" class="{{ btn_class }}">
         <i class="bi bi-x-circle"></i> Cancel
     </button>
 </form>
 {%- endmacro -%}
 
-{% macro form_delete_job(end_point) %}
+{% macro form_delete_job(end_point, btn_class="btn btn-outline-danger btn-sm") %}
 <form method="POST" action="{{ end_point }}" onsubmit="return confirm('Are you sure? This action cannot be undone!');"
     class="d-inline">
     {{ csrf() }}
-    <button type="submit" class="btn btn-outline-danger btn-sm">
+    <button type="submit" class="{{ btn_class }}">
         <i class="bi bi-trash"></i> Delete
     </button>
 </form>

@@ -52,7 +52,7 @@
                                         <i class="bi bi-eye"></i> Details
                                     </a>
                                     {% if (current_username == job.username) and (job.status == 'running' or job.status == 'pending') %}
-                                    {{ form_cancel_job(url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+                                    {{ form_cancel_job(url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id), btn_class="btn btn-outline-warning text-muted btn-sm") }}
                                     {% endif %}
                                     {% if is_admin %}
                                     {{ form_delete_job(url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id)) }}

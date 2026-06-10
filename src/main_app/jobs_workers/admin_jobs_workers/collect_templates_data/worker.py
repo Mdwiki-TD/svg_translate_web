@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.category import get_category_members_api
+from ....api_services.category import get_category_members
 from ....api_services.clients import get_user_site
 from ....api_services.clients.owid_client import fetch_grapher_metadata
 from ....api_services.mwclient_page import MwClientPage
@@ -203,7 +203,11 @@ class CollectMainFilesWorker(BaseJobWorker):
 
     def _get_category_members(self) -> list:
         category = "Category:Pages using gadget owidslider"
-        result = get_category_members_api(category, "commons.wikimedia.org")
+        result = get_category_members(
+            site=self.site,
+            category_title=category,
+            namespace=10,
+        )
 
         logger.info(f"Found {len(result)} pages in category {category}")
 
