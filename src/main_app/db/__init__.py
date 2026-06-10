@@ -72,3 +72,8 @@ def init_db(_db) -> None:
                     conn.execute(text(create_sql))
             except Exception:
                 logger.exception("Failed to create view %s", table.name)
+
+
+__all__ = [
+    "init_db",
+]

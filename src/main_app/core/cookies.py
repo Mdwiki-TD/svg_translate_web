@@ -37,3 +37,8 @@ class CookieHeaderClient(FlaskClient):
                 super().set_cookie(key, morsel.value, domain=server_name)
 
         return super().open(*args, **kwargs)
+
+
+__all__ = [
+    "CookieHeaderClient",
+]

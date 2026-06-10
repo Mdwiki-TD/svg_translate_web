@@ -18,3 +18,11 @@ def add_template_to_text(text, template_text) -> str:
         return text
 
     return re.sub(RE_TRANSLATE, lambda m: m.group(0) + "\n*" + template_text, text, count=1)
+
+
+__all__ = [
+    "RE_SVG_LANG",
+    "RE_TRANSLATE",
+    "load_link_file_name",
+    "add_template_to_text",
+]

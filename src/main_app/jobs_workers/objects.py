@@ -12,3 +12,8 @@ class JobData:
     job_callable: Callable
     job_args: list | None = None
     start_confirm_message: str | None = None
+
+
+__all__ = [
+    "JobData",
+]

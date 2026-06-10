@@ -33,3 +33,8 @@ def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
         logger.error(f"Error adding slug redirect: {e}")
 
     return False
+
+
+__all__ = [
+    "check_slugs",
+]
