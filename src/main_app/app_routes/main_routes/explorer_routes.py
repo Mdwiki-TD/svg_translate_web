@@ -23,10 +23,10 @@ from ...config import settings
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)
 
-def load_thumb_path():
+def load_thumb_path() -> Path:
     return Path(settings.paths.svg_data_thumb)
 
-def load_svg_data_path():
+def load_svg_data_path() -> Path:
     return Path(settings.paths.svg_data)
 
 @bp_explorer.get("/<title_dir>/downloads")

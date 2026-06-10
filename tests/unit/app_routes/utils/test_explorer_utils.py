@@ -13,12 +13,9 @@ from src.main_app.app_routes.utils import explorer_utils
 @pytest.fixture(autouse=True)
 def patch_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     svg_dir = tmp_path / "svg"
-    thumb_dir = tmp_path / "thumbs"
     svg_dir.mkdir()
-    thumb_dir.mkdir()
 
-    monkeypatch.setattr(explorer_utils, "svg_data_path", svg_dir)
-    monkeypatch.setattr(explorer_utils, "svg_data_thumb_path", thumb_dir)
+    monkeypatch.setattr(explorer_utils, "load_svg_data_path", lambda: svg_dir)
 
     return svg_dir
 
