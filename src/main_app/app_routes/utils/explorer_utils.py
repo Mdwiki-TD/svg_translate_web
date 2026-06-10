@@ -18,7 +18,7 @@ def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     try:
         candidate = (svg_data_path / title / sub_dir).resolve()
     except (ValueError, OSError):
-        raise PermissionError(f"Invalid path: title={title!r}, sub_dir={sub_dir!r}")
+        raise PermissionError(f"Invalid path: title={title!r}, sub_dir={sub_dir!r}") from None
 
     if svg_data_path not in candidate.parents and candidate != svg_data_path:
         raise PermissionError(f"Path traversal attempt blocked: {candidate}")
