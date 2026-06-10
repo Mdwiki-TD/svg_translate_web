@@ -103,7 +103,6 @@ class MwClientPage:
         return self.page.namespace
 
     def exists(self) -> bool:
-
         if not self.load_page():
             logger.warning(f"Failed to load page '{self.title}'")
             return False

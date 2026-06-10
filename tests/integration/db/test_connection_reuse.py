@@ -50,7 +50,6 @@ class FakeConnection:
 
 
 def test_sequential_requests_use_cached_connections(monkeypatch):
-
     app = create_app(TestingConfig)
     app.config.update(TESTING=True)
 

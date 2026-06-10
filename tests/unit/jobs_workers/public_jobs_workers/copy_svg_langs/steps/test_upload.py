@@ -11,14 +11,12 @@ def mock_store():
 
 
 def test_upload_task_disabled(mock_site):
-
     res = upload_step({}, "Main", site=mock_site)
     assert res["success"] is True
     assert res["summary"]["total"] == 0
 
 
 def test_upload_task_no_files(mock_site):
-
     res = upload_step({}, "Main", site=mock_site)
     assert res["success"] is True
     assert res["summary"]["total"] == 0

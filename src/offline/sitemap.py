@@ -73,7 +73,7 @@ def download_owid_grapher_metadata(limit=None):
             continue
 
         metadata_url = f"https://ourworldindata.org/grapher/{slug}.metadata.json"
-        print(f"[{count+1}] Fetching metadata for slug: {slug}")
+        print(f"[{count + 1}] Fetching metadata for slug: {slug}")
 
         try:
             meta_res = requests.get(metadata_url, timeout=15)

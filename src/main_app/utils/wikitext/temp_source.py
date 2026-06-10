@@ -5,7 +5,6 @@ import urllib.parse
 
 
 def check_url(url: str) -> bool:
-
     try:
         parsed = urllib.parse.urlparse(url)
     except ValueError:

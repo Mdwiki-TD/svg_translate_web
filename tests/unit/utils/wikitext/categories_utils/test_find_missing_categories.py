@@ -11,7 +11,6 @@ from src.main_app.utils.wikitext.categories_utils import (
 
 
 class TestFindMissingCategories:
-
     def test_old_category_not_in_new(self):
         """Should return category from base_categories list if it is missing in target_categories list."""
         base_categories = [create_category_link_from_str("[[Category:Cat1]]")]

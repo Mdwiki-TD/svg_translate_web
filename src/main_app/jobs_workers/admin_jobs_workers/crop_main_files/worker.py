@@ -150,7 +150,6 @@ class CropMainFilesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
 
     def process(self) -> Dict[str, Any]:
-
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -443,8 +442,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
         error = update_result.get("error", "Unknown error")
         logger.warning(
-            f"Job {self.job_id}: Failed to update original file text for "
-            f"{file_info.original_file} (reason: {error})"
+            f"Job {self.job_id}: Failed to update original file text for {file_info.original_file} (reason: {error})"
         )
         # self._fail(file_info, "update_original", error)
         file_info.steps["update_original"] = {"result": False, "msg": error}

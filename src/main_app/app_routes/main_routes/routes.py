@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 @bp_main.get("/")
 def index():
-
     return render_template(
         "index.html",
         form={},

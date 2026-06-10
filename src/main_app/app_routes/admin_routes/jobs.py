@@ -220,7 +220,6 @@ class Jobs:
         self._setup_routes()
 
     def _setup_routes(self):
-
         # ================================
         # Cancel Jobs routes
         # ================================

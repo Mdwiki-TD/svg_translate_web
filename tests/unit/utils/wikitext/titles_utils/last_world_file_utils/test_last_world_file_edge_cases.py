@@ -801,7 +801,6 @@ File:youth mortality rate, World, 1953.svg!year=1953
 
 class TestMatchLastWorldFileEdgeCases:
     def test_basic(self):
-
         result = match_last_world_file_with_full_date(wikitext)
         expected = "File:youth mortality rate, World, 1953.svg"
         assert result == expected

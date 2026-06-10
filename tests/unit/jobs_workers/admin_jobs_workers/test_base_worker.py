@@ -1,4 +1,4 @@
-﻿"""Unit tests for base_worker module."""
+"""Unit tests for base_worker module."""
 
 from __future__ import annotations
 

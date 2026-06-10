@@ -453,7 +453,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
-
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -474,7 +473,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
 
         logger.info(
-            f"Job {self.job_id} completed: {len(self.result["pages_updated"])} updated, "
+            f"Job {self.job_id} completed: {len(self.result['pages_updated'])} updated, "
             f"{self.result['summary']['failed']} failed, "
             f"{self.result['summary']['skipped']} skipped"
         )
