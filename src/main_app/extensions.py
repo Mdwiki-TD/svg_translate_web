@@ -17,6 +17,7 @@ from flask_sqlalchemy.model import Model
 
 logger = logging.getLogger(__name__)
 
+
 class BaseModel(Model):
     """Base model providing a generic to_dict() for all records."""
 
@@ -37,6 +38,7 @@ def _commit(db: SQLAlchemy) -> None:
         db.session.rollback()
         logger.exception("Database commit failed; transaction rolled back.")
         raise
+
 
 # expire_on_commit=False preserves current behavior where objects
 # remain accessible after commit without triggering new queries.

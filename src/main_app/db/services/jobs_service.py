@@ -13,14 +13,17 @@ from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
+
 def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 500) -> int:
     if limit is None or limit <= 0:
         return default
     return min(limit, max_limit)
 
+
 # ------------------
 # private API
 # ------------------
+
 
 @db_guard_rollback
 def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
@@ -49,6 +52,7 @@ def _update_status(job_id: int, status: str, result_file: str | None, job_type: 
     db.session.refresh(job)
 
     return job
+
 
 @db_guard_rollback
 def _update_running_status(job_id: int, result_file: str | None = None, *, job_type: str) -> JobRecord:
@@ -191,7 +195,9 @@ def get_user_jobs_stats(
 
     limit = _normalize_limit(limit)
 
-    base_query = db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
+    base_query = (
+        db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
+    )
 
     status_counts = dict(
         db.session.query(JobRecord.status, func.count(JobRecord.id))
@@ -283,6 +289,7 @@ def update_job_status(job_id: int, status: str, result_file: str | None = None, 
         return _update_running_status(job_id, result_file, job_type=job_type)
 
     return _update_status(job_id, status, result_file, job_type)
+
 
 @db_guard_rollback
 def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
