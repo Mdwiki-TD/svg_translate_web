@@ -195,7 +195,7 @@ svg_translate_web/
 ├── requirements-dev.txt        # Development dependencies
 ├── tests/                      # Test suite
 ├── docs/                       # Documentation
-└── web_sh/                     # Deployment scripts
+└── toolforge_tool/shs/                     # Deployment scripts
 ```
 
 ## Deployment

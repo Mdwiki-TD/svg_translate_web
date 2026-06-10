@@ -1,3 +1,9 @@
+"""Unit tests for src/main_app/config/classes.py module."""
+
+from __future__ import annotations
+
+import pytest
+
 from src.main_app.config.classes import (
     CookieConfig,
     DbConfig,

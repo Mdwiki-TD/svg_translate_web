@@ -90,6 +90,7 @@ class UserTokenRecord(db.Model):
     user_id = Column(
         Integer,
         primary_key=True,
+        autoincrement=True,
     )
     username = Column(String(255), unique=True, nullable=False)
     access_token = Column(LargeBinary(1024), nullable=False)

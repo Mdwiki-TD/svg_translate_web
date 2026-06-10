@@ -41,7 +41,8 @@ def download_commons_file_core(
     session: requests.Session,
     timeout: int = 60,
 ) -> bytes:
-    """Download a file from Wikimedia Commons and return raw content.
+    """
+    Download a file from Wikimedia Commons and return raw content.
 
     This is the lowest-level download function that handles the actual HTTP
     request to Commons. It performs no file I/O or application-level validation;

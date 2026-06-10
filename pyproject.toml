@@ -1,4 +1,14 @@
 
+[project]
+name = "copy-svg-files"
+version = "0.0.0"
+description = "Flask app for svg files tools."
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7",
+]
 # ============================================
 #                 BLACK
 # ============================================

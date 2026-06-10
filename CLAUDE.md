@@ -67,7 +67,6 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 7. **inject** - Inject translations into SVGs
 8. **upload** - Upload results to Wikimedia Commons
 
-
 ### Database Layer
 
 -   `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
@@ -122,24 +121,25 @@ DISABLE_UPLOADS=0           # Set to 1 to disable uploads
 
 Background jobs are registered in `src/main_app/jobs_workers/workers_list.py` and use `BaseJobWorker` (`src/main_app/jobs_workers/base_worker.py`) for lifecycle management.
 
-| Job Type                    | Worker Location                                         | Purpose                                                  |
-| --------------------------- | ------------------------------------------------------- | -------------------------------------------------------- |
-| `collect_templates_data`        | `jobs_workers/collect_templates_data_worker.py`             | Collect template metadata from Commons                   |
-| `crop_main_files`           | `jobs_workers/crop_main_files/`                         | Crop newest world files                                  |
-| `create_owid_pages`         | `jobs_workers/create_owid_pages/`                       | Create OWID gallery pages from templates                 |
-| `rename_owid_pages`         | `jobs_workers/rename_owid_pages/`                       | Capitalize first letter of OWID subpage names            |
-| `add_svglanguages_template` | `jobs_workers/add_svglanguages_template/`               | Add {{SVGLanguages}} template to files                   |
-| `fix_nested_main_files`     | `jobs_workers/fix_nested_main_files_worker.py`          | Fix nested SVG file structures                           |
-| `download_main_files`       | `jobs_workers/download_main_files_worker.py`            | Download main files from Commons                         |
+| Job Type                    | Worker Location                                 | Purpose                                       |
+| --------------------------- | ----------------------------------------------- | --------------------------------------------- |
+| `collect_templates_data`    | `jobs_workers/collect_templates_data_worker.py` | Collect template metadata from Commons        |
+| `crop_main_files`           | `jobs_workers/crop_main_files/`                 | Crop newest world files                       |
+| `create_owid_pages`         | `jobs_workers/create_owid_pages/`               | Create OWID gallery pages from templates      |
+| `rename_owid_pages`         | `jobs_workers/rename_owid_pages/`               | Capitalize first letter of OWID subpage names |
+| `add_svglanguages_template` | `jobs_workers/add_svglanguages_template/`       | Add {{SVGLanguages}} template to files        |
+| `fix_nested_main_files`     | `jobs_workers/fix_nested_main_files_worker.py`  | Fix nested SVG file structures                |
+| `download_main_files`       | `jobs_workers/download_main_files_worker.py`    | Download main files from Commons              |
 
 Jobs use the current user's OAuth session (via `get_user_site(user)`) for wiki operations.
 
 ### MediaWiki Page Operations (`api_services/pages_api.py`)
 
 All wiki page operations go through `MwClientPage` (`api_services/mwclient_page/mwclient_wraper.py`) which handles:
-- Page loading, existence checks, redirect detection
-- Editing with rate-limit retry (5s, 15s, 30s delays)
-- Moving (renaming) with rate-limit retry
+
+-   Page loading, existence checks, redirect detection
+-   Editing with rate-limit retry (5s, 15s, 30s delays)
+-   Moving (renaming) with rate-limit retry
 
 Thin wrappers in `pages_api.py`:
 
@@ -154,7 +154,7 @@ move_page(site, title, new_title, reason, ...)  # Move/rename page
 
 Standalone CLI scripts not part of the Flask app:
 
-- **`rename_owid_pages.py`** — Capitalize OWID subpage names using WIKI_USERNAME/WIKI_PASSWORD from `.env`. Dry-run by default; use `--apply` to execute.
+-   **`rename_owid_pages.py`** — Capitalize OWID subpage names using WIKI_USERNAME/WIKI_PASSWORD from `.env`. Dry-run by default; use `--apply` to execute.
 
 ### External Dependencies
 
@@ -174,4 +174,4 @@ Automated via GitHub Actions on `main` branch push to Wikimedia Toolforge Kubern
 -   Templates: `src/templates/`
 -   Static assets: `src/static/`
 -   Config files: `0/` (flake8, pylint, mypy)
--   Deployment scripts: `web_sh/`
+-   Deployment scripts: `toolforge_tool/shs/`

@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 
 from ..db.services import (
-    create_user,
+    create_user_token,
     get_authenticated_user_token,
     get_user_token,
     get_user_token_by_username,
@@ -43,7 +43,7 @@ class UserService:
                     access_secret=access_secret,
                 )
             else:
-                user = create_user(
+                user = create_user_token(
                     username=username,
                     access_key=access_key,
                     access_secret=access_secret,

@@ -6,6 +6,10 @@ Classes to test: DatabaseInitError, MaxUserConnectionsError, UserNotFoundError, 
 TODO: write tests
 """
 
+from __future__ import annotations
+
+import pytest
+
 from src.main_app.db.exceptions import (
     DatabaseInitError,
     DuplicateJobError,
@@ -13,3 +17,13 @@ from src.main_app.db.exceptions import (
     MaxUserConnectionsError,
     UserNotFoundError,
 )
+
+
+def test_max_user_connections_error():
+    with pytest.raises(MaxUserConnectionsError):
+        raise MaxUserConnectionsError("Too many connections")
+
+
+def test_insufficient_database_config_error():
+    with pytest.raises(InsufficientDatabaseConfigError, match="DB requires database configuration"):
+        raise InsufficientDatabaseConfigError()
