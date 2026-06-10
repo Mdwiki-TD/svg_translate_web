@@ -12,7 +12,7 @@ from src.main_app.su_services.users_service import UserService
 @pytest.fixture
 def mock_db_services():
     with (
-        patch("src.main_app.su_services.users_service.get_user_token_by_username") as m_get_by_name,
+        patch("src.main_app.su_services.users_service.get_user_by_username") as m_get_by_name,
         patch("src.main_app.su_services.users_service.update_user_token") as m_update,
         patch("src.main_app.su_services.users_service.create_user_token") as m_create,
         patch("src.main_app.su_services.users_service.get_user_token") as m_get_token,

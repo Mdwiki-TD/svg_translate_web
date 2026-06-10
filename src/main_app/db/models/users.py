@@ -37,6 +37,8 @@ class UsersRecord(db.Model):
 
 class AdminUserRecord(db.Model):
     """
+    Coordinator/admin role — username references users.username.
+
     CREATE TABLE `admin_users` (
         `id` int NOT NULL AUTO_INCREMENT,
         `username` varchar(255) NOT NULL,
@@ -44,7 +46,9 @@ class AdminUserRecord(db.Model):
         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`),
-        UNIQUE KEY `username` (`username`)
+        UNIQUE KEY `username` (`username`),
+        CONSTRAINT `admin_users_ibfk_1` FOREIGN KEY (`username`)
+            REFERENCES `users` (`username`) ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
 
@@ -53,6 +57,7 @@ class AdminUserRecord(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(
         String(255),
+        db.ForeignKey("users.username", ondelete="CASCADE", onupdate="CASCADE"),
         unique=True,
         nullable=False,
     )
@@ -73,7 +78,6 @@ class UserTokenRecord(db.Model):
 
     CREATE TABLE IF NOT EXISTS user_tokens (
         user_id int NOT NULL,
-        username varchar(255) NOT NULL,
         access_token varbinary(1024) NOT NULL,
         access_secret varbinary(1024) NOT NULL,
         created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -81,7 +85,8 @@ class UserTokenRecord(db.Model):
         last_used_at datetime DEFAULT NULL,
         rotated_at datetime DEFAULT NULL,
         PRIMARY KEY (user_id),
-        UNIQUE KEY uq_user_tokens_username (username)
+        CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`)
+            REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
     )
     """
 
@@ -89,10 +94,9 @@ class UserTokenRecord(db.Model):
 
     user_id = Column(
         Integer,
+        db.ForeignKey("users.user_id", ondelete="CASCADE", onupdate="CASCADE"),
         primary_key=True,
-        autoincrement=True,
     )
-    username = Column(String(255), unique=True, nullable=False)
     access_token = Column(LargeBinary(1024), nullable=False)
     access_secret = Column(LargeBinary(1024), nullable=False)
 
@@ -102,10 +106,11 @@ class UserTokenRecord(db.Model):
         nullable=False,
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
-        # server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
     last_used_at = Column(DateTime, nullable=True, server_default=func.current_timestamp())
     rotated_at = Column(DateTime, nullable=True)
+
+    user = db.relationship("UsersRecord", backref=db.backref("token", uselist=False))
 
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value):
