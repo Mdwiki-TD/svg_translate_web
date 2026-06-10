@@ -79,3 +79,8 @@ def owid_charts_list(template_filter: str = ""):
     data = [c.to_dict() for c in charts]
 
     return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
+
+
+__all__ = [
+    "bp_api",
+]

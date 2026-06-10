@@ -263,3 +263,10 @@ def create_side(active_route, path: str | None = None):
 
     sidebar.append("</ul>")
     return "\n".join(sidebar)
+
+
+__all__ = [
+    "SidebarItem",
+    "generate_list_item",
+    "create_side",
+]

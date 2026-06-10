@@ -30,3 +30,8 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
         return view(*args, **kwargs)
 
     return cast(FuncType, wrapped)
+
+
+__all__ = [
+    "admin_required",
+]
