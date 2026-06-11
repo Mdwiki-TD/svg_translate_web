@@ -1,28 +1,28 @@
 """Tests for last_world_file module."""
 
-from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import (
+from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
     find_last_world_file_from_owidslidersrcs,
-    match_last_world_file,
+    match_last_world_file_with_full_date,
 )
 
 
 class TestMatchLastWorldFile:
-    """Tests for match_last_world_file function."""
+    """Tests for match_last_world_file_with_full_date function."""
 
     def test_empty_text_returns_empty(self):
         """Test that empty text returns empty string."""
-        result = match_last_world_file("")
+        result = match_last_world_file_with_full_date("")
         assert result == ""
 
     def test_no_valid_lines_returns_empty(self):
         """Test that text without valid lines returns empty string."""
-        result = match_last_world_file("Some random text\nMore text")
+        result = match_last_world_file_with_full_date("Some random text\nMore text")
         assert result == ""
 
     def test_single_valid_line(self):
         """Test with single valid line."""
         text = "File:test, World, 1950.svg!year=1950"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test, World, 1950.svg"
 
     def test_multiple_lines_returns_latest_year(self):
@@ -33,7 +33,7 @@ File:youth mortality rate, World, 1951.svg!year=1951
 File:youth mortality rate, World, 1953.svg ! year = 1953
 File:youth mortality rate, World, 1952.svg ! year=1952
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:youth mortality rate, World, 1953.svg"
 
     def test_invalid_filename_skipped(self):
@@ -42,7 +42,7 @@ File:youth mortality rate, World, 1952.svg ! year=1952
 Invalid filename!year=1950
 File:valid, World, 2000.svg!year=2000
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:valid, World, 2000.svg"
 
     def test_invalid_year_format_skipped(self):
@@ -51,7 +51,7 @@ File:valid, World, 2000.svg!year=2000
 File:test, World, 1950.svg!invalid_year
 File:valid, World, 2000.svg!year=2000
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:valid, World, 2000.svg"
 
     def test_line_without_exclamation_skipped(self):
@@ -60,25 +60,25 @@ File:valid, World, 2000.svg!year=2000
 File:test.svg
 File:valid, World, 2000.svg!year=2000
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:valid, World, 2000.svg"
 
     def test_underscores_replaced_with_spaces(self):
         """Test that underscores in filename are replaced with spaces."""
         text = "File:test_file_name, World, 1950.svg!year=1950"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test file name, World, 1950.svg"
 
     def test_filename_with_parentheses(self):
         """Test filename with parentheses."""
         text = "File:test_(example), World, 2020.svg!year=2020"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test (example), World, 2020.svg"
 
     def test_filename_with_hyphen(self):
         """Test filename with hyphen."""
         text = "File:test-file, World, 2020.svg!year=2020"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test-file, World, 2020.svg"
 
     def test_multiple_different_years(self):
@@ -89,7 +89,7 @@ File:chart, World, 2023.svg!year=2023
 File:chart, World, 1999.svg!year=1999
 File:chart, World, 2050.svg!year=2050
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:chart, World, 2050.svg"
 
 

@@ -13,6 +13,8 @@ from typing import Any, Dict
 
 import mwclient
 
+from ....db.templates_utils import extract_slug
+
 from ....api_services.category import get_category_members
 from ....api_services.clients import get_user_site
 from ....api_services.clients.owid_client import fetch_grapher_metadata
@@ -25,7 +27,7 @@ from ....db.services import (
     update_template_data,
 )
 from ....utils.wikitext import find_template_source
-from ....utils.wikitext.titles_utils import (
+from ....utils.wikitext.owid_sliders_rcs import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
@@ -398,9 +400,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         return False
 
     def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
-        _slug = None
-        if "/grapher/" in template_source:
-            _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+        _slug = extract_slug(template_source)
 
         if not _slug:
             _slug = slugify_title(template_title)

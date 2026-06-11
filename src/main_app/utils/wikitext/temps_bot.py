@@ -10,7 +10,7 @@ import re
 
 import wikitextparser as wtp
 
-from .titles_utils.main_file import find_main_title
+from .owid_sliders_rcs.main_file import find_main_title
 
 
 def get_titles_from_wikilinks(text):

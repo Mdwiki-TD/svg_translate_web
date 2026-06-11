@@ -1,17 +1,17 @@
 """
-Tests for src/main_app/utils/wikitext/titles_utils/last_world_file_utils.py
+Tests for src/main_app/utils/wikitext/owid_sliders_rcs/last_world_file_utils.py
 """
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import (
+from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
     find_last_world_file_from_owidslidersrcs,
-    match_last_world_file,
+    match_last_world_file_with_full_date,
 )
 
 
 class TestMatchLastWorldFile:
-    """Tests for the match_last_world_file function."""
+    """Tests for the match_last_world_file_with_full_date function."""
 
     def test_find_last_file_by_year(self) -> None:
         """Test finding the file with the latest year."""
@@ -21,13 +21,13 @@ class TestMatchLastWorldFile:
         File:youth mortality rate, World, 1952.svg!year=1952
         File:youth mortality rate, World, 1953.svg!year=1953
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:youth mortality rate, World, 1953.svg"
 
     def test_single_file(self) -> None:
         """Test with a single file entry."""
         text = "File:test.svg!year=2020"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test.svg"
 
     def test_unordered_years(self) -> None:
@@ -38,13 +38,13 @@ class TestMatchLastWorldFile:
         File:test, World, 1952.svg!year=1952
         File:test, World, 1951.svg!year=1951
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test, World, 1953.svg"
 
     def test_underscores_replaced_with_spaces(self) -> None:
         """Test that underscores in filename are replaced with spaces."""
         text = "File:test_file_name, World, 2020.svg!year=2020"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test file name, World, 2020.svg"
 
     def test_invalid_line_format_ignored(self) -> None:
@@ -54,7 +54,7 @@ class TestMatchLastWorldFile:
         File:test.svg!year=2020
         Another invalid line
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test.svg"
 
     def test_invalid_year_format_ignored(self) -> None:
@@ -63,7 +63,7 @@ class TestMatchLastWorldFile:
         File:test.svg!year=invalid
         File:test2.svg!year=2020
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test2.svg"
 
     def test_invalid_filename_format_ignored(self) -> None:
@@ -72,12 +72,12 @@ class TestMatchLastWorldFile:
         NotAFile!year=2020
         File:test.svg!year=2020
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test.svg"
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = match_last_world_file("")
+        result = match_last_world_file_with_full_date("")
         assert result == ""
 
     def test_no_valid_files(self) -> None:
@@ -86,19 +86,19 @@ class TestMatchLastWorldFile:
         Invalid line 1
         Invalid line 2
         """
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == ""
 
     def test_whitespace_stripped(self) -> None:
         """Test that whitespace is stripped from filenames."""
         text = "  File:test.svg!year=2020  "
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:test.svg"
 
     def test_complex_filename(self) -> None:
         """Test with complex filename containing special characters."""
         text = "File:health-expenditure(test), World, 2020.svg!year=2020"
-        result = match_last_world_file(text)
+        result = match_last_world_file_with_full_date(text)
         assert result == "File:health-expenditure(test), World, 2020.svg"
 
 
