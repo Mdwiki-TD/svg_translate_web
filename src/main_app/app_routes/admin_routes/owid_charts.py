@@ -92,14 +92,15 @@ def _add_chart() -> ResponseReturnValue:
             return redirect(url_for("admin.owidcharts.add_chart"))
         return redirect(url_for("admin.owidcharts.dashboard"))
 
-    has_map_tab = request.form.get("has_map_tab") == "on"
+    has_map_tab = 1 if request.form.get("has_map_tab") == "on" else 0
+    is_published = 1 if request.form.get("is_published") == "on" else 0
+    single_year_data = 1 if request.form.get("single_year_data") == "1" else 0
+    has_timeline = 1 if request.form.get("has_timeline") == "1" else 0
+
     max_time = request.form.get("max_time", type=int)
     min_time = request.form.get("min_time", type=int)
     default_tab = request.form.get("default_tab", "").strip()
-    is_published = request.form.get("is_published") == "on"
-    single_year_data = request.form.get("single_year_data") == "1"
     len_years = request.form.get("len_years", type=int)
-    has_timeline = request.form.get("has_timeline") == "1"
 
     save_error = None
     try:
