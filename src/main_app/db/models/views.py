@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Column, Integer, String
-
+from sqlalchemy import String, text
+from sqlalchemy.orm import Mapped, mapped_column
 from ...extensions import db
 
 logger = logging.getLogger(__name__)
+
 
 
 class TemplateNeedUpdateRecord(db.Model):
@@ -15,11 +16,11 @@ class TemplateNeedUpdateRecord(db.Model):
 
     __tablename__ = "templates_need_update"
 
-    template_id = Column(Integer, primary_key=True, autoincrement=True)
-    template_title = Column(String(255), unique=True, nullable=False)
-    slug = Column(String(255), nullable=False, server_default="")
-    last_world_year = Column(Integer, nullable=True)
-    max_time = Column(Integer, nullable=True)
+    template_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    last_world_year: Mapped[int | None] = mapped_column(nullable=True)
+    max_time: Mapped[int | None] = mapped_column(nullable=True)
 
     __table_args__ = (
         # Prevent SQLAlchemy from trying to create this as a table
@@ -67,9 +68,9 @@ class OwidChartTemplateRecord(db.Model):
 
     __tablename__ = "owid_charts_templates"
 
-    chart_id = Column(Integer, primary_key=True, autoincrement=True)
-    template_id = Column(Integer, primary_key=True)
-    template_title = Column(String(255), unique=True, nullable=False)
+    chart_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    template_id: Mapped[int] = mapped_column(primary_key=True)
+    template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     __table_args__ = (
         # Prevent SQLAlchemy from trying to create this as a table
