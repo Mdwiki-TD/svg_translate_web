@@ -51,6 +51,7 @@ def setup_logging(
         console_formatter = colorlog.ColoredFormatter(
             # Standard format: Time - Name - Level - [File:Line] - Message
             fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(filename)s:%(lineno)d] - %(message)s",
+            datefmt="%H:%M:%S",
             log_colors={
                 "DEBUG": "cyan",
                 "INFO": "green",
