@@ -1,7 +1,10 @@
 import re
 
 
-def extract_slug(chart_url: str) -> str | None:
+def extract_slug(chart_url: str | None) -> str | None:
+    if not chart_url:
+        return None
+
     chart_url = chart_url.split("?")[0]
 
     slug = None
