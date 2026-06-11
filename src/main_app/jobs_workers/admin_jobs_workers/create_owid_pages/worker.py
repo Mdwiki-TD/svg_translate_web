@@ -12,13 +12,11 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.clients import get_user_site
-from ....api_services.mwclient_page import MwClientPage
-from ....api_services.query_api import is_pages_exists
+from ....api_services import MwClientPage, get_user_site, is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ....utils.wikitext.categories_utils import merge_categories, sort_categories
+from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
 
@@ -207,8 +205,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def add_slug_categories(self, new_text, source):
-        categories = get_slug_categories(source)
+    def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
 
         for x in categories:
             if x not in new_text:
@@ -237,8 +234,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._append(file_info, key="pages_failed")
             return False
 
-        if file_info._new_text and template.source:
-            file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
+        if file_info._new_text and template.slug:
+            categories = get_slug_categories(template.slug)
+            file_info._new_text = self.add_slug_categories(file_info._new_text, categories)
 
         # ----------------------------------
         # Step 2 A) - check if new page already exists

@@ -12,10 +12,10 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import 
 
 @pytest.fixture
 def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
-    """Mock find_last_world_file_from_owidslidersrcs to return None by default."""
+    """Mock find_newest_world_file to return None by default."""
     mock = MagicMock(return_value=None)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         mock,
     )
     return mock
@@ -430,10 +430,10 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
     mock_services["MwClientPage"].return_value.get_text.return_value = wikitext_with_owidslidersrcs
     mock_services["find_main_title"].return_value = "test.svg"
 
-    # Mock find_last_world_file_from_owidslidersrcs
+    # Mock find_newest_world_file
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         mock_find_last_world,
     )
 
@@ -557,10 +557,10 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     mock_services["MwClientPage"].return_value.get_text.return_value = wikitext_without_main
     mock_services["find_main_title"].return_value = None  # No main file
 
-    # Mock find_last_world_file_from_owidslidersrcs
+    # Mock find_newest_world_file
     mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         mock_find_last_world,
     )
 

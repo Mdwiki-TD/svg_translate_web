@@ -59,7 +59,7 @@ def get_all_settings_ready() -> dict[str, Any]:
                 val = x.value
             else:
                 try:
-                    val = int(x.value)
+                    val = int(x.value)  # type: ignore
                 except (ValueError, TypeError):
                     val = None
         elif x.value_type == "string":

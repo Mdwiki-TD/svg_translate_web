@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.clients import get_user_site
+from ....api_services import get_user_site
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,

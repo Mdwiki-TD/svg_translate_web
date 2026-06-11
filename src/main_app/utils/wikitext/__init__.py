@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from .before_methods import insert_before_methods
-from .categories_utils import merge_categories
+from .categories_utils import merge_categories, sort_categories
 from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
+from .owid_sliders_rcs import (
+    find_main_title,
+    find_newest_world_file,
+)
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
 from .temps_bot import get_files_list, get_files_list_data, get_titles, get_titles_from_wikilinks
@@ -20,8 +24,11 @@ def ensure_file_prefix(file_name) -> str:
 
 
 __all__ = [
+    "find_newest_world_file",
+    "find_main_title",
     "ensure_file_prefix",
     "merge_categories",
+    "sort_categories",
     "find_template_source",
     "insert_before_methods",
     "add_other_versions",

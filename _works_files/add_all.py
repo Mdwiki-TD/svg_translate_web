@@ -57,7 +57,7 @@ def add_all_to_source_files(src_root):
             file_path = current_path / file
 
             text = file_path.read_text(encoding="utf-8")
-            if 'if __name__ == "__main__":' in text:
+            if 'if __name__ == "__main__":' in text or "if __name__ == '__main__':" in text:
                 continue
 
             # Extract items and check for existing __all__

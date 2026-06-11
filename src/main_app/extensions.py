@@ -23,7 +23,7 @@ class BaseModel(Model):
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
-        for column in self.__table__.columns:
+        for column in self.__table__.columns: # pyright: ignore[reportAttributeAccessIssue]
             value = getattr(self, column.name)
             if hasattr(value, "isoformat"):
                 value = value.isoformat()

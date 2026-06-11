@@ -123,7 +123,7 @@ def process(
     move_talk: bool,
     no_redirect: bool,
 ) -> dict[str, int]:
-    stats = {
+    stats: dict[str, int] = {
         "checked": 0,
         "to_rename": 0,
         "renamed": 0,

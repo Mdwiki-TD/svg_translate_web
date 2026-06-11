@@ -5,28 +5,10 @@ from typing import Any, List
 
 from ...extensions import db
 from ..models.templates import TemplateRecord
-from ..templates_utils import extract_slug, match_last_world_year
+from ..templates_utils import ensure_template_data
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
-
-
-def _ensure_last_world_year(template_data: dict[str, Any]) -> dict[str, Any]:
-    if template_data.get("last_world_file") and not template_data.get("last_world_year"):
-        template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
-
-    if template_data.get("source") and not template_data.get("slug"):
-        slug = extract_slug(template_data.get("source"))
-        if slug:
-            template_data["slug"] = slug
-
-    if template_data.get("last_world_file"):
-        template_data["last_world_file"] = template_data["last_world_file"].removeprefix("File:")
-
-    if template_data.get("main_file"):
-        template_data["main_file"] = template_data["main_file"].removeprefix("File:")
-
-    return template_data
 
 
 # ── SELECT ───────────────────────────────────────────────
@@ -67,39 +49,44 @@ def add_template_data(
     if existing:
         raise ValueError(f"Template '{title}' already exists")
 
-    data = _ensure_last_world_year(data)
+    data = ensure_template_data(data)
 
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
-    chart = TemplateRecord(**temp_data)
+    record = TemplateRecord(**temp_data)
 
-    db.session.add(chart)
+    db.session.add(record)
 
     try:
         db.session.commit()
-        db.session.refresh(chart)
+        db.session.refresh(record)
     except Exception as exc:
         db.session.rollback()
         raise exc
 
-    return chart
+    return record
 
 
 @db_guard(default_return=None)
 def update_template_data(
     template_id: int,
     template_data: dict[str, str],
-) -> TemplateRecord:
+) -> TemplateRecord | None:
     """
     Update template only if not None.
     """
-    template_data = _ensure_last_world_year(template_data)
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
-    if template:
-        for key, value in template_data.items():
-            if value is not None:
-                setattr(template, key, value)
-        db.session.commit()
-        db.session.refresh(template)
+    if not template:
+        return None
+
+    template_data = ensure_template_data(template_data)
+
+    for key, value in template_data.items():
+        if value is not None:
+            setattr(template, key, value)
+
+    db.session.commit()
+    db.session.refresh(template)
+
     return template
 
 

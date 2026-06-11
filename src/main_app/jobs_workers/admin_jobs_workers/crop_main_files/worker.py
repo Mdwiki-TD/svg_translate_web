@@ -13,9 +13,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.clients import create_commons_session, get_user_site
-from ....api_services.mwclient_page import MwClientPage
-from ....api_services.query_api import is_pages_exists
+from ....api_services import MwClientPage, create_commons_session, get_user_site, is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates

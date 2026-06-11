@@ -6,7 +6,7 @@ from datetime import datetime
 import wikitextparser as wtp
 
 
-def match_last_world_file_with_full_date(text) -> str:
+def match_newest_world_file(text) -> str:
     """
     Example:
         ==Data==
@@ -37,7 +37,7 @@ def match_last_world_file_with_full_date(text) -> str:
 
     lines = text.strip().splitlines()
     latest_date = None
-    last_world_file = ""
+    newest_world_file = ""
 
     for line in lines:
         parts = line.split("!")
@@ -69,18 +69,18 @@ def match_last_world_file_with_full_date(text) -> str:
 
         if latest_date is None or date > latest_date:
             latest_date = date
-            last_world_file = filename.replace("_", " ").strip()
+            newest_world_file = filename.replace("_", " ").strip()
 
-    return last_world_file
+    return newest_world_file
 
 
-def find_last_world_file_from_owidslidersrcs(text) -> str | None:
+def find_newest_world_file(text) -> str | None:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
-    # --- 1. Extract last_world_file from {{owidslidersrcs|gallery-World=...}}
-    last_world_file = None
+    # --- 1. Extract newest_world_file from {{owidslidersrcs|gallery-World=...}}
+    newest_world_file = None
     for tpl in parsed.templates:
         if tpl.name.strip().lower() != "owidslidersrcs":
             continue
@@ -88,17 +88,17 @@ def find_last_world_file_from_owidslidersrcs(text) -> str | None:
         if tpl.arguments:
             gallery = tpl.get_arg("gallery-World")
             if gallery:
-                matched = match_last_world_file_with_full_date(gallery.value.strip())
+                matched = match_newest_world_file(gallery.value.strip())
                 if matched:
-                    last_world_file = matched
+                    newest_world_file = matched
 
         # break when match owidslidersrcs template
         break
 
-    return last_world_file
+    return newest_world_file
 
 
 __all__ = [
-    "match_last_world_file_with_full_date",
-    "find_last_world_file_from_owidslidersrcs",
+    "match_newest_world_file",
+    "find_newest_world_file",
 ]
