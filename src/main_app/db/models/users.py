@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -33,6 +34,22 @@ class UsersRecord(db.Model):
 
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
+        data: dict[str, Any] = {}
+        table_keys = [
+            "user_id",
+            "username",
+            "created_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column] = value
+
+        return data
 
 
 class AdminUserRecord(db.Model):
@@ -71,6 +88,24 @@ class AdminUserRecord(db.Model):
         server_onupdate=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
+        data: dict[str, Any] = {}
+        table_keys = [
+            "id",
+            "username",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column] = value
+
+        return data
 
 
 class UserTokenRecord(db.Model):
@@ -119,6 +154,26 @@ class UserTokenRecord(db.Model):
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
+        data: dict[str, Any] = {}
+        table_keys = [
+            "user_id",
+            "access_token",
+            "access_secret",
+            "created_at",
+            "updated_at",
+            "last_used_at",
+            "rotated_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column] = value
+
+        return data
 
 
 __all__ = [
