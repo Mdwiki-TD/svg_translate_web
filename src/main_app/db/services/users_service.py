@@ -43,12 +43,33 @@ def get_user_by_username(username: str) -> Optional[UsersRecord]:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
+def toggle_can_run_jobs(user_id: int, desired: int) -> UsersRecord:
+    """Update can_run_jobs field for a user."""
+    record = get_user(user_id)
+    if not record:
+        raise LookupError(f"User ID {user_id} not found")
+    record.can_run_jobs = desired
+    db.session.commit()
+    return record
+
+
+def toggle_can_run_bg_jobs(user_id: int, desired: int) -> UsersRecord:
+    """Update can_run_bg_jobs field for a user."""
+    record = get_user(user_id)
+    if not record:
+        raise LookupError(f"User ID {user_id} not found")
+    record.can_run_bg_jobs = desired
+    db.session.commit()
+    return record
+
+
 def create_user(username: str) -> UsersRecord:
     """Create a user identity row. Idempotent — returns existing if present."""
     existing = db.session.query(UsersRecord).filter(UsersRecord.username == username).first()
     if existing:
         return existing
-    record = UsersRecord(username=username)
+    record = UsersRecord()
+    record.username = username
     db.session.add(record)
     try:
         db.session.commit()
@@ -82,4 +103,6 @@ __all__ = [
     "get_user",
     "get_user_by_username",
     "list_users",
+    "toggle_can_run_jobs",
+    "toggle_can_run_bg_jobs",
 ]

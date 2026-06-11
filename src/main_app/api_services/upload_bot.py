@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import mwclient
+import mwclient.client
 import mwclient.errors
 import requests
 
@@ -81,7 +82,8 @@ class UploadFile:
         try:
             response = self._site_upload()
             logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
-            return {"success": True, "result": response.get("result", ""), "response": response}
+            result = response.get("result", "") if response else ""
+            return {"success": True, "result": result, "response": response}
 
         except mwclient.errors.AssertUserFailedError:
             # Session expired or user assertion failed — no point retrying
@@ -170,10 +172,13 @@ class UploadFile:
             requests.exceptions.ConnectionError
             requests.exceptions.Timeout
         """
+        if not self.site:
+            return {}
+
         with open(self.file_path, "rb") as f:
             response = self.site.upload(
                 file=f,
-                description=self.description,
+                description=self.description or "",
                 filename=self.file_name,
                 comment=self.summary or "",
                 ignore=True,  # skip warnings like "file exists"

@@ -12,7 +12,6 @@ from urllib.parse import urlencode
 
 from flask import (
     Blueprint,
-    Response,
     flash,
     g,
     make_response,
@@ -90,7 +89,7 @@ def before_request():
 
 
 @bp_auth.get("/login")
-def login() -> Response:
+def login():
     if not login_rate_limiter.allow(_client_key()):
         time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
         time_left = str(time_left).split(".")[0]
@@ -111,12 +110,12 @@ def login() -> Response:
 
     # ------------------
     # add request_token to session
-    session[request_token_key] = list(request_token)
+    session[request_token_key] = list(request_token) if request_token else None
     return redirect(redirect_url)
 
 
 @bp_auth.get("/callback")
-def callback() -> Response:
+def callback():
     # ------------------
     # callback rate limiter
     if not callback_rate_limiter.allow(_client_key()):
@@ -184,7 +183,7 @@ def callback() -> Response:
 
 
 @bp_auth.get("/logout")
-def logout() -> Response:
+def logout():
     """
     TODO: Users with stale cookies will be redirected with a "login-required" error
     instead of being able to clean up their authentication state

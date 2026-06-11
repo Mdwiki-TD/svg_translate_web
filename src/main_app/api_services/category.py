@@ -1,6 +1,7 @@
 import logging
 
 import mwclient
+import mwclient.errors
 import requests
 
 from ..config import settings

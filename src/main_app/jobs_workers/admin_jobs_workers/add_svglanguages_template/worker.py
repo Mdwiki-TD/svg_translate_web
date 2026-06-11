@@ -74,14 +74,10 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
-        self.user = user
-        self.cancel_event = cancel_event
+        super().__init__(job_id, user, cancel_event)
         self.site: mwclient.Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
         self.args = args or {}
-
-        super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
@@ -141,6 +137,8 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             template_title=template.title,
         )
 
+        if not self.site:
+            return False
         page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info, page):
@@ -207,9 +205,12 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
 
     def _step_add_template(self, info: TemplateInfo) -> bool:
         """ """
+        if info._text is None or info._template_text is None:
+            return False
+
         info._new_text = add_template_to_text(info._text, info._template_text)
 
-        if info._text.strip() == info._new_text.strip():
+        if info._text.strip() == (info._new_text or "").strip():
             self._skip_step(info, "add_template_text", "Skipped - page content is already identical")
             info.status = "skipped"
             return False
@@ -220,6 +221,8 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     def _step_save_new_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
+        if info._new_text is None:
+            return False
 
         update_result = page.edit(
             info._new_text,

@@ -84,7 +84,7 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     if not translations_data:
         translations_data = get_main_data(title, "translations.json") or {}
     # ---
-    new = translations_data.get("new", {})
+    new = translations_data.get("new", {}) if translations_data else {}
     # ---
     for key, v in new.items():
         if key == "default_tspans_by_id":

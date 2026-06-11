@@ -26,7 +26,7 @@ def load_data(key):
 
 def get_slug_categories(slug: str) -> list[str]:
     if not slug:
-        return ""
+        return []
 
     templates_slugs_topics = load_data("templates_slugs_topics")
 

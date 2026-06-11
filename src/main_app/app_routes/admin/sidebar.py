@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from flask import has_request_context, url_for
 
 logger = logging.getLogger(__name__)
 
 
-def _safe_url_for(endpoint: str, fallback: str, **values: str) -> str:
+def _safe_url_for(endpoint: str, fallback: str, **values: Any) -> str:
     if has_request_context():
         return url_for(endpoint, **values)
     return fallback

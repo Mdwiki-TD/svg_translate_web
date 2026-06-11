@@ -147,7 +147,8 @@ def _update_template() -> ResponseReturnValue:
         logger.exception("Unable to update template.")
         flash("Unable to update template main file. Please try again.", "danger")
     else:
-        flash(f"Template '{record.title}' main file: {main_file} updated.", "success")
+        title_disp = record.title if record else "Unknown"
+        flash(f"Template '{title_disp}' main file: {main_file} updated.", "success")
 
     if from_popup:
         return render_template("admins/popup_action.html")
@@ -160,6 +161,8 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 
     try:
         template = get_template(template_id)
+        if not template:
+            raise LookupError(f"Template ID {template_id} not found")
         title = template.title
         delete_template(template_id)
     except LookupError as exc:

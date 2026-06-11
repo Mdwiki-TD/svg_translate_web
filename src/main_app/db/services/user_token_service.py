@@ -61,11 +61,10 @@ def create_user_token(user_id: int, access_key: str, access_secret: str) -> User
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
 
-    record = UserTokenRecord(
-        user_id=user_id,
-        access_token=encrypted_token,
-        access_secret=encrypted_secret,
-    )
+    record = UserTokenRecord()
+    record.user_id = user_id
+    record.access_token = encrypted_token
+    record.access_secret = encrypted_secret
     db.session.add(record)
 
     db.session.commit()
@@ -75,7 +74,7 @@ def create_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
 
 @db_guard_rollback
-def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
     """
     update the encrypted OAuth credentials for a user.
     """
@@ -111,6 +110,10 @@ def upsert_user_token(user_id: int, access_key: str, access_secret: str) -> User
     if record:
         orm_obj = update_user_token(user_id, access_key, access_secret)
     else:
+        orm_obj = create_user_token(user_id, access_key, access_secret)
+
+    if orm_obj is None:
+        # This shouldn't happen based on the logic above, but for type safety:
         orm_obj = create_user_token(user_id, access_key, access_secret)
 
     return orm_obj

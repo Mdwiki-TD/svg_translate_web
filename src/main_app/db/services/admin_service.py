@@ -68,7 +68,9 @@ def add_coordinator(username: str) -> AdminUserRecord:
         # This assumes a UNIQUE constraint on the username column
         raise ValueError(f"Coordinator '{username}' already exists") from None
 
-    record = AdminUserRecord(username=username, is_active=True)
+    record = AdminUserRecord()
+    record.username = username
+    record.is_active = True
     db.session.add(record)
     try:
         db.session.commit()

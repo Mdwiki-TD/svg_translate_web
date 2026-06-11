@@ -7,6 +7,8 @@ import time
 from typing import Any, Callable
 
 import mwclient
+import mwclient.errors
+import mwclient.page
 
 from .mwclient_error import handle_mwclient_error
 
@@ -20,7 +22,7 @@ class MwClientPage:
         self.title = title
         self.site = site
         self.load_page_error = ""
-        self.page = None
+        self.page: mwclient.page.Page | None = None
 
     # ------------------------------------------------------------------
     # Core operations
@@ -97,17 +99,19 @@ class MwClientPage:
 
     @property
     def namespace(self) -> str | None:
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             return None
 
-        return self.page.namespace
+        return page.namespace
 
     def exists(self) -> bool:
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             logger.warning(f"Failed to load page '{self.title}'")
             return False
         try:
-            if not self.page.exists:
+            if not page.exists:
                 logger.warning(f"Page '{self.title}' does not exist")
                 return False
         except Exception as exc:
@@ -118,7 +122,7 @@ class MwClientPage:
         return True
 
     def get_text(self) -> str:
-        if not self.exists():
+        if not self.exists() or not self.page:
             return ""
 
         try:
@@ -129,12 +133,13 @@ class MwClientPage:
 
     def get_redirect_target(self) -> str | None:
         """Get the redirect target page name if the page is a redirect."""
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             return None
         try:
-            if not self.page.exists:
+            if not page.exists:
                 return None
-            target = self.page.redirects_to()
+            target = page.redirects_to()
             return target.name if target is not None else None
         except Exception as exc:
             logger.debug(f"Could not get redirect of '{self.title}': {exc}")
@@ -148,19 +153,21 @@ class MwClientPage:
         if text is None:
             return {"success": False, "error": "missing text"}
 
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             return {"success": False, "error": self.load_page_error}
 
-        return self._with_retry(self._edit_page, self.page, text, summary, nocreate=nocreate)
+        return self._with_retry(self._edit_page, page, text, summary, nocreate=nocreate)
 
     def create(self, text: str, summary: str) -> dict[str, Any]:
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             return {"success": False, "error": self.load_page_error}
 
-        if self.page.exists:
+        if page.exists:
             return {"success": False, "error": "page exists"}
 
-        return self._with_retry(self._edit_page, self.page, text, summary, createonly=True)
+        return self._with_retry(self._edit_page, page, text, summary, createonly=True)
 
     def move(
         self,
@@ -174,13 +181,14 @@ class MwClientPage:
             logger.error("Missing new_title for move page")
             return {"success": False, "error": "Missing new_title"}
 
-        if not self.load_page():
+        page = self.load_page()
+        if not page:
             return {"success": False, "error": self.load_page_error}
 
-        if not self.page.exists:
+        if not page.exists:
             return {"success": False, "error": "missing"}
 
-        return self._with_retry(self._move_page, self.page, new_title, reason, move_talk, no_redirect)
+        return self._with_retry(self._move_page, page, new_title, reason, move_talk, no_redirect)
 
     # ------------------------------------------------------------------
     # Aliases

@@ -120,7 +120,7 @@ def create_app(config_class: Type) -> Flask:
     app.jinja_env.filters.update(filters)
 
     @app.teardown_appcontext
-    def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
+    def _cleanup_connections(exception: BaseException | None) -> None:  # pragma: no cover - teardown
         # Idempotent teardown - safe for Flask 3.1.2+ stream_with_context regression
         # See: https://github.com/pallets/flask/issues/5804
         # try:

@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 import mwclient
+import mwclient.errors
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,9 @@ def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:
     handle it themselves).
     """
     if isinstance(exc, mwclient.errors.ProtectedPageError):
-        return {"success": False, "error": "protectedpageerror", "details": f"code: {exc.code}, info: {exc.info}"}
+        code = getattr(exc, "code", "unknown")
+        info = getattr(exc, "info", "unknown")
+        return {"success": False, "error": "protectedpageerror", "details": f"code: {code}, info: {info}"}
 
     if isinstance(exc, mwclient.errors.EditError):
         return {"success": False, "error": "editerror", "details": str(exc)}
@@ -30,9 +33,10 @@ def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:
         return {"success": False, "error": "userblocked"}
 
     if isinstance(exc, mwclient.errors.APIError):
-        if exc.code == "ratelimited":
+        code = getattr(exc, "code", "unknown")
+        if code == "ratelimited":
             return {"success": False, "error": "ratelimited"}
-        return {"success": False, "error": exc.code, "details": str(exc)}
+        return {"success": False, "error": code, "details": str(exc)}
 
     return None  # unrecognised — let the caller log and handle
 

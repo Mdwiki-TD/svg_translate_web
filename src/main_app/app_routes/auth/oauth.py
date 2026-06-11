@@ -35,7 +35,7 @@ def get_handshaker():
     )
 
 
-def start_login(state_token: str) -> Tuple[str, object]:
+def start_login(state_token: str) -> Tuple[str, mwoauth.RequestToken]:
     """Begin the OAuth login process and return the redirect URL and request token."""
     callback_url = url_for("auth.callback", _external=True, state=state_token)
     handshaker = get_handshaker()

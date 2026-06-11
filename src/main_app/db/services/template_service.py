@@ -22,12 +22,12 @@ def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     return query.all()
 
 
-def get_template(template_id: int) -> TemplateRecord:
+def get_template(template_id: int) -> TemplateRecord | None:
     """Fetch a template by ID."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
 
 
-def get_template_by_title(title: str) -> TemplateRecord:
+def get_template_by_title(title: str) -> TemplateRecord | None:
     """Fetch a template by title."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
@@ -52,7 +52,9 @@ def add_template_data(
     data = ensure_template_data(data)
 
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
-    record = TemplateRecord(**temp_data)
+    record = TemplateRecord()
+    for key, val in temp_data.items():
+        setattr(record, key, val)
 
     db.session.add(record)
 

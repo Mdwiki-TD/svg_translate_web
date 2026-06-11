@@ -56,7 +56,9 @@ def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
     )
 
     if not existing:
-        new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
+        new_record = OwidSlugRedirectRecord()
+        new_record.slug = slug
+        new_record.redirect_to = redirect_to
         db.session.add(new_record)
         db.session.commit()
         logger.info(f"Added new slug redirect: {slug} -> {redirect_to}")
@@ -90,7 +92,7 @@ def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) ->
     update_data = {k: v for k, v in data.items() if k in allowed_keys}
     if update_data and redirect_ids:
         db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).update(
-            update_data, synchronize_session=False
+            update_data, synchronize_session=False  # type: ignore
         )
         db.session.commit()
 

@@ -11,14 +11,13 @@ from pathlib import Path
 import colorlog
 
 
-def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Path | None:
+def prepare_log_file(log_file: str | Path | None, project_logger: logging.Logger) -> Path | None:
     """
     Prepare the log file path and create parent directories if needed.
     """
     if not log_file:
         return None
-    log_file_path = os.path.expandvars(str(log_file))
-    log_file_path = Path(log_file_path).expanduser()
+    log_file_path = Path(os.path.expandvars(str(log_file))).expanduser()
 
     try:
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -31,8 +30,8 @@ def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Pa
 def setup_logging(
     level: str = "WARNING",
     name: str = "main_app",
-    log_file: str | None = None,
-    error_log_file: str | None = None,
+    log_file: str | Path | None = None,
+    error_log_file: str | Path | None = None,
     use_colorlog: bool = False,
 ) -> None:
     """
@@ -83,7 +82,7 @@ def setup_logging(
         setup_file_handler(project_logger, error_log_file, logging.WARNING)
 
 
-def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: int) -> None:
+def setup_file_handler(project_logger: logging.Logger, log_file: Path | None, level: int) -> None:
     if not log_file:
         return
     file_formatter = logging.Formatter(

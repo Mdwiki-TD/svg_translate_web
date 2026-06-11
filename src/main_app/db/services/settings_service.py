@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from ...extensions import db
-from ..models.settings import SettingRecord
+from ..models.settings import SettingRecord, ValueType
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ def get_all_settings_ready() -> dict[str, Any]:
     return records
 
 
-def get_setting_by_key(key: str) -> SettingRecord:
+def get_setting_by_key(key: str) -> SettingRecord | None:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
@@ -92,19 +92,19 @@ def delete_setting(key: str) -> bool:
     return False
 
 
-@db_guard(default_return=False)
+@db_guard(default_return=None)
 def update_setting(
     key: str,
     value: Any,
     value_type: str = "string",
     title: str | None = None,
-) -> SettingRecord:
+) -> SettingRecord | None:
     """
     Update an existing setting.
     """
     setting = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
     if not setting:
-        return False
+        return None
 
     if not value_type:
         value_type = setting.value_type
@@ -151,7 +151,11 @@ def create_setting(key: str, title: str, value_type: str, value: str | None = No
 
     value = value or default_value_types.get(value_type, "")
 
-    setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
+    setting = SettingRecord()
+    setting.key = key
+    setting.title = title
+    setting.value = value
+    setting.value_type = ValueType(value_type)
     db.session.add(setting)
     try:
         db.session.commit()

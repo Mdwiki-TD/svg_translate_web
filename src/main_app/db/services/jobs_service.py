@@ -265,7 +265,11 @@ def create_job(job_type: str, username: str) -> JobRecord:
     Raises:
         DuplicateJobError: If a job of the same type is already running.
     """
-    job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+    job = JobRecord()
+    job.job_type = job_type
+    job.username = username
+    job.status = "pending"
+    job.is_running = 1
     db.session.add(job)
 
     try:

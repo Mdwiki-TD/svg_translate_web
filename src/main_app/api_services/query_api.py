@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import mwclient
 
@@ -11,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 def get_template_pages(
     title,
+    site: mwclient.Site,
     namespace="*",
-    site: mwclient.Site = None,
 ) -> list[str]:
     # ---
     logger.debug(f"get_template_pages for template: {title=}, {namespace=}")
@@ -65,7 +66,7 @@ def is_pages_exists(
 def resolve_redirects(
     titles: list[str],
     site: mwclient.Site,
-) -> dict[str, bool]:
+) -> dict[str, Any]:
     normalized = {}
     from_to = {}
 
