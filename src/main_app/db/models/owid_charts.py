@@ -70,15 +70,29 @@ class OwidChartRecord(db.Model):  # type: ignore
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
-        for column in self.__table__.columns:
-            value = getattr(self, column.name)
+        table_keys = [
+            "chart_id",
+            "slug",
+            "title",
+            "has_map_tab",
+            "max_time",
+            "min_time",
+            "default_tab",
+            "owid_variable_id",
+            "is_published",
+            "single_year_data",
+            "len_years",
+            "has_timeline",
+            "created_at",
+            "updated_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
             if hasattr(value, "isoformat"):
                 value = value.isoformat()
-            data[column.name] = value
+            data[column] = value
 
         return data
-
-
 __all__ = [
     "OwidChartRecord",
 ]
