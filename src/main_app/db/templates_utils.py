@@ -79,16 +79,16 @@ def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
             template_data["slug"] = slug
 
     # last_world_year
-    if last_world_file and not template_data.get("last_world_year"):
+    if last_world_file is not None and not template_data.get("last_world_year"):
         last_world_year = match_last_world_year(last_world_file)
         if last_world_year:
             template_data["last_world_year"] = last_world_year
 
     # remove `File:` prefix
-    if last_world_file:
+    if last_world_file is not None:
         template_data["last_world_file"] = last_world_file.removeprefix("File:")
 
-    if template_data.get("main_file"):
+    if template_data.get("main_file") is not None:
         template_data["main_file"] = template_data.get("main_file").removeprefix("File:")
 
     return template_data
