@@ -5,9 +5,8 @@ from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 
-from ..templates_utils import extract_slug, match_last_world_year
-
 from ...extensions import db
+from ..templates_utils import extract_slug, match_last_world_year
 
 logger = logging.getLogger(__name__)
 

@@ -35,7 +35,6 @@ def is_active_coordinator(username: str) -> bool:
     return False
 
 
-
 def list_coordinators() -> List[AdminUserRecord]:
     """
     Return all coordinators from the database.

@@ -1,7 +1,7 @@
 """ """
 
 import re
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
 
 import wikitextparser as wtp
 

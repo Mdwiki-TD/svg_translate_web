@@ -154,7 +154,9 @@ class TestMatchMainTitleFromUrlNew:
         """Test that ValueError from urlparse returns None (lines 32-33)."""
         # Mock urlparse to raise ValueError to test exception handler
         text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
-        with mock.patch("src.main_app.utils.wikitext.owid_sliders_rcs.main_file.urlparse", side_effect=ValueError("Invalid URL")):
+        with mock.patch(
+            "src.main_app.utils.wikitext.owid_sliders_rcs.main_file.urlparse", side_effect=ValueError("Invalid URL")
+        ):
             result = match_main_title_from_url_new(text)
             assert result is None
 

@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from ..templates_utils import extract_slug, match_last_world_year
-
 from ...extensions import db
 from ..models.templates import TemplateRecord
+from ..templates_utils import extract_slug, match_last_world_year
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
+
 
 def _ensure_last_world_year(template_data: dict[str, Any]) -> dict[str, Any]:
     if template_data.get("last_world_file") and not template_data.get("last_world_year"):
@@ -50,8 +50,8 @@ def get_template_by_title(title: str) -> TemplateRecord:
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
 
-
 # ── INSERT, UPDATE, SET ──────────────────────────────────
+
 
 def add_template_data(
     data: dict[str, Any],

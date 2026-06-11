@@ -1,5 +1,6 @@
 import re
 
+
 def extract_slug(chart_url: str) -> str | None:
     chart_url = chart_url.split("?")[0]
 

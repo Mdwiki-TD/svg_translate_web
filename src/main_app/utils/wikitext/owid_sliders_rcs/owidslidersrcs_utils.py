@@ -73,6 +73,7 @@ def match_last_world_file_with_full_date(text) -> str:
 
     return last_world_file
 
+
 def find_last_world_file_from_owidslidersrcs(text) -> str | None:
     """ """
     # Parse the text using wikitextparser
