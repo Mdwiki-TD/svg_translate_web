@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-import mwclient
+from mwclient.client import Site
 
 from ....api_services import get_user_site
 from ....shared.fix_nested.worker import (
@@ -47,7 +47,7 @@ class FixNestedJobsProcessor(BaseJobWorker):
         self.result: Dict[str, Any] = self.get_initial_result()
 
         self.filename = self.args.get("filename")
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

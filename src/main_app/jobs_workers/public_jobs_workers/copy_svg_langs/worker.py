@@ -12,8 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-import mwclient
 import requests
+from mwclient.client import Site
 
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
@@ -54,7 +54,7 @@ class CopySvgLangsWorker(BaseJobWorker):
         self.title = self.args.get("title")
         self.output_dir = self._compute_output_dir(self.title)
         self.files_dict: list[str] = []
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
         self.session: requests.Session | None = None
 
     def get_job_type(self) -> str:

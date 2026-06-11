@@ -30,7 +30,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 def _make_site() -> MagicMock:
-    """Return a minimal mock mwclient.Site."""
+    """Return a minimal mock Site."""
     return MagicMock(name="site")
 
 

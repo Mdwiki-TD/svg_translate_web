@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 import mwclient
+import mwclient.errors
 
 logger = logging.getLogger(__name__)
 

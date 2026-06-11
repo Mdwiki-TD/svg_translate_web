@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 
-import mwclient
+from mwclient.client import Site
 
 from .....api_services import upload_file
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def upload_step(
     files_to_upload: dict[str, dict[str, Any]],
     main_title: str,
-    site: mwclient.Site,
+    site: Site,
     cancel_check: Callable[[], bool] | None = None,
     progress_callback: Callable[[int, int, str], None] | None = None,
     upload_limit: int | None = None,
@@ -26,7 +26,7 @@ def upload_step(
     Args:
         files_to_upload: Dictionary mapping filenames to their data (including file_path).
         main_title: The title of the main file these translations came from.
-        site: Authenticated mwclient.Site object.
+        site: Authenticated Site object.
         cancel_check: Optional function to check for cancellation.
         progress_callback: Optional function to report progress.
 

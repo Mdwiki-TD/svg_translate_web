@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import mwclient
+from mwclient.client import Site
 
 from ....api_services import upload_file
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
-    site: mwclient.Site | None,
+    site: Site | None,
     wikitext: str = None,
 ) -> dict[str, Any]:
     """
@@ -27,7 +27,7 @@ def upload_cropped_file(
     Args:
         cropped_filename: The new filename for the cropped version (with File: prefix)
         cropped_path: Path to the cropped file
-        site: Authenticated mwclient.Site object for Commons
+        site: Authenticated Site object for Commons
         wikitext: The wikitext content for the cropped file
 
     Returns:

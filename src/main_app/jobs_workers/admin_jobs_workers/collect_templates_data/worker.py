@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict
 
-import mwclient
+from mwclient.client import Site
 
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members, get_user_site
 from ....db.models import TemplateRecord
@@ -104,7 +104,7 @@ class CollectMainFilesWorker(BaseJobWorker):
     ) -> None:
         self.update_all = False
         self.user = user
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
         if args and str(args.get("update_all", "")).lower() == "true":
             self.update_all = True
 
