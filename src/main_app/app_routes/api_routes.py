@@ -60,10 +60,12 @@ def owid_charts_list(template_filter: str = ""):
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
     charts_temps = {c.chart_id: c for c in all_charts_templates}
+    
     def get_tmp_title(chart_id):
-        if charts_temps.get(c.chart_id):
-            return charts_temps.get(c.chart_id).template_title
+        if charts_temps.get(chart_id):
+            return charts_temps.get(chart_id).template_title
         return None
+        
     if template_filter == "has_template":
         charts = [c for c in all_charts if get_tmp_title(c.chart_id)]
     elif template_filter == "no_template":
