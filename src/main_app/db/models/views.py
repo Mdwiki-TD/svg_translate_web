@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import String, text
+from sqlalchemy import Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 from ...extensions import db
 
@@ -63,13 +63,14 @@ class TemplateNeedUpdateRecord(db.Model):
         }
 
 
-class OwidChartTemplateRecord(db.Model):
-    """Represents the owid_charts_templates database view."""
-
+class OwidChartTemplateRecord(db.Model):  # type: ignore
+    """
+    Represents a database view joining charts and templates.
+    """
     __tablename__ = "owid_charts_templates"
 
-    chart_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    template_id: Mapped[int] = mapped_column(primary_key=True)
+    chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    template_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     __table_args__ = (
@@ -91,7 +92,6 @@ class OwidChartTemplateRecord(db.Model):
             }
         },
     )
-
 
 __all__ = [
     "TemplateNeedUpdateRecord",
