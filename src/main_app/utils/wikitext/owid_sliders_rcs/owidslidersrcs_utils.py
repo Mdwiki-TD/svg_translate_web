@@ -73,69 +73,6 @@ def match_last_world_file_with_full_date(text) -> str:
 
     return last_world_file
 
-
-def match_last_world_file(text) -> str:
-    """
-    Example:
-        ==Data==
-        {{owidslidersrcs|id=gallery|widths=240|heights=240
-        |gallery-World=
-        File:youth mortality rate, World, 1950.svg!year=1950
-        File:youth mortality rate, World, 1951.svg!year=1951
-        File:youth mortality rate, World, 1952.svg!year=1952
-        File:youth mortality rate, World, 1953.svg!year=1953
-        }}
-    Returns:
-        "File:youth mortality rate, World, 1953.svg"
-    """
-
-    lines = text.splitlines()
-    max_year = -1
-    last_world_file = ""
-
-    for line in lines:
-        # Extract filename and year part
-        parts = line.split("!")
-        if len(parts) < 2:
-            continue
-
-        filename = parts[0].strip()
-        year_part = parts[1].strip()
-
-        # Validate filename format
-        m = re.match(r"^File:[\w\-,.()\s_]+\.svg$", filename)
-        if not m:
-            continue
-
-        # Extract year from "year=1953" format
-        year_match = re.match(r"year\s*=\s*(\d{4})", year_part)
-        if not year_match:
-            continue
-
-        year = int(year_match.group(1))
-        if year > max_year:
-            max_year = year
-            last_world_file = filename.replace("_", " ").strip()
-
-    return last_world_file
-
-
-def match_last_world_year(last_world_file) -> int | None:
-    """
-    input:
-        death-rate-by-source-from-indoor-air-pollution,World,2021.svg
-        death-rate-by-source-from-indoor-air-pollution,World,2021 (cropped).svg
-    output:
-        2021
-    """
-    # match year
-    y_match = re.match(r"^.*?,\s*(\d{4})(\s*\(cropped\))?\.svg$", last_world_file)
-    if y_match:
-        return int(y_match.group(1))
-
-    return None
-
-
 def find_last_world_file_from_owidslidersrcs(text) -> str | None:
     """ """
     # Parse the text using wikitextparser
@@ -150,7 +87,6 @@ def find_last_world_file_from_owidslidersrcs(text) -> str | None:
         if tpl.arguments:
             gallery = tpl.get_arg("gallery-World")
             if gallery:
-                # matched = match_last_world_file(gallery.value.strip())
                 matched = match_last_world_file_with_full_date(gallery.value.strip())
                 if matched:
                     last_world_file = matched
@@ -162,5 +98,6 @@ def find_last_world_file_from_owidslidersrcs(text) -> str | None:
 
 
 __all__ = [
+    "match_last_world_file_with_full_date",
     "find_last_world_file_from_owidslidersrcs",
 ]
