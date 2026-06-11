@@ -27,6 +27,9 @@ def _ensure_last_world_year(template_data):
     return template_data
 
 
+# ── SELECT ───────────────────────────────────────────────
+
+
 def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     """Return all templates"""
     query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
@@ -44,6 +47,9 @@ def get_template_by_title(title: str) -> TemplateRecord:
     """Fetch a template by title."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
+
+
+# ── INSERT, UPDATE, SET ──────────────────────────────────
 
 def add_template_data(
     data: dict[str, Any],
@@ -93,6 +99,9 @@ def update_template_data(
         db.session.commit()
         db.session.refresh(template)
     return template
+
+
+# ── DELETE ───────────────────────────────────────────────
 
 
 @db_guard(default_return=False)
