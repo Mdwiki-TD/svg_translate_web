@@ -92,7 +92,7 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
         lambda x: "file.svg",
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_last_world_file_from_owidslidersrcs",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         lambda x: None,
     )
     monkeypatch.setattr(

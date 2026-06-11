@@ -23,8 +23,8 @@ from ....db.services import (
 )
 from ....db.templates_utils import extract_slug
 from ....utils.wikitext import (
-    find_last_world_file_from_owidslidersrcs,
     find_main_title,
+    find_newest_world_file,
     find_template_source,
 )
 from ...base_worker import BaseJobWorker
@@ -292,7 +292,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         # ------------------
         # template_info step # 2 last_world_file
         try:
-            last_world_file = find_last_world_file_from_owidslidersrcs(wikitext)
+            last_world_file = find_newest_world_file(wikitext)
             if not last_world_file:
                 raise Exception("Could not find newest world file")
 

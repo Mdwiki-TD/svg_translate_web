@@ -7,8 +7,8 @@ from .categories_utils import merge_categories, sort_categories
 from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
 from .owid_sliders_rcs import (
-    find_last_world_file_from_owidslidersrcs,
     find_main_title,
+    find_newest_world_file,
 )
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
@@ -24,7 +24,7 @@ def ensure_file_prefix(file_name) -> str:
 
 
 __all__ = [
-    "find_last_world_file_from_owidslidersrcs",
+    "find_newest_world_file",
     "find_main_title",
     "ensure_file_prefix",
     "merge_categories",

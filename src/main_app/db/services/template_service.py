@@ -10,6 +10,7 @@ from .utils import db_guard
 
 logger = logging.getLogger(__name__)
 
+
 def _ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
     last_world_file = template_data.get("last_world_file")
     source = template_data.get("source")

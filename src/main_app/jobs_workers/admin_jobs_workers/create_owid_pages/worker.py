@@ -205,8 +205,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def add_slug_categories(self, new_text, source):
-        categories = get_slug_categories(source)
+    def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
 
         for x in categories:
             if x not in new_text:
@@ -235,8 +234,9 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._append(file_info, key="pages_failed")
             return False
 
-        if file_info._new_text and template.source:
-            file_info._new_text = self.add_slug_categories(file_info._new_text, template.source)
+        if file_info._new_text and template.slug:
+            categories = get_slug_categories(template.slug)
+            file_info._new_text = self.add_slug_categories(file_info._new_text, categories)
 
         # ----------------------------------
         # Step 2 A) - check if new page already exists

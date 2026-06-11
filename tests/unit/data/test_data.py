@@ -1,4 +1,7 @@
-from src.main_app.data import get_slug_categories
+from src.main_app.data import (
+    get_slug_categories,
+    load_data,
+)
 
 
 class TestGetSlugCategories:
