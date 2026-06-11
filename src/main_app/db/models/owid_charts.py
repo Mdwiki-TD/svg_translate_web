@@ -4,11 +4,10 @@ import logging
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import Boolean, DateTime, Index, Integer, String, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
-from .views import OwidChartTemplateRecord
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +92,8 @@ class OwidChartRecord(db.Model):  # type: ignore
             data[column] = value
 
         return data
+
+
 __all__ = [
     "OwidChartRecord",
 ]
