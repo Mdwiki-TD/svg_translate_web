@@ -99,8 +99,6 @@ class TestOwidChartsDashboard:
             single_year_data=False,
             len_years=None,
             has_timeline=False,
-            template_id=10,
-            template_title="Template 1",
         )
         chart_without_template = OwidChartRecord(
             chart_id=2,
@@ -477,8 +475,6 @@ class TestDownloadJson:
             "single_year_data",
             "len_years",
             "has_timeline",
-            "template_id",
-            "template_title",
         ]
         for field in expected_fields:
             assert field in data

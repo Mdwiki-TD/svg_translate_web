@@ -18,7 +18,7 @@ from src.main_app.extensions import db
 class MockModel(db.Model):
     __tablename__ = "mock_model"
 
-    user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
