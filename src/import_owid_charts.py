@@ -97,8 +97,8 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
     connection = pymysql.connect(
         host=os.getenv("TOOL_TOOLSDB_HOST", "localhost"),
         database=db_name,
-        user=os.getenv("TOOL_TOOLSDB_USER", None),
-        password=os.getenv("TOOL_TOOLSDB_PASSWORD", None),
+        user=os.getenv("TOOL_TOOLSDB_USER", ""),
+        password=os.getenv("TOOL_TOOLSDB_PASSWORD", ""),
         charset="utf8mb4",
         autocommit=True,
     )

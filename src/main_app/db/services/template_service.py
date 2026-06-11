@@ -74,11 +74,11 @@ def update_template_data(
     """
     Update template only if not None.
     """
-    template_data = ensure_template_data(template_data)
-
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
     if not template:
         return None
+
+    template_data = ensure_template_data(template_data)
 
     for key, value in template_data.items():
         if value is not None:

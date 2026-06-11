@@ -16,7 +16,7 @@ class SettingRecord(db.Model):
       `key` varchar(190) NOT NULL,
       `title` varchar(500) NOT NULL,
       `value` text DEFAULT NULL,
-      `value_type` enum('boolean','string','integer','json') NOT NULL DEFAULT 'boolean',
+      `value_type` enum('boolean','string','integer') NOT NULL DEFAULT 'boolean',
       PRIMARY KEY (`id`),
       UNIQUE KEY `unique_key` (`key`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -28,7 +28,7 @@ class SettingRecord(db.Model):
     key = Column(String(190), unique=True, nullable=False)
     title = Column(String(500), nullable=False)
 
-    value_type = Column(Enum("boolean", "string", "integer", "json"), nullable=False, server_default="boolean")
+    value_type = Column(Enum("boolean", "string", "integer"), nullable=False, server_default="boolean")
 
     value = Column(Text, nullable=True)
 

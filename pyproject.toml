@@ -166,3 +166,24 @@ disable = [
     "C0103", # invalid-name
     "R0913", # too-many-arguments
 ]
+
+
+[tool.pyright]
+# Target Python version for type analysis
+pythonVersion = "3.13"
+
+# Paths to include and exclude from checking
+include = ["src"]
+exclude = ["**/node_modules", "**/__pycache__", ".venv"]
+
+# Diagnostic modes: "standard" or "strict"
+typeCheckingMode = "standard"
+
+# Automatically find virtual environments
+venvPath = "."
+venv = ".venv"
+
+# Fine-tune specific warning rules
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = false
+reportUnknownMemberType = "warning"
