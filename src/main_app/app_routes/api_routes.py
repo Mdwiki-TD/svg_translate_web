@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from flask import Blueprint, jsonify
 
-from ..db.models import OwidChartRecord, TemplateRecord
+from ..db.models import OwidChartRecord, OwidChartTemplateRecord, TemplateRecord
 from ..db.services import (
     list_charts,
+    list_owid_charts_templates,
     list_templates,
     list_templates_need_update,
 )
@@ -43,15 +45,26 @@ def templates_need_update_list():
     return jsonify({"data": data})
 
 
-@bp_api.get("/owidcharts")
+@bp_api.get("/charts_templates")
+def charts_templates():
+    all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+
+    data = [c.to_dict() for c in all_charts_templates if c.template_id]
+    return jsonify(data)
+
+
+@bp_api.get("/owidcharts/")
 @bp_api.get("/owidcharts/<string:template_filter>")
 def owid_charts_list(template_filter: str = ""):
     all_charts: list[OwidChartRecord] = list_charts()
+    all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+
+    charts_temps = {c.chart_id: c.template_title for c in all_charts_templates}
 
     if template_filter == "has_template":
-        charts = [c for c in all_charts if c.template_title is not None]
+        charts = [c for c in all_charts if charts_temps.get(c.chart_id)]
     elif template_filter == "no_template":
-        charts = [c for c in all_charts if c.template_title is None]
+        charts = [c for c in all_charts if not charts_temps.get(c.chart_id)]
     else:
         charts = all_charts
 
@@ -63,8 +76,8 @@ def owid_charts_list(template_filter: str = ""):
             "without": sum(1 for c in all_charts if not c.is_published),
         },
         "template": {
-            "with": sum(1 for c in all_charts if c.template_title is not None),
-            "without": sum(1 for c in all_charts if c.template_title is None),
+            "with": sum(1 for c in all_charts if charts_temps.get(c.chart_id)),
+            "without": sum(1 for c in all_charts if not charts_temps.get(c.chart_id)),
         },
         "map_tab": {
             "with": sum(1 for c in all_charts if c.has_map_tab),
@@ -76,7 +89,11 @@ def owid_charts_list(template_filter: str = ""):
         },
     }
 
-    data = [c.to_dict() for c in charts]
+    data: list[dict[str, Any]] = []
+    for c in charts:
+        c_json = c.to_dict()
+        c_json["template_title"] = charts_temps.get(c.chart_id)
+        data.append(c_json)
 
     return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 
