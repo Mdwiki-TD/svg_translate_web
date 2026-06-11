@@ -9,16 +9,19 @@ from __future__ import annotations
 from datetime import datetime
 
 from flask.app import Flask
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import String, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.main_app.extensions import db
 
 
 class MockModel(db.Model):
     __tablename__ = "mock_model"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50))
-    created_at = Column(DateTime)
+
+    user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
 
 
 def test_base_model_to_dict(app: Flask) -> None:
