@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, func
+from sqlalchemy import Index, String, UniqueConstraint, func, text
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
 
@@ -27,11 +29,18 @@ class OwidSlugRedirectRecord(db.Model):
 
     __tablename__ = "owid_slug_redirects"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    slug = Column(String(255), nullable=False, unique=True)
-    redirect_to = Column(String(255), nullable=False)
-    should_be_replaced = Column(Boolean, server_default="0", default=False)
-    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    # Explicit table arguments to match indices and unique constraints from raw SQL
+    __table_args__ = (
+        UniqueConstraint("slug", "redirect_to", name="unique_slug_redirect"),
+        Index("idx_slug", "slug"),
+        Index("idx_redirect_to", "redirect_to"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    slug: Mapped[str] = mapped_column(String(255), nullable=False)
+    redirect_to: Mapped[str] = mapped_column(String(255), nullable=False)
+    should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
