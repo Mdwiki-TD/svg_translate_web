@@ -186,4 +186,4 @@ venv = ".venv"
 # Fine-tune specific warning rules
 reportMissingTypeStubs = false
 reportGeneralTypeIssues = false
-reportUnknownMemberType = "warning"
+reportUnknownMemberType = false
