@@ -34,15 +34,15 @@ class UserService:
 
         try:
             # Ensure user identity row exists
-            user: UsersRecord = get_user_by_username(username)
+            user: Optional[UsersRecord] = get_user_by_username(username)
 
             if not user:
-                user: UsersRecord = create_user(username)
+                user: Optional[UsersRecord] = create_user(username)
 
             if not user:
                 return None
 
-            user_id = user.user_id
+            user_id: int = user.user_id
 
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
