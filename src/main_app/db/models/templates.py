@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import String, func, text
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
 
@@ -34,20 +36,19 @@ class TemplateRecord(db.Model):
 
     __tablename__ = "templates"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    title = Column(String(255), unique=True, nullable=False)
-    main_file = Column(String(255), nullable=True)
-    last_world_file = Column(String(255), nullable=True)
-    last_world_year = Column(Integer, nullable=True)
-    slug = Column(String(255), nullable=False, server_default="")
-    source = Column(String(255), nullable=False, server_default="")
-
-    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(
-        DateTime,
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    main_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_world_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_world_year: Mapped[int | None] = mapped_column(nullable=True)
+    slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
     )
 
     def to_dict(self) -> dict[str, Any]:

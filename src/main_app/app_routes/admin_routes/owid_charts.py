@@ -19,7 +19,9 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord
+from ...db.models.views import OwidChartTemplateRecord
 from ...db.services import owid_charts_service
+from ...db.services.views_service import list_owid_charts_templates
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -36,11 +38,16 @@ def create_json_file() -> Tuple[Any, int]:
     try:
         charts: List[OwidChartRecord] = owid_charts_service.list_charts()
 
+        all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+
+        charts_temps = {c.chart_id: c for c in all_charts_templates}
+
         if not charts:
             return "No charts found to export.", 404
 
-        charts_data = [
-            {
+        charts_data: list[dict[str, Any]] = []
+        for chart in charts:
+            chart_data = {
                 "chart_id": chart.chart_id,
                 "slug": chart.slug,
                 "title": chart.title,
@@ -52,11 +59,15 @@ def create_json_file() -> Tuple[Any, int]:
                 "single_year_data": chart.single_year_data,
                 "len_years": chart.len_years,
                 "has_timeline": chart.has_timeline,
-                "template_id": chart.template_id,
-                "template_title": chart.template_title,
+                "template_id": None,
+                "template_title": None,
             }
-            for chart in charts
-        ]
+            temp = charts_temps.get(chart.chart_id)
+            if temp:
+                chart_data["template_id"] = temp.template_id
+                chart_data["template_title"] = temp.template_title
+
+            charts_data.append(chart_data)
 
         json_content = json.dumps(charts_data, indent=2, ensure_ascii=False)
 
@@ -92,14 +103,15 @@ def _add_chart() -> ResponseReturnValue:
             return redirect(url_for("admin.owidcharts.add_chart"))
         return redirect(url_for("admin.owidcharts.dashboard"))
 
-    has_map_tab = request.form.get("has_map_tab") == "on"
+    has_map_tab = 1 if request.form.get("has_map_tab") == "on" else 0
+    is_published = 1 if request.form.get("is_published") == "on" else 0
+    single_year_data = 1 if request.form.get("single_year_data") == "1" else 0
+    has_timeline = 1 if request.form.get("has_timeline") == "1" else 0
+
     max_time = request.form.get("max_time", type=int)
     min_time = request.form.get("min_time", type=int)
     default_tab = request.form.get("default_tab", "").strip()
-    is_published = request.form.get("is_published") == "on"
-    single_year_data = request.form.get("single_year_data") == "1"
     len_years = request.form.get("len_years", type=int)
-    has_timeline = request.form.get("has_timeline") == "1"
 
     save_error = None
     try:

@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from datetime import datetime
+from typing import Any, Optional
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(db.Model):
+class OwidChartRecord(db.Model):  # type: ignore
     """
+    Represents the main pure owid_charts table, completely decoupled from template logic.
     CREATE TABLE `owid_charts` (
         `chart_id` int(11) NOT NULL AUTO_INCREMENT,
         `slug` varchar(255) NOT NULL,
@@ -37,65 +39,57 @@ class OwidChartRecord(db.Model):
 
     __tablename__ = "owid_charts"
 
-    chart_id = Column(Integer, primary_key=True, autoincrement=True)
-    slug = Column(String(255), unique=True, nullable=False)
-    title = Column(String(500), nullable=False)
-    has_map_tab = Column(Boolean, server_default="0")
-    max_time = Column(Integer, nullable=True)
-    min_time = Column(Integer, nullable=True)
-    default_tab = Column(String(50), nullable=True)
-    owid_variable_id = Column(Integer, nullable=True)
-    is_published = Column(Boolean, server_default="0")
-    single_year_data = Column(Boolean, server_default="0")
-    len_years = Column(Integer, nullable=True)
-    has_timeline = Column(Boolean, server_default="0")
+    # Core Columns
+    chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
 
-    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(
+    has_map_tab: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
+    max_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    min_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    default_tab: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    owid_variable_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    is_published: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
+    single_year_data: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
+    len_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
     )
 
-    _template_info = relationship(
-        "OwidChartTemplateRecord",
-        primaryjoin="OwidChartRecord.chart_id == OwidChartTemplateRecord.chart_id",
-        foreign_keys="OwidChartTemplateRecord.chart_id",
-        viewonly=True,
-        uselist=False,
-    )
-
-    @property
-    def template_id(self) -> int | None:
-        if hasattr(self, "_template_info") and self._template_info:
-            return self._template_info.template_id
-        return getattr(self, "_template_id_override", None)
-
-    @property
-    def template_title(self) -> str | None:
-        if hasattr(self, "_template_info") and self._template_info:
-            return self._template_info.template_title
-        return getattr(self, "_template_title_override", None)
-
-    @template_title.setter
-    def template_title(self, value: str | None) -> None:
-        self._template_title_override = value
-
-    @template_id.setter
-    def template_id(self, value: int | None) -> None:
-        self._template_id_override = value
+    # Table-level indexes as requested by the original CREATE TABLE DDL
+    # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
 
     def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
-        for column in self.__table__.columns:  # pyright: ignore[reportAttributeAccessIssue]
-            value = getattr(self, column.name)
+        table_keys = [
+            "chart_id",
+            "slug",
+            "title",
+            "has_map_tab",
+            "max_time",
+            "min_time",
+            "default_tab",
+            "owid_variable_id",
+            "is_published",
+            "single_year_data",
+            "len_years",
+            "has_timeline",
+            "created_at",
+            "updated_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
             if hasattr(value, "isoformat"):
                 value = value.isoformat()
-            data[column.name] = value
-
-        data["template_id"] = self.template_id or None
-        data["template_title"] = self.template_title or None
+            data[column] = value
 
         return data
 

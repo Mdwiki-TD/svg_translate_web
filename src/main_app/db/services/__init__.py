@@ -45,9 +45,6 @@ from .settings_service import (
     settings_update_form,
     update_setting,
 )
-from .template_need_update_service import (
-    list_templates_need_update,
-)
 from .template_service import (
     add_template_data,
     delete_template,
@@ -69,6 +66,10 @@ from .users_service import (
     get_user,
     get_user_by_username,
     list_users,
+)
+from .views_service import (
+    list_owid_charts_templates,
+    list_templates_need_update,
 )
 
 __all__ = [
@@ -133,6 +134,7 @@ __all__ = [
     "add_template_data",
     "update_template_data",
     "delete_template",
-    # template_need_update_service
+    # views_service
     "list_templates_need_update",
+    "list_owid_charts_templates",
 ]

@@ -206,7 +206,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
-
         for x in categories:
             if x not in new_text:
                 new_text += f"\n[[{x}]]"

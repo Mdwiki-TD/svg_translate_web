@@ -99,8 +99,6 @@ class TestOwidChartsDashboard:
             single_year_data=False,
             len_years=None,
             has_timeline=False,
-            template_id=10,
-            template_title="Template 1",
         )
         chart_without_template = OwidChartRecord(
             chart_id=2,
@@ -248,14 +246,14 @@ class TestAddChart:
         )
 
         call_kwargs = mock_service.add_chart.call_args[1]
-        assert call_kwargs["has_map_tab"] is True
+        assert call_kwargs["has_map_tab"] == 1
         assert call_kwargs["max_time"] == 2024
         assert call_kwargs["min_time"] == 2000
         assert call_kwargs["default_tab"] == "table"
-        assert call_kwargs["is_published"] is True
-        assert call_kwargs["single_year_data"] is True
+        assert call_kwargs["is_published"] == 1
+        assert call_kwargs["single_year_data"] == 1
         assert call_kwargs["len_years"] == 25
-        assert call_kwargs["has_timeline"] is True
+        assert call_kwargs["has_timeline"] == 1
 
 
 class TestUpdateChart:
@@ -477,8 +475,6 @@ class TestDownloadJson:
             "single_year_data",
             "len_years",
             "has_timeline",
-            "template_id",
-            "template_title",
         ]
         for field in expected_fields:
             assert field in data
