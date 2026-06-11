@@ -59,7 +59,7 @@ def owid_charts_list(template_filter: str = ""):
     all_charts: list[OwidChartRecord] = list_charts()
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
-    charts_temps = {c.chart_id: c.template_title for c in all_charts_templates}
+    charts_temps = {c.chart_id: c for c in all_charts_templates}
 
     if template_filter == "has_template":
         charts = [c for c in all_charts if charts_temps.get(c.chart_id)]
