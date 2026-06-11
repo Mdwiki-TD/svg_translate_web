@@ -24,8 +24,7 @@ from typing import Any, Dict, Iterable
 
 import mwclient
 
-from ....api_services.clients import get_user_site
-from ....api_services.mwclient_page import MwClientPage
+from ....api_services import MwClientPage, get_user_site
 from ....db.services import get_template_by_title, update_template_data
 from ...base_worker import BaseJobWorker
 

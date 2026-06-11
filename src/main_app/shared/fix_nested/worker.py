@@ -3,8 +3,7 @@ from pathlib import Path
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
 
-from ...api_services.clients import get_user_site
-from ...api_services.upload_bot import upload_file
+from ...api_services import get_user_site, upload_file
 from ...api_services.utils import download_one_file
 
 logger = logging.getLogger(__name__)

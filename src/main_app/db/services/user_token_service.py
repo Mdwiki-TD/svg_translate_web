@@ -79,22 +79,24 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
     """
     update the encrypted OAuth credentials for a user.
     """
+    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+
+    if not orm_obj:
+        return None
+
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
     now = func.current_timestamp()
 
-    orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
-    if orm_obj:
-        orm_obj.access_token = encrypted_token
-        orm_obj.access_secret = encrypted_secret
-        orm_obj.updated_at = now
-        orm_obj.last_used_at = now
-        orm_obj.rotated_at = now
+    orm_obj.access_token = encrypted_token
+    orm_obj.access_secret = encrypted_secret
+    orm_obj.updated_at = now
+    orm_obj.last_used_at = now
+    orm_obj.rotated_at = now
 
-        db.session.commit()
-        db.session.refresh(orm_obj)
-        return orm_obj
-    return None
+    db.session.commit()
+    db.session.refresh(orm_obj)
+    return orm_obj
 
 
 @db_guard_rollback

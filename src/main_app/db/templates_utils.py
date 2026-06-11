@@ -2,6 +2,18 @@ import re
 
 
 def extract_slug(chart_url: str | None) -> str | None:
+    """
+    examples:
+    input:
+        https://ourworldindata.org/grapher/death-rate-by-source-from-indoor-air-pollution?tab=map
+    output:
+        death-rate-by-source-from-indoor-air-pollution
+    ----
+    input:
+        https://ourworldindata.org/explorers/democracy?v=1&csvType=full&useColumnShortNames=true&Dataset=Regimes+of+the+World&Metric=%C2%ADLiberal+democracy&Sub-metric=Transparent+laws
+    output:
+        None
+    """
     if not chart_url:
         return None
 

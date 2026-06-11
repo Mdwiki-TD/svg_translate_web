@@ -119,15 +119,17 @@ def add_chart(
 def update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
-) -> OwidChartRecord:
+) -> OwidChartRecord | None:
     """
     Update chart fields if they are not None.
     """
     chart = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
-    if chart:
-        for key, value in chart_data.items():
-            if value is not None and hasattr(OwidChartRecord, key):
-                setattr(chart, key, value)
+    if not chart:
+        return None
+
+    for key, value in chart_data.items():
+        if value is not None and hasattr(OwidChartRecord, key):
+            setattr(chart, key, value)
 
     db.session.commit()
     db.session.refresh(chart)

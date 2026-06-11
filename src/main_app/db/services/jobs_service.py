@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
 from ..exceptions import DuplicateJobError
-from ..models.jobs import JobRecord
+from ..models import JobRecord
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -154,18 +154,19 @@ def get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str,
 
     base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
 
-    status_counts = dict(
+    records = (
         db.session.query(JobRecord.status, func.count(JobRecord.id))
         .filter(JobRecord.username == username)
         .group_by(JobRecord.status)
         .all()
     )
+    status_counts: dict[str, int] = {row[0]: row[1] for row in records}
 
     recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
     total_jobs = sum(status_counts.values())
 
-    stats = {
+    stats: dict[str, int] = {
         "total": total_jobs,
         "completed": status_counts.get("completed", 0),
         "failed": status_counts.get("failed", 0),
@@ -199,19 +200,20 @@ def get_user_jobs_stats(
         db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
     )
 
-    status_counts = dict(
+    records = (
         db.session.query(JobRecord.status, func.count(JobRecord.id))
         .filter(JobRecord.username == username)
         .filter(JobRecord.job_type.in_(jobs_types))
         .group_by(JobRecord.status)
         .all()
     )
+    status_counts = {row[0]: row[1] for row in records}
 
     recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
     total_jobs = sum(status_counts.values())
 
-    stats = {
+    stats: dict[str, int] = {
         "total": total_jobs,
         "completed": status_counts.get("completed", 0),
         "failed": status_counts.get("failed", 0),

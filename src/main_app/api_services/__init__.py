@@ -1,8 +1,14 @@
 """"""
 
 from .category import get_category_members
-from .clients import get_user_site
-from .clients.commons_client import create_commons_session, download_commons_file_core
+from .clients import (
+    create_commons_session,
+    download_commons_file_core,
+    fetch_grapher_metadata,
+    fetch_indicators_metadata,
+    get_cronjob_site,
+    get_user_site,
+)
 from .mwclient_page import MwClientPage
 from .query_api import (
     get_page_links,
@@ -11,8 +17,11 @@ from .query_api import (
     resolve_redirects,
     search_pages,
 )
+from .upload_bot import UploadFile, upload_file
 
 __all__ = [
+    "upload_file",
+    "UploadFile",
     "MwClientPage",
     "get_user_site",
     "get_template_pages",
@@ -23,4 +32,7 @@ __all__ = [
     "get_category_members",
     "create_commons_session",
     "download_commons_file_core",
+    "get_cronjob_site",
+    "fetch_indicators_metadata",
+    "fetch_grapher_metadata",
 ]

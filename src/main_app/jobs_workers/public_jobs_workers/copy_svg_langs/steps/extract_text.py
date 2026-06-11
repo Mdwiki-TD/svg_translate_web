@@ -7,7 +7,7 @@ from typing import Any
 
 import mwclient
 
-from .....api_services.mwclient_page import MwClientPage
+from .....api_services import MwClientPage
 
 logger = logging.getLogger(__name__)
 

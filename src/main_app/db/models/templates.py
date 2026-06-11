@@ -6,31 +6,30 @@ from typing import Any
 from sqlalchemy import Column, DateTime, Integer, String, func
 
 from ...extensions import db
-from ..templates_utils import extract_slug, match_last_world_year
 
 logger = logging.getLogger(__name__)
 
 
 class TemplateRecord(db.Model):
     """
-    CREATE TABLE `templates` (
-      `id` int(11) NOT NULL AUTO_INCREMENT,
-      `title` varchar(255) NOT NULL,
-      `main_file` varchar(255) DEFAULT NULL,
-      `last_world_file` varchar(255) DEFAULT NULL,
-      `last_world_year` int(11) DEFAULT NULL,
-      `slug` varchar(255) NOT NULL DEFAULT '',
-      `source` varchar(255) NOT NULL DEFAULT '',
-      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-      `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-      PRIMARY KEY (`id`),
-      UNIQUE KEY `title` (`title`),
-      KEY `title_index` (`title`),
-      KEY `main_file` (`main_file`),
-      KEY `last_world_file` (`last_world_file`),
-      KEY `source` (`source`),
-      KEY `last_world_year` (`last_world_year`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    CREATE TABLE templates (
+        id int (11) NOT NULL AUTO_INCREMENT,
+        title varchar(255) NOT NULL,
+        main_file varchar(255) DEFAULT NULL,
+        last_world_file varchar(255) DEFAULT NULL,
+        last_world_year int (11) DEFAULT NULL,
+        slug varchar(255) NOT NULL DEFAULT '',
+        source varchar(255) NOT NULL DEFAULT '',
+        created_at timestamp NOT NULL DEFAULT current_timestamp(),
+        updated_at timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+        PRIMARY KEY (id),
+        UNIQUE KEY title (title),
+        KEY title_index (title),
+        KEY main_file (main_file),
+        KEY last_world_file (last_world_file),
+        KEY source (source),
+        KEY last_world_year (last_world_year)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
     """
 
     __tablename__ = "templates"
@@ -52,26 +51,14 @@ class TemplateRecord(db.Model):
     )
 
     def to_dict(self) -> dict[str, Any]:
-        slug = self.slug
-
-        if not self.slug:
-            slug = extract_slug(self.source)
-
-        last_world_year = self.last_world_year
-        if not self.last_world_year and self.last_world_file:
-            last_world_year = match_last_world_year(self.last_world_file)
-
-        main_file = self.main_file.removeprefix("File:") if self.main_file else self.main_file
-        last_world_file = self.last_world_file.removeprefix("File:") if self.last_world_file else self.last_world_file
-
         return {
             "id": self.id,
             "title": self.title,
-            "main_file": main_file,
-            "last_world_file": last_world_file,
-            "last_world_year": last_world_year,
+            "main_file": self.main_file,
+            "last_world_file": self.last_world_file,
+            "last_world_year": self.last_world_year,
             "source": self.source,
-            "slug": slug,
+            "slug": self.slug,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }

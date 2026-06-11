@@ -13,10 +13,7 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.category import get_category_members
-from ....api_services.clients import get_user_site
-from ....api_services.clients.owid_client import fetch_grapher_metadata
-from ....api_services.mwclient_page import MwClientPage
+from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members, get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import (
     add_template_data,
@@ -25,10 +22,10 @@ from ....db.services import (
     update_template_data,
 )
 from ....db.templates_utils import extract_slug
-from ....utils.wikitext import find_template_source
-from ....utils.wikitext.owid_sliders_rcs import (
+from ....utils.wikitext import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
+    find_template_source,
 )
 from ...base_worker import BaseJobWorker
 from ..slugs_helpers import check_slugs

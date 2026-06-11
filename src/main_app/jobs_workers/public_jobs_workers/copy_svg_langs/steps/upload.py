@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import mwclient
 
-from .....api_services.upload_bot import upload_file
+from .....api_services import upload_file
 
 logger = logging.getLogger(__name__)
 

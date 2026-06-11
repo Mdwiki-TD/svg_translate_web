@@ -12,13 +12,11 @@ from typing import Any, Dict
 
 import mwclient
 
-from ....api_services.clients import get_user_site
-from ....api_services.mwclient_page import MwClientPage
-from ....api_services.query_api import is_pages_exists
+from ....api_services import MwClientPage, get_user_site, is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ....utils.wikitext.categories_utils import merge_categories, sort_categories
+from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseJobWorker
 from .owid_template_converter import create_new_text
 

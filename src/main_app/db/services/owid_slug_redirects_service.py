@@ -68,13 +68,16 @@ def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedi
     Update a slug redirect record.
     """
     record = get_slug_redirect_by_id(redirect_id)
-    if record:
-        allowed_keys = {"slug", "redirect_to", "should_be_replaced"}
-        for key, value in data.items():
-            if key in allowed_keys:
-                setattr(record, key, value)
-        db.session.commit()
-        db.session.refresh(record)
+    if not record:
+        return None
+
+    allowed_keys = {"slug", "redirect_to", "should_be_replaced"}
+    for key, value in data.items():
+        if key in allowed_keys:
+            setattr(record, key, value)
+
+    db.session.commit()
+    db.session.refresh(record)
     return record
 
 
