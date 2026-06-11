@@ -83,7 +83,7 @@ def add_coordinator(username: str) -> AdminUserRecord:
 
 
 @db_guard_rollback
-def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
+def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
     """Toggle coordinator activity."""
     # record = get_coordinator_by_id(coordinator_id)
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
