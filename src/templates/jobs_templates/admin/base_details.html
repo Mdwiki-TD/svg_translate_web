@@ -1,8 +1,10 @@
 {% extends "admins/base1.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon, csrf, job_errors_div, auto_refresh_status %}
+{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
-{% block title %}{{ detail_title }} Job #{{ job.id }} · {{ tool_title }}{% endblock %}
+{% block title %}
+{{ detail_title }} Job #{{ job.id }} · {{ tool_title }}
+{% endblock %}
 
 {% block admin_contents %}
 <div>
@@ -10,10 +12,19 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="headline mb-0">{{ detail_headline }} Job #{{ job.id }}</h3>
             <div class="d-flex gap-2">
-                {% if job.status == 'running' or job.status == 'pending' %}
-                {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+                {% if job.status | is_job_running %}
+                {{
+                    form_cancel_job(
+                        url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)
+                    )
+                }}
                 {% endif %}
-                {{ form_delete_job(url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id)) }}
+                {{
+                    form_delete_job(
+                    url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id),
+                    btn_class="btn btn-outline-danger"
+                    )
+                }}
                 <a href="{{ url_for('admin.jobs.jobs_list', job_type=job_type) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
@@ -36,7 +47,7 @@
                                         <div
                                             class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
                                             {{ status_icon(job.status) }}
-                                            {% if job.status == 'running' %}
+                                            {% if job.status | is_job_running %}
                                             {{ auto_refresh_status() }}
                                             {% endif %}
                                         </div>
@@ -158,5 +169,8 @@
     </div>
 </div>
 
+{% if job.status | is_job_running %}
 <script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
+{% endif %}
+
 {% endblock %}
