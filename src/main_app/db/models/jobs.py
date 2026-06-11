@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -59,6 +60,29 @@ class JobRecord(db.Model):
         onupdate=func.current_timestamp(),
     )
     is_running: Mapped[int | None] = mapped_column(nullable=True)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
+        data: dict[str, Any] = {}
+        table_keys = [
+            "id",
+            "job_type",
+            "username",
+            "status",
+            "started_at",
+            "completed_at",
+            "result_file",
+            "created_at",
+            "updated_at",
+            "is_running",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            data[column] = value
+
+        return data
 
 
 __all__ = [
