@@ -5,10 +5,10 @@ from typing import Any
 
 from sqlalchemy import Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
+
 from ...extensions import db
 
 logger = logging.getLogger(__name__)
-
 
 
 class TemplateNeedUpdateRecord(db.Model):
@@ -66,7 +66,9 @@ class TemplateNeedUpdateRecord(db.Model):
 class OwidChartTemplateRecord(db.Model):  # type: ignore
     """
     Represents a database view joining charts and templates.
+    Handles extended template metadata and manual runtime overrides.
     """
+
     __tablename__ = "owid_charts_templates"
 
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -92,6 +94,14 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
             }
         },
     )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "chart_id": self.chart_id,
+            "template_id": self.template_id,
+            "template_title": self.template_title,
+        }
+
 
 __all__ = [
     "TemplateNeedUpdateRecord",
