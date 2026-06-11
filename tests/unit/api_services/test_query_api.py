@@ -17,7 +17,7 @@ from src.main_app.api_services.query_api import (
 
 @pytest.fixture
 def mock_site():
-    """A mock mwclient.Site instance."""
+    """A mock Site instance."""
     site = MagicMock()
     return site
 

@@ -21,6 +21,7 @@ import uuid
 
 import mwclient
 import pytest
+from mwclient.client import Site
 
 from src.main_app.api_services.mwclient_page.mwclient_wraper import MwClientPage
 from tests.network.network_conftest import TestNetwork
@@ -211,7 +212,7 @@ class TestEdit(TestNetwork):
     All writes go to test.wikipedia.org.
     """
 
-    def _make_page(self, site: mwclient.Site, content: str = "Initial content.") -> str:
+    def _make_page(self, site: Site, content: str = "Initial content.") -> str:
         """Create a page and return its title."""
         title = self._unique_title("Edit")
         page = MwClientPage(title, site)
@@ -283,7 +284,7 @@ class TestMove(TestNetwork):
     All writes go to test.wikipedia.org.
     """
 
-    def _make_page(self, site: mwclient.Site) -> str:
+    def _make_page(self, site: Site) -> str:
         title = self._unique_title("MoveSource")
         page = MwClientPage(title, site)
         result = page.create("Page to be moved.", "network test: setup for move")

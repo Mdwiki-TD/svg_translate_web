@@ -4,8 +4,8 @@ import functools
 import os
 import uuid
 
-import mwclient
 import pytest
+from mwclient.client import Site
 
 # ---------------------------------------------------------------------------
 # Shared site factory – one connection per domain per session
@@ -13,9 +13,9 @@ import pytest
 
 
 @functools.lru_cache(maxsize=10)
-def shared_site_resource(domain: str) -> mwclient.Site:
-    """Return a cached (anonymous) mwclient.Site for *domain*."""
-    return mwclient.Site(
+def shared_site_resource(domain: str) -> Site:
+    """Return a cached (anonymous) Site for *domain*."""
+    return Site(
         domain,
         scheme="https",
         clients_useragent="MwClientPageNetworkTests/1.0",
@@ -24,13 +24,13 @@ def shared_site_resource(domain: str) -> mwclient.Site:
 
 
 @functools.lru_cache(maxsize=2)
-def authenticated_site(domain: str) -> mwclient.Site | None:
+def authenticated_site(domain: str) -> Site | None:
     """Return a cached authenticated site, or None if credentials are absent."""
     username = os.getenv("MW_TEST_USERNAME")
     password = os.getenv("MW_TEST_PASSWORD")
     if not (username and password):
         return None
-    site = mwclient.Site(
+    site = Site(
         domain,
         scheme="https",
         clients_useragent="MwClientPageNetworkTests/1.0",
@@ -48,21 +48,21 @@ class TestNetwork:
     """Provides .site (commons, read-only) and .test_site (test wiki, writes)."""
 
     @property
-    def site(self) -> mwclient.Site:
+    def site(self) -> Site:
         return shared_site_resource("commons.wikimedia.org")
 
     @property
-    def test_site(self) -> mwclient.Site | None:
+    def test_site(self) -> Site | None:
         return shared_site_resource("test.wikipedia.org")
 
     @property
-    def test_auth_site(self) -> mwclient.Site | None:
+    def test_auth_site(self) -> Site | None:
         """Authenticated site for test.wikipedia.org, or None if not configured."""
         return authenticated_site("test.wikipedia.org")
 
     # Helper ------------------------------------------------------------------
 
-    def _require_test_site(self) -> mwclient.Site:
+    def _require_test_site(self) -> Site:
         """Skip the test if write credentials are unavailable."""
         site = self.test_auth_site
         if site is None:
