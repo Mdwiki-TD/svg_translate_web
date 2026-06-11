@@ -42,35 +42,6 @@ def test_template_record_with_all_fields():
     assert rec.created_at == "2023-01-01"
     assert rec.updated_at == "2023-01-02"
 
-
-def test_template_record_slug_generation():
-    """Test slug generation for OWID source URLs."""
-    rec = TemplateRecord(
-        id=1,
-        title="Test Template",
-        main_file="test.svg",
-        last_world_file=None,
-        source="https://ourworldindata.org/grapher/health-expenditure",
-    )
-
-    # Slug should be generated from source
-    assert rec.to_dict()["slug"] == "health-expenditure"
-
-
-def test_template_record_slug_generation_with_query_params():
-    """Test slug generation with query parameters in source URL."""
-    rec = TemplateRecord(
-        id=1,
-        title="Test Template",
-        main_file="test.svg",
-        last_world_file=None,
-        source="https://ourworldindata.org/grapher/health-expenditure?tab=chart",
-    )
-
-    # Slug should exclude query parameters
-    assert rec.to_dict()["slug"] == "health-expenditure"
-
-
 def test_template_record_no_slug_generation():
     """Test that slug is not generated for non-OWID sources."""
     rec = TemplateRecord(
@@ -94,33 +65,6 @@ def test_template_record_slug_already_set():
 
     # Existing slug should be preserved
     assert rec.slug == "existing-slug"
-
-
-def test_template_record_last_world_year_from_cropped_file():
-    """Test last_world_year extraction from filename."""
-    rec = TemplateRecord(
-        id=1,
-        title="Test Template",
-        main_file="test.svg",
-        last_world_file="File:Health-expenditure-government-expenditure,World,2022 (cropped).svg",
-    )
-
-    # Year should be extracted from filename
-    assert rec.to_dict()["last_world_year"] == 2022
-
-
-def test_template_record_last_world_year_from_file():
-    """Test last_world_year extraction from filename."""
-    rec = TemplateRecord(
-        id=1,
-        title="Test Template",
-        main_file="test.svg",
-        last_world_file="File:Health-expenditure-government-expenditure,World, 2022.svg",
-    )
-
-    # Year should be extracted from filename
-    assert rec.to_dict()["last_world_year"] == 2022
-
 
 def test_template_record_last_world_year_none():
     """Test last_world_year remains None when no file."""

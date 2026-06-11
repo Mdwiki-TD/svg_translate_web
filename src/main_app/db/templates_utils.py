@@ -1,4 +1,7 @@
 import re
+from typing import Any
+
+from .models import TemplateRecord
 
 
 def extract_slug(chart_url: str | None) -> str | None:
@@ -64,8 +67,44 @@ def match_last_world_year(newest_world_file: str) -> int | None:
 
     return None
 
+def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
+    last_world_file = template_data.get("last_world_file")
+    source = template_data.get("source")
+
+    # slug
+    if source and not template_data.get("slug"):
+        slug = extract_slug(source)
+        if slug:
+            template_data["slug"] = slug
+
+    # last_world_year
+    if last_world_file and not template_data.get("last_world_year"):
+        last_world_year = match_last_world_year(last_world_file)
+        if last_world_year:
+            template_data["last_world_year"] = last_world_year
+
+    # remove `File:` prefix
+    if last_world_file:
+        template_data["last_world_file"] = last_world_file.removeprefix("File:")
+
+    if template_data.get("main_file"):
+        template_data["main_file"] = template_data.get("main_file").removeprefix("File:")
+
+    return template_data
+
+
+def ensure_template_data_record(record: TemplateRecord) -> TemplateRecord:
+
+    template_data = ensure_template_data(record.to_dict())
+
+    record = TemplateRecord(**template_data)
+
+    return record
+
 
 __all__ = [
     "extract_slug",
     "match_last_world_year",
+    "ensure_template_data",
+    "ensure_template_data_record",
 ]

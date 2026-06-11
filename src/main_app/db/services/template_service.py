@@ -5,36 +5,10 @@ from typing import Any, List
 
 from ...extensions import db
 from ..models.templates import TemplateRecord
-from ..templates_utils import extract_slug, match_last_world_year
+from ..templates_utils import ensure_template_data
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
-
-
-def _ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
-    last_world_file = template_data.get("last_world_file")
-    source = template_data.get("source")
-
-    # slug
-    if source and not template_data.get("slug"):
-        slug = extract_slug(source)
-        if slug:
-            template_data["slug"] = slug
-
-    # last_world_year
-    if last_world_file and not template_data.get("last_world_year"):
-        last_world_year = match_last_world_year(last_world_file)
-        if last_world_year:
-            template_data["last_world_year"] = last_world_year
-
-    # remove `File:` prefix
-    if last_world_file:
-        template_data["last_world_file"] = last_world_file.removeprefix("File:")
-
-    if template_data.get("main_file"):
-        template_data["main_file"] = template_data.get("main_file").removeprefix("File:")
-
-    return template_data
 
 
 # ── SELECT ───────────────────────────────────────────────
@@ -75,7 +49,7 @@ def add_template_data(
     if existing:
         raise ValueError(f"Template '{title}' already exists")
 
-    data = _ensure_template_data(data)
+    data = ensure_template_data(data)
 
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
     record = TemplateRecord(**temp_data)
@@ -100,7 +74,7 @@ def update_template_data(
     """
     Update template only if not None.
     """
-    template_data = _ensure_template_data(template_data)
+    template_data = ensure_template_data(template_data)
 
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
     if not template:
