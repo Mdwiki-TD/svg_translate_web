@@ -64,7 +64,7 @@ class TemplateNeedUpdateRecord(db.Model):
 
 
 class OwidChartTemplateRecord(db.Model):
-    """ """
+    """Represents the owid_charts_templates database view."""
 
     __tablename__ = "owid_charts_templates"
 
