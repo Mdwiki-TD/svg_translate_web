@@ -35,20 +35,18 @@ def extract_slug(chart_url: str | None) -> str | None:
 
     return slug
 
-
 def match_last_world_year(last_world_file: str) -> int | None:
     """
     Extracts the year from a specific "World" SVG chart filename.
 
-    This function parses filenames from Our World in Data exports to extract
-    the 4-digit year, handling both regular and cropped variations.
+    This function parses filenames from Our World in Data exports to extract the 4-digit year,
+    handling both regular and cropped variations.
 
     Args:
         last_world_file (str): The filename or path of the SVG file.
 
     Returns:
-        int | None: The extracted 4-digit year as an integer if a match
-            is found, otherwise None.
+        int | None: The extracted 4-digit year as an integer if a match is found, otherwise None.
 
     Examples:
         >>> match_last_world_year("death-rate-by-source-from-indoor-air-pollution,World,2021.svg")
@@ -58,8 +56,7 @@ def match_last_world_year(last_world_file: str) -> int | None:
         2021
     """
     # Extract the 4-digit year before the extension, optionally handling '(cropped)'
-    # Note: re.search is used instead of re.match to ensure it finds the pattern
-    # anywhere if full paths are passed.
+    # re.search ensures it finds the pattern even if full paths are passed.
     y_match = re.match(r"^.*?,\s*(\d{4})(\s*\(cropped\))?\.svg$", last_world_file)
     if y_match:
         return int(y_match.group(1))
