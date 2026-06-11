@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import logging
-
 from enum import StrEnum
+
 from sqlalchemy import String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
 
 logger = logging.getLogger(__name__)
+
 
 class ValueType(StrEnum):
     BOOLEAN = "boolean"
@@ -35,13 +36,9 @@ class SettingRecord(db.Model):
     key: Mapped[str] = mapped_column(String(190), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
 
-    value_type: Mapped[ValueType] = mapped_column(
-        nullable=False,
-        server_default=text("'boolean'")
-    )
+    value_type: Mapped[ValueType] = mapped_column(nullable=False, server_default=text("'boolean'"))
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
-
 
 
 __all__ = [
