@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any
 
 from flask import (
@@ -14,13 +13,11 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...config import settings
 from ...db.exceptions import DuplicateJobError
 from ...db.services import (
     delete_job,
@@ -28,7 +25,6 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
 from ...jobs_workers.objects import JobData
 from ..admin.admins_required import admin_required
@@ -272,76 +268,6 @@ class Jobs:
             """ """
             result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
-
-        # ================================
-        # download-main-files routes
-        # ================================
-
-        @self.bp.get("/download-main-files/file/<string:filename>")
-        @admin_required
-        def serve_download_main_file(filename: str) -> Response:
-            """
-            Serve a downloaded main file from the main_files_path directory.
-            """
-            response = send_from_directory(settings.paths.main_files_path, filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/download-main-files/download-all")
-        @admin_required
-        def download_all_main_files() -> ResponseReturnValue:
-            """Download all main files as a zip archive."""
-
-            response, status_code = create_main_files_zip()
-
-            # If the response is an error message (not a file), flash it and redirect
-            if status_code != 200:
-                flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.jobs.jobs_list", job_type="download_main_files"))
-
-            return response
-
-        # ================================
-        # crop-main-files routes
-        # ================================
-
-        @self.bp.get("/crop-main-files/original/<string:filename>")
-        @admin_required
-        def serve_crop_original_file(filename: str) -> Response:
-            """
-            Serve an original file from the crop_main_files_path/original directory.
-            """
-            filename = filename.removeprefix("File:")
-            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/crop-main-files/cropped/<string:filename>")
-        @admin_required
-        def serve_crop_cropped_file(filename: str) -> Response:
-            """
-            Serve a cropped file from the crop_main_files_path/cropped directory.
-            """
-            filename = filename.removeprefix("File:")
-            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
-        @admin_required
-        def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
-            """Compare crop files"""
-
-            original = original.removeprefix("File:")
-            cropped = cropped.removeprefix("File:")
-            return render_template(
-                "admins/compare_crop_files.html",
-                file_original=original,
-                file_cropped=cropped,
-            )
 
 
 # Public API module

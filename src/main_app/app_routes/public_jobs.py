@@ -1,4 +1,4 @@
-"""Admin routes for managing background jobs."""
+"""Public routes for managing background jobs."""
 
 from __future__ import annotations
 

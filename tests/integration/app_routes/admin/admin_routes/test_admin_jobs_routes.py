@@ -8,7 +8,6 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
-from werkzeug.wrappers import Response
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
@@ -712,69 +711,6 @@ def test_cancel_job_not_running(admin_jobs_client, jobs_db, monkeypatch):
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
 
 
-@patch("src.main_app.app_routes.admin_routes.jobs.send_from_directory")
-@patch("src.main_app.app_routes.admin_routes.jobs.settings")
-def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
-    """Test serving a downloaded main file."""
-
-    # Mock the settings
-    mock_settings.paths.main_files_path = "/tmp/main_files"
-
-    mock_response = Response("file_content")
-    mock_send.return_value = mock_response
-
-    response = admin_jobs_client.get("/admin/jobs/download-main-files/file/test.svg")
-    assert response.status_code == 200
-
-    mock_send.assert_called_once_with("/tmp/main_files", "test.svg")
-
-
-@patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
-def test_download_all_main_files(mock_create_zip, admin_jobs_client):
-    """Test downloading all main files as zip."""
-
-    mock_create_zip.return_value = ("zip_content", 200)
-
-    response = admin_jobs_client.get("/admin/jobs/download-main-files/download-all")
-    assert response.status_code == 200
-
-    mock_create_zip.assert_called_once()
-
-
-@patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
-def test_download_all_main_files_no_zip(mock_create_zip, admin_jobs_client, monkeypatch):
-    """Test downloading all main files when zip doesn't exist - should redirect with flash."""
-
-    mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
-
-    mock_create_zip.return_value = ("Please run a 'Download Main Files' job first", 404)
-
-    response = admin_jobs_client.get("/admin/jobs/download-main-files/download-all", follow_redirects=True)
-    # Should redirect to jobs list page with flash message
-    assert response.status_code == 200
-    mock_flash.assert_called_once_with("Please run a 'Download Main Files' job first", "warning")
-
-    mock_create_zip.assert_called_once()
-
-
-@patch("src.main_app.app_routes.admin_routes.jobs.create_main_files_zip")
-def test_download_all_main_files_error(mock_create_zip, admin_jobs_client, monkeypatch):
-    """Test downloading all main files when zip is corrupted - should redirect with flash."""
-
-    mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
-
-    mock_create_zip.return_value = ("Zip file is empty or corrupted", 500)
-
-    response = admin_jobs_client.get("/admin/jobs/download-main-files/download-all", follow_redirects=True)
-    # Should redirect to jobs list page with flash message
-    assert response.status_code == 200
-    mock_flash.assert_called_once_with("Zip file is empty or corrupted", "danger")
-
-    mock_create_zip.assert_called_once()
-
-
 def test_job_list_page_with_invalid_job_type_returns_404(admin_jobs_client, jobs_db):
     """Test that requesting an invalid job type returns 404."""
 
@@ -885,13 +821,3 @@ def test_cancel_already_cancelled_job(admin_jobs_client, jobs_db, monkeypatch):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
-
-
-def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client, jobs_db):
-    """Test that path traversal is handled by send_from_directory."""
-
-    # send_from_directory should handle path traversal attempts
-    with patch("src.main_app.app_routes.admin_routes.jobs.send_from_directory") as mock_send:
-        mock_send.return_value = Response("safe response")
-        response = admin_jobs_client.get("/admin/jobs/download-main-files/file/../../../etc/passwd")
-        assert response.status_code == 404

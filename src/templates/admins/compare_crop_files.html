@@ -14,21 +14,21 @@
     <div class="row">
         <div class="col-md-6 col-sm-12 text-center">
             <div class="h4">
-                <a href="{{ url_for('admin.jobs.serve_crop_original_file', filename=file_original) }}"
+                <a href="{{ url_for('jobs_utils.serve_crop_original_file', filename=file_original) }}"
                     target="_blank">Original</a>
             </div>
-            <a href="{{ url_for('admin.jobs.serve_crop_original_file', filename=file_original) }}" target="_blank">
-                <img src="{{ url_for('admin.jobs.serve_crop_original_file', filename=file_original) }}"
+            <a href="{{ url_for('jobs_utils.serve_crop_original_file', filename=file_original) }}" target="_blank">
+                <img src="{{ url_for('jobs_utils.serve_crop_original_file', filename=file_original) }}"
                     alt="{{ file_original }}" class="svg-thumbnail-compare">
             </a>
         </div>
         <div class="col-md-6 col-sm-12 text-center">
             <div class="h4">
-                <a href="{{ url_for('admin.jobs.serve_crop_cropped_file', filename=file_cropped) }}"
+                <a href="{{ url_for('jobs_utils.serve_crop_cropped_file', filename=file_cropped) }}"
                     target="_blank">Cropped</a>
             </div>
-            <a href="{{ url_for('admin.jobs.serve_crop_cropped_file', filename=file_cropped) }}" target="_blank">
-                <img src="{{ url_for('admin.jobs.serve_crop_cropped_file', filename=file_cropped) }}"
+            <a href="{{ url_for('jobs_utils.serve_crop_cropped_file', filename=file_cropped) }}" target="_blank">
+                <img src="{{ url_for('jobs_utils.serve_crop_cropped_file', filename=file_cropped) }}"
                     alt="{{ file_cropped }}" class="svg-thumbnail-compare">
             </a>
         </div>
