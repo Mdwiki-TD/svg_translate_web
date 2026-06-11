@@ -92,7 +92,9 @@ def owid_charts_list(template_filter: str = ""):
     data: list[dict[str, Any]] = []
     for c in charts:
         c_json = c.to_dict()
-        c_json["template_title"] = charts_temps.get(c.chart_id)
+        temp = charts_temps.get(c.chart_id)
+        c_json["template_id"] = temp.template_id if temp else None
+        c_json["template_title"] = temp.template_title if temp else None
         data.append(c_json)
 
     return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
