@@ -60,11 +60,14 @@ def owid_charts_list(template_filter: str = ""):
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
     charts_temps = {c.chart_id: c for c in all_charts_templates}
-
+    def get_tmp_title(chart_id):
+        if charts_temps.get(c.chart_id):
+            return charts_temps.get(c.chart_id).template_title
+        return None
     if template_filter == "has_template":
-        charts = [c for c in all_charts if charts_temps.get(c.chart_id)]
+        charts = [c for c in all_charts if get_tmp_title(c.chart_id)]
     elif template_filter == "no_template":
-        charts = [c for c in all_charts if not charts_temps.get(c.chart_id)]
+        charts = [c for c in all_charts if not get_tmp_title(c.chart_id)]
     else:
         charts = all_charts
 
@@ -76,8 +79,8 @@ def owid_charts_list(template_filter: str = ""):
             "without": sum(1 for c in all_charts if not c.is_published),
         },
         "template": {
-            "with": sum(1 for c in all_charts if charts_temps.get(c.chart_id)),
-            "without": sum(1 for c in all_charts if not charts_temps.get(c.chart_id)),
+            "with": sum(1 for c in all_charts if get_tmp_title(c.chart_id)),
+            "without": sum(1 for c in all_charts if not get_tmp_title(c.chart_id)),
         },
         "map_tab": {
             "with": sum(1 for c in all_charts if c.has_map_tab),
