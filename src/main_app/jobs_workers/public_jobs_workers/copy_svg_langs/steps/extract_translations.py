@@ -52,3 +52,8 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
     message = f"Loaded {new_translations_count} translations from main file"
 
     return {"success": True, "translations": translations, "error": None, "message": message}
+
+
+__all__ = [
+    "extract_translations_step",
+]

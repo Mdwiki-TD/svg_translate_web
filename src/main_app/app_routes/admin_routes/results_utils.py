@@ -73,3 +73,10 @@ def fix_result_data(result_data: dict[str, Any], job_type: str) -> dict[str, Any
 FIX_BY_JOB_TYPE = {
     "add_svglanguages_template": fix_add_svglanguages_template,
 }
+
+
+__all__ = [
+    "fix_add_svglanguages_template",
+    "fix_result_data",
+    "FIX_BY_JOB_TYPE",
+]

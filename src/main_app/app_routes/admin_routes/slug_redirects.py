@@ -45,7 +45,6 @@ def _edit_slug_redirect(redirect_id: int) -> ResponseReturnValue:
 
 
 class SlugRedirects:
-
     def __init__(self):
         self.bp = Blueprint("slugredirects", __name__, url_prefix="/slugredirects")
         self._setup_routes()

@@ -15,13 +15,11 @@ from ..admin.admins_required import admin_required
 
 
 class SettingsRoutes:
-
     def __init__(self):
         self.bp = Blueprint("settings", __name__, url_prefix="/settings")
         self._setup_routes()
 
     def _setup_routes(self):
-
         @self.bp.get("/")
         @admin_required
         def dashboard():

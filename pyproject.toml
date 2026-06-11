@@ -6,9 +6,7 @@ description = "Flask app for svg files tools."
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7",
-]
+test = ["pytest>=7"]
 # ============================================
 #                 BLACK
 # ============================================
@@ -108,28 +106,43 @@ docstring-code-line-length = 120
 
 [tool.ruff.lint]
 # "E402", "E225", "E226", "E227", "E228", "E252", "F841", "E224", "E203", "F401",
-ignore = ["E501", "UP035", "UP006", "N806", "N999", "UP015", "I001", "N802", "UP007", "UP045"]
+ignore = [
+    "E501",
+    "UP035",
+    "UP006",
+    "N806",
+    "N999",
+    "UP015",
+    "I001",
+    "N802",
+    "UP007",
+    "UP045",
+]
 select = [
-  "E",       # pycodestyle (error)
-  "F",       # pyflakes
-  "W",       # pycodestyle (warning)
-  "B",       # flake8-bugbear
-  "I",       # isort
-  "N",       # pep8-naming
-  "PIE",     # flake8-pie
-  "PLE",     # pylint error
-  "RUF100",  # Unused noqa comments
-  "PGH004",  # blanket noqa comments
-  "UP",      # pyupgrade
-  "C4",      # flake8-comprehensions
-  "SIM101",  # merge duplicate isinstance calls
-  "SIM201", "SIM202", "SIM222", "SIM223",  # flake8-simplify
-  "FURB168", # Prefer is operator over isinstance for None checks
-  "FURB169", # Do not use is comparison with type(None). Use None
-  "FURB187", # avoid list reverse copy
-  "FURB188", # use str.remove(pre|suf)fix
-  "ISC001",  # implicitly concatenated string
-  "RET501", "RET502",  # better return None handling
+    "E",       # pycodestyle (error)
+    "F",       # pyflakes
+    "W",       # pycodestyle (warning)
+    "B",       # flake8-bugbear
+    "I",       # isort
+    "N",       # pep8-naming
+    "PIE",     # flake8-pie
+    "PLE",     # pylint error
+    "RUF100",  # Unused noqa comments
+    "PGH004",  # blanket noqa comments
+    "UP",      # pyupgrade
+    "C4",      # flake8-comprehensions
+    "SIM101",  # merge duplicate isinstance calls
+    "SIM201",
+    "SIM202",
+    "SIM222",
+    "SIM223",  # flake8-simplify
+    "FURB168", # Prefer is operator over isinstance for None checks
+    "FURB169", # Do not use is comparison with type(None). Use None
+    "FURB187", # avoid list reverse copy
+    "FURB188", # use str.remove(pre|suf)fix
+    "ISC001",  # implicitly concatenated string
+    "RET501",
+    "RET502",  # better return None handling
 ]
 # ============================================
 #                 Flynt
@@ -149,7 +162,7 @@ line-length = 120
 [tool.pylint.messages_control]
 max-line-length = 120
 disable = [
-    "C0111",  # missing-docstring
-    "C0103",  # invalid-name
-    "R0913",  # too-many-arguments
+    "C0111", # missing-docstring
+    "C0103", # invalid-name
+    "R0913", # too-many-arguments
 ]

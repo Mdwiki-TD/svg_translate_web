@@ -4,19 +4,21 @@ import logging
 from typing import Any, List
 
 from ...extensions import db
-from ...utils.wikitext.titles_utils import match_last_world_year
 from ..models.templates import TemplateRecord
-from .utils import db_guard, db_guard_rollback
+from ..templates_utils import extract_slug, match_last_world_year
+from .utils import db_guard
 
 logger = logging.getLogger(__name__)
 
 
-def _ensure_last_world_year(template_data):
+def _ensure_last_world_year(template_data: dict[str, Any]) -> dict[str, Any]:
     if template_data.get("last_world_file") and not template_data.get("last_world_year"):
         template_data["last_world_year"] = match_last_world_year(template_data["last_world_file"])
 
-    if template_data.get("slug") and "/grapher/" in template_data["slug"]:
-        template_data["slug"] = template_data["slug"].split("/grapher/", maxsplit=1)[1].split("?")[0]
+    if template_data.get("source") and not template_data.get("slug"):
+        slug = extract_slug(template_data.get("source"))
+        if slug:
+            template_data["slug"] = slug
 
     if template_data.get("last_world_file"):
         template_data["last_world_file"] = template_data["last_world_file"].removeprefix("File:")
@@ -25,6 +27,9 @@ def _ensure_last_world_year(template_data):
         template_data["main_file"] = template_data["main_file"].removeprefix("File:")
 
     return template_data
+
+
+# ── SELECT ───────────────────────────────────────────────
 
 
 def list_templates(limit: int | None = None) -> List[TemplateRecord]:
@@ -43,6 +48,9 @@ def get_template(template_id: int) -> TemplateRecord:
 def get_template_by_title(title: str) -> TemplateRecord:
     """Fetch a template by title."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
+
+
+# ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
 def add_template_data(
@@ -93,6 +101,9 @@ def update_template_data(
         db.session.commit()
         db.session.refresh(template)
     return template
+
+
+# ── DELETE ───────────────────────────────────────────────
 
 
 @db_guard(default_return=False)

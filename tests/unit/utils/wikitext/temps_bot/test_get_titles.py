@@ -47,8 +47,7 @@ def test_get_titles_empty_when_no_entries(sample_without_titles):
     [
         # Single line with trailing attributes
         (
-            "{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\n"
-            "File:Foo, 2000, AAA.svg!country=AAA\n}}",
+            "{{owidslidersrcs|id=x|widths=1|heights=1|gallery-AllCountries=\nFile:Foo, 2000, AAA.svg!country=AAA\n}}",
             1,
         ),
         # Lines with spaces and commas inside
@@ -59,7 +58,7 @@ def test_get_titles_empty_when_no_entries(sample_without_titles):
             2,
         ),
         # No .svg files present
-        ("{{owidslidersrcs|id=x|gallery-AllCountries=\n" "Not a file line\n}}", 0),
+        ("{{owidslidersrcs|id=x|gallery-AllCountries=\nNot a file line\n}}", 0),
     ],
 )
 def test_get_titles_regex_variants(block, expected_count):

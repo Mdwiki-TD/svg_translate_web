@@ -24,8 +24,9 @@ from ....db.services import (
     list_templates,
     update_template_data,
 )
+from ....db.templates_utils import extract_slug
 from ....utils.wikitext import find_template_source
-from ....utils.wikitext.titles_utils import (
+from ....utils.wikitext.owid_sliders_rcs import (
     find_last_world_file_from_owidslidersrcs,
     find_main_title,
 )
@@ -398,9 +399,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         return False
 
     def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
-        _slug = None
-        if "/grapher/" in template_source:
-            _slug = template_source.split("/grapher/", maxsplit=1)[1].split("?")[0]
+        _slug = extract_slug(template_source)
 
         if not _slug:
             _slug = slugify_title(template_title)
@@ -453,7 +452,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
-
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -474,7 +472,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
 
         logger.info(
-            f"Job {self.job_id} completed: {len(self.result["pages_updated"])} updated, "
+            f"Job {self.job_id} completed: {len(self.result['pages_updated'])} updated, "
             f"{self.result['summary']['failed']} failed, "
             f"{self.result['summary']['skipped']} skipped"
         )

@@ -213,13 +213,11 @@ def _edit_template_by_title(template_title: str) -> ResponseReturnValue:
 
 
 class Templates:
-
     def __init__(self):
         self.bp = Blueprint("templates", __name__, url_prefix="/templates")
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-
         @self.bp.get("/")
         @admin_required
         def dashboard():

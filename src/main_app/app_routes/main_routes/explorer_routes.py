@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from flask import (
     Blueprint,
@@ -11,17 +12,24 @@ from flask import (
 )
 from flask.wrappers import Response
 
+from ...config import settings
 from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
     get_informations,
-    svg_data_path,
-    svg_data_thumb_path,
 )
 from ..utils.thumbnail_utils import save_thumb
 
 bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
 logger = logging.getLogger(__name__)
+
+
+def load_thumb_path() -> Path:
+    return Path(settings.paths.svg_data_thumb)
+
+
+def load_svg_data_path() -> Path:
+    return Path(settings.paths.svg_data)
 
 
 @bp_explorer.get("/<title_dir>/downloads")
@@ -94,6 +102,7 @@ def by_title(title: str):
 
 @bp_explorer.get("/")
 def main():
+    svg_data_path = load_svg_data_path()
     titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
     data = {}
     for title in titles:
@@ -112,6 +121,7 @@ def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
     """
     Serve SVG files
     """
+    svg_data_path = load_svg_data_path()
     dir_path = svg_data_path / title_dir / subdir
     dir_path = str(dir_path.absolute())
 
@@ -125,8 +135,8 @@ def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
 @bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")
 def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
     # ---
-    dir_path = svg_data_path / title_dir / subdir
-    thumb_path = svg_data_thumb_path / title_dir / subdir
+    dir_path = load_svg_data_path() / title_dir / subdir
+    thumb_path = load_thumb_path() / title_dir / subdir
     # ---
     file_path = dir_path / filename
     file_thumb_path = thumb_path / filename
@@ -147,6 +157,8 @@ def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
 @bp_explorer.route("/compare/<title_dir>/<string:filename>")
 def compare(title_dir: str, filename: str):
     """Compare SVG files"""
+    # ---
+    svg_data_path = load_svg_data_path()
     # ---
     file_path = svg_data_path / title_dir / "files" / filename
     translated_path = svg_data_path / title_dir / "translated" / filename

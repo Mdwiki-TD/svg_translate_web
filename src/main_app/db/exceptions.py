@@ -21,3 +21,12 @@ class InsufficientDatabaseConfigError(RuntimeError):
     def __init__(self):
         msg = "DB requires database configuration; no fallback store is available."
         super().__init__(msg)
+
+
+__all__ = [
+    "DatabaseInitError",
+    "MaxUserConnectionsError",
+    "UserNotFoundError",
+    "DuplicateJobError",
+    "InsufficientDatabaseConfigError",
+]

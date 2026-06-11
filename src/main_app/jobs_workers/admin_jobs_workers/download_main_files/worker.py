@@ -224,7 +224,6 @@ class DownloadMainFilesWorker(BaseJobWorker):
         per_item = self.get_priority(len(templates_with_files))
 
         for n, template in enumerate(templates_with_files, start=1):
-
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
 
             # Check for cancellation

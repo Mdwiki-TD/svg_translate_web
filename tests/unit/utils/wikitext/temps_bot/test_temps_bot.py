@@ -7,6 +7,7 @@ Pytest test suite for:
 - get_titles_from_wikilinks
 
 """
+
 from __future__ import annotations
 
 from src.main_app.utils.wikitext.temps_bot import (

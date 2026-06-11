@@ -21,15 +21,18 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-@db_guard(default_return=False, msg="Failed to check coordinator status")
 def is_active_coordinator(username: str) -> bool:
     """Check whether a single username is an active coordinator."""
-    return (
-        db.session.query(AdminUserRecord)
-        .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
-        .first()
-        is not None
-    )
+    try:
+        record = (
+            db.session.query(AdminUserRecord)
+            .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
+            .first()
+        )
+        return record is not None
+    except Exception:
+        logger.exception("Failed to check coordinator status")
+    return False
 
 
 def list_coordinators() -> List[AdminUserRecord]:
@@ -79,7 +82,7 @@ def add_coordinator(username: str) -> AdminUserRecord:
 
 
 @db_guard_rollback
-def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord:
+def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
     """Toggle coordinator activity."""
     # record = get_coordinator_by_id(coordinator_id)
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()

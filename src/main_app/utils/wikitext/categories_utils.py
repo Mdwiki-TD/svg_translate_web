@@ -130,7 +130,7 @@ def merge_categories(old_text: str, new_text: str) -> str:
     return f"{new_text}\n{missing_categories_str}"
 
 
-def sort_categories(wikitext: str) -> list[CategoryLink]:
+def sort_categories(wikitext: str) -> str:
     """ """
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)

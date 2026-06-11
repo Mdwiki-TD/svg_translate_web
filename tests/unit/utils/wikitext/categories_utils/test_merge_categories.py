@@ -77,7 +77,6 @@ class TestMergeCategoriesWithSpecialChars:
 
 
 class TestMergeCategories:
-
     def test_add_missing_category(self):
         """Should append category from old text if missing in new text."""
         new_text = "[[Category:Cat1]]"

@@ -197,6 +197,6 @@ class TestFindTemplateSource3:
 
     def test_urlparse_value_error_in_check_url(self):
         """Test that urlparse ValueError is handled in check_url (lines 10-11)."""
-        with mock.patch("urllib.parse.urlparse", side_effect=ValueError("Invalid URL")):
+        with mock.patch("src.main_app.utils.wikitext.temp_source.urlparse", side_effect=ValueError("Invalid URL")):
             result = check_url("http://[invalid-url")
             assert result is False

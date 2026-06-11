@@ -30,7 +30,6 @@ def coerce_encrypted(value: object) -> bytes | None:
 
 
 def get_cronjob_site(domain: str | None = None) -> mwclient.Site | None:
-
     if domain is None:
         domain = settings.other.wiki_domain
 
@@ -92,7 +91,6 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
 
 
 def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
-
     is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
     if is_cron_job or (user and user.get("username") == "Background job"):
         return get_cronjob_site()

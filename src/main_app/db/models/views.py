@@ -50,7 +50,7 @@ class TemplateNeedUpdateRecord(db.Model):
 
     def to_dict(self) -> dict[str, Any]:
         difference = 0
-        if self.max_time and self.last_world_year:
+        if self.max_time and self.last_world_year:  # pyright: ignore[reportGeneralTypeIssues]
             difference = (self.max_time or 0) - (self.last_world_year or 0)
         return {
             "template_id": self.template_id,

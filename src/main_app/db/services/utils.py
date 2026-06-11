@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable, ParamSpec, TypeVar, cast
+from typing import Any, Callable, ParamSpec, cast
 
 from sqlalchemy.exc import IntegrityError, OperationalError, PendingRollbackError, SQLAlchemyError
 
@@ -12,12 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 # Define generic types for strict type hinting
-FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 P = ParamSpec("P")
-R = TypeVar("R")
 
 
-def db_guard_rollback(func: FuncType) -> FuncType:  # noqa: UP047
+def db_guard_rollback(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator that requires a full OAuth credential bundle."""
 
     @functools.wraps(func)
@@ -32,10 +30,10 @@ def db_guard_rollback(func: FuncType) -> FuncType:  # noqa: UP047
             db.session.rollback()
             raise exc
 
-    return cast(FuncType, wrapper)
+    return cast(Callable[..., Any], wrapper)
 
 
-def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callable[P, R]]:
+def db_guard(default_return: Any = False, msg: str = "") -> Callable[[Callable[P, Any]], Callable[P, Any]]:
     """Decorator factory to wrap a DB service function.
 
     On success, the original return value is passed through.
@@ -43,9 +41,9 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callab
     and the specified `default_return` value is returned.
     """
 
-    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+    def decorator(func: Callable[P, Any]) -> Callable[P, Any]:
         @functools.wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
             try:
                 return func(*args, **kwargs)
             except OperationalError as exc:
@@ -63,7 +61,18 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[..., Callab
                 logger.exception(f"{msg}: %s", exc)
                 db.session.rollback()
                 return default_return
+            except Exception as exc:
+                logger.error("Unexpected error in %s", func.__qualname__)
+                logger.exception(f"{msg}: %s", exc)
+                db.session.rollback()
+                return default_return
 
         return wrapper
 
     return decorator
+
+
+__all__ = [
+    "db_guard_rollback",
+    "db_guard",
+]

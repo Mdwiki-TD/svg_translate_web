@@ -80,6 +80,5 @@ You can use this interactive visualization in Wikipedia articles as well with th
 
 
 def test_create_new_text():
-
     result = create_new_text(EXAMPLE_WIKITEXT, EXAMPLE_TEMPLATE_TITLE)
     assert result.strip() == EXPECTED__WIKITEXT.strip()

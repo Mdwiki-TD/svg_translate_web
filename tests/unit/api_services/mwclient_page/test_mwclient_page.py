@@ -104,7 +104,6 @@ class TestCheckExists:
 
 
 class TestEditPageInternal:
-
     def test_success(self, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         mock_exists_page.edit.return_value = None
@@ -317,7 +316,6 @@ class TestMovePageInternal:
 
 
 class TestEditPageErrors:
-
     def test_edit_error(self, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = mwclient.errors.EditError(mock_exists_page, "edit failed")
         result = mw_client._edit_page(mock_exists_page, "text", "summary")
@@ -346,7 +344,6 @@ class TestEditPageErrors:
 
 
 class TestEditPageProtectedErrors:
-
     def test_protected_page_error(self, mock_protected_page, mw_client, mock_exists_page):
         mock_exists_page.edit.side_effect = mock_protected_page
         result = mw_client._edit_page(mock_exists_page, "text", "summary")

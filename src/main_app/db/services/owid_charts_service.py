@@ -135,6 +135,9 @@ def update_chart_data(
     return chart
 
 
+# ── DELETE ───────────────────────────────────────────────
+
+
 @db_guard(default_return=False)
 def delete_chart(chart_id: int) -> bool:
     """Delete a chart."""

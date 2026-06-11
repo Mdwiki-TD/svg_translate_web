@@ -96,3 +96,8 @@ def extract_translations_post():
         # Clean up temporary directory
         if temp_dir.exists():
             shutil.rmtree(temp_dir)
+
+
+__all__ = [
+    "bp_extract",
+]

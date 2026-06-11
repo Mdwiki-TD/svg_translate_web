@@ -46,3 +46,10 @@ def compare_svg_files(file_path: Path, translated_path: Path):
     translated_result = analyze_file(translated_path)
 
     return [file_result, translated_result]
+
+
+__all__ = [
+    "file_langs",
+    "analyze_file",
+    "compare_svg_files",
+]

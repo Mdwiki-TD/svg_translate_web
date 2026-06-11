@@ -33,3 +33,8 @@ def extract_text_step(title: str, site: mwclient.Site | None = None) -> dict[str
         return {"success": False, "text": "", "error": "No wikitext found"}
 
     return {"success": True, "text": text, "error": None}
+
+
+__all__ = [
+    "extract_text_step",
+]

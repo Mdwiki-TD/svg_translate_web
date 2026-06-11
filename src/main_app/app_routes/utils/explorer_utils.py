@@ -7,18 +7,19 @@ from ...config import settings
 logger = logging.getLogger(__name__)
 
 
-# svg_data_path = Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
-# svg_data_path = Path(__name__).parent.parent.parent / "svg_data"
-svg_data_path = Path(settings.paths.svg_data)
-svg_data_thumb_path = Path(settings.paths.svg_data_thumb)
+def load_svg_data_path() -> Path:
+    # return Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
+    # return Path(__name__).parent.parent.parent / "svg_data"
+    return Path(settings.paths.svg_data)
 
 
 def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     """Resolve and validate that title/sub_dir is confined under BASE_SVG."""
+    svg_data_path = load_svg_data_path()
     try:
         candidate = (svg_data_path / title / sub_dir).resolve()
     except (ValueError, OSError):
-        raise PermissionError(f"Invalid path: title={title!r}, sub_dir={sub_dir!r}")
+        raise PermissionError(f"Invalid path: title={title!r}, sub_dir={sub_dir!r}") from None
 
     if svg_data_path not in candidate.parents and candidate != svg_data_path:
         raise PermissionError(f"Path traversal attempt blocked: {candidate}")
@@ -27,6 +28,7 @@ def _validate_path_under_base(title: str, sub_dir: str) -> Path:
 
 
 def get_main_data(title, filename="files_stats.json"):
+    svg_data_path = load_svg_data_path()
     file_path = svg_data_path / title / (filename or "files_stats.json")
     if not file_path.exists():
         return {}
@@ -40,6 +42,7 @@ def get_main_data(title, filename="files_stats.json"):
 
 def get_files_full_path(title, sub_dir):
     # title_path = svg_data_path / title / sub_dir
+    svg_data_path = load_svg_data_path()
 
     try:
         title_path = _validate_path_under_base(title, sub_dir)
@@ -58,6 +61,7 @@ def get_files_full_path(title, sub_dir):
 
 def get_files(title, sub_dir):
     # title_path = svg_data_path / title / sub_dir
+    svg_data_path = load_svg_data_path()
     try:
         title_path = _validate_path_under_base(title, sub_dir)
     except PermissionError as e:
@@ -131,3 +135,12 @@ def get_informations(title):
         "not_downloaded": not_downloaded,
     }
     return result
+
+
+__all__ = [
+    "get_main_data",
+    "get_files_full_path",
+    "get_files",
+    "get_languages",
+    "get_informations",
+]

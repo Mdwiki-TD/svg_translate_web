@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import Column, DateTime, Integer, String, func
 
 from ...extensions import db
-from ...utils.wikitext.titles_utils import match_last_world_year
+from ..templates_utils import extract_slug, match_last_world_year
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,8 @@ class TemplateRecord(db.Model):
     def to_dict(self) -> dict[str, Any]:
         slug = self.slug
 
-        if not self.slug and self.source and "/grapher/" in self.source:
-            slug = self.source.split("/grapher/", maxsplit=1)[1].split("?")[0]
-            slug = slug or None
+        if not self.slug:
+            slug = extract_slug(self.source)
 
         last_world_year = self.last_world_year
         if not self.last_world_year and self.last_world_file:

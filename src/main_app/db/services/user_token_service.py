@@ -93,7 +93,8 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
         db.session.commit()
         db.session.refresh(orm_obj)
-    return orm_obj
+        return orm_obj
+    return None
 
 
 @db_guard_rollback

@@ -1,152 +1,162 @@
 {% extends "admins/base1.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon, csrf, job_errors_div %}
+{% from "_macros.html" import card_header, stats_card, status_icon, csrf, job_errors_div, auto_refresh_status %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
 {% block title %}{{ detail_title }} Job #{{ job.id }} · {{ tool_title }}{% endblock %}
 
 {% block admin_contents %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">{{ detail_headline }} Job #{{ job.id }}</h3>
-        <div class="d-flex gap-2">
-            {% if job.status == 'running' or job.status == 'pending' %}
-            {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+<div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="headline mb-0">{{ detail_headline }} Job #{{ job.id }}</h3>
+            <div class="d-flex gap-2">
+                {% if job.status == 'running' or job.status == 'pending' %}
+                {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
+                {% endif %}
+                {{ form_delete_job(url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id)) }}
+                <a href="{{ url_for('admin.jobs.jobs_list', job_type=job_type) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                {% block detail_header_actions %}{% endblock %}
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Job Summary -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header("Job Information") }}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-striped table-sm">
+                                <tr>
+                                    <th style="width: 40%">Status:</th>
+                                    <td>
+                                        <div
+                                            class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                                            {{ status_icon(job.status) }}
+                                            {% if job.status == 'running' %}
+                                            {{ auto_refresh_status() }}
+                                            {% endif %}
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>User:</th>
+                                    <td>
+                                        {{ job.username if job.username else '-' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>
+                                        {{ job.created_at | format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Started:</th>
+                                    <td>
+                                        {{ job.started_at | format_short_date("-") }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-striped table-sm">
+                                <tr>
+                                    <th style="width: 40%">Completed:</th>
+                                    <td>
+                                        {{ job.completed_at | format_short_date("-") }}
+                                    </td>
+                                </tr>
+                                {% if job.failed_at or (result_data and result_data.failed_at) %}
+                                <tr>
+                                    <th style="width: 40%">Failed At:</th>
+                                    <td>
+                                        {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
+                                <tr>
+                                    <th style="width: 40%">Cancelled At:</th>
+                                    <td>
+                                        {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Result File:</th>
+                                    <td>
+                                        {% if job.result_file %}
+                                        <a href="{{ url_for('admin.jobs.read_job_result_file', result_file=job.result_file, job_type=job_type) }}"
+                                            target="_blank">
+                                            {{ job.result_file }}
+                                        </a>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Last update:</th>
+                                    <td>
+                                        {{ result_data.last_update| format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% block job_info_extra %}{% endblock %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Results -->
+            {% if result_data %}
+            {% block job_results %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header("Job Summary") }}
+                </div>
+                <div class="card-body">
+                    {% block job_summary %}{% endblock %}
+
+                    {% if result_data.error %}
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">Error!</h5>
+                        <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
+                        {{ result_data.error }}
+                    </div>
+                    {% endif %}
+
+                    {% if result_data.note %}
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">Note!</h5>
+                        <div>
+                            {{ result_data.note }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result_data.errors %}
+                    {{ job_errors_div(result_data.errors) }}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% block job_details %}{% endblock %}
+            {% endblock %}
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                No job result data available yet. The job may still be running or the
+                result file may not exist.
+            </div>
             {% endif %}
-            {{ form_delete_job(url_for('admin.jobs.delete_job', job_type=job_type, job_id=job.id)) }}
-            <a href="{{ url_for('admin.jobs.jobs_list', job_type=job_type) }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to List
-            </a>
-            {% block detail_header_actions %}{% endblock %}
         </div>
-    </div>
-    <div class="card-body">
-        <!-- Job Summary -->
-        <div class="card mb-3">
-            <div class="card-header">
-                {{ card_header("Job Information") }}
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-striped table-sm">
-                            <tr>
-                                <th style="width: 40%">Status:</th>
-                                <td>
-                                    {{ status_icon(job.status) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>User:</th>
-                                <td>
-                                    {{ job.username if job.username else '-' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Created:</th>
-                                <td>
-                                    {{ job.created_at | format_long_date("-") }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Started:</th>
-                                <td>
-                                    {{ job.started_at | format_short_date("-") }}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <table class="table table-striped table-sm">
-                            <tr>
-                                <th style="width: 40%">Completed:</th>
-                                <td>
-                                    {{ job.completed_at | format_short_date("-") }}
-                                </td>
-                            </tr>
-                            {% if job.failed_at or (result_data and result_data.failed_at) %}
-                            <tr>
-                                <th style="width: 40%">Failed At:</th>
-                                <td>
-                                    {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
-                                </td>
-                            </tr>
-                            {% endif %}
-                            {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
-                            <tr>
-                                <th style="width: 40%">Cancelled At:</th>
-                                <td>
-                                    {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
-                                </td>
-                            </tr>
-                            {% endif %}
-                            <tr>
-                                <th>Result File:</th>
-                                <td>
-                                    {% if job.result_file %}
-                                    <a href="{{ url_for('admin.jobs.read_job_result_file', result_file=job.result_file, job_type=job_type) }}"
-                                        target="_blank">
-                                        {{ job.result_file }}
-                                    </a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Last update:</th>
-                                <td>
-                                    {{ result_data.last_update| format_long_date("-") }}
-                                </td>
-                            </tr>
-                            {% block job_info_extra %}{% endblock %}
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Job Results -->
-        {% if result_data %}
-        {% block job_results %}
-        <div class="card mb-3">
-            <div class="card-header">
-                {{ card_header("Job Summary") }}
-            </div>
-            <div class="card-body">
-                {% block job_summary %}{% endblock %}
-
-                {% if result_data.error %}
-                <div class="alert alert-danger" role="alert">
-                    <h5 class="alert-heading">Error!</h5>
-                    <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
-                    {{ result_data.error }}
-                </div>
-                {% endif %}
-
-                {% if result_data.note %}
-                <div class="alert alert-warning" role="alert">
-                    <h5 class="alert-heading">Note!</h5>
-                    <div>
-                        {{ result_data.note }}
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if result_data.errors %}
-                {{ job_errors_div(result_data.errors) }}
-                {% endif %}
-            </div>
-        </div>
-
-        {% block job_details %}{% endblock %}
-        {% endblock %}
-        {% else %}
-        <div class="alert alert-info" role="alert">
-            No job result data available yet. The job may still be running or the
-            result file may not exist.
-        </div>
-        {% endif %}
     </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
 {% endblock %}

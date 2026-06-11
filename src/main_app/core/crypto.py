@@ -54,3 +54,9 @@ def decrypt_value(token: bytes) -> str:
     except InvalidToken as exc:
         raise ValueError("Unable to decrypt stored token") from exc
     return decrypted.decode("utf-8")
+
+
+__all__ = [
+    "encrypt_value",
+    "decrypt_value",
+]

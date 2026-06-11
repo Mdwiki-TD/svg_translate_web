@@ -75,7 +75,6 @@ def create_side(active_route, path: str | None = None):
                 href=_safe_url_for("admin.users.dashboard", "/admin/users/"),
                 title="Users",
                 icon="bi-person",
-                disabled=False,
             ),
         ],
         "Main": [
@@ -263,3 +262,10 @@ def create_side(active_route, path: str | None = None):
 
     sidebar.append("</ul>")
     return "\n".join(sidebar)
+
+
+__all__ = [
+    "SidebarItem",
+    "generate_list_item",
+    "create_side",
+]

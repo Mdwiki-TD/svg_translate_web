@@ -78,6 +78,9 @@ def get_setting_by_key(key: str) -> SettingRecord:
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
 
+# ── DELETE ───────────────────────────────────────────────
+
+
 @db_guard(default_return=False)
 def delete_setting(key: str) -> bool:
     """delete a setting by key."""

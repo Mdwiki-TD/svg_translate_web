@@ -1,10 +1,10 @@
 """
-Edge Cases Tests for src/main_app/utils/wikitext/titles_utils/last_world_file_utils.py
+Edge Cases Tests for src/main_app/utils/wikitext/owid_sliders_rcs/last_world_file_utils.py
 """
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.titles_utils.last_world_file_utils import (
+from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
     match_last_world_file_with_full_date,
 )
 
@@ -801,7 +801,6 @@ File:youth mortality rate, World, 1953.svg!year=1953
 
 class TestMatchLastWorldFileEdgeCases:
     def test_basic(self):
-
         result = match_last_world_file_with_full_date(wikitext)
         expected = "File:youth mortality rate, World, 1953.svg"
         assert result == expected
