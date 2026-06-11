@@ -42,6 +42,7 @@ def test_template_record_with_all_fields():
     assert rec.created_at == "2023-01-01"
     assert rec.updated_at == "2023-01-02"
 
+
 def test_template_record_no_slug_generation():
     """Test that slug is not generated for non-OWID sources."""
     rec = TemplateRecord(
@@ -65,6 +66,7 @@ def test_template_record_slug_already_set():
 
     # Existing slug should be preserved
     assert rec.slug == "existing-slug"
+
 
 def test_template_record_last_world_year_none():
     """Test last_world_year remains None when no file."""

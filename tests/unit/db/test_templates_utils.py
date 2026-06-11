@@ -63,4 +63,3 @@ def test_template_record_last_world_year_from_file():
     rec = ensure_template_data_record(rec)
 
     assert rec.to_dict()["last_world_year"] == 2022
-

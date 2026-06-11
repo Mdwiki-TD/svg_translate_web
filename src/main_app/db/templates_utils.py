@@ -67,6 +67,7 @@ def match_last_world_year(newest_world_file: str) -> int | None:
 
     return None
 
+
 def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
     last_world_file = template_data.get("last_world_file")
     source = template_data.get("source")
