@@ -7,6 +7,9 @@ import time
 from typing import Any, Callable
 
 import mwclient
+import mwclient.errors
+from mwclient.client import Site
+from mwclient.page import Page
 
 from .mwclient_error import handle_mwclient_error
 
@@ -16,7 +19,7 @@ _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
 class MwClientPage:
-    def __init__(self, title: str, site: mwclient.Site) -> None:
+    def __init__(self, title: str, site: Site) -> None:
         self.title = title
         self.site = site
         self.load_page_error = ""
@@ -26,7 +29,7 @@ class MwClientPage:
     # Core operations
     # ------------------------------------------------------------------
 
-    def _edit_page(self, page: mwclient.page.Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
+    def _edit_page(self, page: Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
         try:
             save = page.edit(text, summary=summary, **kwargs) or {}
             return {"success": True, **save}
@@ -39,7 +42,7 @@ class MwClientPage:
 
     def _move_page(
         self,
-        page: mwclient.page.Page,
+        page: Page,
         new_title: str,
         reason: str,
         move_talk: bool = True,
@@ -78,7 +81,7 @@ class MwClientPage:
     # Public
     # ------------------------------------------------------------------
 
-    def load_page(self) -> mwclient.page.Page | None:
+    def load_page(self) -> Page | None:
         if self.page:
             return self.page
 

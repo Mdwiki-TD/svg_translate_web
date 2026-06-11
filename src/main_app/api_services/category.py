@@ -1,7 +1,9 @@
 import logging
 
 import mwclient
+import mwclient.errors
 import requests
+from mwclient.client import Site
 
 from ..config import settings
 
@@ -9,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_category_members(
-    site: mwclient.Site,
+    site: Site,
     category_title: str,
     namespace: int = 0,
     limit: int | str | None = None,

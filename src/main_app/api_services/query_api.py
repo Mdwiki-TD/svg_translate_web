@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-import mwclient
+from mwclient.client import Site
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def get_template_pages(
     title,
     namespace="*",
-    site: mwclient.Site = None,
+    site: Site | None = None,
 ) -> list[str]:
     # ---
     logger.debug(f"get_template_pages for template: {title=}, {namespace=}")
@@ -39,7 +39,7 @@ def get_template_pages(
 
 def is_pages_exists(
     titles: list[str],
-    site: mwclient.Site,
+    site: Site,
 ) -> dict[str, bool]:
     result = {}
 
@@ -64,7 +64,7 @@ def is_pages_exists(
 
 def resolve_redirects(
     titles: list[str],
-    site: mwclient.Site,
+    site: Site,
 ) -> dict[str, bool]:
     normalized = {}
     from_to = {}
@@ -105,7 +105,7 @@ def resolve_redirects(
 
 def search_pages(
     query: str,
-    site: mwclient.Site,
+    site: Site,
     namespace: int = 0,
     limit: int | str = "max",
 ) -> list[str]:
@@ -130,7 +130,7 @@ def search_pages(
     return titles
 
 
-def get_double_redirects(site: mwclient.Site) -> list[dict[str, str]]:
+def get_double_redirects(site: Site) -> list[dict[str, str]]:
     """
     Return resolved double-redirect pairs ``[{"from", "to"}, ...]``.
 
@@ -180,7 +180,7 @@ def get_double_redirects(site: mwclient.Site) -> list[dict[str, str]]:
 
 def get_page_links(
     title: str,
-    site: mwclient.Site,
+    site: Site,
     namespace: int = 0,
 ) -> dict:
     """Return wikilinks on *title* in *namespace*.

@@ -6,8 +6,8 @@ import logging
 import os
 from typing import Any, Dict
 
-import mwclient
 import requests
+from mwclient.client import Site
 
 from ...config import settings
 from ...core.crypto import decrypt_value
@@ -29,12 +29,12 @@ def coerce_encrypted(value: object) -> bytes | None:
     return None
 
 
-def get_cronjob_site(domain: str | None = None) -> mwclient.Site | None:
+def get_cronjob_site(domain: str | None = None) -> Site | None:
     if domain is None:
         domain = settings.other.wiki_domain
 
     try:
-        site = mwclient.Site(
+        site = Site(
             domain,
             scheme="https",
             clients_useragent=settings.other.user_agent,
@@ -52,7 +52,7 @@ def get_cronjob_site(domain: str | None = None) -> mwclient.Site | None:
     return site
 
 
-def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
+def _get_user_site(user: Dict[str, Any] | None) -> Site | None:
     if user is None:
         return None
 
@@ -69,7 +69,7 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
     try:
         _access_key = decrypt_value(access_token)
         _access_secret = decrypt_value(access_secret)
-        site = mwclient.Site(
+        site = Site(
             settings.other.wiki_domain,
             scheme="https",
             clients_useragent=settings.other.user_agent,
@@ -90,7 +90,7 @@ def _get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
     return site
 
 
-def get_user_site(user: Dict[str, Any] | None) -> mwclient.Site | None:
+def get_user_site(user: Dict[str, Any] | None) -> Site | None:
     is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
     if is_cron_job or (user and user.get("username") == "Background job"):
         return get_cronjob_site()

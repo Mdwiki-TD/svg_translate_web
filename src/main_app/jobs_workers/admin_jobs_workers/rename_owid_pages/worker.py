@@ -10,7 +10,7 @@ is a lowercase letter, e.g.::
     OWID/daily_meat_consumption_per_person
         -> OWID/Daily_meat_consumption_per_person
 
-Authentication uses the current user's OAuth-bound mwclient.Site (no env
+Authentication uses the current user's OAuth-bound Site (no env
 credentials).
 """
 
@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, Iterable
 
-import mwclient
+from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.services import get_template_by_title, update_template_data
@@ -91,7 +91,7 @@ class RenameOwidPagesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
         self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
