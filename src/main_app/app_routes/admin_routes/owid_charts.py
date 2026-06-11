@@ -62,9 +62,10 @@ def create_json_file() -> Tuple[Any, int]:
                 "template_id": None,
                 "template_title": None,
             }
-            if charts_temps.get(chart.chart_id):
-                chart_data["template_id"] = chart.chart_id
-                chart_data["template_title"] = charts_temps.get(chart.chart_id)
+            temp = charts_temps.get(chart.chart_id)
+            if temp:
+                chart_data["template_id"] = temp.template_id
+                chart_data["template_title"] = temp.template_title
 
             charts_data.append(chart_data)
 
