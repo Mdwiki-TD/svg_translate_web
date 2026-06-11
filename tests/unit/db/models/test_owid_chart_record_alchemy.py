@@ -124,8 +124,6 @@ def test_owid_chart_record_to_dict():
         "has_timeline": False,
         "created_at": "2023-01-01",
         "updated_at": "2023-01-02",
-        "template_id": None,
-        "template_title": None,
     }
 
     assert result == expected
@@ -147,8 +145,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         has_timeline=False,
         created_at=None,
         updated_at=None,
-        template_id=None,
-        template_title="Template:OWID/Health Expenditure",
     )
 
     result = rec.to_dict()
@@ -168,8 +164,6 @@ def test_owid_chart_record_to_dict_with_none_values():
         "has_timeline": False,
         "created_at": None,
         "updated_at": None,
-        "template_id": None,
-        "template_title": "Template:OWID/Health Expenditure",
     }
 
     assert result == expected

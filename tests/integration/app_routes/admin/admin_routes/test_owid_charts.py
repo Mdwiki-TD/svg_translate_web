@@ -246,14 +246,14 @@ class TestAddChart:
         )
 
         call_kwargs = mock_service.add_chart.call_args[1]
-        assert call_kwargs["has_map_tab"] is True
+        assert call_kwargs["has_map_tab"] == 1
         assert call_kwargs["max_time"] == 2024
         assert call_kwargs["min_time"] == 2000
         assert call_kwargs["default_tab"] == "table"
-        assert call_kwargs["is_published"] is True
-        assert call_kwargs["single_year_data"] is True
+        assert call_kwargs["is_published"] == 1
+        assert call_kwargs["single_year_data"] == 1
         assert call_kwargs["len_years"] == 25
-        assert call_kwargs["has_timeline"] is True
+        assert call_kwargs["has_timeline"] == 1
 
 
 class TestUpdateChart:
