@@ -18,12 +18,10 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
-from ...db.models.views import OwidChartTemplateRecord
-
-from ...db.services.views_service import list_owid_charts_templates
-
 from ...db.models import OwidChartRecord
+from ...db.models.views import OwidChartTemplateRecord
 from ...db.services import owid_charts_service
+from ...db.services.views_service import list_owid_charts_templates
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
