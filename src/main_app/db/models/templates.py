@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
-from datetime import datetime
 from sqlalchemy import String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -48,8 +48,9 @@ class TemplateRecord(db.Model):
         nullable=False,
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
-        onupdate=func.current_timestamp()
+        onupdate=func.current_timestamp(),
     )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
