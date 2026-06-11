@@ -43,12 +43,20 @@ class OwidSlugRedirectRecord(db.Model):
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
 
     def to_dict(self) -> dict[str, Any]:
+        """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
-        for column in self.__table__.columns:  # pyright: ignore[reportAttributeAccessIssue]
-            value = getattr(self, column.name)
+        table_keys = [
+            "id",
+            "slug",
+            "redirect_to",
+            "should_be_replaced",
+            "created_at",
+        ]
+        for column in table_keys:
+            value = getattr(self, column)
             if hasattr(value, "isoformat"):
                 value = value.isoformat()
-            data[column.name] = value
+            data[column] = value
         return data
 
 
