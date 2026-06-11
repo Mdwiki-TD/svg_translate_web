@@ -9,6 +9,7 @@ from typing import Any, Callable
 import mwclient
 import mwclient.errors
 import mwclient.page
+from mwclient.client import Site
 
 from .mwclient_error import handle_mwclient_error
 
@@ -18,7 +19,7 @@ _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
 class MwClientPage:
-    def __init__(self, title: str, site: mwclient.Site) -> None:
+    def __init__(self, title: str, site: Site) -> None:
         self.title = title
         self.site = site
         self.load_page_error = ""

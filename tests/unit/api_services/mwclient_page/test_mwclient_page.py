@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, call
 
 import mwclient.errors
 import pytest
+from mwclient.client import Site
 
 from src.main_app.api_services.mwclient_page import MwClientPage
 from src.main_app.api_services.mwclient_page.mwclient_wraper import _RETRY_DELAYS

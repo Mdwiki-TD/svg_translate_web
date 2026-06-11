@@ -58,7 +58,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
 
 @pytest.fixture
 def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    """Mock get_user_site to return a fake mwclient.Site."""
+    """Mock get_user_site to return a fake Site."""
     mock_site = MagicMock(name="mw_site")
     mock_get = MagicMock(return_value=mock_site)
     monkeypatch.setattr(

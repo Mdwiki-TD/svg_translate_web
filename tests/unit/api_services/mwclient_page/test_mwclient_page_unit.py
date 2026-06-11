@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 
 import mwclient.errors
 import pytest
+from mwclient.client import Site
 
 from src.main_app.api_services.mwclient_page.mwclient_wraper import MwClientPage
 
@@ -30,7 +31,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 def _make_site() -> MagicMock:
-    """Return a minimal mock mwclient.Site."""
+    """Return a minimal mock Site."""
     return MagicMock(name="site")
 
 

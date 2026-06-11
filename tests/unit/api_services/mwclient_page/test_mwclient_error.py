@@ -7,6 +7,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import mwclient.errors
+from mwclient.client import Site
 
 from src.main_app.api_services.mwclient_page.mwclient_error import handle_mwclient_error
 

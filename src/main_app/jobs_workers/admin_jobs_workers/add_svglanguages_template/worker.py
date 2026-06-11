@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 import mwclient
+from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.models import TemplateRecord
@@ -75,7 +76,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(job_id, user, cancel_event)
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
         self.args = args or {}
         self.result: Dict[str, Any] = self.get_initial_result()

@@ -4,10 +4,10 @@ import logging
 import time
 from pathlib import Path
 
-import mwclient
 import mwclient.client
 import mwclient.errors
 import requests
+from mwclient.client import Site
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class UploadFile:
         self,
         file_name: str,
         file_path: Path,
-        site: mwclient.client.Site | None = None,
+        site: Site | None = None,
         summary: str | None = None,
         description: str | None = None,
         new_file: bool = False,
@@ -218,7 +218,7 @@ class UploadFile:
 def upload_file(
     file_name: str,
     file_path: Path,
-    site: mwclient.client.Site | None = None,
+    site: Site | None = None,
     summary: str | None = None,
     description: str | None = None,
     new_file: bool = False,

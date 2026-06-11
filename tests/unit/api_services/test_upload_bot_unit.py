@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import mwclient.errors
 import pytest
 import requests
+from mwclient.client import Site
 
 from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
 

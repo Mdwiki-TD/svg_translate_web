@@ -6,13 +6,14 @@ import logging
 from typing import Any
 
 import mwclient
+from mwclient.client import Site
 
 from .....api_services import MwClientPage
 
 logger = logging.getLogger(__name__)
 
 
-def extract_text_step(title: str, site: mwclient.Site | None = None) -> dict[str, Any]:
+def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
     """Fetch wikitext for a Commons file.
 
     Args:

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import mwclient
+from mwclient.client import Site
 
 from ....api_services import MwClientPage, create_commons_session, get_user_site, is_pages_exists
 from ....config import settings
@@ -95,7 +96,7 @@ class CropMainFilesWorker(BaseJobWorker):
     ) -> None:
         self.job_id = job_id
         self.user = user
-        self.site: mwclient.Site | None = None
+        self.site: Site | None = None
         self.args = args or {}
         try:
             self.upload_limit = (

@@ -46,6 +46,7 @@ from typing import Iterable
 import mwclient
 import mwclient.errors
 from dotenv import load_dotenv
+from mwclient.client import Site
 
 logger = logging.getLogger("rename_owid_pages")
 
@@ -82,10 +83,10 @@ def load_credentials() -> tuple[str, str]:
     return username, password
 
 
-def build_site(host: str, user_agent: str, username: str, password: str) -> mwclient.Site:
-    """Create an authenticated mwclient.Site using BotPassword/login."""
+def build_site(host: str, user_agent: str, username: str, password: str) -> Site:
+    """Create an authenticated Site using BotPassword/login."""
     logger.info("Connecting to %s as %s", host, username)
-    site = mwclient.Site(host, scheme="https", clients_useragent=user_agent)
+    site = Site(host, scheme="https", clients_useragent=user_agent)
     site.login(username, password)
     logger.info("Logged in successfully")
     return site
@@ -109,7 +110,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     return False, title
 
 
-def iter_owid_pages(site: mwclient.Site, namespace: int, prefix: str) -> Iterable:
+def iter_owid_pages(site: Site, namespace: int, prefix: str) -> Iterable:
     """Yield non-redirect pages with the given prefix in *namespace*."""
     # filterredir='nonredirects' avoids picking up redirects that previous
     # runs of this script may have left behind.
@@ -117,7 +118,7 @@ def iter_owid_pages(site: mwclient.Site, namespace: int, prefix: str) -> Iterabl
 
 
 def process(
-    site: mwclient.Site,
+    site: Site,
     apply: bool,
     reason: str,
     move_talk: bool,

@@ -217,7 +217,9 @@ def _load_jobs_config() -> JobsConfig:
     jobs_log_lines = max(10, _env_int("JOBS_LOG_LINES", 200))
 
     priority_per_item_val = os.getenv("PRIORITY_PER_ITEM")
-    priority_per_item = int(priority_per_item_val) if priority_per_item_val and priority_per_item_val.isdigit() else None
+    priority_per_item = (
+        int(priority_per_item_val) if priority_per_item_val and priority_per_item_val.isdigit() else None
+    )
 
     _config = JobsConfig(
         jobs_max_workers=jobs_max_workers,

@@ -71,7 +71,7 @@ class TestGetUserSite:
             def __init__(self, host: str, **kwargs: object) -> None:
                 calls.append({"host": host, **kwargs})
 
-        monkeypatch.setattr("src.main_app.api_services.clients.wiki_client.mwclient.Site", DummySite)
+        monkeypatch.setattr("src.main_app.api_services.clients.wiki_client.Site", DummySite)
 
         user = {
             "access_token": encrypt_value("my-access-key"),
@@ -88,7 +88,7 @@ class TestGetUserSite:
             raise RuntimeError("Build failed")
 
         monkeypatch.setattr(
-            "src.main_app.api_services.clients.wiki_client.mwclient.Site",
+            "src.main_app.api_services.clients.wiki_client.Site",
             raise_error,
         )
 
@@ -102,7 +102,7 @@ class TestGetUserSite:
 
 
 @patch("src.main_app.api_services.clients.wiki_client.settings")
-@patch("src.main_app.api_services.clients.wiki_client.mwclient.Site")
+@patch("src.main_app.api_services.clients.wiki_client.Site")
 @patch("src.main_app.api_services.clients.wiki_client.decrypt_value")
 def test_get_user_site(mock_decrypt, mock_site, mock_settings, app):
     mock_settings.oauth = MagicMock()

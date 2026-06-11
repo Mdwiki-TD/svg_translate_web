@@ -7,6 +7,7 @@ from typing import Any
 
 import mwclient
 import mwclient.errors
+from mwclient.client import Site
 
 logger = logging.getLogger(__name__)
 
