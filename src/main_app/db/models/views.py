@@ -72,8 +72,8 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
     __tablename__ = "owid_charts_templates"
 
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    template_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    template_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    template_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     __table_args__ = (
         # Prevent SQLAlchemy from trying to create this as a table
