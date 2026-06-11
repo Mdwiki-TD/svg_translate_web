@@ -40,7 +40,7 @@ def create_json_file() -> Tuple[Any, int]:
 
         all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
-        charts_temps = {c.chart_id: c.template_title for c in all_charts_templates}
+        charts_temps = {c.chart_id: c for c in all_charts_templates}
 
         if not charts:
             return "No charts found to export.", 404
