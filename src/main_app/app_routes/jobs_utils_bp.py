@@ -16,6 +16,8 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+from ..app_routes.admin.admins_required import admin_required
+
 from ..config import settings
 from ..jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
 
@@ -35,6 +37,7 @@ class UtilsJobsBp:
         # ================================
 
         @self.bp.get("/download_main_files/file/<string:filename>")
+        @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """
             Serve a downloaded main file from the main_files_path directory.
@@ -45,6 +48,7 @@ class UtilsJobsBp:
             return response
 
         @self.bp.get("/download_main_files/download-all")
+        @admin_required
         def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
 
@@ -62,6 +66,7 @@ class UtilsJobsBp:
         # ================================
 
         @self.bp.get("/crop-main-files/original/<string:filename>")
+        @admin_required
         def serve_crop_original_file(filename: str) -> Response:
             """
             Serve an original file from the crop_main_files_path/original directory.
@@ -73,6 +78,7 @@ class UtilsJobsBp:
             return response
 
         @self.bp.get("/crop-main-files/cropped/<string:filename>")
+        @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
             Serve a cropped file from the crop_main_files_path/cropped directory.
@@ -84,6 +90,7 @@ class UtilsJobsBp:
             return response
 
         @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
+        @admin_required
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""
 
