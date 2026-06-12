@@ -1,4 +1,4 @@
-"""Admin routes for managing background jobs."""
+"""Public routes for managing background jobs."""
 
 from __future__ import annotations
 
@@ -25,28 +25,15 @@ from ..db.services import (
     list_jobs,
 )
 from ..jobs_workers import jobs_worker
+from ..jobs_workers.objects import JobData
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .auth.utils import load_user
+from .jobs_routes_utils import can_manage_job, load_job_result_and_fix
 from .utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
-
-
-def _can_manage_job(job: Any, user: Any) -> bool:
-    """Check if the current user can manage (cancel/delete) a job.
-
-    Returns True if the user is an admin (coordinator) or if the user
-    is the owner of the job.
-    """
-    if not user:
-        return False
-    if getattr(user, "is_active_admin", False):
-        return True
-    if job.username and job.username == user.username:
-        return True
-    return False
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
@@ -62,7 +49,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
         flash("Job not found.", "warning")
         return redirect(url_for("public_jobs.jobs_list", job_type=job_type))
 
-    if not _can_manage_job(job, user):
+    if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
         return redirect(url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id))
 
@@ -130,7 +117,7 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
 # ================================
 
 
-def _jobs_list(job_type: str) -> str:
+def _jobs_list(job_type: str, template_data: JobData) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
     try:
@@ -139,11 +126,6 @@ def _jobs_list(job_type: str) -> str:
         logger.exception("Unable to load jobs list.")
         flash("Unable to load jobs list.", "danger")
         jobs = []
-
-    template_data = jobs_data_public.get(job_type)
-
-    if not template_data:
-        abort(404)
 
     template_name = template_data.job_list_template
 
@@ -157,7 +139,12 @@ def _jobs_list(job_type: str) -> str:
     )
 
 
-def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Response | str:
+def _job_detail(
+    job_id: int,
+    job_type: str,
+    template_data: JobData,
+    expand_all: bool = False,
+) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
@@ -169,15 +156,8 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
 
     # Load job result if available
     result_data = None
-
     if job.result_file:
         result_data = load_job_result(job.result_file)
-
-    # Load template data
-    template_data = jobs_data_public.get(job_type)
-
-    if not template_data:
-        abort(404)
 
     template_name = template_data.job_details_template
 
@@ -195,8 +175,9 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
 class JobsPublicRoutes:
     """Jobs management routes."""
 
-    def __init__(self):
-        self.bp = Blueprint("public_jobs", __name__, url_prefix="/jobs")
+    def __init__(self, name: str, jobs_data_infos: dict[str, JobData]) -> None:
+        self.bp = Blueprint(name, __name__, url_prefix="/jobs")
+        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
     def _setup_routes(self):
@@ -206,7 +187,7 @@ class JobsPublicRoutes:
 
         @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         def cancel_job(job_type: str, job_id: int) -> Response:
-            if job_type not in jobs_data_public:
+            if job_type not in self.jobs_data_infos:
                 flash("Job type not found.", "warning")
                 abort(404)
 
@@ -218,7 +199,11 @@ class JobsPublicRoutes:
 
         @self.bp.get("/<string:job_type>")
         def jobs_list(job_type: str) -> str:
-            return _jobs_list(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+            if not template_data:
+                abort(404)
+
+            return _jobs_list(job_type, template_data)
 
         # ================================
         # Job Detail routes
@@ -226,11 +211,23 @@ class JobsPublicRoutes:
 
         @self.bp.get("/<string:job_type>/<int:job_id>")
         def job_detail(job_type: str, job_id: int) -> Response | str:
-            return _job_detail(job_id, job_type)
+            # Load template data
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+
+            if not template_data:
+                abort(404)
+
+            return _job_detail(job_id, job_type, template_data)
 
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         def job_detail_expand(job_type: str, job_id: int) -> Response | str:
-            return _job_detail(job_id, job_type, expand_all=True)
+            # Load template data
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+
+            if not template_data:
+                abort(404)
+
+            return _job_detail(job_id, job_type, template_data, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -238,7 +235,7 @@ class JobsPublicRoutes:
 
         @self.bp.post("/<string:job_type>/start")
         def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in jobs_data_public:
+            if job_type not in self.jobs_data_infos:
                 abort(404)
 
             args = request.form.to_dict()
@@ -256,19 +253,23 @@ class JobsPublicRoutes:
         @self.bp.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
-            if job_type not in jobs_data_public:
+            if job_type not in self.jobs_data_infos:
                 abort(404)
             return _delete_job(job_id, job_type)
 
-        @self.bp.get("/read-job-result-file/<string:result_file>")
-        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
+        @self.bp.get("/job-file/<string:result_file>")
+        @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
-            result_data = load_job_result(result_file)
+            result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
 
 
-jobs_public_module = JobsPublicRoutes()
+# Public API module
+jobs_public_module = JobsPublicRoutes(
+    name="public_jobs",
+    jobs_data_infos=jobs_data_public,
+)
 
 __all__ = [
     "jobs_public_module",

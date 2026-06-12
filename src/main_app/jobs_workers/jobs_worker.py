@@ -42,7 +42,10 @@ def _get_jobs_cancel_event(job_id: int) -> threading.Event | None:
         return JOBS_CANCEL_EVENTS.get(job_id)
 
 
-def _load_job_args(job_args) -> dict:
+def _load_job_args(job_args: list | None) -> dict:
+    if not job_args:
+        return {}
+
     settings_ready = get_all_settings_ready()
     _args = {}
     for x in job_args:
@@ -122,17 +125,20 @@ def start_job(
         job_type: The type of job to start
         args: Optional arguments to pass to the worker
     """
-    job_data: JobData = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    job_data: JobData | None = jobs_data.get(job_type) or jobs_data_public.get(job_type)
     target_func = job_data.job_callable if job_data else None
 
-    if not target_func:
+    if not job_data or not target_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None
     if not username:
         raise ValueError("User authentication data is required")
 
-    resolved_args = _load_job_args(job_data.job_args) if job_data.job_args else {}
+    resolved_args = {}
+    if job_data.job_args:
+        resolved_args = _load_job_args(job_data.job_args)
+
     if args:
         resolved_args.update(args)
 
@@ -180,10 +186,10 @@ def start_job_cli(
         job_type: The type of job to start
         args: Optional arguments to pass to the worker
     """
-    job_data: JobData = jobs_data.get(job_type) or jobs_data_public.get(job_type)
+    job_data: JobData | None = jobs_data.get(job_type) or jobs_data_public.get(job_type)
     target_func = job_data.job_callable if job_data else None
 
-    if not target_func:
+    if not job_data or not target_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = user.get("username") if user else None

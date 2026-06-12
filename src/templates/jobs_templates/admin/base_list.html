@@ -50,7 +50,7 @@
                                     class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> Details
                                 </a>
-                                {% if job.status == 'running' or job.status == 'pending' %}
+                                {% if job.status | is_job_running %}
                                 {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
                                 {% endif %}
                                 {% block table_extra_actions %}{% endblock %}

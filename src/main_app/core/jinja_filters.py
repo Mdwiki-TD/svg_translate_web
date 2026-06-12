@@ -107,12 +107,17 @@ def check_active_route(route_name: str) -> str:
     return ""
 
 
+def is_job_running(job_status) -> bool:
+    return job_status in ["running", "pending"]
+
+
 filters = {
     "format_long_date": format_long_date,
     "format_short_date": format_short_date,
     "get_status_class": get_status_class,
     "short_url": short_url,
     "check_active_route": check_active_route,
+    "is_job_running": is_job_running,
 }
 
 __all__ = [

@@ -33,7 +33,7 @@ def save_data(result_data, filepath):
 
 def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
     """Save job result to a JSON file and return the file path."""
-    jobs_dir = get_jobs_data_dir()
+    jobs_dir: Path = get_jobs_data_dir()
     # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
     filepath = jobs_dir / filename
 
@@ -43,8 +43,8 @@ def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
 
 def load_job_result(result_file: str) -> Dict[str, Any] | None:
     """Load job result from a JSON file."""
-    jobs_dir = get_jobs_data_dir()
-    result_file = jobs_dir / result_file
+    jobs_dir: Path = get_jobs_data_dir()
+    result_file = jobs_dir / result_file  # type: ignore
     if not result_file or not os.path.exists(result_file):
         return None
 
@@ -57,7 +57,7 @@ def load_job_result(result_file: str) -> Dict[str, Any] | None:
 
 
 def create_job_cancelled_file(filename: str) -> Path | None:
-    jobs_dir = get_jobs_data_dir()
+    jobs_dir: Path = get_jobs_data_dir()
     filepath = jobs_dir / filename
     try:
         with open(filepath, "w", encoding="utf-8") as f:
@@ -70,7 +70,7 @@ def create_job_cancelled_file(filename: str) -> Path | None:
 
 def is_job_cancelled_file_exist(filename: str) -> bool:
     try:
-        jobs_dir = get_jobs_data_dir()
+        jobs_dir: Path = get_jobs_data_dir()
         filepath = jobs_dir / filename
 
         return filepath.exists()

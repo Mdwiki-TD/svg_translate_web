@@ -34,15 +34,15 @@ class UserService:
 
         try:
             # Ensure user identity row exists
-            user: UsersRecord = get_user_by_username(username)
+            user: Optional[UsersRecord] = get_user_by_username(username)
 
             if not user:
-                user: UsersRecord = create_user(username)
+                user: Optional[UsersRecord] = create_user(username)
 
             if not user:
                 return None
 
-            user_id = user.user_id
+            user_id: int = user.user_id
 
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
@@ -77,6 +77,8 @@ class UserService:
             access_token=token.access_token,
             access_secret=token.access_secret,
             is_active_admin=is_active_admin,
+            can_run_jobs=user.can_run_jobs,
+            can_run_bg_jobs=user.can_run_bg_jobs,
         )
 
     @staticmethod
@@ -93,6 +95,8 @@ class UserService:
                 access_token=token.access_token,
                 access_secret=token.access_secret,
                 is_active_admin=is_active_coordinator(username),
+                can_run_jobs=token.user.can_run_jobs,
+                can_run_bg_jobs=token.user.can_run_bg_jobs,
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)

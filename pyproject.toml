@@ -177,7 +177,7 @@ include = ["src"]
 exclude = ["**/node_modules", "**/__pycache__", ".venv"]
 
 # Diagnostic modes: "basic" or "standard" or "strict"
-typeCheckingMode = "off"
+typeCheckingMode = "basic"
 
 # Automatically find virtual environments
 venvPath = "."
@@ -187,3 +187,71 @@ venv = ".venv"
 reportMissingTypeStubs = false
 reportGeneralTypeIssues = false
 reportUnknownMemberType = false
+enableReachabilityAnalysis = false
+strictListInference = false
+strictDictionaryInference = false
+strictSetInference = false
+deprecateTypingAliases = false
+enableExperimentalFeatures = false
+
+analyzeUnannotatedFunctions = true
+disableBytesTypePromotions = true
+strictParameterNoneValue = true
+enableTypeIgnoreComments = true
+reportMissingModuleSource = "warning"
+reportInvalidTypeForm = "warning"
+reportMissingImports = "warning"
+reportUndefinedVariable = "warning"
+
+reportReturnType = false
+reportArgumentType = false
+reportAttributeAccessIssue = "warning"
+reportAssignmentType = "warning"
+reportOptionalMemberAccess = "warning"
+reportCallIssue = "warning"
+reportOptionalSubscript = "warning"
+
+
+# -----
+reportAbstractUsage = true
+reportAssertAlwaysTrue = true
+reportAssertTypeFailure = true
+reportCallInDefaultInitializer = true
+reportConstantRedefinition = true
+reportDeprecated = true
+reportDuplicateImport = true
+reportFunctionMemberAccess = true
+reportImplicitOverride = true
+reportImplicitStringConcatenation = true
+reportImportCycles = true
+reportIncompatibleMethodOverride = true
+reportIncompatibleVariableOverride = true
+reportIncompleteStub = true
+reportInconsistentOverload = true
+reportIndexIssue = true
+reportInvalidStringEscapeSequence = true
+reportInvalidStubStatement = true
+reportInvalidTypeArguments = true
+reportInvalidTypeVarUse = true
+reportMatchNotExhaustive = true
+reportMissingParameterType = true
+reportMissingSuperCall = true
+reportMissingTypeArgument = true
+reportOperatorIssue = true
+reportOptionalCall = true
+reportOptionalContextManager = true
+reportOptionalIterable = true
+reportOptionalOperand = true
+reportOverlappingOverload = true
+reportPossiblyUnboundVariable = true
+reportPrivateImportUsage = true
+reportPrivateUsage = true
+reportPropertyTypeMismatch = true
+reportRedeclaration = true
+reportTypeCommentUsage = true
+reportTypedDictNotRequiredAccess = true
+reportUnboundVariable = true
+reportUnhashable = true
+reportUninitializedInstanceVariable = true
+reportUnknownArgumentType = true
+reportUnknownLambdaType = true

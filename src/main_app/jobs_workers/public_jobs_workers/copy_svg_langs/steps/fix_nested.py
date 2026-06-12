@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def fix_nested_step(
     files_dict: dict[str, str],
     cancel_check: Callable[[], bool] | None = None,
-    progress_callback: Callable[[int, int, str], None] | None = None,
+    progress_callback: Callable[[int, int, str, dict], None] | None = None,
 ) -> dict[str, Any]:
     """
     Analyze and fix nested tags in a list of SVG files.

@@ -1,5 +1,4 @@
 # test_wikitext_processing.py
-# -*- coding: utf-8 -*-
 
 """
 Pytest test suite for:

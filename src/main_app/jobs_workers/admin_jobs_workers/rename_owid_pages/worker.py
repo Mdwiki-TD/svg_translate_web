@@ -197,11 +197,13 @@ class RenameOwidPagesWorker(BaseJobWorker):
         ``filterredir='nonredirects'`` means redirects left behind by previous
         runs of this job are not re-processed, keeping the job idempotent.
         """
-        return self.site.allpages(
-            prefix=prefix,
-            namespace=namespace,
-            filterredir="nonredirects",
-        )
+        if self.site:
+            return self.site.allpages(
+                prefix=prefix,
+                namespace=namespace,
+                filterredir="nonredirects",
+            )
+        return []
 
     def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
         self.result["summary"]["processed"] += 1

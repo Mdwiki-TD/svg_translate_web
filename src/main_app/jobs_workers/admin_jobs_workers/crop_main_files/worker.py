@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from mwclient.client import Site
 
@@ -35,7 +35,7 @@ StepResult = dict[str, Any]
 
 
 @dataclass
-class TemplateProcessingInfo:
+class CropFileProcessingInfo:
     """Holds all state for a single file being processed."""
 
     template_id: int
@@ -93,8 +93,6 @@ class CropMainFilesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
-        self.user = user
         self.site: Site | None = None
         self.args = args or {}
         try:
@@ -217,7 +215,7 @@ class CropMainFilesWorker(BaseJobWorker):
         cropped_filename = generate_cropped_filename(template.last_world_file)
 
         # file info
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=template.id,
             template_title=template.title,
             original_file=template.last_world_file,
@@ -296,7 +294,7 @@ class CropMainFilesWorker(BaseJobWorker):
             file_exists = MwClientPage(cropped_filename, self.site).exists()
         return file_exists
 
-    def update_file_references(self, file_info: TemplateProcessingInfo) -> bool:
+    def update_file_references(self, file_info: CropFileProcessingInfo) -> bool:
         # Step 4 - Update original file wikitext
         updated = self._step_update_original(file_info)
 
@@ -325,7 +323,7 @@ class CropMainFilesWorker(BaseJobWorker):
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_download(self, file_info: TemplateProcessingInfo, template: TemplateRecord) -> bool:
+    def _step_download(self, file_info: CropFileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
         try:
             session = create_commons_session(settings.other.user_agent)
@@ -353,7 +351,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _step_crop(
         self,
-        file_info: TemplateProcessingInfo,
+        file_info: CropFileProcessingInfo,
         template: TemplateRecord,
         cropped_path: Path,
     ) -> bool:
@@ -371,7 +369,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self.result["summary"]["cropped"] += 1
         return True
 
-    def _step_upload(self, file_info: TemplateProcessingInfo) -> bool | None:
+    def _step_upload(self, file_info: CropFileProcessingInfo) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
         wikitext = MwClientPage(file_name, self.site).get_text()
@@ -409,10 +407,10 @@ class CropMainFilesWorker(BaseJobWorker):
         self._skip_step(file_info, "update_page", "Skipped - upload was not successful")
 
         self._fail(file_info, "upload_cropped", error)
-        file_info.cropped_filename = None
+        file_info.cropped_filename = ""
         return False
 
-    def _step_update_original(self, file_info: TemplateProcessingInfo) -> bool:
+    def _step_update_original(self, file_info: CropFileProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
         original_file_name = ensure_file_prefix(file_info.original_file)
         original_page = MwClientPage(original_file_name, self.site)
@@ -448,7 +446,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
     def _step_update_page_reference(
         self,
-        file_info: TemplateProcessingInfo,
+        file_info: CropFileProcessingInfo,
         page_title: str,
         step_name: str,
     ) -> bool:
@@ -515,31 +513,31 @@ class CropMainFilesWorker(BaseJobWorker):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _skip_process(self, file_info: TemplateProcessingInfo) -> None:
+    def _skip_process(self, file_info: CropFileProcessingInfo) -> None:
         self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
         self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
 
-    def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
+    def _fail(self, file_info: CropFileProcessingInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
         self.result["summary"]["failed"] += 1
 
-    def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
+    def _skip_step(self, file_info: CropFileProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _skip_upload_steps(self, file_info: TemplateProcessingInfo) -> None:
+    def _skip_upload_steps(self, file_info: CropFileProcessingInfo) -> None:
         for step in ("upload_cropped", "update_original", "update_template", "update_page"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result["summary"]["skipped"] += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
-        file_info.cropped_filename = None
+        file_info.cropped_filename = ""
 
-    def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
+    def _append(self, file_info: CropFileProcessingInfo, key: str = "pages_processed") -> None:
         self.result[key].append(file_info.to_dict())
 
 

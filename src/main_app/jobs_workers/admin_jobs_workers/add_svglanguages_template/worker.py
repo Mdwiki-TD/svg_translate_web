@@ -74,9 +74,6 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
-        self.user = user
-        self.cancel_event = cancel_event
         self.site: Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
         self.args = args or {}
@@ -209,7 +206,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         """ """
         info._new_text = add_template_to_text(info._text, info._template_text)
 
-        if info._text.strip() == info._new_text.strip():
+        if info._text and (info._text.strip() == info._new_text.strip()):
             self._skip_step(info, "add_template_text", "Skipped - page content is already identical")
             info.status = "skipped"
             return False

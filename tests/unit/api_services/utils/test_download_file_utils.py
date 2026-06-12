@@ -3,7 +3,7 @@ Comprehensive unit tests for download_step module.
 Tests cover download functionality, and error handling.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

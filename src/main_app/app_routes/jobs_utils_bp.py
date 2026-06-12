@@ -1,0 +1,106 @@
+"""Public routes for jobs utils."""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    send_from_directory,
+    url_for,
+)
+from flask.typing import ResponseReturnValue
+from werkzeug.wrappers.response import Response
+
+from ..config import settings
+from ..jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
+
+logger = logging.getLogger(__name__)
+
+
+class UtilsJobsBp:
+    """Jobs utils routes."""
+
+    def __init__(self, name: str) -> None:
+        self.bp = Blueprint(name, __name__, url_prefix="/jobs_utils")
+        self._setup_routes()
+
+    def _setup_routes(self):
+        # ================================
+        # download_main_files routes
+        # ================================
+
+        @self.bp.get("/download_main_files/file/<string:filename>")
+        def serve_download_main_file(filename: str) -> Response:
+            """
+            Serve a downloaded main file from the main_files_path directory.
+            """
+            response = send_from_directory(settings.paths.main_files_path, filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
+
+        @self.bp.get("/download_main_files/download-all")
+        def download_all_main_files() -> ResponseReturnValue:
+            """Download all main files as a zip archive."""
+
+            response, status_code = create_main_files_zip()
+
+            # If the response is an error message (not a file), flash it and redirect
+            if status_code != 200:
+                flash(response, "warning" if status_code == 404 else "danger")
+                return redirect(url_for("admin.jobs.jobs_list", job_type="download_main_files"))
+
+            return response
+
+        # ================================
+        # crop-main-files routes
+        # ================================
+
+        @self.bp.get("/crop-main-files/original/<string:filename>")
+        def serve_crop_original_file(filename: str) -> Response:
+            """
+            Serve an original file from the crop_main_files_path/original directory.
+            """
+            filename = filename.removeprefix("File:")
+            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
+
+        @self.bp.get("/crop-main-files/cropped/<string:filename>")
+        def serve_crop_cropped_file(filename: str) -> Response:
+            """
+            Serve a cropped file from the crop_main_files_path/cropped directory.
+            """
+            filename = filename.removeprefix("File:")
+            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
+            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
+
+        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
+        def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
+            """Compare crop files"""
+
+            original = original.removeprefix("File:")
+            cropped = cropped.removeprefix("File:")
+            return render_template(
+                "admins/compare_crop_files.html",
+                file_original=original,
+                file_cropped=cropped,
+            )
+
+
+# Public API module
+jobs_utils_module = UtilsJobsBp(
+    name="jobs_utils",
+)
+
+__all__ = [
+    "jobs_utils_module",
+]

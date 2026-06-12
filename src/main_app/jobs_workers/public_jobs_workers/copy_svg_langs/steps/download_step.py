@@ -19,7 +19,7 @@ def download_step(
     session: requests.Session | None = None,
     cancel_check: Callable[[], bool] | None = None,
     overwrite_downloads: bool = False,
-    progress_callback: Callable[[int, int, str], None] | None = None,
+    progress_callback: Callable[[int, int, str, dict], None] | None = None,
 ) -> dict[str, Any]:
     """
     Download a set of SVG files from Wikimedia Commons.

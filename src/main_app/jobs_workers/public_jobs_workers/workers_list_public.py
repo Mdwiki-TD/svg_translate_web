@@ -2,7 +2,7 @@ from ..objects import JobData
 from .copy_svg_langs.worker import copy_svg_langs_worker_entry
 from .fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 
-jobs_data_public = {
+jobs_data_public: dict[str, JobData] = {
     "copy_svg_langs": JobData(
         job_type="copy_svg_langs",
         job_name="Copy SVG Translation",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import mwclient
 import mwclient.errors
@@ -20,14 +20,31 @@ _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 class MwClientPage:
     def __init__(self, title: str, site: Site) -> None:
-        self.title = title
-        self.site = site
-        self.load_page_error = ""
-        self.page = None
+        self.title: str = title
+        self.site: Site = site
+        self.load_page_error: str = ""
+        self.page: Optional[Page] = None
 
     # ------------------------------------------------------------------
     # Core operations
     # ------------------------------------------------------------------
+
+    def load_page(self) -> Page | None:
+        if self.page:
+            return self.page
+
+        try:
+            self.page = self.site.pages[self.title]
+        except mwclient.errors.InvalidPageTitle:
+            logger.error(f"Title '{self.title}' is invalid")
+            self.load_page_error = "invalidpagetitle"
+            return None
+        except Exception as exc:
+            self.load_page_error = str(exc)
+            logger.exception(f"Failed to load page '{self.title}'")
+            return None
+
+        return self.page
 
     def _edit_page(self, page: Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
         try:
@@ -81,32 +98,15 @@ class MwClientPage:
     # Public
     # ------------------------------------------------------------------
 
-    def load_page(self) -> Page | None:
-        if self.page:
-            return self.page
-
-        try:
-            self.page = self.site.pages[self.title]
-        except mwclient.errors.InvalidPageTitle:
-            logger.error(f"Title '{self.title}' is invalid")
-            self.load_page_error = "invalidpagetitle"
-            return None
-        except Exception as exc:
-            self.load_page_error = str(exc)
-            logger.exception(f"Failed to load page '{self.title}'")
-            return None
-
-        return self.page
-
     @property
     def namespace(self) -> str | None:
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             return None
 
         return self.page.namespace
 
     def exists(self) -> bool:
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             logger.warning(f"Failed to load page '{self.title}'")
             return False
         try:
@@ -121,7 +121,7 @@ class MwClientPage:
         return True
 
     def get_text(self) -> str:
-        if not self.exists():
+        if not self.exists() or not self.page:
             return ""
 
         try:
@@ -132,7 +132,7 @@ class MwClientPage:
 
     def get_redirect_target(self) -> str | None:
         """Get the redirect target page name if the page is a redirect."""
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             return None
         try:
             if not self.page.exists:
@@ -151,13 +151,13 @@ class MwClientPage:
         if text is None:
             return {"success": False, "error": "missing text"}
 
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             return {"success": False, "error": self.load_page_error}
 
         return self._with_retry(self._edit_page, self.page, text, summary, nocreate=nocreate)
 
     def create(self, text: str, summary: str) -> dict[str, Any]:
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             return {"success": False, "error": self.load_page_error}
 
         if self.page.exists:
@@ -177,7 +177,7 @@ class MwClientPage:
             logger.error("Missing new_title for move page")
             return {"success": False, "error": "Missing new_title"}
 
-        if not self.load_page():
+        if not self.load_page() or not self.page:
             return {"success": False, "error": self.load_page_error}
 
         if not self.page.exists:

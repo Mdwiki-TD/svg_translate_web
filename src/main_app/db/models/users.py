@@ -20,6 +20,8 @@ class UsersRecord(db.Model):
       `user_id` int NOT NULL AUTO_INCREMENT,
       `username` varchar(255) NOT NULL,
       `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `can_run_jobs` tinyint(1) NOT NULL DEFAULT '0',
+        `can_run_bg_jobs` tinyint(1) NOT NULL DEFAULT '0',
       PRIMARY KEY (`user_id`),
       UNIQUE KEY `uq_users_username` (`username`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -30,13 +32,18 @@ class UsersRecord(db.Model):
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
-
     can_run_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
     can_run_bg_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
 
+    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
+
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
@@ -44,6 +51,8 @@ class UsersRecord(db.Model):
         table_keys = [
             "user_id",
             "username",
+            "can_run_jobs",
+            "can_run_bg_jobs",
             "created_at",
         ]
         for column in table_keys:
@@ -91,6 +100,11 @@ class AdminUserRecord(db.Model):
         server_onupdate=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
+
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
@@ -158,13 +172,18 @@ class UserTokenRecord(db.Model):
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
         table_keys = [
             "user_id",
-            "access_token",
-            "access_secret",
+            # "access_token",
+            # "access_secret",
             "created_at",
             "updated_at",
             "last_used_at",

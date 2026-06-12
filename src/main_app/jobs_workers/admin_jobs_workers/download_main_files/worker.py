@@ -110,7 +110,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()
-        self.session: requests.Session = None
+        self.session: requests.Session | None = None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

@@ -86,10 +86,11 @@ def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
 
     # remove `File:` prefix
     if last_world_file is not None:
-        template_data["last_world_file"] = last_world_file.removeprefix("File:")  # pyright: ignore[reportOptionalMemberAccess]
+        template_data["last_world_file"] = last_world_file.removeprefix("File:")
 
     if template_data.get("main_file") is not None:
-        template_data["main_file"] = template_data.get("main_file").removeprefix("File:")  # pyright: ignore[reportOptionalMemberAccess]
+        main_file = template_data["main_file"]
+        template_data["main_file"] = main_file.removeprefix("File:")
 
     return template_data
 

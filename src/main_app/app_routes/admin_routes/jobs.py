@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import copy
 import logging
-from pathlib import Path
 from typing import Any
 
 from flask import (
@@ -15,13 +13,11 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...config import settings
 from ...db.exceptions import DuplicateJobError
 from ...db.services import (
     delete_job,
@@ -29,45 +25,14 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
-from ...su_services import load_job_result, save_job_result_by_name
+from ...jobs_workers.objects import JobData
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
+from ..jobs_routes_utils import can_manage_job, load_job_result_and_fix
 from ..utils.routes_utils import load_auth_payload
-from .results_utils import fix_result_data
 
 logger = logging.getLogger(__name__)
-
-
-def _can_manage_job(job: Any, user: Any) -> bool:
-    """Check if the current user can manage (cancel/delete) a job.
-
-    Returns True if the user is an admin (coordinator) or if the user
-    is the owner of the job.
-    """
-    if not user:
-        return False
-    if getattr(user, "is_active_admin", False):
-        return True
-    if job.username and job.username == user.username:
-        return True
-    return False
-
-
-def load_job_result_and_fix(result_file: str, job_type: str) -> dict[str, Any] | None:
-    data = load_job_result(result_file)
-    if data:
-        data_before = copy.deepcopy(data)
-        data2 = fix_result_data(data, job_type)
-        if data2 != data_before:
-            logger.info(f"Job result {result_file} was fixed")
-            save_job_result_by_name(result_file, data2)
-        else:
-            logger.info(f"Job result {result_file} was not fixed")
-        return data2
-
-    return data
 
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
@@ -83,7 +48,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
         flash("Job not found.", "warning")
         return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
 
-    if not _can_manage_job(job, user):
+    if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
         return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
 
@@ -151,7 +116,7 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
 # ================================
 
 
-def _jobs_list(job_type: str) -> str:
+def _jobs_list(job_type: str, template_data: JobData) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
     try:
@@ -160,11 +125,6 @@ def _jobs_list(job_type: str) -> str:
         logger.exception("Unable to load jobs list.")
         flash("Unable to load jobs list.", "danger")
         jobs = []
-
-    template_data = jobs_data.get(job_type)
-
-    if not template_data:
-        abort(404)
 
     template_name = template_data.job_list_template
 
@@ -178,7 +138,12 @@ def _jobs_list(job_type: str) -> str:
     )
 
 
-def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Response | str:
+def _job_detail(
+    job_id: int,
+    job_type: str,
+    template_data: JobData,
+    expand_all: bool = False,
+) -> Response | str:
     """Render the job detail page for any job type."""
 
     try:
@@ -192,12 +157,6 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
     result_data = None
     if job.result_file:
         result_data = load_job_result_and_fix(job.result_file, job_type)
-
-    # Load template data
-    template_data = jobs_data.get(job_type)
-
-    if not template_data:
-        abort(404)
 
     template_name = template_data.job_details_template
 
@@ -213,10 +172,11 @@ def _job_detail(job_id: int, job_type: str, expand_all: bool = False) -> Respons
 
 
 class Jobs:
-    """Collect Templates data Jobs management routes."""
+    """Jobs management routes."""
 
-    def __init__(self):
-        self.bp = Blueprint("jobs", __name__, url_prefix="/jobs")
+    def __init__(self, name: str, jobs_data_infos: dict[str, JobData]) -> None:
+        self.bp = Blueprint(name, __name__, url_prefix="/jobs")
+        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
     def _setup_routes(self):
@@ -227,9 +187,9 @@ class Jobs:
         @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         @admin_required
         def cancel_job(job_type: str, job_id: int) -> Response:
-            if job_type not in jobs_data:
+            if job_type not in self.jobs_data_infos:
                 flash("Job type not found.", "warning")
-                abort(404)
+                return abort(404)
 
             return _cancel_job(job_id, job_type)
 
@@ -240,7 +200,11 @@ class Jobs:
         @self.bp.get("/<string:job_type>")
         @admin_required
         def jobs_list(job_type: str) -> str:
-            return _jobs_list(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+            if not template_data:
+                return abort(404)
+
+            return _jobs_list(job_type, template_data)
 
         # ================================
         # Job Detail routes
@@ -249,12 +213,24 @@ class Jobs:
         @self.bp.get("/<string:job_type>/<int:job_id>")
         @admin_required
         def job_detail(job_type: str, job_id: int) -> Response | str:
-            return _job_detail(job_id, job_type)
+            # Load template data
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+
+            if not template_data:
+                return abort(404)
+
+            return _job_detail(job_id, job_type, template_data)
 
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         @admin_required
         def job_detail_expand(job_type: str, job_id: int) -> Response | str:
-            return _job_detail(job_id, job_type, expand_all=True)
+            # Load template data
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
+
+            if not template_data:
+                return abort(404)
+
+            return _job_detail(job_id, job_type, template_data, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -263,8 +239,8 @@ class Jobs:
         @self.bp.post("/<string:job_type>/start")
         @admin_required
         def start_job(job_type: str) -> ResponseReturnValue:
-            if job_type not in jobs_data:
-                abort(404)
+            if job_type not in self.jobs_data_infos:
+                return abort(404)
 
             args = request.form.to_dict()
 
@@ -281,90 +257,24 @@ class Jobs:
         @self.bp.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
-            if job_type not in jobs_data:
-                abort(404)
+            if job_type not in self.jobs_data_infos:
+                return abort(404)
             return _delete_job(job_id, job_type)
 
-        # ================================
-        # download-main-files routes
-        # ================================
-
-        @self.bp.get("/download-main-files/file/<string:filename>")
-        @admin_required
-        def serve_download_main_file(filename: str) -> Response:
-            """
-            Serve a downloaded main file from the main_files_path directory.
-            """
-            response = send_from_directory(settings.paths.main_files_path, filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/download-main-files/download-all")
-        @admin_required
-        def download_all_main_files() -> ResponseReturnValue:
-            """Download all main files as a zip archive."""
-
-            response, status_code = create_main_files_zip()
-
-            # If the response is an error message (not a file), flash it and redirect
-            if status_code != 200:
-                flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.jobs.jobs_list", job_type="download_main_files"))
-
-            return response
-
-        @self.bp.get("/read-job-result-file/<string:result_file>")
-        @self.bp.get("/read-job-result-file/<string:result_file>/<string:job_type>")
+        @self.bp.get("/job-file/<string:result_file>")
+        @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         @admin_required
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
             result_data = load_job_result_and_fix(result_file, job_type)
             return jsonify(result_data)
 
-        # ================================
-        # crop-main-files routes
-        # ================================
 
-        @self.bp.get("/crop-main-files/original/<string:filename>")
-        @admin_required
-        def serve_crop_original_file(filename: str) -> Response:
-            """
-            Serve an original file from the crop_main_files_path/original directory.
-            """
-            filename = filename.removeprefix("File:")
-            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "original", filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/crop-main-files/cropped/<string:filename>")
-        @admin_required
-        def serve_crop_cropped_file(filename: str) -> Response:
-            """
-            Serve a cropped file from the crop_main_files_path/cropped directory.
-            """
-            filename = filename.removeprefix("File:")
-            response = send_from_directory(Path(settings.paths.crop_main_files_path) / "cropped", filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
-        @admin_required
-        def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
-            """Compare crop files"""
-
-            original = original.removeprefix("File:")
-            cropped = cropped.removeprefix("File:")
-            return render_template(
-                "admins/compare_crop_files.html",
-                file_original=original,
-                file_cropped=cropped,
-            )
-
-
-jobs_module = Jobs()
+# Public API module
+jobs_module = Jobs(
+    name="jobs",
+    jobs_data_infos=jobs_data,
+)
 
 __all__ = [
     "jobs_module",
