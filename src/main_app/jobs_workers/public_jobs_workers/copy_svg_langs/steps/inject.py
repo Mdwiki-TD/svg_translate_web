@@ -11,7 +11,7 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-def start_injects_wrap(files, translations, output_dir_translated, overwrite=False) -> dict[str, str | int]:
+def start_injects_wrap(files, translations, output_dir_translated, overwrite: bool=False) -> dict[str, str | int]:
     result = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
 
     success: int = result["success"]

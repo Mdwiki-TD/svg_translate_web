@@ -77,7 +77,7 @@ def _find_template_source(wikitext: str) -> str:
     return url
 
 
-def find_template_source(wikitext: str, check_grapher=True) -> str:
+def find_template_source(wikitext: str, check_grapher: bool=True) -> str:
     url = _find_template_source(wikitext) or _find_template_source_2(wikitext)
     if check_grapher and "/grapher/" not in url:
         return ""

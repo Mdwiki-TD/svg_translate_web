@@ -33,7 +33,7 @@ def get_titles_from_wikilinks(text):
     return titles
 
 
-def get_titles(text, filter_duplicates=True):
+def get_titles(text, filter_duplicates: bool=True):
     """
     Extracts:
       - all file names from {{owidslidersrcs}}
@@ -58,7 +58,7 @@ def get_titles(text, filter_duplicates=True):
     return titles
 
 
-def get_files_list(text, filter_duplicates=True):
+def get_files_list(text, filter_duplicates: bool=True):
     """
     Returns (main_title, titles).
     main_title:
@@ -78,7 +78,7 @@ def get_files_list(text, filter_duplicates=True):
     return main_title, titles
 
 
-def get_files_list_data(text, filter_duplicates=True):
+def get_files_list_data(text, filter_duplicates: bool=True):
     """
     Returns (main_title, titles).
     main_title:
