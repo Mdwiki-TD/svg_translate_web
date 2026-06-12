@@ -107,7 +107,7 @@ def check_active_route(route_name: str) -> str:
     return ""
 
 
-def is_job_running(job_status) -> bool:
+def is_job_running(job_status: str | None) -> bool:
     return job_status in ["running", "pending"]
 
 
