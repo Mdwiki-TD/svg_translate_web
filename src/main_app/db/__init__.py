@@ -11,7 +11,7 @@ from .exceptions import DatabaseInitError
 logger = logging.getLogger(__name__)
 
 
-def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
+def _enable_sqlite_foreign_keys(dbapi_connection, connection_record) -> None:
     """Enable foreign key enforcement for SQLite connections."""
     try:
         cursor = dbapi_connection.cursor()

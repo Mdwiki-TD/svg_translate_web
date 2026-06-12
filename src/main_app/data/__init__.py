@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=1024)
-def load_data(key):
+def load_data(key) -> dict:
     key = Path(key).name
     file_path = Path(__file__).parent / f"{key}.json"
     data: dict[str, Any] = {}

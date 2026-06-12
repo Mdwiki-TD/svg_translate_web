@@ -15,7 +15,7 @@ bp_profile = Blueprint("profile", __name__, url_prefix="/profile")
 
 @bp_profile.route("/", methods=["GET"])
 @bp_profile.route("/<string:user_name>", methods=["GET"])
-def dashboard(user_name: str = ""):
+def dashboard(user_name: str = "") -> str:
     user = load_user()
 
     if not user_name:

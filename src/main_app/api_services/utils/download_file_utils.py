@@ -80,7 +80,7 @@ def download_one_file(
     return data
 
 
-def download_commons_svgs(titles, files_dir):
+def download_commons_svgs(titles, files_dir) -> list:
     files: list[Any] = []
     for n, title in enumerate(titles, 1):
         file = download_one_file(title, files_dir, n)

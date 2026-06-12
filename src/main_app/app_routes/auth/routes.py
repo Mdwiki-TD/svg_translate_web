@@ -62,7 +62,7 @@ def _client_key() -> str:
     return request.remote_addr or "anonymous"
 
 
-def _load_request_token(raw: Sequence[Any] | None):
+def _load_request_token(raw: Sequence[Any] | None) -> RequestToken:
     if not raw:
         raise ValueError("Missing OAuth request token")
 

@@ -8,7 +8,7 @@ from lxml import etree
 logger = logging.getLogger(__name__)
 
 
-def file_langs(file_path: Path):
+def file_langs(file_path: Path) -> list:
     languages = set()
     # ---
     # Default
@@ -31,7 +31,7 @@ def file_langs(file_path: Path):
     return list(languages)
 
 
-def analyze_file(file_path: Path):
+def analyze_file(file_path: Path) -> dict:
     # TODO: compare the two SVG files and return comparison results
     result = {
         "languages": file_langs(file_path),
@@ -40,7 +40,7 @@ def analyze_file(file_path: Path):
     return result
 
 
-def compare_svg_files(file_path: Path, translated_path: Path):
+def compare_svg_files(file_path: Path, translated_path: Path) -> list[dict]:
     # ---
     file_result = analyze_file(file_path)
     translated_result = analyze_file(translated_path)

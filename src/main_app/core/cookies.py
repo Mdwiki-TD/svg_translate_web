@@ -6,12 +6,14 @@ from http.cookies import SimpleCookie
 from typing import Any
 
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
+from werkzeug.test.Client.__init__ import WrapperTestResponse
 
 
 class CookieHeaderClient(FlaskClient):
     """Test client that accepts raw ``Cookie`` headers for compatibility."""
 
-    def open(self, *args: Any, **kwargs: Any):  # type: ignore[override]
+    def open(self, *args: Any, **kwargs: Any) -> TestResponse | WrapperTestResponse:  # type: ignore[override]
         headers = kwargs.get("headers")
         raw_cookie = None
 
