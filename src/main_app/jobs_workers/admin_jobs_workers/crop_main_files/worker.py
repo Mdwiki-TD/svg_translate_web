@@ -27,51 +27,10 @@ from ...base_worker_object import BaseObjectsJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
+from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
 from .upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
-
-StepResult = dict[str, Any]
-
-
-@dataclass
-class CropFileProcessingInfo:
-    """Holds all state for a single file being processed."""
-
-    template_id: int
-    template_title: str
-    original_file: str
-    cropped_filename: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
-    error: str | None = None
-    downloaded_path: Path | None = None
-    cropped_path: Path | None = None
-    steps: dict[str, StepResult] = field(
-        default_factory=lambda: {
-            "download": {"result": None, "msg": ""},
-            "crop": {"result": None, "msg": ""},
-            "upload_cropped": {"result": None, "msg": ""},
-            "update_original": {"result": None, "msg": ""},
-            "update_template": {"result": None, "msg": ""},
-            "update_page": {"result": None, "msg": ""},
-        }
-    )
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "original_file": self.original_file,
-            "cropped_filename": self.cropped_filename,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "downloaded_path": str(self.downloaded_path) if self.downloaded_path else None,
-            "cropped_path": str(self.cropped_path) if self.cropped_path else None,
-            "steps": self.steps,
-        }
-
 
 class CropMainFilesWorker(BaseObjectsJobWorker):
     """
