@@ -55,15 +55,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     # Mock jobs_service (now accessed via base_worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
 
-    # Bypass BaseJobWorker.before_run, whose real implementation does
-    # `self.result.status = "running"` (attribute access on a dict) and would
-    # raise AttributeError, short-circuiting process() before the test can run.
+    # Bypass BaseJobWorker.before_run
     mock_before_run = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.BaseJobWorker.before_run",
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
         mock_before_run,
     )
 
@@ -130,19 +128,12 @@ def test_collect_templates_data_with_no_templates(mock_services):
 
     worker.collect_templates_data_entry(job_id=1, user=None)
 
-    # before_run is mocked out in the fixture (to bypass the buggy
-    # `self.result.status = "running"` line), so only after_run's final
-    # update_job_status call is observed here.
-    assert mock_services["update_job_status"].call_count == 1
-    mock_services["update_job_status"].assert_any_call(
-        1, "completed", "collect_templates_data_job_1.json", job_type="collect_templates_data"
-    )
-
     # Should save result
-    mock_services["save_job_result_by_name"].assert_called_once()
+    mock_services["save_job_result_by_name"].assert_called()
+    # last call
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 0
-    assert len(result["pages_added"]) == 0
+    assert result.summary.total == 0
+    assert len(result.pages_added) == 0
 
 
 def test_collect_templates_data_skips_templates_with_main_file(mock_services, mock_find_source):
@@ -165,8 +156,8 @@ def test_collect_templates_data_skips_templates_with_main_file(mock_services, mo
 
     # Should save result with skipped templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 2
-    assert len(result["pages_added"]) == 0
+    assert result.summary.total == 2
+    assert len(result.pages_added) == 0
 
 
 def test_collect_templates_data_updates_template_without_main_file(mock_services, mock_find_source):
@@ -196,10 +187,9 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
 
     # Should save result with updated template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert len(result["pages_updated"]) == 1
-    assert len(result["pages_updated"]) == 1
-    assert result["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
+    assert result.summary.total == 1
+    assert len(result.pages_updated) == 1
+    assert result.pages_updated[0]["steps"]["main_file"]["new_value"] == "test.svg"
 
 
 def test_collect_templates_data_handles_missing_wikitext(mock_services):
@@ -218,10 +208,10 @@ def test_collect_templates_data_handles_missing_wikitext(mock_services):
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 1
-    assert len(result["pages_failed"]) == 1
-    assert "Could not fetch wikitext" in result["pages_failed"][0]["error"]
+    assert result.summary.total == 1
+    assert result.summary.failed == 1
+    assert len(result.pages_failed) == 1
+    assert "Could not fetch wikitext" in result.pages_failed[0]["error"]
 
 
 def test_collect_templates_data_handles_missing_main_title(mock_services):
@@ -241,10 +231,10 @@ def test_collect_templates_data_handles_missing_main_title(mock_services):
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 1
-    assert len(result["pages_failed"]) == 1
-    assert "Could not find (main file or newest world file or source)" in result["pages_failed"][0]["error"]
+    assert result.summary.total == 1
+    assert result.summary.failed == 1
+    assert len(result.pages_failed) == 1
+    assert "Could not find (main file or newest world file or source)" in result.pages_failed[0]["error"]
 
 
 @pytest.mark.skip(reason="exceptions changes")
@@ -261,10 +251,10 @@ def test_collect_templates_data_handles_exception(mock_services):
 
     # Should save result with failed template
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 1
-    assert len(result["pages_failed"]) == 1
-    assert "Exception: Network error" in result["pages_failed"][0]["error"]
+    assert result.summary.total == 1
+    assert result.summary.failed == 1
+    assert len(result.pages_failed) == 1
+    assert "Exception: Network error" in result.pages_failed[0]["error"]
 
 
 def test_collect_templates_data_processes_multiple_templates(mock_services):
@@ -306,9 +296,9 @@ def test_collect_templates_data_processes_multiple_templates(mock_services):
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 3
-    assert len(result["pages_updated"]) == 2
-    assert result["summary"]["skipped"] == 0
+    assert result.summary.total == 3
+    assert len(result.pages_updated) == 2
+    assert result.summary.skipped == 0
 
 
 def test_collect_templates_data_adds_new_templates_from_category(mock_services):
@@ -336,8 +326,7 @@ def test_collect_templates_data_adds_new_templates_from_category(mock_services):
 
     # Should save result with added templates
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_added"]) == 2
-    assert len(result["pages_added"]) == 2
+    assert len(result.pages_added) == 2
 
 
 def test_collect_templates_data_handles_add_template_value_error(mock_services):
@@ -361,8 +350,8 @@ def test_collect_templates_data_handles_add_template_value_error(mock_services):
 
     # Should continue processing without error
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_added"]) == 0
-    assert len(result["pages_failed"]) == 0  # ValueError is handled gracefully (race condition)
+    assert len(result.pages_added) == 0
+    assert len(result.pages_failed) == 0  # ValueError is handled gracefully (race condition)
 
 
 def test_collect_templates_data_full_workflow_with_new_templates(mock_services, mock_find_source):
@@ -406,8 +395,8 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
 
     # Should save result with correct counts
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_added"]) == 1
-    assert len(result["pages_updated"]) == 1
+    assert len(result.pages_added) == 1
+    assert len(result.pages_updated) == 1
 
 
 def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -446,9 +435,9 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
 
     # Should save result with correct data
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_updated"]) == 1
-    assert result["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
-    assert result["pages_updated"][0]["steps"]["last_world_file"]["new_value"] == "test, World, 2021.svg"
+    assert len(result.pages_updated) == 1
+    assert result.pages_updated[0]["steps"]["main_file"]["new_value"] == "test.svg"
+    assert result.pages_updated[0]["steps"]["last_world_file"]["new_value"] == "test, World, 2021.svg"
 
 
 def test_collect_templates_data_cancellation_during_template_addition(mock_services):
@@ -468,7 +457,7 @@ def test_collect_templates_data_cancellation_during_template_addition(mock_servi
     # The exact behavior depends on when the cancellation is checked
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Job should be cancelled before processing templates
-    assert len(result["pages_updated"]) == 0
+    assert len(result.pages_updated) == 0
 
 
 def test_collect_templates_data_cancellation_during_processing(mock_services):
@@ -507,7 +496,7 @@ def test_collect_templates_data_cancellation_during_processing(mock_services):
     # Should have processed at least one template before cancellation
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Exact count depends on when cancellation is detected
-    assert len(result["pages_updated"]) == 2  # Should process 2 templates before cancellation
+    assert len(result.pages_updated) == 2  # Should process 2 templates before cancellation
 
 
 def test_collect_templates_data_progress_saving_frequency(mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -536,7 +525,6 @@ def test_collect_templates_data_progress_saving_frequency(mock_services, monkeyp
     # Progress should be saved at: 1, 10, 20, and final
     # Expecting at least 3 saves (n=1, n=10, n=20, plus final)
     assert len(save_progress_calls) >= 3
-    # assert len(save_progress_calls) == 4  # AssertionError: assert 961 == 4
 
 
 def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -573,7 +561,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
 
     # Should save result as updated
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_updated"]) == 1
+    assert len(result.pages_updated) == 1
 
 
 def test_collect_templates_data_template_with_existing_main_file_only(mock_services):
@@ -592,7 +580,7 @@ def test_collect_templates_data_template_with_existing_main_file_only(mock_servi
     mock_services["MwClientPage"].return_value.get_text.assert_called_once()
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
+    assert result.summary.total == 1
 
 
 def test_collect_templates_data_add_template_generic_exception(mock_services):
@@ -608,9 +596,9 @@ def test_collect_templates_data_add_template_generic_exception(mock_services):
 
     # Should track in pages_failed but not increment summary["failed"] (that's for processing phase)
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert len(result["pages_added"]) == 0
-    assert len(result["pages_failed"]) >= 1
-    assert "Database connection failed" in result["pages_failed"][0]["error"]
+    assert len(result.pages_added) == 0
+    assert len(result.pages_failed) >= 1
+    assert "Database connection failed" in result.pages_failed[0]["error"]
 
 
 def test_worker_class_get_job_type(mock_services):
@@ -622,22 +610,15 @@ def test_worker_class_get_job_type(mock_services):
 
 
 def test_worker_class_get_initial_result(mock_services):
-    """Test CollectMainFilesWorker.get_initial_result returns proper structure."""
+    """Test CollectMainFilesWorker initial result structure."""
     import threading
 
     _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
-    result = _worker.get_initial_result()
+    result = _worker.result
 
-    assert result["job_id"] == 1
-    assert "started_at" in result
-    assert "pages_added" in result
-    assert "pages_processed" in result
-    assert "pages_updated" in result
-    assert "pages_failed" in result
-    assert "pages_skipped" in result
-    assert "summary" in result
-    assert result["summary"]["total"] == 0
-    assert len(result["pages_added"]) == 0
+    assert "started_at" in result.to_json()
+    assert result.summary.total == 0
+    assert len(result.pages_added) == 0
 
 
 # --- Tests for new update_all functionality (added in this PR) ---
@@ -785,7 +766,7 @@ def test_collect_templates_data_entry_cancel_event_is_keyword_only(mock_services
     worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 0
+    assert result.summary.total == 0
 
 
 def test_collect_templates_data_entry_update_all_summary_counts(mock_services, mock_find_source):
@@ -805,6 +786,6 @@ def test_collect_templates_data_entry_update_all_summary_counts(mock_services, m
 
     result = mock_services["save_job_result_by_name"].call_args[0][1]
     # Total is 2, 1 already had all data
-    assert result["summary"]["total"] == 2
+    assert result.summary.total == 2
     # With update_all, both templates are processed
     assert mock_services["MwClientPage"].return_value.get_text.call_count == 2

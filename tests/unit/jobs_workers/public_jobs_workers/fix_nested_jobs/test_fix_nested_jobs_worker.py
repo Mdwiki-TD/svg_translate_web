@@ -20,38 +20,24 @@ class TestFixNestedJobsProcessor:
         )
         assert worker.get_job_type() == "fix_nested_jobs"
 
-    def test_get_initial_result_structure(self) -> None:
+    def test_result_initial_structure(self) -> None:
         worker = FixNestedJobsProcessor(
             job_id=1,
             user=None,
             args={"filename": "Test.svg"},
         )
-        result = worker.get_initial_result()
+        result = worker.result
 
-        assert result["status"] == "pending"
-        assert result["started_at"] is not None
-        assert result["completed_at"] is None
-        assert result["cancelled_at"] is None
-        assert result["filename"] is None  # filename comes from args, not set until processor runs
-        assert "stages" in result
-        assert "download" in result["stages"]
-        assert "analyze" in result["stages"]
-        assert "fix" in result["stages"]
-        assert "verify" in result["stages"]
-        assert "upload" in result["stages"]
-
-    def test_get_initial_result_stages_have_status(self) -> None:
-        worker = FixNestedJobsProcessor(
-            job_id=1,
-            user=None,
-            args={"filename": "Test.svg"},
-        )
-        result = worker.get_initial_result()
-
-        for _, stage_data in result["stages"].items():
-            assert "status" in stage_data
-            assert "message" in stage_data
-            assert stage_data["status"] == "Pending"
+        assert result.status == "pending"
+        assert result.started_at is not None
+        assert result.completed_at is None
+        assert result.cancelled_at is None
+        assert result.filename is None  # filename comes from args, not set until processor runs
+        assert result.stages.download.status == "Pending"
+        assert result.stages.analyze.status == "Pending"
+        assert result.stages.fix.status == "Pending"
+        assert result.stages.verify.status == "Pending"
+        assert result.stages.upload.status == "Pending"
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
@@ -77,7 +63,7 @@ class TestFixNestedJobsProcessorEntry:
     def test_worker_entry_missing_args(self) -> None:
         with patch("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FixNestedJobsProcessor"):
             fix_nested_jobs_worker_entry(
-                job_id="1",
+                job_id=1,
                 args={},
                 user=None,
             )
@@ -90,7 +76,7 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             fix_nested_jobs_worker_entry(
-                job_id="1",
+                job_id=1,
                 args={"filename": "Test.svg"},
                 user=None,
             )
@@ -107,7 +93,7 @@ class TestFixNestedJobsProcessorEntry:
             user = {"username": "testuser"}
 
             fix_nested_jobs_worker_entry(
-                job_id="1",
+                job_id=1,
                 args={"filename": "Test.svg"},
                 user=user,
             )
@@ -124,7 +110,7 @@ class TestFixNestedJobsProcessorEntry:
             cancel_event = threading.Event()
 
             fix_nested_jobs_worker_entry(
-                job_id="1",
+                job_id=1,
                 args={"filename": "Test.svg"},
                 user=None,
                 cancel_event=cancel_event,
@@ -143,10 +129,10 @@ class TestFixNestedJobsProcessorEntry:
 
             # New signature: (job_id, user, *, cancel_event=None, args=None)
             # args must be keyword-only; user is now the 2nd positional
-            fix_nested_jobs_worker_entry(job_id="1", user=None, args={"filename": "Test.svg"})
+            fix_nested_jobs_worker_entry(job_id=1, user=None, args={"filename": "Test.svg"})
 
             MockWorker.assert_called_once_with(
-                job_id="1",
+                job_id=1,
                 user=None,
                 cancel_event=None,
                 args={"filename": "Test.svg"},
@@ -162,10 +148,10 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             # Call without args - should default to None
-            fix_nested_jobs_worker_entry(job_id="42", user={"username": "tester"})
+            fix_nested_jobs_worker_entry(job_id=42, user={"username": "tester"})
 
             MockWorker.assert_called_once_with(
-                job_id="42",
+                job_id=42,
                 args=None,
                 user={"username": "tester"},
                 cancel_event=None,
