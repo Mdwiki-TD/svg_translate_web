@@ -81,7 +81,7 @@ def download_one_file(
 
 
 def download_commons_svgs(titles, files_dir):
-    files: list = []
+    files: list[Any] = []
     for n, title in enumerate(titles, 1):
         file = download_one_file(title, files_dir, n)
         if file.get("path"):

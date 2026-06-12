@@ -21,7 +21,7 @@ def get_titles_from_wikilinks(text):
     Returns: titles
     """
     parsed = wtp.parse(text)
-    titles: list = []
+    titles: list[Any] = []
 
     for link in parsed.wikilinks:
         target = link.target
@@ -42,7 +42,7 @@ def get_titles(text, filter_duplicates=True):
     parsed = wtp.parse(text)
 
     # --- Extract all file names from {{owidslidersrcs|...}}
-    titles: list = []
+    titles: list[Any] = []
 
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":

@@ -79,7 +79,7 @@ def get_files(title, sub_dir):
 
 def get_languages(title: str, translations_data: dict | None = None) -> list:
     # ---
-    languages: list = []
+    languages: list[Any] = []
     # ---
     if not translations_data:
         translations_data = get_main_data(title, "translations.json") or {}
@@ -99,7 +99,7 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
 
 
 def get_informations(title):
-    data: dict = {}
+    data: dict[str, Any] = {}
     downloaded, title_path = get_files(title, "files")
     translated, _ = get_files(title, "translated")
 

@@ -104,7 +104,7 @@ def by_title(title: str):
 def main():
     svg_data_path = load_svg_data_path()
     titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
-    data: dict = {}
+    data: dict[str, Any] = {}
     for title in titles:
         downloaded, _ = get_files(title, "files")
         translated, _ = get_files(title, "translated")

@@ -35,7 +35,7 @@ def _extract_display_categories(wikitext: str) -> list[str]:
     following the pattern seen in the example output.
     """
     parsed = wtp.parse(wikitext)
-    cats: list = []
+    cats: list[Any] = []
     for wl in parsed.wikilinks:
         target = wl.target.strip()
         if target.startswith("Category:"):

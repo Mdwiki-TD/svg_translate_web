@@ -5,8 +5,8 @@ from pathlib import Path
 
 def extract_exportable_items(file_path):
     """Parse the file to extract top-level names and check if __all__ already exists."""
-    classes: list = []
-    functions: list = []
+    classes: list[Any] = []
+    functions: list[Any] = []
     has_all = False
 
     try:

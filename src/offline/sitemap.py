@@ -47,7 +47,7 @@ def download_owid_grapher_metadata(limit=None):
     print(f"Found {len(loc_elements)} total URLs in sitemap.")
 
     # Filter only grapher URLs
-    grapher_urls: list = []
+    grapher_urls: list[Any] = []
     for loc in loc_elements:
         url = loc.text.strip() if loc.text else ""
         if "/grapher/" in url:

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def load_data(key):
     key = Path(key).name
     file_path = Path(__file__).parent / f"{key}.json"
-    data: dict = {}
+    data: dict[str, Any] = {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -37,7 +37,7 @@ def get_slug_categories(slug: str) -> list[str]:
 
     topics_categories = load_data("topics_categories")
 
-    result: list = []
+    result: list[Any] = []
 
     for x in topics:
         result.extend(topics_categories.get(x, []))
