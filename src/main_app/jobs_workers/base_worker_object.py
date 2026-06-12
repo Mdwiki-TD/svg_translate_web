@@ -201,7 +201,7 @@ class BaseObjectsJobWorker(ABC):
             self.result.cancelled_at = datetime.now().isoformat()
         self._save_progress(insert_last_update=False)
 
-    def get_priority(self, length) -> int:
+    def get_priority(self, length: int) -> int:
         if length < 11:
             return 1
 

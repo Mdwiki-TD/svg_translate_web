@@ -6,14 +6,14 @@ from urllib.parse import unquote, urlparse
 import wikitextparser as wtp
 
 
-def match_main_title_from_url(text):
+def match_main_title_from_url(text: str):
     # Match lines starting with *'''Translate''': followed by a URL
     pattern = r"^\*'''Translat(?:e|ion)''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()\s_]+\.svg)$"
     match = re.search(pattern, text, flags=re.MULTILINE)
     return match.group(1) if match else None
 
 
-def match_main_title_from_url_new(text):
+def match_main_title_from_url_new(text: str):
     """Return the SVG filename from the ``Translate`` line if present."""
 
     pattern = re.compile(
@@ -42,7 +42,7 @@ def match_main_title_from_url_new(text):
     return path
 
 
-def find_main_title_from_template(text):
+def find_main_title_from_template(text: str):
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
@@ -59,7 +59,7 @@ def find_main_title_from_template(text):
     return main_title
 
 
-def find_main_title_from_owidslidersrcs(text):
+def find_main_title_from_owidslidersrcs(text: str):
     """
     Example:
         ==Data==
@@ -91,7 +91,7 @@ def find_main_title_from_owidslidersrcs(text):
     return main_title
 
 
-def find_main_title(text):
+def find_main_title(text: str):
     main_title = (
         find_main_title_from_template(text)
         or match_main_title_from_url_new(text)

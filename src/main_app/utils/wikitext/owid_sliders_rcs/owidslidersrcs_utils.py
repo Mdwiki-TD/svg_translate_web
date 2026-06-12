@@ -6,7 +6,7 @@ from datetime import datetime
 import wikitextparser as wtp
 
 
-def match_newest_world_file(text) -> str:
+def match_newest_world_file(text: str) -> str:
     """
     Example:
         ==Data==
@@ -74,7 +74,7 @@ def match_newest_world_file(text) -> str:
     return newest_world_file
 
 
-def find_newest_world_file(text) -> str | None:
+def find_newest_world_file(text: str) -> str | None:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)

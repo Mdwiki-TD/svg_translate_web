@@ -14,7 +14,7 @@ import wikitextparser as wtp
 from .owid_sliders_rcs.main_file import find_main_title
 
 
-def get_titles_from_wikilinks(text):
+def get_titles_from_wikilinks(text: str):
     """
     Extracts:
       - all file links from text like:
@@ -33,7 +33,7 @@ def get_titles_from_wikilinks(text):
     return titles
 
 
-def get_titles(text, filter_duplicates: bool=True):
+def get_titles(text: str, filter_duplicates: bool=True):
     """
     Extracts:
       - all file names from {{owidslidersrcs}}
@@ -58,7 +58,7 @@ def get_titles(text, filter_duplicates: bool=True):
     return titles
 
 
-def get_files_list(text, filter_duplicates: bool=True):
+def get_files_list(text: str, filter_duplicates: bool=True):
     """
     Returns (main_title, titles).
     main_title:
@@ -78,7 +78,7 @@ def get_files_list(text, filter_duplicates: bool=True):
     return main_title, titles
 
 
-def get_files_list_data(text, filter_duplicates: bool=True):
+def get_files_list_data(text: str, filter_duplicates: bool=True):
     """
     Returns (main_title, titles).
     main_title:
