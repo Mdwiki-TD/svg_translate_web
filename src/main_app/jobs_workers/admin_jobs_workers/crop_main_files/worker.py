@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
@@ -63,7 +62,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self.upload_files = bool(self.args.get("upload_files"))
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
+        self.result.args = self.args
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
@@ -73,38 +73,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "crop_main_files"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "cropped": 0,
-                "uploaded": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "pages_processed": [],
-            "pages_uploaded": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> CropMainFilesWorkerObject:
+        """Execute the full pipeline."""
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -134,7 +108,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
+        if self.result.status in ["pending", "running"]:
             self.result.status = "completed"
 
         return self.result
@@ -179,6 +153,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             template_title=template.title,
             original_file=template.last_world_file,
             cropped_filename=cropped_filename,
+            timestamp=datetime.now().isoformat(),
         )
 
         # pre steps if the file already in commons, skip download/upload files.
@@ -300,7 +275,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         if download_result["success"]:
             downloaded_path = download_result["path"]
             file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
-            file_info.downloaded_path = downloaded_path
+            file_info.downloaded_path = str(downloaded_path)
             return True
 
         error_msg = download_result.get("error", "Unknown download error")
@@ -315,7 +290,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(file_info.downloaded_path, cropped_path)
+        crop_result = crop_svg_file(Path(file_info.downloaded_path), cropped_path)
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
@@ -324,7 +299,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return False
 
         file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
-        file_info.cropped_path = cropped_path
+        file_info.cropped_path = str(cropped_path)
         self.result.summary.cropped += 1
         return True
 
@@ -336,7 +311,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         upload_result = upload_cropped_file(
             file_info.cropped_filename,
-            file_info.cropped_path,
+            Path(file_info.cropped_path),
             self.site,
             cropped_file_wikitext,
         )
@@ -497,7 +472,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         file_info.cropped_filename = ""
 
     def _append(self, file_info: CropFileProcessingInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
+        getattr(self.result, key).append(file_info.to_dict())
 
 
 # ------------------------------------------------------------------

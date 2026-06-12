@@ -228,8 +228,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
-        self.result.status = "running"
-        self._save_progress()
 
         self.site = get_user_site(self.user)
 

@@ -85,8 +85,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
-        self.result.status = "running"
-        self._save_progress()
 
         self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)
