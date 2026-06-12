@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from typing import Any
 
 from mwclient.client import Site
@@ -29,40 +27,9 @@ from ....utils.wikitext import (
 )
 from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
-from .objects import CollectTemplatesDataWorkerObject
+from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TemplateInfo:
-    """
-    Holds all state for a single template being processed.
-    """
-
-    id: int
-    title: str
-    new_main_file: str
-    last_world_file: str
-    source: str
-    status: str = "processing"
-    error: str | None = None
-    error_type: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "last_world_file": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "source": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "slug": {"result": None, "value": "", "new_value": "", "msg": ""},
-        }
-    )
-
-    def to_dict(self) -> dict[str, Any]:
-        """
-        convert to dict.
-        """
-        return asdict(self)
-
 
 def slugify_title(title: str) -> str:
     """Derive a slug from a template title."""

@@ -38,15 +38,15 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     mock_save = MagicMock()
     mock_generate = MagicMock(side_effect=lambda jid, jtype: f"{jtype}_job_{jid}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
+        "src.main_app.jobs_workers.base_worker_object.update_job_status",
         mock_update,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
         mock_save,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
         mock_generate,
     )
     return {

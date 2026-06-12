@@ -1,29 +1,6 @@
 """
-{
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "cropped": 0,
-                "uploaded": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "pages_processed": [],
-            "pages_uploaded": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-        """
+
+"""
 
 from __future__ import annotations
 
@@ -81,27 +58,41 @@ class CropFileProcessingInfo:
 
 
 @dataclass
-class RedirectsSummary:
-    scanned: int = 0
+class CropSummary:
     total: int = 0
+    processed: int = 0
 
-    created: int = 0
-    errors: int = 0
+    cropped: int = 0
+    uploaded: int = 0
+    updated: int = 0
+
     skipped: int = 0
-
-    already_exists: int = 0
-    target_missing: int = 0
-
+    failed: int = 0
 
 @dataclass
 class CropMainFilesWorkerObject(WorkerObject):
-    summary: RedirectsSummary = field(default_factory=RedirectsSummary)
+    """
+        "note": "",
+        "status": "pending",
+        "errors": [],
+        "args": {},
+        "job_id": self.job_id,
+        "started_at": datetime.now().isoformat(),
+        "completed_at": None,
+        "cancelled_at": None,
+        "pages_processed": [],
+        "pages_uploaded": [],
+        "pages_updated": [],
+        "pages_skipped": [],
+        "pages_failed": [],
+    """
+    summary: CropSummary = field(default_factory=CropSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
     pages_errors: list[dict[str, Any]] = field(default_factory=list)
 
 
 __all__ = [
-    "RedirectsSummary",
+    "CropSummary",
     "CropMainFilesWorkerObject",
 ]

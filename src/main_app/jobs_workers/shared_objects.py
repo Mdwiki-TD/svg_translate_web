@@ -25,7 +25,7 @@ class UpdaterOutcome:
 
 @dataclass
 class Summary:
-    scanned: int = 0
+    processed: int = 0
     total: int = 0
 
 

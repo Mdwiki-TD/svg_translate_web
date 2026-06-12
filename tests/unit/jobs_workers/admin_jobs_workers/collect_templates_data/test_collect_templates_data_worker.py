@@ -52,7 +52,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_update_template_data,
     )
 
-    # Mock jobs_service (now accessed via base_worker)
+    # Mock jobs_service (now accessed via base_worker_object)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)

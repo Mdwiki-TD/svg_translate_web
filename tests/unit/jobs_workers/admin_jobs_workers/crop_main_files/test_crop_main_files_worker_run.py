@@ -23,15 +23,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
+        "src.main_app.jobs_workers.base_worker_object.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
         mock_save_job_result,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
         mock_jobs_service,
     )
 
@@ -896,7 +896,7 @@ class TestCropMainFilesProcessorRun:
         """Test run when before_run returns False."""
         mock_update_job_status = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.update_job_status",
+            "src.main_app.jobs_workers.base_worker_object.update_job_status",
             mock_update_job_status,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")
