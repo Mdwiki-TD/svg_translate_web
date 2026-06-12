@@ -27,7 +27,7 @@ Objects for rename_owid_pages worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
 
@@ -46,6 +46,7 @@ class RenameOwidPagesSummary:
 @dataclass
 class RenameOwidPagesWorkerObject(StandardAdminWorkerObject):
     summary: RenameOwidPagesSummary = field(default_factory=RenameOwidPagesSummary)
+    pages_processed: list[dict[str, Any]] = field(default_factory=list)
 
 
 __all__ = [

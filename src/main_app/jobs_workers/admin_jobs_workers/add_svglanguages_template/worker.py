@@ -87,7 +87,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "add_svglanguages_template"
 
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
 
     # Initialisation helpers
     # ------------------------------------------------------------------
@@ -229,7 +229,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateInfo, key: str = "pages_processed") -> None:
-        getattr(self.result, key).append(file_info.to_dict())
+        items = getattr(self.result, key, None)
+        if items is None:
+            raise ValueError(f"Unknown result key: {key}")
+        items.append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point

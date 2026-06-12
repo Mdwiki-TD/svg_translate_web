@@ -1,4 +1,4 @@
-""" """
+"""Objects for crop_main_files worker."""
 
 from __future__ import annotations
 
@@ -11,9 +11,6 @@ from typing import Any
 from ...base_worker_object import WorkerObject
 
 logger = logging.getLogger(__name__)
-
-
-StepResult = dict[str, Any]
 
 
 @dataclass
@@ -29,7 +26,7 @@ class CropFileProcessingInfo:
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None
-    steps: dict[str, StepResult] = field(
+    steps: dict[str, dict[str, Any]] = field(
         default_factory=lambda: {
             "download": {"result": None, "msg": ""},
             "crop": {"result": None, "msg": ""},
@@ -56,7 +53,7 @@ class CropFileProcessingInfo:
 
 
 @dataclass
-class CropSummary:
+class CropMainFilesSummary:
     total: int = 0
     processed: int = 0
 
@@ -86,13 +83,14 @@ class CropMainFilesWorkerObject(WorkerObject):
     "pages_failed": [],
     """
 
-    summary: CropSummary = field(default_factory=CropSummary)
+    summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
     pages_errors: list[dict[str, Any]] = field(default_factory=list)
 
 
 __all__ = [
-    "CropSummary",
+    "CropFileProcessingInfo",
+    "CropMainFilesSummary",
     "CropMainFilesWorkerObject",
 ]
