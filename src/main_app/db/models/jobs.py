@@ -84,7 +84,6 @@ class JobRecord(db.Model):
 
         return data
 
-
     def __init__(self, **kwargs: dict[str, Any]) -> None:
         self.id = kwargs.get("id")
         self.job_type = kwargs.get("job_type")
@@ -95,6 +94,7 @@ class JobRecord(db.Model):
         self.result_file = kwargs.get("result_file")
         self.created_at = kwargs.get("created_at")
         self.updated_at = kwargs.get("updated_at")
+
 
 __all__ = [
     "JobRecord",

@@ -55,7 +55,6 @@ class UsersRecord(db.Model):
         return data
 
 
-
 class AdminUserRecord(db.Model):
     """
     Coordinator/admin role — username references users.username.
@@ -186,7 +185,6 @@ class UserTokenRecord(db.Model):
 
         return data
 
-
     def __init__(self, **kwargs: dict[str, Any]) -> None:
         self.user_id = kwargs.get("user_id")
         self.access_token = kwargs.get("access_token")
@@ -195,6 +193,7 @@ class UserTokenRecord(db.Model):
         self.updated_at = kwargs.get("updated_at")
         self.last_used_at = kwargs.get("last_used_at")
         self.rotated_at = kwargs.get("rotated_at")
+
 
 __all__ = [
     "AdminUserRecord",
