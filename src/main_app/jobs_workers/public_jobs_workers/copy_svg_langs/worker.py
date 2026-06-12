@@ -57,6 +57,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.files_dict: list[str] = []
         self.site: Site | None = None
         self.session: requests.Session | None = None
+        self.text: str = ""
+        self.main_title: str = ""
+        self.titles: list[str] = []
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

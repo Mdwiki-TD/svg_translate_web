@@ -36,6 +36,17 @@ logger = logging.getLogger(__name__)
 # Timespan helpers
 # ---------------------------------------------------------------------------
 
+def ensure_int(value: Any) -> int | None:
+    """Ensure that a value is an integer or ``None``."""
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    return None
 
 def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     """Parse a ``"YYYY-YYYY"`` or ``"YYYY"`` timespan string.
@@ -184,13 +195,15 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             )
             return False
 
-        if owid_variable_id and owid_variable_id != chart.owid_variable_id:
-            info.owid_variable_id = owid_variable_id
-            data.update(
-                {
-                    "owid_variable_id": owid_variable_id,
-                }
-            )
+        if owid_variable_id:
+            owid_variable_id = ensure_int(owid_variable_id)
+            if owid_variable_id != chart.owid_variable_id:
+                info.owid_variable_id = owid_variable_id
+                data.update(
+                    {
+                        "owid_variable_id": owid_variable_id,
+                    }
+                )
 
         if timespan_raw:
             # 3. Parse timespan

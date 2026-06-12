@@ -7,7 +7,7 @@ import threading
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, dict, Final, List, Optional
+from typing import Any, Final, List, Optional
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -113,7 +113,7 @@ class BaseObjectsJobWorker(ABC):
         ...
 
     @abstractmethod
-    def process(self) -> dict[str, Any]:
+    def process(self) -> WorkerObject:
         """Execute the main processing logic.
 
         This method should contain the actual work of the job.

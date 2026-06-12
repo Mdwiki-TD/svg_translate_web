@@ -275,7 +275,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         if download_result["success"]:
             downloaded_path = download_result["path"]
             file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
-            file_info.downloaded_path = str(downloaded_path)
+            file_info.downloaded_path = downloaded_path
             return True
 
         error_msg = download_result.get("error", "Unknown download error")
@@ -299,7 +299,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return False
 
         file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
-        file_info.cropped_path = str(cropped_path)
+        file_info.cropped_path = cropped_path
         self.result.summary.cropped += 1
         return True
 
