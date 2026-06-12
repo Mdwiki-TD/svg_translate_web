@@ -101,7 +101,7 @@ def inject_step(
     }
 
     message = f"Success {success_count}/{len(files_dict)}, Failed {failed_count}, No Changes {no_changes_count}, Nested Files {nested_files_count}"
-    results = {}
+    results: dict = {}
 
     inject_files = injects_result["files"]
     for title, file_path in files_dict.items():

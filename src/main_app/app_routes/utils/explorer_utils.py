@@ -99,7 +99,7 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
 
 
 def get_informations(title):
-    data = {}
+    data: dict = {}
     downloaded, title_path = get_files(title, "files")
     translated, _ = get_files(title, "translated")
 

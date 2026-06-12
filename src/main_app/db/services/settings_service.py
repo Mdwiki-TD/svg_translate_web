@@ -48,7 +48,7 @@ def get_all_settings_raw() -> list[dict[str, Any]]:
 
 def get_all_settings_ready() -> dict[str, Any]:
     """Fetch all settings parsed into their respective Python types."""
-    records = {}
+    records: dict = {}
 
     for x in list_settings():
         val = None

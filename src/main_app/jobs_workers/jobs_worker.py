@@ -47,7 +47,7 @@ def _load_job_args(job_args: list | None) -> dict:
         return {}
 
     settings_ready = get_all_settings_ready()
-    _args = {}
+    _args: dict = {}
     for x in job_args:
         arg_value = settings_ready.get(x)
         if arg_value is not None:
@@ -135,7 +135,7 @@ def start_job(
     if not username:
         raise ValueError("User authentication data is required")
 
-    resolved_args = {}
+    resolved_args: dict = {}
     if job_data.job_args:
         resolved_args = _load_job_args(job_data.job_args)
 

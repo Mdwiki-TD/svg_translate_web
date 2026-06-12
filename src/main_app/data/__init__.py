@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def load_data(key):
     key = Path(key).name
     file_path = Path(__file__).parent / f"{key}.json"
-    data = {}
+    data: dict = {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)

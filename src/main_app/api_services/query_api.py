@@ -41,7 +41,7 @@ def is_pages_exists(
     titles: list[str],
     site: Site,
 ) -> dict[str, bool]:
-    result = {}
+    result: dict = {}
 
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
@@ -66,8 +66,8 @@ def resolve_redirects(
     titles: list[str],
     site: Site,
 ) -> dict[str, bool]:
-    normalized = {}
-    from_to = {}
+    normalized: dict = {}
+    from_to: dict = {}
 
     params = {
         "prop": "redirects",

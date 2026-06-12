@@ -263,7 +263,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
             return False
 
-        template_data = {}
+        template_data: dict = {}
         skip_msg = "No changes"
 
         # ------------------
