@@ -26,7 +26,7 @@ class UploadFile:
         self,
         file_name: str,
         file_path: Path,
-        site: Site | None = None,
+        site: Site,
         summary: str | None = None,
         description: str | None = None,
         new_file: bool = False,
@@ -49,9 +49,6 @@ class UploadFile:
         """
         Check if the kwargs are valid
         """
-        if not self.site:
-            return self._err("No site provided")
-
         if not self.file_name:
             return self._err("File name is required")
 
@@ -228,7 +225,19 @@ def upload_file(
             - error (str | None): error code on failure
             - error_details (str): additional error info
     """
-    return UploadFile(file_name, file_path, site, summary, description, new_file).upload()
+    if not site:
+        return {"success": False, "error": "No site provided", "error_details": ""}
+
+    bot = UploadFile(
+        file_name=file_name,
+        file_path=file_path,
+        site=site,
+        summary=summary,
+        description=description,
+        new_file=new_file,
+    )
+
+    return bot.upload()
 
 
 __all__ = [

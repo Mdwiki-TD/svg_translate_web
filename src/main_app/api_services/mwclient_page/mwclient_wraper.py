@@ -20,14 +20,31 @@ _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 class MwClientPage:
     def __init__(self, title: str, site: Site) -> None:
-        self.title = title
-        self.site = site
-        self.load_page_error = ""
-        self.page = None
+        self.title: str = title
+        self.site: Site = site
+        self.load_page_error: str = ""
+        self.page: Page = None
 
     # ------------------------------------------------------------------
     # Core operations
     # ------------------------------------------------------------------
+
+    def load_page(self) -> Page | None:
+        if self.page:
+            return self.page
+
+        try:
+            self.page = self.site.pages[self.title]
+        except mwclient.errors.InvalidPageTitle:
+            logger.error(f"Title '{self.title}' is invalid")
+            self.load_page_error = "invalidpagetitle"
+            return None
+        except Exception as exc:
+            self.load_page_error = str(exc)
+            logger.exception(f"Failed to load page '{self.title}'")
+            return None
+
+        return self.page
 
     def _edit_page(self, page: Page, text: str, summary: str, **kwargs) -> dict[str, Any]:
         try:
@@ -80,23 +97,6 @@ class MwClientPage:
     # ------------------------------------------------------------------
     # Public
     # ------------------------------------------------------------------
-
-    def load_page(self) -> Page | None:
-        if self.page:
-            return self.page
-
-        try:
-            self.page = self.site.pages[self.title]
-        except mwclient.errors.InvalidPageTitle:
-            logger.error(f"Title '{self.title}' is invalid")
-            self.load_page_error = "invalidpagetitle"
-            return None
-        except Exception as exc:
-            self.load_page_error = str(exc)
-            logger.exception(f"Failed to load page '{self.title}'")
-            return None
-
-        return self.page
 
     @property
     def namespace(self) -> str | None:

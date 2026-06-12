@@ -10,8 +10,8 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import (
+    CropFileProcessingInfo,
     CropMainFilesWorker,
-    TemplateProcessingInfo,
 )
 
 
@@ -141,7 +141,7 @@ class TestFileProcessingInfo:
 
     def test_default_initialization(self):
         """Test TemplateInfo initializes with correct defaults."""
-        info = TemplateProcessingInfo(
+        info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -163,7 +163,7 @@ class TestFileProcessingInfo:
 
     def test_to_dict(self):
         """Test to_dict serialization."""
-        info = TemplateProcessingInfo(
+        info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -185,7 +185,7 @@ class TestFileProcessingInfo:
 
     def test_to_dict_with_none_paths(self):
         """Test to_dict with None paths."""
-        info = TemplateProcessingInfo(
+        info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -315,7 +315,7 @@ class TestCropMainFilesProcessorSteps:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -339,7 +339,7 @@ class TestCropMainFilesProcessorSteps:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -364,7 +364,7 @@ class TestCropMainFilesProcessorSteps:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -387,7 +387,7 @@ class TestCropMainFilesProcessorSteps:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -413,7 +413,7 @@ class TestCropMainFilesProcessorSteps:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -442,7 +442,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -468,7 +468,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -493,7 +493,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -519,7 +519,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -544,7 +544,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -568,7 +568,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -592,7 +592,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -618,7 +618,7 @@ class TestCropMainFilesProcessorSteps:
         )
         processor.site = MagicMock()
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -642,7 +642,7 @@ class TestCropMainFilesProcessorHelpers:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -664,7 +664,7 @@ class TestCropMainFilesProcessorHelpers:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -684,7 +684,7 @@ class TestCropMainFilesProcessorHelpers:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",
@@ -737,7 +737,7 @@ class TestCropMainFilesProcessorHelpers:
             user=None,
         )
 
-        file_info = TemplateProcessingInfo(
+        file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
             original_file="File:test.svg",

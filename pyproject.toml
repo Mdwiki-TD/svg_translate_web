@@ -207,5 +207,5 @@ reportReturnType = false
 reportArgumentType = false
 reportAttributeAccessIssue = false
 reportAssignmentType = false
-reportOptionalMemberAccess = false
+reportOptionalMemberAccess = "warning"
 reportCallIssue = "warning"

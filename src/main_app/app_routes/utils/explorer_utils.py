@@ -84,6 +84,9 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     if not translations_data:
         translations_data = get_main_data(title, "translations.json") or {}
     # ---
+    if not translations_data:
+        return []
+    # ---
     new = translations_data.get("new", {})
     # ---
     for key, v in new.items():
