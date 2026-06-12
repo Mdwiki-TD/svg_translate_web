@@ -115,12 +115,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 2: Extract Titles
         def titles_run_after() -> None:
-            titles_data = self.result.stages["titles"]["data"]
+            titles_data = self.result.stages.titles.data
             self.main_title = titles_data["main_title"]
             self.titles = list(titles_data["titles"])
 
             # clean up
-            self.result.stages["titles"]["data"]["titles"] = []
+            self.result.stages.titles.data["titles"] = []
 
         if not self._run_stage(
             "titles",
@@ -152,9 +152,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         output_dir_main.mkdir(parents=True, exist_ok=True)
 
         def translations_run_after() -> None:
-            data = self.result.stages["translations"]["data"]
+            data = self.result.stages.translations.data
             self.translations = data["translations"]
-            # self.result.stages["translations"]["message"] = data["message"]
+            # self.result.stages.translations.message = data["message"]
 
         if not self._run_stage(
             "translations",
@@ -168,7 +168,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # Stage 4: download SVG files
 
         def download_progress(index: int, total: int, msg: str, results: dict[str, Any]) -> None:
-            self.result.stages["download"]["message"] = f"Downloading {index}/{total}: {msg}"
+            self.result.stages.download.message = f"Downloading {index}/{total}: {msg}"
             # if index % 10 == 0:
             self._save_progress()
 
@@ -183,12 +183,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                             item["error"] = _result["msg"]
 
         def download_run_after() -> None:
-            download_data = self.result.stages["download"]["data"]
+            download_data = self.result.stages.download.data
             self.files_dict = download_data["files_dict"]
 
             # clean up
-            self.result.stages["download"]["data"]["results"] = {}
-            self.result.stages["download"]["data"]["files"] = []
+            self.result.stages.download.data["results"] = {}
+            self.result.stages.download.data["files"] = []
 
         if not self._run_stage(
             "download",
@@ -206,7 +206,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # Stage 5: Analyze And Fix Nested Files
 
         def fix_nested_progress(index: int, total: int, msg: str, results: dict[str, Any]) -> None:
-            self.result.stages["nested"]["message"] = f"Analyzing {index}/{total}: {msg}"
+            self.result.stages.nested.message = f"Analyzing {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
@@ -221,13 +221,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                             item["error"] = nested_result["msg"]
 
         def nested_run_after() -> None:
-            nested_stage_data = self.result.stages["nested"]["data"]
+            nested_stage_data = self.result.stages.nested.data
             self.nested_data = nested_stage_data["data"]
             self.nested_results = nested_stage_data.get("results", {})
 
             # clean up
-            # self.result.stages["nested"]["data"]["data"] = {}
-            # self.result.stages["nested"]["data"]["results"] = {}
+            # self.result.stages.nested.data["data"] = {}
+            # self.result.stages.nested.data["results"] = {}
 
             return
 
@@ -244,7 +244,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # Stage 6: Inject translations
 
         def inject_progress(index: int, total: int, msg: str, results: dict[str, Any]) -> None:
-            self.result.stages["inject"]["message"] = f"Analyzing {index}/{total}: {msg}"
+            self.result.stages.inject.message = f"Analyzing {index}/{total}: {msg}"
             if index % 10 == 0:
                 self._save_progress()
 
@@ -259,7 +259,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                             item["error"] = _result["msg"]
 
         def inject_run_after() -> None:
-            inject_stage_data = self.result.stages["inject"]["data"]
+            inject_stage_data = self.result.stages.inject.data
 
             inject_results = inject_stage_data["results"]
             self.inject_data = inject_stage_data["data"]
@@ -281,8 +281,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                     item["error"] = file_data["msg"]
 
             # clean up
-            self.result.stages["inject"]["data"]["data"] = {}
-            self.result.stages["inject"]["data"]["results"] = {}
+            self.result.stages.inject.data["data"] = {}
+            self.result.stages.inject.data["results"] = {}
 
         if not self._run_stage(
             "inject",
@@ -302,7 +302,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         def upload_run_after() -> None:
-            upload_result_data = self.result.stages["upload"]["data"]
+            upload_result_data = self.result.stages.upload.data
             upload_result = {
                 "done": upload_result_data["summary"]["uploaded"],
                 "not_done": upload_result_data["summary"]["failed"],
@@ -385,8 +385,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return self.result
 
     def log_upload_error(self, _msg, result, status) -> None:
-        self.result.stages["upload"]["status"] = status
-        self.result.stages["upload"]["message"] = _msg
+        self.result.stages.upload.status = status
+        self.result.stages.upload.message = _msg
 
         for _, item in self.result.files_processed.items():
             if item["status"] != "failed":
