@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+from typing import Any
 
 from sqlalchemy import event, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,7 +12,7 @@ from .exceptions import DatabaseInitError
 logger = logging.getLogger(__name__)
 
 
-def _enable_sqlite_foreign_keys(dbapi_connection, connection_record) -> None:
+def _enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -> None:
     """Enable foreign key enforcement for SQLite connections."""
     try:
         cursor = dbapi_connection.cursor()

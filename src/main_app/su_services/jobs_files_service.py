@@ -26,7 +26,7 @@ def get_jobs_data_dir() -> Path:
     return jobs_dir
 
 
-def save_data(result_data, filepath) -> None:
+def save_data(result_data: Dict[str, Any], filepath: Path) -> None:
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=2, default=str, ensure_ascii=False)
 

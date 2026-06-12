@@ -156,6 +156,7 @@ def _job_detail(
 
     # Load job result if available
     result_data = None
+
     if job.result_file:
         result_data = load_job_result(job.result_file)
 

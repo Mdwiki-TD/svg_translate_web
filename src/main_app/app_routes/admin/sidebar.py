@@ -46,7 +46,7 @@ def generate_list_item(item: SidebarItem) -> str:
     return link.strip()
 
 
-def create_side(active_route, path: str | None = None) -> str:
+def create_side(active_route: str, path: str | None = None) -> str:
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
