@@ -8,7 +8,7 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
@@ -18,6 +18,7 @@ from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker_object import BaseObjectsJobWorker
+from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
@@ -84,43 +85,14 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "create_owid_pages"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "created": 0,
-                "updated": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_created": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> CreateOwidPagesWorkerObject:
         self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
@@ -162,7 +134,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
+        if self.result.status in ["pending", "running"]:
             self.result.status = "completed"
 
         return self.result
@@ -392,7 +364,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
+        getattr(self.result, key).append(file_info.to_dict())
 
 
 def create_owid_pages_for_templates(

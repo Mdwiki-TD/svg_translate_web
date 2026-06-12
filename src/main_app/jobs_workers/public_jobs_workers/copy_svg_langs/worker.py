@@ -75,13 +75,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
         if self.is_cancelled():
-            if stage_name and stage_name in self.result.get("stages", {}):
-                self.result.stages[stage_name]["status"] = "Cancelled"
+            if stage_name:
+                stage = getattr(self.result.stages, stage_name)
+                if stage:
+                    stage.status = "Cancelled"
             return True
 
         return False
 
-    def process(self) -> dict[str, Any]:
+    def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
         self.result.status = "running"
         self._save_progress()
@@ -134,17 +136,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # Initialize files_processed
 
         for title in self.titles:
-            self.result.files_processed[title] = {
-                "title": title,
-                "status": "pending",
-                "error": None,
-                "steps": {
-                    "download": {"result": None, "msg": ""},
-                    "nested": {"result": None, "msg": ""},
-                    "inject": {"result": None, "msg": ""},
-                    "upload": {"result": None, "msg": ""},
-                },
-            }
+            self.result.files_processed[title] = FilesProcessedItem(title=title)
 
         # ----------------------------------------------
         # Stage 3: Extract Translations
@@ -175,12 +167,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, _result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item["steps"]["download"]["msg"]:  # to avoid overwriting previous messages
-                        item["steps"]["download"] = _result
+                    if not item.steps["download"]["msg"]:  # to avoid overwriting previous messages
+                        item.steps["download"] = _result
 
                         if _result["result"] is False:
-                            item["status"] = "failed"
-                            item["error"] = _result["msg"]
+                            item.status = "failed"
+                            item.error = _result["msg"]
 
         def download_run_after() -> None:
             download_data = self.result.stages.download.data
@@ -213,12 +205,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, nested_result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item["steps"]["nested"]["msg"]:  # to avoid overwriting previous messages
-                        item["steps"]["nested"] = nested_result
+                    if not item.steps["nested"]["msg"]:  # to avoid overwriting previous messages
+                        item.steps["nested"] = nested_result
 
                         if nested_result["result"] is False:
-                            item["status"] = "failed"
-                            item["error"] = nested_result["msg"]
+                            item.status = "failed"
+                            item.error = nested_result["msg"]
 
         def nested_run_after() -> None:
             nested_stage_data = self.result.stages.nested.data
@@ -251,12 +243,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, _result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item["steps"]["inject"]["msg"]:  # to avoid overwriting previous messages
-                        item["steps"]["inject"] = _result
+                    if not item.steps["inject"]["msg"]:  # to avoid overwriting previous messages
+                        item.steps["inject"] = _result
 
                         if _result["result"] is False:
-                            item["status"] = "failed"
-                            item["error"] = _result["msg"]
+                            item.status = "failed"
+                            item.error = _result["msg"]
 
         def inject_run_after() -> None:
             inject_stage_data = self.result.stages.inject.data
@@ -275,10 +267,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 if not file_data:
                     file_data = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
 
-                item["steps"]["inject"] = file_data
+                item.steps["inject"] = file_data
                 if file_data["result"] is False:
-                    item["status"] = "failed"
-                    item["error"] = file_data["msg"]
+                    item.status = "failed"
+                    item.error = file_data["msg"]
 
             # clean up
             self.result.stages.inject.data["data"] = {}
@@ -316,18 +308,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             # Update files_processed with upload results
             for title, item in self.result.files_processed.items():
                 if title in upload_results:
-                    item["steps"]["upload"] = upload_results[title]
+                    item.steps["upload"] = upload_results[title]
                     if upload_results[title]["result"] is True:
-                        item["status"] = "completed"
+                        item.status = "completed"
                     elif upload_results[title]["result"] is False:
-                        item["status"] = "failed"
-                        item["error"] = upload_results[title]["msg"]
+                        item.status = "failed"
+                        item.error = upload_results[title]["msg"]
                     elif upload_results[title]["result"] is None:
                         # Skipped or no changes
-                        item["status"] = "completed"
+                        item.status = "completed"
 
-                if item["status"] == "pending":
-                    item["status"] = "completed"
+                if item.status == "pending":
+                    item.status = "completed"
 
         if not bool(self.args.get("upload")):
             upload_result = {"done": 0, "not_done": len(self.files_to_upload), "skipped": True}
@@ -389,10 +381,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.result.stages.upload.message = _msg
 
         for _, item in self.result.files_processed.items():
-            if item["status"] != "failed":
-                item["steps"]["upload"] = {"result": result, "msg": _msg}
-                item["status"] = status
-                item["error"] = _msg
+            if item.status != "failed":
+                item.steps["upload"] = {"result": result, "msg": _msg}
+                item.status = status
+                item.error = _msg
 
     def _save_files_stats(self, stats_data) -> None:
         files_stats_path = self.output_dir / "files_stats.json"
@@ -417,36 +409,36 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if self._is_cancelled(stage_name):
             return False
 
-        stage = self.result.stages[stage_name]
-        stage["status"] = "Running"
+        stage = getattr(self.result.stages, stage_name)
+        stage.status = "Running"
         self._save_progress()
 
         try:
             step_result = step_func(*args, **kwargs)
-            stage["data"] = step_result
+            stage.data = step_result
             if step_result.get("message"):
-                self.result.stages[stage_name]["message"] = step_result["message"]
+                stage.message = step_result["message"]
 
             if step_result.get("success"):
-                stage["status"] = "Completed"
-                if "summary" in step_result and "message" not in stage:
+                stage.status = "Completed"
+                if "summary" in step_result and not stage.message:
                     summary = step_result["summary"]
                     if isinstance(summary, dict):
-                        stage["message"] = ", ".join(f"{k}: {v}" for k, v in summary.items())
+                        stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
 
                 if run_after_func:
                     run_after_func()
                 return True
             else:
-                stage["status"] = "Failed"
-                stage["message"] = step_result.get("error", "Unknown error")
+                stage.status = "Failed"
+                stage.message = step_result.get("error", "Unknown error")
                 self.result.status = "failed"
                 return False
 
         except Exception as e:
             logger.exception(f"Error in stage {stage_name}")
-            stage["status"] = "Failed"
-            stage["message"] = str(e)
+            stage.status = "Failed"
+            stage.message = str(e)
             self.result.status = "failed"
             return False
 
@@ -454,7 +446,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
     *,
-    job_id: str,
+    job_id: int,
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,

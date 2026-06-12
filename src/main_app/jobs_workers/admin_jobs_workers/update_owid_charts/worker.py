@@ -21,13 +21,14 @@ import re
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from ....api_services import fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import owid_charts_service
 from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
+from .objects import UpdateOwidChartsWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -125,33 +126,11 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
+        self.result.args = args or {}
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "charts_processed": [],
-            "updated_charts": [],
-            "skipped_charts": [],
-            "failed_charts": [],
-        }
 
     # ------------------------------------------------------------------
     # Per-chart processing
@@ -293,7 +272,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     # BaseJobWorker.process
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> UpdateOwidChartsWorkerObject:
         charts = self._load_charts()
         total = len(charts)
 
@@ -316,7 +295,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ("pending", "running"):
+        if self.result.status in ("pending", "running"):
             self.result.status = "completed"
 
         return self.result
