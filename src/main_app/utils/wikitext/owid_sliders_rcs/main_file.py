@@ -13,7 +13,7 @@ def match_main_title_from_url(text: str):
     return match.group(1) if match else None
 
 
-def match_main_title_from_url_new(text: str):
+def match_main_title_from_url_new(text: str) -> str | None:
     """Return the SVG filename from the ``Translate`` line if present."""
 
     pattern = re.compile(
