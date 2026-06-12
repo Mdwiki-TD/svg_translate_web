@@ -7,6 +7,6 @@ TODO: write tests
 """
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import (
-    CropMainFilesWorkerObject,
     CropMainFilesSummary,
+    CropMainFilesWorkerObject,
 )
