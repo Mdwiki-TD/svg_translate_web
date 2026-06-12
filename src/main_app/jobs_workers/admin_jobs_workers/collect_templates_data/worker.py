@@ -103,7 +103,6 @@ class CollectMainFilesWorker(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.update_all = False
-        self.user = user
         self.site: Site | None = None
         if args and str(args.get("update_all", "")).lower() == "true":
             self.update_all = True

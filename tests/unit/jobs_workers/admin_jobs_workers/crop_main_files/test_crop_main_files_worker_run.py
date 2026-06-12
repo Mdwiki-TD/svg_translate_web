@@ -699,7 +699,7 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["update_template"]["result"] is None
         assert file_info.steps["update_page"]["result"] is None
         assert processor.result["summary"]["skipped"] == 1
-        assert file_info.cropped_filename is None
+        assert file_info.cropped_filename == ""
 
     def test_is_cancelled_with_event(self, mock_services):
         """Test is_cancelled with cancel event."""

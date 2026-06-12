@@ -60,6 +60,9 @@ class UploadFile:
             logger.error(f"File not found: {self.file_path}")
             return self._err("File not found")
 
+        if not self.site:
+            return {"success": False, "error": "No site provided", "error_details": ""}
+
         page = self.site.pages[f"File:{self.file_name}"]
         if not self.new_file:
             if not page.exists:
@@ -76,6 +79,9 @@ class UploadFile:
         """
         Single upload attempt — returns a result dict, never raises.
         """
+        if not self.site:
+            return {"success": False, "error": "No site provided", "error_details": ""}
+
         try:
             response = self._site_upload()
             logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")

@@ -77,6 +77,8 @@ class UserService:
             access_token=token.access_token,
             access_secret=token.access_secret,
             is_active_admin=is_active_admin,
+            can_run_jobs=user.can_run_jobs,
+            can_run_bg_jobs=user.can_run_bg_jobs,
         )
 
     @staticmethod
@@ -93,6 +95,8 @@ class UserService:
                 access_token=token.access_token,
                 access_secret=token.access_secret,
                 is_active_admin=is_active_coordinator(username),
+                can_run_jobs=token.user.can_run_jobs,
+                can_run_bg_jobs=token.user.can_run_bg_jobs,
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)

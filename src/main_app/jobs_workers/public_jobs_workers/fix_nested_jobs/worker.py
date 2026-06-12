@@ -38,10 +38,8 @@ class FixNestedJobsProcessor(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
         self.args = args or {}
         self.upload_limit = args.get("upload_limit") if args else 0
-        self.user = user
 
         super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()

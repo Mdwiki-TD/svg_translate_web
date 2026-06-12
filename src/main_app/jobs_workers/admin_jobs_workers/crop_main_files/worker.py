@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from mwclient.client import Site
 
@@ -93,8 +93,6 @@ class CropMainFilesWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
-        self.user = user
         self.site: Site | None = None
         self.args = args or {}
         try:
@@ -409,7 +407,7 @@ class CropMainFilesWorker(BaseJobWorker):
         self._skip_step(file_info, "update_page", "Skipped - upload was not successful")
 
         self._fail(file_info, "upload_cropped", error)
-        file_info.cropped_filename = None
+        file_info.cropped_filename = ""
         return False
 
     def _step_update_original(self, file_info: CropFileProcessingInfo) -> bool:
@@ -537,7 +535,7 @@ class CropMainFilesWorker(BaseJobWorker):
         file_info.status = "skipped"
         self.result["summary"]["skipped"] += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
-        file_info.cropped_filename = None
+        file_info.cropped_filename = ""
 
     def _append(self, file_info: CropFileProcessingInfo, key: str = "pages_processed") -> None:
         self.result[key].append(file_info.to_dict())

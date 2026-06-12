@@ -77,8 +77,6 @@ class CreateOwidPagesWorker(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.update_all = False
-        self.job_id = job_id
-        self.user = user
         self.site: Site | None = None
         self.args = args or {}
         self.limit_items = args.get("limit_items") if args else 0

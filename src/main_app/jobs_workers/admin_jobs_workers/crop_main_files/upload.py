@@ -19,7 +19,7 @@ def upload_cropped_file(
     cropped_filename: str,
     cropped_path: Path,
     site: Site | None,
-    wikitext: str = None,
+    wikitext: str | None = None,
 ) -> dict[str, Any]:
     """
     Upload cropped file to Commons with new name.

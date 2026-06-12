@@ -43,7 +43,6 @@ class CopySvgLangsWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
         self.args = args or {}
         self.user: dict[str, Any] = user
 

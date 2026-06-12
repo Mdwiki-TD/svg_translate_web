@@ -177,7 +177,7 @@ class JobsPublicRoutes:
 
     def __init__(self, name: str, jobs_data_infos: dict[str, JobData]) -> None:
         self.bp = Blueprint(name, __name__, url_prefix="/jobs")
-        self.jobs_data_infos = jobs_data_infos
+        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
     def _setup_routes(self):
@@ -199,7 +199,7 @@ class JobsPublicRoutes:
 
         @self.bp.get("/<string:job_type>")
         def jobs_list(job_type: str) -> str:
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
             if not template_data:
                 abort(404)
 
@@ -212,7 +212,7 @@ class JobsPublicRoutes:
         @self.bp.get("/<string:job_type>/<int:job_id>")
         def job_detail(job_type: str, job_id: int) -> Response | str:
             # Load template data
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
                 abort(404)
@@ -222,7 +222,7 @@ class JobsPublicRoutes:
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         def job_detail_expand(job_type: str, job_id: int) -> Response | str:
             # Load template data
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
                 abort(404)

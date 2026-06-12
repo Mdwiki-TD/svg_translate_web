@@ -74,9 +74,6 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.job_id = job_id
-        self.user = user
-        self.cancel_event = cancel_event
         self.site: Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
         self.args = args or {}

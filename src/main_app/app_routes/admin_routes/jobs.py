@@ -176,7 +176,7 @@ class Jobs:
 
     def __init__(self, name: str, jobs_data_infos: dict[str, JobData]) -> None:
         self.bp = Blueprint(name, __name__, url_prefix="/jobs")
-        self.jobs_data_infos = jobs_data_infos
+        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
     def _setup_routes(self):
@@ -189,7 +189,7 @@ class Jobs:
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 flash("Job type not found.", "warning")
-                abort(404)
+                return abort(404)
 
             return _cancel_job(job_id, job_type)
 
@@ -200,9 +200,9 @@ class Jobs:
         @self.bp.get("/<string:job_type>")
         @admin_required
         def jobs_list(job_type: str) -> str:
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
             if not template_data:
-                abort(404)
+                return abort(404)
 
             return _jobs_list(job_type, template_data)
 
@@ -214,10 +214,10 @@ class Jobs:
         @admin_required
         def job_detail(job_type: str, job_id: int) -> Response | str:
             # Load template data
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
-                abort(404)
+                return abort(404)
 
             return _job_detail(job_id, job_type, template_data)
 
@@ -225,10 +225,10 @@ class Jobs:
         @admin_required
         def job_detail_expand(job_type: str, job_id: int) -> Response | str:
             # Load template data
-            template_data: JobData = self.jobs_data_infos.get(job_type)
+            template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
-                abort(404)
+                return abort(404)
 
             return _job_detail(job_id, job_type, template_data, expand_all=True)
 
@@ -240,7 +240,7 @@ class Jobs:
         @admin_required
         def start_job(job_type: str) -> ResponseReturnValue:
             if job_type not in self.jobs_data_infos:
-                abort(404)
+                return abort(404)
 
             args = request.form.to_dict()
 
@@ -258,7 +258,7 @@ class Jobs:
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
-                abort(404)
+                return abort(404)
             return _delete_job(job_id, job_type)
 
         @self.bp.get("/job-file/<string:result_file>")
