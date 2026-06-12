@@ -22,7 +22,7 @@ Objects for create_owid_pages worker.
             "pages_updated": [],
             "pages_skipped": [],
             "pages_failed": [],
-            """
+"""
 
 from __future__ import annotations
 
