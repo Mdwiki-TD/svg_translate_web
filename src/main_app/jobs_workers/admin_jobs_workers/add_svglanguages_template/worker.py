@@ -16,6 +16,7 @@ from ....api_services import MwClientPage, get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker_object import BaseObjectsJobWorker
+from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
@@ -79,37 +80,14 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
-        self.result: dict[str, Any] = self.get_initial_result()
+        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "add_svglanguages_template"
 
-    def get_initial_result(self) -> dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
-    # ------------------------------------------------------------------
+        # ------------------------------------------------------------------
     # Initialisation helpers
     # ------------------------------------------------------------------
 
@@ -130,7 +108,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         # file info
         file_info = TemplateInfo(
@@ -250,13 +228,13 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
+        getattr(self.result, key).append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> dict[str, Any]:
+    def process(self) -> AddSvgLanguagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -264,7 +242,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             return self.result
 
         templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
 
         per_item = self.get_priority(len(templates))
@@ -283,12 +261,12 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+        if self.result.status in ["pending", "running"]:
+            self.result.status = "completed"
 
-        self.result["summary"]["failed"] = len(self.result["pages_failed"])
-        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
-        self.result["summary"]["success"] = len(self.result["pages_success"])
+        self.result.summary.failed = len(self.result.pages_failed)
+        self.result.summary.skipped = len(self.result.pages_skipped)
+        self.result.summary.success = len(self.result.pages_success)
 
         return self.result
 
