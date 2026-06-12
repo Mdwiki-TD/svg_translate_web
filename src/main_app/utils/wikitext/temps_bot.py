@@ -7,6 +7,7 @@ get all files names from owidslidersrcs
 """
 
 import re
+from typing import Any
 
 import wikitextparser as wtp
 

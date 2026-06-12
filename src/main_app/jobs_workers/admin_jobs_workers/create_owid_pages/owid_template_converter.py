@@ -7,6 +7,7 @@ the corresponding gallery/showcase page (OWID/...) using WikiTextParser.
 """
 
 import re
+from typing import Any
 
 import wikitextparser as wtp
 
