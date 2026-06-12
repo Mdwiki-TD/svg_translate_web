@@ -61,7 +61,6 @@ class TemplateInfo:
         return asdict(self)
 
 
-
 @dataclass
 class CollectTemplatesDataWorkerObject(StandardAdminWorkerObject):
     pages_added: list[dict[str, Any]] = field(default_factory=list)

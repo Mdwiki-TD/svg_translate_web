@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # Timespan helpers
 # ---------------------------------------------------------------------------
 
+
 def ensure_int(value: Any) -> int | None:
     """Ensure that a value is an integer or ``None``."""
     if value is None:
@@ -47,6 +48,7 @@ def ensure_int(value: Any) -> int | None:
     except ValueError:
         pass
     return None
+
 
 def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     """Parse a ``"YYYY-YYYY"`` or ``"YYYY"`` timespan string.

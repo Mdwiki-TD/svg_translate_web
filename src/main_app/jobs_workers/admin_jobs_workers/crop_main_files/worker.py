@@ -31,6 +31,7 @@ from .upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
 
+
 class CropMainFilesWorker(BaseObjectsJobWorker):
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.

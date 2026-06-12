@@ -31,6 +31,7 @@ from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
 
+
 def slugify_title(title: str) -> str:
     """Derive a slug from a template title."""
     # Remove 'Template:OWID/' or 'Template:' prefix

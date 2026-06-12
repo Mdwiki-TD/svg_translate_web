@@ -21,28 +21,30 @@ from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class WorkerObject:
     """
-        "note": "",
-        "status": "pending",
-        "job_id": self.job_id,
+    "note": "",
+    "status": "pending",
+    "job_id": self.job_id,
 
-        "started_at": datetime.now().isoformat(),
-        "completed_at": None,
-        "cancelled_at": None,
-        "last_update": None,
-        "failed_at": None,
+    "started_at": datetime.now().isoformat(),
+    "completed_at": None,
+    "cancelled_at": None,
+    "last_update": None,
+    "failed_at": None,
 
-        "errors": [],
-        "args": {},
+    "errors": [],
+    "args": {},
 
-        "pages_processed": [],
-        "pages_uploaded": [],
-        "pages_updated": [],
-        "pages_skipped": [],
-        "pages_failed": [],
+    "pages_processed": [],
+    "pages_uploaded": [],
+    "pages_updated": [],
+    "pages_skipped": [],
+    "pages_failed": [],
     """
+
     note: Optional[str] = None
     status: str = "pending"
     job_id: int = 0

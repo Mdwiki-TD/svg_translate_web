@@ -57,9 +57,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.files_dict: list[str] = []
         self.site: Site | None = None
         self.session: requests.Session | None = None
+
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
+        self.translations: dict[str, str] = {}
+        self.nested_data: dict[str, str] = {}
+        self.nested_results: dict[str, str] = {}
+        self.inject_data: dict[str, Any] = {}
+        self.files_to_upload: dict[str, str] = {}
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -258,7 +264,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.inject_data = inject_stage_data["data"]
 
             inject_files = self.inject_data.get("files", {})
-
             self.files_to_upload = {title: data for title, data in inject_files.items() if data.get("file_path")}
 
             # Update files_processed with inject results

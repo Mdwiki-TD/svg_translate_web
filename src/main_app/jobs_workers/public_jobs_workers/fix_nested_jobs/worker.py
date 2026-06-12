@@ -82,7 +82,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             success=False,
             status="Failed",
             path=None,
-            error=download_result.get("error", "download_failed"),
+            error=download_result.error or "download_failed",
         )
 
         return False
@@ -184,7 +184,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self._update_step("upload", "success", "Uploaded successfully")
             return True
 
-        message = upload_result.get("error", "Upload failed")
+        message = upload_result.error or "Upload failed"
 
         self._update_step("upload", "Failed", message)
 

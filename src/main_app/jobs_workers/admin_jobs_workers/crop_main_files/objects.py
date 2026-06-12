@@ -1,12 +1,10 @@
-"""
-
-"""
+""" """
 
 from __future__ import annotations
 
-from datetime import datetime
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,23 +67,25 @@ class CropSummary:
     skipped: int = 0
     failed: int = 0
 
+
 @dataclass
 class CropMainFilesWorkerObject(WorkerObject):
     """
-        "note": "",
-        "status": "pending",
-        "errors": [],
-        "args": {},
-        "job_id": self.job_id,
-        "started_at": datetime.now().isoformat(),
-        "completed_at": None,
-        "cancelled_at": None,
-        "pages_processed": [],
-        "pages_uploaded": [],
-        "pages_updated": [],
-        "pages_skipped": [],
-        "pages_failed": [],
+    "note": "",
+    "status": "pending",
+    "errors": [],
+    "args": {},
+    "job_id": self.job_id,
+    "started_at": datetime.now().isoformat(),
+    "completed_at": None,
+    "cancelled_at": None,
+    "pages_processed": [],
+    "pages_uploaded": [],
+    "pages_updated": [],
+    "pages_skipped": [],
+    "pages_failed": [],
     """
+
     summary: CropSummary = field(default_factory=CropSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
