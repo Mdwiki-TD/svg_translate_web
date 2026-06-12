@@ -41,6 +41,11 @@ class SettingRecord(db.Model):
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         return {

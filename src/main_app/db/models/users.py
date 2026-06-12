@@ -38,6 +38,11 @@ class UsersRecord(db.Model):
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
@@ -92,6 +97,11 @@ class AdminUserRecord(db.Model):
         onupdate=func.current_timestamp(),
     )
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
@@ -109,13 +119,6 @@ class AdminUserRecord(db.Model):
             data[column] = value
 
         return data
-
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
-        self.id = kwargs.get("id")
-        self.username = kwargs.get("username")
-        self.is_active = kwargs.get("is_active")
-        self.created_at = kwargs.get("created_at")
-        self.updated_at = kwargs.get("updated_at")
 
 
 class UserTokenRecord(db.Model):
@@ -165,6 +168,11 @@ class UserTokenRecord(db.Model):
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
@@ -184,15 +192,6 @@ class UserTokenRecord(db.Model):
             data[column] = value
 
         return data
-
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
-        self.user_id = kwargs.get("user_id")
-        self.access_token = kwargs.get("access_token")
-        self.access_secret = kwargs.get("access_secret")
-        self.created_at = kwargs.get("created_at")
-        self.updated_at = kwargs.get("updated_at")
-        self.last_used_at = kwargs.get("last_used_at")
-        self.rotated_at = kwargs.get("rotated_at")
 
 
 __all__ = [
