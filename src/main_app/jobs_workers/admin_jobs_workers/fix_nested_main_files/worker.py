@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import tempfile
 import threading
+from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -43,18 +44,18 @@ def repair_nested_svg_tags(
         temp_dir = Path(tmp_dir)
 
         download = download_svg_file(filename, temp_dir)
-        if not download["ok"]:
+        if not download.ok:
             return {
                 "success": False,
                 "message": f"Failed to download file: {filename}",
-                "details": download,
+                "details": asdict(download),
             }
 
-        file_path = download["path"]
+        file_path = download.path
 
         detect_before = detect_nested_tags(file_path)
 
-        if detect_before["count"] == 0:
+        if detect_before.count == 0:
             return {
                 "success": False,
                 "message": f"No nested tags found in {filename}",
@@ -66,33 +67,33 @@ def repair_nested_svg_tags(
             return {
                 "success": False,
                 "message": f"Failed to fix nested tags in {filename}",
-                "details": {"nested_count": detect_before["count"]},
+                "details": {"nested_count": detect_before.count},
             }
 
-        verify = verify_fix(file_path, detect_before["count"])
+        verify = verify_fix(file_path, detect_before.count)
 
-        if verify["fixed"] == 0:
+        if verify.fixed == 0:
             return {
                 "success": False,
                 "message": f"No nested tags were fixed in {filename}",
-                "details": verify,
+                "details": asdict(verify),
             }
 
-        upload = upload_fixed_svg(filename, file_path, verify["fixed"], user)
+        upload = upload_fixed_svg(filename, file_path, verify.fixed, user)
 
-        if not upload["ok"]:
+        if not upload.ok:
             return {
                 "success": False,
-                "message": f"Fixed {verify['fixed']} nested tag(s), but upload failed.",
-                "details": {**verify, **upload},
+                "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
+                "details": {**asdict(verify), **asdict(upload)},
             }
 
         return {
             "success": True,
-            "message": f"Successfully fixed {verify['fixed']} nested tag(s) and uploaded {filename}.",
+            "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
             "details": {
-                **verify,
-                "upload_result": upload["result"],
+                **asdict(verify),
+                "upload_result": upload.result,
             },
         }
 

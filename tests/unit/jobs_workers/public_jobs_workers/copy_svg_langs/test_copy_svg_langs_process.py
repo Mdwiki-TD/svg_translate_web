@@ -85,7 +85,7 @@ class TestCopySvgLangsWorkerProcess:
 
         assert (
             result["status"] == "running"
-        )  # BaseJobWorker.run sets it to completed, but process() returns current state
+        )  # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
         assert worker.result["stages"]["upload"]["status"] == "Completed"
         assert "upload_result" in result["results_summary"]
 

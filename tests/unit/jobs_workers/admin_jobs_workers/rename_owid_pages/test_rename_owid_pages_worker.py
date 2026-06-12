@@ -49,6 +49,10 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
         "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
         mock_generate,
     )
+    # Bypass before_run
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
+    )
     return {
         "update_job_status": mock_update,
         "save_job_result": mock_save,
@@ -187,19 +191,18 @@ class TestWorkerInit:
         w = _make_worker()
         assert w.get_job_type() == "rename_owid_pages"
 
-    def test_get_initial_result(self, mock_jobs_service, mock_base_services):
+    def test_initial_result_structure(self, mock_jobs_service, mock_base_services):
         w = _make_worker()
-        result = w.get_initial_result()
-        assert result["status"] == "pending"
-        assert result["job_id"] == 1
-        assert result["summary"]["total"] == 0
-        assert result["summary"]["processed"] == 0
-        assert result["summary"]["renamed"] == 0
-        assert result["summary"]["skipped_target_exists"] == 0
-        assert result["summary"]["redirected"] == 0
-        assert result["summary"]["failed"] == 0
-        assert result["pages_processed"] == []
-        assert "started_at" in result
+        result = w.result
+        assert result.status == "pending"
+        assert result.summary.total == 0
+        assert result.summary.processed == 0
+        assert result.summary.renamed == 0
+        assert result.summary.skipped_target_exists == 0
+        assert result.summary.redirected == 0
+        assert result.summary.failed == 0
+        assert result.pages_processed == []
+        assert result.started_at is not None
 
 
 # ── tests: process() ──────────────────────────────────────────────────────────
@@ -214,7 +217,7 @@ class TestProcess:
         )
         w = _make_worker()
         result = w.process()
-        assert result["status"] == "failed"
+        assert result.status == "failed"
 
 
 # ── tests: _rename_one ────────────────────────────────────────────────────────
@@ -260,8 +263,8 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is True
-        assert w.result["summary"]["renamed"] == 1
-        assert w.result["summary"]["failed"] == 0
+        assert w.result.summary.renamed == 1
+        assert w.result.summary.failed == 0
 
     def test_move_failure(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
@@ -272,7 +275,7 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result["summary"]["failed"] == 1
+        assert w.result.summary.failed == 1
 
     def test_move_failure_with_details(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
@@ -287,7 +290,7 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result["summary"]["failed"] == 1
+        assert w.result.summary.failed == 1
 
     # ── branch: new_title exists, is redirect → overwrite via move ───────
 
@@ -302,7 +305,7 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is True
-        assert w.result["summary"]["renamed"] == 1
+        assert w.result.summary.renamed == 1
 
     def test_target_is_redirect_overwrite_fails(
         self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services
@@ -315,7 +318,7 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result["summary"]["failed"] == 1
+        assert w.result.summary.failed == 1
 
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
@@ -328,8 +331,8 @@ class TestRenameOne:
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result["summary"]["skipped_target_exists"] == 1
-        assert w.result["summary"]["failed"] == 0
+        assert w.result.summary.skipped_target_exists == 1
+        assert w.result.summary.failed == 0
         w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
@@ -377,8 +380,8 @@ class TestRedirectOldToNew:
 
         assert result is True
         assert info.status == "redirected"
-        assert w.result["summary"]["redirected"] == 1
-        assert w.result["summary"]["failed"] == 0
+        assert w.result.summary.redirected == 1
+        assert w.result.summary.failed == 0
         mock_page.edit.assert_called_once_with(
             text="#REDIRECT [[Template:OWID/Daily]]",
             summary="Redirecting to [[Template:OWID/Daily]] (capitalize first letter of OWID subpage)",
@@ -396,7 +399,7 @@ class TestRedirectOldToNew:
 
         assert result is False
         assert info.status == "failed"
-        assert w.result["summary"]["failed"] == 1
+        assert w.result.summary.failed == 1
 
     def test_redirect_failure_with_details(self, mock_jobs_service, mock_base_services, mock_db_services):
         w = self._worker(mock_jobs_service, mock_base_services, mock_db_services)
@@ -507,7 +510,7 @@ class TestWorkerEdgeCases:
         cancel_event.set()
         w = _make_worker(cancel_event=cancel_event)
         w.process()
-        assert w.result["status"] == "cancelled"
+        assert w.result.status == "cancelled"
 
     def test_module_constants(self):
         assert MOVE_REASON == "Capitalize first letter of OWID subpage name"

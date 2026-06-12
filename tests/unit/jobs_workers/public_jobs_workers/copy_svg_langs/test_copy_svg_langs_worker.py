@@ -96,7 +96,7 @@ class TestCopySvgLangsWorker:
             user=None,
             args={"title": "Test.svg"},
         )
-        assert worker.upload_limit == 0
+        assert worker.upload_limit is None
 
 
 class TestCopySvgLangsWorkerEntry:

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ...base_worker_object import WorkerObject
+from ...shared_objects import StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,7 @@ class CropMainFilesSummary:
 
 
 @dataclass
+# class CropMainFilesWorkerObject(StandardAdminWorkerObject):
 class CropMainFilesWorkerObject(WorkerObject):
     """
     "note": "",

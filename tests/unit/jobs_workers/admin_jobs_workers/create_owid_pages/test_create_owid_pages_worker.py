@@ -90,7 +90,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_sort_categories,
     )
 
-    # Mock is_job_cancelled_file_exist (called by is_cancelled in BaseJobWorker)
+    # Mock is_job_cancelled_file_exist (called by is_cancelled in BaseObjectsJobWorker)
     mock_is_job_cancelled_file_exist = MagicMock(return_value=False)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist",

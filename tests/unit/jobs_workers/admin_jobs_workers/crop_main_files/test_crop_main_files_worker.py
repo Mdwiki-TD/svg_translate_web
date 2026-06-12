@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import worker
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import CropMainFilesWorkerObject
 
 
 @pytest.fixture
@@ -31,6 +32,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_generate_result_file_name,
     )
 
+    # Bypass BaseObjectsJobWorker.before_run
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
+    )
+
     return {
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
@@ -44,21 +50,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 
 def make_completed_result(summary_overrides=None):
-    """Return a standard completed-result dict for use in mock process()."""
-    result = {
-        "status": "completed",
-        "summary": {
-            "total": 10,
-            "processed": 10,
-            "cropped": 8,
-            "uploaded": 0,
-            "failed": 2,
-            "skipped": 0,
-        },
-        "pages_processed": [],
-    }
+    """Return a standard completed-result object for use in mock process()."""
+    result = CropMainFilesWorkerObject()
+    result.status = "completed"
+    result.summary.total = 10
+    result.summary.processed = 10
+    result.summary.cropped = 8
+    result.summary.uploaded = 0
+    result.summary.failed = 2
+    result.summary.skipped = 0
+
     if summary_overrides:
-        result["summary"].update(summary_overrides)
+        for k, v in summary_overrides.items():
+            setattr(result.summary, k, v)
     return result
 
 
@@ -85,19 +89,19 @@ def test_crop_main_files_worker_entry_basic_flow(mock_services):
 def test_crop_main_files_worker_entry_initializes_result(mock_services):
     """Test that result structure is properly initialized."""
     w = worker.CropMainFilesWorker(job_id=1, user=None)
-    result = w.get_initial_result()
+    result = w.result
 
-    assert result["status"] == "pending"
-    assert "started_at" in result
-    assert result["completed_at"] is None
-    assert result["cancelled_at"] is None
-    assert result["summary"]["total"] == 0
-    assert result["summary"]["processed"] == 0
-    assert result["summary"]["cropped"] == 0
-    assert result["summary"]["uploaded"] == 0
-    assert result["summary"]["failed"] == 0
-    assert result["summary"]["skipped"] == 0
-    assert result["pages_processed"] == []
+    assert result.status == "pending"
+    assert result.started_at is not None
+    assert result.completed_at is None
+    assert result.cancelled_at is None
+    assert result.summary.total == 0
+    assert result.summary.processed == 0
+    assert result.summary.cropped == 0
+    assert result.summary.uploaded == 0
+    assert result.summary.failed == 0
+    assert result.summary.skipped == 0
+    assert result.pages_processed == []
 
 
 def test_crop_main_files_worker_entry_with_user(mock_services):
@@ -122,12 +126,9 @@ def test_crop_main_files_worker_entry_with_cancel_event(mock_services):
     cancel_event = threading.Event()
 
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        cancelled_result = {
-            "status": "cancelled",
-            "cancelled_at": datetime.now().isoformat(),
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "pages_processed": [],
-        }
+        cancelled_result = make_completed_result()
+        cancelled_result.status = "cancelled"
+        cancelled_result.cancelled_at = datetime.now().isoformat()
         mock_process.return_value = cancelled_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None, cancel_event=cancel_event)
@@ -264,19 +265,13 @@ def test_crop_main_files_worker_entry_passes_result_file_to_process(mock_service
 def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
     """Test that cancelled status is preserved in final update."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        cancelled_result = {
-            "status": "cancelled",
-            "cancelled_at": datetime.now().isoformat(),
-            "summary": {
-                "total": 5,
-                "processed": 2,
-                "cropped": 2,
-                "uploaded": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-        }
+        cancelled_result = make_completed_result()
+        cancelled_result.status = "cancelled"
+        cancelled_result.cancelled_at = datetime.now().isoformat()
+        cancelled_result.summary.total = 5
+        cancelled_result.summary.processed = 2
+        cancelled_result.summary.cropped = 2
+
         mock_process.return_value = cancelled_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
@@ -288,19 +283,11 @@ def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
 def test_crop_main_files_worker_entry_preserves_failed_status(mock_services):
     """Test that failed status from process is preserved."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = {
-            "status": "failed",
-            "error": "Some processing error",
-            "summary": {
-                "total": 5,
-                "processed": 1,
-                "cropped": 0,
-                "uploaded": 0,
-                "failed": 5,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-        }
+        failed_result = make_completed_result()
+        failed_result.status = "failed"
+        failed_result.summary.total = 5
+        failed_result.summary.failed = 5
+        mock_process.return_value = failed_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -365,9 +352,9 @@ def test_crop_main_files_worker_entry_multiple_jobs(mock_services):
 def test_crop_main_files_worker_entry_started_at_timestamp(mock_services):
     """Test that started_at timestamp is set correctly."""
     w = worker.CropMainFilesWorker(job_id=1, user=None)
-    result = w.get_initial_result()
-    assert "started_at" in result
-    datetime.fromisoformat(result["started_at"])
+    result = w.result
+    assert result.started_at is not None
+    datetime.fromisoformat(result.started_at)
 
 
 def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_services):
@@ -387,10 +374,7 @@ def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_
 def test_crop_main_files_worker_entry_completed_status_default(mock_services):
     """Test that default status is completed when no other status is set."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = {
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "pages_processed": [],
-        }
+        mock_process.return_value = make_completed_result()
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 

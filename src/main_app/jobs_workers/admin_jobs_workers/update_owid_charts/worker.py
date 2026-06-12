@@ -284,7 +284,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return charts
 
     # ------------------------------------------------------------------
-    # BaseJobWorker.process
+    # BaseObjectsJobWorker.process
     # ------------------------------------------------------------------
 
     def process(self) -> UpdateOwidChartsWorkerObject:

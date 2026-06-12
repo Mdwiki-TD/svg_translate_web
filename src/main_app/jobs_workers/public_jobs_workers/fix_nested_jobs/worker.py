@@ -54,7 +54,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         return "fix_nested_jobs"
 
     def _update_step(self, stage_name: str, status: str, message: str) -> None:
-        stage = getattr(self.result.stages, stage_name)
+        stage = getattr(self.result.stages, stage_name, None)
+        if stage is None:
+            raise ValueError(f"Unknown stage: {stage_name}")
         stage.status = status
         stage.message = message
 
@@ -65,12 +67,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         download_result = download_svg_file(self.filename, temp_dir)
 
-        if download_result["ok"]:
+        if download_result.ok:
             self._update_step("download", "success", "Downloaded success")
             self.result.file_result = FileResult(
                 success=True,
                 status="success",
-                path=str(download_result["path"]),
+                path=str(download_result.path),
                 error=None,
             )
             return True
@@ -101,14 +103,14 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         detect_result = detect_nested_tags(file_path)
 
-        self.result.file_result.nested_tags_before = detect_result["count"]
-        self.result.file_result.nested_tags = detect_result["tags"]
+        self.result.file_result.nested_tags_before = detect_result.count
+        self.result.file_result.nested_tags = detect_result.tags
 
-        if detect_result["count"] == 0:
+        if detect_result.count == 0:
             self._update_step("analyze", "skipped", "No nested tags found")
             return None
 
-        analyze_message = f"Found {detect_result['count']} nested tags"
+        analyze_message = f"Found {detect_result.count} nested tags"
         self._update_step("analyze", "success", analyze_message)
 
         return True
@@ -141,11 +143,11 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         before_count = self.result.file_result.nested_tags_before
         verify_result = verify_fix(file_path, before_count)
 
-        self.result.file_result.nested_tags_after = verify_result["after"]
-        self.result.file_result.nested_tags_fixed = verify_result["fixed"]
+        self.result.file_result.nested_tags_after = verify_result.after
+        self.result.file_result.nested_tags_fixed = verify_result.fixed
 
-        if verify_result["fixed"] > 0:
-            message = f"Verified: {verify_result['fixed']} tags fixed"
+        if verify_result.fixed > 0:
+            message = f"Verified: {verify_result.fixed} tags fixed"
             self._update_step("verify", "success", message)
             return True
 
@@ -180,7 +182,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self.user,
         )
 
-        if upload_result["ok"]:
+        if upload_result.ok:
             self._update_step("upload", "success", "Uploaded successfully")
             return True
 
@@ -198,13 +200,14 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         **kwargs: Any,
     ) -> bool:
         """Run a single stage and update result."""
+        stage = getattr(self.result.stages, stage_name, None)
+        if stage is None:
+            raise ValueError(f"Unknown stage: {stage_name}")
+
         if self.is_cancelled():
-            stage = getattr(self.result.stages, stage_name)
-            if stage:
-                stage.status = "Cancelled"
+            stage.status = "Cancelled"
             return False
 
-        stage = getattr(self.result.stages, stage_name)
         stage.status = "Running"
         self._save_progress()
 

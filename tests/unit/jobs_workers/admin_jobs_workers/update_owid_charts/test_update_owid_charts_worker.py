@@ -49,28 +49,28 @@ class TestUpdateOwidChartsWorkerInitialization:
             args={"other_key": "value"},
         )
 
-        assert worker.limit_items is None
+        assert worker.limit_items == 0
 
     def test_get_job_type(self, mock_jobs_service):
         """Test get_job_type returns correct value."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         assert worker.get_job_type() == "update_owid_charts"
 
-    def test_get_initial_result(self, mock_jobs_service):
-        """Test get_initial_result returns proper structure."""
+    def test_initial_result_structure(self, mock_jobs_service):
+        """Test initial result matches expected structure."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        result = worker.get_initial_result()
+        result = worker.result
 
-        assert result["status"] == "pending"
-        assert "started_at" in result
-        assert result["completed_at"] is None
-        assert result["cancelled_at"] is None
-        assert result["summary"]["total"] == 0
-        assert result["summary"]["processed"] == 0
-        assert result["summary"]["updated"] == 0
-        assert result["summary"]["skipped"] == 0
-        assert result["summary"]["failed"] == 0
-        assert result["charts_processed"] == []
+        assert result.status == "pending"
+        assert result.started_at is not None
+        assert result.completed_at is None
+        assert result.cancelled_at is None
+        assert result.summary.total == 0
+        assert result.summary.processed == 0
+        assert result.summary.updated == 0
+        assert result.summary.skipped == 0
+        assert result.summary.failed == 0
+        assert result.pages_processed == []
 
 
 class TestUpdateOwidChartsWorkerApplyLimits:

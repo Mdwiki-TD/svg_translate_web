@@ -463,14 +463,14 @@ class TestRun:
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
-            # Bypass BaseJobWorker.before_run (which calls update_job_status
+            # Bypass BaseObjectsJobWorker.before_run (which calls update_job_status
             # against the real DB and then tries to do `self.result.status =`
             # attribute access on a dict). Returning True lets process() run.
             "before_run": patch(
-                "src.main_app.jobs_workers.base_worker_object.BaseJobWorker.before_run",
+                "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
                 return_value=True,
             ),
-            # Bypass the DB write inside BaseJobWorker.after_run().
+            # Bypass the DB write inside BaseObjectsJobWorker.after_run().
             "update_job_status": patch(
                 "src.main_app.jobs_workers.base_worker_object.update_job_status",
                 return_value=None,
@@ -574,7 +574,7 @@ class TestRun:
         try:
             proc = _make_processor()
             result = proc.run()
-            # BaseJobWorker._mark_as_cancelled_in_result sets status to
+            # BaseObjectsJobWorker._mark_as_cancelled_in_result sets status to
             # lowercase "cancelled".
             assert result["status"] == "cancelled"
             mocks["upload"].assert_not_called()

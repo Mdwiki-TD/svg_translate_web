@@ -85,9 +85,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _is_cancelled(self, stage_name: str | None = None) -> bool:
         if self.is_cancelled():
             if stage_name:
-                stage = getattr(self.result.stages, stage_name)
-                if stage:
-                    stage.status = "Cancelled"
+                stage = getattr(self.result.stages, stage_name, None)
+                if stage is None:
+                    raise ValueError(f"Unknown stage: {stage_name}")
+                stage.status = "Cancelled"
             return True
 
         return False
@@ -176,6 +177,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                     item = self.result.files_processed[title]
                     if not item.steps["download"]["msg"]:  # to avoid overwriting previous messages
                         item.steps["download"] = _result
+                        # TODO: check type of _result
+                        # if _result.result is False:
+                        #     item.status = "failed"
+                        #     item.error = _result.msg
 
                         if _result["result"] is False:
                             item.status = "failed"
@@ -214,7 +219,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                     item = self.result.files_processed[title]
                     if not item.steps["nested"]["msg"]:  # to avoid overwriting previous messages
                         item.steps["nested"] = nested_result
-
+                        # TODO: check type of _result
                         if nested_result["result"] is False:
                             item.status = "failed"
                             item.error = nested_result["msg"]
@@ -252,6 +257,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                     item = self.result.files_processed[title]
                     if not item.steps["inject"]["msg"]:  # to avoid overwriting previous messages
                         item.steps["inject"] = _result
+                        # TODO: check type of _result
 
                         if _result["result"] is False:
                             item.status = "failed"
@@ -264,6 +270,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.inject_data = inject_stage_data["data"]
 
             inject_files = self.inject_data.get("files", {})
+
             self.files_to_upload = {title: data for title, data in inject_files.items() if data.get("file_path")}
 
             # Update files_processed with inject results
@@ -412,10 +419,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         **kwargs: Any,
     ) -> bool:
         """Run a single stage and update result."""
+        stage = getattr(self.result.stages, stage_name, None)
+        if stage is None:
+            raise ValueError(f"Unknown stage: {stage_name}")
+
         if self._is_cancelled(stage_name):
             return False
 
-        stage = getattr(self.result.stages, stage_name)
         stage.status = "Running"
         self._save_progress()
 
@@ -423,12 +433,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             step_result = step_func(*args, **kwargs)
             stage.data = step_result
             if step_result.get("message"):
-                stage.message = step_result["message"]
+                stage.message = step_result.message  # step_result["message"]
 
             if step_result.get("success"):
                 stage.status = "Completed"
                 if "summary" in step_result and not stage.message:
-                    summary = step_result["summary"]
+                    summary = step_result.summary  # step_result["summary"]
                     if isinstance(summary, dict):
                         stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
 

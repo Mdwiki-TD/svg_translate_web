@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from ...base_worker_object import WorkerObject
+from ...shared_objects import StandardAdminWorkerObject
 
 
 @dataclass

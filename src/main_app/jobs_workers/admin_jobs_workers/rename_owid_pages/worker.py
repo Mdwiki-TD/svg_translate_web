@@ -100,7 +100,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         self.result.args = self.args
 
     # ------------------------------------------------------------------
-    # BaseJobWorker hooks
+    # BaseObjectsJobWorker hooks
     # ------------------------------------------------------------------
 
     def get_job_type(self) -> str:
