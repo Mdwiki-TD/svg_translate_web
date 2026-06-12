@@ -21,7 +21,7 @@ Objects for collect_templates_data worker.
             "pages_updated": [],
             "pages_skipped": [],
             "pages_failed": [],
-            """
+"""
 
 from __future__ import annotations
 

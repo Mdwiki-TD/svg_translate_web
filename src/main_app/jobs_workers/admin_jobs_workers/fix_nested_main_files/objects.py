@@ -20,7 +20,7 @@ Objects for fix_nested_main_files worker.
             "pages_success": [],
             "pages_skipped": [],
             "pages_failed": [],
-            """
+"""
 
 from __future__ import annotations
 

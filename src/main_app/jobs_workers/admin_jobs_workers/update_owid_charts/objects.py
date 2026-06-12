@@ -20,7 +20,7 @@ Objects for update_owid_charts worker.
             "updated_charts": [],
             "skipped_charts": [],
             "failed_charts": [],
-            """
+"""
 
 from __future__ import annotations
 

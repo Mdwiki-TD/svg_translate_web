@@ -78,7 +78,7 @@ class BaseObjectsJobWorker(ABC):
         self.result_file_cancelled: str = f"{self.result_file}.cancelled"
         self._edit_count: int = 0
 
-        self.result: WorkerObject | None = None
+        self.result: WorkerObject = WorkerObject()
 
     @abstractmethod
     def get_job_type(self) -> str:

@@ -21,7 +21,7 @@ Objects for add_svglanguages_template worker.
             "pages_skipped": [],
             "pages_failed": [],
         }
-        """
+"""
 
 from __future__ import annotations
 
