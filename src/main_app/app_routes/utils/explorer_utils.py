@@ -28,7 +28,7 @@ def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     return candidate
 
 
-def get_main_data(title, filename="files_stats.json"):
+def get_main_data(title, filename: str="files_stats.json"):
     svg_data_path = load_svg_data_path()
     file_path = svg_data_path / title / (filename or "files_stats.json")
     if not file_path.exists():
