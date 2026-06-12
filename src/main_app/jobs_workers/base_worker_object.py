@@ -35,6 +35,8 @@ class WorkerObject:
     errors: List[WorkerError] = field(default_factory=list)
     error: Optional[str] = None
     error_type: Optional[str] = None
+    args: Dict[str, Any] = field(default_factory=dict)
+    note: Optional[str] = None
 
     def to_json(self) -> Dict[str, Any]:
         """

@@ -77,15 +77,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if self.is_cancelled():
             if stage_name:
                 stage = getattr(self.result.stages, stage_name)
-                stage.status = "Cancelled"
+                if stage:
+                    stage.status = "Cancelled"
             return True
 
         return False
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
-        self.result.status = "running"
-        self._save_progress()
 
         self.session = create_commons_session(settings.other.user_agent)
         self.site = get_user_site(self.user)

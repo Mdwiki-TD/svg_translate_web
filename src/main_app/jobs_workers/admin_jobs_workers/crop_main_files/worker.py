@@ -12,7 +12,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, get_user_site, is_pages_exists
+from ....api_services import MwClientPage, create_commons_session, get_user_site, is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
@@ -30,7 +30,6 @@ from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
 from .upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
-
 
 class CropMainFilesWorker(BaseObjectsJobWorker):
     """
@@ -74,11 +73,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "crop_main_files"
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> CropMainFilesWorkerObject:
         """Execute the full pipeline."""
-        self.result.status = "running"
-        self._save_progress()
-
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")

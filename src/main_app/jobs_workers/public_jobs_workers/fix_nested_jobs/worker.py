@@ -200,7 +200,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         """Run a single stage and update result."""
         if self.is_cancelled():
             stage = getattr(self.result.stages, stage_name)
-            stage.status = "Cancelled"
+            if stage:
+                stage.status = "Cancelled"
             return False
 
         stage = getattr(self.result.stages, stage_name)
@@ -227,8 +228,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
-        self.result.status = "running"
-        self._save_progress()
 
         self.site = get_user_site(self.user)
 
