@@ -65,7 +65,7 @@ class TestGetUserSite:
         assert get_user_site(user) is None
 
     def test_get_user_site_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        calls = []
+        calls: list = []
 
         class DummySite:
             def __init__(self, host: str, **kwargs: object) -> None:

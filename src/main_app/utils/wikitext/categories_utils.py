@@ -135,7 +135,7 @@ def sort_categories(wikitext: str) -> str:
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
 
-    categories = []
+    categories: list = []
     for wl in parsed.wikilinks:
         if wl.target.strip().lower().startswith("category:"):
             categories.append(wl.string)

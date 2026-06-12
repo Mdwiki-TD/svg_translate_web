@@ -14,7 +14,7 @@ class TestFindMissingCategories:
     def test_old_category_not_in_new(self):
         """Should return category from base_categories list if it is missing in target_categories list."""
         base_categories = [create_category_link_from_str("[[Category:Cat1]]")]
-        target_categories = []
+        target_categories: list = []
 
         result = find_missing_categories(target_categories, base_categories)
 
@@ -85,7 +85,7 @@ class TestFindMissingCategoriesWithSpecialChars:
         """Old text has a category with underscore, new text is missing it."""
         # use create_category_link_from_str directly to ensure control over the data
         base_categories = [create_category_link_from_str("[[Category:Our_World_in_Data_graphs_of_Afghanistan]]")]
-        target_categories = []
+        target_categories: list = []
 
         result = find_missing_categories(target_categories, base_categories)
 

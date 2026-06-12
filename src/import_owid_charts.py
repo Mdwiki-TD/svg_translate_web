@@ -39,7 +39,7 @@ def parse_int(value: str) -> int | None:
 
 def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     """Read CSV file and return list of chart data dictionaries."""
-    charts = []
+    charts: list = []
 
     logger.info(f"Reading CSV file: {file_path}")
 

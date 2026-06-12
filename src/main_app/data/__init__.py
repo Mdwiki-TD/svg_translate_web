@@ -37,7 +37,7 @@ def get_slug_categories(slug: str) -> list[str]:
 
     topics_categories = load_data("topics_categories")
 
-    result = []
+    result: list = []
 
     for x in topics:
         result.extend(topics_categories.get(x, []))

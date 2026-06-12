@@ -126,7 +126,7 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
         dest.write_text("thumb", encoding="utf-8")
         return
 
-    responses = []
+    responses: list = []
 
     def fake_send(directory: str, filename: str):
         responses.append((directory, filename))

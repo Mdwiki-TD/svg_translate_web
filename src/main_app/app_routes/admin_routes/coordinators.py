@@ -28,7 +28,7 @@ def _coordinators_dashboard() -> str:
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to list coordinators.")
         flash("Unable to list coordinators.", "danger")
-        coordinators = []
+        coordinators: list = []
 
     total = len(coordinators)
     total_active = sum(1 for coord in coordinators if coord.is_active)

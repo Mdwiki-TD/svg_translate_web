@@ -21,7 +21,7 @@ class CookieHeaderClient(FlaskClient):
                 raw_cookie = headers.pop("Cookie", headers.pop("cookie", None))
                 kwargs["headers"] = headers
             else:
-                new_headers = []
+                new_headers: list = []
                 for name, value in headers:
                     if name.lower() == "cookie":
                         raw_cookie = value

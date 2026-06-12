@@ -125,7 +125,7 @@ def _jobs_list(job_type: str, template_data: JobData) -> str:
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to load jobs list.")
         flash("Unable to load jobs list.", "danger")
-        jobs = []
+        jobs: list = []
 
     template_name = template_data.job_list_template
 

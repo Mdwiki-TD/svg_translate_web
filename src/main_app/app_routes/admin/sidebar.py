@@ -202,7 +202,7 @@ def create_side(active_route, path: str | None = None):
     # logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
-        lis = []
+        lis: list = []
         group_is_active = False
         key_id = key.lower().replace(" ", "_")
         css_class_full = [item.href for item in items if path == item.href]

@@ -36,7 +36,7 @@ def upload_step(
     done = 0
     not_done = 0
     no_changes = 0
-    errors = []
+    errors: list = []
     results: dict[str, Any] = {}
 
     total_files = len(files_to_upload)

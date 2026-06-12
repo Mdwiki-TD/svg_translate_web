@@ -50,7 +50,7 @@ def admin_dashboard():
     jobs = list_jobs(limit=100)
 
     # Enhance jobs with display names and detail URLs
-    enhanced_jobs = []
+    enhanced_jobs: list = []
     for job in jobs:
         enhanced_jobs.append(
             {

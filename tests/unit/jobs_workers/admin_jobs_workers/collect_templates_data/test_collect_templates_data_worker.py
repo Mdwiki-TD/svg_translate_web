@@ -522,7 +522,7 @@ def test_collect_templates_data_progress_saving_frequency(mock_services, monkeyp
     mock_services["find_main_title"].return_value = "test.svg"
 
     # Track save_progress calls
-    save_progress_calls = []
+    save_progress_calls: list = []
     original_save = mock_services["save_job_result_by_name"]
 
     def track_save(*args, **kwargs):
@@ -597,7 +597,7 @@ def test_collect_templates_data_template_with_existing_main_file_only(mock_servi
 
 def test_collect_templates_data_add_template_generic_exception(mock_services):
     """Test that generic exceptions during add_template are tracked in pages_failed."""
-    existing_templates = []
+    existing_templates: list = []
     category_templates = ["Template:New1"]
 
     mock_services["get_category_members"].return_value = category_templates

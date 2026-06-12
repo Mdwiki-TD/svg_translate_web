@@ -79,7 +79,7 @@ def get_files(title, sub_dir):
 
 def get_languages(title: str, translations_data: dict | None = None) -> list:
     # ---
-    languages = []
+    languages: list = []
     # ---
     if not translations_data:
         translations_data = get_main_data(title, "translations.json") or {}
