@@ -9,7 +9,7 @@ import logging
 import threading
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
@@ -27,8 +27,9 @@ from ....utils.wikitext import (
     find_newest_world_file,
     find_template_source,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
+from .objects import CollectTemplatesDataWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ def slugify_title(title: str) -> str:
     return None
 
 
-class CollectMainFilesWorker(BaseJobWorker):
+class CollectMainFilesWorker(BaseObjectsJobWorker):
     """Worker for collecting main files for templates."""
 
     def __init__(
@@ -108,36 +109,12 @@ class CollectMainFilesWorker(BaseJobWorker):
             self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject()
+        self.result.args = args or {}
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "collect_templates_data"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_added": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
 
     # ------------------------------------------------------------------
     # pre process step
@@ -181,7 +158,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             )
             try:
                 add_template_data({"title": title})
-                self.result["pages_added"].append(tmp_info.to_dict())
+                self.result.pages_added.append(tmp_info.to_dict())
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
             except ValueError as e:
                 # Template already exists (race condition)
@@ -192,7 +169,7 @@ class CollectMainFilesWorker(BaseJobWorker):
                 logger.exception(f"Job {self.job_id}: Failed to add template {title}")
                 tmp_info.error = str(e)
 
-                self.result["pages_failed"].append(tmp_info.to_dict())
+                self.result.pages_failed.append(tmp_info.to_dict())
 
     # ------------------------------------------------------------------
     # Helpers
@@ -247,7 +224,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         return template_info
 
     def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         template_info = self._load_temp_info(template)
 
@@ -258,8 +235,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         if not wikitext:
             template_info.status = "failed"
             template_info.error = "Could not fetch wikitext from Commons"
-            self.result["pages_failed"].append(template_info.to_dict())
-            self.result["summary"]["failed"] += 1
+            self.result.pages_failed.append(template_info.to_dict())
+            self.result.summary.failed += 1
             logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
             return False
 
@@ -351,8 +328,8 @@ class CollectMainFilesWorker(BaseJobWorker):
         if not main_file and not last_world_file and not source:
             template_info.status = "failed"
             template_info.error = "Could not find (main file or newest world file or source) in wikitext"
-            self.result["pages_failed"].append(template_info.to_dict())
-            self.result["summary"]["failed"] += 1
+            self.result.pages_failed.append(template_info.to_dict())
+            self.result.summary.failed += 1
             logger.warning(
                 f"Job {self.job_id}: Could not find main file or newest world file or source for {template.title}"
             )
@@ -361,7 +338,7 @@ class CollectMainFilesWorker(BaseJobWorker):
         if not template_data:
             template_info.status = "skipped"
             template_info.error = skip_msg
-            self.result["pages_skipped"].append(template_info.to_dict())
+            self.result.pages_skipped.append(template_info.to_dict())
             logger.info(f"Job {self.job_id}: No changes for {template.title}")
             return False
 
@@ -379,7 +356,7 @@ class CollectMainFilesWorker(BaseJobWorker):
             )
 
             template_info.status = "updated"
-            self.result["pages_updated"].append(template_info.to_dict())
+            self.result.pages_updated.append(template_info.to_dict())
             return True
 
         except Exception as e:
@@ -387,8 +364,8 @@ class CollectMainFilesWorker(BaseJobWorker):
             template_info.error = f"Exception: {str(e)}"
             template_info.error_type = type(e).__name__
 
-            self.result["pages_failed"].append(template_info.to_dict())
-            self.result["summary"]["failed"] += 1
+            self.result.pages_failed.append(template_info.to_dict())
+            self.result.summary.failed += 1
 
             logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 
@@ -417,9 +394,9 @@ class CollectMainFilesWorker(BaseJobWorker):
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
-        self.result["args"].update({"update_all": str(self.update_all)})
+        self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
@@ -436,7 +413,7 @@ class CollectMainFilesWorker(BaseJobWorker):
 
         # Step 2: Re-fetch all templates (including newly added)
         templates: list[TemplateRecord] = list_templates()
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
 
         if self.update_all:
             tmps_to_process = templates
@@ -465,12 +442,12 @@ class CollectMainFilesWorker(BaseJobWorker):
                 break
 
         # Update summary skipped count
-        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
+        self.result.summary.skipped = len(self.result.pages_skipped)
 
         logger.info(
-            f"Job {self.job_id} completed: {len(self.result['pages_updated'])} updated, "
-            f"{self.result['summary']['failed']} failed, "
-            f"{self.result['summary']['skipped']} skipped"
+            f"Job {self.job_id} completed: {len(self.result.pages_updated)} updated, "
+            f"{self.result.summary.failed} failed, "
+            f"{self.result.summary.skipped} skipped"
         )
 
         return self.result

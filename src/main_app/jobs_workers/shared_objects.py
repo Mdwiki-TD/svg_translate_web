@@ -1,4 +1,4 @@
-""" """
+"""Shared objects for job workers."""
 
 from __future__ import annotations
 
@@ -43,8 +43,30 @@ class SharedworkerObject(WorkerObject):
     note: str = ""
 
 
+@dataclass
+class StandardAdminSummary:
+    total: int = 0
+    processed: int = 0
+    success: int = 0
+    failed: int = 0
+    skipped: int = 0
+
+
+@dataclass
+class StandardAdminWorkerObject(WorkerObject):
+    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+    pages_processed: list[dict[str, Any]] = field(default_factory=list)
+    pages_success: list[dict[str, Any]] = field(default_factory=list)
+    pages_skipped: list[dict[str, Any]] = field(default_factory=list)
+    pages_failed: list[dict[str, Any]] = field(default_factory=list)
+    note: str = ""
+    args: dict[str, Any] = field(default_factory=dict)
+
+
 __all__ = [
     "Summary",
     "SharedworkerObject",
     "UpdaterOutcome",
+    "StandardAdminSummary",
+    "StandardAdminWorkerObject",
 ]

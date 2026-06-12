@@ -8,7 +8,7 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
@@ -17,7 +17,8 @@ from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....utils.wikitext import merge_categories, sort_categories
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
+from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ class TemplateProcessingInfo:
         }
 
 
-class CreateOwidPagesWorker(BaseJobWorker):
+class CreateOwidPagesWorker(BaseObjectsJobWorker):
     """
     Worker for create_owid_pages.
     Steps:
@@ -84,44 +85,15 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "create_owid_pages"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "created": 0,
-                "updated": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_created": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def process(self) -> Dict[str, Any]:
-        self.result["args"].update({"update_all": str(self.update_all)})
+    def process(self) -> CreateOwidPagesWorkerObject:
+        self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
@@ -131,19 +103,19 @@ class CreateOwidPagesWorker(BaseJobWorker):
 
         templates = self._load_templates()
         len_all = len(templates)
-        self.result["summary"]["total"] = len_all
+        self.result.summary.total = len_all
         self._save_progress()
 
         if not self.update_all:
             templates = self.filter_created(templates)
             if not templates:
-                self.result["summary"]["skipped"] = len_all
-                self.result["status"] = "skipped"
-                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exist"
+                self.result.summary.skipped = len_all
+                self.result.status = "skipped"
+                self.result.note = f"Nothing to create, All {len_all:,} pages already exist"
                 logger.warning(f"Job {self.job_id}: No templates to process")
                 return self.result
 
-        # self.result["summary"]["total"] = len(templates)
+        # self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
 
         per_item = self.get_priority(len(templates))
@@ -162,8 +134,8 @@ class CreateOwidPagesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+        if self.result.status in ["pending", "running"]:
+            self.result.status = "completed"
 
         return self.result
 
@@ -211,7 +183,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         return new_text
 
     def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         # file info
         file_info = TemplateProcessingInfo(
@@ -319,7 +291,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._skip_step(info, "update_text", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
-            self.result["summary"]["skipped"] += 1
+            self.result.summary.skipped += 1
             return None  # nothing to update
 
         # Content is different, perform update
@@ -329,7 +301,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
         )
 
         if res["success"]:
-            self.result["summary"]["updated"] += 1
+            self.result.summary.updated += 1
             info.steps["update_text"] = {
                 "result": True,
                 "msg": f"Updated page: {new_title}",
@@ -360,7 +332,7 @@ class CreateOwidPagesWorker(BaseJobWorker):
             self._fail(info, "create_new_page", err)
             return False
 
-        self.result["summary"]["created"] += 1
+        self.result.summary.created += 1
         info.steps["create_new_page"] = {
             "result": True,
             "msg": f"Created: {new_title}",
@@ -385,14 +357,14 @@ class CreateOwidPagesWorker(BaseJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-        self.result["summary"]["failed"] += 1
+        self.result.summary.failed += 1
 
     def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
+        getattr(self.result, key).append(file_info.to_dict())
 
 
 def create_owid_pages_for_templates(

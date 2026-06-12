@@ -9,7 +9,7 @@ import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from ....db.services import list_templates
 from ....shared.fix_nested.worker import (
@@ -19,7 +19,8 @@ from ....shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
+from .objects import FixNestedMainFilesWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ def repair_nested_svg_tags(
         }
 
 
-class FixNestedMainFilesWorker(BaseJobWorker):
+class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
     def __init__(
@@ -109,56 +110,33 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
     def _log_skipped_no_main_file(self, template_info: dict) -> None:
         """Log a skipped template due to the absence of a main file."""
         template_info["status"] = "skipped"
         template_info["reason"] = "No main_file set"
-        self.result["pages_skipped"].append(template_info)
+        self.result.pages_skipped.append(template_info)
 
     def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
         """Log information about a template that was skipped due to having no nested tags."""
         template_info["status"] = "skipped"
         template_info["reason"] = "No nested tags found"
         template_info["fix_result"] = fix_result
-        self.result["pages_skipped"].append(template_info)
-        self.result["summary"]["skipped"] += 1
+        self.result.pages_skipped.append(template_info)
+        self.result.summary.skipped += 1
 
     def _log_success(self, template_info: dict, fix_result: dict) -> None:
         """Log a successfully processed template."""
         template_info["status"] = "success"
         template_info["fix_result"] = fix_result
-        self.result["pages_success"].append(template_info)
-        self.result["summary"]["success"] += 1
+        self.result.pages_success.append(template_info)
+        self.result.summary.success += 1
 
     def _log_failure(self, template_info: dict, reason: str, error_type: str = "") -> None:
         """Log a template processing failure."""
@@ -166,19 +144,19 @@ class FixNestedMainFilesWorker(BaseJobWorker):
         template_info["reason"] = reason
         if error_type:
             template_info["error_type"] = error_type
-        self.result["pages_failed"].append(template_info)
-        self.result["summary"]["failed"] += 1
+        self.result.pages_failed.append(template_info)
+        self.result.summary.failed += 1
 
     def _log_failed_fix(self, template_info: dict, fix_result: dict) -> None:
         """Log a template that failed during processing."""
         template_info["status"] = "failed"
         template_info["reason"] = fix_result.get("message", "Unknown error")
         template_info["fix_result"] = fix_result
-        self.result["pages_failed"].append(template_info)
-        self.result["summary"]["failed"] += 1
+        self.result.pages_failed.append(template_info)
+        self.result.summary.failed += 1
 
     def _process_template(self, template) -> None:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         template_info = {
             "id": template.id,
@@ -221,11 +199,11 @@ class FixNestedMainFilesWorker(BaseJobWorker):
 
         return False
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> FixNestedMainFilesWorkerObject:
         """Execute the fix nested tags processing logic."""
         # Get all templates
         templates = list_templates()
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
 
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
 
@@ -249,13 +227,13 @@ class FixNestedMainFilesWorker(BaseJobWorker):
                 self._save_progress()
 
         # Update summary skipped count
-        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
+        self.result.summary.skipped = len(self.result.pages_skipped)
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{self.result['summary']['success']} successful, "
-            f"{self.result['summary']['failed']} failed, "
-            f"{self.result['summary']['skipped']} skipped"
+            f"{self.result.summary.success} successful, "
+            f"{self.result.summary.failed} failed, "
+            f"{self.result.summary.skipped} skipped"
         )
 
         return self.result

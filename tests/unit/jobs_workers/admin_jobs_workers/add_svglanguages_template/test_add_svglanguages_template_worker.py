@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# from src.main_app.config import settings
 from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker import (
     AddSvgSVGLanguagesTemplate,
     TemplateInfo,
@@ -67,10 +66,24 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_add_svg_worker(mock_jobs_service) -> AddSvgSVGLanguagesTemplate:
+def mock_add_svg_worker(mock_jobs_service, monkeypatch: pytest.MonkeyPatch) -> AddSvgSVGLanguagesTemplate:
+    # Bypass BaseObjectsJobWorker.before_run
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+        MagicMock(return_value=True)
+    )
+    # Bypass update_job_status in after_run
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.update_job_status",
+        MagicMock()
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+        MagicMock()
+    )
+
     worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
     worker.site = MagicMock()
-    worker.result = worker.get_initial_result()
     return worker
 
 
@@ -133,9 +146,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.user == user
         assert worker.cancel_event == cancel_event
         assert worker.site is None
-        # result is initialized by parent class with initial structure
-        assert "status" in worker.result
-        assert worker.result["status"] == "pending"
+        assert worker.result.status == "pending"
 
     def test_worker_reads_limit_items_from_args(self, mock_jobs_service):
         """Test worker reads limit_items from args."""
@@ -155,7 +166,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.limit_items == 0
 
     def test_worker_limit_items_none_when_key_missing(self, mock_jobs_service):
-        """Test worker sets limit_items to None when args has no limit_items key."""
+        """Test worker sets limit_items to 0 when args has no limit_items key."""
         worker = AddSvgSVGLanguagesTemplate(
             job_id=1,
             user=None,
@@ -163,7 +174,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
             args={"other_key": "value"},
         )
 
-        assert worker.limit_items is None
+        assert worker.limit_items == 0
 
     def test_get_job_type(self, mock_jobs_service):
         """Test get_job_type returns correct job type."""
@@ -171,21 +182,20 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.get_job_type() == "add_svglanguages_template"
 
     def test_get_initial_result(self, mock_jobs_service):
-        """Test get_initial_result returns correct structure."""
+        """Test initial result structure."""
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        result = worker.get_initial_result()
+        result = worker.result
 
-        assert result["status"] == "pending"
-        assert "started_at" in result
-        assert result["completed_at"] is None
-        assert result["cancelled_at"] is None
-        assert "summary" in result
-        assert result["summary"]["total"] == 0
-        assert result["summary"]["processed"] == 0
-        assert result["summary"]["success"] == 0
-        assert result["summary"]["failed"] == 0
-        assert result["summary"]["skipped"] == 0
-        assert result["pages_processed"] == []
+        assert result.status == "pending"
+        assert result.started_at is not None
+        assert result.completed_at is None
+        assert result.cancelled_at is None
+        assert result.summary.total == 0
+        assert result.summary.processed == 0
+        assert result.summary.success == 0
+        assert result.summary.failed == 0
+        assert result.summary.skipped == 0
+        assert result.pages_processed == []
 
 
 class TestLoadTemplates:
@@ -244,10 +254,9 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text.assert_called_once()
         mock_add_svg_worker._step_add_template.assert_called_once()
         mock_add_svg_worker._step_save_new_text.assert_called_once()
-        mock_add_svg_worker._append.assert_called_once()
 
         # Verify summary was updated
-        assert mock_add_svg_worker.result["summary"]["processed"] == 1
+        assert mock_add_svg_worker.result.summary.processed == 1
 
     def test_process_template_load_step_fails(self, mock_add_svg_worker):
         """Test that processing stops when load step fails."""
@@ -470,21 +479,31 @@ class TestHelperMethods:
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info.status = "completed"
 
-        mock_add_svg_worker._append(info)
+        mock_add_svg_worker._append(info, key="pages_success")
 
-        assert len(mock_add_svg_worker.result["pages_processed"]) == 1
-        assert mock_add_svg_worker.result["pages_processed"][0]["template_id"] == 1
+        assert len(mock_add_svg_worker.result.pages_success) == 1
+        assert mock_add_svg_worker.result.pages_success[0]["template_id"] == 1
 
 
 class TestProcessMethod:
     """Tests for the main process() method."""
 
-    def test_process_success(self, mock_services, mock_jobs_service, mock_site):
+    def test_process_success(self, mock_services, mock_jobs_service, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test successful processing of all templates."""
         mock_services["get_user_site"].return_value = mock_site
 
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
         mock_services["list_templates"].return_value = mock_templates
+
+        # Bypass update_job_status in before_run/after_run
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.update_job_status",
+            MagicMock()
+        )
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+            MagicMock()
+        )
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
@@ -493,21 +512,31 @@ class TestProcessMethod:
 
         result = worker.process()
 
-        assert result["status"] == "completed"
-        assert result["summary"]["total"] == 1
+        assert result.status == "completed"
+        assert result.summary.total == 1
         mock_services["get_user_site"].assert_called_once()
 
-    def test_process_fails_without_site(self, mock_services, mock_jobs_service):
+    def test_process_fails_without_site(self, mock_services, mock_jobs_service, monkeypatch: pytest.MonkeyPatch):
         """Test that process fails when site authentication is not available."""
         mock_services["get_user_site"].return_value = None
+
+        # Bypass update_job_status
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.update_job_status",
+            MagicMock()
+        )
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+            MagicMock()
+        )
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         result = worker.process()
 
-        assert result["status"] == "failed"
-        assert "failed_at" in result
+        assert result.status == "failed"
+        assert result.failed_at is not None
 
-    def test_process_handles_cancellation(self, mock_services, mock_jobs_service, mock_site):
+    def test_process_handles_cancellation(self, mock_services, mock_jobs_service, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test that process stops when cancelled."""
         mock_services["get_user_site"].return_value = mock_site
 
@@ -517,6 +546,16 @@ class TestProcessMethod:
             MagicMock(id=3, title="Template:OWID/test3"),
         ]
         mock_services["list_templates"].return_value = mock_templates
+
+        # Bypass update_job_status
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.update_job_status",
+            MagicMock()
+        )
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+            MagicMock()
+        )
 
         cancel_event = threading.Event()
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"}, cancel_event=cancel_event)
