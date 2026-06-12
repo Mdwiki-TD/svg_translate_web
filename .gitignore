@@ -26,3 +26,4 @@ src/main_app/jobs_workers/crop_main_files/objects.py
 monkeytype.sqlite3
 righttyper.log
 righttyper.out
+run_tests.py
