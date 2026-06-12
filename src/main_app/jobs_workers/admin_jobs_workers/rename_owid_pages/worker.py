@@ -20,13 +20,14 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Iterable
+from typing import Any, Iterable
 
 from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.services import get_template_by_title, update_template_data
 from ...base_worker_object import BaseObjectsJobWorker
+from .objects import RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,8 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject()
+        self.result.args = self.args
 
     # ------------------------------------------------------------------
     # BaseJobWorker hooks
@@ -104,32 +106,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "rename_owid_pages"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "checked": 0,
-                "renamed": 0,
-                "skipped_target_exists": 0,
-                "redirected": 0,
-                "failed": 0,
-            },
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> RenameOwidPagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -182,7 +159,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ("pending", "running"):
+        if self.result.status in ("pending", "running"):
             self.result.status = "completed"
 
         return self.result

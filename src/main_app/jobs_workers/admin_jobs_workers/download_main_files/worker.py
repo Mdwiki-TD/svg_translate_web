@@ -9,7 +9,7 @@ import threading
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from flask import send_file
@@ -19,6 +19,7 @@ from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker_object import BaseObjectsJobWorker
+from .objects import DownloadMainFilesWorkerObject
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -109,35 +110,14 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
+        self.result.args = args or {}
+        self.result.output_path = str(self.output_dir)
         self.session: requests.Session | None = None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "download_main_files"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "output_path": str(self.output_dir),
-            "files_downloaded": [],
-            "files_failed": [],
-        }
 
     def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
@@ -206,7 +186,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         return False
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> DownloadMainFilesWorkerObject:
         """Execute the download processing logic."""
         templates_with_files = self._load_templates()
 
@@ -242,7 +222,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         # Generate zip file after successful completion
-        if self.result.get("status") != "cancelled":
+        if self.result.status != "cancelled":
             try:
                 generate_main_files_zip()
                 logger.info(f"Job {self.job_id}: Generated main_files.zip successfully")
@@ -251,8 +231,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{self.result['summary']['success']} success, "
-            f"{self.result['summary']['failed']} failed"
+            f"{self.result.summary.success} success, "
+            f"{self.result.summary.failed} failed"
         )
 
         return self.result
