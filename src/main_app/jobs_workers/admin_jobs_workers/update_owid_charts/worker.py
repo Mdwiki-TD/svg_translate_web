@@ -158,7 +158,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _process_chart(self, chart: OwidChartRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         info = ChartUpdateInfo(
             chart_id=chart.chart_id,
@@ -174,7 +174,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
-            self.result["failed_charts"].append(
+            self.result.failed_charts.append(
                 {
                     "status": "failed",
                     "slug": chart.slug,
@@ -196,7 +196,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         if not timespan_raw and not owid_variable_id and not data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
-            self.result["skipped_charts"].append(
+            self.result.skipped_charts.append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
@@ -220,7 +220,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             if parsed is None and not data:
                 info.status = "failed"
                 info.error = f"Could not parse timespan: '{timespan_raw}'"
-                self.result["failed_charts"].append(
+                self.result.failed_charts.append(
                     {
                         "status": "failed",
                         "slug": chart.slug,
@@ -252,7 +252,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         if not data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
-            self.result["skipped_charts"].append(
+            self.result.skipped_charts.append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
@@ -267,14 +267,14 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 data,
             )
             info.status = "updated"
-            self.result["updated_charts"].append(info.to_dict())
+            self.result.updated_charts.append(info.to_dict())
             return True
         except Exception as exc:
             logger.exception(f"Job {self.job_id}: DB update failed for chart '{chart.slug}'")
             info.status = "failed"
             info.error = str(exc)
 
-        self.result["failed_charts"].append(info.to_dict())
+        self.result.failed_charts.append(info.to_dict())
         return False
 
     def _load_charts(self) -> list[OwidChartRecord]:
@@ -297,7 +297,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         charts = self._load_charts()
         total = len(charts)
 
-        self.result["summary"]["total"] = total
+        self.result.summary.total = total
         logger.info(f"Job {self.job_id}: Found {total} charts to process")
 
         per_item = self.get_priority(total)
@@ -317,7 +317,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         if self.result.get("status") in ("pending", "running"):
-            self.result["status"] = "completed"
+            self.result.status = "completed"
 
         return self.result
 

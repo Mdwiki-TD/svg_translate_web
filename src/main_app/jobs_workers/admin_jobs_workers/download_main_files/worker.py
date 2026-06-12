@@ -153,7 +153,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         return self._apply_limits(templates_with_files)
 
     def _process_template(self, template) -> None:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         file_info = {
             "template_id": template.id,
@@ -168,7 +168,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         # Check if file already exists
         # out_path = self.output_dir / clean_filename
-        # if out_path.exists(): self.result["summary"]["exists"] += 1
+        # if out_path.exists(): self.result.summary.exists += 1
 
         try:
             # Download the file (will overwrite if exists)
@@ -182,8 +182,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             file_info["status"] = "failed"
             file_info["reason"] = f"Exception: {str(e)}"
             file_info["error_type"] = type(e).__name__
-            self.result["files_failed"].append(file_info)
-            self.result["summary"]["failed"] += 1
+            self.result.files_failed.append(file_info)
+            self.result.summary.failed += 1
             logger.exception(f"Job {self.job_id}: Error processing {template.title}")
             return False
 
@@ -192,16 +192,16 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             file_info["status"] = "downloaded"
             file_info["path"] = download_result.get("path")
             file_info["size_bytes"] = download_result.get("size_bytes")
-            self.result["files_downloaded"].append(file_info)
-            self.result["summary"]["success"] += 1
+            self.result.files_downloaded.append(file_info)
+            self.result.summary.success += 1
             return True
 
         error = download_result.get("error")
 
         file_info["status"] = "failed"
         file_info["reason"] = error
-        self.result["files_failed"].append(file_info)
-        self.result["summary"]["failed"] += 1
+        self.result.files_failed.append(file_info)
+        self.result.summary.failed += 1
         logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {error}")
 
         return False
@@ -210,8 +210,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         """Execute the download processing logic."""
         templates_with_files = self._load_templates()
 
-        self.result["summary"]["total"] = len(templates_with_files)
-        self.result["output_path"] = str(self.output_dir)
+        self.result.summary.total = len(templates_with_files)
+        self.result.output_path = str(self.output_dir)
 
         logger.info(f"Job {self.job_id}: Found {len(templates_with_files)} templates with main files")
 

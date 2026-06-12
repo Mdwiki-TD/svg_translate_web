@@ -154,7 +154,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         templates = self._load_templates()
 
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
         self._check_exists(templates)
@@ -176,7 +176,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+            self.result.status = "completed"
 
         return self.result
 
@@ -210,7 +210,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         cropped_filename = generate_cropped_filename(template.last_world_file)
 
@@ -230,14 +230,14 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
             if updated:
                 file_info.status = "completed"
-                self.result["summary"]["updated"] += 1
+                self.result.summary.updated += 1
                 self._append(file_info, key="pages_updated")
                 return True
             else:
                 # if all file_info.steps "result" is None do:
                 if all(step["result"] is None for step in file_info.steps.values()):
                     file_info.status = "skipped"
-                    self.result["summary"]["skipped"] += 1
+                    self.result.summary.skipped += 1
 
             self._append(file_info, key="pages_skipped")
             return False
@@ -366,7 +366,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
         file_info.cropped_path = cropped_path
-        self.result["summary"]["cropped"] += 1
+        self.result.summary.cropped += 1
         return True
 
     def _step_upload(self, file_info: CropFileProcessingInfo) -> bool | None:
@@ -388,7 +388,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             )
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
             file_info.status = "skipped"
-            self.result["summary"]["skipped"] += 1
+            self.result.summary.skipped += 1
             # Still continue to wikitext updates even if file existed
             return None
 
@@ -396,7 +396,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             logger.info(f"Job {self.job_id}: Successfully uploaded {file_info.cropped_filename}")
             file_info.steps["upload_cropped"] = {"result": True, "msg": f"Uploaded as {file_info.cropped_filename}"}
             file_info.status = "uploaded"
-            self.result["summary"]["uploaded"] += 1
+            self.result.summary.uploaded += 1
             return True
 
         error = upload_result.get("error", "Unknown upload error")
@@ -523,7 +523,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-        self.result["summary"]["failed"] += 1
+        self.result.summary.failed += 1
 
     def _skip_step(self, file_info: CropFileProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
@@ -533,7 +533,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         for step in ("upload_cropped", "update_original", "update_template", "update_page"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
-        self.result["summary"]["skipped"] += 1
+        self.result.summary.skipped += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = ""
 

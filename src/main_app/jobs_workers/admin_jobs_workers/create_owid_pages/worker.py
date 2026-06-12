@@ -121,7 +121,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def process(self) -> Dict[str, Any]:
-        self.result["args"].update({"update_all": str(self.update_all)})
+        self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
@@ -131,19 +131,19 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         templates = self._load_templates()
         len_all = len(templates)
-        self.result["summary"]["total"] = len_all
+        self.result.summary.total = len_all
         self._save_progress()
 
         if not self.update_all:
             templates = self.filter_created(templates)
             if not templates:
-                self.result["summary"]["skipped"] = len_all
-                self.result["status"] = "skipped"
-                self.result["note"] = f"Nothing to create, All {len_all:,} pages already exist"
+                self.result.summary.skipped = len_all
+                self.result.status = "skipped"
+                self.result.note = f"Nothing to create, All {len_all:,} pages already exist"
                 logger.warning(f"Job {self.job_id}: No templates to process")
                 return self.result
 
-        # self.result["summary"]["total"] = len(templates)
+        # self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
 
         per_item = self.get_priority(len(templates))
@@ -163,7 +163,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+            self.result.status = "completed"
 
         return self.result
 
@@ -211,7 +211,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return new_text
 
     def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         # file info
         file_info = TemplateProcessingInfo(
@@ -319,7 +319,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self._skip_step(info, "update_text", "Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
-            self.result["summary"]["skipped"] += 1
+            self.result.summary.skipped += 1
             return None  # nothing to update
 
         # Content is different, perform update
@@ -329,7 +329,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         )
 
         if res["success"]:
-            self.result["summary"]["updated"] += 1
+            self.result.summary.updated += 1
             info.steps["update_text"] = {
                 "result": True,
                 "msg": f"Updated page: {new_title}",
@@ -360,7 +360,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self._fail(info, "create_new_page", err)
             return False
 
-        self.result["summary"]["created"] += 1
+        self.result.summary.created += 1
         info.steps["create_new_page"] = {
             "result": True,
             "msg": f"Created: {new_title}",
@@ -385,7 +385,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-        self.result["summary"]["failed"] += 1
+        self.result.summary.failed += 1
 
     def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""

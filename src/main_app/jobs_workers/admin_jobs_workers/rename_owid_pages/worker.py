@@ -147,7 +147,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             ns_count = 0
             for page in self._iter_owid_pages(namespace, prefix):
                 ns_count += 1
-                self.result["summary"]["checked"] += 1
+                self.result.summary.checked += 1
                 title = page.name
                 yes, new_title = needs_rename(title, full_prefix)
                 if not yes:
@@ -160,7 +160,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         logger.info(f"Job {self.job_id}: {total} page(s) need renaming")
 
         # Save progress immediately so the UI reflects the discovery phase.
-        self.result["summary"]["total"] = total
+        self.result.summary.total = total
 
         self._save_progress()
 
@@ -183,7 +183,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         if self.result.get("status") in ("pending", "running"):
-            self.result["status"] = "completed"
+            self.result.status = "completed"
 
         return self.result
 
@@ -206,7 +206,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         return []
 
     def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
@@ -227,9 +227,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
                 # update the DB title to match the capitalized version.
                 info.status = "skipped_target_exists"
                 info.msg = f"Old page redirects to target, updating DB only: {new_title}"
-                self.result["summary"]["skipped_target_exists"] += 1
+                self.result.summary.skipped_target_exists += 1
                 self._update_template_title(old_title, new_title)
-                self.result["pages_processed"].append(info.to_dict())
+                self.result.pages_processed.append(info.to_dict())
                 return False  # no changes made
             else:
                 # Neither page redirects to the other — both are real pages.
@@ -247,7 +247,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             info.status = "renamed"
             info.newrevid = res.get("newrevid", 0)
             info.msg = f"Moved {old_title} -> {new_title}"
-            self.result["summary"]["renamed"] += 1
+            self.result.summary.renamed += 1
             # Update the title in the database
             self._update_template_title(old_title, new_title)
         else:
@@ -255,9 +255,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             details = res.get("details")
             info.status = "failed"
             info.msg = f"{err}: {details}" if details else str(err)
-            self.result["summary"]["failed"] += 1
+            self.result.summary.failed += 1
 
-        self.result["pages_processed"].append(info.to_dict())
+        self.result.pages_processed.append(info.to_dict())
         return edit_success
 
     def _redirect_old_to_new(self, info: RenameInfo, old_title_page: MwClientPage, new_title: str) -> bool:
@@ -276,16 +276,16 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             info.status = "redirected"
             info.newrevid = res.get("newrevid", 0)
             info.msg = f"Redirected {old_title} -> {new_title}"
-            self.result["summary"]["redirected"] += 1
+            self.result.summary.redirected += 1
             self._update_template_title(old_title, new_title)
         else:
             err = res.get("error", "Unknown error")
             details = res.get("details")
             info.status = "failed"
             info.msg = f"Failed to redirect: {err}: {details}" if details else f"Failed to redirect: {err}"
-            self.result["summary"]["failed"] += 1
+            self.result.summary.failed += 1
 
-        self.result["pages_processed"].append(info.to_dict())
+        self.result.pages_processed.append(info.to_dict())
         return edit_success
 
     def _update_template_title(self, old_title: str, new_title: str) -> None:
