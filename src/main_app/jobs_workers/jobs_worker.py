@@ -47,7 +47,7 @@ def _load_job_args(job_args: list | None) -> dict:
         return {}
 
     settings_ready = get_all_settings_ready()
-    _args = {}
+    _args: dict[str, Any] = {}
     for x in job_args:
         arg_value = settings_ready.get(x)
         if arg_value is not None:
@@ -135,7 +135,7 @@ def start_job(
     if not username:
         raise ValueError("User authentication data is required")
 
-    resolved_args = {}
+    resolved_args: dict[str, Any] = {}
     if job_data.job_args:
         resolved_args = _load_job_args(job_data.job_args)
 
@@ -156,7 +156,7 @@ def start_job(
     _register_cancel_event(job.id, cancel_event)
 
     # Capture the Flask app for the background thread (requires app context)
-    flask_app = current_app._get_current_object()
+    flask_app = current_app._get_current_object()  # type: ignore[attr-defined]
 
     # Start background thread
     thread = threading.Thread(
@@ -214,7 +214,7 @@ def start_job_cli(
     _register_cancel_event(job.id, cancel_event)
 
     # Capture the Flask app for the background thread (requires app context)
-    flask_app = app or current_app._get_current_object()
+    flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
 
     # Start background thread
     thread = threading.Thread(

@@ -7,6 +7,7 @@ the corresponding gallery/showcase page (OWID/...) using WikiTextParser.
 """
 
 import re
+from typing import Any
 
 import wikitextparser as wtp
 
@@ -35,7 +36,7 @@ def _extract_display_categories(wikitext: str) -> list[str]:
     following the pattern seen in the example output.
     """
     parsed = wtp.parse(wikitext)
-    cats = []
+    cats: list[Any] = []
     for wl in parsed.wikilinks:
         target = wl.target.strip()
         if target.startswith("Category:"):
@@ -96,7 +97,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
         # Match the |file = [[File:...|...]] argument
         file_pattern = re.compile(r"(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)(\|)")
 
-        def replacer(m):
+        def replacer(m) -> str:
             before = m.group(1)
             _after = m.group(3)
             # insert center after upright if not already present
@@ -115,7 +116,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
         """Replace upright=X and add |right| (remove center if present)."""
         file_pattern = re.compile(r"(\|file\s*=\s*\[\[File:[^\]]*\|thumb\|upright=)([\d.]+)\|(center\|)?")
 
-        def replacer(m):
+        def replacer(m) -> str:
             before = m.group(1)
             return f"{before}1.6|right|"
 

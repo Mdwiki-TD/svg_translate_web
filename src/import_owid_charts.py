@@ -39,7 +39,7 @@ def parse_int(value: str) -> int | None:
 
 def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     """Read CSV file and return list of chart data dictionaries."""
-    charts = []
+    charts: list[Any] = []
 
     logger.info(f"Reading CSV file: {file_path}")
 
@@ -161,7 +161,7 @@ def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
     return inserted, updated, failed
 
 
-def main():
+def main() -> None:
     """Main import function."""
     csv_file = os.path.join(os.path.dirname(__file__), "src", "main_app", "data", "owid_charts.csv")
 

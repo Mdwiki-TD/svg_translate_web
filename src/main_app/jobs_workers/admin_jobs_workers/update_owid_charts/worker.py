@@ -183,7 +183,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             )
             return False
 
-        data = {}
+        data: dict[str, Any] = {}
 
         # 1 B) Find slug redirect
         check_slugs(chart.slug, metadata)

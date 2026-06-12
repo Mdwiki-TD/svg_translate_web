@@ -13,10 +13,10 @@ def fix_add_svglanguages_template(data: dict[str, Any]) -> dict[str, Any]:
     if data.get("pages_skipped"):
         return data
 
-    _pages_success = []
-    _pages_failed = []
-    _pages_skipped = []
-    _pages_processed = []
+    _pages_success: list[Any] = []
+    _pages_failed: list[Any] = []
+    _pages_skipped: list[Any] = []
+    _pages_processed: list[Any] = []
 
     msg = "Skipped - page content is already has {{SVGLanguages|...}}"
 

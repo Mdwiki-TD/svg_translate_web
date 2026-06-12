@@ -20,7 +20,7 @@ def verify_required_fields(required_fields: Dict[str, Any]) -> List[str]:
         A list of field names that are missing (i.e., have falsy values like
         None, "", [], {}, 0, or False).
     """
-    missing_fields = []
+    missing_fields: list[Any] = []
     for field, value in required_fields.items():
         if not value:
             logger.error(f"Missing required field: {field}")

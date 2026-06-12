@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from urllib.parse import quote_plus
 
 from sqlalchemy import URL
@@ -73,7 +74,7 @@ class Config:
     # Flask-SQLAlchemy
     SQLALCHEMY_DATABASE_URI: str | None = None
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
-    SQLALCHEMY_ENGINE_OPTIONS: dict = {}
+    SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}
 
     SQLALCHEMY_ECHO: bool = False
 
@@ -155,7 +156,7 @@ class TestingConfig(Config):
 
     # Use SQLite in-memory for tests (no MySQL dependency)
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
-    SQLALCHEMY_ENGINE_OPTIONS: dict = {}  # SQLite doesn't need MySQL options
+    SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}  # SQLite doesn't need MySQL options
 
 
 __all__ = [

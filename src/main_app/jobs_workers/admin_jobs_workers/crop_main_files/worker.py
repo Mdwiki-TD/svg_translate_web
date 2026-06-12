@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mwclient.client import Site
 
@@ -106,7 +106,7 @@ class CropMainFilesWorker(BaseJobWorker):
         super().__init__(job_id, user, cancel_event)
         self.result: Dict[str, Any] = self.get_initial_result()
 
-        self.exists = {}
+        self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(settings.paths.crop_main_files_path) / "cropped"
 

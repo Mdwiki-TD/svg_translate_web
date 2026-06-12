@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -36,7 +37,7 @@ def _get_display_name(job_type: str) -> str:
 
 
 @bp_admin.app_context_processor
-def inject_sidebar():
+def inject_sidebar() -> dict[str, Any]:
     path_parts = request.path.strip("/").split("/")
     active_route = path_parts[1] if len(path_parts) > 1 else ""
     # logger.debug(f"Injecting sidebar for path='{request.path}', {active_route=}")
@@ -46,11 +47,11 @@ def inject_sidebar():
 
 @bp_admin.get("/")
 @admin_required
-def admin_dashboard():
+def admin_dashboard() -> str:
     jobs = list_jobs(limit=100)
 
     # Enhance jobs with display names and detail URLs
-    enhanced_jobs = []
+    enhanced_jobs: list[Any] = []
     for job in jobs:
         enhanced_jobs.append(
             {

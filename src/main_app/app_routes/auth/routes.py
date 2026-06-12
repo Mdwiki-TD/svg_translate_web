@@ -62,7 +62,7 @@ def _client_key() -> str:
     return request.remote_addr or "anonymous"
 
 
-def _load_request_token(raw: Sequence[Any] | None):
+def _load_request_token(raw: Sequence[Any] | None) -> RequestToken:
     if not raw:
         raise ValueError("Missing OAuth request token")
 
@@ -79,7 +79,7 @@ def _load_request_token(raw: Sequence[Any] | None):
 
 # Register the hook right after defining the blueprint
 @bp_auth.before_app_request
-def before_request():
+def before_request() -> None:
     """Automatically load the user before any route is processed."""
     load_logged_in_user()
 

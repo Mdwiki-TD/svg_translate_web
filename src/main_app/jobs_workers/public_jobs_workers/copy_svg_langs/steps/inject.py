@@ -11,7 +11,7 @@ from CopySVGTranslation import start_injects  # type: ignore
 logger = logging.getLogger(__name__)
 
 
-def start_injects_wrap(files, translations, output_dir_translated, overwrite=False) -> dict[str, str | int]:
+def start_injects_wrap(files, translations, output_dir_translated, overwrite: bool = False) -> dict[str, str | int]:
     result = start_injects(files, translations, output_dir_translated, overwrite=overwrite)
 
     success: int = result["success"]
@@ -101,7 +101,7 @@ def inject_step(
     }
 
     message = f"Success {success_count}/{len(files_dict)}, Failed {failed_count}, No Changes {no_changes_count}, Nested Files {nested_files_count}"
-    results = {}
+    results: dict[str, Any] = {}
 
     inject_files = injects_result["files"]
     for title, file_path in files_dict.items():

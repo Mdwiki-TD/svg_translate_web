@@ -11,13 +11,14 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from werkzeug.wrappers.response import Response
 
 bp_main = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)
 
 
 @bp_main.get("/")
-def index():
+def index() -> str:
     return render_template(
         "index.html",
         form={},
@@ -26,7 +27,7 @@ def index():
 
 
 @bp_main.get("/favicon.ico")
-def favicon():
+def favicon() -> Response:
     return send_from_directory("static", "favicon.ico", mimetype="image/x-icon")
 
 

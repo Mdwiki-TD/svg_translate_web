@@ -18,7 +18,7 @@ def add_before(text: str, new_text: str, search_text: str) -> str:
     return text
 
 
-def insert_before_methods(text, other_versions_text):
+def insert_before_methods(text: str, other_versions_text):
     # Try to add before the license header
     modified_text = add_before(text, other_versions_text, r"==\s*\{\{\s*int:license-header\s*\}\}\s*==")
 

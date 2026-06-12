@@ -18,7 +18,7 @@ class DuplicateJobError(Exception):
 
 
 class InsufficientDatabaseConfigError(RuntimeError):
-    def __init__(self):
+    def __init__(self) -> None:
         msg = "DB requires database configuration; no fallback store is available."
         super().__init__(msg)
 

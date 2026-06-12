@@ -22,7 +22,8 @@ def can_manage_job(job: Any, user: Any) -> bool:
         return False
     if getattr(user, "is_active_admin", False):
         return True
-    if job.username and job.username == user.username:
+    job_username = getattr(job, "username", None)
+    if job_username and job_username == user.username:
         return True
     return False
 

@@ -2,6 +2,7 @@ import json
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any, Optional
 
 import requests
 
@@ -14,7 +15,7 @@ if not output_dir.exists():
     print(f"Created directory: {output_dir}")
 
 
-def download_owid_grapher_metadata(limit=None):
+def download_owid_grapher_metadata(limit: Optional[int] = None) -> None:
     """
     Downloads grapher metadata from Our World in Data sitemap.
     :param limit: Maximum number of files to download (set to None for all)
@@ -47,7 +48,7 @@ def download_owid_grapher_metadata(limit=None):
     print(f"Found {len(loc_elements)} total URLs in sitemap.")
 
     # Filter only grapher URLs
-    grapher_urls = []
+    grapher_urls: list[Any] = []
     for loc in loc_elements:
         url = loc.text.strip() if loc.text else ""
         if "/grapher/" in url:

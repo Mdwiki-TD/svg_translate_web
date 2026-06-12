@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from flask import has_request_context, url_for
 
@@ -45,7 +46,7 @@ def generate_list_item(item: SidebarItem) -> str:
     return link.strip()
 
 
-def create_side(active_route, path: str | None = None):
+def create_side(active_route: str, path: str | None = None) -> str:
     """Generate sidebar HTML structure based on menu definitions."""
     main_menu_icons = {
         "Translations": "bi-translate",
@@ -202,7 +203,7 @@ def create_side(active_route, path: str | None = None):
     # logger.debug(f"Generating sidebar for active_route='{active_route}'")
 
     for key, items in main_menu.items():
-        lis = []
+        lis: list[Any] = []
         group_is_active = False
         key_id = key.lower().replace(" ", "_")
         css_class_full = [item.href for item in items if path == item.href]

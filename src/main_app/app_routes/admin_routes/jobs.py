@@ -124,7 +124,7 @@ def _jobs_list(job_type: str, template_data: JobData) -> str:
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to load jobs list.")
         flash("Unable to load jobs list.", "danger")
-        jobs = []
+        jobs: list[Any] = []
 
     template_name = template_data.job_list_template
 
@@ -179,7 +179,7 @@ class Jobs:
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         # ================================
         # Cancel Jobs routes
         # ================================

@@ -6,15 +6,16 @@ import functools
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=1024)
-def load_data(key):
+def load_data(key) -> dict:
     key = Path(key).name
     file_path = Path(__file__).parent / f"{key}.json"
-    data = {}
+    data: dict[str, Any] = {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -37,7 +38,7 @@ def get_slug_categories(slug: str) -> list[str]:
 
     topics_categories = load_data("topics_categories")
 
-    result = []
+    result: list[Any] = []
 
     for x in topics:
         result.extend(topics_categories.get(x, []))

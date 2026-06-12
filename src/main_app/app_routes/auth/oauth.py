@@ -7,6 +7,7 @@ from typing import Tuple
 
 import mwoauth
 from flask import url_for
+from mwoauth.handshaker import Handshaker
 
 from ...config import settings
 
@@ -23,7 +24,7 @@ class OAuthIdentityError(Exception):
         self.original_exception = original_exception
 
 
-def get_handshaker():
+def get_handshaker() -> Handshaker:
     if not settings.oauth:
         raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
@@ -44,7 +45,7 @@ def start_login(state_token: str) -> Tuple[str, object]:
     return redirect_url, request_token
 
 
-def complete_login(request_token, query_string: str):
+def complete_login(request_token: object, query_string: str) -> Tuple[str, object]:
     """Complete the OAuth login flow and return the access token and user identity."""
 
     handshaker = get_handshaker()

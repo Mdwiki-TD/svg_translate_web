@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -33,7 +34,7 @@ def load_svg_data_path() -> Path:
 
 
 @bp_explorer.get("/<title_dir>/downloads")
-def by_title_downloaded(title_dir: str):
+def by_title_downloaded(title_dir: str) -> str:
     files, title_path = get_files(title_dir, "files")
 
     # title = get_temp_title(title_dir)
@@ -51,7 +52,7 @@ def by_title_downloaded(title_dir: str):
 
 
 @bp_explorer.get("/<title_dir>/translated")
-def by_title_translated(title_dir: str):
+def by_title_translated(title_dir: str) -> str:
     files, title_path = get_files(title_dir, "translated")
 
     # title = get_temp_title(title_dir)
@@ -70,7 +71,7 @@ def by_title_translated(title_dir: str):
 
 
 @bp_explorer.get("/<title_dir>/not_translated")
-def by_title_not_translated(title_dir: str):
+def by_title_not_translated(title_dir: str) -> str:
     downloaded, title_path = get_files(title_dir, "files")
     translated, _ = get_files(title_dir, "translated")
 
@@ -91,7 +92,7 @@ def by_title_not_translated(title_dir: str):
 
 
 @bp_explorer.get("/<title>")
-def by_title(title: str):
+def by_title(title: str) -> str:
     infos = get_informations(title)
 
     return render_template(
@@ -101,10 +102,10 @@ def by_title(title: str):
 
 
 @bp_explorer.get("/")
-def main():
+def main() -> str:
     svg_data_path = load_svg_data_path()
     titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
-    data = {}
+    data: dict[str, Any] = {}
     for title in titles:
         downloaded, _ = get_files(title, "files")
         translated, _ = get_files(title, "translated")
@@ -155,7 +156,7 @@ def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
 
 
 @bp_explorer.route("/compare/<title_dir>/<string:filename>")
-def compare(title_dir: str, filename: str):
+def compare(title_dir: str, filename: str) -> str:
     """Compare SVG files"""
     # ---
     svg_data_path = load_svg_data_path()

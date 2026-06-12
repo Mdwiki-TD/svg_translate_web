@@ -22,3 +22,8 @@ memory.sqlite3
 src/offline/sitemap.json
 src/main_app/jobs_workers/crop_main_files/objects.py
 /typings
+/.mypy_cache
+monkeytype.sqlite3
+righttyper.log
+righttyper.out
+run_tests.py

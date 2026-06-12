@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -28,7 +29,7 @@ def _coordinators_dashboard() -> str:
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to list coordinators.")
         flash("Unable to list coordinators.", "danger")
-        coordinators = []
+        coordinators: list[Any] = []
 
     total = len(coordinators)
     total_active = sum(1 for coord in coordinators if coord.is_active)
@@ -108,11 +109,11 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 class CoordinatorsRoutes:
     """Jobs management routes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.bp = Blueprint("coordinators", __name__, url_prefix="/coordinators")
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         @self.bp.get("/")
         @admin_required
         def dashboard():

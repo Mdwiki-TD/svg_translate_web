@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import wikitextparser as wtp
 from wikitextparser import WikiLink
@@ -135,7 +136,7 @@ def sort_categories(wikitext: str) -> str:
     # Parse the input wikitext using the wtp parser
     parsed = wtp.parse(wikitext)
 
-    categories = []
+    categories: list[Any] = []
     for wl in parsed.wikilinks:
         if wl.target.strip().lower().startswith("category:"):
             categories.append(wl.string)

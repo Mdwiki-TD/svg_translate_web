@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 from ...config import settings
 
@@ -27,7 +28,7 @@ def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     return candidate
 
 
-def get_main_data(title, filename="files_stats.json"):
+def get_main_data(title, filename: str = "files_stats.json") -> dict:
     svg_data_path = load_svg_data_path()
     file_path = svg_data_path / title / (filename or "files_stats.json")
     if not file_path.exists():
@@ -40,7 +41,7 @@ def get_main_data(title, filename="files_stats.json"):
         return {}
 
 
-def get_files_full_path(title, sub_dir):
+def get_files_full_path(title, sub_dir) -> tuple:
     # title_path = svg_data_path / title / sub_dir
     svg_data_path = load_svg_data_path()
 
@@ -59,7 +60,7 @@ def get_files_full_path(title, sub_dir):
     return files, title_path
 
 
-def get_files(title, sub_dir):
+def get_files(title, sub_dir) -> tuple:
     # title_path = svg_data_path / title / sub_dir
     svg_data_path = load_svg_data_path()
     try:
@@ -79,7 +80,7 @@ def get_files(title, sub_dir):
 
 def get_languages(title: str, translations_data: dict | None = None) -> list:
     # ---
-    languages = []
+    languages: list[Any] = []
     # ---
     if not translations_data:
         translations_data = get_main_data(title, "translations.json") or {}
@@ -98,8 +99,8 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     return sorted(set(languages))
 
 
-def get_informations(title):
-    data = {}
+def get_informations(title) -> dict:
+    data: dict[str, Any] = {}
     downloaded, title_path = get_files(title, "files")
     translated, _ = get_files(title, "translated")
 

@@ -67,6 +67,7 @@ def create_user_token(user_id: int, access_key: str, access_secret: str) -> User
         access_secret=encrypted_secret,
     )
     db.session.add(record)
+
     db.session.commit()
     db.session.refresh(record)
 
@@ -74,7 +75,7 @@ def create_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
 
 @db_guard_rollback
-def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
     """
     update the encrypted OAuth credentials for a user.
     """

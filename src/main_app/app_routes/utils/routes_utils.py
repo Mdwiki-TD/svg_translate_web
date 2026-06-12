@@ -53,6 +53,26 @@ def load_auth_payload(user: Any | None) -> Dict[str, Any]:
     return {}
 
 
+def can_run_jobs(user: Any) -> bool:
+    """Return True if user may run synchronous edit jobs.
+
+    Admins (active coordinators) always pass.
+    """
+    if _is_admin(user):
+        return True
+    return bool(user and user.can_run_jobs)
+
+
+def can_run_bg_jobs(user: Any) -> bool:
+    """Return True if user may run background (daemon) jobs.
+
+    Admins (active coordinators) always pass.
+    """
+    if _is_admin(user):
+        return True
+    return bool(user and user.can_run_bg_jobs)
+
+
 def get_job_detail_url(job_id: int, job_type: str) -> str:
     """Returns the correct job detail URL based on job type."""
     if job_type in jobs_data_public:
@@ -61,6 +81,8 @@ def get_job_detail_url(job_id: int, job_type: str) -> str:
 
 
 __all__ = [
+    "can_run_bg_jobs",
+    "can_run_jobs",
     "context_user",
     "load_auth_payload",
     "get_job_detail_url",

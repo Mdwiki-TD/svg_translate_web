@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @bp_owid_charts.get("/")
-def index():
+def index() -> str:
     """Display a list of all published OWID charts."""
     charts = list_published_charts()
     all_charts = list_charts()
@@ -30,7 +30,7 @@ def index():
 
 
 @bp_owid_charts.get("/all")
-def all_charts():
+def all_charts() -> str:
     """Display ALL charts (including unpublished) for debugging."""
     charts = list_charts()
     logger.info(f"All charts page: {len(charts)} total charts")

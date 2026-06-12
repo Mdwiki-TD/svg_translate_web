@@ -7,13 +7,14 @@ get all files names from owidslidersrcs
 """
 
 import re
+from typing import Any
 
 import wikitextparser as wtp
 
 from .owid_sliders_rcs.main_file import find_main_title
 
 
-def get_titles_from_wikilinks(text):
+def get_titles_from_wikilinks(text: str) -> list:
     """
     Extracts:
       - all file links from text like:
@@ -21,7 +22,7 @@ def get_titles_from_wikilinks(text):
     Returns: titles
     """
     parsed = wtp.parse(text)
-    titles = []
+    titles: list[Any] = []
 
     for link in parsed.wikilinks:
         target = link.target
@@ -32,7 +33,7 @@ def get_titles_from_wikilinks(text):
     return titles
 
 
-def get_titles(text, filter_duplicates=True):
+def get_titles(text: str, filter_duplicates: bool = True) -> list:
     """
     Extracts:
       - all file names from {{owidslidersrcs}}
@@ -42,7 +43,7 @@ def get_titles(text, filter_duplicates=True):
     parsed = wtp.parse(text)
 
     # --- Extract all file names from {{owidslidersrcs|...}}
-    titles = []
+    titles: list[Any] = []
 
     for tpl in parsed.templates:
         if tpl.name.strip().lower() == "owidslidersrcs":
@@ -57,7 +58,7 @@ def get_titles(text, filter_duplicates=True):
     return titles
 
 
-def get_files_list(text, filter_duplicates=True):
+def get_files_list(text: str, filter_duplicates: bool = True) -> tuple:
     """
     Returns (main_title, titles).
     main_title:
@@ -77,7 +78,10 @@ def get_files_list(text, filter_duplicates=True):
     return main_title, titles
 
 
-def get_files_list_data(text, filter_duplicates=True):
+from typing import Any
+
+
+def get_files_list_data(text: str, filter_duplicates: bool = True) -> dict[str, Any]:
     """
     Returns (main_title, titles).
     main_title:

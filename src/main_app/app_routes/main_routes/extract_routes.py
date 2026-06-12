@@ -17,7 +17,7 @@ EXTRACT_FILENAME_KEY = "extract_filename"
 
 
 @bp_extract.route("/", methods=["GET"])
-def extract_translations():
+def extract_translations() -> str:
     """Display form to extract translations from an SVG file."""
     # Restore filename from session if available (e.g., after OAuth redirect)
     filename = session.pop(EXTRACT_FILENAME_KEY, "")
@@ -25,7 +25,7 @@ def extract_translations():
 
 
 @bp_extract.route("/", methods=["POST"])
-def extract_translations_post():
+def extract_translations_post() -> str:
     """Process SVG file and extract translations."""
     filename = request.form.get("filename", "").strip()
 

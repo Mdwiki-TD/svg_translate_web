@@ -441,7 +441,7 @@ class TestRunStage:
 
     def test_sets_stage_status_to_running_before_calling_step(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        statuses = []
+        statuses: list = []
 
         def capture_status():
             statuses.append(proc.result["stages"]["download"]["status"])

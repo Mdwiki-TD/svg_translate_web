@@ -192,7 +192,7 @@ class FixNestedMainFilesWorker(BaseJobWorker):
             self._log_skipped_no_main_file(template_info)
             return False
 
-        fix_result = {}
+        fix_result: dict[str, Any] = {}
         try:
             # Process without job_id and db_store since we're tracking in the job
             fix_result = repair_nested_svg_tags(

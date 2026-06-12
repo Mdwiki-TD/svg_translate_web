@@ -5,8 +5,8 @@ from pathlib import Path
 
 def extract_classes_and_functions(file_path):
     """Parse the file and extract only the top-level class and function names."""
-    classes = []
-    functions = []
+    classes: list[Any] = []
+    functions: list[Any] = []
     try:
         file_content = file_path.read_text(encoding="utf-8")
         tree = ast.parse(file_content)
@@ -40,7 +40,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
     test_base_integration = Path(test_root) / "integration"
 
     list_of_all_tests_files = [x.name for x in Path(test_root).rglob("*.py")]
-    duplicate_names = []
+    duplicate_names: list[Any] = []
 
     for root, _dirs, files in os.walk(src_path):
         current_path = Path(root)
@@ -127,7 +127,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                 else:
                     import_statement = ""
 
-                methods_parts = []
+                methods_parts: list[Any] = []
                 if classes_str:
                     methods_parts.append(f"Classes to test: {classes_str}")
                 if functions_str:
