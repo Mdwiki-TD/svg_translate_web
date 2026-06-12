@@ -1,6 +1,3 @@
-import pytest
-from flask import Flask
-
 from src.main_app.app_routes.utils.routes_utils import get_job_detail_url
 
 

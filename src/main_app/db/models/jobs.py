@@ -85,6 +85,17 @@ class JobRecord(db.Model):
         return data
 
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        self.id = kwargs.get("id")
+        self.job_type = kwargs.get("job_type")
+        self.username = kwargs.get("username")
+        self.status = kwargs.get("status")
+        self.started_at = kwargs.get("started_at")
+        self.completed_at = kwargs.get("completed_at")
+        self.result_file = kwargs.get("result_file")
+        self.created_at = kwargs.get("created_at")
+        self.updated_at = kwargs.get("updated_at")
+
 __all__ = [
     "JobRecord",
 ]

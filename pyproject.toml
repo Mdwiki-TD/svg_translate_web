@@ -177,7 +177,7 @@ include = ["src"]
 exclude = ["**/node_modules", "**/__pycache__", ".venv"]
 
 # Diagnostic modes: "basic" or "standard" or "strict"
-typeCheckingMode = "off"
+typeCheckingMode = "basic"
 
 # Automatically find virtual environments
 venvPath = "."
@@ -187,3 +187,25 @@ venv = ".venv"
 reportMissingTypeStubs = false
 reportGeneralTypeIssues = false
 reportUnknownMemberType = false
+enableReachabilityAnalysis = false
+strictListInference = false
+strictDictionaryInference = false
+strictSetInference = false
+deprecateTypingAliases = false
+enableExperimentalFeatures = false
+
+analyzeUnannotatedFunctions = true
+disableBytesTypePromotions = true
+strictParameterNoneValue = true
+enableTypeIgnoreComments = true
+reportMissingModuleSource = "warning"
+reportInvalidTypeForm = "warning"
+reportMissingImports = "warning"
+reportUndefinedVariable = "warning"
+
+reportReturnType = false
+reportArgumentType = false
+reportAttributeAccessIssue = false
+reportAssignmentType = false
+reportOptionalMemberAccess = false
+reportCallIssue = "warning"

@@ -4,8 +4,6 @@ Tests for src/main_app/utils/wikitext/files_text.py
 
 from __future__ import annotations
 
-import pytest
-
 from src.main_app.utils.wikitext.files_text import (
     appendImageExtractedTemplate,
     create_cropped_file_text,

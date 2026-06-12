@@ -30,6 +30,11 @@ class BaseModel(Model):
             data[column.name] = value  # type: ignore
         return data
 
+    def __init__(self, **kwargs: dict[str, Any]) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
 
 def _commit(db: SQLAlchemy) -> None:
     try:

@@ -9,8 +9,6 @@ import pytest
 from werkzeug.wrappers import Response
 
 from src.main_app import create_app
-
-# from src.main_app.app_routes.jobs_utils_bp import UtilsJobsBp
 from src.main_app.config import TestingConfig
 from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 from src.main_app.extensions import db as _db
