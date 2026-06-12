@@ -94,7 +94,7 @@ class RedirectsSummary:
 
 
 @dataclass
-class CreateRedirectsWorkerObject(WorkerObject):
+class CropMainFilesWorkerObject(WorkerObject):
     summary: RedirectsSummary = field(default_factory=RedirectsSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
@@ -103,5 +103,5 @@ class CreateRedirectsWorkerObject(WorkerObject):
 
 __all__ = [
     "RedirectsSummary",
-    "CreateRedirectsWorkerObject",
+    "CropMainFilesWorkerObject",
 ]
