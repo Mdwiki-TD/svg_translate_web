@@ -88,6 +88,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         return "add_svglanguages_template"
 
         # ------------------------------------------------------------------
+
     # Initialisation helpers
     # ------------------------------------------------------------------
 
