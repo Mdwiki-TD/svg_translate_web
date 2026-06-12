@@ -26,7 +26,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.services import get_template_by_title, update_template_data
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     return False, title
 
 
-class RenameOwidPagesWorker(BaseJobWorker):
+class RenameOwidPagesWorker(BaseObjectsJobWorker):
     """Background worker that capitalizes OWID subpage names."""
 
     def __init__(

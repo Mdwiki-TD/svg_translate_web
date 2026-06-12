@@ -26,7 +26,7 @@ from typing import Any, Dict
 from ....api_services import fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import owid_charts_service
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,7 @@ class ChartUpdateInfo:
 # ---------------------------------------------------------------------------
 
 
-class UpdateOwidChartsWorker(BaseJobWorker):
+class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
     def __init__(

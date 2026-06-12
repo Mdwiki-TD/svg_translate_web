@@ -18,7 +18,7 @@ from ....api_services import create_commons_session, download_commons_file_core
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -95,7 +95,7 @@ def download_file_from_commons(
     return result
 
 
-class DownloadMainFilesWorker(BaseJobWorker):
+class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
 
     def __init__(

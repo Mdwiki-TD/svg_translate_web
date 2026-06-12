@@ -17,7 +17,7 @@ from mwclient.client import Site
 
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .steps import (
     download_step,
     extract_text_step,
@@ -31,7 +31,7 @@ from .steps import (
 logger = logging.getLogger(__name__)
 
 
-class CopySvgLangsWorker(BaseJobWorker):
+class CopySvgLangsWorker(BaseObjectsJobWorker):
     """
     Worker for copying SVG translations from a main file to its versions.
     """

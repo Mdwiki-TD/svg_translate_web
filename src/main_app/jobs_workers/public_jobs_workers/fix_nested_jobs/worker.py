@@ -21,12 +21,12 @@ from ....shared.fix_nested.worker import (
     upload_fixed_svg,
     verify_fix,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 
 logger = logging.getLogger(__name__)
 
 
-class FixNestedJobsProcessor(BaseJobWorker):
+class FixNestedJobsProcessor(BaseObjectsJobWorker):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """

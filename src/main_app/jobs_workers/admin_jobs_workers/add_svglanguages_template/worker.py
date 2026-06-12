@@ -8,14 +8,14 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class TemplateInfo:
         }
 
 
-class AddSvgSVGLanguagesTemplate(BaseJobWorker):
+class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     """
     Worker for add_svglanguages_template.
     Steps:
@@ -79,13 +79,13 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: dict[str, Any] = self.get_initial_result()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "add_svglanguages_template"
 
-    def get_initial_result(self) -> Dict[str, Any]:
+    def get_initial_result(self) -> dict[str, Any]:
         """Return the initial result structure."""
         return {
             "note": "",
@@ -256,7 +256,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> dict[str, Any]:
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")

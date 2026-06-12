@@ -23,7 +23,7 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
@@ -73,7 +73,7 @@ class CropFileProcessingInfo:
         }
 
 
-class CropMainFilesWorker(BaseJobWorker):
+class CropMainFilesWorker(BaseObjectsJobWorker):
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 

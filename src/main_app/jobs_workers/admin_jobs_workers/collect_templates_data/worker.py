@@ -27,7 +27,7 @@ from ....utils.wikitext import (
     find_newest_world_file,
     find_template_source,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ def slugify_title(title: str) -> str:
     return None
 
 
-class CollectMainFilesWorker(BaseJobWorker):
+class CollectMainFilesWorker(BaseObjectsJobWorker):
     """Worker for collecting main files for templates."""
 
     def __init__(
