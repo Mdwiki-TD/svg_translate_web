@@ -24,9 +24,6 @@ class OAuthIdentityError(Exception):
         self.original_exception = original_exception
 
 
-
-
-
 def get_handshaker() -> Handshaker:
     if not settings.oauth:
         raise RuntimeError("MediaWiki OAuth configuration is incomplete")

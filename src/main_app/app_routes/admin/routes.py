@@ -35,6 +35,7 @@ def _get_display_name(job_type: str) -> str:
     job_data = jobs_data.get(job_type)
     return job_data.job_name if job_data else job_type
 
+
 @bp_admin.app_context_processor
 def inject_sidebar() -> dict[str, Any]:
     path_parts = request.path.strip("/").split("/")

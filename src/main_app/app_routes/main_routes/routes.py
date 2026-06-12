@@ -4,8 +4,6 @@ Defines the main routes for the application, such as the homepage.
 
 from __future__ import annotations
 
-from werkzeug.wrappers.response import Response
-
 import logging
 
 from flask import (
@@ -13,6 +11,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from werkzeug.wrappers.response import Response
 
 bp_main = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)
@@ -25,7 +24,6 @@ def index() -> str:
         form={},
         set_titles_limit=False,
     )
-
 
 
 @bp_main.get("/favicon.ico")
