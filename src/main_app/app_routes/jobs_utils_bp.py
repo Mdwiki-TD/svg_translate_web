@@ -29,7 +29,7 @@ class UtilsJobsBp:
         self.bp = Blueprint(name, __name__, url_prefix="/jobs_utils")
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         # ================================
         # download_main_files routes
         # ================================

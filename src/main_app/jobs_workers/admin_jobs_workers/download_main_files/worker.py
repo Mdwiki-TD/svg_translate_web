@@ -26,7 +26,7 @@ MAIN_FILES_ZIP_NAME = "main_files.zip"
 logger = logging.getLogger(__name__)
 
 
-def download_all_main_files(): ...
+def download_all_main_files() -> None: ...
 
 
 def download_file_from_commons(

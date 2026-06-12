@@ -15,7 +15,7 @@ if not output_dir.exists():
     print(f"Created directory: {output_dir}")
 
 
-def download_owid_grapher_metadata(limit=None):
+def download_owid_grapher_metadata(limit=None) -> None:
     """
     Downloads grapher metadata from Our World in Data sitemap.
     :param limit: Maximum number of files to download (set to None for all)

@@ -213,7 +213,7 @@ def _edit_template_by_title(template_title: str) -> ResponseReturnValue:
 
 
 class Templates:
-    def __init__(self):
+    def __init__(self) -> None:
         self.bp = Blueprint("templates", __name__, url_prefix="/templates")
         self._setup_routes()
 

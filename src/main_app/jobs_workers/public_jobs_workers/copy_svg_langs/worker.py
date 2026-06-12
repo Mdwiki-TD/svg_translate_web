@@ -408,7 +408,7 @@ class CopySvgLangsWorker(BaseJobWorker):
 
         return self.result
 
-    def log_upload_error(self, _msg, result, status):
+    def log_upload_error(self, _msg, result, status) -> None:
         self.result["stages"]["upload"]["status"] = status
         self.result["stages"]["upload"]["message"] = _msg
 
@@ -418,7 +418,7 @@ class CopySvgLangsWorker(BaseJobWorker):
                 item["status"] = status
                 item["error"] = _msg
 
-    def _save_files_stats(self, stats_data):
+    def _save_files_stats(self, stats_data) -> None:
         files_stats_path = self.output_dir / "files_stats.json"
         try:
             with open(files_stats_path, "w", encoding="utf-8") as f:

@@ -179,7 +179,7 @@ class Jobs:
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         # ================================
         # Cancel Jobs routes
         # ================================

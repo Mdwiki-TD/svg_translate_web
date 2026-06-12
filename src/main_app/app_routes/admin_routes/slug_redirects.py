@@ -45,11 +45,11 @@ def _edit_slug_redirect(redirect_id: int) -> ResponseReturnValue:
 
 
 class SlugRedirects:
-    def __init__(self):
+    def __init__(self) -> None:
         self.bp = Blueprint("slugredirects", __name__, url_prefix="/slugredirects")
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         @self.bp.get("/")
         @admin_required
         def dashboard():

@@ -109,11 +109,11 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 class CoordinatorsRoutes:
     """Jobs management routes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.bp = Blueprint("coordinators", __name__, url_prefix="/coordinators")
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         @self.bp.get("/")
         @admin_required
         def dashboard():

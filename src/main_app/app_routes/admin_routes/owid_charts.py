@@ -254,11 +254,11 @@ def _edit_chart(chart_id: int) -> ResponseReturnValue:
 
 
 class OwidCharts:
-    def __init__(self):
+    def __init__(self) -> None:
         self.bp = Blueprint("owidcharts", __name__, url_prefix="/owidcharts")
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         @self.bp.get("/")
         @self.bp.get("/<string:template_filter>")
         @admin_required
