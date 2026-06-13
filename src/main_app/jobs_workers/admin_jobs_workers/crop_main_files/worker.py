@@ -161,7 +161,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             if updated:
                 file_info.status = "completed"
                 self.result.summary.updated += 1
-                self._append(file_info, key="pages_updated")
+                self.result.pages_updated.append(file_info.to_dict())
                 return True
             else:
                 # if all file_info.steps "result" is None do:
@@ -169,33 +169,33 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                     file_info.status = "skipped"
                     self.result.summary.skipped += 1
 
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 1 - Download
         if not self._step_download(file_info, template):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 2 - Crop
         cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
         if not self._step_crop(file_info, template, cropped_output_path):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # Upload disabled → mark skipped and move on
         if not self.upload_files:
             self._skip_upload_steps(file_info)
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 3 - Upload cropped file
         up_step = self._step_upload(file_info)
         if up_step is False:
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         elif up_step is None:
@@ -207,15 +207,15 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         updated = self.update_file_references(file_info)
 
         if uploaded:
-            self._append(file_info, key="pages_uploaded")
+            self.result.pages_uploaded.append(file_info.to_dict())
             return True
 
         elif updated:
-            self._append(file_info, key="pages_updated")
+            self.result.pages_updated.append(file_info.to_dict())
             return True
 
         file_info.status = "completed"
-        self._append(file_info, key="pages_processed")
+        self.result.pages_processed.append(file_info.to_dict())
         return False
 
     def _check_file_exists(self, cropped_filename):
@@ -466,13 +466,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self.result.summary.skipped += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = ""
-
-    def _append(self, file_info: CropFileProcessingInfo, key: str = "pages_processed") -> None:
-        items = getattr(self.result, key, None)
-        if items is None:
-            raise ValueError(f"Unknown result key: {key}")
-        items.append(file_info.to_dict())
-
 
 # ------------------------------------------------------------------
 # Backwards-compatible entry-point
