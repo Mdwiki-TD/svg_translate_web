@@ -1,5 +1,5 @@
 {% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step %}
+{% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {# Processed files or pages fallback #}
@@ -80,17 +80,11 @@
                             </a>
                         </td>
                         <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ file.original_file }}" target="_blank"
-                                rel="noopener noreferrer">
-                                File
-                            </a>
+                            {{ commons_file_link(file.original_file, label="File") }}
                         </td>
                         <td>
                             {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ file.cropped_filename }}" target="_blank"
-                                rel="noopener noreferrer">
-                                Cropped
-                            </a>
+                            {{ commons_file_link(file.cropped_filename, label="Cropped") }}
                             {% endif %}
                         </td>
                         <td>

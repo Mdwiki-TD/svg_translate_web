@@ -14,86 +14,18 @@ from typing import Any
 import requests
 from flask import send_file
 
-from ....api_services import create_commons_session, download_commons_file_core
+from ....api_services import create_commons_session
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import DownloadMainFilesWorkerObject
+from .download_helper import download_file_from_commons
+from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
 
 logger = logging.getLogger(__name__)
-
-
-def download_all_main_files() -> None: ...
-
-
-def download_file_from_commons(
-    filename: str,
-    output_dir: Path,
-    session: requests.Session | None = None,
-) -> dict[str, Any]:
-    """
-    Download a single file from Wikimedia Commons.
-
-    Args:
-        filename: The file name (e.g., "File:Example.svg")
-        output_dir: Directory where the file should be saved
-        session: Optional requests session to use
-
-    Returns:
-        dict with keys:
-            - success (bool)
-            - path (str|None)
-            - size_bytes (int|None)
-            - error (str|None)
-    """
-    result = {
-        "success": False,
-        "path": None,
-        "size_bytes": None,
-        "error": None,
-    }
-
-    if not filename:
-        result["error"] = "Empty filename"
-        return result
-
-    # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename.removeprefix("File:")
-
-    # Determine output path - maintain original filename
-    out_path = output_dir / clean_filename
-
-    # Create session if not provided
-    if session is None:
-        session = create_commons_session(settings.other.user_agent)
-
-    # Use the core download function
-    try:
-        content = download_commons_file_core(clean_filename, session, timeout=60)
-    except Exception as e:
-        result["error"] = f"Download failed: {str(e)}"
-        logger.exception(f"Failed to download {clean_filename}")
-        return result
-
-    try:
-        # Save the file
-        out_path.write_bytes(content)
-        file_size = len(content)
-
-        result["success"] = True
-        result["path"] = str(out_path.name)
-        result["size_bytes"] = file_size
-        logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
-
-    except Exception as e:
-        result["error"] = f"Unexpected error: {str(e)}"
-        logger.exception(f"Error saving {clean_filename}")
-
-    return result
 
 
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
@@ -137,12 +69,12 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
     def _process_one(self, template: TemplateRecord) -> None:
         self.result.summary.processed += 1
 
-        file_info = {
-            "template_id": template.id,
-            "template_title": template.title,
-            "filename": template.main_file,
-            "timestamp": datetime.now().isoformat(),
-        }
+        file_info = FileInfo(
+            template_id=template.id,
+            template_title=template.title,
+            filename=template.main_file,
+            timestamp=datetime.now().isoformat(),
+        )
 
         # Extract just the filename part (remove "File:" prefix if present)
         clean_filename = template.main_file
@@ -156,34 +88,34 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         try:
             # Download the file (will overwrite if exists)
             download_result = download_file_from_commons(
-                clean_filename,
-                self.output_dir,
+                filename=clean_filename,
+                output_dir=self.output_dir,
                 session=self.session,
             )
 
         except Exception as e:
-            file_info["status"] = "failed"
-            file_info["reason"] = f"Exception: {str(e)}"
-            file_info["error_type"] = type(e).__name__
-            self.result.files_failed.append(file_info)
+            file_info.status = "failed"
+            file_info.reason = f"Exception: {str(e)}"
+            file_info.error_type = type(e).__name__
+            self.result.files_failed.append(file_info.to_dict())
             self.result.summary.failed += 1
             logger.exception(f"Job {self.job_id}: Error processing {template.title}")
             return False
 
         # download_result = { "success": False, "path": None, "size_bytes": None, "error": None}
         if download_result.get("success"):
-            file_info["status"] = "downloaded"
-            file_info["path"] = download_result.get("path")
-            file_info["size_bytes"] = download_result.get("size_bytes")
-            self.result.files_downloaded.append(file_info)
+            file_info.status = "downloaded"
+            file_info.path = download_result.get("path")
+            file_info.size_bytes = download_result.get("size_bytes")
+            self.result.files_downloaded.append(file_info.to_dict())
             self.result.summary.success += 1
             return True
 
         error = download_result.get("error")
 
-        file_info["status"] = "failed"
-        file_info["reason"] = error
-        self.result.files_failed.append(file_info)
+        file_info.status = "failed"
+        file_info.reason = error
+        self.result.files_failed.append(file_info.to_dict())
         self.result.summary.failed += 1
         logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {error}")
 

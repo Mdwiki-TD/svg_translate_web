@@ -36,6 +36,10 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
     )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.get_user_site",
+        MagicMock(return_value=MagicMock()),
+    )
 
     return {
         "list_templates": mock_list_templates,
@@ -123,7 +127,8 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
 
     def mock_repair_nested_svg_tags(
         filename,
-        user,
+        site,
+        temp_dir,
     ) -> dict[str, Any]:
         return {"success": True, "message": "OK"}
 
@@ -135,7 +140,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
     fix_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
     result = mock_common_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["success"] == 2
+    assert len(result["pages_success"]) == 2
 
 
 def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.MonkeyPatch):

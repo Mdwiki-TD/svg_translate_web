@@ -13,10 +13,8 @@ from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects impor
     FileResult,
 )
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.shared.fix_nested.objects import (
+from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
-    DownloadResult,
-    UploadResult,
     VerificationResult,
 )
 
@@ -195,7 +193,7 @@ class TestDownloadStep:
     def test_success_populates_file_result(self, mock_services, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=True, path=svg)
+        mock_services["download_svg_file"].return_value = {"ok": True, "path": svg}
         proc = _make_processor()
         result = proc._download_step()
         assert result is True
@@ -203,7 +201,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "success"
 
     def test_failure_populates_file_result_with_error(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=False, error="network_error")
+        mock_services["download_svg_file"].return_value = {"ok": False, "error": "network_error"}
         proc = _make_processor()
         result = proc._download_step()
         assert result is False
@@ -212,7 +210,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "Failed"
 
     def test_failure_defaults_error_when_missing(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=False)
+        mock_services["download_svg_file"].return_value = {"ok": False}
         proc = _make_processor()
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
@@ -359,14 +357,14 @@ class TestUploadStep:
         mock_services["upload_fixed_svg"].assert_not_called()
 
     def test_returns_true_on_success(self, mock_services, tmp_path):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True)
+        mock_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_services, tmp_path):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="permission_denied")
+        mock_services["upload_fixed_svg"].return_value = {"ok": False, "error": "permission_denied"}
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
@@ -473,7 +471,7 @@ class TestRun:
             ),
             "download": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
-                return_value=DownloadResult(ok=True, path=svg),
+                return_value={"ok": True, "path": svg},
             ),
             "detect": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",
@@ -489,7 +487,7 @@ class TestRun:
             ),
             "upload": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
-                return_value=UploadResult(ok=True),
+                return_value={"ok": True, "result": {}},
             ),
         }
         return patches
@@ -525,7 +523,7 @@ class TestRun:
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
         mocks["is_job_cancelled"].return_value = False
-        mocks["download"].return_value = DownloadResult(ok=False, error="timeout")
+        mocks["download"].return_value = {"ok": False, "error": "timeout"}
 
         try:
             proc = _make_processor()

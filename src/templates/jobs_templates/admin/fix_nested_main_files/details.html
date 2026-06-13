@@ -1,5 +1,5 @@
 {% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, commons_file_link %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -52,10 +52,7 @@
                         </td>
                         <td>
                             {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.main_file }}
-                            </a>
+                            {{ commons_file_link(template.main_file) }}
                             {% endif %}
                         </td>
                         <td>{{ template.fix_result.message }}</td>
@@ -96,13 +93,10 @@
                         </td>
                         <td>
                             {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.main_file }}
-                            </a>
+                            {{ commons_file_link(template.main_file) }}
                             {% endif %}
                         </td>
-                        <td>{{ template.reason or template.error }}</td>
+                        <td>{{ template.reason or template.error or template.message }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

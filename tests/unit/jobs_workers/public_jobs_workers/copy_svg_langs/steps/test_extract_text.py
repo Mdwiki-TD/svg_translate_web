@@ -52,3 +52,19 @@ def test_extract_text_step_fail(mock_services):
     assert result["success"] is False
     assert result["text"] == ""
     assert result["error"] == "No wikitext found"
+
+
+def test_extract_text_step_empty_title():
+    result = extract_text_step("")
+
+    assert result["success"] is False
+    assert result["text"] == ""
+    assert result["error"] == "No title found"
+
+
+def test_extract_text_step_none_title():
+    result = extract_text_step(None)
+
+    assert result["success"] is False
+    assert result["text"] == ""
+    assert result["error"] == "No title found"

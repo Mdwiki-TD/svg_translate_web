@@ -9,6 +9,10 @@ from .clients import (
     get_cronjob_site,
     get_user_site,
 )
+from .files_service import (
+    download_svg_file,
+    upload_fixed_svg,
+)
 from .mwclient_page import MwClientPage
 from .query_api import (
     get_page_links,
@@ -20,6 +24,8 @@ from .query_api import (
 from .upload_bot import UploadFile, upload_file
 
 __all__ = [
+    "download_svg_file",
+    "upload_fixed_svg",
     "upload_file",
     "UploadFile",
     "MwClientPage",
