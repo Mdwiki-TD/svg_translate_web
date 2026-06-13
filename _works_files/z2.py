@@ -150,17 +150,32 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                 _old = [
                     '"""',
                     f"Unit tests for {internal_path}/{file} module.",
+                    "",
+                    "\n".join(methods_parts),
+                    "",
+                    "TODO: write tests",
+                    '"""',
+                    "\n",
+                    import_statement,
+                ]
+                content_old = "\n".join(_old)
+                # ------------------------------------------------
+                _old_1 = [
+                    '"""',
+                    f"Unit tests for {internal_path}/{file} module.",
                     "TODO: write tests",
                     '"""',
                     "\n",
                 ]
+                # ------------------------------------------------
+                content_old_1 = "\n".join(_old_1)
                 content_old = "\n".join(_old)
                 # ------------------------------------------------
                 content_new = "\n".join(_new)
 
                 if test_file_path.exists():
                     test_text = test_file_path.read_text(encoding="utf-8")
-                    if test_text != content_old:
+                    if test_text != content_old and test_text != content_old_1:
                         # continue to skip goto next part
                         continue
 
