@@ -178,7 +178,8 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     if test_text != content_old and test_text != content_old_1:
                         # continue to skip goto next part
                         print("!=")
-                        # continue
+                        if len(test_text.splitlines()) > 10 and 'TODO: write tests' not in test_text:
+                            continue
 
                 # save content_new to the file
                 with open(test_file_path, "w", encoding="utf-8") as f:
