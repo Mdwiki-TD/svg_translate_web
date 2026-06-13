@@ -8,7 +8,7 @@ import logging
 import tempfile
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from mwclient.client import Site
 
@@ -27,7 +27,7 @@ from ....shared.fix_nested.worker import (
     verify_fix,
 )
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import FileResult, FixNestedJobsWorkerObject
+from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         super().__init__(job_id, user, cancel_event)
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
         self.result.job_id = self.job_id
-
         self.args = args or {}
         self.result.args = self.args
+
         self.upload_limit = self.args.get("upload_limit") or 0
 
         self.filename = self.args.get("filename")
@@ -200,15 +200,11 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def _run_stage(
         self,
-        stage_name: str,
-        step_func: Any,
-        *args: Any,
-        **kwargs: Any,
+        stage: StageDetail,
+        step_func: Callable[[], dict[str, Any]],  # Accepts a zero-argument callable that returns a dict
     ) -> bool:
         """Run a single stage and update result."""
-        stage = getattr(self.result.stages, stage_name, None)
-        if stage is None:
-            raise ValueError(f"Unknown stage: {stage_name}")
+        stage_name = stage.name
 
         if self.is_cancelled():
             stage.status = "Cancelled"
@@ -218,7 +214,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self._save_progress()
 
         try:
-            step_result = step_func(*args, **kwargs)
+            # Call the lambda / callback directly without passing args
+            step_result = step_func()
             if step_result:
                 return True
             elif step_result is False:
@@ -250,28 +247,28 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Download SVG files
 
-        if not self._run_stage("download", self._download_step):
+        if not self._run_stage(self.result.stages.download, self._download_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
-        if not self._run_stage("analyze", self._analyze_step):
+        if not self._run_stage(self.result.stages.analyze, self._analyze_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Fix nested tags
-        if not self._run_stage("fix", self._fix_step):
+        if not self._run_stage(self.result.stages.fix, self._fix_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 4: Verify fixes
-        if not self._run_stage("verify", self._verify_step):
+        if not self._run_stage(self.result.stages.verify, self._verify_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 5: Upload fixed files
 
-        if not self._run_stage("upload", self._upload_step):
+        if not self._run_stage(self.result.stages.upload, self._upload_step):
             return self.result
 
         return self.result

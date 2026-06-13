@@ -142,7 +142,7 @@ class TestCopySvgLangsWorkerProcess:
         def failing_step():
             raise ValueError("Boom")
 
-        success = worker._run_stage("text", failing_step)
+        success = worker._run_stage(worker.result.stages.text, failing_step)
         assert success is False
         assert worker.result.stages.text.status == "Failed"
         assert "Boom" in worker.result.stages.text.message

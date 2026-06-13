@@ -131,7 +131,7 @@ class TestFixNestedJobsProcessor:
         def mock_step():
             return True
 
-        result = processor._run_stage("download", mock_step)
+        result = processor._run_stage(processor.result.stages.download, mock_step)
         assert result is True
 
     def test_run_stage_failure(self, mock_jobs_service) -> None:
@@ -140,6 +140,6 @@ class TestFixNestedJobsProcessor:
         def mock_step():
             return False
 
-        result = processor._run_stage("download", mock_step)
+        result = processor._run_stage(processor.result.stages.download, mock_step)
         assert result is False
         assert processor.result.status == "Failed"

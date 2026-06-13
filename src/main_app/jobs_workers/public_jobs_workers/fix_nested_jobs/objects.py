@@ -12,17 +12,43 @@ from ...base_worker_object import WorkerObject
 
 @dataclass
 class StageDetail:
+    name: str = ""
     status: str = "Pending"
     message: str = ""
 
 
 @dataclass
 class Stages:
-    download: StageDetail = field(default_factory=lambda: StageDetail(message="Downloading files"))
-    analyze: StageDetail = field(default_factory=lambda: StageDetail(message="Analyzing nested tags"))
-    fix: StageDetail = field(default_factory=lambda: StageDetail(message="Fixing nested tags"))
-    verify: StageDetail = field(default_factory=lambda: StageDetail(message="Verifying fixes"))
-    upload: StageDetail = field(default_factory=lambda: StageDetail(message="Uploading fixed files"))
+    download: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="download",
+            message="Downloading files",
+        )
+    )
+    analyze: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="analyze",
+            message="Analyzing nested tags",
+        )
+    )
+    fix: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="fix",
+            message="Fixing nested tags",
+        )
+    )
+    verify: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="verify",
+            message="Verifying fixes",
+        )
+    )
+    upload: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="upload",
+            message="Uploading fixed files",
+        )
+    )
 
 
 @dataclass
