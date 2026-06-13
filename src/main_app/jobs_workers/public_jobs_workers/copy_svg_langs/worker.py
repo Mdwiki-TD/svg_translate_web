@@ -472,7 +472,7 @@ def copy_svg_langs_worker_entry(
 ) -> None:
     """Entry point for the background job."""
 
-    if args and args.get("copy_svg_langs_upload_limit", "").isdigit():
+    if args and str(args.get("copy_svg_langs_upload_limit", "")).isdigit():
         args.update({"upload_limit": args.get("copy_svg_langs_upload_limit")})
 
     worker = CopySvgLangsWorker(

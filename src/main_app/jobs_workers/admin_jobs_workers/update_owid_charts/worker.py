@@ -333,7 +333,7 @@ def update_owid_charts_worker_entry(
     """Background worker entry-point for update_owid_charts."""
     logger.info(f"Starting job {job_id}: update OWID charts timespan data")
 
-    if args and args.get("owid_charts_limit_items", "").isdigit():
+    if args and str(args.get("owid_charts_limit_items", "")).isdigit():
         args.update({"limit_items": args.get("owid_charts_limit_items")})
 
     worker = UpdateOwidChartsWorker(

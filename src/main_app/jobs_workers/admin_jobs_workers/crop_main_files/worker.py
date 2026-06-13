@@ -488,7 +488,7 @@ def crop_main_files_worker_entry(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    if args and args.get("crop_newest_upload_limit", "").isdigit():
+    if args and str(args.get("crop_newest_upload_limit", "")).isdigit():
         args.update({"upload_limit": args.get("crop_newest_upload_limit")})
 
     worker = CropMainFilesWorker(

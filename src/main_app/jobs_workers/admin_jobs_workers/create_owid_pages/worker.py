@@ -387,7 +387,7 @@ def create_owid_pages_for_templates(
     """
     logger.info(f"Starting job {job_id}: create OWID pages for templates")
 
-    if args and args.get("create_owid_pages_limit", "").isdigit():
+    if args and str(args.get("create_owid_pages_limit", "")).isdigit():
         args.update({"limit_items": args.get("create_owid_pages_limit")})
 
     worker = CreateOwidPagesWorker(

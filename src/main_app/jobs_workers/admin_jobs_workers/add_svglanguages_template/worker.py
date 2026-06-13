@@ -294,7 +294,7 @@ def add_svglanguages_template_to_templates(
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
 
-    if args and args.get("add_svglanguages_limit_items", "").isdigit():
+    if args and str(args.get("add_svglanguages_limit_items", "")).isdigit():
         args.update({"limit_items": args.get("add_svglanguages_limit_items")})
 
     worker = AddSvgSVGLanguagesTemplate(

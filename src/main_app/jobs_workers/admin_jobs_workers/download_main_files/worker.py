@@ -258,7 +258,7 @@ def download_main_files_for_templates(
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
 
-    if args and args.get("download_main_files_limit_items", "").isdigit():
+    if args and str(args.get("download_main_files_limit_items", "")).isdigit():
         args.update({"limit_items": args.get("download_main_files_limit_items")})
 
     worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
