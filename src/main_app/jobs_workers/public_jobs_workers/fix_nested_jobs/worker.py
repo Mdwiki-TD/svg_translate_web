@@ -213,7 +213,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
                 return False
 
         except Exception as e:
-            logger.exception(f"Error in stage {stage_name}")
+            logger.exception("Error in stage %s", stage_name)
             stage.status = "Failed"
             stage.message = str(e)
             self.result.status = "Failed"

@@ -109,7 +109,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     def process(self) -> RenameOwidPagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
+            logger.warning("Job %s: No site authentication available", self.job_id)
             self.log_no_site_error()
             return self.result
 
@@ -120,7 +120,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             if self.is_cancelled():
                 return self.result
 
-            logger.info(f"Job {self.job_id}: Listing pages with prefix '{full_prefix}' (ns={namespace})")
+            logger.info("Job %s: Listing pages with prefix '%s' (ns=%d)", self.job_id, full_prefix, namespace)
             ns_count = 0
             for page in self._iter_owid_pages(namespace, prefix):
                 ns_count += 1
@@ -131,10 +131,10 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
                     continue
                 candidates.append((namespace, full_prefix, title, new_title))
 
-            logger.info(f"Job {self.job_id}: Scanned {ns_count} page(s) under '{full_prefix}'")
+            logger.info("Job %s: Scanned %d page(s) under '%s'", self.job_id, ns_count, full_prefix)
 
         total = len(candidates)
-        logger.info(f"Job {self.job_id}: {total} page(s) need renaming")
+        logger.info("Job %s: %d page(s) need renaming", self.job_id, total)
 
         # Save progress immediately so the UI reflects the discovery phase.
         self.result.summary.total = total
@@ -148,12 +148,12 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             if self.is_cancelled():
                 break
 
-            logger.info(f"Job {self.job_id}: Renaming {n}/{total}: {old_title} -> {new_title}")
+            logger.info("Job %s: Renaming %d/%d: %s -> %s", self.job_id, n, total, old_title, new_title)
 
             changed = self._rename_one(namespace, old_title, new_title)
 
             if changed and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             if n == 1 or n % per_item == 0:
@@ -271,11 +271,11 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             record = get_template_by_title(old_title)
             if record:
                 update_template_data(record.id, {"title": new_title})
-                logger.info(f"Job {self.job_id}: Updated DB template title: {old_title} -> {new_title}")
+                logger.info("Job %s: Updated DB template title: %s -> %s", self.job_id, old_title, new_title)
             else:
-                logger.debug(f"Job {self.job_id}: No TemplateRecord found for '{old_title}', skipping DB update")
+                logger.debug("Job %s: No TemplateRecord found for '%s', skipping DB update", self.job_id, old_title)
         except Exception as exc:
-            logger.warning(f"Job {self.job_id}: Failed to update DB title for '{old_title}': {exc}")
+            logger.warning("Job %s: Failed to update DB title for '%s': %s", self.job_id, old_title, exc)
 
 
 def rename_owid_pages_for_templates(
@@ -293,7 +293,7 @@ def rename_owid_pages_for_templates(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info(f"Starting job {job_id}: rename OWID pages (capitalize first letter)")
+    logger.info("Starting job %s: rename OWID pages (capitalize first letter)", job_id)
     worker = RenameOwidPagesWorker(
         job_id=job_id,
         user=user,

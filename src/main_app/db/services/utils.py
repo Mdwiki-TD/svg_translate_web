@@ -16,7 +16,7 @@ P = ParamSpec("P")
 
 
 def db_guard_rollback(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator that requires a full OAuth credential bundle."""
+    """Decorator that rolls back the DB session on exception and re-raises."""
 
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any):
@@ -48,22 +48,22 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[[Callable[P
                 return func(*args, **kwargs)
             except OperationalError as exc:
                 logger.error("DB error in %s", func.__qualname__)
-                logger.exception(f"{msg}: %s", exc)
+                logger.exception("%s: %s", msg, exc)
                 db.session.rollback()
                 return default_return
             except PendingRollbackError as exc:
                 logger.error("DB pending rollback error in %s", func.__qualname__)
-                logger.exception(f"{msg}: %s", exc)
+                logger.exception("%s: %s", msg, exc)
                 db.session.rollback()
                 return default_return
             except SQLAlchemyError as exc:
                 logger.error("DB error in %s", func.__qualname__)
-                logger.exception(f"{msg}: %s", exc)
+                logger.exception("%s: %s", msg, exc)
                 db.session.rollback()
                 return default_return
             except Exception as exc:
                 logger.error("Unexpected error in %s", func.__qualname__)
-                logger.exception(f"{msg}: %s", exc)
+                logger.exception("%s: %s", msg, exc)
                 db.session.rollback()
                 return default_return
 

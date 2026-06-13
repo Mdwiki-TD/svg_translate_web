@@ -36,12 +36,12 @@ class MwClientPage:
         try:
             self.page = self.site.pages[self.title]
         except mwclient.errors.InvalidPageTitle:
-            logger.error(f"Title '{self.title}' is invalid")
+            logger.error("Title '%s' is invalid", self.title)
             self.load_page_error = "invalidpagetitle"
             return None
         except Exception as exc:
             self.load_page_error = str(exc)
-            logger.exception(f"Failed to load page '{self.title}'")
+            logger.exception("Failed to load page '%s'", self.title)
             return None
 
         return self.page
@@ -54,7 +54,7 @@ class MwClientPage:
             result = handle_mwclient_error(exc)
             if result is not None:
                 return result
-            logger.exception(f"Failed to edit page '{self.title}'")
+            logger.exception("Failed to edit page '%s'", self.title)
             return {"success": False, "error": str(exc)}
 
     def _move_page(
@@ -72,7 +72,7 @@ class MwClientPage:
             result = handle_mwclient_error(exc)
             if result is not None:
                 return result
-            logger.exception(f"Failed to move page '{self.title}' -> '{new_title}'")
+            logger.exception("Failed to move page '%s' -> '%s'", self.title, new_title)
             return {"success": False, "error": str(exc)}
 
     # ------------------------------------------------------------------
@@ -86,7 +86,7 @@ class MwClientPage:
             return result
 
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
-            logger.warning(f"Rate limited (attempt {attempt}/{len(_RETRY_DELAYS)}). Retrying in {delay}s...")
+            logger.warning("Rate limited (attempt %d/%d). Retrying in %ds...", attempt, len(_RETRY_DELAYS), delay)
             time.sleep(delay)
             result = operation(*args, **kwargs)
             if result.get("error") != "ratelimited":
@@ -107,17 +107,17 @@ class MwClientPage:
 
     def exists(self) -> bool:
         if not self.load_page() or not self.page:
-            logger.warning(f"Failed to load page '{self.title}'")
+            logger.warning("Failed to load page '%s'", self.title)
             return False
         try:
             if not self.page.exists:
-                logger.warning(f"Page '{self.title}' does not exist")
+                logger.warning("Page '%s' does not exist", self.title)
                 return False
         except Exception as exc:
-            logger.warning(f"Could not check if page '{self.title}' exists: {exc}")
+            logger.warning("Could not check if page '%s' exists: %s", self.title, exc)
             return False
 
-        logger.info(f"Page '{self.title}' exists")
+        logger.info("Page '%s' exists", self.title)
         return True
 
     def get_text(self) -> str:
@@ -127,7 +127,7 @@ class MwClientPage:
         try:
             return self.page.text()
         except Exception:
-            logger.exception(f"Failed to retrieve wikitext for {self.title}")
+            logger.exception("Failed to retrieve wikitext for %s", self.title)
         return ""
 
     def get_redirect_target(self) -> str | None:
@@ -140,7 +140,7 @@ class MwClientPage:
             target = self.page.redirects_to()
             return target.name if target is not None else None
         except Exception as exc:
-            logger.debug(f"Could not get redirect of '{self.title}': {exc}")
+            logger.debug("Could not get redirect of '%s': %s", self.title, exc)
             return None
 
     def is_redirect(self) -> bool:

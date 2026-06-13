@@ -165,7 +165,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             template_info._update("success", "")
 
             self.result.pages_success.append(template_info)
-            logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
+            logger.info("Job %s: Successfully processed %s", self.job_id, template.main_file)
             return True
 
         elif fix_result.get("no_nested_tags", False):
@@ -173,14 +173,14 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
             self.result.pages_skipped.append(template_info)
 
-            logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
+            logger.info("Job %s: No nested tags found in %s", self.job_id, template.main_file)
             return False
 
         message = fix_result.get("message", "Unknown error")
         template_info._update("failed", message)
 
         self.result.pages_failed.append(template_info)
-        logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
+        logger.warning("Job %s: Failed to process %s: %s", self.job_id, template.main_file, message)
 
         return False
 
@@ -190,28 +190,28 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         self.site = get_user_site(self.user)
         if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
+            logger.warning("Job %s: No site authentication available", self.job_id)
             self.log_no_site_error()
             return self.result
 
         templates = list_templates()
         self.result.summary.total = len(templates)
 
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
+        logger.info("Job %s: Found %d templates", self.job_id, len(templates))
 
         per_item = self.get_priority(len(templates))
 
         for n, template in enumerate(templates, start=1):
-            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates)}: {template.title}")
+            logger.info("Job %s: Processing template %d/%d: %s", self.job_id, n, len(templates), template.title)
 
             if self.is_cancelled():
-                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
+                logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
             ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             # Save progress after check for cancellation
@@ -219,10 +219,11 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 self._save_progress()
 
         logger.info(
-            f"Job {self.job_id} completed: "
-            f"{len(self.result.pages_success)} successful, "
-            f"{len(self.result.pages_skipped)} skipped, "
-            f"{len(self.result.pages_failed)} failed"
+            "Job %s completed: %d successful, %d skipped, %d failed",
+            self.job_id,
+            len(self.result.pages_success),
+            len(self.result.pages_skipped),
+            len(self.result.pages_failed),
         )
 
         return self.result
@@ -244,7 +245,7 @@ def fix_nested_main_files_for_templates(
         cancel_event: Optional event to check for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info(f"Starting job {job_id}: fix nested tags for template main files")
+    logger.info("Starting job %s: fix nested tags for template main files", job_id)
     worker = FixNestedMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
 

@@ -233,7 +233,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
                 # 4. Compare — skip if nothing changed
                 if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
-                    logger.info(f"Chart '{chart.slug}' has no changes in timespan")
+                    logger.info("Chart '%s' has no changes in timespan", chart.slug)
                 else:
                     data.update(
                         {
@@ -265,7 +265,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             self.result.updated_charts.append(info.to_dict())
             return True
         except Exception as exc:
-            logger.exception(f"Job {self.job_id}: DB update failed for chart '{chart.slug}'")
+            logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
             info.status = "failed"
             info.error = str(exc)
 
@@ -279,7 +279,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     def _apply_limits(self, charts: list[OwidChartRecord]) -> list[OwidChartRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(charts) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(charts)} to {_limit} page")
+            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(charts), _limit)
             return charts[:_limit]
 
         return charts
@@ -293,7 +293,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         total = len(charts)
 
         self.result.summary.total = total
-        logger.info(f"Job {self.job_id}: Found {total} charts to process")
+        logger.info("Job %s: Found %d charts to process", self.job_id, total)
 
         per_item = self.get_priority(total)
 
@@ -301,11 +301,11 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             if self.is_cancelled():
                 break
 
-            logger.info(f"Job {self.job_id}: Processing {n}/{total}: {chart.slug}")
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, total, chart.slug)
             changed = self._process_chart(chart)
 
             if changed and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             if n == 1 or n % per_item == 0:
@@ -330,7 +330,7 @@ def update_owid_charts_worker_entry(
     args: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point for update_owid_charts."""
-    logger.info(f"Starting job {job_id}: update OWID charts timespan data")
+    logger.info("Starting job %s: update OWID charts timespan data", job_id)
 
     worker = UpdateOwidChartsWorker(
         job_id=job_id,

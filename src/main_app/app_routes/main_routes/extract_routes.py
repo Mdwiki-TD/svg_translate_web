@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import shutil
@@ -39,7 +41,7 @@ def extract_translations_post() -> str:
         flash("Please provide a file name", "danger")
         return render_template("extract/form.html", filename=original_filename)
 
-    logger.info(f"Starting extract translations for file: {filename}")
+    logger.info("Starting extract translations for file: %s", filename)
 
     # Create temporary directory for download
     temp_dir = Path(tempfile.mkdtemp())
@@ -61,8 +63,8 @@ def extract_translations_post() -> str:
                 return render_template("extract/form.html", filename=original_filename)
 
         except Exception as e:
-            logger.error(f"Error extracting translations: {e}", exc_info=True)
-            flash(f"Error extracting translations: {str(e)}", "danger")
+            logger.error("Error extracting translations: %s", e, exc_info=True)
+            flash("An error occurred while extracting translations", "danger")
             return render_template("extract/form.html", filename=original_filename)
 
         translations.pop("tspans_by_id", None)
@@ -78,7 +80,7 @@ def extract_translations_post() -> str:
         languages = sorted(
             {lang for entry in translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
         )
-        logger.info(f"Extracted languages: {len(languages):,}")
+        logger.info("Extracted languages: %s", len(languages))
 
         # Convert translations to pretty JSON for display
         translations_json = json.dumps(translations, ensure_ascii=False, indent=4)

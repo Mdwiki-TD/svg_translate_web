@@ -95,7 +95,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     def process(self) -> CreateOwidPagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
+            logger.warning("Job %s: No site authentication available", self.job_id)
             self.log_no_site_error()
             return self.result
 
@@ -110,11 +110,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 self.result.summary.skipped = len_all
                 self.result.status = "skipped"
                 self.result.note = f"Nothing to create, All {len_all:,} pages already exist"
-                logger.warning(f"Job {self.job_id}: No templates to process")
+                logger.warning("Job %s: No templates to process", self.job_id)
                 return self.result
 
         # self.result.summary.total = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates.")
+        logger.info("Job %s: Found %d templates.", self.job_id, len(templates))
 
         per_item = self.get_priority(len(templates))
 
@@ -122,11 +122,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             if self.is_cancelled():
                 break
 
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
             ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             if n == 1 or n % per_item == 0:
@@ -150,10 +150,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             logger.warning("filter_created failed returning all templates")
             return templates
 
-        logger.debug(f"len of OWID already created pages: {len(already_created):,}")
+        logger.debug("len of OWID already created pages: %s", len(already_created))
 
         templates = [t for t in templates if t.title.removeprefix("Template:") not in already_created]
-        logger.debug(f"len of templates after filter created pages: {len(templates):,}")
+        logger.debug("len of templates after filter created pages: %s", len(templates))
 
         return templates
 
@@ -165,7 +165,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} item")
+            logger.info("Job %s: limiting from %d to %d item", self.job_id, len(templates), _limit)
             return templates[:_limit]
 
         return templates
@@ -378,7 +378,7 @@ def create_owid_pages_for_templates(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info(f"Starting job {job_id}: create OWID pages for templates")
+    logger.info("Starting job %s: create OWID pages for templates", job_id)
 
     worker = CreateOwidPagesWorker(
         job_id=job_id,

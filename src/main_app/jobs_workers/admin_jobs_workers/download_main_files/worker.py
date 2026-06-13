@@ -56,7 +56,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
     def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates_with_files) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates_with_files)} to {_limit} page")
+            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(templates_with_files), _limit)
             return templates_with_files[:_limit]
         return templates_with_files
 
@@ -99,7 +99,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             file_info.error_type = type(e).__name__
             self.result.files_failed.append(file_info.to_dict())
             self.result.summary.failed += 1
-            logger.exception(f"Job {self.job_id}: Error processing {template.title}")
+            logger.exception("Job %s: Error processing %s", self.job_id, template.title)
             return False
 
         # download_result = { "success": False, "path": None, "size_bytes": None, "error": None}
@@ -117,7 +117,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         file_info.reason = error
         self.result.files_failed.append(file_info.to_dict())
         self.result.summary.failed += 1
-        logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {error}")
+        logger.warning("Job %s: Failed to download %s: %s", self.job_id, clean_filename, error)
 
         return False
 
@@ -128,7 +128,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.result.summary.total = len(templates_with_files)
         self.result.output_path = str(self.output_dir)
 
-        logger.info(f"Job {self.job_id}: Found {len(templates_with_files)} templates with main files")
+        logger.info("Job %s: Found %d templates with main files", self.job_id, len(templates_with_files))
 
         # Create output directory if it doesn't exist
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -139,17 +139,17 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         per_item = self.get_priority(len(templates_with_files))
 
         for n, template in enumerate(templates_with_files, start=1):
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates_with_files)}: {template.title}")
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates_with_files), template.title)
 
             # Check for cancellation
             if self.is_cancelled():
-                logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
+                logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
             ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             # Save progress periodically
@@ -160,12 +160,15 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         if self.result.status != "cancelled":
             try:
                 generate_main_files_zip()
-                logger.info(f"Job {self.job_id}: Generated main_files.zip successfully")
+                logger.info("Job %s: Generated main_files.zip successfully", self.job_id)
             except Exception as e:
-                logger.exception(f"Job {self.job_id}: Failed to generate main_files.zip: {e}")
+                logger.exception("Job %s: Failed to generate main_files.zip: %s", self.job_id, e)
 
         logger.info(
-            f"Job {self.job_id} completed: {self.result.summary.success} success, {self.result.summary.failed} failed"
+            "Job %s completed: %d success, %d failed",
+            self.job_id,
+            self.result.summary.success,
+            self.result.summary.failed,
         )
 
         return self.result
@@ -187,7 +190,7 @@ def download_main_files_for_templates(
         cancel_event: Optional event to check for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info(f"Starting job {job_id}: download main files for templates")
+    logger.info("Starting job %s: download main files for templates", job_id)
 
     worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
@@ -227,7 +230,7 @@ def generate_main_files_zip() -> Path:
         zip_file_path.unlink(missing_ok=True)
         raise RuntimeError("No files found to zip in main_files_path")
 
-    logger.info(f"Generated {zip_file_path} with {file_count} files")
+    logger.info("Generated %s with %d files", zip_file_path, file_count)
     return zip_file_path
 
 

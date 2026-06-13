@@ -184,7 +184,7 @@ def test_extract_post_extraction_error(
         result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
-    assert any("Error extracting translations" in msg for msg, cat in flashed)
+    assert any("An error occurred while extracting translations" in msg for msg, cat in flashed)
 
 
 def test_extract_post_successful_extraction(
