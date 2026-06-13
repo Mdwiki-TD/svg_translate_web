@@ -476,6 +476,7 @@ class TestCreateOwidPagesWorkerHelpers:
         assert info.steps["create_new_page"]["result"] is None
         assert info.steps["create_new_page"]["msg"] == "Already exists"
 
+
 class TestCreateOwidPagesWorkerProcess:
     """Tests for the main process method."""
 

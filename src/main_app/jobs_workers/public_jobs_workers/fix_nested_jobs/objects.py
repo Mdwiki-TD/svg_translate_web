@@ -16,6 +16,12 @@ class StageDetail:
     status: str = "Pending"
     message: str = ""
 
+    def _update(self, status: str, message: str) -> None:
+        if status:
+            self.status = status
+        if message:
+            self.message = message
+
 
 @dataclass
 class Stages:

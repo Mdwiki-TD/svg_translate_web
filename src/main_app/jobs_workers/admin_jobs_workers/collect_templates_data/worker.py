@@ -157,11 +157,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         category_templates = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
         return category_templates
 
-    def _update_step(self, file_info: TemplateInfo, step: str, **kwargs) -> None:
-        for k, v in kwargs.items():
-            if k in file_info.steps[step]:
-                file_info.steps[step][k] = v
-
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
@@ -244,15 +239,15 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting newest world file: {e}")
             last_world_file = None
-            self._update_step(template_info, "last_world_file", result="failed", msg=str(e))
+            template_info.steps.last_world_file._update(result="failed", msg=str(e))
 
         if last_world_file:
             if last_world_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
                 # template_info.last_world_file = last_world_file
-                self._update_step(template_info, "last_world_file", result="updated", new_value=last_world_file)
+                template_info.steps.last_world_file._update(result="updated", new_value=last_world_file)
                 template_data["last_world_file"] = last_world_file
             else:
-                self._update_step(template_info, "last_world_file", result="skipped", msg="No changes")
+                template_info.steps.last_world_file._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 3 source
@@ -263,15 +258,15 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting source: {e}")
             source = None
-            self._update_step(template_info, "source", result="failed", msg=str(e))
+            template_info.steps.source._update(result="failed", msg=str(e))
 
         if source:
             if source != template.source:
                 # template_info.source = source
-                self._update_step(template_info, "source", result="updated", new_value=source)
+                template_info.steps.source._update(result="updated", new_value=source)
                 template_data["source"] = source
             else:
-                self._update_step(template_info, "source", result="skipped", msg="No changes")
+                template_info.steps.source._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 4 slug
@@ -282,14 +277,14 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting slug: {e}")
             _slug = None
-            self._update_step(template_info, "slug", result="failed", msg=str(e))
+            template_info.steps.slug._update(result="failed", msg=str(e))
 
         if _slug:
             if _slug != template.slug:
-                self._update_step(template_info, "slug", result="updated", new_value=_slug)
+                template_info.steps.slug._update(result="updated", new_value=_slug)
                 template_data["slug"] = _slug
             else:
-                self._update_step(template_info, "slug", result="skipped", msg="No changes")
+                template_info.steps.slug._update(result="skipped", msg="No changes")
 
         # ------------------
         # update status

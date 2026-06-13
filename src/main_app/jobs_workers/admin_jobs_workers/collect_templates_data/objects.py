@@ -15,13 +15,21 @@ class StepResult:
     """
     "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
     """
+
     result: Optional[bool | str] = None
     value: str = ""
     new_value: str = ""
     msg: str = ""
-    def _update(self, result: str="", msg: str = "") -> None:
-        self.result = result
-        self.msg = msg
+
+    def _update(self, result: str = "", msg: str = "", new_value: str = "") -> None:
+        if result:
+            self.result = result
+
+        if msg:
+            self.msg = msg
+
+        if new_value:
+            self.new_value = new_value
 
 
 @dataclass
@@ -30,6 +38,7 @@ class FileSteps:
     last_world_file: StepResult = field(default_factory=lambda: StepResult())
     source: StepResult = field(default_factory=lambda: StepResult())
     slug: StepResult = field(default_factory=lambda: StepResult())
+
 
 @dataclass
 class TemplateInfo:

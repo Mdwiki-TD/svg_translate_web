@@ -185,6 +185,7 @@ class TestIsCancelled:
         # should not raise
         proc.is_cancelled("nonexistent_stage")
 
+
 # ---------------------------------------------------------------------------
 # Individual step methods (unit-tested in isolation)
 # ---------------------------------------------------------------------------

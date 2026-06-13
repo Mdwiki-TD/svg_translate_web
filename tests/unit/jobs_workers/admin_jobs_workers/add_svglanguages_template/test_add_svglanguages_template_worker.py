@@ -259,7 +259,6 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
 
-
         mock_add_svg_worker._process_one(template)
 
         # Only load step should be called
@@ -283,7 +282,6 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text = MagicMock(return_value=False)
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
-
 
         mock_add_svg_worker._process_one(template)
 
@@ -346,7 +344,6 @@ class TestStepLoadTemplateText:
         mock_add_svg_worker._step_load_template_text.assert_called_once()
         mock_add_svg_worker._step_generate_template_text.assert_not_called()
         # mock_worker._skip_step.assert_called_once()
-
 
 
 class TestStepGenerateTemplateText:
@@ -464,6 +461,7 @@ class TestHelperMethods:
 
         assert info.steps["test_step"]["result"] is None
         assert info.steps["test_step"]["msg"] == "Skip reason"
+
 
 class TestProcessMethod:
     """Tests for the main process() method."""

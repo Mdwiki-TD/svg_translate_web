@@ -361,6 +361,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
+
 def create_owid_pages_for_templates(
     *,
     job_id: int,
