@@ -47,6 +47,7 @@ class FixNestedJobsWorkerObject(WorkerObject):
     file_result: FileResult = field(default_factory=FileResult)
     stages: Stages = field(default_factory=Stages)
 
+
 _old_result = {
     "note": "",
     "status": "pending",
