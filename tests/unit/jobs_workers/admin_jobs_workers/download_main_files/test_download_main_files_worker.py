@@ -51,46 +51,27 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         mock_generate_zip,
     )
 
+    mock_create_commons_session = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.create_commons_session",
+        mock_create_commons_session,
+    )
+
+    mock_download_commons_file_core = MagicMock(return_value=b"svg-content")
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.download_helper.download_commons_file_core",
+        mock_download_commons_file_core,
+    )
+
     return {
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "download_file_from_commons": mock_download_file,
         "generate_main_files_zip": mock_generate_zip,
+        "create_commons_session": mock_create_commons_session,
+        "download_commons_file_core": mock_download_commons_file_core,
     }
-
-
-def test_download_file_from_commons_success(monkeypatch, tmp_path):
-    """Test successful file download."""
-    mock_download_core = MagicMock(return_value=b"svg-content")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.download_commons_file_core",
-        mock_download_core,
-    )
-
-    output_dir = tmp_path
-    filename = "Test.svg"
-
-    result = worker.download_file_from_commons(filename, output_dir)
-
-    assert result["success"] is True
-    assert result["path"] == "Test.svg"
-    assert result["size_bytes"] == len(b"svg-content")
-    assert (output_dir / "Test.svg").read_bytes() == b"svg-content"
-
-
-def test_download_file_from_commons_failure(monkeypatch, tmp_path):
-    """Test handled download failure."""
-    mock_download_core = MagicMock(side_effect=Exception("API Error"))
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.download_commons_file_core",
-        mock_download_core,
-    )
-
-    result = worker.download_file_from_commons("Error.svg", tmp_path)
-
-    assert result["success"] is False
-    assert "Download failed" in result["error"]
 
 
 def test_download_main_files_with_no_templates(mock_services, tmp_path):

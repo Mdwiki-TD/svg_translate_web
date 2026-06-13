@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 import threading
 import zipfile
-from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -15,84 +14,18 @@ from typing import Any
 import requests
 from flask import send_file
 
-from ....api_services import create_commons_session, download_commons_file_core
+from ....api_services import create_commons_session
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker_object import BaseObjectsJobWorker
 from .objects import DownloadMainFilesWorkerObject, FileInfo
+from .download_helper import download_file_from_commons
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
 
 logger = logging.getLogger(__name__)
-
-
-def download_file_from_commons(
-    filename: str,
-    output_dir: Path,
-    session: requests.Session | None = None,
-) -> dict[str, Any]:
-    """
-    Download a single file from Wikimedia Commons.
-
-    Args:
-        filename: The file name (e.g., "File:Example.svg")
-        output_dir: Directory where the file should be saved
-        session: Optional requests session to use
-
-    Returns:
-        dict with keys:
-            - success (bool)
-            - path (str|None)
-            - size_bytes (int|None)
-            - error (str|None)
-    """
-    result = {
-        "success": False,
-        "path": None,
-        "size_bytes": None,
-        "error": None,
-    }
-
-    if not filename:
-        result["error"] = "Empty filename"
-        return result
-
-    # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename.removeprefix("File:")
-
-    # Determine output path - maintain original filename
-    out_path = output_dir / clean_filename
-
-    # Create session if not provided
-    if session is None:
-        session = create_commons_session(settings.other.user_agent)
-
-    # Use the core download function
-    try:
-        content = download_commons_file_core(clean_filename, session, timeout=60)
-    except Exception as e:
-        result["error"] = f"Download failed: {str(e)}"
-        logger.exception(f"Failed to download {clean_filename}")
-        return result
-
-    try:
-        # Save the file
-        out_path.write_bytes(content)
-        file_size = len(content)
-
-        result["success"] = True
-        result["path"] = str(out_path.name)
-        result["size_bytes"] = file_size
-        logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
-
-    except Exception as e:
-        result["error"] = f"Unexpected error: {str(e)}"
-        logger.exception(f"Error saving {clean_filename}")
-
-    return result
-
 
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
@@ -154,8 +87,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         try:
             # Download the file (will overwrite if exists)
             download_result = download_file_from_commons(
-                clean_filename,
-                self.output_dir,
+                filename=clean_filename,
+                output_dir=self.output_dir,
                 session=self.session,
             )
 
