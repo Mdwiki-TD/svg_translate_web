@@ -14,10 +14,9 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import get_user_site
+from ....api_services import download_svg_file, get_user_site, upload_fixed_svg
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ....shared.fix_nested.files_service import download_svg_file, upload_fixed_svg
 from ....shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,

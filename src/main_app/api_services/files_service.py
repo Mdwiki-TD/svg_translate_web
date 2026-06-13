@@ -6,10 +6,9 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ...api_services import upload_file
-
-from ...api_services.utils import download_one_file
-from .objects import DownloadResult
+from ..shared.fix_nested.objects import DownloadResult
+from . import upload_file
+from .utils import download_one_file
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +36,7 @@ def download_svg_file(filename: str, temp_dir: Path) -> DownloadResult:
         path=Path(file_data["path"]),
     )
 
+
 def upload_fixed_svg(
     filename: str,
     file_path: Path,
@@ -63,6 +63,8 @@ def upload_fixed_svg(
 
     return {"ok": True, "result": result}
 
+
 __all__ = [
     "download_svg_file",
+    "upload_fixed_svg",
 ]
