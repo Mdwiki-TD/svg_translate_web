@@ -77,17 +77,16 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.update_all = False
         self.site: Site | None = None
-        self.limit_items = args.get("limit_items") if args else 0
-        if args and str(args.get("update_all", "")).lower() == "true":
-            self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
 
         self.args = args or {}
         self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
+
+        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

@@ -107,7 +107,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
-        self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
@@ -116,6 +115,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         self.args = args or {}
         self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

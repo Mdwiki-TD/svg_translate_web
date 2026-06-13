@@ -136,13 +136,13 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
 
         self.args = args or {}
         self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         return "update_owid_charts"

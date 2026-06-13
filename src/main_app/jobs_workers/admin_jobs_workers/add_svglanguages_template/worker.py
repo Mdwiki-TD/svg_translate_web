@@ -76,13 +76,13 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
         self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
 
         self.args = args or {}
         self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

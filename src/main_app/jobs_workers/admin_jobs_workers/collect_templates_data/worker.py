@@ -71,16 +71,14 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.update_all = False
         self.site: Site | None = None
-        if args and str(args.get("update_all", "")).lower() == "true":
-            self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
         self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject()
 
         self.args = args or {}
         self.result.args = self.args
+        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
