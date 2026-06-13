@@ -12,6 +12,7 @@ from .objects import (
 
 logger = logging.getLogger(__name__)
 
+
 def detect_nested_tags(file_path: Path) -> DetectionResult:
     """Detect nested tags in SVG file."""
     nested = match_nested_tags(str(file_path))
@@ -37,6 +38,7 @@ def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
         after=after_count,
         fixed=max(0, before_count - after_count),
     )
+
 
 __all__ = [
     "detect_nested_tags",

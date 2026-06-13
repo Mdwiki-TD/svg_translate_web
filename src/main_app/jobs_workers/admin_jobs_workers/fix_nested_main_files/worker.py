@@ -12,17 +12,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from mwclient.client import Site
+
+from ....api_services import upload_file
+from ....api_services.clients import get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
+from ....shared.fix_nested.files_service import download_svg_file
 from ....shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,
-    UploadResult,
     VerificationResult,
-)
-from ....shared.fix_nested.files_service import (
-    download_svg_file,
-    upload_fixed_svg,
 )
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
@@ -35,15 +35,42 @@ from .objects import FixNestedMainFilesWorkerObject
 logger = logging.getLogger(__name__)
 
 
+def upload_fixed_svg(
+    filename: str,
+    file_path: Path,
+    tags_fixed: int,
+    site: Site,
+) -> dict[str, Any]:
+    """Upload fixed SVG file to Commons."""
+
+    logger.info(f"Uploading fixed file: {filename}")
+
+    result = upload_file(
+        file_name=filename,
+        file_path=file_path,
+        site=site,
+        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
+    )
+
+    if result.get("result") != "Success":
+        return {
+            "ok": False,
+            "error": result.get("error", "upload_failed"),
+            "error_details": result.get("error_details", ""),
+        }
+
+    return {"ok": True, "result": result}
+
+
 def repair_nested_svg_tags(
     filename: str,
-    user,
+    site: Site,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
     Args:
         filename: Name of the SVG file to fix
-        user: User object for authentication during upload
+        site: site object
 
     Returns:
         Dictionary with success status, message, and details.
@@ -88,7 +115,12 @@ def repair_nested_svg_tags(
                 "details": asdict(verify),
             }
 
-        upload: UploadResult = upload_fixed_svg(filename, file_path, verify.fixed, user)
+        upload = upload_fixed_svg(
+            filename,
+            file_path,
+            verify.fixed,
+            site,
+        )
 
         if not upload.ok:
             return {
@@ -121,6 +153,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
         self.args = args or {}
         self.result.args = self.args
+        self.site: Site | None = None
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -185,7 +218,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             # Process without job_id and db_store since we're tracking in the job
             fix_result = repair_nested_svg_tags(
                 filename=template.main_file,
-                user=self.user,
+                site=self.site,
             )
 
         except Exception as e:
@@ -212,6 +245,13 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     def process(self) -> FixNestedMainFilesWorkerObject:
         """Execute the fix nested tags processing logic."""
         # Get all templates
+
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.log_no_site_error()
+            return self.result
+
         templates = list_templates()
         self.result.summary.total = len(templates)
 

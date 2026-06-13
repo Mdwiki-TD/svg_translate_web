@@ -22,6 +22,7 @@ def mock_copy_svg():
     ):
         yield {"match": m_match, "fix": m_fix}
 
+
 def test_detect_nested_tags(mock_copy_svg):
     mock_copy_svg["match"].return_value = ["tag1", "tag2"]
     res = detect_nested_tags(Path("test.svg"))

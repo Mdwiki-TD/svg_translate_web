@@ -10,6 +10,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import 
     CopySvgLangsWorker,
 )
 
+
 @pytest.fixture
 def mock_clients():
     with (
@@ -30,6 +31,7 @@ def worker():
     _worker = CopySvgLangsWorker(job_id=1, user=user, args=args)
     _worker._save_progress = MagicMock()
     return _worker
+
 
 class TestRunStageDetails:
     @pytest.fixture
@@ -490,7 +492,11 @@ class TestProcessProgressCallbacks:
             ),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step",
-                return_value={"success": True, "main_title": "Main.svg", "titles": ["File1.svg", "File2.svg", "File3.svg"]},
+                return_value={
+                    "success": True,
+                    "main_title": "Main.svg",
+                    "titles": ["File1.svg", "File2.svg", "File3.svg"],
+                },
             ),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step",

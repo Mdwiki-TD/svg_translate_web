@@ -7,14 +7,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
-    CopySvgLangsWorker,
-    copy_svg_langs_worker_entry,
-)
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import (
     CopySvgLangsWorkerObject,
     FilesProcessedItem,
 )
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
+    CopySvgLangsWorker,
+    copy_svg_langs_worker_entry,
+)
+
 
 @pytest.fixture
 def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:

@@ -16,7 +16,6 @@ from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import
 from src.main_app.shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,
-    UploadResult,
     VerificationResult,
 )
 
@@ -359,14 +358,14 @@ class TestUploadStep:
         mock_services["upload_fixed_svg"].assert_not_called()
 
     def test_returns_true_on_success(self, mock_services, tmp_path):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True)
+        mock_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_services, tmp_path):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="permission_denied")
+        mock_services["upload_fixed_svg"].return_value = {"ok": False, "error": "permission_denied"}
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
@@ -489,7 +488,7 @@ class TestRun:
             ),
             "upload": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
-                return_value=UploadResult(ok=True),
+                return_value={"ok": True, "result": {}},
             ),
         }
         return patches

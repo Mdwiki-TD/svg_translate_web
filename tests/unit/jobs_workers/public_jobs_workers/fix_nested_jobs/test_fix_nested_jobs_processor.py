@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.shared.fix_nested.objects import UploadResult, VerificationResult
+from src.main_app.shared.fix_nested.objects import VerificationResult
 
 
 def _make_processor(filename="File:test.svg", user=None, args=None, cancel_event=None):
@@ -82,7 +82,7 @@ class TestFixNestedJobsProcessorSteps:
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={"some": "data"})
+        mock_services["upload_fixed_svg"].return_value = {"ok": True, "result": {"some": "data"}}
 
         result = processor._upload_step()
 
@@ -94,7 +94,7 @@ class TestFixNestedJobsProcessorSteps:
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="Upload failed message")
+        mock_services["upload_fixed_svg"].return_value = {"ok": False, "error": "Upload failed message"}
 
         result = processor._upload_step()
 

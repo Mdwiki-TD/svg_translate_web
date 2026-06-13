@@ -28,17 +28,8 @@ class VerificationResult:
     fixed: int
 
 
-@dataclass
-class UploadResult:
-    ok: bool
-    result: Optional[dict[str, Any]] = None
-    error: Optional[str] = None
-    error_details: Optional[str] = None
-
-
 __all__ = [
     "DownloadResult",
     "DetectionResult",
     "VerificationResult",
-    "UploadResult",
 ]

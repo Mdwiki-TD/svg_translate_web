@@ -12,7 +12,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import w
 from src.main_app.shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,
-    UploadResult,
     VerificationResult,
 )
 
@@ -84,7 +83,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services):
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
-    mock_fix_nested_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={"newrevid": 123})
+    mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {"newrevid": 123}}
 
     result = worker.repair_nested_svg_tags(filename, user)
 
@@ -140,7 +139,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=1)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
-    mock_fix_nested_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={})
+    mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
 
     worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
