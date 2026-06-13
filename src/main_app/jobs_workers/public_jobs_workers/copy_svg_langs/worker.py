@@ -181,15 +181,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
                     if not item.steps.download.msg:  # to avoid overwriting previous messages
-                        item.steps.download = _result
-                        # TODO: check type of _result
-                        # if _result.result is False:
-                        #     item.status = "failed"
-                        #     item.error = _result.msg
-
-                        if _result["result"] is False:
+                        item.steps.download = StepResult(
+                            result=_result.get("result", ""),
+                            msg=_result.get("msg", ""),
+                        )
+                        if _result.get("result", "") is False:
                             item.status = "failed"
-                            item.error = _result["msg"]
+                            item.error = _result.get("msg", "")
 
         def download_run_after() -> None:
             download_data = self.result.stages.download.data
@@ -225,12 +223,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
                     if not item.steps.nested.msg:  # to avoid overwriting previous messages
                         item.steps.nested = StepResult(
-                            result=nested_result["result"],
-                            msg=nested_result["msg"],
+                            result=nested_result.get("result", ""),
+                            msg=nested_result.get("msg", ""),
                         )
-                        if nested_result["result"] is False:
+                        if nested_result.get("result", "") is False:
                             item.status = "failed"
-                            item.error = nested_result["msg"]
+                            item.error = nested_result.get("msg", "")
 
         def nested_run_after() -> None:
             nested_stage_data = self.result.stages.nested.data
@@ -255,22 +253,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 6: Inject translations
 
-        def inject_progress(index: int, total: int, msg: str, results: dict[str, Any]) -> None:
-            self.result.stages.inject.message = f"Analyzing {index}/{total}: {msg}"
-            if index % 10 == 0:
-                self._save_progress()
-
-            for title, _result in results.items():
-                if title in self.result.files_processed:
-                    item = self.result.files_processed[title]
-                    if not item.steps.inject.msg:  # to avoid overwriting previous messages
-                        item.steps.inject = _result
-                        # TODO: check type of _result
-
-                        if _result["result"] is False:
-                            item.status = "failed"
-                            item.error = _result["msg"]
-
         def inject_run_after() -> None:
             inject_stage_data = self.result.stages.inject.data
 
@@ -288,10 +270,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 if not file_data:
                     file_data = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
 
-                item.steps.inject = file_data
-                if file_data["result"] is False:
+                item.steps.inject = StepResult(
+                    result=file_data.get("result"),
+                    msg=file_data.get("msg", ""),
+                )
+                if file_data.get("result") is False:
                     item.status = "failed"
-                    item.error = file_data["msg"]
+                    item.error = file_data.get("msg", "")
 
             # clean up
             self.result.stages.inject.data["data"] = {}
@@ -329,13 +314,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             # Update files_processed with upload results
             for title, item in self.result.files_processed.items():
                 if title in upload_results:
-                    item.steps.upload = upload_results[title]
-                    if upload_results[title]["result"] is True:
+                    item_upload_result = upload_results[title]
+                    item.steps.upload = StepResult(
+                        result=item_upload_result.get("result", ""),
+                        msg=item_upload_result.get("msg", ""),
+                    )
+
+                    if item_upload_result.get("result", "") is True:
                         item.status = "completed"
-                    elif upload_results[title]["result"] is False:
+                    elif item_upload_result.get("result", "") is False:
                         item.status = "failed"
-                        item.error = upload_results[title]["msg"]
-                    elif upload_results[title]["result"] is None:
+                        item.error = item_upload_result.get("msg", "")
+                    elif item_upload_result.get("result", "") is None:
                         # Skipped or no changes
                         item.status = "completed"
 

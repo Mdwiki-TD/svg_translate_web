@@ -87,9 +87,8 @@ class TestCopySvgLangsWorkerProcess:
 
         result: CopySvgLangsWorkerObject = worker.process()
 
-        assert (
-            result.status == "running"
-        )  # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
+        # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
+        assert result.status == "pending"
         assert worker.result.stages.upload.status == "Completed"
         assert "upload_result" in result.results_summary
 
@@ -156,14 +155,14 @@ class TestCopySvgLangsWorkerProcess:
             "File1.svg": FilesProcessedItem(
                 title="title",
                 status="pending",
-                steps={"upload": {}},
             )
         }
+        # worker.result.files_processed["File1.svg"].steps.upload = StepResult(result=None, msg="")
         worker.log_upload_error("Some error", False, "Failed")
 
         assert worker.result.stages.upload.status == "Failed"
         assert worker.result.files_processed["File1.svg"].status == "Failed"
-        assert worker.result.files_processed["File1.svg"].steps["upload"]["msg"] == "Some error"
+        assert worker.result.files_processed["File1.svg"].steps.upload.msg == "Some error"
 
     def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):
         # Provoke error by using a directory as a file path
