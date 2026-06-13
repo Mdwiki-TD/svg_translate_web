@@ -79,13 +79,14 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     ) -> None:
         self.update_all = False
         self.site: Site | None = None
-        self.args = args or {}
         self.limit_items = args.get("limit_items") if args else 0
         if args and str(args.get("update_all", "")).lower() == "true":
             self.update_all = True
 
         super().__init__(job_id, user, cancel_event)
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
+
+        self.args = args or {}
         self.result.args = self.args
 
     def get_job_type(self) -> str:
@@ -93,7 +94,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return "create_owid_pages"
 
     def process(self) -> CreateOwidPagesWorkerObject:
-        self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:
@@ -388,7 +388,7 @@ def create_owid_pages_for_templates(
     """
     logger.info(f"Starting job {job_id}: create OWID pages for templates")
 
-    if args and args.get("create_owid_pages_limit"):
+    if args and args.get("create_owid_pages_limit", "").isdigit():
         args.update({"limit_items": args.get("create_owid_pages_limit")})
 
     worker = CreateOwidPagesWorker(

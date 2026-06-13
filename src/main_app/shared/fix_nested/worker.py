@@ -7,7 +7,6 @@ from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignor
 
 from ...api_services import get_user_site, upload_file
 from ...api_services.utils import download_one_file
-
 from .objects import (
     DetectionResult,
     DownloadResult,

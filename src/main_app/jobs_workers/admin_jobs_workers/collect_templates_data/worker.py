@@ -78,7 +78,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject()
-        self.result.args = args or {}
+
+        self.args = args or {}
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -364,7 +366,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
     def process(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
-        self.result.args.update({"update_all": str(self.update_all)})
 
         self.site = get_user_site(self.user)
         if not self.site:

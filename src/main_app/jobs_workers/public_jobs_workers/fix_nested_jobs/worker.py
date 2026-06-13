@@ -44,12 +44,13 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.args = args or {}
+
         self.upload_limit = args.get("upload_limit") if args else 0
 
         super().__init__(job_id, user, cancel_event)
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
         self.result.job_id = self.job_id
+        self.args = args or {}
         self.result.args = self.args
 
         self.filename = self.args.get("filename")

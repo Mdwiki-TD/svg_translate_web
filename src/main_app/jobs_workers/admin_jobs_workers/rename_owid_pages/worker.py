@@ -93,10 +93,10 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
         self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject()
+        self.args = args or {}
         self.result.args = self.args
 
     # ------------------------------------------------------------------

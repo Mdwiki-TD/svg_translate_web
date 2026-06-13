@@ -77,10 +77,11 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     ) -> None:
         self.site: Site | None = None
         self.limit_items = args.get("limit_items") if args else 0
-        self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
         self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
+
+        self.args = args or {}
         self.result.args = self.args
 
     def get_job_type(self) -> str:
@@ -293,7 +294,7 @@ def add_svglanguages_template_to_templates(
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
 
-    if args and args.get("add_svglanguages_limit_items"):
+    if args and args.get("add_svglanguages_limit_items", "").isdigit():
         args.update({"limit_items": args.get("add_svglanguages_limit_items")})
 
     worker = AddSvgSVGLanguagesTemplate(

@@ -53,7 +53,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.args = args or {}
+
         try:
             self.upload_limit = (
                 int(self.args.get("upload_limit")) if self.args.get("upload_limit") is not None else None
@@ -64,6 +64,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
+        self.args = args or {}
         self.result.args = self.args
 
         self.exists: dict[str, Any] = {}
@@ -500,7 +501,7 @@ def crop_main_files_worker_entry(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    if args and args.get("crop_newest_upload_limit"):
+    if args and args.get("crop_newest_upload_limit", "").isdigit():
         args.update({"upload_limit": args.get("crop_newest_upload_limit")})
 
     worker = CropMainFilesWorker(

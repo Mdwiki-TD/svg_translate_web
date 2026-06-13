@@ -108,10 +108,10 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
+        self.args = args or {}
         self.result.args = self.args
 
     def get_job_type(self) -> str:

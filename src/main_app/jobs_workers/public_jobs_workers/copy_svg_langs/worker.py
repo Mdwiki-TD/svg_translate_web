@@ -43,12 +43,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.args = args or {}
+
         self.user: dict[str, Any] = user
 
         super().__init__(job_id, user, cancel_event)
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
         self.result.job_id = self.job_id
+        self.args = args or {}
         self.result.args = self.args
 
         self.upload_limit = args.get("upload_limit") if args else 0
@@ -470,7 +471,7 @@ def copy_svg_langs_worker_entry(
 ) -> None:
     """Entry point for the background job."""
 
-    if args and args.get("copy_svg_langs_upload_limit"):
+    if args and args.get("copy_svg_langs_upload_limit", "").isdigit():
         args.update({"upload_limit": args.get("copy_svg_langs_upload_limit")})
 
     worker = CopySvgLangsWorker(

@@ -111,9 +111,11 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
-        self.result.args = args or {}
         self.result.output_path = str(self.output_dir)
         self.session: requests.Session | None = None
+
+        self.args = args or {}
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -256,7 +258,7 @@ def download_main_files_for_templates(
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
 
-    if args and args.get("download_main_files_limit_items"):
+    if args and args.get("download_main_files_limit_items", "").isdigit():
         args.update({"limit_items": args.get("download_main_files_limit_items")})
 
     worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)

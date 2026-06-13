@@ -140,7 +140,9 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         super().__init__(job_id, user, cancel_event)
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
-        self.result.args = args or {}
+
+        self.args = args or {}
+        self.result.args = self.args
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
@@ -331,7 +333,7 @@ def update_owid_charts_worker_entry(
     """Background worker entry-point for update_owid_charts."""
     logger.info(f"Starting job {job_id}: update OWID charts timespan data")
 
-    if args and args.get("owid_charts_limit_items"):
+    if args and args.get("owid_charts_limit_items", "").isdigit():
         args.update({"limit_items": args.get("owid_charts_limit_items")})
 
     worker = UpdateOwidChartsWorker(
