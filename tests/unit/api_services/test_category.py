@@ -1,7 +1,13 @@
-"""Tests for category helpers."""
+# ruff: noqa: F401
+"""
+Unit tests for src/main_app/api_services/category.py module.
 
-from __future__ import annotations
+Functions to test: get_category_members
 
-import pytest
+TODO: write tests
+"""
 
-from src.main_app.api_services.category import get_category_members
+
+from src.main_app.api_services.category import (
+    get_category_members,
+)
