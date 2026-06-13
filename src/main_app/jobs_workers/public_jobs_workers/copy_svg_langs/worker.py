@@ -170,9 +170,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return data
 
     def text_run_after(self) -> None:
-        self.text = self.result.stages.text.data["text"]
-        # clean up
-        self.result.stages.text.data["text"] = ""
+        try:
+            self.text = self.result.stages.text.data["text"]
+            # clean up
+            self.result.stages.text.data["text"] = ""
+        except KeyError as e:
+            logger.exception("Error in text_run_after: missing 'text' key")
+            raise
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
@@ -192,10 +196,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if not self._run_stage(
             self.result.stages.text,
             step_func=self._extract_step,
+            run_after_func=self.text_run_after,
         ):
             return self.result
-
-        self.text_run_after()
 
         # ----------------------------------------------
         # Stage 2: Extract Titles

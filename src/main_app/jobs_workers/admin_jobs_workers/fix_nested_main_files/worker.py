@@ -64,7 +64,16 @@ def repair_nested_svg_tags(
 
     file_path = download.get("path")
 
-    detect_before: DetectionResult = detect_nested_tags(file_path)
+    # Detect nested tags
+    try:
+        detect_before: DetectionResult = detect_nested_tags(file_path)
+    except Exception as exc:
+        logger.exception(f"Error detecting nested tags in {filename}")
+        return {
+            "success": False,
+            "message": f"Error detecting nested tags in {filename}",
+            "details": {"error": str(exc)},
+        }
 
     if detect_before.count == 0:
         return {
@@ -74,14 +83,34 @@ def repair_nested_svg_tags(
             "no_nested_tags": True,
         }
 
-    if not fix_nested_tags(file_path):
+    # Fix nested tags
+    try:
+        fix_result = fix_nested_tags(file_path)
+    except Exception as exc:
+        logger.exception(f"Error fixing nested tags in {filename}")
+        return {
+            "success": False,
+            "message": f"Error fixing nested tags in {filename}",
+            "details": {"error": str(exc)},
+        }
+
+    if not fix_result:
         return {
             "success": False,
             "message": f"Failed to fix nested tags in {filename}",
             "details": {"nested_count": detect_before.count},
         }
 
-    verify: VerificationResult = verify_fix(file_path, detect_before.count)
+    # Verify fix
+    try:
+        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+    except Exception as exc:
+        logger.exception(f"Error verifying fix for {filename}")
+        return {
+            "success": False,
+            "message": f"Error verifying fix for {filename}",
+            "details": {"error": str(exc)},
+        }
 
     if verify.fixed == 0:
         return {
@@ -90,12 +119,21 @@ def repair_nested_svg_tags(
             "details": asdict(verify),
         }
 
-    upload = upload_fixed_svg(
-        filename,
-        file_path,
-        verify.fixed,
-        site,
-    )
+    # Upload fixed SVG
+    try:
+        upload = upload_fixed_svg(
+            filename,
+            file_path,
+            verify.fixed,
+            site,
+        )
+    except Exception as exc:
+        logger.exception(f"Error uploading fixed {filename}")
+        return {
+            "success": False,
+            "message": f"Upload failed for fixed {filename}",
+            "details": {"error": str(exc), **asdict(verify)},
+        }
 
     if not upload.get("ok"):
         return {
@@ -134,7 +172,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _process_one(self, template: TemplateRecord) -> None:
+    def _process_one(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         template_info = TemplateInfo(

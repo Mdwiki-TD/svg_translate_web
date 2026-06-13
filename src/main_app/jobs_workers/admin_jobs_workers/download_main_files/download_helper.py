@@ -47,15 +47,29 @@ def download_file_from_commons(
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = filename.removeprefix("File:")
 
+    # Sanitize filename to prevent path traversal
+    safe_name = Path(clean_filename).name
+    if not safe_name or safe_name in (".", "..") or "/" in safe_name or "\\" in safe_name:
+        result["error"] = "Invalid filename"
+        return result
+
     # Determine output path - maintain original filename
-    out_path = output_dir / clean_filename
+    out_path = (output_dir / safe_name).resolve()
+
+    # Verify the resolved path is within the output directory
+    try:
+        out_path.relative_to(output_dir.resolve())
+    except ValueError:
+        result["error"] = "Path traversal detected"
+        logger.warning(f"Path traversal attempt detected: {clean_filename}")
+        return result
 
     # Use the core download function
     try:
-        content = download_commons_file_core(clean_filename, session, timeout=60)
+        content = download_commons_file_core(safe_name, session, timeout=60)
     except Exception as e:
         result["error"] = f"Download failed: {str(e)}"
-        logger.exception(f"Failed to download {clean_filename}")
+        logger.exception(f"Failed to download {safe_name}")
         return result
 
     try:
@@ -66,11 +80,11 @@ def download_file_from_commons(
         result["success"] = True
         result["path"] = str(out_path.name)
         result["size_bytes"] = file_size
-        logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
+        logger.info(f"Downloaded: {safe_name} ({file_size} bytes)")
 
     except Exception as e:
         result["error"] = f"Unexpected error: {str(e)}"
-        logger.exception(f"Error saving {clean_filename}")
+        logger.exception(f"Error saving {safe_name}")
 
     return result
 

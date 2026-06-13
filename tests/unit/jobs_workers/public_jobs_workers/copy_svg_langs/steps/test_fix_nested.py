@@ -33,7 +33,7 @@ def test_fix_nested_task_no_nested(mock_match, tmp_path):
 
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-def test_fix_nested_cancelled(tmp_path):
+def test_fix_nested_cancelled(mock_match_nested_tags, tmp_path):
     files = {"file1.svg": str(tmp_path / "file1.svg"), "file2.svg": str(tmp_path / "file2.svg")}
 
     result = fix_nested_step(files, cancel_check=lambda: True)
@@ -44,14 +44,11 @@ def test_fix_nested_cancelled(tmp_path):
 
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-def test_fix_nested_too_many_tags(tmp_path):
+def test_fix_nested_too_many_tags(mock_match_nested_tags, tmp_path):
     mock_tags = [f"tag{i}" for i in range(11)]
-    with patch(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags",
-        return_value=mock_tags,
-    ):
-        files = {"file1.svg": str(tmp_path / "file1.svg")}
-        result = fix_nested_step(files)
+    mock_match_nested_tags.return_value = mock_tags
+    files = {"file1.svg": str(tmp_path / "file1.svg")}
+    result = fix_nested_step(files)
 
     assert result["summary"]["not_fixed"] == 1
     assert result["summary"]["nested"] == 1
@@ -85,8 +82,8 @@ def test_fix_nested_fix_fails(mock_fix, mock_match, tmp_path):
 
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-def test_fix_nested_progress_callback_no_nested(mock_match, tmp_path):
-    mock_match.return_value = []
+def test_fix_nested_progress_callback_no_nested(mock_match_nested_tags, tmp_path):
+    mock_match_nested_tags.return_value = []
     progress_calls = []
 
     def progress_cb(index, total, msg, results):
@@ -116,8 +113,8 @@ def test_fix_nested_progress_callback_with_nested(mock_fix, mock_match, tmp_path
 
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-def test_fix_nested_final_progress_callback(mock_match, tmp_path):
-    mock_match.return_value = []
+def test_fix_nested_final_progress_callback(mock_match_nested_tags, tmp_path):
+    mock_match_nested_tags.return_value = []
     progress_calls = []
 
     def progress_cb(index, total, msg, results):

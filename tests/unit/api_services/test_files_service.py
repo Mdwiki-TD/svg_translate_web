@@ -23,11 +23,15 @@ def mock_api():
 
 
 class TestDownloadSvgFile:
-    def test_download_svg_file_no_user(self):
+    @pytest.mark.network
+    def test_download_svg_file_no_user(self, mocker):
+        mock_download = mocker.patch("src.main_app.api_services.files_service.download_one_file")
+        mock_download.return_value = {"result": "failed", "msg": "", "path": ""}
+
         res = download_svg_file("Test.svg", Path("test.svg"))
         assert res.get("ok") is False
         assert res.get("error") == "download_failed"
-        assert res.get("details") == {"msg": "", "path": "", "result": "failed"}
+        assert res.get("error_details") == {"msg": "", "path": "", "result": "failed"}
 
     def test_download_svg_file_success(self, mock_api, tmp_path):
         mock_api["down"].return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
@@ -43,11 +47,15 @@ class TestDownloadSvgFile:
 
 
 class TestUploadFixedSvg:
-    def test_upload_fixed_svg_no_user(self, mock_site):
+    @pytest.mark.network
+    def test_upload_fixed_svg_no_user(self, mock_site, mocker):
+        mock_upload = mocker.patch("src.main_app.api_services.files_service.upload_file")
+        mock_upload.return_value = {"result": "Failure", "error": "File not found"}
+
         res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
         assert res.get("ok") is False
         assert res.get("error") == "File not found"
-        assert res.get("details") is None
+        assert res.get("error_details") is None
 
     def test_upload_fixed_svg_success(self, mock_api, mock_site):
         mock_api["upload"].return_value = {"result": "Success", "newrevid": 123}
