@@ -1,35 +1,35 @@
 name: oc
 
 on:
-  workflow_dispatch:
-    inputs:
-      prompt:
-        description: 'Your input prompt'
-        required: true
-        type: string
+    workflow_dispatch:
+        inputs:
+            prompt:
+                description: "Your input prompt"
+                required: true
+                type: string
 
 jobs:
-  opencode:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: read
-      issues: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
+    opencode:
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+            contents: read
+            pull-requests: read
+            issues: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
 
-      - name: Run opencode
-        uses: anomalyco/opencode/github@latest
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-        with:
-          model: opencode-go/mimo-v2.5
-          prompt: ${{ github.event.inputs.prompt }}
-          instructions: |
-            If you modify any files, create a new Pull Request with the changes.
-            If you generate a report, create a new Issue with the report content.
+            - name: Run opencode
+              uses: anomalyco/opencode/github@latest
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+              with:
+                  model: opencode-go/mimo-v2.5
+                  prompt: ${{ github.event.inputs.prompt }}
+                  instructions: |
+                      If you modify any files, create a new Pull Request with the changes.
+                      If you generate a report, create a new Issue with the report content.
