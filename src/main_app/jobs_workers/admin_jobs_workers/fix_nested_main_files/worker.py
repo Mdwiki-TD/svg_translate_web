@@ -127,43 +127,43 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _log_skipped_no_main_file(self, template_info: dict) -> None:
+    def _log_skipped_no_main_file(self, tmp_info: dict) -> None:
         """Log a skipped template due to the absence of a main file."""
-        template_info["status"] = "skipped"
-        template_info["reason"] = "No main_file set"
-        self.result.pages_skipped.append(template_info)
+        tmp_info["status"] = "skipped"
+        tmp_info["reason"] = "No main_file set"
+        self.result.pages_skipped.append(tmp_info)
         self.result.summary.skipped += 1
 
-    def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
+    def _log_skipped_no_nested_tags(self, tmp_info: dict, fix_result: dict) -> None:
         """Log information about a template that was skipped due to having no nested tags."""
-        template_info["status"] = "skipped"
-        template_info["reason"] = "No nested tags found"
-        template_info["fix_result"] = fix_result
-        self.result.pages_skipped.append(template_info)
+        tmp_info["status"] = "skipped"
+        tmp_info["reason"] = "No nested tags found"
+        tmp_info["fix_result"] = fix_result
+        self.result.pages_skipped.append(tmp_info)
         self.result.summary.skipped += 1
 
-    def _log_success(self, template_info: dict, fix_result: dict) -> None:
+    def _log_success(self, tmp_info: dict, fix_result: dict) -> None:
         """Log a successfully processed template."""
-        template_info["status"] = "success"
-        template_info["fix_result"] = fix_result
-        self.result.pages_success.append(template_info)
+        tmp_info["status"] = "success"
+        tmp_info["fix_result"] = fix_result
+        self.result.pages_success.append(tmp_info)
         self.result.summary.success += 1
 
-    def _log_failure(self, template_info: dict, reason: str, error_type: str = "") -> None:
+    def _log_failure(self, tmp_info: dict, reason: str, error_type: str = "") -> None:
         """Log a template processing failure."""
-        template_info["status"] = "failed"
-        template_info["reason"] = reason
+        tmp_info["status"] = "failed"
+        tmp_info["reason"] = reason
         if error_type:
-            template_info["error_type"] = error_type
-        self.result.pages_failed.append(template_info)
+            tmp_info["error_type"] = error_type
+        self.result.pages_failed.append(tmp_info)
         self.result.summary.failed += 1
 
-    def _log_failed_fix(self, template_info: dict, fix_result: dict) -> None:
+    def _log_failed_fix(self, tmp_info: dict, fix_result: dict) -> None:
         """Log a template that failed during processing."""
-        template_info["status"] = "failed"
-        template_info["reason"] = fix_result.get("message", "Unknown error")
-        template_info["fix_result"] = fix_result
-        self.result.pages_failed.append(template_info)
+        tmp_info["status"] = "failed"
+        tmp_info["reason"] = fix_result.get("message", "Unknown error")
+        tmp_info["fix_result"] = fix_result
+        self.result.pages_failed.append(tmp_info)
         self.result.summary.failed += 1
 
     def _process_one(self, template: TemplateRecord) -> None:
