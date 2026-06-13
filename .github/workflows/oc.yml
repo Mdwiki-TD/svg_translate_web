@@ -30,4 +30,6 @@ jobs:
         with:
           model: opencode-go/mimo-v2.5
           prompt: ${{ github.event.inputs.prompt }}
-          
+          instructions: |
+            If you modify any files, create a new Pull Request with the changes.
+            If you generate a report, create a new Issue with the report content.
