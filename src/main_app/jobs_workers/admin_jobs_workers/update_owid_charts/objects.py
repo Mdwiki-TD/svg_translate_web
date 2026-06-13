@@ -25,7 +25,6 @@ Objects for update_owid_charts worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from ...shared_objects import StandardAdminWorkerObject
 
