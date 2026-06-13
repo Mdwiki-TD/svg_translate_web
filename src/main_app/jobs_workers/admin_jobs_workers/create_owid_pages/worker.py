@@ -93,7 +93,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return "create_owid_pages"
 
     def process(self) -> CreateOwidPagesWorkerObject:
-
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")

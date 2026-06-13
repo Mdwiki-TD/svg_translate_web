@@ -136,7 +136,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-
         super().__init__(job_id, user, cancel_event)
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
 

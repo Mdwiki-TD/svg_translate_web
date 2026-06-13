@@ -233,9 +233,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.exception(f"Job {self.job_id}: Failed to generate main_files.zip: {e}")
 
         logger.info(
-            f"Job {self.job_id} completed: "
-            f"{self.result.summary.success} success, "
-            f"{self.result.summary.failed} failed"
+            f"Job {self.job_id} completed: {self.result.summary.success} success, {self.result.summary.failed} failed"
         )
 
         return self.result
