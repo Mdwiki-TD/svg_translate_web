@@ -129,8 +129,10 @@ class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
 
 
 __all__ = [
-    "CopySvgLangsWorkerObject",
     "StageDetail",
     "Stages",
+    "StepResult",
+    "FileSteps",
     "FilesProcessedItem",
+    "CopySvgLangsWorkerObject",
 ]
