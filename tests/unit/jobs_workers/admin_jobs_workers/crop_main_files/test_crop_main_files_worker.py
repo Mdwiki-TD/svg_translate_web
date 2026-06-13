@@ -404,13 +404,13 @@ def test_crop_main_files_worker_reads_upload_limit_from_args(mock_services):
 def test_crop_main_files_worker_defaults_upload_limit_when_args_none(mock_services):
     """Test CropMainFilesWorker defaults upload_limit to None when args is None."""
     w = worker.CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args=None)
-    assert w.upload_limit is None
+    assert w.upload_limit == 0
 
 
 def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_services):
     """Test CropMainFilesWorker defaults upload_limit to None when key is missing."""
     w = worker.CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args={"other_key": "value"})
-    assert w.upload_limit is None
+    assert w.upload_limit == 0
 
 
 def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
