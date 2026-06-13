@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 
 
@@ -53,49 +54,49 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 class TestFixNestedJobsProcessorSteps:
     def test_verify_step_success(self, mock_services) -> None:
         processor = _make_processor()
-        processor.result["stages"]["fix"]["status"] = "success"
-        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_before": 2}
+        processor.result.stages.fix.status = "success"
+        processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
         mock_services["verify_fix"].return_value = {"after": 0, "fixed": 2}
 
         result = processor._verify_step()
 
         assert result is True
-        assert processor.result["stages"]["verify"]["status"] == "success"
+        assert processor.result.stages.verify.status == "success"
 
     def test_verify_step_failure_no_tags_fixed(self, mock_services) -> None:
         processor = _make_processor()
-        processor.result["stages"]["fix"]["status"] = "success"
-        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_before": 2}
+        processor.result.stages.fix.status = "success"
+        processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
         mock_services["verify_fix"].return_value = {"after": 2, "fixed": 0}
 
         result = processor._verify_step()
 
         assert result is False
-        assert processor.result["stages"]["verify"]["status"] == "Failed"
+        assert processor.result.stages.verify.status == "Failed"
 
     def test_upload_step_success(self, mock_services) -> None:
         processor = _make_processor()
         processor.site = MagicMock()
-        processor.result["stages"]["verify"]["status"] = "success"
-        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_fixed": 2}
+        processor.result.stages.verify.status = "success"
+        processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_fixed": 2})
         mock_services["upload_fixed_svg"].return_value = {"ok": True, "result": {"some": "data"}}
 
         result = processor._upload_step()
 
         assert result is True
-        assert processor.result["stages"]["upload"]["status"] == "success"
+        assert processor.result.stages.upload.status == "success"
 
     def test_upload_step_failure(self, mock_services) -> None:
         processor = _make_processor()
         processor.site = MagicMock()
-        processor.result["stages"]["verify"]["status"] = "success"
-        processor.result["file_result"] = {"path": "/tmp/test.svg", "nested_tags_fixed": 2}
+        processor.result.stages.verify.status = "success"
+        processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_fixed": 2})
         mock_services["upload_fixed_svg"].return_value = {"ok": False, "error": "Upload failed message"}
 
         result = processor._upload_step()
 
         assert result is False
-        assert processor.result["stages"]["upload"]["status"] == "Failed"
+        assert processor.result.stages.upload.status == "Failed"
 
 
 class TestFixNestedJobsProcessor:
@@ -121,7 +122,7 @@ class TestFixNestedJobsProcessor:
         cancel_event.set()
         processor = _make_processor(cancel_event=cancel_event)
         assert processor.is_cancelled() is True
-        assert processor.result["status"] == "cancelled"
+        assert processor.result.status == "cancelled"
 
     def test_run_stage_success(self, mock_jobs_service) -> None:
         processor = _make_processor()
@@ -140,4 +141,4 @@ class TestFixNestedJobsProcessor:
 
         result = processor._run_stage("download", mock_step)
         assert result is False
-        assert processor.result["status"] == "Failed"
+        assert processor.result.status == "Failed"
