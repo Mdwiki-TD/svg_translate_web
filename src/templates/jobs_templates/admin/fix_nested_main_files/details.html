@@ -52,9 +52,9 @@
                         </td>
                         <td>
                             {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file | replace("File:", "") }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                {{ template.main_file }}
+                                {{ template.main_file | replace("File:", "") }}
                             </a>
                             {% endif %}
                         </td>
@@ -96,13 +96,13 @@
                         </td>
                         <td>
                             {% if template.main_file %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file }}' target='_blank'
+                            <a href='https://commons.wikimedia.org/wiki/{{ template.main_file | replace("File:", "") }}' target='_blank'
                                 rel='noopener noreferrer'>
-                                {{ template.main_file }}
+                                {{ template.main_file | replace("File:", "") }}
                             </a>
                             {% endif %}
                         </td>
-                        <td>{{ template.reason or template.error }}</td>
+                        <td>{{ template.reason or template.error or template.message }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -128,6 +128,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
     def mock_repair_nested_svg_tags(
         filename,
         site,
+        temp_dir,
     ) -> dict[str, Any]:
         return {"success": True, "message": "OK"}
 

@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 from __future__ import annotations
 
@@ -74,6 +73,7 @@ def download_file_from_commons(
         logger.exception(f"Error saving {clean_filename}")
 
     return result
+
 
 __all__ = [
     "download_file_from_commons",

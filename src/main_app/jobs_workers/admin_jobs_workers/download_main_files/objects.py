@@ -62,4 +62,5 @@ _old_result = {
 
 __all__ = [
     "DownloadMainFilesWorkerObject",
+    "FileInfo",
 ]

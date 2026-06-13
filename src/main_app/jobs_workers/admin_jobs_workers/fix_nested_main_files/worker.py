@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 def repair_nested_svg_tags(
     filename: str,
     site: Site,
+    temp_dir: Path,
 ) -> dict:
     """High-level orchestration for fixing nested SVG tags.
 
@@ -44,67 +45,65 @@ def repair_nested_svg_tags(
         Dictionary with success status, message, and details.
     """
     # Use temp directory for processing
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        temp_dir = Path(tmp_dir)
 
-        download = download_svg_file(filename, temp_dir)
-        if not download.get("ok"):
-            return {
-                "success": False,
-                "message": f"Failed to download file: {filename}",
-                "details": download,
-            }
-
-        file_path = download.get("path")
-
-        detect_before: DetectionResult = detect_nested_tags(file_path)
-
-        if detect_before.count == 0:
-            return {
-                "success": False,
-                "message": f"No nested tags found in {filename}",
-                "details": {"nested_count": 0},
-                "no_nested_tags": True,
-            }
-
-        if not fix_nested_tags(file_path):
-            return {
-                "success": False,
-                "message": f"Failed to fix nested tags in {filename}",
-                "details": {"nested_count": detect_before.count},
-            }
-
-        verify: VerificationResult = verify_fix(file_path, detect_before.count)
-
-        if verify.fixed == 0:
-            return {
-                "success": False,
-                "message": f"No nested tags were fixed in {filename}",
-                "details": asdict(verify),
-            }
-
-        upload = upload_fixed_svg(
-            filename,
-            file_path,
-            verify.fixed,
-            site,
-        )
-
-        if not upload.get("ok"):
-            return {
-                "success": False,
-                "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**asdict(verify), **upload},
-            }
-
+    download = download_svg_file(filename, temp_dir)
+    if not download.get("ok"):
         return {
-            "success": True,
-            "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
-            "details": {
-                **asdict(verify),
-                "upload_result": upload.get("result"),
-            },
+            "success": False,
+            "message": f"Failed to download file: {filename}",
+            "details": download,
         }
+
+    file_path = download.get("path")
+
+    detect_before: DetectionResult = detect_nested_tags(file_path)
+
+    if detect_before.count == 0:
+        return {
+            "success": False,
+            "message": f"No nested tags found in {filename}",
+            "details": {"nested_count": 0},
+            "no_nested_tags": True,
+        }
+
+    if not fix_nested_tags(file_path):
+        return {
+            "success": False,
+            "message": f"Failed to fix nested tags in {filename}",
+            "details": {"nested_count": detect_before.count},
+        }
+
+    verify: VerificationResult = verify_fix(file_path, detect_before.count)
+
+    if verify.fixed == 0:
+        return {
+            "success": False,
+            "message": f"No nested tags were fixed in {filename}",
+            "details": asdict(verify),
+        }
+
+    upload = upload_fixed_svg(
+        filename,
+        file_path,
+        verify.fixed,
+        site,
+    )
+
+    if not upload.get("ok"):
+        return {
+            "success": False,
+            "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
+            "details": {**asdict(verify), **upload},
+        }
+
+    return {
+        "success": True,
+        "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
+        "details": {
+            **asdict(verify),
+            "upload_result": upload.get("result"),
+        },
+    }
 
 
 class FixNestedMainFilesWorker(BaseObjectsJobWorker):
@@ -127,45 +126,6 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _log_skipped_no_main_file(self, tmp_info: TemplateInfo) -> None:
-        """Log a skipped template due to the absence of a main file."""
-        tmp_info.status = "skipped"
-        tmp_info.reason = "No main_file set"
-        self.result.pages_skipped.append(tmp_info)
-        self.result.summary.skipped += 1
-
-    def _log_skipped_no_nested_tags(self, tmp_info: TemplateInfo, fix_result: dict) -> None:
-        """Log information about a template that was skipped due to having no nested tags."""
-        tmp_info.status = "skipped"
-        tmp_info.reason = "No nested tags found"
-        tmp_info.fix_result = fix_result
-        self.result.pages_skipped.append(tmp_info)
-        self.result.summary.skipped += 1
-
-    def _log_success(self, tmp_info: TemplateInfo, fix_result: dict) -> None:
-        """Log a successfully processed template."""
-        tmp_info.status = "success"
-        tmp_info.fix_result = fix_result
-        self.result.pages_success.append(tmp_info)
-        self.result.summary.success += 1
-
-    def _log_failure(self, tmp_info: TemplateInfo, reason: str, error_type: str = "") -> None:
-        """Log a template processing failure."""
-        tmp_info.status = "failed"
-        tmp_info.reason = reason
-        if error_type:
-            tmp_info.error_type = error_type
-        self.result.pages_failed.append(tmp_info)
-        self.result.summary.failed += 1
-
-    def _log_failed_fix(self, tmp_info: TemplateInfo, fix_result: dict) -> None:
-        """Log a template that failed during processing."""
-        tmp_info.status = "failed"
-        tmp_info.reason = fix_result.get("message", "Unknown error")
-        tmp_info.fix_result = fix_result
-        self.result.pages_failed.append(tmp_info)
-        self.result.summary.failed += 1
-
     def _process_one(self, template: TemplateRecord) -> None:
         self.result.summary.processed += 1
 
@@ -178,34 +138,40 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         # Skip if template doesn't have a main_file
         if not template.main_file:
-            self._log_skipped_no_main_file(template_info)
+            template_info._update("skipped", "No main_file set")
+            self.result.pages_skipped.append(template_info)
             return False
 
-        fix_result: dict[str, Any] = {}
-        try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dir = Path(tmp_dir)
             # Process without job_id and db_store since we're tracking in the job
             fix_result = repair_nested_svg_tags(
                 filename=template.main_file,
                 site=self.site,
+                temp_dir=temp_dir,
             )
 
-        except Exception as e:
-            self._log_failure(template_info, f"Exception: {str(e)}", type(e).__name__)
-            logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
-            return False
+        template_info.fix_result = fix_result
 
         if fix_result.get("success"):
-            self._log_success(template_info, fix_result)
+            template_info._update("success", "")
+
+            self.result.pages_success.append(template_info)
             logger.info(f"Job {self.job_id}: Successfully processed {template.main_file}")
             return True
 
         elif fix_result.get("no_nested_tags", False):
-            self._log_skipped_no_nested_tags(template_info, fix_result)
+            template_info._update("skipped", "No nested tags found")
+
+            self.result.pages_skipped.append(template_info)
+
             logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
             return False
         else:
-            self._log_failed_fix(template_info, fix_result)
-            message = fix_result.get("message")
+            message = fix_result.get("message", "Unknown error")
+            template_info._update("failed", message)
+
+            self.result.pages_failed.append(template_info)
             logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
 
         return False

@@ -20,8 +20,13 @@ class TemplateInfo:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = ""
     reason: None | str = None
+    message: None | str = None
     fix_result: None | dict = None
     error_type: None | str = None
+
+    def _update(self, status: str, message: str) -> None:
+        self.status = status
+        self.message = message
 
     def to_dict(self) -> dict[str, Any]:
         """
