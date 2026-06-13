@@ -1,5 +1,5 @@
 {% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step %}
+{% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% block job_info_extra %}
@@ -121,20 +121,14 @@
                             {% if template.steps %}
                             {{ render_step(template.steps.main_file) }}
                             {% else %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.new_main_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.new_main_file }}
-                            </a>
+                            {{ commons_file_link(template.new_main_file) }}
                             {% endif %}
                         </td>
                         <td>
                             {% if template.steps %}
                             {{ render_step(template.steps.last_world_file) }}
                             {% else %}
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.last_world_file }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.last_world_file }}
-                            </a>
+                            {{ commons_file_link(template.last_world_file) }}
                             {% endif %}
                         </td>
                         <td>

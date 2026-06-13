@@ -1,5 +1,5 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon %}
+{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link %}
 
 {% block job_info_extra %}
 
@@ -7,10 +7,7 @@
 <tr>
     <th>File:</th>
     <td>
-        <a href="https://commons.wikimedia.org/wiki/File:{{ result_data.filename | replace("File:", "") }}"
-            target="_blank" rel="noopener noreferrer">
-            File:{{ result_data.filename | replace("File:", "") }}
-        </a>
+        {{ commons_file_link(result_data.filename) }}
     </td>
 </tr>
 {% endif %}

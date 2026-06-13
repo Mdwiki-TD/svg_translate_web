@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, commons_file_link %}
 
 {% block title %}Extract SVG Translations{% endblock %}
 
@@ -21,10 +21,7 @@
                         <div class="mb-3">
                             <h3 class="mb-1">
                                 <i class="bi bi-file-earmark-image"></i>
-                                <a href="https://commons.wikimedia.org/wiki/{{ filename | replace(' ', '_') | urlencode }}"
-                                    target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                                    {{ filename }}
-                                </a>
+                                {{ commons_file_link(filename) }}
                             </h3>
 
                             {% if languages %}
