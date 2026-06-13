@@ -7,5 +7,5 @@ TODO: write tests
 """
 
 from src.main_app.jobs_workers.admin_jobs_workers.slugs_helpers import (
-    check_slugs,
+    check_slugs, # noqa: F401
 )

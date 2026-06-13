@@ -1,6 +1,7 @@
 import ast
 import os
 from pathlib import Path
+from typing import Any
 
 
 def extract_classes_and_functions(file_path):

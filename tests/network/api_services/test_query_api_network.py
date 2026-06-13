@@ -9,11 +9,11 @@ TODO: write tests
 import pytest
 
 from src.main_app.api_services.query_api import (
-    get_page_links,
-    get_template_pages,
+    get_page_links,  # noqa: F401
+    get_template_pages, # noqa: F401
     is_pages_exists,
-    resolve_redirects,
-    search_pages,
+    resolve_redirects, # noqa: F401
+    search_pages, # noqa: F401
 )
 from tests.network.network_conftest import TestNetwork
 

@@ -7,6 +7,6 @@ TODO: write tests
 """
 
 from src.main_app.db.models.views import (
-    OwidChartTemplateRecord,
-    TemplateNeedUpdateRecord,
+    OwidChartTemplateRecord, # noqa: F401
+    TemplateNeedUpdateRecord, # noqa: F401
 )

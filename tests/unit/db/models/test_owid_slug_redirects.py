@@ -7,5 +7,5 @@ TODO: write tests
 """
 
 from src.main_app.db.models.owid_slug_redirects import (
-    OwidSlugRedirectRecord,
+    OwidSlugRedirectRecord, # noqa: F401
 )

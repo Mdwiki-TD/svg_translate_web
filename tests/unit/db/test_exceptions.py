@@ -11,11 +11,11 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.db.exceptions import (
-    DatabaseInitError,
-    DuplicateJobError,
+    DatabaseInitError, # noqa: F401
+    DuplicateJobError, # noqa: F401
     InsufficientDatabaseConfigError,
     MaxUserConnectionsError,
-    UserNotFoundError,
+    UserNotFoundError, # noqa: F401
 )
 
 

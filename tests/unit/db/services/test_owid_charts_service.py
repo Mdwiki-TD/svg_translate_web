@@ -5,18 +5,18 @@ TODO: write tests
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.main_app.db.services.owid_charts_service import (
-    add_chart,
-    delete_chart,
-    get_chart_by_id,
-    get_chart_by_slug,
-    list_charts,
-    list_published_charts,
-    update_chart_data,
+    add_chart, # noqa: F401
+    delete_chart, # noqa: F401
+    get_chart_by_id, # noqa: F401
+    get_chart_by_slug, # noqa: F401
+    list_charts, # noqa: F401
+    list_published_charts, # noqa: F401
+    update_chart_data, # noqa: F401
 )
 
 
