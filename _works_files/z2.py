@@ -86,7 +86,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 
                 if test_filename in list_of_all_tests_files:
                     duplicate_names.append(test_filename)
-                    continue
+                    # continue
 
                 # Create the directory if it doesn't exist
                 target_dir.mkdir(parents=True, exist_ok=True)
@@ -112,7 +112,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 
                 if items_to_import:
                     # Convert elements to a comma-separated string
-                    items_str = ", ".join(items_to_import)
+                    items_str = ",\n    ".join(items_to_import)
 
                     # Convert path (e.g., {src_name}/main_app/domain) to python path ({src_name}.main_app.domain)
                     module_path = f"{internal_path.replace('/', '.')}.{file_stem}"
@@ -177,7 +177,8 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     test_text = test_file_path.read_text(encoding="utf-8")
                     if test_text != content_old and test_text != content_old_1:
                         # continue to skip goto next part
-                        continue
+                        print("!=")
+                        # continue
 
                 # save content_new to the file
                 with open(test_file_path, "w", encoding="utf-8") as f:
