@@ -36,7 +36,7 @@ jobs_data = {
         job_list_template="jobs_templates/admin/crop_main_files/list.html",
         job_callable=crop_main_files_worker_entry,
         job_args=[
-            {"key": "crop_newest_upload_limit", "as": "limit_items"},
+            {"key": "crop_newest_upload_limit", "as": "upload_limit"},
         ],
         start_confirm_message="This will start a background job to crop newest world files and upload them with '(cropped)' suffix. Continue?",
     ),

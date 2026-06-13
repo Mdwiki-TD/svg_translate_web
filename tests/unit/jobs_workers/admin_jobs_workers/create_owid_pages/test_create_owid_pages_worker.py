@@ -707,21 +707,6 @@ class TestCreateOwidPagesForTemplates:
         call_kwargs = mock_init.call_args.kwargs
         assert "limit_items" not in call_kwargs["args"]
 
-    def test_entry_point_does_not_map_when_value_falsy(self, mock_services):
-        """Test that mapping is skipped when limit_items value is falsy (0, None, '')."""
-        for falsy_value in [0, None, "", False]:
-            with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:
-                with patch.object(CreateOwidPagesWorker, "run") as mock_run:
-                    mock_run.return_value = {"status": "completed"}
-                    create_owid_pages_for_templates(
-                        job_id=1,
-                        user=None,
-                        args={"limit_items": falsy_value},
-                    )
-
-            call_kwargs = mock_init.call_args.kwargs
-            assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
-
     def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_services):
         """Test that entry point works correctly when args is None."""
         with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock_init:

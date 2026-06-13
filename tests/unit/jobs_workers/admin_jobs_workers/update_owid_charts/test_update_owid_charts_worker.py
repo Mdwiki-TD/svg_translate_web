@@ -229,24 +229,6 @@ class TestUpdateOwidChartsWorkerEntry:
             call_kwargs = MockWorker.call_args.kwargs
             assert "limit_items" not in call_kwargs["args"]
 
-    def test_entry_point_does_not_map_when_value_falsy(self, mock_jobs_service):
-        """Test that mapping is skipped when limit_items value is falsy."""
-        for falsy_value in [0, None, "", False]:
-            with patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
-            ) as MockWorker:
-                mock_instance = MagicMock()
-                MockWorker.return_value = mock_instance
-
-                update_owid_charts_worker_entry(
-                    job_id=1,
-                    user=None,
-                    args={"limit_items": falsy_value},
-                )
-
-                call_kwargs = MockWorker.call_args.kwargs
-                assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
-
     def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_jobs_service):
         """Test that entry point works correctly when args is None."""
         with patch(

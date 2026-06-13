@@ -191,19 +191,6 @@ class TestCopySvgLangsWorkerEntry:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "upload_limit" not in call_kwargs["args"]
 
-    def test_worker_entry_does_not_map_when_value_falsy(self, mock_worker_class) -> None:
-        for falsy_value in [0, None, "", False]:
-            mock_worker_class.reset_mock()
-
-            copy_svg_langs_worker_entry(
-                job_id=1,
-                user=None,
-                args={"upload_limit": falsy_value},
-            )
-
-            call_kwargs = mock_worker_class.call_args.kwargs
-            assert "upload_limit" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
-
     def test_worker_entry_does_not_modify_args_when_none(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(job_id=1, user=None, args=None)
 

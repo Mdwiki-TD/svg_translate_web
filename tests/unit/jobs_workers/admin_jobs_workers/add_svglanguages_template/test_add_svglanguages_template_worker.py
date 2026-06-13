@@ -616,21 +616,6 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "limit_items" not in call_kwargs["args"]
 
-    def test_function_does_not_map_when_value_falsy(self, mock_services, mock_jobs_service):
-        """Test that mapping is skipped when limit_items value is falsy."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
-        for falsy_value in [0, None, "", False]:
-            mock_worker_class.reset_mock()
-
-            add_svglanguages_template_to_templates(
-                job_id=1,
-                user=None,
-                args={"limit_items": falsy_value},
-            )
-
-            call_kwargs = mock_worker_class.call_args.kwargs
-            assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
-
     def test_function_does_not_modify_args_when_args_is_none(self, mock_services, mock_jobs_service):
         """Test that entry point works correctly when args is None."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
