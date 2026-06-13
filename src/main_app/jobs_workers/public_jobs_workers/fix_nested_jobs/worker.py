@@ -19,11 +19,13 @@ from ....shared.fix_nested.objects import (
     UploadResult,
     VerificationResult,
 )
+from ....shared.fix_nested.files_service import (
+    download_svg_file,
+    upload_fixed_svg,
+)
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
-    download_svg_file,
     fix_nested_tags,
-    upload_fixed_svg,
     verify_fix,
 )
 from ...base_worker_object import BaseObjectsJobWorker

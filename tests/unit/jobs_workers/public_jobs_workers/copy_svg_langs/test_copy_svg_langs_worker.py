@@ -356,10 +356,18 @@ class TestCopySvgLangsWorkerProcess:
         assert worker.result.files_processed["File1.svg"].steps.upload.msg == "Some error"
 
     def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):
-        # Provoke error by using a directory as a file path
         worker.output_dir = tmp_path
         bad_path = tmp_path / "files_stats.json"
         bad_path.mkdir()
 
         # Should not raise exception
         worker._save_files_stats({"data": "test"})
+
+    def test_save_files_stats_unexpected_exception(self, worker: CopySvgLangsWorker, tmp_path):
+        worker.output_dir = tmp_path
+
+        with patch(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.json.dump",
+            side_effect=RuntimeError("unexpected"),
+        ):
+            worker._save_files_stats({"key": "value"})
