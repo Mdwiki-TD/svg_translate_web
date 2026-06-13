@@ -9,5 +9,5 @@ TODO: write tests
 """
 
 from src.main_app.db import (
-    init_db, # noqa: F401
+    init_db,
 )

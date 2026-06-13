@@ -7,5 +7,5 @@ TODO: write tests
 """
 
 from src.main_app.db.models.jobs import (
-    JobRecord, # noqa: F401
+    JobRecord,
 )

@@ -11,10 +11,10 @@ import pytest
 
 from src.main_app.db.services.admin_service import (
     add_coordinator,
-    delete_coordinator, # noqa: F401
+    delete_coordinator,
     get_coordinator_by_id,
-    list_coordinators, # noqa: F401
-    set_coordinator_active, # noqa: F401
+    list_coordinators,
+    set_coordinator_active,
 )
 
 

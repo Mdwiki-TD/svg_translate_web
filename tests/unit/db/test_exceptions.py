@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Unit tests for src/main_app/db/exceptions.py module.
 
@@ -11,11 +12,11 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.db.exceptions import (
-    DatabaseInitError, # noqa: F401
-    DuplicateJobError, # noqa: F401
+    DatabaseInitError,
+    DuplicateJobError,
     InsufficientDatabaseConfigError,
     MaxUserConnectionsError,
-    UserNotFoundError, # noqa: F401
+    UserNotFoundError,
 )
 
 

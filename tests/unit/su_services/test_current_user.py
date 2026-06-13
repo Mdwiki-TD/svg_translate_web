@@ -7,5 +7,5 @@ TODO: write tests
 """
 
 from src.main_app.su_services.current_user import (
-    CurrentUser, # noqa: F401
+    CurrentUser,
 )

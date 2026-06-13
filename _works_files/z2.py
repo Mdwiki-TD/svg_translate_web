@@ -135,6 +135,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     methods_parts.append(f"Functions to test: {functions_str}")
 
                 _new = [
+                    '# ruff: noqa: F401',
                     '"""',
                     f"Unit tests for {internal_path}/{file} module.",
                     "",

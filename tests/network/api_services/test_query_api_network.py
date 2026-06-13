@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Network tests for src/main_app/api_services/query_api.py module.
 
@@ -9,11 +10,11 @@ TODO: write tests
 import pytest
 
 from src.main_app.api_services.query_api import (
-    get_page_links,  # noqa: F401
-    get_template_pages, # noqa: F401
+    get_page_links,
+    get_template_pages,
     is_pages_exists,
-    resolve_redirects, # noqa: F401
-    search_pages, # noqa: F401
+    resolve_redirects,
+    search_pages,
 )
 from tests.network.network_conftest import TestNetwork
 
