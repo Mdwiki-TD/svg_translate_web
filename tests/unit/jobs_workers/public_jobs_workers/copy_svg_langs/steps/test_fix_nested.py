@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested import fix_nested_step
 
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+from src.main_app.app_routes.public_jobs import JobsPublicRoutes  # noqa: F401
 from src.main_app.app_routes.public_jobs import (
-    JobsPublicRoutes,  # noqa: F401
     can_manage_job,
 )
 
