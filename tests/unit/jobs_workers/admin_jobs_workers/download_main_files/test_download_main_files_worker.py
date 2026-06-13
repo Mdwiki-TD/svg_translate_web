@@ -231,7 +231,8 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        passed_filename = mock_services["download_file_from_commons"].call_args[0][0]
+        _call = mock_services["download_file_from_commons"].call_args[1]
+        passed_filename = _call["filename"]
         assert passed_filename == "Example.svg"
 
 
