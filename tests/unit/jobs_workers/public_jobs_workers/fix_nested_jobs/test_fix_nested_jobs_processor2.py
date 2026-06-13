@@ -13,7 +13,7 @@ from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects impor
     FileResult,
 )
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.shared.fix_nested.objects import (
+from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )

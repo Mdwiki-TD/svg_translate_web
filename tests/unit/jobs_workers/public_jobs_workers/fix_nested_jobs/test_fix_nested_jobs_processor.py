@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.shared.fix_nested.objects import VerificationResult
+from src.main_app.shared.fix_nested.worker import VerificationResult
 
 
 def _make_processor(filename="File:test.svg", user=None, args=None, cancel_event=None):

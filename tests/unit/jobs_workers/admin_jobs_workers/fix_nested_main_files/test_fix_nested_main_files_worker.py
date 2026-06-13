@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
-from src.main_app.shared.fix_nested.objects import (
+from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )

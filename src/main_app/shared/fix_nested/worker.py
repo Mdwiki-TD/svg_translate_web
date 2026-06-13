@@ -1,16 +1,25 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
 
-from .objects import (
-    DetectionResult,
-    VerificationResult,
-)
-
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DetectionResult:
+    count: int
+    tags: list[str] = field(default_factory=list)
+
+
+@dataclass
+class VerificationResult:
+    before: int
+    after: int
+    fixed: int
 
 
 def detect_nested_tags(file_path: Path) -> DetectionResult:
@@ -41,6 +50,8 @@ def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
 
 
 __all__ = [
+    "DetectionResult",
+    "VerificationResult",
     "detect_nested_tags",
     "fix_nested_tags",
     "verify_fix",

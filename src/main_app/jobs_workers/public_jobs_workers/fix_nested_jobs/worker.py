@@ -13,11 +13,9 @@ from typing import Any, Callable
 from mwclient.client import Site
 
 from ....api_services import download_svg_file, get_user_site, upload_fixed_svg
-from ....shared.fix_nested.objects import (
+from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
-)
-from ....shared.fix_nested.worker import (
     detect_nested_tags,
     fix_nested_tags,
     verify_fix,
