@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+
 from src.main_app.app_routes.admin_routes import settings
 
 KEY_PATTERN = r"[a-z][a-z0-9_]{0,189}"
