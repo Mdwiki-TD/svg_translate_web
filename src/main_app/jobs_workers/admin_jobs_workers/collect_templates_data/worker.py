@@ -223,15 +223,15 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
             main_file = None
-            self._update_step(template_info, "main_file", result="failed", msg=str(e))
+            template_info.steps.main_file._update(result="failed", msg=str(e))
 
         if main_file:
             if main_file != (template.main_file.removeprefix("File:") if template.main_file else ""):
                 # template_info.new_main_file = main_file
-                self._update_step(template_info, "main_file", result="updated", new_value=main_file)
+                template_info.steps.main_file._update(result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
             else:
-                self._update_step(template_info, "main_file", result="skipped", msg="No changes")
+                template_info.steps.main_file._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 2 last_world_file

@@ -185,20 +185,6 @@ class TestIsCancelled:
         # should not raise
         proc.is_cancelled("nonexistent_stage")
 
-
-# ---------------------------------------------------------------------------
-# _update_step
-# ---------------------------------------------------------------------------
-
-
-class TestUpdateStep:
-    def test_updates_status_and_message(self):
-        proc = _make_processor()
-        proc._update_step("download", "success", "all good")
-        assert proc.result.stages.download.status == "success"
-        assert proc.result.stages.download.message == "all good"
-
-
 # ---------------------------------------------------------------------------
 # Individual step methods (unit-tested in isolation)
 # ---------------------------------------------------------------------------

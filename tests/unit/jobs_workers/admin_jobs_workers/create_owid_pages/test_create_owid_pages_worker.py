@@ -476,17 +476,6 @@ class TestCreateOwidPagesWorkerHelpers:
         assert info.steps["create_new_page"]["result"] is None
         assert info.steps["create_new_page"]["msg"] == "Already exists"
 
-    def test_append_adds_to_result(self, mock_services):
-        """Test _append adds info to pages_processed list."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
-        info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
-
-        worker._append(info)
-
-        assert len(worker.result.pages_processed) == 1
-        assert worker.result.pages_processed[0]["template_id"] == 1
-
-
 class TestCreateOwidPagesWorkerProcess:
     """Tests for the main process method."""
 

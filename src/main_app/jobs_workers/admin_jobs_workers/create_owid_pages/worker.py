@@ -192,13 +192,13 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         if file_info._new_text and template.slug:
@@ -216,26 +216,26 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             # Step 3 - compare if text need to be updated
             upd_step = self._step_update(file_info, new_title)
             if upd_step is False:
-                self._append(file_info, key="pages_failed")
+                self.result.pages_failed.append(file_info.to_dict())
             elif upd_step is None:
-                self._append(file_info, key="pages_skipped")
+                self.result.pages_skipped.append(file_info.to_dict())
             else:
-                self._append(file_info, key="pages_updated")
+                self.result.pages_updated.append(file_info.to_dict())
 
             return upd_step is True
 
         # Step 4 - create_new_page
         create_step = self._step_create_new_page(file_info)
         if create_step is False:
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
         elif create_step is True:
-            self._append(file_info, key="pages_created")
+            self.result.pages_created.append(file_info.to_dict())
             return True
 
         # dead code?
         file_info.status = "completed"
-        self._append(file_info, key="pages_processed")
+        self.result.pages_processed.append(file_info.to_dict())
         return True
 
     # ------------------------------------------------------------------
@@ -360,13 +360,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
-
-    def _append(self, file_info: TemplateProcessingInfo, key: str = "pages_processed") -> None:
-        items = getattr(self.result, key, None)
-        if items is None:
-            raise ValueError(f"Unknown result key: {key}")
-        items.append(file_info.to_dict())
-
 
 def create_owid_pages_for_templates(
     *,

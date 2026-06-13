@@ -17,7 +17,7 @@ from mwclient.client import Site
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StageDetail, StepResult
+from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, StageDetail, StepResult
 from .steps import (
     download_step,
     extract_text_step,
@@ -219,7 +219,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 title=title,
                 status="pending",
                 error=None,
-                steps=FileSteps(),
             )
 
         # ----------------------------------------------

@@ -121,7 +121,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info, page):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
@@ -129,27 +129,27 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             self._skip_step(
                 file_info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}"
             )
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # Step 2 generate_template_text
         if not self._step_generate_template_text(file_info):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # Step 3 add_template_text
         if not self._step_add_template(file_info):
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # Step 4 save_new_text
         if not self._step_save_new_text(file_info, page):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         file_info.status = "completed"
-        # self._append(file_info, key="pages_processed")
-        self._append(file_info, key="pages_success")
+        # self.result.pages_processed.append(file_info.to_dict())
+        self.result.pages_success.append(file_info.to_dict())
 
         return True
 
@@ -228,12 +228,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     def _skip_step(self, file_info: TemplateInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
-
-    def _append(self, file_info: TemplateInfo, key: str = "pages_processed") -> None:
-        items = getattr(self.result, key, None)
-        if items is None:
-            raise ValueError(f"Unknown result key: {key}")
-        items.append(file_info.to_dict())
 
     # ------------------------------------------------------------------
     # Public entry-point

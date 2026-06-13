@@ -5,10 +5,31 @@ Objects for collect_templates_data worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 from ...shared_objects import StandardAdminWorkerObject
 
+
+@dataclass
+class StepResult:
+    """
+    "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
+    """
+    result: Optional[bool | str] = None
+    value: str = ""
+    new_value: str = ""
+    msg: str = ""
+    def _update(self, result: str="", msg: str = "") -> None:
+        self.result = result
+        self.msg = msg
+
+
+@dataclass
+class FileSteps:
+    main_file: StepResult = field(default_factory=lambda: StepResult())
+    last_world_file: StepResult = field(default_factory=lambda: StepResult())
+    source: StepResult = field(default_factory=lambda: StepResult())
+    slug: StepResult = field(default_factory=lambda: StepResult())
 
 @dataclass
 class TemplateInfo:
@@ -24,14 +45,7 @@ class TemplateInfo:
     status: str = "processing"
     error: str | None = None
     error_type: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "last_world_file": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "source": {"result": None, "value": "", "new_value": "", "msg": ""},
-            "slug": {"result": None, "value": "", "new_value": "", "msg": ""},
-        }
-    )
+    steps: FileSteps = field(default_factory=lambda: FileSteps())
 
     def to_dict(self) -> dict[str, Any]:
         """

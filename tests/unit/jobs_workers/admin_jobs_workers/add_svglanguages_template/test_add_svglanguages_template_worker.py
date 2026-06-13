@@ -238,7 +238,6 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text = MagicMock(side_effect=mock_generate)
         mock_add_svg_worker._step_add_template = MagicMock(side_effect=mock_add)
         mock_add_svg_worker._step_save_new_text = MagicMock(return_value=True)
-        mock_add_svg_worker._append = MagicMock()
 
         mock_add_svg_worker._process_one(template)
 
@@ -259,7 +258,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text = MagicMock()
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
-        mock_add_svg_worker._append = MagicMock()
+
 
         mock_add_svg_worker._process_one(template)
 
@@ -268,7 +267,6 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text.assert_not_called()
         mock_add_svg_worker._step_add_template.assert_not_called()
         mock_add_svg_worker._step_save_new_text.assert_not_called()
-        mock_add_svg_worker._append.assert_called_once()
 
     def test_process_one_generate_step_fails(self, mock_services, mock_add_svg_worker):
         """Test that processing stops when generate step fails."""
@@ -285,7 +283,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_generate_template_text = MagicMock(return_value=False)
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
-        mock_add_svg_worker._append = MagicMock()
+
 
         mock_add_svg_worker._process_one(template)
 
@@ -339,7 +337,7 @@ class TestStepLoadTemplateText:
         mock_add_svg_worker._step_generate_template_text = MagicMock()
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
-        mock_add_svg_worker._append = MagicMock()
+
         mock_add_svg_worker._skip_step = MagicMock()
 
         result = mock_add_svg_worker._process_one(template)
@@ -348,7 +346,7 @@ class TestStepLoadTemplateText:
         mock_add_svg_worker._step_load_template_text.assert_called_once()
         mock_add_svg_worker._step_generate_template_text.assert_not_called()
         # mock_worker._skip_step.assert_called_once()
-        mock_add_svg_worker._append.assert_called_once()
+
 
 
 class TestStepGenerateTemplateText:
@@ -445,7 +443,7 @@ class TestStepSaveNewText:
 
 
 class TestHelperMethods:
-    """Tests for helper methods _fail, _skip_step, _append."""
+    """Tests for helper methods _fail, _skip_step."""
 
     def test_fail_marks_step_and_file_as_failed(self, mock_add_svg_worker):
         """Test that _fail correctly marks step and file as failed."""
@@ -466,17 +464,6 @@ class TestHelperMethods:
 
         assert info.steps["test_step"]["result"] is None
         assert info.steps["test_step"]["msg"] == "Skip reason"
-
-    def test_append_adds_template_to_result(self, mock_add_svg_worker):
-        """Test that _append adds template info to result."""
-        info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-        info.status = "completed"
-
-        mock_add_svg_worker._append(info, key="pages_success")
-
-        assert len(mock_add_svg_worker.result.pages_success) == 1
-        assert mock_add_svg_worker.result.pages_success[0]["template_id"] == 1
-
 
 class TestProcessMethod:
     """Tests for the main process() method."""
