@@ -14,7 +14,6 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import upload_file
 from ....api_services.clients import get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
