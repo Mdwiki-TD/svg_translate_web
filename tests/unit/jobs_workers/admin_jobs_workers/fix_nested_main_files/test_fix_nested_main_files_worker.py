@@ -37,6 +37,12 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service)
         MagicMock(return_value=True),
     )
 
+    # Mock get_user_site to return a mock site
+    mock_get_user_site = MagicMock(return_value=MagicMock())
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.get_user_site", mock_get_user_site
+    )
+
     # Mock shared fix_nested utilities
     mock_download_svg = MagicMock()
     mock_detect_nested = MagicMock()
@@ -65,6 +71,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service)
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
+        "get_user_site": mock_get_user_site,
         "download_svg_file": mock_download_svg,
         "detect_nested_tags": mock_detect_nested,
         "fix_nested_tags": mock_fix_nested,
