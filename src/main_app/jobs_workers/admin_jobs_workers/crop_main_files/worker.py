@@ -53,11 +53,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.upload_files = bool(self.args.get("upload_files"))
 
         super().__init__(job_id, user, cancel_event)
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
         self.args = args or {}
+        self.upload_files = bool(self.args.get("upload_files"))
         self.result.args = self.args
         self.upload_limit = self.args.get("upload_limit") or 0
 
