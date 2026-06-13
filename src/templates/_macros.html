@@ -1,8 +1,12 @@
 {# Shared Jinja macros. #}
-{%- macro commons_file_link(filename) -%}
+{%- macro commons_file_link(filename, label="") -%}
 <a href="https://commons.wikimedia.org/wiki/File:{{ filename | replace('File:', '') }}"
-            target="_blank" rel="noopener noreferrer">
-            File:{{ filename | replace('File:', '') }}
+    target="_blank" rel="noopener noreferrer">
+    {% if label %}
+    {{ label }}
+    {% else %}
+    File:{{ filename | replace('File:', '') }}
+    {% endif %}
 </a>
 {%- endmacro -%}
 {%- macro render_step(step) -%}

@@ -1,5 +1,5 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon %}
+{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.title %}
@@ -78,10 +78,8 @@
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ item.title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.title[:50] }}{% if item.title|length > 50 %}...{% endif %}
-                            </a>
+                            {% set short_title = item.title[:50] ~ '...' if item.title|length > 50 else item.title %}
+                            {{ commons_file_link(item.title, label=short_title) }}
                         </td>
                         <td>
                             {{ status_icon(item.status) }}

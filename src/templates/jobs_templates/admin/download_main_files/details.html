@@ -1,5 +1,5 @@
 {% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import card_header, stats_card, commons_file_link %}
 
 {% block job_info_extra %}
 <tr>
@@ -52,10 +52,7 @@
                     <tr>
                         <td>{{ file.template_id }}</td>
                         <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ file.filename }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ file.filename }}
-                            </a>
+                            {{ commons_file_link(file.filename) }}
                         </td>
                         <td>
                             <a href="{{ url_for('jobs_utils.serve_download_main_file', filename=file.path) }}"

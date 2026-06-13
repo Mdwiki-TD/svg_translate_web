@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import commons_file_link %}
 
 {% block title %}{{ result.title }} - SVG Explorer{% endblock %}
 
@@ -43,10 +44,7 @@
             <span class="text-muted">
                 {% if result.main_file %}
                 Main File:
-                <a href='https://commons.wikimedia.org/wiki/{{ result.main_file }}' target='_blank'
-                    rel='noopener noreferrer'>
-                    {{ result.main_file }}
-                </a>
+                {{ commons_file_link(result.main_file) }}
                 {% if result.languages %}
                 <span class="text-muted">
                     ({{ result.languages }})
@@ -105,9 +103,7 @@
             <ul class="list-group list-group-numbered">
                 {% for title in result.not_downloaded %}
                 <li class="list-group-item">
-                    <a href='https://commons.wikimedia.org/wiki/{{ title }}' target='_blank' rel='noopener noreferrer'>
-                        {{ title }}
-                    </a>
+                    {{ commons_file_link(title) }}
                 </li>
                 {% endfor %}
             </ul>
