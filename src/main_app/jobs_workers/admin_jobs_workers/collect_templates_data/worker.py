@@ -170,19 +170,14 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             source="",
             status="",
         )
+        if template.main_file:
+            template_info.steps.main_file.value = template.main_file.removeprefix("File:")
 
-        template_info.steps["main_file"]["value"] = template.main_file
-        template_info.steps["last_world_file"]["value"] = template.last_world_file
-        template_info.steps["source"]["value"] = template.source
-        template_info.steps["slug"]["value"] = template.slug
+        if template.last_world_file:
+            template_info.steps.last_world_file.value = template.last_world_file.removeprefix("File:")
 
-        if template_info.steps["main_file"]["value"]:
-            template_info.steps["main_file"]["value"] = template_info.steps["main_file"]["value"].removeprefix("File:")
-
-        if template_info.steps["last_world_file"]["value"]:
-            template_info.steps["last_world_file"]["value"] = template_info.steps["last_world_file"][
-                "value"
-            ].removeprefix("File:")
+        template_info.steps.source.value = template.source
+        template_info.steps.slug.value = template.slug
 
         return template_info
 

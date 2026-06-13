@@ -137,12 +137,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.data = step_result
 
             if step_result.get("message"):
-                stage.message = step_result.message  # step_result["message"]
+                stage.message = step_result["message"]
 
             if step_result.get("success"):
                 stage.status = "Completed"
                 if "summary" in step_result and not stage.message:
-                    summary = step_result.summary  # step_result["summary"]
+                    summary = step_result["summary"]
                     if isinstance(summary, dict):
                         stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
 
@@ -161,6 +161,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.message = str(e)
             self.result.status = "failed"
             return False
+
+    def _extract_step(self) -> bool | None:
+        data = extract_text_step(
+            self.title,
+            self.site,
+        )
+        # text_run_after():
+        self.text = self.result.stages.text.data["text"]
+        # clean up
+        self.result.stages.text.data["text"] = ""
+
+        return data
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
