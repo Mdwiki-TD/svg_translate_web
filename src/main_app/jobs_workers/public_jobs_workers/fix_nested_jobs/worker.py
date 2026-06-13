@@ -13,7 +13,7 @@ from typing import Any, Callable
 from mwclient.client import Site
 
 from ....api_services import get_user_site, upload_file
-from ....shared.fix_nested.files_service import download_svg_file
+from ....shared.fix_nested.files_service import download_svg_file, upload_fixed_svg
 from ....shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,
@@ -28,33 +28,6 @@ from ...base_worker_object import BaseObjectsJobWorker
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)
-
-
-def upload_fixed_svg(
-    filename: str,
-    file_path: Path,
-    tags_fixed: int,
-    site: Site,
-) -> dict[str, Any]:
-    """Upload fixed SVG file to Commons."""
-
-    logger.info(f"Uploading fixed file: {filename}")
-
-    result = upload_file(
-        file_name=filename,
-        file_path=file_path,
-        site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
-    )
-
-    if result.get("result") != "Success":
-        return {
-            "ok": False,
-            "error": result.get("error", "upload_failed"),
-            "error_details": result.get("error_details", ""),
-        }
-
-    return {"ok": True, "result": result}
 
 
 class FixNestedJobsProcessor(BaseObjectsJobWorker):

@@ -2,6 +2,11 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
+
+from mwclient.client import Site
+
+from ...api_services import upload_file
 
 from ...api_services.utils import download_one_file
 from .objects import DownloadResult
@@ -32,6 +37,31 @@ def download_svg_file(filename: str, temp_dir: Path) -> DownloadResult:
         path=Path(file_data["path"]),
     )
 
+def upload_fixed_svg(
+    filename: str,
+    file_path: Path,
+    tags_fixed: int,
+    site: Site,
+) -> dict[str, Any]:
+    """Upload fixed SVG file to Commons."""
+
+    logger.info(f"Uploading fixed file: {filename}")
+
+    result = upload_file(
+        file_name=filename,
+        file_path=file_path,
+        site=site,
+        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
+    )
+
+    if result.get("result") != "Success":
+        return {
+            "ok": False,
+            "error": result.get("error", "upload_failed"),
+            "error_details": result.get("error_details", ""),
+        }
+
+    return {"ok": True, "result": result}
 
 __all__ = [
     "download_svg_file",

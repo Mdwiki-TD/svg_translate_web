@@ -18,7 +18,7 @@ from ....api_services import upload_file
 from ....api_services.clients import get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ....shared.fix_nested.files_service import download_svg_file
+from ....shared.fix_nested.files_service import download_svg_file, upload_fixed_svg
 from ....shared.fix_nested.objects import (
     DetectionResult,
     DownloadResult,
@@ -33,33 +33,6 @@ from ...base_worker_object import BaseObjectsJobWorker
 from .objects import FixNestedMainFilesWorkerObject
 
 logger = logging.getLogger(__name__)
-
-
-def upload_fixed_svg(
-    filename: str,
-    file_path: Path,
-    tags_fixed: int,
-    site: Site,
-) -> dict[str, Any]:
-    """Upload fixed SVG file to Commons."""
-
-    logger.info(f"Uploading fixed file: {filename}")
-
-    result = upload_file(
-        file_name=filename,
-        file_path=file_path,
-        site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
-    )
-
-    if result.get("result") != "Success":
-        return {
-            "ok": False,
-            "error": result.get("error", "upload_failed"),
-            "error_details": result.get("error_details", ""),
-        }
-
-    return {"ok": True, "result": result}
 
 
 def repair_nested_svg_tags(
@@ -122,11 +95,11 @@ def repair_nested_svg_tags(
             site,
         )
 
-        if not upload.ok:
+        if not upload.get("ok"):
             return {
                 "success": False,
                 "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**asdict(verify), **asdict(upload)},
+                "details": {**asdict(verify), **upload},
             }
 
         return {
@@ -134,7 +107,7 @@ def repair_nested_svg_tags(
             "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
             "details": {
                 **asdict(verify),
-                "upload_result": upload.result,
+                "upload_result": upload.get("result"),
             },
         }
 
