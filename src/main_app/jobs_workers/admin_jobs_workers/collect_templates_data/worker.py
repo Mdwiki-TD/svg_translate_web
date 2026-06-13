@@ -191,7 +191,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return template_info
 
-    def _process_template(self, template: TemplateRecord) -> bool:
+    def _process_one(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         template_info = self._load_temp_info(template)
@@ -402,7 +402,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
             logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
 
-            _updated = self._process_template(template)
+            _updated = self._process_one(template)
 
             if _updated and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")

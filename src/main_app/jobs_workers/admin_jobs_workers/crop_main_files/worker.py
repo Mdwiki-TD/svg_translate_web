@@ -95,7 +95,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
@@ -138,7 +138,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def _process_template(self, template: TemplateRecord) -> bool:
+    def _process_one(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         cropped_filename = generate_cropped_filename(template.last_world_file)

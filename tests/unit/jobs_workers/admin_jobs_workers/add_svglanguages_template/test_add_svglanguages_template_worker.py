@@ -212,9 +212,9 @@ class TestLoadTemplates:
 
 
 class TestProcessTemplate:
-    """Tests for _process_template method."""
+    """Tests for _process_one method."""
 
-    def test_process_template_success_flow(self, mock_services, mock_add_svg_worker):
+    def test_process_one_success_flow(self, mock_services, mock_add_svg_worker):
         """Test successful processing of a template."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
@@ -240,7 +240,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_save_new_text = MagicMock(return_value=True)
         mock_add_svg_worker._append = MagicMock()
 
-        mock_add_svg_worker._process_template(template)
+        mock_add_svg_worker._process_one(template)
 
         # Verify all steps were called
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -251,7 +251,7 @@ class TestProcessTemplate:
         # Verify summary was updated
         assert mock_add_svg_worker.result.summary.processed == 1
 
-    def test_process_template_load_step_fails(self, mock_add_svg_worker):
+    def test_process_one_load_step_fails(self, mock_add_svg_worker):
         """Test that processing stops when load step fails."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
@@ -261,7 +261,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_save_new_text = MagicMock()
         mock_add_svg_worker._append = MagicMock()
 
-        mock_add_svg_worker._process_template(template)
+        mock_add_svg_worker._process_one(template)
 
         # Only load step should be called
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -270,7 +270,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_save_new_text.assert_not_called()
         mock_add_svg_worker._append.assert_called_once()
 
-    def test_process_template_generate_step_fails(self, mock_services, mock_add_svg_worker):
+    def test_process_one_generate_step_fails(self, mock_services, mock_add_svg_worker):
         """Test that processing stops when generate step fails."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
@@ -287,7 +287,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_save_new_text = MagicMock()
         mock_add_svg_worker._append = MagicMock()
 
-        mock_add_svg_worker._process_template(template)
+        mock_add_svg_worker._process_one(template)
 
         mock_add_svg_worker._step_load_template_text.assert_called_once()
         mock_add_svg_worker._step_generate_template_text.assert_called_once()
@@ -324,7 +324,7 @@ class TestStepLoadTemplateText:
         assert info.steps["load_template_text"]["result"] is False
 
     def test_load_template_text_skips_if_already_has_svglanguages(self, mock_services, mock_add_svg_worker):
-        """Test that _process_template skips if template already has SVGLanguages."""
+        """Test that _process_one skips if template already has SVGLanguages."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
         # Mock regex to match (template already has SVGLanguages)
@@ -342,7 +342,7 @@ class TestStepLoadTemplateText:
         mock_add_svg_worker._append = MagicMock()
         mock_add_svg_worker._skip_step = MagicMock()
 
-        result = mock_add_svg_worker._process_template(template)
+        result = mock_add_svg_worker._process_one(template)
 
         assert result is False
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -494,8 +494,8 @@ class TestProcessMethod:
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
-        # Mock _process_template to do nothing
-        worker._process_template = MagicMock()
+        # Mock _process_one to do nothing
+        worker._process_one = MagicMock()
 
         result = worker.process()
 
@@ -540,12 +540,12 @@ class TestProcessMethod:
         # Cancel after first template
         call_count = [0]
 
-        def mock_process_template(template):
+        def mock_process_one(template):
             call_count[0] += 1
             if call_count[0] == 1:
                 cancel_event.set()
 
-        worker._process_template = mock_process_template  # type: ignore
+        worker._process_one = mock_process_one  # type: ignore
 
         _result = worker.process()
 

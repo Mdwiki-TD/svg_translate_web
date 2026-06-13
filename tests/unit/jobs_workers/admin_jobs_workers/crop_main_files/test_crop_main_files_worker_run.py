@@ -329,7 +329,7 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
         assert file_info.steps["download"]["result"] is True
-        assert processor.result.summary.processed == 0  # processed is now under _process_template
+        assert processor.result.summary.processed == 0  # processed is now under _process_one
 
     def test_step_download_failure(self, mock_services):
         """Test _step_download when download fails."""
@@ -746,9 +746,9 @@ class TestCropMainFilesProcessorHelpers:
 
 
 class TestCropMainFilesProcessorProcessTemplate:
-    """Tests for _process_template method."""
+    """Tests for _process_one method."""
 
-    def test_process_template_file_already_exists(self, mock_services, mock_site_pages):
+    def test_process_one_file_already_exists(self, mock_services, mock_site_pages):
         """Test processing when cropped file already exists on Commons."""
         _site = mock_site_pages(True)
         mock_services["get_user_site"].return_value = _site
@@ -768,7 +768,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_template(template)
+        processor._process_one(template)
 
         # Should skip download, crop, and upload steps
         assert hasattr(processor.result, "pages_updated")
@@ -776,7 +776,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert processor.result.pages_updated[0]["steps"]["download"]["result"] is None
         assert "Skipped" in processor.result.pages_updated[0]["steps"]["download"]["msg"]
 
-    def test_process_template_full_pipeline(self, mock_services, tmp_path, mock_site_pages):
+    def test_process_one_full_pipeline(self, mock_services, tmp_path, mock_site_pages):
         """Test full pipeline for a new file."""
 
         _site = mock_site_pages(False)
@@ -801,14 +801,14 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_template(template)
+        processor._process_one(template)
 
         file_result = processor.result.pages_uploaded[0]
         assert file_result["steps"]["download"]["result"] is True
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
 
-    def test_process_template_upload_disabled(self, mock_services, tmp_path, mock_site_pages):
+    def test_process_one_upload_disabled(self, mock_services, tmp_path, mock_site_pages):
         """Test processing when upload_files is False."""
 
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
@@ -826,7 +826,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_template(template)
+        processor._process_one(template)
 
         # Should skip upload steps
         assert hasattr(processor.result, "pages_skipped")

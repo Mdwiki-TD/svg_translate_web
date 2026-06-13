@@ -134,7 +134,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 
-    def _process_template(self, template) -> None:
+    def _process_one(self, template: TemplateRecord) -> None:
         self.result.summary.processed += 1
 
         file_info = {
@@ -146,7 +146,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         # Extract just the filename part (remove "File:" prefix if present)
         clean_filename = template.main_file
-        clean_filename = clean_filename.removeprefix("File:")
+        if clean_filename:
+            clean_filename = clean_filename.removeprefix("File:")
 
         # Check if file already exists
         # out_path = self.output_dir / clean_filename
@@ -213,7 +214,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
 
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")

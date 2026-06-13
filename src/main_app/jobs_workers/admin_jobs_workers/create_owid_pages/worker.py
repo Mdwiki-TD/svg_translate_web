@@ -124,7 +124,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
@@ -181,7 +181,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         return new_text
 
-    def _process_template(self, template: TemplateRecord) -> bool:
+    def _process_one(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         # file info

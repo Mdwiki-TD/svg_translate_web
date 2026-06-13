@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....shared.fix_nested.objects import (
     DetectionResult,
@@ -163,7 +164,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.result.pages_failed.append(template_info)
         self.result.summary.failed += 1
 
-    def _process_template(self, template) -> None:
+    def _process_one(self, template: TemplateRecord) -> None:
         self.result.summary.processed += 1
 
         template_info = {
@@ -224,7 +225,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
 
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
