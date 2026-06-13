@@ -5,9 +5,29 @@ Objects for fix_nested_main_files worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
+
+
+@dataclass
+class TemplateInfo:
+    id: int
+    title: str
+    main_file: str
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    status: str = ""
+    reason: None | str = None
+    fix_result: None | dict = None
+    error_type: None | str = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        convert to dict.
+        """
+        return asdict(self)
 
 
 @dataclass
@@ -38,4 +58,5 @@ _old_result = {
 }
 __all__ = [
     "FixNestedMainFilesWorkerObject",
+    "TemplateInfo",
 ]

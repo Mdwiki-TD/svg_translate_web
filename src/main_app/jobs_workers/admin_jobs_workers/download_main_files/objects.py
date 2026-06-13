@@ -6,10 +6,30 @@ Objects for download_main_files worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from typing import Any, Optional
 
 from ...shared_objects import StandardAdminWorkerObject
+
+
+@dataclass
+class FileInfo:
+    template_id: int
+    template_title: str
+    filename: str
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    status: str = ""
+    reason: None | str = None
+    error_type: None | str = None
+    path: None | str = None
+    size_bytes: None | int = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        convert to dict.
+        """
+        return asdict(self)
 
 
 @dataclass
