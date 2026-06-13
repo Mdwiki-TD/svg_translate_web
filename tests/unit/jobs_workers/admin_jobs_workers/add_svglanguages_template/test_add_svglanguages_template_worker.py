@@ -545,7 +545,7 @@ class TestProcessMethod:
             if call_count[0] == 1:
                 cancel_event.set()
 
-        worker._process_template = mock_process_template
+        worker._process_template = mock_process_template # type: ignore
 
         _result = worker.process()
 
