@@ -17,7 +17,7 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
     elif v_type == "integer":
         try:
             return int(raw_val), True
-        except ValueError:
+        except (TypeError, ValueError):
             return 0, True
     else:
         return raw_val, True

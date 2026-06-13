@@ -2,8 +2,6 @@
 Unit tests for src/main_app/db/models/users.py module.
 
 Classes to test: UsersRecord, AdminUserRecord, UserTokenRecord
-
-TODO: write tests
 """
 
 from __future__ import annotations

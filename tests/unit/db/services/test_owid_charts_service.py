@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Tests for src.main_app.db.services.owid_charts_service.
 TODO: write tests
@@ -5,7 +6,7 @@ TODO: write tests
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
@@ -23,57 +22,17 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
+from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
 from .upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
 
-StepResult = dict[str, Any]
 
-
-@dataclass
-class CropFileProcessingInfo:
-    """Holds all state for a single file being processed."""
-
-    template_id: int
-    template_title: str
-    original_file: str
-    cropped_filename: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
-    error: str | None = None
-    downloaded_path: Path | None = None
-    cropped_path: Path | None = None
-    steps: dict[str, StepResult] = field(
-        default_factory=lambda: {
-            "download": {"result": None, "msg": ""},
-            "crop": {"result": None, "msg": ""},
-            "upload_cropped": {"result": None, "msg": ""},
-            "update_original": {"result": None, "msg": ""},
-            "update_template": {"result": None, "msg": ""},
-            "update_page": {"result": None, "msg": ""},
-        }
-    )
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "original_file": self.original_file,
-            "cropped_filename": self.cropped_filename,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "downloaded_path": str(self.downloaded_path) if self.downloaded_path else None,
-            "cropped_path": str(self.cropped_path) if self.cropped_path else None,
-            "steps": self.steps,
-        }
-
-
-class CropMainFilesWorker(BaseJobWorker):
+class CropMainFilesWorker(BaseObjectsJobWorker):
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 
@@ -94,17 +53,13 @@ class CropMainFilesWorker(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.args = args or {}
-        try:
-            self.upload_limit = (
-                int(self.args.get("upload_limit")) if self.args.get("upload_limit") is not None else None
-            )
-        except (ValueError, TypeError):
-            self.upload_limit = None
-        self.upload_files = bool(self.args.get("upload_files"))
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
+        self.args = args or {}
+        self.upload_files = bool(self.args.get("upload_files"))
+        self.result.args = self.args
+        self.upload_limit = self.args.get("upload_limit") or 0
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
@@ -114,38 +69,12 @@ class CropMainFilesWorker(BaseJobWorker):
         """Return the job type identifier."""
         return "crop_main_files"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "cropped": 0,
-                "uploaded": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "pages_processed": [],
-            "pages_uploaded": [],
-            "pages_updated": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> CropMainFilesWorkerObject:
+        """Execute the full pipeline."""
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -154,7 +83,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
         templates = self._load_templates()
 
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
 
         self._check_exists(templates)
@@ -166,7 +95,7 @@ class CropMainFilesWorker(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
@@ -175,8 +104,8 @@ class CropMainFilesWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+        if self.result.status in ["pending", "running"]:
+            self.result.status = "completed"
 
         return self.result
 
@@ -209,8 +138,8 @@ class CropMainFilesWorker(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+    def _process_one(self, template: TemplateRecord) -> bool:
+        self.result.summary.processed += 1
 
         cropped_filename = generate_cropped_filename(template.last_world_file)
 
@@ -220,6 +149,7 @@ class CropMainFilesWorker(BaseJobWorker):
             template_title=template.title,
             original_file=template.last_world_file,
             cropped_filename=cropped_filename,
+            timestamp=datetime.now().isoformat(),
         )
 
         # pre steps if the file already in commons, skip download/upload files.
@@ -230,42 +160,42 @@ class CropMainFilesWorker(BaseJobWorker):
 
             if updated:
                 file_info.status = "completed"
-                self.result["summary"]["updated"] += 1
-                self._append(file_info, key="pages_updated")
+                self.result.summary.updated += 1
+                self.result.pages_updated.append(file_info.to_dict())
                 return True
             else:
                 # if all file_info.steps "result" is None do:
                 if all(step["result"] is None for step in file_info.steps.values()):
                     file_info.status = "skipped"
-                    self.result["summary"]["skipped"] += 1
+                    self.result.summary.skipped += 1
 
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 1 - Download
         if not self._step_download(file_info, template):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 2 - Crop
         cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
         if not self._step_crop(file_info, template, cropped_output_path):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # Upload disabled → mark skipped and move on
         if not self.upload_files:
             self._skip_upload_steps(file_info)
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 3 - Upload cropped file
         up_step = self._step_upload(file_info)
         if up_step is False:
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         elif up_step is None:
@@ -277,15 +207,15 @@ class CropMainFilesWorker(BaseJobWorker):
         updated = self.update_file_references(file_info)
 
         if uploaded:
-            self._append(file_info, key="pages_uploaded")
+            self.result.pages_uploaded.append(file_info.to_dict())
             return True
 
         elif updated:
-            self._append(file_info, key="pages_updated")
+            self.result.pages_updated.append(file_info.to_dict())
             return True
 
         file_info.status = "completed"
-        self._append(file_info, key="pages_processed")
+        self.result.pages_processed.append(file_info.to_dict())
         return False
 
     def _check_file_exists(self, cropped_filename):
@@ -356,7 +286,7 @@ class CropMainFilesWorker(BaseJobWorker):
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(file_info.downloaded_path, cropped_path)
+        crop_result = crop_svg_file(Path(file_info.downloaded_path), cropped_path)
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
@@ -366,7 +296,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
         file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
         file_info.cropped_path = cropped_path
-        self.result["summary"]["cropped"] += 1
+        self.result.summary.cropped += 1
         return True
 
     def _step_upload(self, file_info: CropFileProcessingInfo) -> bool | None:
@@ -377,7 +307,7 @@ class CropMainFilesWorker(BaseJobWorker):
 
         upload_result = upload_cropped_file(
             file_info.cropped_filename,
-            file_info.cropped_path,
+            Path(file_info.cropped_path),
             self.site,
             cropped_file_wikitext,
         )
@@ -388,7 +318,7 @@ class CropMainFilesWorker(BaseJobWorker):
             )
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
             file_info.status = "skipped"
-            self.result["summary"]["skipped"] += 1
+            self.result.summary.skipped += 1
             # Still continue to wikitext updates even if file existed
             return None
 
@@ -396,7 +326,7 @@ class CropMainFilesWorker(BaseJobWorker):
             logger.info(f"Job {self.job_id}: Successfully uploaded {file_info.cropped_filename}")
             file_info.steps["upload_cropped"] = {"result": True, "msg": f"Uploaded as {file_info.cropped_filename}"}
             file_info.status = "uploaded"
-            self.result["summary"]["uploaded"] += 1
+            self.result.summary.uploaded += 1
             return True
 
         error = upload_result.get("error", "Unknown upload error")
@@ -523,7 +453,7 @@ class CropMainFilesWorker(BaseJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-        self.result["summary"]["failed"] += 1
+        self.result.summary.failed += 1
 
     def _skip_step(self, file_info: CropFileProcessingInfo, step: str, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
@@ -533,12 +463,9 @@ class CropMainFilesWorker(BaseJobWorker):
         for step in ("upload_cropped", "update_original", "update_template", "update_page"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
-        self.result["summary"]["skipped"] += 1
+        self.result.summary.skipped += 1
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = ""
-
-    def _append(self, file_info: CropFileProcessingInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
 
 
 # ------------------------------------------------------------------
@@ -562,9 +489,6 @@ def crop_main_files_worker_entry(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    if args and args.get("crop_newest_upload_limit"):
-        args.update({"upload_limit": args.get("crop_newest_upload_limit")})
-
     worker = CropMainFilesWorker(
         job_id=job_id,
         user=user,

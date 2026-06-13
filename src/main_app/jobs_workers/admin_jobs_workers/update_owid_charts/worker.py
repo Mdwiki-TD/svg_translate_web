@@ -21,19 +21,33 @@ import re
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from ....api_services import fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import owid_charts_service
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
+from .objects import UpdateOwidChartsWorkerObject
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Timespan helpers
 # ---------------------------------------------------------------------------
+
+
+def ensure_int(value: Any) -> int | None:
+    """Ensure that a value is an integer or ``None``."""
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        pass
+    return None
 
 
 def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
@@ -48,7 +62,7 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     try:
         min_t = int(match.group(1))
         max_t = int(match.group(2)) if match.group(2) is not None else min_t
-    except ValueError:
+    except (TypeError, ValueError):
         return None
 
     len_y = max_t - min_t + 1
@@ -112,7 +126,7 @@ class ChartUpdateInfo:
 # ---------------------------------------------------------------------------
 
 
-class UpdateOwidChartsWorker(BaseJobWorker):
+class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
     def __init__(
@@ -122,43 +136,22 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         cancel_event: threading.Event | None = None,
         args: dict[str, Any] | None = None,
     ) -> None:
-        self.limit_items = args.get("limit_items") if args else 0
-
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
+
+        self.args = args or {}
+        self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "charts_processed": [],
-            "updated_charts": [],
-            "skipped_charts": [],
-            "failed_charts": [],
-        }
 
     # ------------------------------------------------------------------
     # Per-chart processing
     # ------------------------------------------------------------------
 
     def _process_chart(self, chart: OwidChartRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+        self.result.summary.processed += 1
 
         info = ChartUpdateInfo(
             chart_id=chart.chart_id,
@@ -174,7 +167,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
-            self.result["failed_charts"].append(
+            self.result.failed_charts.append(
                 {
                     "status": "failed",
                     "slug": chart.slug,
@@ -196,7 +189,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         if not timespan_raw and not owid_variable_id and not data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
-            self.result["skipped_charts"].append(
+            self.result.skipped_charts.append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
@@ -205,13 +198,15 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             )
             return False
 
-        if owid_variable_id and owid_variable_id != chart.owid_variable_id:
-            info.owid_variable_id = owid_variable_id
-            data.update(
-                {
-                    "owid_variable_id": owid_variable_id,
-                }
-            )
+        if owid_variable_id:
+            owid_variable_id = ensure_int(owid_variable_id)
+            if owid_variable_id != chart.owid_variable_id:
+                info.owid_variable_id = owid_variable_id
+                data.update(
+                    {
+                        "owid_variable_id": owid_variable_id,
+                    }
+                )
 
         if timespan_raw:
             # 3. Parse timespan
@@ -220,7 +215,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             if parsed is None and not data:
                 info.status = "failed"
                 info.error = f"Could not parse timespan: '{timespan_raw}'"
-                self.result["failed_charts"].append(
+                self.result.failed_charts.append(
                     {
                         "status": "failed",
                         "slug": chart.slug,
@@ -252,7 +247,7 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         if not data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
-            self.result["skipped_charts"].append(
+            self.result.skipped_charts.append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
@@ -267,14 +262,14 @@ class UpdateOwidChartsWorker(BaseJobWorker):
                 data,
             )
             info.status = "updated"
-            self.result["updated_charts"].append(info.to_dict())
+            self.result.updated_charts.append(info.to_dict())
             return True
         except Exception as exc:
             logger.exception(f"Job {self.job_id}: DB update failed for chart '{chart.slug}'")
             info.status = "failed"
             info.error = str(exc)
 
-        self.result["failed_charts"].append(info.to_dict())
+        self.result.failed_charts.append(info.to_dict())
         return False
 
     def _load_charts(self) -> list[OwidChartRecord]:
@@ -290,14 +285,14 @@ class UpdateOwidChartsWorker(BaseJobWorker):
         return charts
 
     # ------------------------------------------------------------------
-    # BaseJobWorker.process
+    # BaseObjectsJobWorker.process
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> UpdateOwidChartsWorkerObject:
         charts = self._load_charts()
         total = len(charts)
 
-        self.result["summary"]["total"] = total
+        self.result.summary.total = total
         logger.info(f"Job {self.job_id}: Found {total} charts to process")
 
         per_item = self.get_priority(total)
@@ -316,8 +311,8 @@ class UpdateOwidChartsWorker(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ("pending", "running"):
-            self.result["status"] = "completed"
+        if self.result.status in ("pending", "running"):
+            self.result.status = "completed"
 
         return self.result
 
@@ -336,9 +331,6 @@ def update_owid_charts_worker_entry(
 ) -> None:
     """Background worker entry-point for update_owid_charts."""
     logger.info(f"Starting job {job_id}: update OWID charts timespan data")
-
-    if args and args.get("owid_charts_limit_items"):
-        args.update({"limit_items": args.get("owid_charts_limit_items")})
 
     worker = UpdateOwidChartsWorker(
         job_id=job_id,

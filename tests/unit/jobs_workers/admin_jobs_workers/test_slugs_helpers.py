@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Unit tests for src/main_app/jobs_workers/admin_jobs_workers/slugs_helpers.py module.
 

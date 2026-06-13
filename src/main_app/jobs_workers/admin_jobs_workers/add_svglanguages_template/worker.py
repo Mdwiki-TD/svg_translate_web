@@ -8,14 +8,15 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from mwclient.client import Site
 
 from ....api_services import MwClientPage, get_user_site
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
+from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ class TemplateInfo:
         }
 
 
-class AddSvgSVGLanguagesTemplate(BaseJobWorker):
+class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     """
     Worker for add_svglanguages_template.
     Steps:
@@ -75,41 +76,20 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-        self.limit_items = args.get("limit_items") if args else 0
-        self.args = args or {}
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
+
+        self.args = args or {}
+        self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "add_svglanguages_template"
 
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-            "pages_success": [],
-            "pages_skipped": [],
-            "pages_failed": [],
-        }
-
     # ------------------------------------------------------------------
+
     # Initialisation helpers
     # ------------------------------------------------------------------
 
@@ -129,8 +109,8 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def _process_template(self, template: TemplateRecord) -> bool:
-        self.result["summary"]["processed"] += 1
+    def _process_one(self, template: TemplateRecord) -> bool:
+        self.result.summary.processed += 1
 
         # file info
         file_info = TemplateInfo(
@@ -141,7 +121,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info, page):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
@@ -149,27 +129,27 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             self._skip_step(
                 file_info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}"
             )
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # Step 2 generate_template_text
         if not self._step_generate_template_text(file_info):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # Step 3 add_template_text
         if not self._step_add_template(file_info):
-            self._append(file_info, key="pages_skipped")
+            self.result.pages_skipped.append(file_info.to_dict())
             return False
 
         # Step 4 save_new_text
         if not self._step_save_new_text(file_info, page):
-            self._append(file_info, key="pages_failed")
+            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         file_info.status = "completed"
-        # self._append(file_info, key="pages_processed")
-        self._append(file_info, key="pages_success")
+        # self.result.pages_processed.append(file_info.to_dict())
+        self.result.pages_success.append(file_info.to_dict())
 
         return True
 
@@ -249,14 +229,11 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
-    def _append(self, file_info: TemplateInfo, key: str = "pages_processed") -> None:
-        self.result[key].append(file_info.to_dict())
-
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> AddSvgLanguagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
@@ -264,7 +241,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             return self.result
 
         templates = self._load_templates()
-        self.result["summary"]["total"] = len(templates)
+        self.result.summary.total = len(templates)
         logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
 
         per_item = self.get_priority(len(templates))
@@ -274,7 +251,7 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
                 break
 
             logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
@@ -283,12 +260,12 @@ class AddSvgSVGLanguagesTemplate(BaseJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.get("status") in ["pending", "running"]:
-            self.result["status"] = "completed"
+        if self.result.status in ["pending", "running"]:
+            self.result.status = "completed"
 
-        self.result["summary"]["failed"] = len(self.result["pages_failed"])
-        self.result["summary"]["skipped"] = len(self.result["pages_skipped"])
-        self.result["summary"]["success"] = len(self.result["pages_success"])
+        self.result.summary.failed = len(self.result.pages_failed)
+        self.result.summary.skipped = len(self.result.pages_skipped)
+        self.result.summary.success = len(self.result.pages_success)
 
         return self.result
 
@@ -310,9 +287,6 @@ def add_svglanguages_template_to_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
-
-    if args and args.get("add_svglanguages_limit_items"):
-        args.update({"limit_items": args.get("add_svglanguages_limit_items")})
 
     worker = AddSvgSVGLanguagesTemplate(
         job_id=job_id,

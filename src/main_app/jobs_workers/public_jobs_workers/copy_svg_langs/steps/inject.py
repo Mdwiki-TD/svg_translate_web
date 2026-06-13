@@ -64,7 +64,10 @@ def inject_step(
 
     try:
         injects_result: dict[str, Any] = start_injects_wrap(
-            files, translations, output_dir_translated, overwrite=overwrite
+            files,
+            translations,
+            output_dir_translated,
+            overwrite=overwrite,
         )
     except Exception:
         logger.exception("Failed during SVG translation injection")

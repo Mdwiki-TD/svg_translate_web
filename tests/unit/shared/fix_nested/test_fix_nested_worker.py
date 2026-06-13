@@ -38,22 +38,22 @@ def mock_api():
 def test_download_svg_file_success(mock_api):
     mock_api["down"].return_value = {"result": "success", "path": "/tmp/test.svg"}
     res = download_svg_file("Test.svg", Path("/tmp"))
-    assert res["ok"] is True
-    assert res["path"] == Path("/tmp/test.svg")
+    assert res.ok is True
+    assert res.path == Path("/tmp/test.svg")
 
 
 def test_download_svg_file_fail(mock_api):
     mock_api["down"].return_value = {"result": "error"}
     res = download_svg_file("Test.svg", Path("/tmp"))
-    assert res["ok"] is False
-    assert res["error"] == "download_failed"
+    assert res.ok is False
+    assert res.error == "download_failed"
 
 
 def test_detect_nested_tags(mock_copy_svg):
     mock_copy_svg["match"].return_value = ["tag1", "tag2"]
     res = detect_nested_tags(Path("test.svg"))
-    assert res["count"] == 2
-    assert res["tags"] == ["tag1", "tag2"]
+    assert res.count == 2
+    assert res.tags == ["tag1", "tag2"]
 
 
 def test_fix_nested_tags(mock_copy_svg):
@@ -64,34 +64,34 @@ def test_fix_nested_tags(mock_copy_svg):
 def test_verify_fix(mock_copy_svg):
     mock_copy_svg["match"].return_value = ["tag1"]
     res = verify_fix(Path("test.svg"), before_count=3)
-    assert res["before"] == 3
-    assert res["after"] == 1
-    assert res["fixed"] == 2
+    assert res.before == 3
+    assert res.after == 1
+    assert res.fixed == 2
 
 
 def test_upload_fixed_svg_no_user():
     res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, None)
-    assert res["ok"] is False
-    assert res["error"] == "unauthenticated"
+    assert res.ok is False
+    assert res.error == "unauthenticated"
 
 
 def test_upload_fixed_svg_auth_fail(mock_api):
     mock_api["site"].return_value = None
     res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, {"id": 1})
-    assert res["ok"] is False
-    assert res["error"] == "oauth-auth-failed"
+    assert res.ok is False
+    assert res.error == "oauth-auth-failed"
 
 
 def test_upload_fixed_svg_success(mock_api):
     mock_api["site"].return_value = MagicMock()
     mock_api["upload"].return_value = {"result": "Success", "newrevid": 123}
     res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, {"id": 1})
-    assert res["ok"] is True
+    assert res.ok is True
 
 
 def test_upload_fixed_svg_fail(mock_api):
     mock_api["site"].return_value = MagicMock()
     mock_api["upload"].return_value = {"result": "Failure", "error": "ratelimited"}
     res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, {"id": 1})
-    assert res["ok"] is False
-    assert res["error"] == "ratelimited"
+    assert res.ok is False
+    assert res.error == "ratelimited"

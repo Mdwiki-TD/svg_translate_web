@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 
@@ -10,7 +10,7 @@ class JobData:
     job_list_template: str
 
     job_callable: Callable
-    job_args: list | None = None
+    job_args: list[dict[str, str]] = field(default_factory=list)
     start_confirm_message: str | None = None
 
 

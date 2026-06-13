@@ -51,7 +51,12 @@ def test_register_pop_cancel_event():
 
 def test_load_job_args(mock_db_services):
     mock_db_services["settings"].return_value = {"arg1": "val1", "arg2": "val2"}
-    args = _load_job_args(["arg1", "missing"])
+    args = _load_job_args(
+        [
+            {"key": "arg1", "as": "arg1"},
+            {"key": "missing", "as": "missing"},
+        ]
+    )
     assert args == {"arg1": "val1"}
 
 

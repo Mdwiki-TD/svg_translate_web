@@ -9,7 +9,7 @@ import threading
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from flask import send_file
@@ -18,7 +18,8 @@ from ....api_services import create_commons_session, download_commons_file_core
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ...base_worker import BaseJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
+from .objects import DownloadMainFilesWorkerObject
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -95,7 +96,7 @@ def download_file_from_commons(
     return result
 
 
-class DownloadMainFilesWorker(BaseJobWorker):
+class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
 
     def __init__(
@@ -106,38 +107,19 @@ class DownloadMainFilesWorker(BaseJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
-        self.limit_items = args.get("limit_items") if args else 0
 
         super().__init__(job_id, user, cancel_event)
-        self.result: Dict[str, Any] = self.get_initial_result()
+        self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
+        self.result.output_path = str(self.output_dir)
         self.session: requests.Session | None = None
+
+        self.args = args or {}
+        self.result.args = self.args
+        self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "download_main_files"
-
-    def get_initial_result(self) -> Dict[str, Any]:
-        """Return the initial result structure."""
-        return {
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "success": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "output_path": str(self.output_dir),
-            "files_downloaded": [],
-            "files_failed": [],
-        }
 
     def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
@@ -152,8 +134,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 
-    def _process_template(self, template) -> None:
-        self.result["summary"]["processed"] += 1
+    def _process_one(self, template: TemplateRecord) -> None:
+        self.result.summary.processed += 1
 
         file_info = {
             "template_id": template.id,
@@ -164,11 +146,12 @@ class DownloadMainFilesWorker(BaseJobWorker):
 
         # Extract just the filename part (remove "File:" prefix if present)
         clean_filename = template.main_file
-        clean_filename = clean_filename.removeprefix("File:")
+        if clean_filename:
+            clean_filename = clean_filename.removeprefix("File:")
 
         # Check if file already exists
         # out_path = self.output_dir / clean_filename
-        # if out_path.exists(): self.result["summary"]["exists"] += 1
+        # if out_path.exists(): self.result.summary.exists += 1
 
         try:
             # Download the file (will overwrite if exists)
@@ -182,8 +165,8 @@ class DownloadMainFilesWorker(BaseJobWorker):
             file_info["status"] = "failed"
             file_info["reason"] = f"Exception: {str(e)}"
             file_info["error_type"] = type(e).__name__
-            self.result["files_failed"].append(file_info)
-            self.result["summary"]["failed"] += 1
+            self.result.files_failed.append(file_info)
+            self.result.summary.failed += 1
             logger.exception(f"Job {self.job_id}: Error processing {template.title}")
             return False
 
@@ -192,26 +175,26 @@ class DownloadMainFilesWorker(BaseJobWorker):
             file_info["status"] = "downloaded"
             file_info["path"] = download_result.get("path")
             file_info["size_bytes"] = download_result.get("size_bytes")
-            self.result["files_downloaded"].append(file_info)
-            self.result["summary"]["success"] += 1
+            self.result.files_downloaded.append(file_info)
+            self.result.summary.success += 1
             return True
 
         error = download_result.get("error")
 
         file_info["status"] = "failed"
         file_info["reason"] = error
-        self.result["files_failed"].append(file_info)
-        self.result["summary"]["failed"] += 1
+        self.result.files_failed.append(file_info)
+        self.result.summary.failed += 1
         logger.warning(f"Job {self.job_id}: Failed to download {clean_filename}: {error}")
 
         return False
 
-    def process(self) -> Dict[str, Any]:
+    def process(self) -> DownloadMainFilesWorkerObject:
         """Execute the download processing logic."""
         templates_with_files = self._load_templates()
 
-        self.result["summary"]["total"] = len(templates_with_files)
-        self.result["output_path"] = str(self.output_dir)
+        self.result.summary.total = len(templates_with_files)
+        self.result.output_path = str(self.output_dir)
 
         logger.info(f"Job {self.job_id}: Found {len(templates_with_files)} templates with main files")
 
@@ -231,7 +214,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
 
-            ok = self._process_template(template)
+            ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
@@ -242,7 +225,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 self._save_progress()
 
         # Generate zip file after successful completion
-        if self.result.get("status") != "cancelled":
+        if self.result.status != "cancelled":
             try:
                 generate_main_files_zip()
                 logger.info(f"Job {self.job_id}: Generated main_files.zip successfully")
@@ -250,9 +233,7 @@ class DownloadMainFilesWorker(BaseJobWorker):
                 logger.exception(f"Job {self.job_id}: Failed to generate main_files.zip: {e}")
 
         logger.info(
-            f"Job {self.job_id} completed: "
-            f"{self.result['summary']['success']} success, "
-            f"{self.result['summary']['failed']} failed"
+            f"Job {self.job_id} completed: {self.result.summary.success} success, {self.result.summary.failed} failed"
         )
 
         return self.result
@@ -275,9 +256,6 @@ def download_main_files_for_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: download main files for templates")
-
-    if args and args.get("download_main_files_limit_items"):
-        args.update({"limit_items": args.get("download_main_files_limit_items")})
 
     worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()

@@ -1,12 +1,13 @@
 import ast
 import os
 from pathlib import Path
+from typing import Any
 
 
 def extract_classes_and_functions(file_path):
     """Parse the file and extract only the top-level class and function names."""
-    classes: list[Any] = []
-    functions: list[Any] = []
+    classes: list[str] = []
+    functions: list[str] = []
     try:
         file_content = file_path.read_text(encoding="utf-8")
         tree = ast.parse(file_content)
@@ -19,7 +20,7 @@ def extract_classes_and_functions(file_path):
                 if not node.name.startswith("_"):
                     classes.append(node.name)
 
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 # Ignore functions starting with _
                 if not node.name.startswith("_"):
                     functions.append(node.name)
@@ -85,7 +86,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 
                 if test_filename in list_of_all_tests_files:
                     duplicate_names.append(test_filename)
-                    continue
+                    # continue
 
                 # Create the directory if it doesn't exist
                 target_dir.mkdir(parents=True, exist_ok=True)
@@ -111,7 +112,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 
                 if items_to_import:
                     # Convert elements to a comma-separated string
-                    items_str = ", ".join(items_to_import)
+                    items_str = ",\n    ".join(items_to_import)
 
                     # Convert path (e.g., {src_name}/main_app/domain) to python path ({src_name}.main_app.domain)
                     module_path = f"{internal_path.replace('/', '.')}.{file_stem}"
@@ -134,6 +135,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     methods_parts.append(f"Functions to test: {functions_str}")
 
                 _new = [
+                    "# ruff: noqa: F401",
                     '"""',
                     f"Unit tests for {internal_path}/{file} module.",
                     "",
@@ -148,19 +150,36 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                 _old = [
                     '"""',
                     f"Unit tests for {internal_path}/{file} module.",
+                    "",
+                    "\n".join(methods_parts),
+                    "",
+                    "TODO: write tests",
+                    '"""',
+                    "\n",
+                    import_statement,
+                ]
+                content_old = "\n".join(_old)
+                # ------------------------------------------------
+                _old_1 = [
+                    '"""',
+                    f"Unit tests for {internal_path}/{file} module.",
                     "TODO: write tests",
                     '"""',
                     "\n",
                 ]
+                # ------------------------------------------------
+                content_old_1 = "\n".join(_old_1)
                 content_old = "\n".join(_old)
                 # ------------------------------------------------
                 content_new = "\n".join(_new)
 
                 if test_file_path.exists():
                     test_text = test_file_path.read_text(encoding="utf-8")
-                    if test_text != content_old:
+                    if test_text != content_old and test_text != content_old_1:
                         # continue to skip goto next part
-                        continue
+                        print("!=")
+                        if len(test_text.splitlines()) > 10 and "TODO: write tests" not in test_text:
+                            continue
 
                 # save content_new to the file
                 with open(test_file_path, "w", encoding="utf-8") as f:

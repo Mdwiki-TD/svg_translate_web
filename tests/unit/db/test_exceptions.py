@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Unit tests for src/main_app/db/exceptions.py module.
 

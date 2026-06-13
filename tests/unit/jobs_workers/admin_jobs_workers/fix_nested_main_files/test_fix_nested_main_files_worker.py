@@ -1,443 +1,238 @@
-"""Unit tests for fix_nested_main_files_worker module."""
+"""Unit tests for fix_nested_main_files worker module."""
 
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
-
-
-@pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
-    """Mock the services used by fix_nested_main_files_worker."""
-
-    # Mock template_service
-    mock_list_templates = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
-    )
-
-    # Mock jobs_service (now accessed via base_worker)
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
-    mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mock_save_job_result,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mock_generate_result_file_name,
-    )
-
-    return {
-        "list_templates": mock_list_templates,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "generate_result_file_name": mock_generate_result_file_name,
-        "is_job_cancelled": mock_jobs_service,
-    }
+from src.main_app.shared.fix_nested.objects import (
+    DetectionResult,
+    DownloadResult,
+    UploadResult,
+    VerificationResult,
+)
 
 
 @pytest.fixture
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
-    """Mock the services used by fix_nested_main_files_for_templates."""
+    """Mock the services used by fix_nested_main_files worker."""
+
     # Mock template_service
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
     )
 
-    # Mock jobs_service (now accessed via base_worker)
+    # Mock jobs_service (base worker)
     mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
-    mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
+    mock_save_job_result = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
+
+    # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mock_save_job_result,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mock_generate_result_file_name,
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+        MagicMock(return_value=True),
     )
 
-    # Mock repair_nested_svg_tags
-    mock_process_fix_nested = MagicMock()
+    # Mock shared fix_nested utilities
+    mock_download_svg = MagicMock()
+    mock_detect_nested = MagicMock()
+    mock_fix_nested = MagicMock()
+    mock_verify_fix = MagicMock()
+    mock_upload_fixed = MagicMock()
+
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags",
-        mock_process_fix_nested,
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file", mock_download_svg
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags",
+        mock_detect_nested,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags", mock_fix_nested
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix", mock_verify_fix
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg", mock_upload_fixed
     )
 
     return {
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
-        "generate_result_file_name": mock_generate_result_file_name,
-        "repair_nested_svg_tags": mock_process_fix_nested,
-        "is_job_cancelled": mock_jobs_service,
+        "download_svg_file": mock_download_svg,
+        "detect_nested_tags": mock_detect_nested,
+        "fix_nested_tags": mock_fix_nested,
+        "verify_fix": mock_verify_fix,
+        "upload_fixed_svg": mock_upload_fixed,
     }
 
 
+def test_repair_nested_svg_tags_success(mock_fix_nested_services):
+    """Test successful high-level orchestration for a single file."""
+    filename = "Test.svg"
+    user = {"username": "tester"}
+
+    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("tmp/path.svg"))
+    mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
+    mock_fix_nested_services["fix_nested_tags"].return_value = True
+    mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
+    mock_fix_nested_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={"newrevid": 123})
+
+    result = worker.repair_nested_svg_tags(filename, user)
+
+    assert result["success"] is True
+    assert "Successfully fixed 5 nested tag(s)" in result["message"]
+    mock_fix_nested_services["upload_fixed_svg"].assert_called_once()
+
+
+def test_repair_nested_svg_tags_no_tags(mock_fix_nested_services):
+    """Test behavior when no nested tags are detected."""
+    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("tmp/path.svg"))
+    mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
+
+    result = worker.repair_nested_svg_tags("Clean.svg", {})
+
+    assert result["success"] is False
+    assert result["no_nested_tags"] is True
+    assert "No nested tags found" in result["message"]
+
+
 def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
-    """Test fix_nested_main_files_for_templates when there are no templates."""
+    """Test worker entry point when no templates exist."""
     mock_fix_nested_services["list_templates"].return_value = []
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=700, user=user)
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    # Should update status to running, then completed
-    assert mock_fix_nested_services["update_job_status"].call_count == 2
-    mock_fix_nested_services["update_job_status"].assert_any_call(
-        700, "running", "fix_nested_main_files_job_700.json", job_type="fix_nested_main_files"
-    )
-
-    # Should save result
-    assert mock_fix_nested_services["save_job_result_by_name"].call_count == 2
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 0
+    assert mock_fix_nested_services["save_job_result_by_name"].called
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["total"] == 0
 
 
 def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested_services):
     """Test that templates without main_file are skipped."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file=None, last_world_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
-    ]
+    templates = [TemplateRecord(id=1, title="T1", main_file=None)]
     mock_fix_nested_services["list_templates"].return_value = templates
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    # Should not call repair_nested_svg_tags
-    mock_fix_nested_services["repair_nested_svg_tags"].assert_not_called()
-
-    # Should save result with skipped templates
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 2
-    assert result["summary"]["skipped"] == 2
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["total"] == 1
+    assert result_dict["summary"]["processed"] == 1
+    assert len(result_dict["pages_skipped"]) == 1
+    assert "No main_file set" in result_dict["pages_skipped"][0]["reason"]
 
 
 def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested_services):
-    """Test that templates with main_file are processed."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
+    """Test successful processing of a template with main_file."""
+    templates = [TemplateRecord(id=1, title="T1", main_file="file1.svg")]
     mock_fix_nested_services["list_templates"].return_value = templates
-    mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
-        "success": True,
-        "message": "Successfully fixed 2 nested tag(s) and uploaded test.svg.",
-    }
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
+    # Mock repair utility to succeed
+    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("path"))
+    mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=1)
+    mock_fix_nested_services["fix_nested_tags"].return_value = True
+    mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
+    mock_fix_nested_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={})
 
-    # Should call repair_nested_svg_tags
-    call_args = mock_fix_nested_services["repair_nested_svg_tags"].call_args
-    assert call_args.kwargs["filename"] == "test.svg"
-    assert call_args.kwargs["user"] == user
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    # Should save result with successful template
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["success"] == 1
-    assert len(result["pages_success"]) == 1
-    assert result["pages_success"][0]["main_file"] == "test.svg"
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["success"] == 1
+    assert len(result_dict["pages_success"]) == 1
 
 
 def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
-    """Test that failed fixes are handled gracefully."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
+    """Test handled failure when repair utility returns success=False."""
+    templates = [TemplateRecord(id=1, title="T1", main_file="fail.svg")]
     mock_fix_nested_services["list_templates"].return_value = templates
-    mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
-        "success": False,
-        "message": "No nested tags found",
-        "no_nested_tags": True,
-    }
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
+    # Mock download success but no tags found (which counts as handled success=False in repair utility)
+    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("path"))
+    mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
-    # Should save result with failed template
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 0
-    assert result["summary"]["skipped"] == 1
-    assert len(result["pages_skipped"]) == 1
-    assert "No nested tags found" in result["pages_skipped"][0]["reason"]
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None)
+
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["skipped"] == 1
+    assert len(result_dict["pages_skipped"]) == 1
+    assert "No nested tags found" in result_dict["pages_skipped"][0]["reason"]
 
 
 def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
-    """Test that exceptions are handled gracefully."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
+    """Test handled exception during template processing."""
+    templates = [TemplateRecord(id=1, title="T1", main_file="error.svg")]
     mock_fix_nested_services["list_templates"].return_value = templates
-    mock_fix_nested_services["repair_nested_svg_tags"].side_effect = Exception("Network error")
+    mock_fix_nested_services["download_svg_file"].side_effect = Exception("Fatal repair error")
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    # Should save result with failed template
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 1
-    assert result["summary"]["failed"] == 1
-    assert len(result["pages_failed"]) == 1
-    assert "Exception: Network error" in result["pages_failed"][0]["reason"]
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["failed"] == 1
+    assert "Exception: Fatal repair error" in result_dict["pages_failed"][0]["reason"]
 
 
 def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_services):
     """Test processing multiple templates with mixed results."""
     templates = [
-        TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file=None),
-        TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None),
-        TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg", last_world_file=None),
+        TemplateRecord(id=1, title="T1", main_file="success.svg"),
+        TemplateRecord(id=2, title="T2", main_file="fail.svg"),
     ]
     mock_fix_nested_services["list_templates"].return_value = templates
 
-    # First template: success, third template: success
-    def process_fix_nested_side_effect(
-        filename,
-        user,
-    ) -> dict[str, Any]:
-        if "test1" in filename:
-            return {"success": True, "message": "Fixed test1.svg"}
-        elif "test3" in filename:
-            return {"success": True, "message": "Fixed test3.svg"}
-        return {"success": False, "message": "Failed"}
+    def repair_side_effect(filename, *args, **kwargs):
+        if filename == "success.svg":
+            return {"success": True, "message": "OK", "details": {}}
+        return {"success": False, "message": "Fail", "details": {}}
 
-    mock_fix_nested_services["repair_nested_svg_tags"].side_effect = process_fix_nested_side_effect
+    # We need to patch repair_nested_svg_tags directly since it's a module level function
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags"
+    ) as mock_repair:
+        mock_repair.side_effect = repair_side_effect
+        worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
-
-    # Should process two templates
-    assert mock_fix_nested_services["repair_nested_svg_tags"].call_count == 2
-
-    # Should save result with correct counts
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 3
-    assert result["summary"]["success"] == 2
-    assert result["summary"]["skipped"] == 1
-
-
-# =============================================================================
-# Tests for repair_nested_svg_tags function
-# =============================================================================
-
-
-class TestRepairNestedSvgTags:
-    """Tests for the repair_nested_svg_tags function."""
-
-    def test_download_failure_returns_error(self):
-        """Test that download failure returns an error result."""
-        with patch(
-            "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-        ) as mock_download:
-            mock_download.return_value = {"ok": False, "error": "404 Not Found"}
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is False
-        assert "Failed to download" in result["message"]
-        assert result["details"]["ok"] is False
-
-    def test_no_nested_tags_found(self):
-        """Test that files without nested tags are handled correctly."""
-        with (
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags"
-            ) as mock_detect,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 0}
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is False
-        assert "No nested tags found" in result["message"]
-        assert result.get("no_nested_tags") is True
-
-    def test_fix_nested_tags_failure(self):
-        """Test handling when fix_nested_tags fails."""
-        with (
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags"
-            ) as mock_fix,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.return_value = False
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is False
-        assert "Failed to fix nested tags" in result["message"]
-
-    def test_verify_fix_shows_no_tags_fixed(self):
-        """Test handling when verify_fix shows no tags were fixed."""
-        with (
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix"
-            ) as mock_verify,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.return_value = True
-            mock_verify.return_value = {"fixed": 0}
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is False
-        assert "No nested tags were fixed" in result["message"]
-
-    def test_upload_failure(self):
-        """Test handling when upload fails after successful fix."""
-        with (
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix"
-            ) as mock_verify,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg"
-            ) as mock_upload,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.return_value = True
-            mock_verify.return_value = {"fixed": 3}
-            mock_upload.return_value = {"ok": False, "error": "Upload permission denied"}
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is False
-        assert "upload failed" in result["message"]
-
-    def test_successful_fix_and_upload(self):
-        """Test successful fix and upload process."""
-        with (
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file"
-            ) as mock_download,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags"
-            ) as mock_detect,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags"
-            ) as mock_fix,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix"
-            ) as mock_verify,
-            patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg"
-            ) as mock_upload,
-        ):
-            mock_download.return_value = {"ok": True, "path": "/tmp/test.svg"}
-            mock_detect.return_value = {"count": 3}
-            mock_fix.return_value = True
-            mock_verify.return_value = {"fixed": 3}
-            mock_upload.return_value = {"ok": True, "result": "uploaded"}
-
-            result = worker.repair_nested_svg_tags(
-                filename="test.svg",
-                user={"username": "testuser"},
-            )
-
-        assert result["success"] is True
-        assert "Successfully fixed" in result["message"]
-        assert "3 nested tag(s)" in result["message"]
-
-
-# =============================================================================
-# Additional worker tests
-# =============================================================================
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["success"] == 1
+    assert result_dict["summary"]["failed"] == 1
 
 
 def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_nested_services):
-    """Test that worker handles general fix failure properly."""
-    templates = [
-        TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file=None),
-    ]
+    """Test handled failure that is NOT a 'no nested tags' case."""
+    templates = [TemplateRecord(id=1, title="T1", main_file="bad.svg")]
     mock_fix_nested_services["list_templates"].return_value = templates
-    mock_fix_nested_services["repair_nested_svg_tags"].return_value = {
-        "success": False,
-        "message": "Failed to fix nested tags in test.svg",
-    }
 
-    user = {"username": "test_user"}
-    worker.fix_nested_main_files_for_templates(job_id=1, user=user)
+    # repair utility returns success=False and NO no_nested_tags flag
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags"
+    ) as mock_repair:
+        mock_repair.return_value = {"success": False, "message": "Actual Error"}
+        worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
-    # Should save result with failed template
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["failed"] == 1
-    assert len(result["pages_failed"]) == 1
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["failed"] == 1
 
 
 def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix_nested_services):
-    """Test that fix_nested_main_files_for_templates accepts args= keyword-only param (unified signature)."""
+    """Test entry point unified signature."""
     mock_fix_nested_services["list_templates"].return_value = []
+    worker.fix_nested_main_files_for_templates(job_id=1, user=None, args={"some": "val"})
 
-    # Should not raise TypeError; args is accepted but unused
-    worker.fix_nested_main_files_for_templates(job_id=1, user=None, args={"some_key": "value"})
-
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 0
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["total"] == 0
 
 
 def test_fix_nested_main_files_for_templates_args_defaults_to_none(mock_fix_nested_services):
-    """Test that args defaults to None and entry point works without it."""
+    """Test entry point defaults args to None."""
     mock_fix_nested_services["list_templates"].return_value = []
-
-    # Call without args param - should use None default
     worker.fix_nested_main_files_for_templates(job_id=99, user=None)
 
-    result = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result["summary"]["total"] == 0
+    result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
+    assert result_dict["summary"]["total"] == 0

@@ -5,7 +5,7 @@ from __future__ import annotations
 from src.main_app.utils.wikitext import update_original_file_text
 
 
-class TestUpdate_original_file_text:
+class TestUpdateOriginalFileText:
     """Tests for the update_original_file_text function."""
 
     def testItAddsImageExtractedTemplateToOtherVersions2(self):
@@ -78,7 +78,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         assert result == oldText
 
 
-class TestUpdate_original_file_text_extensive:
+class TestUpdateOriginalFileTextExtensive:
     """
     Full-coverage tests for update_original_file_text.
 

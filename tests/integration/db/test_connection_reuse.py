@@ -1,6 +1,5 @@
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.db.services import user_token_service as user_store
 from src.main_app.extensions import db as _db
 
 

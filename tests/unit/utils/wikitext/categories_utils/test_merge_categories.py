@@ -56,7 +56,7 @@ class TestMergeCategoriesWithSpecialChars:
     def test_long_category_name_with_underscores(self):
         """Test with a very long category name typical of OWID pages."""
         long_cat = "Category:Our_World_in_Data_graphs_of_Afghanistan_economy_overview"
-        new_text = f"[{long_cat}]"  # Wiki link was written incorrectly in original idea, corrected here
+        # new_text = f"[{long_cat}]"  # Wiki link was written incorrectly in original idea, corrected here
         new_text_corrected = "[[Category:Another_Category]]"
 
         old_text = f"Some text [[{long_cat}]]"

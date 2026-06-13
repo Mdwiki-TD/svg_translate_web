@@ -42,16 +42,19 @@ def _get_jobs_cancel_event(job_id: int) -> threading.Event | None:
         return JOBS_CANCEL_EVENTS.get(job_id)
 
 
-def _load_job_args(job_args: list | None) -> dict:
+def _load_job_args(job_args: list[dict[str, str]]) -> dict:
     if not job_args:
         return {}
 
     settings_ready = get_all_settings_ready()
     _args: dict[str, Any] = {}
-    for x in job_args:
-        arg_value = settings_ready.get(x)
+
+    for item in job_args:
+        key = item["key"]
+        key_as = item["as"]
+        arg_value = settings_ready.get(key)
         if arg_value is not None:
-            _args[x] = arg_value
+            _args[key_as] = arg_value
 
     return _args
 
@@ -135,10 +138,7 @@ def start_job(
     if not username:
         raise ValueError("User authentication data is required")
 
-    resolved_args: dict[str, Any] = {}
-    if job_data.job_args:
-        resolved_args = _load_job_args(job_data.job_args)
-
+    resolved_args = _load_job_args(job_data.job_args) if job_data.job_args else {}
     if args:
         resolved_args.update(args)
 

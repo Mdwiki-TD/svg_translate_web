@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import worker
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import CropMainFilesWorkerObject
 
 
 @pytest.fixture
@@ -17,18 +18,23 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
+        "src.main_app.jobs_workers.base_worker_object.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
         mock_save_job_result,
     )
 
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
         mock_generate_result_file_name,
+    )
+
+    # Bypass BaseObjectsJobWorker.before_run
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
 
     return {
@@ -44,21 +50,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 
 def make_completed_result(summary_overrides=None):
-    """Return a standard completed-result dict for use in mock process()."""
-    result = {
-        "status": "completed",
-        "summary": {
-            "total": 10,
-            "processed": 10,
-            "cropped": 8,
-            "uploaded": 0,
-            "failed": 2,
-            "skipped": 0,
-        },
-        "pages_processed": [],
-    }
+    """Return a standard completed-result object for use in mock process()."""
+    result = CropMainFilesWorkerObject()
+    result.status = "completed"
+    result.summary.total = 10
+    result.summary.processed = 10
+    result.summary.cropped = 8
+    result.summary.uploaded = 0
+    result.summary.failed = 2
+    result.summary.skipped = 0
+
     if summary_overrides:
-        result["summary"].update(summary_overrides)
+        for k, v in summary_overrides.items():
+            setattr(result.summary, k, v)
     return result
 
 
@@ -85,19 +89,19 @@ def test_crop_main_files_worker_entry_basic_flow(mock_services):
 def test_crop_main_files_worker_entry_initializes_result(mock_services):
     """Test that result structure is properly initialized."""
     w = worker.CropMainFilesWorker(job_id=1, user=None)
-    result = w.get_initial_result()
+    result = w.result
 
-    assert result["status"] == "pending"
-    assert "started_at" in result
-    assert result["completed_at"] is None
-    assert result["cancelled_at"] is None
-    assert result["summary"]["total"] == 0
-    assert result["summary"]["processed"] == 0
-    assert result["summary"]["cropped"] == 0
-    assert result["summary"]["uploaded"] == 0
-    assert result["summary"]["failed"] == 0
-    assert result["summary"]["skipped"] == 0
-    assert result["pages_processed"] == []
+    assert result.status == "pending"
+    assert result.started_at is not None
+    assert result.completed_at is None
+    assert result.cancelled_at is None
+    assert result.summary.total == 0
+    assert result.summary.processed == 0
+    assert result.summary.cropped == 0
+    assert result.summary.uploaded == 0
+    assert result.summary.failed == 0
+    assert result.summary.skipped == 0
+    assert result.pages_processed == []
 
 
 def test_crop_main_files_worker_entry_with_user(mock_services):
@@ -122,12 +126,9 @@ def test_crop_main_files_worker_entry_with_cancel_event(mock_services):
     cancel_event = threading.Event()
 
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        cancelled_result = {
-            "status": "cancelled",
-            "cancelled_at": datetime.now().isoformat(),
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "pages_processed": [],
-        }
+        cancelled_result = make_completed_result()
+        cancelled_result.status = "cancelled"
+        cancelled_result.cancelled_at = datetime.now().isoformat()
         mock_process.return_value = cancelled_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None, cancel_event=cancel_event)
@@ -264,19 +265,13 @@ def test_crop_main_files_worker_entry_passes_result_file_to_process(mock_service
 def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
     """Test that cancelled status is preserved in final update."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        cancelled_result = {
-            "status": "cancelled",
-            "cancelled_at": datetime.now().isoformat(),
-            "summary": {
-                "total": 5,
-                "processed": 2,
-                "cropped": 2,
-                "uploaded": 0,
-                "failed": 0,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-        }
+        cancelled_result = make_completed_result()
+        cancelled_result.status = "cancelled"
+        cancelled_result.cancelled_at = datetime.now().isoformat()
+        cancelled_result.summary.total = 5
+        cancelled_result.summary.processed = 2
+        cancelled_result.summary.cropped = 2
+
         mock_process.return_value = cancelled_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
@@ -288,19 +283,11 @@ def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
 def test_crop_main_files_worker_entry_preserves_failed_status(mock_services):
     """Test that failed status from process is preserved."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = {
-            "status": "failed",
-            "error": "Some processing error",
-            "summary": {
-                "total": 5,
-                "processed": 1,
-                "cropped": 0,
-                "uploaded": 0,
-                "failed": 5,
-                "skipped": 0,
-            },
-            "pages_processed": [],
-        }
+        failed_result = make_completed_result()
+        failed_result.status = "failed"
+        failed_result.summary.total = 5
+        failed_result.summary.failed = 5
+        mock_process.return_value = failed_result
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -365,16 +352,16 @@ def test_crop_main_files_worker_entry_multiple_jobs(mock_services):
 def test_crop_main_files_worker_entry_started_at_timestamp(mock_services):
     """Test that started_at timestamp is set correctly."""
     w = worker.CropMainFilesWorker(job_id=1, user=None)
-    result = w.get_initial_result()
-    assert "started_at" in result
-    datetime.fromisoformat(result["started_at"])
+    result = w.result
+    assert result.started_at is not None
+    datetime.fromisoformat(result.started_at)
 
 
 def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_services):
     """Test that exceptions are logged with full traceback."""
     with (
         patch.object(worker.CropMainFilesWorker, "process") as mock_process,
-        patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger,
+        patch("src.main_app.jobs_workers.base_worker_object.logger") as mock_logger,
     ):
         mock_process.side_effect = RuntimeError("Test error")
 
@@ -387,10 +374,7 @@ def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_
 def test_crop_main_files_worker_entry_completed_status_default(mock_services):
     """Test that default status is completed when no other status is set."""
     with patch.object(worker.CropMainFilesWorker, "process") as mock_process:
-        mock_process.return_value = {
-            "summary": {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0},
-            "pages_processed": [],
-        }
+        mock_process.return_value = make_completed_result()
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -420,13 +404,13 @@ def test_crop_main_files_worker_reads_upload_limit_from_args(mock_services):
 def test_crop_main_files_worker_defaults_upload_limit_when_args_none(mock_services):
     """Test CropMainFilesWorker defaults upload_limit to None when args is None."""
     w = worker.CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args=None)
-    assert w.upload_limit is None
+    assert w.upload_limit == 0
 
 
 def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_services):
     """Test CropMainFilesWorker defaults upload_limit to None when key is missing."""
     w = worker.CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args={"other_key": "value"})
-    assert w.upload_limit is None
+    assert w.upload_limit == 0
 
 
 def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
@@ -442,12 +426,12 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
 
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_services):
-    """Test that crop_newest_upload_limit is mapped to upload_limit in args."""
+    """Test that upload_limit is mapped to upload_limit in args."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
-        worker.crop_main_files_worker_entry(job_id=1, user=None, args={"crop_newest_upload_limit": 3})
+        worker.crop_main_files_worker_entry(job_id=1, user=None, args={"upload_limit": 3})
 
         call_args = MockWorker.call_args
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
@@ -456,7 +440,7 @@ def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_service
 
 
 def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services):
-    """Test that args are passed unchanged when crop_newest_upload_limit is absent."""
+    """Test that args are passed unchanged when upload_limit is absent."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
@@ -466,22 +450,6 @@ def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services
         call_args = MockWorker.call_args
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
         assert "upload_limit" not in passed_args
-
-
-def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_services):
-    """Test that mapping is skipped when crop_newest_upload_limit value is falsy."""
-    for falsy_value in [0, None, "", False]:
-        with patch(
-            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker"
-        ) as MockWorker:
-            mock_instance = MagicMock()
-            MockWorker.return_value = mock_instance
-
-            worker.crop_main_files_worker_entry(job_id=1, user=None, args={"crop_newest_upload_limit": falsy_value})
-
-            call_args = MockWorker.call_args
-            passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-            assert "upload_limit" not in passed_args, f"Should not map for falsy value: {falsy_value!r}"
 
 
 def test_crop_main_files_worker_entry_does_not_modify_args_when_none(mock_services):

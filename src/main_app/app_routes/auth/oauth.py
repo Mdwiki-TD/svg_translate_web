@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from typing import Any, Tuple
 
 import mwoauth
 from flask import url_for
@@ -45,13 +45,13 @@ def start_login(state_token: str) -> Tuple[str, object]:
     return redirect_url, request_token
 
 
-def complete_login(request_token: object, query_string: str) -> Tuple[str, object]:
+def complete_login(request_token: object, query_string: str) -> Tuple[str, dict[str, Any]]:
     """Complete the OAuth login flow and return the access token and user identity."""
 
     handshaker = get_handshaker()
     access_token = handshaker.complete(request_token, query_string)
     try:
-        identity = handshaker.identify(access_token)
+        identity: dict[str, Any] = handshaker.identify(access_token)
     except Exception as exc:
         raise OAuthIdentityError(IDENTITY_ERROR_MESSAGE, original_exception=exc) from exc
     return access_token, identity

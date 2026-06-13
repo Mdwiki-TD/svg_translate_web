@@ -34,40 +34,26 @@ class TestCopySvgLangsWorker:
         )
         assert worker.get_job_type() == "copy_svg_langs"
 
-    def test_get_initial_result_structure(self) -> None:
+    def test_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
             job_id=1,
             user=None,
             args={"title": "Test.svg"},
         )
-        result = worker.get_initial_result()
+        result = worker.result
 
-        assert result["status"] == "pending"
-        assert result["started_at"] is not None
-        assert result["completed_at"] is None
-        assert result["cancelled_at"] is None
-        assert result["title"] is None
-        assert "stages" in result
-        assert "text" in result["stages"]
-        assert "titles" in result["stages"]
-        assert "translations" in result["stages"]
-        assert "download" in result["stages"]
-        assert "nested" in result["stages"]
-        assert "inject" in result["stages"]
-        assert "upload" in result["stages"]
-
-    def test_get_initial_result_stages_have_status(self) -> None:
-        worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg"},
-        )
-        result = worker.get_initial_result()
-
-        for _, stage_data in result["stages"].items():
-            assert "status" in stage_data
-            assert "message" in stage_data
-            assert stage_data["status"] == "Pending"
+        assert result.status == "pending"
+        assert result.started_at is not None
+        assert result.completed_at is None
+        assert result.cancelled_at is None
+        assert result.title is None
+        assert result.stages.text.status == "Pending"
+        assert result.stages.titles.status == "Pending"
+        assert result.stages.translations.status == "Pending"
+        assert result.stages.download.status == "Pending"
+        assert result.stages.nested.status == "Pending"
+        assert result.stages.inject.status == "Pending"
+        assert result.stages.upload.status == "Pending"
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
@@ -110,33 +96,33 @@ class TestCopySvgLangsWorker:
             user=None,
             args={"title": "Test.svg"},
         )
-        assert worker.upload_limit is None
+        assert worker.upload_limit == 0
 
 
 class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_missing_title(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(
-            job_id="1",
+            job_id=1,
             args={"title": ""},
             user=None,
         )
 
     def test_worker_entry_missing_args(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(
-            job_id="1",
+            job_id=1,
             args={"title": "Test.svg"},
             user=None,
         )
 
     def test_worker_entry_creates_worker(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(
-            job_id="123",
+            job_id=123,
             args={"title": "Test.svg"},
             user={"id": 1},
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id="123",
+            job_id=123,
             args={"title": "Test.svg"},
             user={"id": 1},
             cancel_event=None,
@@ -147,7 +133,7 @@ class TestCopySvgLangsWorkerEntry:
         cancel_event = threading.Event()
 
         copy_svg_langs_worker_entry(
-            job_id="456",
+            job_id=456,
             args={"title": "Another.svg"},
             user=None,
             cancel_event=cancel_event,
@@ -157,10 +143,13 @@ class TestCopySvgLangsWorkerEntry:
         assert kwargs["cancel_event"] is cancel_event
 
     def test_worker_entry_args_is_keyword_only(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(job_id="1", user=None, args={"title": "Test.svg"})
+        with pytest.raises(TypeError):
+            copy_svg_langs_worker_entry(1, None, {"title": "Test.svg"})  # type: ignore
+
+        copy_svg_langs_worker_entry(job_id=1, user=None, args={"title": "Test.svg"})
 
         mock_worker_class.assert_called_once_with(
-            job_id="1",
+            job_id=1,
             args={"title": "Test.svg"},
             user=None,
             cancel_event=None,
@@ -168,10 +157,10 @@ class TestCopySvgLangsWorkerEntry:
         mock_worker_class.return_value.run.assert_called_once()
 
     def test_worker_entry_args_defaults_to_none(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(job_id="99", user={"username": "tester"})
+        copy_svg_langs_worker_entry(job_id=99, user={"username": "tester"})
 
         mock_worker_class.assert_called_once_with(
-            job_id="99",
+            job_id=99,
             args=None,
             user={"username": "tester"},
             cancel_event=None,
@@ -187,9 +176,9 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_maps_copy_svg_langs_upload_limit(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(
-            job_id="1",
+            job_id=1,
             user=None,
-            args={"copy_svg_langs_upload_limit": 5},
+            args={"upload_limit": 5},
         )
 
         call_kwargs = mock_worker_class.call_args.kwargs
@@ -197,7 +186,7 @@ class TestCopySvgLangsWorkerEntry:
 
     def test_worker_entry_does_not_map_when_key_absent(self, mock_worker_class) -> None:
         copy_svg_langs_worker_entry(
-            job_id="1",
+            job_id=1,
             user=None,
             args={"other_key": "value"},
         )
@@ -205,21 +194,8 @@ class TestCopySvgLangsWorkerEntry:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "upload_limit" not in call_kwargs["args"]
 
-    def test_worker_entry_does_not_map_when_value_falsy(self, mock_worker_class) -> None:
-        for falsy_value in [0, None, "", False]:
-            mock_worker_class.reset_mock()
-
-            copy_svg_langs_worker_entry(
-                job_id="1",
-                user=None,
-                args={"copy_svg_langs_upload_limit": falsy_value},
-            )
-
-            call_kwargs = mock_worker_class.call_args.kwargs
-            assert "upload_limit" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
-
     def test_worker_entry_does_not_modify_args_when_none(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(job_id="1", user=None, args=None)
+        copy_svg_langs_worker_entry(job_id=1, user=None, args=None)
 
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"] is None

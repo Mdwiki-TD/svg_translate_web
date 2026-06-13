@@ -1,9 +1,8 @@
-
 {% from "_macros.html" import status_icon, stats_card %}
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        {{ stats_card('Processing', result_data.summary.scanned ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+        {{ stats_card('Processing', (result_data.summary.scanned or result_data.summary.processed) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
     </div>
     <div class="col-md-9">
         <div class="row g-3">

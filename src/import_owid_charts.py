@@ -33,7 +33,7 @@ def parse_int(value: str) -> int | None:
         return None
     try:
         return int(value.strip())
-    except ValueError:
+    except (TypeError, ValueError):
         return None
 
 

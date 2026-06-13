@@ -49,28 +49,28 @@ class TestUpdateOwidChartsWorkerInitialization:
             args={"other_key": "value"},
         )
 
-        assert worker.limit_items is None
+        assert worker.limit_items == 0
 
     def test_get_job_type(self, mock_jobs_service):
         """Test get_job_type returns correct value."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         assert worker.get_job_type() == "update_owid_charts"
 
-    def test_get_initial_result(self, mock_jobs_service):
-        """Test get_initial_result returns proper structure."""
+    def test_initial_result_structure(self, mock_jobs_service):
+        """Test initial result matches expected structure."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        result = worker.get_initial_result()
+        result = worker.result
 
-        assert result["status"] == "pending"
-        assert "started_at" in result
-        assert result["completed_at"] is None
-        assert result["cancelled_at"] is None
-        assert result["summary"]["total"] == 0
-        assert result["summary"]["processed"] == 0
-        assert result["summary"]["updated"] == 0
-        assert result["summary"]["skipped"] == 0
-        assert result["summary"]["failed"] == 0
-        assert result["charts_processed"] == []
+        assert result.status == "pending"
+        assert result.started_at is not None
+        assert result.completed_at is None
+        assert result.cancelled_at is None
+        assert result.summary.total == 0
+        assert result.summary.processed == 0
+        assert result.summary.updated == 0
+        assert result.summary.skipped == 0
+        assert result.summary.failed == 0
+        assert result.pages_processed == []
 
 
 class TestUpdateOwidChartsWorkerApplyLimits:
@@ -196,7 +196,7 @@ class TestUpdateOwidChartsWorkerEntry:
             assert call_kwargs["args"] is None
 
     def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self, mock_jobs_service):
-        """Test that owid_charts_limit_items is mapped to limit_items in args."""
+        """Test that limit_items is mapped to limit_items in args."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
         ) as MockWorker:
@@ -206,14 +206,14 @@ class TestUpdateOwidChartsWorkerEntry:
             update_owid_charts_worker_entry(
                 job_id=1,
                 user=None,
-                args={"owid_charts_limit_items": 10},
+                args={"limit_items": 10},
             )
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"]["limit_items"] == 10
 
     def test_entry_point_does_not_map_when_key_absent(self, mock_jobs_service):
-        """Test that args are passed unchanged when owid_charts_limit_items is absent."""
+        """Test that args are passed unchanged when limit_items is absent."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
         ) as MockWorker:
@@ -228,24 +228,6 @@ class TestUpdateOwidChartsWorkerEntry:
 
             call_kwargs = MockWorker.call_args.kwargs
             assert "limit_items" not in call_kwargs["args"]
-
-    def test_entry_point_does_not_map_when_value_falsy(self, mock_jobs_service):
-        """Test that mapping is skipped when owid_charts_limit_items value is falsy."""
-        for falsy_value in [0, None, "", False]:
-            with patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
-            ) as MockWorker:
-                mock_instance = MagicMock()
-                MockWorker.return_value = mock_instance
-
-                update_owid_charts_worker_entry(
-                    job_id=1,
-                    user=None,
-                    args={"owid_charts_limit_items": falsy_value},
-                )
-
-                call_kwargs = MockWorker.call_args.kwargs
-                assert "limit_items" not in call_kwargs["args"], f"Should not map for falsy value: {falsy_value!r}"
 
     def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_jobs_service):
         """Test that entry point works correctly when args is None."""

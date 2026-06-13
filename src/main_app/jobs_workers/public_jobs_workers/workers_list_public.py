@@ -9,7 +9,9 @@ jobs_data_public: dict[str, JobData] = {
         job_details_template="jobs_templates/public/copy_svg_langs/details.html",
         job_list_template="jobs_templates/public/copy_svg_langs/list.html",
         job_callable=copy_svg_langs_worker_entry,
-        job_args=["copy_svg_langs_upload_limit"],
+        job_args=[
+            {"key": "copy_svg_langs_upload_limit", "as": "upload_limit"},
+        ],
         start_confirm_message="",
     ),
     "fix_nested_jobs": JobData(

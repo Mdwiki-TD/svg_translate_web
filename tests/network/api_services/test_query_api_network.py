@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Network tests for src/main_app/api_services/query_api.py module.
 
