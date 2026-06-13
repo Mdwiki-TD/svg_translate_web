@@ -17,7 +17,7 @@ from mwclient.client import Site
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
+from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StageDetail, StepResult
 from .steps import (
     download_step,
     extract_text_step,
@@ -115,7 +115,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.text.data["text"] = ""
 
         if not self._run_stage(
-            "text",
+            self.result.stages.text,
             extract_text_step,
             text_run_after,
             self.title,
@@ -134,7 +134,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.titles.data["titles"] = []
 
         if not self._run_stage(
-            "titles",
+            self.result.stages.titles,
             extract_titles_step,
             titles_run_after,
             self.text,
@@ -163,7 +163,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             # self.result.stages.translations.message = data["message"]
 
         if not self._run_stage(
-            "translations",
+            self.result.stages.translations,
             extract_translations_step,
             translations_run_after,
             self.main_title,
@@ -199,7 +199,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.download.data["files"] = []
 
         if not self._run_stage(
-            "download",
+            self.result.stages.download,
             download_step,
             download_run_after,
             self.titles,
@@ -243,7 +243,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return
 
         if not self._run_stage(
-            "nested",
+            self.result.stages.nested,
             fix_nested_step,
             nested_run_after,
             self.files_dict,
@@ -284,7 +284,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.inject.data["results"] = {}
 
         if not self._run_stage(
-            "inject",
+            self.result.stages.inject,
             inject_step,
             inject_run_after,
             self.files_dict,
@@ -344,7 +344,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.log_upload_error("Authentication failed", False, "Failed")
         else:
             if not self._run_stage(
-                "upload",
+                self.result.stages.upload,
                 upload_step,
                 upload_run_after,
                 self.files_to_upload,
@@ -414,16 +414,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _run_stage(
         self,
-        stage_name: str,
+        stage: StageDetail,
         step_func: Any,
         run_after_func: Any | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
         """Run a single stage and update result."""
-        stage = getattr(self.result.stages, stage_name, None)
-        if stage is None:
-            raise ValueError(f"Unknown stage: {stage_name}")
+        stage_name = stage.name
 
         if self._is_cancelled(stage_name):
             return False

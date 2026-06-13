@@ -35,6 +35,7 @@ from ...shared_objects import StandardAdminWorkerObject
 
 @dataclass
 class StageDetail:
+    name: str = ""
     status: str = "Pending"
     message: str = ""
     data: Any = None
@@ -42,13 +43,48 @@ class StageDetail:
 
 @dataclass
 class Stages:
-    text: StageDetail = field(default_factory=lambda: StageDetail(message="Getting text"))
-    titles: StageDetail = field(default_factory=lambda: StageDetail(message="Getting titles"))
-    translations: StageDetail = field(default_factory=lambda: StageDetail(message="Getting translations"))
-    download: StageDetail = field(default_factory=lambda: StageDetail(message="Downloading files"))
-    nested: StageDetail = field(default_factory=lambda: StageDetail(message="Analyze nested files"))
-    inject: StageDetail = field(default_factory=lambda: StageDetail(message="Injecting translations"))
-    upload: StageDetail = field(default_factory=lambda: StageDetail(message="Uploading files"))
+    text: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="text",
+            message="Getting text",
+        )
+    )
+    titles: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="titles",
+            message="Getting titles",
+        )
+    )
+    translations: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="translations",
+            message="Getting translations",
+        )
+    )
+    download: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="download",
+            message="Downloading files",
+        )
+    )
+    nested: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="nested",
+            message="Analyze nested files",
+        )
+    )
+    inject: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="inject",
+            message="Injecting translations",
+        )
+    )
+    upload: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="upload",
+            message="Uploading files",
+        )
+    )
 
 
 @dataclass
