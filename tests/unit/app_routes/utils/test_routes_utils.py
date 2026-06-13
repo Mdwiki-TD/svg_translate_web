@@ -12,10 +12,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from src.main_app.app_routes.utils.routes_utils import (
+    can_run_bg_jobs,
+    can_run_jobs,
     context_user,
     get_job_detail_url,
-    can_run_jobs,
-    can_run_bg_jobs,
     load_auth_payload,
 )
 from src.main_app.su_services.current_user import CurrentUser

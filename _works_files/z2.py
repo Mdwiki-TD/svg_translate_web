@@ -135,7 +135,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     methods_parts.append(f"Functions to test: {functions_str}")
 
                 _new = [
-                    '# ruff: noqa: F401',
+                    "# ruff: noqa: F401",
                     '"""',
                     f"Unit tests for {internal_path}/{file} module.",
                     "",
@@ -178,7 +178,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
                     if test_text != content_old and test_text != content_old_1:
                         # continue to skip goto next part
                         print("!=")
-                        if len(test_text.splitlines()) > 10 and 'TODO: write tests' not in test_text:
+                        if len(test_text.splitlines()) > 10 and "TODO: write tests" not in test_text:
                             continue
 
                 # save content_new to the file

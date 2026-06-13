@@ -9,6 +9,6 @@ TODO: write tests
 
 
 from src.main_app.db.models.views import (
-    TemplateNeedUpdateRecord,
     OwidChartTemplateRecord,
+    TemplateNeedUpdateRecord,
 )

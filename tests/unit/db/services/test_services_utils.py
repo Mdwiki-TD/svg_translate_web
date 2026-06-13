@@ -12,9 +12,9 @@ from unittest.mock import patch
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.main_app.db.services.utils import db_guard_rollback  # noqa: F401
 from src.main_app.db.services.utils import (
     db_guard,
-    db_guard_rollback, # noqa: F401
 )
 
 

@@ -78,8 +78,6 @@ def get_files_list(text: str, filter_duplicates: bool = True) -> tuple:
     return main_title, titles
 
 
-
-
 def get_files_list_data(text: str, filter_duplicates: bool = True) -> dict[str, Any]:
     """
     Returns (main_title, titles).
