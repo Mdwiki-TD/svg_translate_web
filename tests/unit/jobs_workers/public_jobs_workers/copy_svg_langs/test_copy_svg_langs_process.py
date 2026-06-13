@@ -6,7 +6,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ......src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import CopySvgLangsWorkerObject
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import (
+    CopySvgLangsWorkerObject,
+    FilesProcessedItem,
+)
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import CopySvgLangsWorker
 
 
@@ -60,7 +63,7 @@ class TestCopySvgLangsWorkerProcess:
     def test_process_no_title(self, worker: CopySvgLangsWorker, mock_clients):
         worker.title = None
         result: CopySvgLangsWorkerObject = worker.process()
-        assert result["status"] == "failed"
+        assert result.status == "failed"
 
     def test_process_success(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -85,19 +88,19 @@ class TestCopySvgLangsWorkerProcess:
         result: CopySvgLangsWorkerObject = worker.process()
 
         assert (
-            result["status"] == "running"
+            result.status == "running"
         )  # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
         assert worker.result.stages.upload.status == "Completed"
-        assert "upload_result" in result["results_summary"]
+        assert "upload_result" in result.results_summary
 
     def test_process_stage_fails(self, worker: CopySvgLangsWorker, mock_steps, mock_clients):
         mock_steps["text"].return_value = {"success": False, "error": "Extraction failed"}
 
         result: CopySvgLangsWorkerObject = worker.process()
 
-        assert result["status"] == "failed"
-        assert result["stages"]["text"]["status"] == "Failed"
-        assert result["stages"]["text"]["message"] == "Extraction failed"
+        assert result.status == "failed"
+        assert result.stages.text.status == "Failed"
+        assert result.stages.text.message == "Extraction failed"
 
     def test_process_upload_disabled(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -134,7 +137,7 @@ class TestCopySvgLangsWorkerProcess:
     def test_process_cancelled(self, worker: CopySvgLangsWorker, mock_clients):
         with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
             result: CopySvgLangsWorkerObject = worker.process()
-            assert result["stages"]["text"]["status"] == "Cancelled"
+            assert result.stages.text.status == "Cancelled"
 
     def test_run_stage_exception(self, worker: CopySvgLangsWorker):
         def failing_step():
@@ -142,19 +145,25 @@ class TestCopySvgLangsWorkerProcess:
 
         success = worker._run_stage("text", failing_step)
         assert success is False
-        assert worker.result["stages"]["text"]["status"] == "Failed"
-        assert "Boom" in worker.result["stages"]["text"]["message"]
+        assert worker.result.stages.text.status == "Failed"
+        assert "Boom" in worker.result.stages.text.message
 
     def test_compute_output_dir_none(self, worker: CopySvgLangsWorker):
         assert worker._compute_output_dir(None) is None
 
     def test_log_upload_error(self, worker: CopySvgLangsWorker):
-        worker.result["files_processed"] = {"File1.svg": {"status": "pending", "steps": {"upload": {}}}}
+        worker.result.files_processed = {
+            "File1.svg": FilesProcessedItem(
+                title="title",
+                status="pending",
+                steps={"upload": {}},
+            )
+        }
         worker.log_upload_error("Some error", False, "Failed")
 
         assert worker.result.stages.upload.status == "Failed"
-        assert worker.result["files_processed"]["File1.svg"]["status"] == "Failed"
-        assert worker.result["files_processed"]["File1.svg"]["steps"]["upload"]["msg"] == "Some error"
+        assert worker.result.files_processed["File1.svg"].status == "Failed"
+        assert worker.result.files_processed["File1.svg"].steps["upload"]["msg"] == "Some error"
 
     def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):
         # Provoke error by using a directory as a file path

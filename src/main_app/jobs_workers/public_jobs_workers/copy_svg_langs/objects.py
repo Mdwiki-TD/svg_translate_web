@@ -26,10 +26,9 @@ Objects for copy_svg_langs worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
-from ...base_worker_object import WorkerObject
 from ...shared_objects import StandardAdminWorkerObject
 
 
@@ -58,22 +57,23 @@ class StepResult:
 
 
 @dataclass
+class FileSteps:
+    download: StepResult = field(default_factory=lambda: StepResult())
+    nested: StepResult = field(default_factory=lambda: StepResult())
+    inject: StepResult = field(default_factory=lambda: StepResult())
+    upload: StepResult = field(default_factory=lambda: StepResult())
+
+
+@dataclass
 class FilesProcessedItem:
     title: str
     status: str = "pending"
     error: Optional[str] = None
-    steps: dict[str, Any] = field(
-        default_factory=lambda: {
-            "download": {"result": None, "msg": ""},
-            "nested": {"result": None, "msg": ""},
-            "inject": {"result": None, "msg": ""},
-            "upload": {"result": None, "msg": ""},
-        }
-    )
+    steps: FileSteps = field(default_factory=lambda: FileSteps())
 
 
 @dataclass
-class CopySvgLangsWorkerObject(WorkerObject):
+class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
     job_id: Optional[int] = None
     note: str = ""
     args: dict[str, Any] = field(default_factory=dict)
@@ -81,7 +81,14 @@ class CopySvgLangsWorkerObject(WorkerObject):
     title: Optional[str] = None
     stages: Stages = field(default_factory=Stages)
     results_summary: dict[str, Any] = field(default_factory=dict)
-    files_processed: dict[str, Any] = field(default_factory=dict)
+    files_processed: dict[str, FilesProcessedItem] = field(default_factory=dict)
+
+    def to_json(self) -> dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
+
+        return asdict(self)
 
 
 __all__ = [

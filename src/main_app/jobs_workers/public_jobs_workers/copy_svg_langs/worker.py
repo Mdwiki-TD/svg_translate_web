@@ -17,7 +17,7 @@ from mwclient.client import Site
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsWorkerObject, FilesProcessedItem
+from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
     download_step,
     extract_text_step,
@@ -144,7 +144,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # Initialize files_processed
 
         for title in self.titles:
-            self.result.files_processed[title] = FilesProcessedItem(title=title)
+            self.result.files_processed[title] = FilesProcessedItem(
+                title=title,
+                status="pending",
+                error=None,
+                steps=FileSteps(),
+            )
 
         # ----------------------------------------------
         # Stage 3: Extract Translations
@@ -175,8 +180,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, _result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item.steps["download"]["msg"]:  # to avoid overwriting previous messages
-                        item.steps["download"] = _result
+                    if not item.steps.download.msg:  # to avoid overwriting previous messages
+                        item.steps.download = _result
                         # TODO: check type of _result
                         # if _result.result is False:
                         #     item.status = "failed"
@@ -217,9 +222,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, nested_result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item.steps["nested"]["msg"]:  # to avoid overwriting previous messages
-                        item.steps["nested"] = nested_result
-                        # TODO: check type of _result
+
+                    if not item.steps.nested.msg:  # to avoid overwriting previous messages
+                        item.steps.nested = StepResult(
+                            result=nested_result["result"],
+                            msg=nested_result["msg"],
+                        )
                         if nested_result["result"] is False:
                             item.status = "failed"
                             item.error = nested_result["msg"]
@@ -255,8 +263,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             for title, _result in results.items():
                 if title in self.result.files_processed:
                     item = self.result.files_processed[title]
-                    if not item.steps["inject"]["msg"]:  # to avoid overwriting previous messages
-                        item.steps["inject"] = _result
+                    if not item.steps.inject.msg:  # to avoid overwriting previous messages
+                        item.steps.inject = _result
                         # TODO: check type of _result
 
                         if _result["result"] is False:
@@ -280,7 +288,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 if not file_data:
                     file_data = {"result": False, "msg": "Injection failed or skipped", "new_languages": 0}
 
-                item.steps["inject"] = file_data
+                item.steps.inject = file_data
                 if file_data["result"] is False:
                     item.status = "failed"
                     item.error = file_data["msg"]
@@ -321,7 +329,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             # Update files_processed with upload results
             for title, item in self.result.files_processed.items():
                 if title in upload_results:
-                    item.steps["upload"] = upload_results[title]
+                    item.steps.upload = upload_results[title]
                     if upload_results[title]["result"] is True:
                         item.status = "completed"
                     elif upload_results[title]["result"] is False:
@@ -395,7 +403,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         for _, item in self.result.files_processed.items():
             if item.status != "failed":
-                item.steps["upload"] = {"result": result, "msg": _msg}
+                item.steps.upload = StepResult(
+                    result=result,
+                    msg=_msg,
+                )
                 item.status = status
                 item.error = _msg
 
