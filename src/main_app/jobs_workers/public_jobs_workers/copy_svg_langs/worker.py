@@ -9,7 +9,7 @@ import logging
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import requests
 from mwclient.client import Site
@@ -200,14 +200,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         if not self._run_stage(
             self.result.stages.download,
-            download_step,
-            download_run_after,
-            self.titles,
-            output_dir_main,
-            session=self.session,
-            cancel_check=lambda: self._is_cancelled("download"),
-            overwrite_downloads=bool(self.args.get("overwrite_downloads")),
-            progress_callback=download_progress,
+            step_func=lambda: download_step(
+                titles=self.titles,
+                output_dir=output_dir_main,
+                session=self.session,
+                cancel_check=lambda: self._is_cancelled("download"),
+                overwrite_downloads=bool(self.args.get("overwrite_downloads")),
+                progress_callback=download_progress,
+            ),
+            run_after_func=download_run_after,
         ):
             return self.result
         # ----------------------------------------------
@@ -415,10 +416,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _run_stage(
         self,
         stage: StageDetail,
-        step_func: Any,
-        run_after_func: Any | None = None,
-        *args: Any,
-        **kwargs: Any,
+        step_func: Callable[[], dict[str, Any]],  # Accepts a zero-argument callable that returns a dict
+        run_after_func: Callable[[], None] | None = None,
     ) -> bool:
         """Run a single stage and update result."""
         stage_name = stage.name
@@ -430,8 +429,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self._save_progress()
 
         try:
-            step_result = step_func(*args, **kwargs)
+            # Call the lambda / callback directly without passing args
+            step_result = step_func()
             stage.data = step_result
+
             if step_result.get("message"):
                 stage.message = step_result.message  # step_result["message"]
 
