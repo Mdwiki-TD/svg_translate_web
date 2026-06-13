@@ -1,3 +1,5 @@
+
+# ruff: noqa: F401
 """
 Unit tests for src/main_app/db/services/admin_service.py.
 TODO: write tests
@@ -10,11 +12,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.db.services.admin_service import (
-    add_coordinator,
-    delete_coordinator,
-    get_coordinator_by_id,
+    is_active_coordinator,
     list_coordinators,
+    get_coordinator_by_id,
+    add_coordinator,
     set_coordinator_active,
+    delete_coordinator,
 )
 
 
