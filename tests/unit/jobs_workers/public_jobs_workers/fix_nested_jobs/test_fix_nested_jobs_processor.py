@@ -58,7 +58,7 @@ class TestFixNestedJobsProcessorSteps:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
-        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 0, "fixed": 2})
+        mock_services["verify_fix"].return_value = VerificationResult(after=0, fixed=2)
 
         result = processor._verify_step()
 
@@ -69,7 +69,7 @@ class TestFixNestedJobsProcessorSteps:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
-        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 2, "fixed": 0})
+        mock_services["verify_fix"].return_value = VerificationResult(after=2, fixed=0)
 
         result = processor._verify_step()
 
