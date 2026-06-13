@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 from src.main_app.db.services.user_token_service import (
     UserTokenRecord,
-    delete_user_token,
-    get_user_token,
+    delete_user_token, # noqa: F401
+    get_user_token, # noqa: F401
 )
 
 

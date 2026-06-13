@@ -208,7 +208,7 @@ class TestDownloadStep:
     def test_success_populates_file_result(self, mock_services, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
-        mock_services["download_svg_file"].return_value = DownloadResult(**{"ok": True, "path": svg})
+        mock_services["download_svg_file"].return_value = DownloadResult(ok=True, path=svg)
         proc = _make_processor()
         result = proc._download_step()
         assert result is True
@@ -216,7 +216,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "success"
 
     def test_failure_populates_file_result_with_error(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(**{"ok": False, "error": "network_error"})
+        mock_services["download_svg_file"].return_value = DownloadResult(ok=False, error="network_error")
         proc = _make_processor()
         result = proc._download_step()
         assert result is False
@@ -225,7 +225,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "Failed"
 
     def test_failure_defaults_error_when_missing(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(**{"ok": False})
+        mock_services["download_svg_file"].return_value = DownloadResult(ok=False)
         proc = _make_processor()
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
@@ -254,7 +254,7 @@ class TestAnalyzeStep:
     def test_returns_none_when_no_nested_tags(self, mock_services, tmp_path):
         svg = tmp_path / "a.svg"
         svg.touch()
-        mock_services["detect_nested_tags"].return_value = DetectionResult(**{"count": 0, "tags": []})
+        mock_services["detect_nested_tags"].return_value = DetectionResult(count=0, tags=[])
         proc = self._proc_with_download_success(svg)
         result = proc._analyze_step()
         assert result is None
@@ -263,7 +263,7 @@ class TestAnalyzeStep:
     def test_returns_true_when_nested_tags_found(self, mock_services, tmp_path):
         svg = tmp_path / "b.svg"
         svg.touch()
-        mock_services["detect_nested_tags"].return_value = DetectionResult(**{"count": 3, "tags": ["g", "g", "svg"]})
+        mock_services["detect_nested_tags"].return_value = DetectionResult(count=3, tags=["g", "g", "svg"])
         proc = self._proc_with_download_success(svg)
         result = proc._analyze_step()
         assert result is True
@@ -317,7 +317,7 @@ class TestVerifyStep:
         mock_services["verify_fix"].assert_not_called()
 
     def test_returns_true_when_tags_fixed(self, mock_services, tmp_path):
-        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 0, "fixed": 5})
+        mock_services["verify_fix"].return_value = VerificationResult(after=0, fixed=5)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
         result = proc._verify_step()
         assert result is True
@@ -326,7 +326,7 @@ class TestVerifyStep:
         assert proc.result.stages.verify.status == "success"
 
     def test_returns_false_when_no_tags_fixed(self, mock_services, tmp_path):
-        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 5, "fixed": 0})
+        mock_services["verify_fix"].return_value = VerificationResult(after=5, fixed=0)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
         result = proc._verify_step()
         assert result is False
@@ -372,14 +372,14 @@ class TestUploadStep:
         mock_services["upload_fixed_svg"].assert_not_called()
 
     def test_returns_true_on_success(self, mock_services):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(**{"ok": True})
+        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True)
         proc = self._proc_after_verify()
         result = proc._upload_step()
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_services):
-        mock_services["upload_fixed_svg"].return_value = UploadResult(**{"ok": False, "error": "permission_denied"})
+        mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="permission_denied")
         proc = self._proc_after_verify()
         result = proc._upload_step()
         assert result is False

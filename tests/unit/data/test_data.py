@@ -1,6 +1,6 @@
 from src.main_app.data import (
     get_slug_categories,
-    load_data,
+    load_data,# noqa: F401
 )
 
 
