@@ -167,12 +167,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.title,
             self.site,
         )
-        # text_run_after():
+        return data
+
+    def text_run_after(self) -> None:
         self.text = self.result.stages.text.data["text"]
         # clean up
         self.result.stages.text.data["text"] = ""
-
-        return data
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
@@ -189,20 +189,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        def text_run_after() -> None:
-            self.text = self.result.stages.text.data["text"]
-            # clean up
-            self.result.stages.text.data["text"] = ""
-
         if not self._run_stage(
             self.result.stages.text,
-            step_func=lambda: extract_text_step(
-                self.title,
-                self.site,
-            ),
-            run_after_func=text_run_after,
+            step_func=self._extract_step,
         ):
             return self.result
+
+        self.text_run_after()
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
