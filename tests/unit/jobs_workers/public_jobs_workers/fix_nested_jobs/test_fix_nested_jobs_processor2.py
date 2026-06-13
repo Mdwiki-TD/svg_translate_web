@@ -118,7 +118,7 @@ class TestSaveProgress:
     def test_delegates_to_jobs_service(self, mock_services):
         proc = _make_processor()
         proc._save_progress()
-        mock_services["save_job_result"].assert_called_once_with(proc.result_file, proc.result)
+        mock_services["save_job_result"].assert_called_once_with(proc.result_file, proc.result.to_json())
 
     def test_swallows_exceptions(self, mock_services):
         mock_services["save_job_result"].side_effect = RuntimeError("disk full")
@@ -486,11 +486,11 @@ class TestRun:
             ),
             "download": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
-                return_value={"ok": True, "path": svg},
+                return_value=DownloadResult(ok=True, path=svg),
             ),
             "detect": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",
-                return_value={"count": 2, "tags": ["g", "g"]},
+                return_value=DetectionResult(count=2, tags=["g", "g"]),
             ),
             "fix": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags",
@@ -498,11 +498,11 @@ class TestRun:
             ),
             "verify": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.verify_fix",
-                return_value={"after": 0, "fixed": 2},
+                return_value=VerificationResult(before=2, after=0, fixed=2),
             ),
             "upload": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
-                return_value={"ok": True},
+                return_value=UploadResult(ok=True),
             ),
         }
         return patches
@@ -538,7 +538,7 @@ class TestRun:
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
         mocks["is_job_cancelled"].return_value = False
-        mocks["download"].return_value = {"ok": False, "error": "timeout"}
+        mocks["download"].return_value = DownloadResult(ok=False, error="timeout")
 
         try:
             proc = _make_processor()
