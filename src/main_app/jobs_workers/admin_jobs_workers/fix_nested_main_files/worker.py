@@ -123,6 +123,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         template_info["status"] = "skipped"
         template_info["reason"] = "No main_file set"
         self.result.pages_skipped.append(template_info)
+        self.result.summary.skipped += 1
 
     def _log_skipped_no_nested_tags(self, template_info: dict, fix_result: dict) -> None:
         """Log information about a template that was skipped due to having no nested tags."""
