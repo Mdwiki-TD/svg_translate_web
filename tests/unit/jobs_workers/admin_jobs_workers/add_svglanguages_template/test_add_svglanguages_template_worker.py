@@ -591,20 +591,20 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_instance.run.assert_called_once()
 
     def test_function_maps_limit_items(self, mock_services, mock_jobs_service):
-        """Test that add_svglanguages_limit_items is mapped to limit_items in args."""
+        """Test that limit_items is mapped to limit_items in args."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
             job_id=1,
             user=None,
-            args={"add_svglanguages_limit_items": 10},
+            args={"limit_items": 10},
         )
 
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"]["limit_items"] == 10
 
     def test_function_does_not_map_when_key_absent(self, mock_services, mock_jobs_service):
-        """Test that args are passed unchanged when add_svglanguages_limit_items is absent."""
+        """Test that args are passed unchanged when limit_items is absent."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
@@ -617,7 +617,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         assert "limit_items" not in call_kwargs["args"]
 
     def test_function_does_not_map_when_value_falsy(self, mock_services, mock_jobs_service):
-        """Test that mapping is skipped when add_svglanguages_limit_items value is falsy."""
+        """Test that mapping is skipped when limit_items value is falsy."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
         for falsy_value in [0, None, "", False]:
             mock_worker_class.reset_mock()
@@ -625,7 +625,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
             add_svglanguages_template_to_templates(
                 job_id=1,
                 user=None,
-                args={"add_svglanguages_limit_items": falsy_value},
+                args={"limit_items": falsy_value},
             )
 
             call_kwargs = mock_worker_class.call_args.kwargs

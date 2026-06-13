@@ -426,12 +426,12 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_services):
 
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_services):
-    """Test that crop_newest_upload_limit is mapped to upload_limit in args."""
+    """Test that limit_items is mapped to upload_limit in args."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
-        worker.crop_main_files_worker_entry(job_id=1, user=None, args={"crop_newest_upload_limit": 3})
+        worker.crop_main_files_worker_entry(job_id=1, user=None, args={"limit_items": 3})
 
         call_args = MockWorker.call_args
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
@@ -440,7 +440,7 @@ def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_service
 
 
 def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services):
-    """Test that args are passed unchanged when crop_newest_upload_limit is absent."""
+    """Test that args are passed unchanged when limit_items is absent."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker") as MockWorker:
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
@@ -453,7 +453,7 @@ def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_services
 
 
 def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_services):
-    """Test that mapping is skipped when crop_newest_upload_limit value is falsy."""
+    """Test that mapping is skipped when limit_items value is falsy."""
     for falsy_value in [0, None, "", False]:
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.CropMainFilesWorker"
@@ -461,7 +461,7 @@ def test_crop_main_files_worker_entry_does_not_map_when_value_falsy(mock_service
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            worker.crop_main_files_worker_entry(job_id=1, user=None, args={"crop_newest_upload_limit": falsy_value})
+            worker.crop_main_files_worker_entry(job_id=1, user=None, args={"limit_items": falsy_value})
 
             call_args = MockWorker.call_args
             passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")

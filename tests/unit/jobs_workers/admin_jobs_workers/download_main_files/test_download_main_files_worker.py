@@ -366,7 +366,7 @@ def test_download_main_files_for_templates_args_defaults_to_none(mock_services):
 
 
 def test_entry_point_maps_limit_items(mock_services):
-    """Test that download_main_files_limit_items is mapped."""
+    """Test that limit_items is mapped."""
     mock_services["list_templates"].return_value = []
     with patch(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker"
@@ -374,7 +374,7 @@ def test_entry_point_maps_limit_items(mock_services):
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
-        worker.download_main_files_for_templates(job_id=1, user=None, args={"download_main_files_limit_items": 123})
+        worker.download_main_files_for_templates(job_id=1, user=None, args={"limit_items": 123})
 
         call_args = MockWorker.call_args
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")

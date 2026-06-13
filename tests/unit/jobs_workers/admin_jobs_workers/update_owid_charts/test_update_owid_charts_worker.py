@@ -196,7 +196,7 @@ class TestUpdateOwidChartsWorkerEntry:
             assert call_kwargs["args"] is None
 
     def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self, mock_jobs_service):
-        """Test that owid_charts_limit_items is mapped to limit_items in args."""
+        """Test that limit_items is mapped to limit_items in args."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
         ) as MockWorker:
@@ -206,14 +206,14 @@ class TestUpdateOwidChartsWorkerEntry:
             update_owid_charts_worker_entry(
                 job_id=1,
                 user=None,
-                args={"owid_charts_limit_items": 10},
+                args={"limit_items": 10},
             )
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"]["limit_items"] == 10
 
     def test_entry_point_does_not_map_when_key_absent(self, mock_jobs_service):
-        """Test that args are passed unchanged when owid_charts_limit_items is absent."""
+        """Test that args are passed unchanged when limit_items is absent."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
         ) as MockWorker:
@@ -230,7 +230,7 @@ class TestUpdateOwidChartsWorkerEntry:
             assert "limit_items" not in call_kwargs["args"]
 
     def test_entry_point_does_not_map_when_value_falsy(self, mock_jobs_service):
-        """Test that mapping is skipped when owid_charts_limit_items value is falsy."""
+        """Test that mapping is skipped when limit_items value is falsy."""
         for falsy_value in [0, None, "", False]:
             with patch(
                 "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -241,7 +241,7 @@ class TestUpdateOwidChartsWorkerEntry:
                 update_owid_charts_worker_entry(
                     job_id=1,
                     user=None,
-                    args={"owid_charts_limit_items": falsy_value},
+                    args={"limit_items": falsy_value},
                 )
 
                 call_kwargs = MockWorker.call_args.kwargs

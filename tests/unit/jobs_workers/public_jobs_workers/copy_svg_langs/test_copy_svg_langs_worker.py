@@ -175,7 +175,7 @@ class TestCopySvgLangsWorkerEntry:
         copy_svg_langs_worker_entry(
             job_id=1,
             user=None,
-            args={"copy_svg_langs_upload_limit": 5},
+            args={"upload_limit": 5},
         )
 
         call_kwargs = mock_worker_class.call_args.kwargs
@@ -198,7 +198,7 @@ class TestCopySvgLangsWorkerEntry:
             copy_svg_langs_worker_entry(
                 job_id=1,
                 user=None,
-                args={"copy_svg_langs_upload_limit": falsy_value},
+                args={"upload_limit": falsy_value},
             )
 
             call_kwargs = mock_worker_class.call_args.kwargs
