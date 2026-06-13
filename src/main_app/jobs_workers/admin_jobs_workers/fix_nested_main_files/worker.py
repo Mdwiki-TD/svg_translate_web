@@ -45,8 +45,16 @@ def repair_nested_svg_tags(
         Dictionary with success status, message, and details.
     """
     # Use temp directory for processing
+    try:
+        download = download_svg_file(filename, temp_dir)
+    except Exception as e:
+        logger.exception("Error downloading SVG file")
+        return {
+            "success": False,
+            "message": f"Error downloading {filename}",
+            "details": str(e),
+        }
 
-    download = download_svg_file(filename, temp_dir)
     if not download.get("ok"):
         return {
             "success": False,
@@ -167,12 +175,12 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
             logger.info(f"Job {self.job_id}: No nested tags found in {template.main_file}")
             return False
-        else:
-            message = fix_result.get("message", "Unknown error")
-            template_info._update("failed", message)
 
-            self.result.pages_failed.append(template_info)
-            logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
+        message = fix_result.get("message", "Unknown error")
+        template_info._update("failed", message)
+
+        self.result.pages_failed.append(template_info)
+        logger.warning(f"Job {self.job_id}: Failed to process {template.main_file}: {message}")
 
         return False
 
@@ -210,14 +218,11 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        # Update summary skipped count
-        self.result.summary.skipped = len(self.result.pages_skipped)
-
         logger.info(
             f"Job {self.job_id} completed: "
-            f"{self.result.summary.success} successful, "
-            f"{self.result.summary.failed} failed, "
-            f"{self.result.summary.skipped} skipped"
+            f"{len(self.result.pages_success)} successful, "
+            f"{len(self.result.pages_skipped)} skipped, "
+            f"{len(self.result.pages_failed)} failed"
         )
 
         return self.result
@@ -240,7 +245,7 @@ def fix_nested_main_files_for_templates(
         args: Optional arguments dict (unused, for unified signature)
     """
     logger.info(f"Starting job {job_id}: fix nested tags for template main files")
-    worker = FixNestedMainFilesWorker(job_id, user, cancel_event)
+    worker = FixNestedMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
 
 

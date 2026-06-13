@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import WorkerObject
 
 
 @dataclass
@@ -36,8 +36,17 @@ class TemplateInfo:
 
 
 @dataclass
-class FixNestedMainFilesWorkerObject(StandardAdminWorkerObject):
-    pass
+class Summary:
+    total: int = 0
+    processed: int = 0
+
+
+@dataclass
+class FixNestedMainFilesWorkerObject(WorkerObject):
+    summary: Summary = field(default_factory=Summary)
+    pages_success: list[TemplateInfo] = field(default_factory=list)
+    pages_skipped: list[TemplateInfo] = field(default_factory=list)
+    pages_failed: list[TemplateInfo] = field(default_factory=list)
 
 
 _old_result = {
@@ -52,11 +61,7 @@ _old_result = {
     "summary": {
         "total": 0,
         "processed": 0,
-        "success": 0,
-        "failed": 0,
-        "skipped": 0,
     },
-    "pages_processed": [],
     "pages_success": [],
     "pages_skipped": [],
     "pages_failed": [],

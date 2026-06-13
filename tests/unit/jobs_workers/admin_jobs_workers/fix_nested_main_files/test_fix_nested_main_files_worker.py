@@ -132,7 +132,7 @@ def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested
     assert result_dict["summary"]["total"] == 1
     assert result_dict["summary"]["processed"] == 1
     assert len(result_dict["pages_skipped"]) == 1
-    assert "No main_file set" in result_dict["pages_skipped"][0]["reason"]
+    assert "No main_file set" in result_dict["pages_skipped"][0]["message"]
 
 
 def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested_services):
@@ -150,7 +150,6 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["success"] == 1
     assert len(result_dict["pages_success"]) == 1
 
 
@@ -166,9 +165,8 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["skipped"] == 1
     assert len(result_dict["pages_skipped"]) == 1
-    assert "No nested tags found" in result_dict["pages_skipped"][0]["reason"]
+    assert "No nested tags found" in result_dict["pages_skipped"][0]["message"]
 
 
 def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
@@ -180,8 +178,8 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["failed"] == 1
-    assert "Exception: Fatal repair error" in result_dict["pages_failed"][0]["reason"]
+    assert len(result_dict["pages_failed"]) == 1
+    assert "Error downloading error.svg" in result_dict["pages_failed"][0]["message"]
 
 
 def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_services):
@@ -205,8 +203,8 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
         worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["success"] == 1
-    assert result_dict["summary"]["failed"] == 1
+    assert len(result_dict["pages_success"]) == 1
+    assert len(result_dict["pages_failed"]) == 1
 
 
 def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_nested_services):
@@ -222,7 +220,7 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
         worker.fix_nested_main_files_for_templates(job_id=1, user=None)
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["failed"] == 1
+    assert len(result_dict["pages_failed"]) == 1
 
 
 def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix_nested_services):
