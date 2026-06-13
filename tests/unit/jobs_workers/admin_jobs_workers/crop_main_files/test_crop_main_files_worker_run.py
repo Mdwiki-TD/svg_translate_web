@@ -179,9 +179,10 @@ class TestFileProcessingInfo:
 
         assert result["template_id"] == 1
         assert result["template_title"] == "Template:Test"
+        assert result["status"] == "completed"
+
         assert result["downloaded_path"] == str(Path("/tmp/test.svg"))
         assert result["cropped_path"] == str(Path("/tmp/test_cropped.svg"))
-        assert result["status"] == "completed"
 
     def test_to_dict_with_none_paths(self):
         """Test to_dict with None paths."""

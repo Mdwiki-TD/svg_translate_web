@@ -41,7 +41,11 @@ class CropFileProcessingInfo:
         """
         convert to dict.
         """
-        return asdict(self)
+        data = asdict(self)
+        for x, v in data.items():
+            if isinstance(v, Path):
+                data[x] = str(v)
+        return data
 
 
 @dataclass

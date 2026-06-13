@@ -13,6 +13,12 @@ from pathlib import Path
 from typing import Any
 
 from ....db.services import list_templates
+from ....shared.fix_nested.objects import (
+    DetectionResult,
+    DownloadResult,
+    UploadResult,
+    VerificationResult,
+)
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
@@ -43,7 +49,7 @@ def repair_nested_svg_tags(
     with tempfile.TemporaryDirectory() as tmp_dir:
         temp_dir = Path(tmp_dir)
 
-        download = download_svg_file(filename, temp_dir)
+        download: DownloadResult = download_svg_file(filename, temp_dir)
         if not download.ok:
             return {
                 "success": False,
@@ -53,7 +59,7 @@ def repair_nested_svg_tags(
 
         file_path = download.path
 
-        detect_before = detect_nested_tags(file_path)
+        detect_before: DetectionResult = detect_nested_tags(file_path)
 
         if detect_before.count == 0:
             return {
@@ -70,7 +76,7 @@ def repair_nested_svg_tags(
                 "details": {"nested_count": detect_before.count},
             }
 
-        verify = verify_fix(file_path, detect_before.count)
+        verify: VerificationResult = verify_fix(file_path, detect_before.count)
 
         if verify.fixed == 0:
             return {
@@ -79,7 +85,7 @@ def repair_nested_svg_tags(
                 "details": asdict(verify),
             }
 
-        upload = upload_fixed_svg(filename, file_path, verify.fixed, user)
+        upload: UploadResult = upload_fixed_svg(filename, file_path, verify.fixed, user)
 
         if not upload.ok:
             return {
