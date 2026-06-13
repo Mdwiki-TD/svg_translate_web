@@ -1,5 +1,10 @@
 {# Shared Jinja macros. #}
-
+{%- macro commons_file_link(filename) -%}
+<a href="https://commons.wikimedia.org/wiki/File:{{ filename | replace('File:', '') }}"
+            target="_blank" rel="noopener noreferrer">
+            File:{{ filename | replace('File:', '') }}
+</a>
+{%- endmacro -%}
 {%- macro render_step(step) -%}
 {% if step %}
 {% if step.result == true or step.result == "updated" %}
