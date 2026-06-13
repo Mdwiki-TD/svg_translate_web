@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -38,18 +38,10 @@ class CropFileProcessingInfo:
     )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "original_file": self.original_file,
-            "cropped_filename": self.cropped_filename,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "downloaded_path": str(self.downloaded_path) if self.downloaded_path else None,
-            "cropped_path": str(self.cropped_path) if self.cropped_path else None,
-            "steps": self.steps,
-        }
+        """
+        convert to dict.
+        """
+        return asdict(self)
 
 
 @dataclass
