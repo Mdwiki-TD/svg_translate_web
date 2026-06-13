@@ -33,8 +33,8 @@ class StandardAdminSummary:
 
 @dataclass
 class Summary:
-    processed: int = 0
     total: int = 0
+    processed: int = 0
 
 
 @dataclass
