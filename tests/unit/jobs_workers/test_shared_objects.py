@@ -44,14 +44,14 @@ class TestUpdaterOutcome:
 class TestSummary:
     def test_defaults(self):
         s = Summary()
-        assert s.scanned == 0
+        assert s.processed == 0
         assert s.total == 0
 
     def test_not_frozen(self):
         s = Summary()
-        s.scanned = 10
+        s.processed = 10
         s.total = 20
-        assert s.scanned == 10
+        assert s.processed == 10
         assert s.total == 20
 
 
@@ -70,7 +70,7 @@ class TestSharedworkerObject:
 
     def test_default_summary(self):
         obj = SharedworkerObject()
-        assert obj.summary.scanned == 0
+        assert obj.summary.processed == 0
         assert obj.summary.total == 0
 
     def test_lists_are_independent(self):

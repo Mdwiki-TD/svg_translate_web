@@ -467,6 +467,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
         file_info.cropped_filename = ""
 
+
 # ------------------------------------------------------------------
 # Backwards-compatible entry-point
 # ------------------------------------------------------------------
