@@ -25,21 +25,21 @@ def mock_api():
 class TestDownloadSvgFile:
     def test_download_svg_file_no_user(self):
         res = download_svg_file("Test.svg", Path("test.svg"))
-        assert res.ok is False
-        assert res.error == "download_failed"
-        assert res.details == {"msg": "", "path": "", "result": "failed"}
+        assert res.get("ok") is False
+        assert res.get("error") == "download_failed"
+        assert res.get("details") == {"msg": "", "path": "", "result": "failed"}
 
     def test_download_svg_file_success(self, mock_api, tmp_path):
         mock_api["down"].return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
         res = download_svg_file("Test.svg", tmp_path)
-        assert res.ok is True
-        assert res.path == tmp_path / "test.svg"
+        assert res.get("ok") is True
+        assert res.get("path") == tmp_path / "test.svg"
 
     def test_download_svg_file_fail(self, mock_api, tmp_path):
         mock_api["down"].return_value = {"result": "error"}
         res = download_svg_file("Test.svg", tmp_path)
-        assert res.ok is False
-        assert res.error == "download_failed"
+        assert res.get("ok") is False
+        assert res.get("error") == "download_failed"
 
 
 class TestUploadFixedSvg:
