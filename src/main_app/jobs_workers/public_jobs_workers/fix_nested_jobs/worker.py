@@ -12,7 +12,7 @@ from typing import Any, Callable
 
 from mwclient.client import Site
 
-from ....api_services import get_user_site, upload_file
+from ....api_services import get_user_site
 from ....shared.fix_nested.files_service import download_svg_file, upload_fixed_svg
 from ....shared.fix_nested.objects import (
     DetectionResult,
