@@ -1,25 +1,5 @@
 """
 Objects for update_owid_charts worker.
-
-            "note": "",
-            "status": "pending",
-            "errors": [],
-            "args": {},
-            "job_id": self.job_id,
-            "started_at": datetime.now().isoformat(),
-            "completed_at": None,
-            "cancelled_at": None,
-            "summary": {
-                "total": 0,
-                "processed": 0,
-                "updated": 0,
-                "skipped": 0,
-                "failed": 0,
-            },
-            "charts_processed": [],
-            "updated_charts": [],
-            "skipped_charts": [],
-            "failed_charts": [],
 """
 
 from __future__ import annotations
@@ -45,6 +25,28 @@ class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
     skipped_charts: list[dict] = field(default_factory=list)
     failed_charts: list[dict] = field(default_factory=list)
 
+
+_old_result = {
+    "note": "",
+    "status": "pending",
+    "errors": [],
+    "args": {},
+    "job_id": "self.job_id",
+    "started_at": "datetime.now().isoformat()",
+    "completed_at": None,
+    "cancelled_at": None,
+    "summary": {
+        "total": 0,
+        "processed": 0,
+        "updated": 0,
+        "skipped": 0,
+        "failed": 0,
+    },
+    "charts_processed": [],
+    "updated_charts": [],
+    "skipped_charts": [],
+    "failed_charts": [],
+}
 
 __all__ = [
     "UpdateOwidChartsWorkerObject",
