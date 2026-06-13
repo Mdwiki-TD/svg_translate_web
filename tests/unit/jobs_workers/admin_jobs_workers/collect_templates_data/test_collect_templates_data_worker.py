@@ -33,7 +33,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
     """Mock the services used by collect_templates_data_worker."""
 
     # Mock template_service
@@ -54,7 +54,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock jobs_service
     mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock(return_value="/tmp/job_1.json")
+    mock_save_job_result = MagicMock(return_value=str(tmp_path / "job_1.json"))
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
 

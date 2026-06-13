@@ -5,6 +5,8 @@ from __future__ import annotations
 from importlib import reload
 from unittest.mock import patch
 
+import pytest
+
 from src.main_app.config import TestingConfig
 
 
@@ -20,8 +22,13 @@ def test_create_app_does_not_touch_mysql_when_unconfigured(monkeypatch):
     assert app is not None
 
 
-@patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": "/tmp/test"})
-def test_create_app_registers_blueprints():
+@pytest.fixture
+def mock_environ(tmp_path):
+    with patch.dict("os.environ", {"FLASK_SECRET_KEY": "test-secret", "MAIN_DIR": str(tmp_path / "test")}):
+        yield
+
+
+def test_create_app_registers_blueprints(mock_environ):
     """Test create_app registers all blueprints."""
     from src.main_app import create_app
 

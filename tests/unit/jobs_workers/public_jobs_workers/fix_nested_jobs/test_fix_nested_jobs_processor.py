@@ -77,11 +77,11 @@ class TestFixNestedJobsProcessorSteps:
         assert result is False
         assert processor.result.stages.verify.status == "Failed"
 
-    def test_upload_step_success(self, mock_services) -> None:
+    def test_upload_step_success(self, mock_services, tmp_path) -> None:
         processor = _make_processor()
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
-        processor.result.file_result = FileResult(path="/tmp/test.svg", nested_tags_fixed=2)
+        processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
         mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True, result={"some": "data"})
 
         result = processor._upload_step()
@@ -89,11 +89,11 @@ class TestFixNestedJobsProcessorSteps:
         assert result is True
         assert processor.result.stages.upload.status == "success"
 
-    def test_upload_step_failure(self, mock_services) -> None:
+    def test_upload_step_failure(self, mock_services, tmp_path) -> None:
         processor = _make_processor()
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
-        processor.result.file_result = FileResult(path="/tmp/test.svg", nested_tags_fixed=2)
+        processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
         mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="Upload failed message")
 
         result = processor._upload_step()

@@ -72,11 +72,11 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
 
 @patch("src.main_app.app_routes.jobs_utils_bp.send_from_directory")
 @patch("src.main_app.app_routes.jobs_utils_bp.settings")
-def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
+def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client, tmp_path):
     """Test serving a downloaded main file."""
 
-    # Mock the settings
-    mock_settings.paths.main_files_path = "/tmp/main_files"
+    main_files_path = str(tmp_path / "main_files")
+    mock_settings.paths.main_files_path = main_files_path
 
     mock_response = Response("file_content")
     mock_send.return_value = mock_response
@@ -84,7 +84,7 @@ def test_serve_download_main_file(mock_settings, mock_send, admin_jobs_client):
     response = admin_jobs_client.get("/jobs_utils/download_main_files/file/test.svg")
     assert response.status_code == 200
 
-    mock_send.assert_called_once_with("/tmp/main_files", "test.svg")
+    mock_send.assert_called_once_with(main_files_path, "test.svg")
 
 
 @patch("src.main_app.app_routes.jobs_utils_bp.create_main_files_zip")

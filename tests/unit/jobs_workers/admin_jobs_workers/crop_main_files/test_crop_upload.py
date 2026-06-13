@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import upload
@@ -35,10 +34,10 @@ def test_upload_cropped_file_success(tmp_path):
     )
 
 
-def test_upload_cropped_file_no_site():
+def test_upload_cropped_file_no_site(tmp_path):
     """Test upload fails when no site is provided."""
     cropped_filename = "File:test (cropped).svg"
-    cropped_path = Path("/tmp/test_cropped.svg")
+    cropped_path = tmp_path / "test_cropped.svg"
     site = None
 
     result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -153,10 +152,10 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
     assert call_args["summary"] == "[[:File:test.svg]] cropped to remove the footer."
 
 
-def test_upload_cropped_file_returns_filename_in_result():
+def test_upload_cropped_file_returns_filename_in_result(tmp_path):
     """Test that result always includes the cropped filename."""
     cropped_filename = "File:test (cropped).svg"
-    cropped_path = Path("/tmp/test_cropped.svg")
+    cropped_path = tmp_path / "test_cropped.svg"
     site = None
 
     result = upload.upload_cropped_file(cropped_filename, cropped_path, site)

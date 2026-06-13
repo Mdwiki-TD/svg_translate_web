@@ -135,15 +135,15 @@ class TestConfigureLogging:
         monkeypatch.setattr("src.logger_config.setup_logging", mock_setup_logging)
         return {"Path": mock_path_class, "setup_logging": mock_setup_logging}
 
-    @patch.dict("os.environ", {"MAIN_DIR": "/tmp/test_main_dir"}, clear=False)
-    def test_configure_logging_creates_log_dir(self, mock_services):
+    def test_configure_logging_creates_log_dir(self, mock_services, tmp_path):
         """Test that configure_logging creates log directory."""
         mock_path_instance = MagicMock()
         mock_services["Path"].return_value = mock_path_instance
         mock_log_dir = MagicMock()
         mock_path_instance.__truediv__ = MagicMock(return_value=mock_log_dir)
 
-        configure_logging(False)
+        with patch.dict("os.environ", {"MAIN_DIR": str(tmp_path / "test_main_dir")}, clear=False):
+            configure_logging(False)
 
     @patch.dict("os.environ", {}, clear=False)
     def test_configure_logging_uses_default_main_dir(self, mock_services):
@@ -158,8 +158,7 @@ class TestConfigureLogging:
             configure_logging(False)
             mock_services["Path"].assert_called()
 
-    @patch.dict("os.environ", {"MAIN_DIR": "/tmp/test"}, clear=False)
-    def test_configure_logging_sets_log_paths(self, mock_services):
+    def test_configure_logging_sets_log_paths(self, mock_services, tmp_path):
         """Test that configure_logging sets correct log file paths."""
         mock_path_instance = MagicMock()
         mock_services["Path"].return_value = mock_path_instance
@@ -170,7 +169,8 @@ class TestConfigureLogging:
         mock_error_log = MagicMock()
         mock_log_dir.__truediv__ = MagicMock(side_effect=[mock_all_log, mock_error_log])
 
-        configure_logging(False)
+        with patch.dict("os.environ", {"MAIN_DIR": str(tmp_path / "test")}, clear=False):
+            configure_logging(False)
 
         mock_services["setup_logging"].assert_called_once()
         call_kwargs = mock_services["setup_logging"].call_args[1]

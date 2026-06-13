@@ -95,14 +95,11 @@ def test_extract_post_strips_file_prefix(
 
     # 1. Use mocker.patch for stronger assertions
     mock_download = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.download_one_file")
-    # mock_download.return_value = {"result": "success", "path": "/tmp/test.svg"}
     mock_download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
 
     mock_extract = mocker.patch("src.main_app.app_routes.main_routes.extract_routes.extract")
     mock_extract.return_value = {"new": {}, "title": {}}
 
-    # 2. Use mocker.patch for tempfile to avoid manual mocking
-    # mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value="/tmp/fake_dir")
     mocker.patch("src.main_app.app_routes.main_routes.extract_routes.tempfile.mkdtemp", return_value=str(tmp_path))
     mocker.patch("src.main_app.app_routes.main_routes.extract_routes.shutil.rmtree")
     mocker.patch("src.main_app.app_routes.main_routes.extract_routes.flash")
@@ -120,6 +117,7 @@ def test_extract_post_download_failure(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
+    tmp_path,
 ) -> None:
     """Test that download failure shows appropriate error."""
     app, _ = app_client
@@ -137,7 +135,7 @@ def test_extract_post_download_failure(
     mock_temp_dir.exists.return_value = True
 
     def mock_mkdtemp():
-        return "/tmp/test_dir"
+        return str(tmp_path / "test_dir")
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.flash", fake_flash)
@@ -155,6 +153,7 @@ def test_extract_post_extraction_error(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
+    tmp_path,
 ) -> None:
     """Test that extraction error shows appropriate error."""
     app, _ = app_client
@@ -166,14 +165,14 @@ def test_extract_post_extraction_error(
 
     # Mock download_one_file to simulate success
     def mock_download(*args, **kwargs):
-        return {"result": "success", "path": "/tmp/test.svg"}
+        return {"result": "success", "path": str(tmp_path / "test.svg")}
 
     # Mock extract to raise an exception
     def mock_extract(*args, **kwargs):
         raise ValueError("Invalid SVG format")
 
     def mock_mkdtemp():
-        return "/tmp/test_dir"
+        return str(tmp_path / "test_dir")
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.extract", mock_extract)
@@ -192,6 +191,7 @@ def test_extract_post_successful_extraction(
     app_client: tuple[Flask, Any],
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
+    tmp_path,
 ) -> None:
     """Test successful extraction returns proper context."""
     app, _ = app_client
@@ -203,7 +203,7 @@ def test_extract_post_successful_extraction(
 
     # Mock download_one_file to simulate success
     def mock_download(*args, **kwargs):
-        return {"result": "success", "path": "/tmp/test.svg"}
+        return {"result": "success", "path": str(tmp_path / "test.svg")}
 
     # Mock extract to return sample data
     sample_translations = {
@@ -215,7 +215,7 @@ def test_extract_post_successful_extraction(
         return sample_translations
 
     def mock_mkdtemp():
-        return "/tmp/test_dir"
+        return str(tmp_path / "test_dir")
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.download_one_file", mock_download)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.extract_routes.extract", mock_extract)

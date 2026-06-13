@@ -321,13 +321,13 @@ class TestVerifyStep:
 
 
 class TestUploadStep:
-    def _proc_after_verify(self, tags_fixed=3):
+    def _proc_after_verify(self, path, tags_fixed=3):
         proc = _make_processor()
         proc.site = MagicMock()
         proc.result.stages.verify.status = "success"
         proc.result.file_result = FileResult(
             status="pending",
-            path="/tmp/x.svg",
+            path=path,
             error=None,
             success=None,
             nested_tags_before=0,
@@ -337,37 +337,37 @@ class TestUploadStep:
         )
         return proc
 
-    def test_skips_when_upload_disabled(self, mock_services):
+    def test_skips_when_upload_disabled(self, mock_services, tmp_path):
         proc = _make_processor(args={"filename": "File:x.svg", "upload": False})
         proc.result.stages.verify.status = "success"
         result = proc._upload_step()
         assert result is None
         mock_services["upload_fixed_svg"].assert_not_called()
 
-    def test_skips_when_no_site(self, mock_services):
-        proc = self._proc_after_verify()
+    def test_skips_when_no_site(self, mock_services, tmp_path):
+        proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.site = None
         result = proc._upload_step()
         assert result is None
         mock_services["upload_fixed_svg"].assert_not_called()
 
-    def test_skips_when_verify_not_success(self, mock_services):
-        proc = self._proc_after_verify()
+    def test_skips_when_verify_not_success(self, mock_services, tmp_path):
+        proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.result.stages.verify.status = "Failed"
         result = proc._upload_step()
         assert result is None
         mock_services["upload_fixed_svg"].assert_not_called()
 
-    def test_returns_true_on_success(self, mock_services):
+    def test_returns_true_on_success(self, mock_services, tmp_path):
         mock_services["upload_fixed_svg"].return_value = UploadResult(ok=True)
-        proc = self._proc_after_verify()
+        proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
-    def test_returns_false_on_failure(self, mock_services):
+    def test_returns_false_on_failure(self, mock_services, tmp_path):
         mock_services["upload_fixed_svg"].return_value = UploadResult(ok=False, error="permission_denied")
-        proc = self._proc_after_verify()
+        proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
         assert proc.result.stages.upload.status == "Failed"
