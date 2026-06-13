@@ -55,7 +55,7 @@ def download_file_from_commons(
         content = download_commons_file_core(clean_filename, session, timeout=60)
     except Exception as e:
         result["error"] = f"Download failed: {str(e)}"
-        logger.exception(f"Failed to download {clean_filename}")
+        logger.exception("Failed to download %s", clean_filename)
         return result
 
     try:
@@ -66,11 +66,11 @@ def download_file_from_commons(
         result["success"] = True
         result["path"] = str(out_path.name)
         result["size_bytes"] = file_size
-        logger.info(f"Downloaded: {clean_filename} ({file_size} bytes)")
+        logger.info("Downloaded: %s (%d bytes)", clean_filename, file_size)
 
     except Exception as e:
         result["error"] = f"Unexpected error: {str(e)}"
-        logger.exception(f"Error saving {clean_filename}")
+        logger.exception("Error saving %s", clean_filename)
 
     return result
 

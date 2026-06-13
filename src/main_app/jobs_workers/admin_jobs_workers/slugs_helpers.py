@@ -31,7 +31,7 @@ def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
         add_new_slug_redirect(slug=slug_to_check, redirect_to=original_slug)
         return True
     except Exception as e:
-        logger.error(f"Error adding slug redirect: {e}")
+        logger.error("Error adding slug redirect: %s", e)
 
     return False
 

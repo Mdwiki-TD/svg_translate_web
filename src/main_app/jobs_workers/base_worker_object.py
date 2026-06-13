@@ -92,7 +92,8 @@ class BaseObjectsJobWorker(ABC):
             return True
         except LookupError:
             logger.exception(
-                f"Job {self.job_id}: Could not update status to running, job record might have been deleted."
+                "Job %s: Could not update status to running, job record might have been deleted.",
+                self.job_id,
             )
             return False
 
@@ -114,11 +115,11 @@ class BaseObjectsJobWorker(ABC):
         try:
             update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except (StaleDataError, LookupError):
-            logger.error(f"Job {self.job_id}: Could not update final status, job record might have been deleted.")
+            logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
         except Exception:
-            logger.error(f"Job {self.job_id}: Failed to update final status")
+            logger.error("Job %s: Failed to update final status", self.job_id)
 
-        logger.info(f"Job {self.job_id}: Finished with status {final_status}")
+        logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 
     def _save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:
@@ -127,7 +128,7 @@ class BaseObjectsJobWorker(ABC):
         try:
             save_job_result_by_name(self.result_file, result)
         except Exception:
-            logger.exception(f"Job {self.job_id}: Failed to save job result")
+            logger.exception("Job %s: Failed to save job result", self.job_id)
 
     def is_cancelled(self, check_db: bool = False) -> bool:
         """Check if the job has been cancelled.
@@ -136,19 +137,19 @@ class BaseObjectsJobWorker(ABC):
             True if cancelled, False otherwise
         """
         if self.cancel_event and self.cancel_event.is_set():
-            logger.info(f"Job {self.job_id}: Local cancellation detected, stopping.")
+            logger.info("Job %s: Local cancellation detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True
 
         if is_job_cancelled_file_exist(self.result_file_cancelled):
-            logger.info(f"Job {self.job_id}: Cancelled file detected, stopping.")
+            logger.info("Job %s: Cancelled file detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True
 
         if check_db:
             # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
             if is_job_cancelled(self.job_id, job_type=self.job_type):
-                logger.info(f"Job {self.job_id}: Global cancellation detected, stopping.")
+                logger.info("Job %s: Global cancellation detected, stopping.", self.job_id)
                 self._mark_as_cancelled_in_result()
                 return True
 

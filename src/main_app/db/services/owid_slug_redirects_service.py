@@ -59,7 +59,7 @@ def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
         new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
         db.session.add(new_record)
         db.session.commit()
-        logger.info(f"Added new slug redirect: {slug} -> {redirect_to}")
+        logger.info("Added new slug redirect: %s -> %s", slug, redirect_to)
 
 
 @db_guard(default_return=False)

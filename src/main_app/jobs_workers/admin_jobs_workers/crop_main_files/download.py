@@ -56,18 +56,18 @@ def download_file_for_cropping(
         if download_result["result"] == "success":
             result["success"] = True
             result["path"] = Path(download_result["path"])
-            logger.info(f"Downloaded for cropping: {clean_filename}")
+            logger.info("Downloaded for cropping: %s", clean_filename)
         elif download_result["result"] == "existing":
             result["success"] = True
             result["path"] = Path(download_result["path"])
-            logger.info(f"Using existing file for cropping: {clean_filename}")
+            logger.info("Using existing file for cropping: %s", clean_filename)
         else:
             result["error"] = f"Download failed: {download_result.get('msg', 'unknown')}"
-            logger.warning(f"Failed to download {clean_filename}")
+            logger.warning("Failed to download %s", clean_filename)
 
     except Exception as e:
         result["error"] = f"Exception during download: {str(e)}"
-        logger.exception(f"Error downloading {clean_filename}")
+        logger.exception("Error downloading %s", clean_filename)
 
     return result
 

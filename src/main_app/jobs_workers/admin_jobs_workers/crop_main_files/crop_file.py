@@ -79,7 +79,7 @@ def remove_footer_and_adjust_height(
                 break
 
     if not footer_removed:
-        logger.info(f"No <g id='{footer_id}'> found in the file.")
+        logger.info("No <g id='%s'> found in the file.", footer_id)
         return False
 
     # 3. Calculate the new height based on the REMAINING elements
@@ -91,7 +91,7 @@ def remove_footer_and_adjust_height(
         # Update the maximum Y-axis value
         content_max_y = max(content_max_y, y)
 
-    logger.info(f"📐 Max y in remaining content: {content_max_y:.2f}")
+    logger.info("Max y in remaining content: %.2f", content_max_y)
 
     # New height = max y of content + padding
     # Alternatively, use the footer's top position directly: new_height = footer_min_y
@@ -104,7 +104,7 @@ def remove_footer_and_adjust_height(
         # Optionally fall back to the original height or skip modification
         return False
 
-    logger.info(f"📏 New height: {new_height:.2f} (padding={padding})")
+    logger.info("New height: %.2f (padding=%.2f)", new_height, padding)
 
     # 4. Update the viewBox and height attributes in the root <svg> tag
     root.set("height", f"{new_height:.2f}")
@@ -116,12 +116,12 @@ def remove_footer_and_adjust_height(
             parts[3] = f"{new_height:.2f}"
             root.set("viewBox", " ".join(parts))
 
-    logger.info(f"🔄 height: {old_height} → {new_height:.2f}")
+    logger.info("height: %s -> %.2f", old_height, new_height)
 
     # Save the new file
     tree.write(cropped_path, encoding="unicode", xml_declaration=False)
 
-    logger.info(f"💾 Saved to: {cropped_path}")
+    logger.info("Saved to: %s", cropped_path)
     return True
 
 
@@ -148,7 +148,7 @@ def crop_svg_file(
         cropped = remove_footer_and_adjust_height(file_path, cropped_output_path)
 
     except Exception as e:
-        logger.exception(f"Error cropping SVG: {e}")
+        logger.exception("Error cropping SVG: %s", e)
         return {"success": False, "error": str(e)}
 
     return {"success": cropped, "error": None if cropped else "No footer element found in SVG"}

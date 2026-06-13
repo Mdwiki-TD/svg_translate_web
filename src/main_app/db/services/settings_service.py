@@ -66,7 +66,7 @@ def get_all_settings_ready() -> dict[str, Any]:
             val = str(x.value)
 
         if val is None:
-            logger.warning(f"Could not parse setting {x.key} with value {x.value}")
+            logger.warning("Could not parse setting %s with value %s", x.key, x.value)
 
         records[x.key] = val
 

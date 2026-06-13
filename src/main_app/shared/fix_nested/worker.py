@@ -33,7 +33,7 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
 
 def fix_nested_tags(file_path: Path) -> bool:
     """Fix nested tags in-place."""
-    logger.info(f"Fixing nested tags in: {file_path.name}")
+    logger.info("Fixing nested tags in: %s", file_path.name)
     return bool(fix_nested_file(file_path, file_path))
 
 

@@ -77,14 +77,14 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         """Execute the full pipeline."""
         self.site = get_user_site(self.user)
         if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
+            logger.warning("Job %s: No site authentication available", self.job_id)
             self.log_no_site_error()
             return self.result
 
         templates = self._load_templates()
 
         self.result.summary.total = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates with main files")
+        logger.info("Job %s: Found %d templates with main files", self.job_id, len(templates))
 
         self._check_exists(templates)
 
@@ -94,11 +94,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             if self.is_cancelled():
                 break
 
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
             ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             if n == 1 or n % per_item == 0:
@@ -120,7 +120,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         for file in exists_files:
             self.exists[file.removeprefix("File:")] = exists_files[file]
 
-        logger.info(f"self.exists: {len(self.exists)}")
+        logger.info("self.exists: %d", len(self.exists))
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = list_templates()
@@ -130,7 +130,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.upload_limit if isinstance(self.upload_limit, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} item")
+            logger.info("Job %s: limiting from %d to %d item", self.job_id, len(templates), _limit)
             return templates[:_limit]
 
         return templates
@@ -199,7 +199,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return False
 
         elif up_step is None:
-            logger.debug(f"file {file_info.cropped_filename} exists")
+            logger.debug("file %s exists", file_info.cropped_filename)
 
         uploaded = up_step is True
 
@@ -264,7 +264,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             )
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
-            logger.exception(f"Job {self.job_id}: Exception downloading {template.last_world_file}")
+            logger.exception("Job %s: Exception downloading %s", self.job_id, template.last_world_file)
             self._fail(file_info, "download", error_msg)
             return False
 
@@ -275,7 +275,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return True
 
         error_msg = download_result.get("error", "Unknown download error")
-        logger.warning(f"Job {self.job_id}: Failed to download {template.last_world_file}")
+        logger.warning("Job %s: Failed to download %s", self.job_id, template.last_world_file)
         self._fail(file_info, "download", error_msg)
         return False
 
@@ -290,7 +290,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
-            logger.warning(f"Job {self.job_id}: Failed to crop {template.last_world_file}")
+            logger.warning("Job %s: Failed to crop %s", self.job_id, template.last_world_file)
             self._fail(file_info, "crop", error_msg)
             return False
 
@@ -314,7 +314,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if upload_result.get("file_exists"):
             logger.warning(
-                f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (file already exists on Commons)"
+                "Job %s: Skipped upload for %s (file already exists on Commons)",
+                self.job_id,
+                file_info.cropped_filename,
             )
             self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
             file_info.status = "skipped"
@@ -323,14 +325,14 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return None
 
         if upload_result["success"]:
-            logger.info(f"Job {self.job_id}: Successfully uploaded {file_info.cropped_filename}")
+            logger.info("Job %s: Successfully uploaded %s", self.job_id, file_info.cropped_filename)
             file_info.steps["upload_cropped"] = {"result": True, "msg": f"Uploaded as {file_info.cropped_filename}"}
             file_info.status = "uploaded"
             self.result.summary.uploaded += 1
             return True
 
         error = upload_result.get("error", "Unknown upload error")
-        logger.warning(f"Job {self.job_id}: Failed to upload {file_info.cropped_filename}")
+        logger.warning("Job %s: Failed to upload %s", self.job_id, file_info.cropped_filename)
 
         self._skip_step(file_info, "update_original", "Skipped - upload failed")
         self._skip_step(file_info, "update_template", "Skipped - upload was not successful")
@@ -349,7 +351,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
-            logger.info(f"Job {self.job_id}: No update needed for original file text of {file_info.original_file}")
+            logger.info("Job %s: No update needed for original file text of %s", self.job_id, file_info.original_file)
             file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
             return False
 
@@ -368,7 +370,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         error = update_result.get("error", "Unknown error")
         logger.warning(
-            f"Job {self.job_id}: Failed to update original file text for {file_info.original_file} (reason: {error})"
+            "Job %s: Failed to update original file text for %s (reason: %s)",
+            self.job_id,
+            file_info.original_file,
+            error,
         )
         # self._fail(file_info, "update_original", error)
         file_info.steps["update_original"] = {"result": False, "msg": error}
@@ -385,7 +390,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         page = MwClientPage(page_title, self.site)
 
         if not page.exists():
-            logger.warning(f"Job {self.job_id}: Page does not exist: {page_title}")
+            logger.warning("Job %s: Page does not exist: %s", self.job_id, page_title)
             file_info.steps[step_name] = {
                 "result": None,
                 "msg": f"Page does not exist: {page_title}",
@@ -395,7 +400,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         page_text = page.get_text()
 
         if not page_text:
-            logger.warning(f"Job {self.job_id}: Empty page text for {page_title}")
+            logger.warning("Job %s: Empty page text for %s", self.job_id, page_title)
             file_info.steps[step_name] = {
                 "result": False,
                 "msg": f"Empty page text: {page_title}",
@@ -409,7 +414,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
 
         if page_text == updated_text:
-            logger.info(f"Job {self.job_id}: No update needed for page {page_title}")
+            logger.info("Job %s: No update needed for page %s", self.job_id, page_title)
             file_info.steps[step_name] = {
                 "result": None,
                 "msg": "No update needed",
@@ -430,7 +435,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         error = update_result.get("error", "Unknown error")
 
-        logger.warning(f"Job {self.job_id}: Failed to update page {page_title} (reason: {error})")
+        logger.warning("Job %s: Failed to update page %s (reason: %s)", self.job_id, page_title, error)
 
         file_info.steps[step_name] = {
             "result": False,
@@ -464,7 +469,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result.summary.skipped += 1
-        logger.info(f"Job {self.job_id}: Skipped upload for {file_info.cropped_filename} (upload disabled)")
+        logger.info("Job %s: Skipped upload for %s (upload disabled)", self.job_id, file_info.cropped_filename)
         file_info.cropped_filename = ""
 
 

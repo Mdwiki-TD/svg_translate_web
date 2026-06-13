@@ -64,19 +64,19 @@ def upload_cropped_file(
 
         if upload_result.get("result") == "Success":
             result["success"] = True
-            logger.info(f"Successfully uploaded cropped file: {cropped_filename}")
+            logger.info("Successfully uploaded cropped file: %s", cropped_filename)
         else:
             error_msg = upload_result.get("error", "Unknown upload error")
             if error_msg == "File already exists on Commons":
                 result["file_exists"] = True
-                logger.warning(f"Skipped upload for {cropped_filename}: file already exists on Commons")
+                logger.warning("Skipped upload for %s: file already exists on Commons", cropped_filename)
             else:
                 result["error"] = f"Upload failed: {error_msg}"
-                logger.warning(f"Failed to upload {cropped_filename}: {error_msg}")
+                logger.warning("Failed to upload %s: %s", cropped_filename, error_msg)
 
     except Exception as e:
         result["error"] = f"Exception during upload: {str(e)}"
-        logger.exception(f"Error uploading {cropped_filename}")
+        logger.exception("Error uploading %s", cropped_filename)
 
     return result
 

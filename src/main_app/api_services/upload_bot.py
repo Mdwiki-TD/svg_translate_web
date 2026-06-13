@@ -57,7 +57,7 @@ class UploadFile:
 
         file_path = Path(self.file_path)
         if not file_path.is_file():
-            logger.error(f"File not found: {self.file_path}")
+            logger.error("File not found: %s", self.file_path)
             return self._err("File not found")
 
         if not self.site:
@@ -66,11 +66,11 @@ class UploadFile:
         page = self.site.pages[f"File:{self.file_name}"]
         if not self.new_file:
             if not page.exists:
-                logger.error(f"File {self.file_name} does not exist on Commons")
+                logger.error("File %s does not exist on Commons", self.file_name)
                 return self._err("File not found on Commons")
         else:
             if page.exists:
-                logger.error(f"File {self.file_name} already exists on Commons")
+                logger.error("File %s already exists on Commons", self.file_name)
                 return self._err("File already exists on Commons")
 
         return {"success": True, "error": None}
@@ -84,7 +84,7 @@ class UploadFile:
 
         try:
             response = self._site_upload()
-            logger.debug(f"Successfully uploaded {self.file_name} to Wikimedia Commons")
+            logger.debug("Successfully uploaded %s to Wikimedia Commons", self.file_name)
             return {"success": True, "result": response.get("result", ""), "response": response}
 
         except mwclient.errors.AssertUserFailedError:
@@ -138,7 +138,7 @@ class UploadFile:
             return self._err(exc.code, exc.info)
 
         except Exception as exc:
-            logger.exception(f"Unexpected error uploading {self.file_name}")
+            logger.exception("Unexpected error uploading %s", self.file_name)
             return self._err("unexpected", str(exc))
 
     def _site_upload(self) -> dict:
@@ -201,8 +201,11 @@ class UploadFile:
     def _upload_with_retry(self) -> dict:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
-                f"Rate limited on upload attempt {attempt}/{len(_RETRY_DELAYS)} "
-                f"for file '{self.file_name}'. Retrying in {delay}s..."
+                "Rate limited on upload attempt %d/%d for file '%s'. Retrying in %ds...",
+                attempt,
+                len(_RETRY_DELAYS),
+                self.file_name,
+                delay,
             )
             time.sleep(delay)
 

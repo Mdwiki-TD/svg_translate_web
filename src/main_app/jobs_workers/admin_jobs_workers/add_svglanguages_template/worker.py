@@ -101,7 +101,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         _limit = self.limit_items if isinstance(self.limit_items, int) else 0
         if _limit > 0 and len(templates) > _limit:
-            logger.info(f"Job {self.job_id}: limiting from {len(templates)} to {_limit} page")
+            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(templates), _limit)
             return templates[:_limit]
 
         return templates
@@ -236,13 +236,13 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     def process(self) -> AddSvgLanguagesWorkerObject:
         self.site = get_user_site(self.user)
         if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
+            logger.warning("Job %s: No site authentication available", self.job_id)
             self.log_no_site_error()
             return self.result
 
         templates = self._load_templates()
         self.result.summary.total = len(templates)
-        logger.info(f"Job {self.job_id}: Found {len(templates)} templates")
+        logger.info("Job %s: Found %d templates", self.job_id, len(templates))
 
         per_item = self.get_priority(len(templates))
 
@@ -250,11 +250,11 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             if self.is_cancelled():
                 break
 
-            logger.info(f"Job {self.job_id}: Processing {n}/{len(templates)}: {template.title}")
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
             ok = self._process_one(template)
 
             if ok and self.check_cancel_db_periodic():
-                logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
                 break
 
             if n == 1 or n % per_item == 0:
@@ -286,7 +286,7 @@ def add_svglanguages_template_to_templates(
         cancel_event: Threading event for cancellation
         args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info(f"Starting job {job_id}: add {{{{SVGLanguages|...}}}} template to templates pages.")
+    logger.info("Starting job %s: add {{SVGLanguages|...}} template to templates pages.", job_id)
 
     worker = AddSvgSVGLanguagesTemplate(
         job_id=job_id,
