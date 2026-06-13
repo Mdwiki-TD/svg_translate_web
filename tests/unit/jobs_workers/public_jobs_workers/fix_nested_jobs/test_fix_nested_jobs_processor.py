@@ -10,6 +10,8 @@ import pytest
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 
+from ......src.main_app.shared.fix_nested.objects import VerificationResult
+
 
 def _make_processor(filename="File:test.svg", user=None, args=None, cancel_event=None):
     """Factory for FixNestedJobsProcessor with sensible defaults."""
@@ -56,7 +58,7 @@ class TestFixNestedJobsProcessorSteps:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
-        mock_services["verify_fix"].return_value = {"after": 0, "fixed": 2}
+        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 0, "fixed": 2})
 
         result = processor._verify_step()
 
@@ -67,7 +69,7 @@ class TestFixNestedJobsProcessorSteps:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult({"path": "/tmp/test.svg", "nested_tags_before": 2})
-        mock_services["verify_fix"].return_value = {"after": 2, "fixed": 0}
+        mock_services["verify_fix"].return_value = VerificationResult(**{"after": 2, "fixed": 0})
 
         result = processor._verify_step()
 
