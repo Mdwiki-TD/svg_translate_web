@@ -544,7 +544,7 @@ def test_download_main_files_job_detail_page_shows_result_data(admin_jobs_client
     # Create a fake result file
     result_data = {
         "job_id": job.id,
-        "output_path": "/tmp/main_files",
+        "output_path": str(tmp_path / "main_files"),
         "summary": {
             "total": 5,
             "downloaded": 3,
@@ -775,7 +775,7 @@ def test_download_main_files_job_with_partial_results(admin_jobs_client, jobs_db
     # Create a result file with partial results
     result_data = {
         "job_id": job.id,
-        "output_path": "/tmp/main_files",
+        "output_path": str(tmp_path / "main_files"),
         "summary": {
             "total": 10,
             "downloaded": 5,

@@ -35,16 +35,16 @@ def mock_api():
         yield {"down": m_down, "site": m_site, "upload": m_upload}
 
 
-def test_download_svg_file_success(mock_api):
-    mock_api["down"].return_value = {"result": "success", "path": "/tmp/test.svg"}
-    res = download_svg_file("Test.svg", Path("/tmp"))
+def test_download_svg_file_success(mock_api, tmp_path):
+    mock_api["down"].return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
+    res = download_svg_file("Test.svg", tmp_path)
     assert res.ok is True
-    assert res.path == Path("/tmp/test.svg")
+    assert res.path == tmp_path / "test.svg"
 
 
-def test_download_svg_file_fail(mock_api):
+def test_download_svg_file_fail(mock_api, tmp_path):
     mock_api["down"].return_value = {"result": "error"}
-    res = download_svg_file("Test.svg", Path("/tmp"))
+    res = download_svg_file("Test.svg", tmp_path)
     assert res.ok is False
     assert res.error == "download_failed"
 

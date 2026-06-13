@@ -43,17 +43,18 @@ def test_load_database_config(mock_exists):
     assert result.db_password == "test_pass"
 
 
-@patch.dict(os.environ, {"MAIN_DIR": "/tmp/main"})
-def test_get_paths():
+def test_get_paths(tmp_path):
     """Test _get_paths function."""
-    result = _get_paths()
+    main_dir = str(tmp_path / "main")
+    with patch.dict(os.environ, {"MAIN_DIR": main_dir}):
+        result = _get_paths()
 
-    assert isinstance(result, Paths)
-    assert Path(result.svg_data) == Path("/tmp/main/svg_data")
-    assert Path(result.svg_data_thumb) == Path("/tmp/main/svg_data_thumb")
-    assert Path(result.log_dir) == Path("/tmp/main/logs")
-    assert Path(result.fix_nested_data) == Path("/tmp/main/fix_nested_data")
-    assert Path(result.jobs_path) == Path("/tmp/main/svg_jobs")
+        assert isinstance(result, Paths)
+        assert Path(result.svg_data) == Path(f"{main_dir}/svg_data")
+        assert Path(result.svg_data_thumb) == Path(f"{main_dir}/svg_data_thumb")
+        assert Path(result.log_dir) == Path(f"{main_dir}/logs")
+        assert Path(result.fix_nested_data) == Path(f"{main_dir}/fix_nested_data")
+        assert Path(result.jobs_path) == Path(f"{main_dir}/svg_jobs")
 
 
 def test_env_bool():
@@ -120,33 +121,33 @@ def test_load_oauth_config():
     assert result.consumer_secret == "secret"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "FLASK_SECRET_KEY": "test-secret-key",
-        "SESSION_COOKIE_SECURE": "true",
-        "SESSION_COOKIE_HTTPONLY": "true",
-        "SESSION_COOKIE_SAMESITE": "Strict",
-        "STATE_SESSION_KEY": "test-state",
-        "REQUEST_TOKEN_SESSION_KEY": "test-request",
-        "AUTH_COOKIE_NAME": "test-cookie",
-        "AUTH_COOKIE_MAX_AGE": "7200",
-        "MAIN_DIR": "/tmp/test-data",
-    },
-)
-def test_get_settings():
+def test_get_settings(tmp_path):
     """Test get_settings function."""
     # Clear the LRU cache to ensure fresh call
     get_settings.cache_clear()
 
-    settings = get_settings()
+    with patch.dict(
+        os.environ,
+        {
+            "FLASK_SECRET_KEY": "test-secret-key",
+            "SESSION_COOKIE_SECURE": "true",
+            "SESSION_COOKIE_HTTPONLY": "true",
+            "SESSION_COOKIE_SAMESITE": "Strict",
+            "STATE_SESSION_KEY": "test-state",
+            "REQUEST_TOKEN_SESSION_KEY": "test-request",
+            "AUTH_COOKIE_NAME": "test-cookie",
+            "AUTH_COOKIE_MAX_AGE": "7200",
+            "MAIN_DIR": str(tmp_path / "test-data"),
+        },
+    ):
+        settings = get_settings()
 
-    assert isinstance(settings, Settings)
-    assert settings.security.secret_key == "test-secret-key"
-    assert settings.cookie.name == "test-cookie"
-    assert settings.cookie.max_age == 7200
-    assert settings.sessions.state_key == "test-state"
-    assert settings.sessions.request_token_key == "test-request"
+        assert isinstance(settings, Settings)
+        assert settings.security.secret_key == "test-secret-key"
+        assert settings.cookie.name == "test-cookie"
+        assert settings.cookie.max_age == 7200
+        assert settings.sessions.state_key == "test-state"
+        assert settings.sessions.request_token_key == "test-request"
 
     # Clean up cache
     get_settings.cache_clear()
@@ -211,36 +212,36 @@ def test_load_oauth_config_with_defaults():
 
 
 class TestConfig:
-    @patch.dict(
-        os.environ,
-        {
-            "FLASK_SECRET_KEY": "test-secret-key",
-            "OAUTH_MWURI": "https://example.com",
-            "OAUTH_CONSUMER_KEY": "key",
-            "OAUTH_CONSUMER_SECRET": "secret",
-            "MAIN_DIR": "/tmp/test-data",
-        },
-        clear=True,
-    )
-    def test_get_settings_missing_oauth_encryption_key(self):
+    def test_get_settings_missing_oauth_encryption_key(self, tmp_path):
         """Test get_settings raises error when OAuth is enabled but encryption key is missing."""
         get_settings.cache_clear()
-        with pytest.raises(RuntimeError, match="OAUTH_ENCRYPTION_KEY environment variable is required"):
-            get_settings()
+        with patch.dict(
+            os.environ,
+            {
+                "FLASK_SECRET_KEY": "test-secret-key",
+                "OAUTH_MWURI": "https://example.com",
+                "OAUTH_CONSUMER_KEY": "key",
+                "OAUTH_CONSUMER_SECRET": "secret",
+                "MAIN_DIR": str(tmp_path / "test-data"),
+            },
+            clear=True,
+        ):
+            with pytest.raises(RuntimeError, match="OAUTH_ENCRYPTION_KEY environment variable is required"):
+                get_settings()
         get_settings.cache_clear()
 
-    @patch.dict(
-        os.environ,
-        {
-            "FLASK_SECRET_KEY": "test-secret-key",
-            "OAUTH_ENCRYPTION_KEY": "test-key",
-            "MAIN_DIR": "/tmp/test-data",
-        },
-        clear=True,
-    )
-    def test_get_settings_missing_oauth_config(self):
+    def test_get_settings_missing_oauth_config(self, tmp_path):
         """Test get_settings raises error when OAuth is enabled but OAuth config is incomplete."""
         get_settings.cache_clear()
-        with pytest.raises(RuntimeError, match="MediaWiki OAuth configuration is incomplete"):
-            get_settings()
+        with patch.dict(
+            os.environ,
+            {
+                "FLASK_SECRET_KEY": "test-secret-key",
+                "OAUTH_ENCRYPTION_KEY": "test-key",
+                "MAIN_DIR": str(tmp_path / "test-data"),
+            },
+            clear=True,
+        ):
+            with pytest.raises(RuntimeError, match="MediaWiki OAuth configuration is incomplete"):
+                get_settings()
         get_settings.cache_clear()

@@ -5,11 +5,11 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nest
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.fix_nested_file")
-def test_fix_nested_task_success(mock_fix, mock_match):
+def test_fix_nested_task_success(mock_fix, mock_match, tmp_path):
     mock_match.side_effect = [["tag1"], []]
     mock_fix.return_value = True
 
-    files = {"file1.svg": "/tmp/file1.svg"}
+    files = {"file1.svg": str(tmp_path / "file1.svg")}
 
     result = fix_nested_step(files)
 
@@ -20,10 +20,10 @@ def test_fix_nested_task_success(mock_fix, mock_match):
 
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.fix_nested.match_nested_tags")
-def test_fix_nested_task_no_nested(mock_match):
+def test_fix_nested_task_no_nested(mock_match, tmp_path):
     mock_match.return_value = []
 
-    files = {"file1.svg": "/tmp/file1.svg"}
+    files = {"file1.svg": str(tmp_path / "file1.svg")}
 
     result = fix_nested_step(files)
 
