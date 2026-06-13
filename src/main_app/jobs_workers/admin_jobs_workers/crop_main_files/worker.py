@@ -53,19 +53,13 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         args: dict[str, Any] | None = None,
     ) -> None:
         self.site: Site | None = None
-
-        try:
-            self.upload_limit = (
-                int(self.args.get("upload_limit")) if self.args.get("upload_limit") is not None else None
-            )
-        except (ValueError, TypeError):
-            self.upload_limit = None
         self.upload_files = bool(self.args.get("upload_files"))
 
         super().__init__(job_id, user, cancel_event)
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
         self.args = args or {}
         self.result.args = self.args
+        self.upload_limit = self.args.get("upload_limit") or 0
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"

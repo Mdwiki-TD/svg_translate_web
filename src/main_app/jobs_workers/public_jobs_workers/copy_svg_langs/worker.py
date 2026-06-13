@@ -52,8 +52,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.args = args or {}
         self.result.args = self.args
 
-        self.upload_limit = args.get("upload_limit") if args else 0
+        self.upload_limit = self.args.get("upload_limit") or 0
         self.title = self.args.get("title")
+
         self.output_dir = self._compute_output_dir(self.title)
         self.files_dict: list[str] = []
         self.site: Site | None = None
