@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import re
-from unittest.mock import MagicMock
-
 from src.main_app.app_routes.admin_routes import settings
 
 KEY_PATTERN = r"[a-z][a-z0-9_]{0,189}"
@@ -54,6 +52,6 @@ def test_settings_create_key_max_length():
 
 def test_SettingsRoutes_init_registers_routes():
     """Test SettingsRoutes registers all required routes."""
-    mock_bp = MagicMock()
+    # mock_bp = MagicMock()
 
     settings.SettingsRoutes()

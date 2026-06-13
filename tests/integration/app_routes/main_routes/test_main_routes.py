@@ -26,7 +26,7 @@ def test_index(mock_render, app_mock):
         args, kwargs = mock_render.call_args
         assert args[0] == "index.html"
         assert kwargs["form"] == {}
-        assert kwargs["set_titles_limit"] == False
+        assert not kwargs["set_titles_limit"]
 
 
 @patch("src.main_app.app_routes.main_routes.routes.send_from_directory")

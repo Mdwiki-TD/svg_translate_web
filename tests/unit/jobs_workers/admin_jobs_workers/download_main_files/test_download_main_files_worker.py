@@ -378,4 +378,5 @@ def test_entry_point_maps_limit_items(mock_services):
 
         call_args = MockWorker.call_args
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-        assert passed_args["limit_items"] == 123
+        assert isinstance(passed_args, dict)
+        assert passed_args.get("limit_items") == 123

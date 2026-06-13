@@ -317,7 +317,7 @@ class TestVerifyStep:
         mock_services["verify_fix"].assert_not_called()
 
     def test_returns_true_when_tags_fixed(self, mock_services, tmp_path):
-        mock_services["verify_fix"].return_value = VerificationResult(after=0, fixed=5)
+        mock_services["verify_fix"].return_value = VerificationResult(before=0, after=0, fixed=5)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
         result = proc._verify_step()
         assert result is True
@@ -326,7 +326,7 @@ class TestVerifyStep:
         assert proc.result.stages.verify.status == "success"
 
     def test_returns_false_when_no_tags_fixed(self, mock_services, tmp_path):
-        mock_services["verify_fix"].return_value = VerificationResult(after=5, fixed=0)
+        mock_services["verify_fix"].return_value = VerificationResult(before=0, after=5, fixed=0)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
         result = proc._verify_step()
         assert result is False
