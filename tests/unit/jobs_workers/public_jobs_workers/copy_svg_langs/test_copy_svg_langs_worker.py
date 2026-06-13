@@ -143,6 +143,9 @@ class TestCopySvgLangsWorkerEntry:
         assert kwargs["cancel_event"] is cancel_event
 
     def test_worker_entry_args_is_keyword_only(self, mock_worker_class) -> None:
+        with pytest.raises(TypeError):
+            copy_svg_langs_worker_entry(1, None, {"title": "Test.svg"})  # type: ignore
+
         copy_svg_langs_worker_entry(job_id=1, user=None, args={"title": "Test.svg"})
 
         mock_worker_class.assert_called_once_with(

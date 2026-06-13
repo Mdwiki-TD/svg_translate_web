@@ -111,9 +111,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 json.dump(stats_data, f, indent=4, ensure_ascii=False)
 
         except (OSError, TypeError, ValueError) as e:
-            logger.error(f"Error saving json: {e}, path: {str(files_stats_path)}")
+            logger.error(f"Error saving json: {e!s}, path: {files_stats_path!s}")
         except Exception:
-            logger.exception(f"Unexpected error saving json, path: {str(files_stats_path)}")
+            logger.exception(f"Unexpected error saving json, path: {files_stats_path!s}")
 
     def _run_stage(
         self,

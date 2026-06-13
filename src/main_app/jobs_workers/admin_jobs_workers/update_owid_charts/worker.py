@@ -45,7 +45,7 @@ def ensure_int(value: Any) -> int | None:
         return value
     try:
         return int(value)
-    except ValueError:
+    except (TypeError, ValueError):
         pass
     return None
 
@@ -62,7 +62,7 @@ def _parse_timespan(timespan: str) -> tuple[int, int, int] | None:
     try:
         min_t = int(match.group(1))
         max_t = int(match.group(2)) if match.group(2) is not None else min_t
-    except ValueError:
+    except (TypeError, ValueError):
         return None
 
     len_y = max_t - min_t + 1

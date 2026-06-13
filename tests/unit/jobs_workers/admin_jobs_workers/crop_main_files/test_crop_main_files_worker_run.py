@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
     """Mock the services used by worker module."""
 
     # Mock jobs_service
@@ -110,7 +110,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
 
     # Mock settings
     mock_settings = MagicMock()
-    mock_settings.paths.crop_main_files_path = "/tmp/crop_main_files"
+    mock_settings.paths.crop_main_files_path = tmp_path / "crop_main_files"
     mock_settings.other.user_agent = "TestBot/1.0"
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.settings",
@@ -161,7 +161,7 @@ class TestFileProcessingInfo:
         assert "upload_cropped" in info.steps
         assert "update_page" in info.steps
 
-    def test_to_dict(self):
+    def test_to_dict(self, tmp_path):
         """Test to_dict serialization."""
         info = CropFileProcessingInfo(
             template_id=1,
@@ -170,8 +170,8 @@ class TestFileProcessingInfo:
             cropped_filename="File:test (cropped).svg",
             status="completed",
             error=None,
-            downloaded_path=Path("/tmp/test.svg"),
-            cropped_path=Path("/tmp/test_cropped.svg"),
+            downloaded_path=Path(tmp_path / "test.svg"),
+            cropped_path=Path(tmp_path / "test_cropped.svg"),
         )
         info.steps["download"] = {"result": True, "msg": "Downloaded"}
 
@@ -181,8 +181,8 @@ class TestFileProcessingInfo:
         assert result["template_title"] == "Template:Test"
         assert result["status"] == "completed"
 
-        assert result["downloaded_path"] == str(Path("/tmp/test.svg"))
-        assert result["cropped_path"] == str(Path("/tmp/test_cropped.svg"))
+        assert result["downloaded_path"] == str(Path(tmp_path / "test.svg"))
+        assert result["cropped_path"] == str(Path(tmp_path / "test_cropped.svg"))
 
     def test_to_dict_with_none_paths(self):
         """Test to_dict with None paths."""

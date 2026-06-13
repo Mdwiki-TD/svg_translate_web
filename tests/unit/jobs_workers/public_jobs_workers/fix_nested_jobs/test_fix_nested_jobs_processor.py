@@ -53,10 +53,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 
 class TestFixNestedJobsProcessorSteps:
-    def test_verify_step_success(self, mock_services) -> None:
+    def test_verify_step_success(self, mock_services, tmp_path) -> None:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
-        processor.result.file_result = FileResult(path="/tmp/test.svg", nested_tags_before=2)
+        processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_before=2)
+
         mock_services["verify_fix"].return_value = VerificationResult(before=2, after=0, fixed=2)
 
         result = processor._verify_step()
@@ -64,10 +65,11 @@ class TestFixNestedJobsProcessorSteps:
         assert result is True
         assert processor.result.stages.verify.status == "success"
 
-    def test_verify_step_failure_no_tags_fixed(self, mock_services) -> None:
+    def test_verify_step_failure_no_tags_fixed(self, mock_services, tmp_path) -> None:
         processor = _make_processor()
         processor.result.stages.fix.status = "success"
-        processor.result.file_result = FileResult(path="/tmp/test.svg", nested_tags_before=2)
+        processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_before=2)
+
         mock_services["verify_fix"].return_value = VerificationResult(before=2, after=2, fixed=0)
 
         result = processor._verify_step()

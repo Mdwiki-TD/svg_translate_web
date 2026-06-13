@@ -194,7 +194,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     def _run_stage(
         self,
         stage: StageDetail,
-        step_func: Callable[[], dict[str, Any]],  # Accepts a zero-argument callable that returns a dict
+        step_func: Callable[[], bool | None],
     ) -> bool:
         """Run a single stage and update result."""
         stage_name = stage.name
