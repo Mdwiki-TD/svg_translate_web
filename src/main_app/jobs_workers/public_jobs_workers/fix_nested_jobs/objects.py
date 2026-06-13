@@ -1,29 +1,5 @@
 """
 Objects for fix_nested_jobs worker.
-{
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {},
-    "filename": None,
-    "file_result": {
-        "status": "pending",
-        "path": None,
-        "error": None,
-    },
-    "stages": {
-        "download": {"status": "Pending", "message": "Downloading files"},
-        "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
-        "fix": {"status": "Pending", "message": "Fixing nested tags"},
-        "verify": {"status": "Pending", "message": "Verifying fixes"},
-        "upload": {"status": "Pending", "message": "Uploading fixed files"},
-    },
-}
 """
 
 from __future__ import annotations
@@ -71,6 +47,30 @@ class FixNestedJobsWorkerObject(WorkerObject):
     file_result: FileResult = field(default_factory=FileResult)
     stages: Stages = field(default_factory=Stages)
 
+_old_result = {
+    "note": "",
+    "status": "pending",
+    "errors": [],
+    "args": {},
+    "job_id": "self.job_id",
+    "started_at": "datetime.now().isoformat()",
+    "completed_at": None,
+    "cancelled_at": None,
+    "summary": {},
+    "filename": None,
+    "file_result": {
+        "status": "pending",
+        "path": None,
+        "error": None,
+    },
+    "stages": {
+        "download": {"status": "Pending", "message": "Downloading files"},
+        "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
+        "fix": {"status": "Pending", "message": "Fixing nested tags"},
+        "verify": {"status": "Pending", "message": "Verifying fixes"},
+        "upload": {"status": "Pending", "message": "Uploading fixed files"},
+    },
+}
 
 __all__ = [
     "FixNestedJobsWorkerObject",
