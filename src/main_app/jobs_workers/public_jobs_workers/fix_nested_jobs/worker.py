@@ -12,6 +12,13 @@ from typing import Any
 
 from mwclient.client import Site
 
+from ....shared.fix_nested.objects import (
+    DownloadResult,
+    DetectionResult,
+    VerificationResult,
+    UploadResult,
+)
+
 from ....api_services import get_user_site
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
@@ -65,7 +72,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         temp_dir = Path(tempfile.gettempdir())
 
-        download_result = download_svg_file(self.filename, temp_dir)
+        download_result: DownloadResult = download_svg_file(self.filename, temp_dir)
 
         if download_result.ok:
             self._update_step("download", "success", "Downloaded success")
@@ -101,7 +108,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self._update_step("analyze", "Failed", "File not found")
             return False
 
-        detect_result = detect_nested_tags(file_path)
+        detect_result: DetectionResult = detect_nested_tags(file_path)
 
         self.result.file_result.nested_tags_before = detect_result.count
         self.result.file_result.nested_tags = detect_result.tags
@@ -141,7 +148,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         file_path = Path(self.result.file_result.path)
         before_count = self.result.file_result.nested_tags_before
-        verify_result = verify_fix(file_path, before_count)
+        verify_result: VerificationResult = verify_fix(file_path, before_count)
 
         self.result.file_result.nested_tags_after = verify_result.after
         self.result.file_result.nested_tags_fixed = verify_result.fixed
@@ -175,7 +182,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         file_path = Path(self.result.file_result.path)
         tags_fixed = self.result.file_result.nested_tags_fixed
 
-        upload_result = upload_fixed_svg(
+        upload_result: UploadResult = upload_fixed_svg(
             self.filename,
             file_path,
             tags_fixed,
