@@ -68,19 +68,6 @@ class CropMainFilesSummary:
 @dataclass
 class CropMainFilesWorkerObject(StandardAdminWorkerObject):
     """
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "pages_processed": [],
-    "pages_uploaded": [],
-    "pages_updated": [],
-    "pages_skipped": [],
-    "pages_failed": [],
     """
 
     summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)
@@ -92,6 +79,31 @@ class CropMainFilesWorkerObject(StandardAdminWorkerObject):
     pages_failed: list[dict[str, Any]] = field(default_factory=list)
     pages_errors: list[dict[str, Any]] = field(default_factory=list)
 
+
+_old_result = {
+    "note": "",
+    "status": "pending",
+    "errors": [],
+    "args": {},
+    "job_id": "self.job_id",
+    "started_at": "datetime.now().isoformat()",
+    "completed_at": None,
+    "cancelled_at": None,
+    "summary": {
+        "total": 0,
+        "processed": 0,
+        "cropped": 0,
+        "uploaded": 0,
+        "updated": 0,
+        "skipped": 0,
+        "failed": 0,
+    },
+    "pages_processed": [],
+    "pages_uploaded": [],
+    "pages_updated": [],
+    "pages_skipped": [],
+    "pages_failed": [],
+}
 
 __all__ = [
     "CropFileProcessingInfo",
