@@ -6,14 +6,13 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ..shared.fix_nested.objects import DownloadResult
-from . import upload_file
+from .upload_bot import upload_file
 from .utils import download_one_file
 
 logger = logging.getLogger(__name__)
 
 
-def download_svg_file(filename: str, temp_dir: Path) -> DownloadResult:
+def download_svg_file(filename: str, temp_dir: Path) -> dict[str, Any]:
     """Download SVG file and return file path or error info."""
     logger.info(f"Downloading file: {filename}")
 
@@ -25,16 +24,18 @@ def download_svg_file(filename: str, temp_dir: Path) -> DownloadResult:
     )
 
     if file_data.get("result") != "success":
-        return DownloadResult(
-            ok=False,
-            error="download_failed",
-            details=file_data,
-        )
-
-    return DownloadResult(
-        ok=True,
-        path=Path(file_data["path"]),
-    )
+        return {
+            "ok": False,
+            "path": None,
+            "error": "download_failed",
+            "details": file_data,
+        }
+    return {
+        "ok": True,
+        "path": Path(file_data["path"]),
+        "error": None,
+        "details": {},
+    }
 
 
 def upload_fixed_svg(
@@ -59,9 +60,15 @@ def upload_fixed_svg(
             "ok": False,
             "error": result.get("error", "upload_failed"),
             "error_details": result.get("error_details", ""),
+            "result": None,
         }
 
-    return {"ok": True, "result": result}
+    return {
+        "ok": True,
+        "error": None,
+        "error_details": None,
+        "result": result,
+    }
 
 
 __all__ = [

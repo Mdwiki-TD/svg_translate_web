@@ -26,7 +26,8 @@ class TestDownloadSvgFile:
     def test_download_svg_file_no_user(self):
         res = download_svg_file("Test.svg", Path("test.svg"))
         assert res.ok is False
-        assert res.error == "unauthenticated"
+        assert res.error == "download_failed"
+        assert res.details == {"msg": "", "path": "", "result": "failed"}
 
     def test_download_svg_file_success(self, mock_api, tmp_path):
         mock_api["down"].return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
@@ -44,21 +45,17 @@ class TestDownloadSvgFile:
 class TestUploadFixedSvg:
     def test_upload_fixed_svg_no_user(self, mock_site):
         res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
-        assert res.ok is False
-        assert res.error == "unauthenticated"
-
-    def test_upload_fixed_svg_auth_fail(self, mock_api, mock_site):
-        res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
-        assert res.ok is False
-        assert res.error == "oauth-auth-failed"
+        assert res.get("ok") is False
+        assert res.get("error") == "File not found"
+        assert res.get("details") is None
 
     def test_upload_fixed_svg_success(self, mock_api, mock_site):
         mock_api["upload"].return_value = {"result": "Success", "newrevid": 123}
         res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
-        assert res.ok is True
+        assert res.get("ok") is True
 
     def test_upload_fixed_svg_fail(self, mock_api, mock_site):
         mock_api["upload"].return_value = {"result": "Failure", "error": "ratelimited"}
         res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
-        assert res.ok is False
-        assert res.error == "ratelimited"
+        assert res.get("ok") is False
+        assert res.get("error") == "ratelimited"

@@ -15,7 +15,6 @@ from mwclient.client import Site
 from ....api_services import download_svg_file, get_user_site, upload_fixed_svg
 from ....shared.fix_nested.objects import (
     DetectionResult,
-    DownloadResult,
     VerificationResult,
 )
 from ....shared.fix_nested.worker import (
@@ -61,14 +60,14 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         temp_dir = Path(tempfile.gettempdir())
 
-        download_result: DownloadResult = download_svg_file(self.filename, temp_dir)
+        download_result = download_svg_file(self.filename, temp_dir)
 
-        if download_result.ok:
+        if download_result.get("ok"):
             self.result.stages.download._update("success", "Downloaded success")
             self.result.file_result = FileResult(
                 success=True,
                 status="success",
-                path=str(download_result.path),
+                path=str(download_result.get("path")),
                 error=None,
             )
             return True
@@ -80,7 +79,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             success=False,
             status="Failed",
             path=None,
-            error=download_result.error or "download_failed",
+            error=download_result.get("error") or "download_failed",
         )
 
         return False

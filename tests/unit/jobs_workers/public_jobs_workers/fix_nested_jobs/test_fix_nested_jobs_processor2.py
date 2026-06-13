@@ -15,7 +15,6 @@ from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects impor
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 from src.main_app.shared.fix_nested.objects import (
     DetectionResult,
-    DownloadResult,
     VerificationResult,
 )
 
@@ -194,7 +193,7 @@ class TestDownloadStep:
     def test_success_populates_file_result(self, mock_services, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=True, path=svg)
+        mock_services["download_svg_file"].return_value = {"ok": True, "path": svg}
         proc = _make_processor()
         result = proc._download_step()
         assert result is True
@@ -202,7 +201,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "success"
 
     def test_failure_populates_file_result_with_error(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=False, error="network_error")
+        mock_services["download_svg_file"].return_value = {"ok": False, "error": "network_error"}
         proc = _make_processor()
         result = proc._download_step()
         assert result is False
@@ -211,7 +210,7 @@ class TestDownloadStep:
         assert proc.result.stages.download.status == "Failed"
 
     def test_failure_defaults_error_when_missing(self, mock_services):
-        mock_services["download_svg_file"].return_value = DownloadResult(ok=False)
+        mock_services["download_svg_file"].return_value = {"ok": False}
         proc = _make_processor()
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
@@ -472,7 +471,7 @@ class TestRun:
             ),
             "download": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
-                return_value=DownloadResult(ok=True, path=svg),
+                return_value={"ok": True, "path": svg},
             ),
             "detect": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",
@@ -524,7 +523,7 @@ class TestRun:
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
         mocks["is_job_cancelled"].return_value = False
-        mocks["download"].return_value = DownloadResult(ok=False, error="timeout")
+        mocks["download"].return_value = {"ok": False, "error": "timeout"}
 
         try:
             proc = _make_processor()

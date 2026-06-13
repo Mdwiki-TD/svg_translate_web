@@ -19,7 +19,6 @@ from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....shared.fix_nested.objects import (
     DetectionResult,
-    DownloadResult,
     VerificationResult,
 )
 from ....shared.fix_nested.worker import (
@@ -50,15 +49,15 @@ def repair_nested_svg_tags(
     with tempfile.TemporaryDirectory() as tmp_dir:
         temp_dir = Path(tmp_dir)
 
-        download: DownloadResult = download_svg_file(filename, temp_dir)
-        if not download.ok:
+        download = download_svg_file(filename, temp_dir)
+        if not download.get("ok"):
             return {
                 "success": False,
                 "message": f"Failed to download file: {filename}",
-                "details": asdict(download),
+                "details": download,
             }
 
-        file_path = download.path
+        file_path = download.get("path")
 
         detect_before: DetectionResult = detect_nested_tags(file_path)
 

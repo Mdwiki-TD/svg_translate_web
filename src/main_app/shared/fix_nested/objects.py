@@ -3,16 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Optional
-
-
-@dataclass
-class DownloadResult:
-    ok: bool
-    path: Optional[Path] = None
-    error: Optional[str] = None
-    details: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -29,7 +19,6 @@ class VerificationResult:
 
 
 __all__ = [
-    "DownloadResult",
     "DetectionResult",
     "VerificationResult",
 ]

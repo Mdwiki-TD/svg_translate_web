@@ -11,7 +11,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
 from src.main_app.shared.fix_nested.objects import (
     DetectionResult,
-    DownloadResult,
     VerificationResult,
 )
 
@@ -79,7 +78,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services):
     filename = "Test.svg"
     user = {"username": "tester"}
 
-    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("tmp/path.svg"))
+    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("tmp/path.svg")}
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
@@ -94,7 +93,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services):
 
 def test_repair_nested_svg_tags_no_tags(mock_fix_nested_services):
     """Test behavior when no nested tags are detected."""
-    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("tmp/path.svg"))
+    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("tmp/path.svg")}
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
     result = worker.repair_nested_svg_tags("Clean.svg", {})
@@ -135,7 +134,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["list_templates"].return_value = templates
 
     # Mock repair utility to succeed
-    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("path"))
+    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("path")}
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=1)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
@@ -154,7 +153,7 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     mock_fix_nested_services["list_templates"].return_value = templates
 
     # Mock download success but no tags found (which counts as handled success=False in repair utility)
-    mock_fix_nested_services["download_svg_file"].return_value = DownloadResult(ok=True, path=Path("path"))
+    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("path")}
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
     worker.fix_nested_main_files_for_templates(job_id=1, user=None)
