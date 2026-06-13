@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """Unit tests for copy_svg_langs objects module."""
 
 from __future__ import annotations

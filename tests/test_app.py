@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
 
-import pytest
 from flask import Flask
 
 
@@ -21,7 +19,7 @@ class TestCreateApp:
 
     def test_app_has_csrf_protection(self, app: Flask):
         """CSRFProtect should be initialized."""
-        from flask_wtf.csrf import CSRFProtect
+        from flask_wtf.csrf import CSRFProtect  # noqa: F401
 
         assert "csrf" in app.extensions
 
