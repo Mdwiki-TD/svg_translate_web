@@ -6,8 +6,8 @@ from typing import Any
 
 def extract_classes_and_functions(file_path):
     """Parse the file and extract only the top-level class and function names."""
-    classes: list[Any] = []
-    functions: list[Any] = []
+    classes: list[str] = []
+    functions: list[str] = []
     try:
         file_content = file_path.read_text(encoding="utf-8")
         tree = ast.parse(file_content)
@@ -20,7 +20,7 @@ def extract_classes_and_functions(file_path):
                 if not node.name.startswith("_"):
                     classes.append(node.name)
 
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 # Ignore functions starting with _
                 if not node.name.startswith("_"):
                     functions.append(node.name)

@@ -5,8 +5,8 @@ from pathlib import Path
 
 def extract_exportable_items(file_path):
     """Parse the file to extract top-level names and check if __all__ already exists."""
-    classes: list[Any] = []
-    functions: list[Any] = []
+    classes: list[str] = []
+    functions: list[str] = []
     has_all = False
 
     try:
@@ -26,7 +26,7 @@ def extract_exportable_items(file_path):
                     classes.append(node.name)
 
             # Extract top-level functions and async functions
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 if not node.name.startswith("_"):
                     functions.append(node.name)
 
