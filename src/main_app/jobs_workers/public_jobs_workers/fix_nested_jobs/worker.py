@@ -12,14 +12,13 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....shared.fix_nested.objects import (
-    DownloadResult,
-    DetectionResult,
-    VerificationResult,
-    UploadResult,
-)
-
 from ....api_services import get_user_site
+from ....shared.fix_nested.objects import (
+    DetectionResult,
+    DownloadResult,
+    UploadResult,
+    VerificationResult,
+)
 from ....shared.fix_nested.worker import (
     detect_nested_tags,
     download_svg_file,
