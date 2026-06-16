@@ -20,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateRecord
-from ...db.services import owid_charts_service
+from ...db.services import delete_chart, owid_charts_service
 from ...db.services.views_service import list_owid_charts_templates
 from ..admin.admins_required import admin_required
 
@@ -218,17 +218,18 @@ def _update_chart() -> ResponseReturnValue:
 def _delete_chart(chart_id: int) -> ResponseReturnValue:
     """Remove a chart entirely."""
     from_popup = request.form.get("from_popup") == "1"
-
+    deleted = False
     try:
-        record = owid_charts_service.delete_chart(chart_id)
+        deleted = delete_chart(chart_id)
     except LookupError as exc:
         logger.exception("Unable to delete chart.")
         flash(str(exc), "warning")
     except Exception:
         logger.exception("Unable to delete chart.")
         flash("Unable to delete chart. Please try again.", "danger")
-    else:
-        flash(f"Chart '{record.title}' removed.", "success")
+
+    if deleted:
+        flash(f"Chart '{chart_id}' removed.", "success")
 
     if from_popup:
         return render_template("admins/popup_action.html")

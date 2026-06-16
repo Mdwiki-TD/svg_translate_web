@@ -98,19 +98,6 @@ def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) ->
 # ── DELETE ───────────────────────────────────────────────
 
 
-@db_guard(default_return=False)
-def delete_slug_redirect(redirect_id: int) -> bool:
-    """
-    Delete a slug redirect record.
-    """
-    record = get_slug_redirect_by_id(redirect_id)
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
-
-
 @db_guard_rollback
 def bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
     """
@@ -128,7 +115,6 @@ __all__ = [
     "list_slug_redirects",
     "get_slug_redirect_by_id",
     "update_slug_redirect",
-    "delete_slug_redirect",
     "count_slug_redirects",
     "bulk_update_slug_redirects",
     "bulk_delete_slug_redirects",

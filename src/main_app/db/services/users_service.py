@@ -12,7 +12,6 @@ from typing import Optional
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import UsersRecord
-from .utils import db_guard
 
 logger = logging.getLogger(__name__)
 
@@ -92,20 +91,8 @@ def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UsersRecord:
 
 # ── DELETE ───────────────────────────────────────────────
 
-
-@db_guard(default_return=False)
-def delete_user(user_id: int) -> bool:
-    """Delete user row. Cascades to user_tokens and admin_users via FK."""
-    if not user_id:
-        return False
-    affected = db.session.query(UsersRecord).filter(UsersRecord.user_id == user_id).delete()
-    db.session.commit()
-    return affected > 0
-
-
 __all__ = [
     "create_user",
-    "delete_user",
     "get_user",
     "get_user_by_username",
     "list_users",

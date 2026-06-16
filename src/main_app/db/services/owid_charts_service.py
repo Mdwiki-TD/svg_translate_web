@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
-from .utils import db_guard, db_guard_rollback
+from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -110,27 +110,11 @@ def update_chart_data(
     return chart
 
 
-# ── DELETE ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def delete_chart(chart_id: int) -> bool:
-    """Delete a chart."""
-    record = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
-
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
-
-
 __all__ = [
     "get_chart_by_id",
     "get_chart_by_slug",
     "add_chart",
     "update_chart_data",
-    "delete_chart",
     "list_charts",
     "list_published_charts",
 ]

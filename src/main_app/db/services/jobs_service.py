@@ -328,21 +328,6 @@ def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
     return True
 
 
-# ── DELETE ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def delete_job(job_id: int, job_type: str) -> bool:
-    """Delete a job by ID and job type efficiently."""
-    affected_rows = (
-        db.session.query(JobRecord)
-        .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
-        .delete(synchronize_session=False)
-    )
-    db.session.commit()
-    return affected_rows > 0
-
-
 __all__ = [
     "create_job",
     "get_job",
@@ -351,7 +336,6 @@ __all__ = [
     "update_job_status",
     "cancel_job_db",
     "is_job_cancelled",
-    "delete_job",
     "get_all_user_jobs_stats",
     "get_user_jobs_stats",
 ]

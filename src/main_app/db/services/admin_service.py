@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import AdminUserRecord
-from .utils import db_guard, db_guard_rollback
+from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -95,26 +95,8 @@ def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRec
     return record
 
 
-# ── DELETE ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def delete_coordinator(coordinator_id: int) -> bool:
-    """
-    Delete a coordinator efficiently.
-
-    Returns True if rows were affected, False otherwise (or on failure).
-    """
-    affected_rows = (
-        db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).delete(synchronize_session=False)
-    )
-    db.session.commit()
-    return affected_rows > 0
-
-
 __all__ = [
     "add_coordinator",
-    "delete_coordinator",
     "get_coordinator_by_id",
     "is_active_coordinator",
     "list_coordinators",

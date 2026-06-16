@@ -16,7 +16,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ...db.exceptions import UserNotFoundError
-from ...db.services import admin_service
+from ...db.services import admin_service, delete_coordinator
 from ..admin.admins_required import admin_required
 
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     try:
         record = admin_service.get_coordinator_by_id(coordinator_id)
         username = record.username
-        admin_service.delete_coordinator(coordinator_id)
+        delete_coordinator(coordinator_id)
     except LookupError as exc:
         logger.exception("Unable to delete coordinator.")
         flash(str(exc), "warning")

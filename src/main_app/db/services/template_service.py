@@ -90,26 +90,10 @@ def update_template_data(
     return template
 
 
-# ── DELETE ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def delete_template(template_id: int) -> bool:
-    """Delete a template."""
-    record = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
-
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
-
-
 __all__ = [
     "get_template_by_title",
     "add_template_data",
     "update_template_data",
     "list_templates",
-    "delete_template",
     "get_template",
 ]
