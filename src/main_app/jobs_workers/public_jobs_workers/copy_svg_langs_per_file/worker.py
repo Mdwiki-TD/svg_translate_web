@@ -305,6 +305,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _process_one(self, title: str) -> None:
         self.result.summary.processed += 1
 
+        output_dir_main = self.output_dir / "files"
         # ----------------------------------------------
         # Stage 4: download SVG files
 
