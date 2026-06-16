@@ -370,6 +370,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             run_after_func=inject_run_after,
         ):
             return self.result
+
+
+        # ----------------------------------------------
+        # TODO: download, nested, inject, upload stages should be run per file
         # ----------------------------------------------
         # Stage 7: Upload
 
