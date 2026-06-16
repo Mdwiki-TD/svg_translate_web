@@ -218,18 +218,15 @@ def _update_chart() -> ResponseReturnValue:
 def _delete_chart(chart_id: int) -> ResponseReturnValue:
     """Remove a chart entirely."""
     from_popup = request.form.get("from_popup") == "1"
-    deleted = False
+
     try:
-        deleted = delete_chart(chart_id)
-    except LookupError as exc:
-        logger.exception("Unable to delete chart.")
-        flash(str(exc), "warning")
+        if delete_chart(chart_id):
+            flash(f"Chart '{chart_id}' removed.", "success")
+        else:
+            flash(f"Chart '{chart_id}' not found.", "warning")
     except Exception:
         logger.exception("Unable to delete chart.")
         flash("Unable to delete chart. Please try again.", "danger")
-
-    if deleted:
-        flash(f"Chart '{chart_id}' removed.", "success")
 
     if from_popup:
         return render_template("admins/popup_action.html")
