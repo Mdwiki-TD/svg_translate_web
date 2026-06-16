@@ -203,7 +203,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             }
         )
 
-
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
 
@@ -470,6 +469,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.save_stats_summary()
 
         return self.result
+
 
 # --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(

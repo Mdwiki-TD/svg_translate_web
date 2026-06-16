@@ -17,7 +17,7 @@ from mwclient.client import Site
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, StageDetail, StepResult
+from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, FileSteps, StageDetail, StepResult
 from .steps import (
     download_step,
     extract_text_step,
@@ -270,13 +270,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # Initialize files_processed
 
-        for title in self.titles:
-            self.result.files_processed[title] = FilesProcessedItem(
-                title=title,
-                status="pending",
-                error=None,
-            )
-
         per_item = self.get_priority(len(self.titles))
 
         for n, title in enumerate(self.titles, start=1):
@@ -305,6 +298,19 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _process_one(self, title: str) -> None:
         self.result.summary.processed += 1
 
+        title_info = FilesProcessedItem(
+            title=title,
+            status="pending",
+            error=None,
+            steps=FileSteps(
+                download=StepResult(result=None, msg=""),
+                nested=StepResult(result=None, msg=""),
+                inject=StepResult(result=None, msg=""),
+                upload=StepResult(result=None, msg=""),
+            ),
+        )
+
+        self.result.files_processed[title] = title_info
         output_dir_main = self.output_dir / "files"
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -334,16 +340,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.download.data["results"] = {}
             self.result.stages.download.data["files"] = []
 
+        download_result = download_step(
+            titles=self.titles,
+            output_dir=output_dir_main,
+            session=self.session,
+            cancel_check=lambda: self._is_cancelled(self.result.stages.download),
+            overwrite_downloads=self.overwrite_downloads,
+            progress_callback=download_progress,
+        )
+
         if not self._run_stage(
             self.result.stages.download,
-            step_func=lambda: download_step(
-                titles=self.titles,
-                output_dir=output_dir_main,
-                session=self.session,
-                cancel_check=lambda: self._is_cancelled(self.result.stages.download),
-                overwrite_downloads=self.overwrite_downloads,
-                progress_callback=download_progress,
-            ),
+            step_func=lambda: download_result,
             run_after_func=download_run_after,
         ):
             return self.result
@@ -379,13 +387,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             return
 
+        fix_nested_result = fix_nested_step(
+            self.files_dict,
+            cancel_check=lambda: self._is_cancelled(self.result.stages.nested),
+            progress_callback=fix_nested_progress,
+        )
+
         if not self._run_stage(
             self.result.stages.nested,
-            step_func=lambda: fix_nested_step(
-                self.files_dict,
-                cancel_check=lambda: self._is_cancelled(self.result.stages.nested),
-                progress_callback=fix_nested_progress,
-            ),
+            step_func=lambda: fix_nested_result,
             run_after_func=nested_run_after,
         ):
             return self.result
@@ -421,18 +431,19 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.inject.data["data"] = {}
             self.result.stages.inject.data["results"] = {}
 
+        inject_result = inject_step(
+            self.files_dict,
+            self.translations,
+            self.output_dir,
+            overwrite=bool(self.args.get("overwrite")),
+        )
+
         if not self._run_stage(
             self.result.stages.inject,
-            step_func=lambda: inject_step(
-                self.files_dict,
-                self.translations,
-                self.output_dir,
-                overwrite=bool(self.args.get("overwrite")),
-            ),
+            step_func=lambda: inject_result,
             run_after_func=inject_run_after,
         ):
             return self.result
-
 
         # ----------------------------------------------
         # Stage 7: Upload
@@ -484,16 +495,17 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.results_summary["upload_result"] = upload_result
             self.log_upload_error("Authentication failed", False, "Failed")
         else:
+            upload_result = upload_step(
+                self.files_to_upload,
+                self.main_title,
+                self.site,
+                cancel_check=lambda: self._is_cancelled(self.result.stages.upload),
+                progress_callback=upload_progress,
+                upload_limit=self.upload_limit,
+            )
             if not self._run_stage(
                 self.result.stages.upload,
-                step_func=lambda: upload_step(
-                    self.files_to_upload,
-                    self.main_title,
-                    self.site,
-                    cancel_check=lambda: self._is_cancelled(self.result.stages.upload),
-                    progress_callback=upload_progress,
-                    upload_limit=self.upload_limit,
-                ),
+                step_func=lambda: upload_result,
                 run_after_func=upload_run_after,
             ):
                 return self.result
