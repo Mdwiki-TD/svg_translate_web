@@ -174,6 +174,35 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # clean up
         self.result.stages.text.data["text"] = ""
 
+    def save_stats_summary(self):
+        stats_data = {
+            "main_title": self.main_title,
+            "translations": self.translations,
+            "titles": self.titles,
+            "files": self.files_dict,
+            "files_dict": self.files_dict,
+            "nested_task_result": self.nested_data,
+            "injects_result": self.inject_data,
+        }
+
+        self._save_files_stats(stats_data)
+
+        # Compile final results for database
+        self.result.results_summary.update(
+            {
+                "total_files": len(self.files_dict),
+                "files_to_upload_count": len(self.files_to_upload),
+                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
+                "injects_result": {
+                    "nested_files": self.inject_data.get("nested_files", 0),
+                    "success": self.inject_data.get("success", 0),
+                    "failed": self.inject_data.get("failed", 0),
+                },
+                "new_translations_count": len(self.translations.get("new", {})),
+                "main_title": self.main_title,
+            }
+        )
+
     def process(self) -> CopySvgLangsPerFileWorkerObject:
         """Execute the full pipeline."""
 
@@ -236,6 +265,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         ):
             return self.result
 
+        # ----------------------------------------------
+        # TODO: download, nested, inject, upload stages should be run per file
+
         # Initialize files_processed
 
         for title in self.titles:
@@ -245,8 +277,33 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 error=None,
             )
 
+        per_item = self.get_priority(len(self.titles))
+
+        for n, title in enumerate(self.titles, start=1):
+            logger.info("Job %s: Processing title %d/%d: %s", self.job_id, n, len(self.titles), title)
+
+            if self.is_cancelled():
+                logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
+                break
+
+            ok = self._process_one(title)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
+                break
+
+            # Save progress after check for cancellation
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
         # ----------------------------------------------
-        # TODO: download, nested, inject, upload stages should be run per file
+        # Stage 8: save stats and mark done
+        self.save_stats_summary()
+
+        return self.result
+
+    def _process_one(self, title: str) -> None:
+        self.result.summary.processed += 1
 
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -439,38 +496,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 run_after_func=upload_run_after,
             ):
                 return self.result
-
-        # ----------------------------------------------
-        # Stage 8: save stats and mark done
-        stats_data = {
-            "main_title": self.main_title,
-            "translations": self.translations,
-            "titles": self.titles,
-            "files": self.files_dict,
-            "files_dict": self.files_dict,
-            "nested_task_result": self.nested_data,
-            "injects_result": self.inject_data,
-        }
-
-        self._save_files_stats(stats_data)
-
-        # Compile final results for database
-        self.result.results_summary.update(
-            {
-                "total_files": len(self.files_dict),
-                "files_to_upload_count": len(self.files_to_upload),
-                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
-                "injects_result": {
-                    "nested_files": self.inject_data.get("nested_files", 0),
-                    "success": self.inject_data.get("success", 0),
-                    "failed": self.inject_data.get("failed", 0),
-                },
-                "new_translations_count": len(self.translations.get("new", {})),
-                "main_title": self.main_title,
-            }
-        )
-
-        return self.result
 
 
 # --- main pipeline --------------------------------------------
