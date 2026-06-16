@@ -1,5 +1,6 @@
 from ..objects import JobData
 from .copy_svg_langs.worker import copy_svg_langs_worker_entry
+from .copy_svg_langs_per_file.worker import copy_svg_langs_per_file_worker_entry
 from .fix_nested_jobs.worker import fix_nested_jobs_worker_entry
 
 jobs_data_public: dict[str, JobData] = {
@@ -9,6 +10,17 @@ jobs_data_public: dict[str, JobData] = {
         job_details_template="jobs_templates/public/copy_svg_langs/details.html",
         job_list_template="jobs_templates/public/copy_svg_langs/list.html",
         job_callable=copy_svg_langs_worker_entry,
+        job_args=[
+            {"key": "copy_svg_langs_upload_limit", "as": "upload_limit"},
+        ],
+        start_confirm_message="",
+    ),
+    "copy_svg_langs_per_file": JobData(
+        job_type="copy_svg_langs_per_file",
+        job_name="Copy SVG Translation",
+        job_details_template="jobs_templates/public/copy_svg_langs_per_file/details.html",
+        job_list_template="jobs_templates/public/copy_svg_langs_per_file/list.html",
+        job_callable=copy_svg_langs_per_file_worker_entry,
         job_args=[
             {"key": "copy_svg_langs_upload_limit", "as": "upload_limit"},
         ],
