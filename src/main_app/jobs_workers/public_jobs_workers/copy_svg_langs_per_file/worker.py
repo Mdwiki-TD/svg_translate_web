@@ -244,6 +244,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             run_after_func=translations_run_after,
         ):
             return self.result
+
+        # ----------------------------------------------
+        # TODO: download, nested, inject, upload stages should be run per file
+
         # ----------------------------------------------
         # Stage 4: download SVG files
 
@@ -372,8 +376,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
 
-        # ----------------------------------------------
-        # TODO: download, nested, inject, upload stages should be run per file
         # ----------------------------------------------
         # Stage 7: Upload
 
