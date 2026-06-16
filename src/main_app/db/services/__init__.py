@@ -5,7 +5,7 @@ from .admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
-from .delete import (
+from .delete_service import (
     delete_chart,
     delete_coordinator,
     delete_job,

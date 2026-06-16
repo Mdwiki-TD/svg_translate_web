@@ -10,9 +10,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.services.delete_service import delete_chart
 from src.main_app.db.services.owid_charts_service import (
     add_chart,
-    delete_chart,
     get_chart_by_id,
     get_chart_by_slug,
     list_charts,

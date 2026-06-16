@@ -11,6 +11,7 @@ import pytest
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
+from src.main_app.db.services import delete_service
 from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 from src.main_app.extensions import db as _db
 
@@ -31,7 +32,7 @@ class _JobsStore:
         return _sqlalchemy_jobs_service.get_job(job_id, job_type)
 
     def delete(self, job_id, job_type):
-        return _sqlalchemy_jobs_service.delete_job(job_id, job_type)
+        return delete_service.delete_job(job_id, job_type)
 
     def cancel(self, job_id, job_type=None):
         return _sqlalchemy_jobs_service.cancel_job_db(job_id, job_type)

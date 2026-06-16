@@ -5,7 +5,7 @@ from typing import Any
 
 from ...extensions import db
 from ..models.settings import SettingRecord
-from .delete import delete_setting
+from .delete_service import delete_setting
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
