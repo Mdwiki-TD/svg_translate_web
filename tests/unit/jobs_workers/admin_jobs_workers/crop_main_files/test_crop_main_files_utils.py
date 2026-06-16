@@ -18,8 +18,8 @@ class TestGenerateCroppedFilename:
 
     def test_filename_with_spaces(self):
         """Test transforming filename with spaces."""
-        result = generate_cropped_filename("File:death rate from obesity, World, 2021.svg")
-        assert result == "File:death rate from obesity, World, 2021 (cropped).svg"
+        result = generate_cropped_filename("File:Death rate from obesity, World, 2021.svg")
+        assert result == "File:Death rate from obesity, World, 2021 (cropped).svg"
 
     def test_filename_with_multiple_dots(self):
         """Test transforming filename with multiple dots."""

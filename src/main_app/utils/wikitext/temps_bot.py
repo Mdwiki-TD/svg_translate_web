@@ -18,7 +18,7 @@ def get_titles_from_wikilinks(text: str) -> list:
     """
     Extracts:
       - all file links from text like:
-        [[File:death rate from obesity, World, 2021 (cropped).svg|link=|thumb|upright=1.6|Death rate from obesity]]
+        [[File:Death rate from obesity, World, 2021 (cropped).svg|link=|thumb|upright=1.6|Death rate from obesity]]
     Returns: titles
     """
     parsed = wtp.parse(text)

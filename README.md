@@ -126,7 +126,7 @@ For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
 
 1. **Login**: Navigate to the application and login using your Wikimedia account (OAuth)
 2. **Start Translation Task**:
-    - Enter a template title (e.g., `Template:OWID/death rate from obesity`)
+    - Enter a template title (e.g., `Template:OWID/Death rate from obesity`)
     - Optionally specify a manual main file title
     - Choose options for overwriting and uploading
     - Click "Start" to begin the translation task
