@@ -48,6 +48,7 @@ def test_add_new_slug_redirect_update_target(mock_db_session):
 
     update_slug_redirect(100, {"redirect_to": "new-target"})
     existing_record = get_slug_redirect_by_id(100)
+    assert existing_record is not None
     assert existing_record.redirect_to == "new-target"
     assert mock_db_session.commit.called
 
