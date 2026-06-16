@@ -22,14 +22,11 @@ def _require_fernet() -> Fernet:
         if _fernet is not None:
             return _fernet
 
-        if not settings.oauth.encryption_key:
+        if not settings.oauth or not settings.oauth.encryption_key:
             raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
-        key_bytes = (
-            settings.oauth.encryption_key.encode()
-            if isinstance(settings.oauth.encryption_key, str)
-            else settings.oauth.encryption_key
-        )
+        enc_key = settings.oauth.encryption_key
+        key_bytes = enc_key.encode() if isinstance(enc_key, str) else enc_key
 
         try:
             _fernet = Fernet(key_bytes)
