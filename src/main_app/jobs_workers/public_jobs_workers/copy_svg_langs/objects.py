@@ -1,28 +1,5 @@
 """
 Objects for copy_svg_langs worker.
-{
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {},
-    "title": None,
-    "stages": {
-        "text": {"status": "Pending", "message": "Getting text"},
-        "titles": {"status": "Pending", "message": "Getting titles"},
-        "translations": {"status": "Pending", "message": "Getting translations"},
-        "download": {"status": "Pending", "message": "Downloading files"},
-        "nested": {"status": "Pending", "message": "Analyze nested files"},
-        "inject": {"status": "Pending", "message": "Injecting translations"},
-        "upload": {"status": "Pending", "message": "Uploading files"},
-    },
-    "results_summary": {},
-    "files_processed": {},
-}
 """
 
 from __future__ import annotations
@@ -49,16 +26,16 @@ class Stages:
             message="Getting text",
         )
     )
-    titles: StageDetail = field(
-        default_factory=lambda: StageDetail(
-            name="titles",
-            message="Getting titles",
-        )
-    )
     translations: StageDetail = field(
         default_factory=lambda: StageDetail(
             name="translations",
             message="Getting translations",
+        )
+    )
+    titles: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="titles",
+            message="Getting titles",
         )
     )
     download: StageDetail = field(
