@@ -53,7 +53,7 @@ def test_upload_cancelled(mock_upload, mock_site):
         "f2": {"file_path": "/p2", "new_languages": 1},
     }
 
-    res = upload_step(files, "Main", site=mock_site, cancel_check=lambda: True)
+    _res = upload_step(files, "Main", site=mock_site, cancel_check=lambda: True)
 
     assert mock_upload.call_count == 0
 
