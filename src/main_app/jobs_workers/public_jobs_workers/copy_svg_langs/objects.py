@@ -26,16 +26,16 @@ class Stages:
             message="Getting text",
         )
     )
-    titles: StageDetail = field(
-        default_factory=lambda: StageDetail(
-            name="titles",
-            message="Getting titles",
-        )
-    )
     translations: StageDetail = field(
         default_factory=lambda: StageDetail(
             name="translations",
             message="Getting translations",
+        )
+    )
+    titles: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="titles",
+            message="Getting titles",
         )
     )
     download: StageDetail = field(
