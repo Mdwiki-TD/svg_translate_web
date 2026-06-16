@@ -17,8 +17,8 @@ def generate_cropped_filename(filename: str) -> str:
     Transform filename to cropped version.
 
     Examples:
-        "File:death rate from obesity, World, 2021.svg"
-        → "File:death rate from obesity, World, 2021 (cropped).svg"
+        "File:Death rate from obesity, World, 2021.svg"
+        → "File:Death rate from obesity, World, 2021 (cropped).svg"
     """
     if filename.startswith("File:"):
         base_name = filename[5:]

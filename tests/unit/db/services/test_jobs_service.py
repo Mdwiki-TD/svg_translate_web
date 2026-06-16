@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.db.models import JobRecord
+from src.main_app.db.services.delete_service import delete_job
 from src.main_app.db.services.jobs_service import (
     create_job,
-    delete_job,
     get_job,
     list_jobs,
     update_job_status,

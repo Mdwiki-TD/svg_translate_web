@@ -10,6 +10,7 @@ import pytest
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.db.models import TemplateRecord
+from src.main_app.db.services import delete_service
 from src.main_app.db.services import template_service as _sqlalchemy_template_service
 from src.main_app.extensions import db as _db
 
@@ -27,7 +28,7 @@ class _TemplatesStore:
         return _sqlalchemy_template_service.update_template_data(template_id, data)
 
     def delete(self, template_id):
-        return _sqlalchemy_template_service.delete_template(template_id)
+        return delete_service.delete_template(template_id)
 
 
 @pytest.fixture

@@ -55,6 +55,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
     mock_service = MagicMock()
     mock_service.list_charts.return_value = []
     monkeypatch.setattr("src.main_app.app_routes.admin_routes.owid_charts.owid_charts_service", mock_service)
+    monkeypatch.setattr("src.main_app.app_routes.admin_routes.owid_charts.delete_chart", mock_service.delete_chart)
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True

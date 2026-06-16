@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class ValueType(StrEnum):
-    BOOLEAN = "boolean"
-    STRING = "string"
-    INTEGER = "integer"
+    boolean = "boolean"
+    string = "string"
+    integer = "integer"
 
 
 class SettingRecord(db.Model):

@@ -1,6 +1,6 @@
 """Tests for users store module."""
 
-from src.main_app.db.services.user_token_service import delete_user_token  # noqa: F401
+from src.main_app.db.services.delete_service import delete_user_token  # noqa: F401
 from src.main_app.db.services.user_token_service import get_user_token  # noqa: F401
 from src.main_app.db.services.user_token_service import (
     UserTokenRecord,

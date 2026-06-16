@@ -67,7 +67,8 @@ def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
     access_token, identity = complete_login(request_token, query_string)
     token_key, token_secret = extract_token_credentials(access_token)
 
-    username = identity.get("username") or identity.get("name")
+    identity_dict: dict[str, Any] = identity if isinstance(identity, dict) else {}
+    username = identity_dict.get("username") or identity_dict.get("name")
     if not username:
         raise OAuthCallbackError("Missing username")
 

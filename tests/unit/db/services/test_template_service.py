@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.db.services import template_service
+from src.main_app.db.services.delete_service import delete_template
 
 
 def test_list_templates_empty():
@@ -74,7 +75,7 @@ def test_delete_template_success():
     data = {"title": "To Delete", "main_file": "delete.svg"}
     record = template_service.add_template_data(data)
 
-    result = template_service.delete_template(record.id)
+    result = delete_template(record.id)
 
     assert result is True
     assert len(template_service.list_templates()) == 0
@@ -82,7 +83,7 @@ def test_delete_template_success():
 
 def test_delete_template_not_found_raises_lookup_error():
     """Test that deleting a non-existent template raises LookupError."""
-    result = template_service.delete_template(999)
+    result = delete_template(999)
     assert result is False
 
 

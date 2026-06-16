@@ -5,6 +5,7 @@ from typing import Any
 
 from ...extensions import db
 from ..models.settings import SettingRecord
+from .delete_service import delete_setting
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -76,20 +77,6 @@ def get_all_settings_ready() -> dict[str, Any]:
 def get_setting_by_key(key: str) -> SettingRecord:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-
-
-# ── DELETE ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def delete_setting(key: str) -> bool:
-    """delete a setting by key."""
-    record = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-    if record:
-        db.session.delete(record)
-        db.session.commit()
-        return True
-    return False
 
 
 @db_guard(default_return=False)
@@ -197,7 +184,6 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
 __all__ = [
     "get_setting_by_key",
     "get_all_settings_raw",
-    "delete_setting",
     "update_setting",
     "create_setting",
     "settings_update_form",

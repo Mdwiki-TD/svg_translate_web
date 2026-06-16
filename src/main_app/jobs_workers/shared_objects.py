@@ -39,27 +39,6 @@ class Summary:
 
 @dataclass
 class WorkerObject:
-    """
-    "note": "",
-    "status": "pending",
-    "job_id": self.job_id,
-
-    "started_at": datetime.now().isoformat(),
-    "completed_at": None,
-    "cancelled_at": None,
-    "last_update": None,
-    "failed_at": None,
-
-    "errors": [],
-    "args": {},
-
-    "pages_processed": [],
-    "pages_uploaded": [],
-    "pages_updated": [],
-    "pages_skipped": [],
-    "pages_failed": [],
-    """
-
     note: Optional[str] = None
     status: str = "pending"
     job_id: int = 0

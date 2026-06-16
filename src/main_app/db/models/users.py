@@ -130,15 +130,15 @@ class UserTokenRecord(db.Model):
     OAuth credentials — child of users table.
 
     CREATE TABLE IF NOT EXISTS user_tokens (
-      user_id int NOT NULL,
-      access_token varbinary(1024) NOT NULL,
-      access_secret varbinary(1024) NOT NULL,
-      created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      last_used_at datetime DEFAULT NULL,
-      rotated_at datetime DEFAULT NULL,
-      PRIMARY KEY (user_id),
-      CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`)
+        user_id int NOT NULL,
+        access_token varbinary(1024) NOT NULL,
+        access_secret varbinary(1024) NOT NULL,
+        created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        last_used_at datetime DEFAULT NULL,
+        rotated_at datetime DEFAULT NULL,
+        PRIMARY KEY (user_id),
+        CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`)
         REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
     )
     """

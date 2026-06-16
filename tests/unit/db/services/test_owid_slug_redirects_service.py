@@ -5,10 +5,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
+from src.main_app.db.services.delete_service import delete_slug_redirect
 from src.main_app.db.services.owid_slug_redirects_service import (
     add_new_slug_redirect,
     count_slug_redirects,
-    delete_slug_redirect,
     get_slug_redirect_by_id,
     list_slug_redirects,
     update_slug_redirect,
@@ -48,6 +48,7 @@ def test_add_new_slug_redirect_update_target(mock_db_session):
 
     update_slug_redirect(100, {"redirect_to": "new-target"})
     existing_record = get_slug_redirect_by_id(100)
+    assert existing_record is not None
     assert existing_record.redirect_to == "new-target"
     assert mock_db_session.commit.called
 
