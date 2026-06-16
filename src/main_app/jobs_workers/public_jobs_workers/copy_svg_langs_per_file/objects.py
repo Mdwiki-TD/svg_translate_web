@@ -89,7 +89,6 @@ class FilesProcessedItem:
 
 @dataclass
 class CopySvgLangsPerFileWorkerObject(StandardAdminWorkerObject):
-    summary: dict[str, Any] = field(default_factory=dict)
     title: Optional[str] = None
     stages: Stages = field(default_factory=Stages)
     results_summary: dict[str, Any] = field(default_factory=dict)
