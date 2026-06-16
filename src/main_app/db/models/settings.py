@@ -13,10 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class ValueType(StrEnum):
-    """
-    LookupError: 'integer' is not among the defined enum values. Enum name: valuetype. Possible values: BOOLEAN, STRING, INTEGER
-    """
-
     boolean = "boolean"
     string = "string"
     integer = "integer"

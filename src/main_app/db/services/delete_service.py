@@ -25,7 +25,7 @@ def delete_record_by_pk(model: Type[db.Model], pk_value: Any) -> bool:  # type: 
     Generic helper to delete a record by its primary key.
     Returns True if deleted, False otherwise.
     """
-    if not pk_value:
+    if pk_value is None:
         return False
 
     try:
