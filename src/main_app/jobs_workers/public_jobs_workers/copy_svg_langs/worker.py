@@ -192,10 +192,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if not self._run_stage(
             self.result.stages.text,
             step_func=self._extract_step,
+            run_after_func=self.text_run_after,
         ):
             return self.result
-
-        self.text_run_after()
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
