@@ -20,7 +20,7 @@ from ..models import (
 logger = logging.getLogger(__name__)
 
 
-def delete_record_by_pk(model: Type[db.Model], pk_value: Any) -> bool: # type: ignore
+def delete_record_by_pk(model: Type[db.Model], pk_value: Any) -> bool:  # type: ignore
     """
     Generic helper to delete a record by its primary key.
     Returns True if deleted, False otherwise.

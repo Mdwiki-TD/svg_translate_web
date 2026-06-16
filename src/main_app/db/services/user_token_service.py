@@ -116,8 +116,6 @@ def upsert_user_token(user_id: int, access_key: str, access_secret: str) -> User
     return orm_obj
 
 
-# ── DELETE ───────────────────────────────────────────────
-
 __all__ = [
     "upsert_user_token",
     "get_user_token",

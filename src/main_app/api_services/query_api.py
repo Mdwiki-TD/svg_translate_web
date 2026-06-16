@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_template_pages(
-    title,
+    title: str,
     site: Site,
     namespace: str = "*",
 ) -> list[str]:
@@ -31,7 +31,7 @@ def get_template_pages(
     query_pages = query_data.get("pages", {})
 
     # { "pageid": 2973452, "ns": 100, "title": "title" }
-    pages = [x["title"] for x in query_pages]
+    pages: list[str] = [x["title"] for x in query_pages]
     # ---
     logger.info(f"find {len(pages)} pages.")
     # ---
@@ -57,7 +57,7 @@ def is_pages_exists(
         for _, kk in query_pages.items():
             title = kk.get("title", "")
             if title:
-                original_title = normalized.get(title, title)
+                original_title = normalized.get(title) or title
                 result[original_title] = "missing" not in kk
 
     return result
@@ -66,7 +66,7 @@ def is_pages_exists(
 def resolve_redirects(
     titles: list[str],
     site: Site,
-) -> dict[str, bool]:
+) -> dict[str, dict[str, str]]:
     normalized: dict[str, Any] = {}
     from_to: dict[str, Any] = {}
 

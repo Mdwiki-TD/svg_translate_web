@@ -75,7 +75,7 @@ class BaseObjectsJobWorker(ABC):
         It should check for cancellation via self.cancel_event periodically.
 
         Returns:
-            The populated result dictionary
+            The populated result WorkerObject
         """
         ...
 
@@ -85,6 +85,7 @@ class BaseObjectsJobWorker(ABC):
         Returns:
             True to continue with processing, False to abort
         """
+
         try:
             update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             self.result.status = "running"
@@ -122,6 +123,7 @@ class BaseObjectsJobWorker(ABC):
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 
     def _save_progress(self, insert_last_update: bool = True) -> None:
+
         if insert_last_update:
             self.result.last_update = datetime.now().isoformat()
         result = self.result.to_json()
@@ -175,6 +177,7 @@ class BaseObjectsJobWorker(ABC):
 
     def _mark_as_cancelled_in_result(self) -> None:
         """Standardize the result dictionary for a cancelled job."""
+
         self.result.status = "cancelled"
         if self.result.cancelled_at is None:
             self.result.cancelled_at = datetime.now().isoformat()
@@ -209,11 +212,13 @@ class BaseObjectsJobWorker(ABC):
 
     def log_errors(self, error: str, error_type: str = "") -> None:
         """ """
+
         if error:
             self.result.errors.append({"error": error, "error_type": error_type})
 
     def log_no_site_error(self) -> None:
         """ """
+
         self.result.status = "failed"
         self.result.failed_at = datetime.now().isoformat()
         self.log_errors("No authenticated user site available.")
@@ -232,6 +237,7 @@ class BaseObjectsJobWorker(ABC):
         try:
             # Pre-processing setup
             if not self.before_run():
+
                 return self.result.to_json()
 
             # Main processing
