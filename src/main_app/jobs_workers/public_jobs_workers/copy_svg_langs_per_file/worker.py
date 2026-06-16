@@ -17,7 +17,7 @@ from mwclient.client import Site
 from ....api_services import create_commons_session, get_user_site
 from ....config import settings
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, StageDetail, StepResult
+from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, StageDetail, StepResult
 from .steps import (
     download_step,
     extract_text_step,
@@ -46,7 +46,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.user: dict[str, Any] = user
 
         super().__init__(job_id, user, cancel_event)
-        self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
+        self.result: CopySvgLangsPerFileWorkerObject = CopySvgLangsPerFileWorkerObject()
         self.result.job_id = self.job_id
         self.args = args or {}
         self.result.args = self.args
@@ -174,7 +174,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # clean up
         self.result.stages.text.data["text"] = ""
 
-    def process(self) -> CopySvgLangsWorkerObject:
+    def process(self) -> CopySvgLangsPerFileWorkerObject:
         """Execute the full pipeline."""
 
         self.session = create_commons_session(settings.other.user_agent)

@@ -1,0 +1,55 @@
+{% extends "jobs_templates/base_list_public.html" %}
+
+{% set hide_start_button = '1' %}
+
+{% block list_info %}
+<form method="post" action="{{ url_for('public_jobs.start_job', job_type=job_type) }}"
+    class="row gy-2 gx-3 align-items-center mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="col-sm-12 col-md-4">
+        <label for="title" class="form-label">Template Title</label>
+        <input type="text" class="form-control wiki-autocomplete" id="title" name="title"
+            value="{{ form.title if form and form.title else 'Template:OWID/Death rate from obesity'}}" required>
+    </div>
+    <div class="col-sm-12 col-md-3">
+        <label for="manual_main_title" class="form-label">Manual Main File Title (optional)</label>
+        <input type="text" class="form-control" id="manual_main_title" name="manual_main_title"
+            value="{{ form.manual_main_title if form and form.manual_main_title else '' }}"
+            placeholder="File:Example.svg">
+    </div>
+    <div class="col-6 col-md-3 col-sm-12">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="z" id="overwrite" name="overwrite"
+                        {{ 'checked' if not form or form.overwrite == "z" else '' }}>
+                    <label class="form-check-label" for="overwrite">
+                        Overwrite Existing translations
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="1" id="overwrite_downloads" name="overwrite_downloads"
+                        {{ 'checked' if form and form.overwrite_downloads == "1" else '' }}>
+                    <label class="form-check-label" for="overwrite_downloads">
+                        Overwrite download files
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" value="z" id="upload" name="upload"
+                        {{ 'checked' if not form or form.upload == "z" else '' }}>
+                    <label class="form-check-label" for="upload">
+                        Upload Files
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-outline-primary w-100">Start</button>
+    </div>
+</form>
+{% endblock %}
