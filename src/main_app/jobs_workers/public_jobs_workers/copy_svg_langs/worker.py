@@ -51,15 +51,20 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.args = args or {}
         self.result.args = self.args
 
-        self.upload_limit = self.args.get("upload_limit") or 0
+        self.upload_done = 0
         self.title = self.args.get("title")
+        self.overwrite_downloads = bool(self.args.get("overwrite_downloads"))
+        self.overwrite_translations = bool(self.args.get("overwrite"))
+        self.limit_items = self.args.get("limit_items") or 0
+
+        upload_limit = self.args.get("upload_limit") or 0
+        self.upload_limit = upload_limit if isinstance(upload_limit, int) else 0
 
         self.output_dir = self._compute_output_dir(self.title)
         self.files_dict: list[str] = []
         self.site: Site | None = None
         self.session: requests.Session | None = None
 
-        self.overwrite_downloads = bool(self.args.get("overwrite_downloads"))
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
@@ -73,14 +78,29 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "copy_svg_langs"
 
+    def _apply_limits(self, titles: list[str]) -> list[str]:
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
+        if _limit > 0 and len(titles) > _limit:
+            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
+            return titles[:_limit]
+
+        return titles
+
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
             return None
+
         name = Path(title).name
         slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
         slug = slug.replace(" ", "_").lower()
         out = Path(settings.paths.svg_data) / slug
         out.mkdir(parents=True, exist_ok=True)
+
+        out_translated = out / "translated"
+        out_translated.mkdir(parents=True, exist_ok=True)
+
+        out_dir_main = out / "files"
+        out_dir_main.mkdir(parents=True, exist_ok=True)
 
         return out
 
@@ -115,16 +135,57 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         except Exception:
             logger.exception(f"Unexpected error saving json, path: {files_stats_path!s}")
 
+    def _extract_titles_step(self) -> bool:
+        stage = self.result.stages.titles
+
+        if self.is_cancelled():
+            stage.status = "Cancelled"
+            return False
+
+        stage.status = "Running"
+        self._save_progress()
+
+        try:
+            step_result = extract_titles_step(
+                self.text,
+                manual_main_title=self.args.get("manual_main_title"),
+            )
+
+        except Exception as e:
+            logger.exception("Error in stage titles")
+            stage.status = "Failed"
+            stage.message = str(e)
+            self.result.status = "failed"
+
+            return False
+
+        if step_result.get("message"):
+            stage.message = step_result["message"]
+
+        if step_result.get("success"):
+            stage.status = "Completed"
+
+            self.main_title = step_result["main_title"]
+            self.titles = list(step_result["titles"])
+            self.titles.sort()
+
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error", "Unknown error")
+        self.result.status = "failed"
+        return False
+
     def _run_stage(
         self,
         stage: StageDetail,
-        step_func: Callable[[], dict[str, Any]],  # Accepts a zero-argument callable that returns a dict
+        step_func: Callable[[], dict[str, Any]],
         run_after_func: Callable[[], None] | None = None,
     ) -> bool:
         """Run a single stage and update result."""
         stage_name = stage.name
 
-        if self._is_cancelled(stage):
+        if self.is_cancelled():
             stage.status = "Cancelled"
             return False
 
@@ -134,45 +195,96 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         try:
             # Call the lambda / callback directly without passing args
             step_result = step_func()
-            stage.data = step_result
-
-            if step_result.get("message"):
-                stage.message = step_result["message"]
-
-            if step_result.get("success"):
-                stage.status = "Completed"
-                if "summary" in step_result and not stage.message:
-                    summary = step_result["summary"]
-                    if isinstance(summary, dict):
-                        stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
-
-                if run_after_func:
-                    run_after_func()
-                return True
-            else:
-                stage.status = "Failed"
-                stage.message = step_result.get("error", "Unknown error")
-                self.result.status = "failed"
-                return False
 
         except Exception as e:
             logger.exception(f"Error in stage {stage_name}")
             stage.status = "Failed"
             stage.message = str(e)
             self.result.status = "failed"
+
+            return False
+        stage.data = step_result
+
+        if step_result.get("message"):
+            stage.message = step_result["message"]
+
+        if step_result.get("success"):
+            stage.status = "Completed"
+            if "summary" in step_result and not stage.message:
+                summary = step_result["summary"]
+                if isinstance(summary, dict):
+                    stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
+
+            if run_after_func:
+                run_after_func()
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error", "Unknown error")
+        self.result.status = "failed"
+        return False
+
+    def _extract_translations_step(self) -> bool | None:
+        stage = self.result.stages.translations
+        stage.status = "Running"
+
+        try:
+            step_result = extract_translations_step(
+                self.main_title,
+                self.output_dir / "files",
+            )
+        except Exception as e:
+            logger.exception("Error in stage translations")
+            stage.status = "Failed"
+            stage.message = str(e)
+            self.result.status = "failed"
             return False
 
-    def _extract_step(self) -> bool | None:
-        data = extract_text_step(
-            self.title,
-            self.site,
-        )
-        return data
+        new_translations = step_result.get("translations", {})
 
-    def text_run_after(self) -> None:
-        self.text = self.result.stages.text.data["text"]
-        # clean up
-        self.result.stages.text.data["text"] = ""
+        if step_result.get("success") and new_translations:
+            stage.status = "Completed"
+            self.translations = new_translations
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error") or step_result.get("message") or "Unknown error"
+        self.result.status = "failed"
+
+        return False
+
+    def _extract_text_step(self) -> bool | None:
+        stage = self.result.stages.text
+        stage.status = "Running"
+
+        if self.is_cancelled():
+            stage.status = "Cancelled"
+            return False
+
+        try:
+            step_result = extract_text_step(
+                self.title,
+                self.site,
+            )
+        except Exception as e:
+            logger.exception("Error in stage text")
+            stage.status = "Failed"
+            stage.message = str(e)
+            self.result.status = "failed"
+            return False
+
+        text = step_result.get("text", "")
+
+        if step_result.get("success") and text:
+            stage.status = "Completed"
+            self.text = text
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error") or "Unknown error"
+        self.result.status = "failed"
+
+        return False
 
     def save_stats_summary(self) -> None:
         stats_data = {
@@ -205,76 +317,46 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
-
-        self.session = create_commons_session(settings.other.user_agent)
-        self.site = get_user_site(self.user)
-
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"
             return self.result
 
+        self.site = get_user_site(self.user)
+        if not self.site:
+            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
+            self.result.results_summary["upload_result"] = upload_result
+            self.log_upload_error("Authentication failed", False, "Failed")
+            self.log_no_site_error()
+            # ----------------------------------------------
+            # Stage 8: save stats and mark done
+            self.save_stats_summary()
+
+            return self.result
+
+        self.session = create_commons_session(settings.other.user_agent)
         self.result.title = self.title
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        if not self._run_stage(
-            self.result.stages.text,
-            step_func=self._extract_step,
-            run_after_func=self.text_run_after,
-        ):
+        self._save_progress()
+
+        if not self._extract_text_step():
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
         # extract titles runs before extract_translations because it returns self.main_title
         # which is used in extract_translations
-        def titles_run_after() -> None:
-            titles_data = self.result.stages.titles.data
-            self.main_title = titles_data["main_title"]
-            self.titles = list(titles_data["titles"])
 
-            # clean up
-            self.result.stages.titles.data["titles"] = []
-
-        if not self._run_stage(
-            self.result.stages.titles,
-            step_func=lambda: extract_titles_step(
-                self.text,
-                manual_main_title=self.args.get("manual_main_title"),
-            ),
-            run_after_func=titles_run_after,
-        ):
+        if not self._extract_titles_step():
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Extract Translations
-        output_dir_main = self.output_dir / "files"
-        output_dir_main.mkdir(parents=True, exist_ok=True)
 
-        def translations_run_after() -> None:
-            data = self.result.stages.translations.data
-            self.translations = data["translations"]
-            # self.result.stages.translations.message = data["message"]
-
-        if not self._run_stage(
-            self.result.stages.translations,
-            step_func=lambda: extract_translations_step(
-                self.main_title,
-                output_dir_main,
-            ),
-            run_after_func=translations_run_after,
-        ):
+        if not self._extract_translations_step():
             return self.result
-
-        # Initialize files_processed
-
-        for title in self.titles:
-            self.result.files_processed[title] = FilesProcessedItem(
-                title=title,
-                status="pending",
-                error=None,
-            )
 
         # ----------------------------------------------
         # Stage 4: download SVG files
@@ -304,11 +386,22 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.stages.download.data["results"] = {}
             self.result.stages.download.data["files"] = []
 
+        # Initialize files_processed
+
+        title_to_work = self._apply_limits(self.titles)
+
+        for title in title_to_work:
+            self.result.files_processed[title] = FilesProcessedItem(
+                title=title,
+                status="pending",
+                error=None,
+            )
+
         if not self._run_stage(
             self.result.stages.download,
             step_func=lambda: download_step(
-                titles=self.titles,
-                output_dir=output_dir_main,
+                titles=title_to_work,
+                output_dir=self.output_dir / "files",
                 session=self.session,
                 cancel_check=lambda: self._is_cancelled(self.result.stages.download),
                 overwrite_downloads=self.overwrite_downloads,
@@ -397,7 +490,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 self.files_dict,
                 self.translations,
                 self.output_dir,
-                overwrite=bool(self.args.get("overwrite")),
+                overwrite=self.overwrite_translations,
             ),
             run_after_func=inject_run_after,
         ):
@@ -405,7 +498,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 7: Upload
 
-        def upload_progress(index: int, total: int, msg: str) -> None:
+        def upload_progress(index: int) -> None:
             if index % 10 == 0:
                 self._save_progress()
 
@@ -446,25 +539,26 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             upload_result = {"done": 0, "not_done": len(self.files_to_upload), "skipped": True}
             self.result.results_summary["upload_result"] = upload_result
             self.log_upload_error("Upload disabled", None, "Skipped")
+            # ----------------------------------------------
+            # Stage 8: save stats and mark done
+            self.save_stats_summary()
 
-        elif not self.site:
-            upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
-            self.result.results_summary["upload_result"] = upload_result
-            self.log_upload_error("Authentication failed", False, "Failed")
-        else:
-            if not self._run_stage(
-                self.result.stages.upload,
-                step_func=lambda: upload_step(
-                    self.files_to_upload,
-                    self.main_title,
-                    self.site,
-                    cancel_check=lambda: self._is_cancelled(self.result.stages.upload),
-                    progress_callback=upload_progress,
-                    upload_limit=self.upload_limit,
-                ),
-                run_after_func=upload_run_after,
-            ):
-                return self.result
+            return self.result
+
+        # Start uploading
+        if not self._run_stage(
+            self.result.stages.upload,
+            step_func=lambda: upload_step(
+                self.files_to_upload,
+                self.main_title,
+                self.site,
+                cancel_check=lambda: self._is_cancelled(self.result.stages.upload),
+                progress_callback=upload_progress,
+                upload_limit=self.upload_limit,
+            ),
+            run_after_func=upload_run_after,
+        ):
+            return self.result
 
         # ----------------------------------------------
         # Stage 8: save stats and mark done

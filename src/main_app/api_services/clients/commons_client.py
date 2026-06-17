@@ -8,6 +8,7 @@ download functions used across the application.
 from __future__ import annotations
 
 import logging
+import time
 from urllib.parse import quote
 
 import requests
@@ -80,7 +81,51 @@ def download_commons_file_core(
     return response.content
 
 
+def download_file_rate_limit(
+    filename: str,
+    session: requests.Session,
+    timeout: int = 60,
+    max_attempts: int = 5,
+) -> bytes | None:
+    """
+    Download a file from Wikimedia Commons and return raw content.
+    """
+    # Normalize filename: convert spaces to underscores for URL
+    normalized_name = filename.replace(" ", "_")
+    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
+
+    attempts = 0
+    while attempts < max_attempts:
+        try:
+            response = session.get(url, timeout=timeout, allow_redirects=True)
+
+            # If successful, return the text content immediately
+            if response.status_code == 200:
+                return response.content
+
+            # Handle Rate Limiting (Error 429)
+            elif response.status_code == 429:
+                wait_time = int(response.headers.get("Retry-After", 5))
+                logger.error(f"Hit 429 (Rate Limit). Attempt {attempts + 1}/{max_attempts}. Waiting {wait_time}s...")
+                time.sleep(wait_time)
+
+            # Handle other HTTP errors (e.g., 500, 503)
+            else:
+                response.raise_for_status()
+
+        except requests.RequestException as e:
+            # Handle network failures, timeouts, etc.
+            logger.error(f"🔌 Connection error on attempt {attempts + 1}/{max_attempts}: {e}. Retrying in 2s...")
+            time.sleep(2)
+
+        attempts += 1
+
+    # raise if all 5 attempts failed
+    return None
+
+
 __all__ = [
     "download_commons_file_core",
+    "download_file_rate_limit",
     "create_commons_session",
 ]

@@ -262,13 +262,13 @@ def test_something(self, mock_services: MockServices):
 from unittest.mock import patch
 
 class TestDownloadCommonsSvgs:
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
+    @patch("src.main_app.api_services.utils.download_file_utils.download_file_rate_limit")
     def test_download_single_file(self, mock_download_core, temp_output_dir):
         mock_download_core.return_value = b"<svg>content</svg>"
         result = download_commons_svgs(["Example.svg"], temp_output_dir)
         assert len(result) == 1
 
-    @patch("src.main_app.api_services.utils.download_file_utils.download_commons_file_core")
+    @patch("src.main_app.api_services.utils.download_file_utils.download_file_rate_limit")
     def test_download_handles_network_error(self, mock_download_core, temp_output_dir):
         import requests
         mock_download_core.side_effect = requests.exceptions.RequestException("Network error")
@@ -287,7 +287,7 @@ from unittest.mock import MagicMock
 def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.api_services.utils.download_file_utils.download_commons_file_core",
+        "src.main_app.api_services.utils.download_file_utils.download_file_rate_limit",
         _mock,
     )
     return _mock

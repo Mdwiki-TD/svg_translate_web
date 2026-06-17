@@ -29,7 +29,7 @@
             </tr>
         </thead>
         <tbody>
-            {% set stage_order = ['text', 'titles', 'translations', 'download', 'nested', 'inject', 'upload'] %}
+            {% set stage_order = ['text', 'titles', 'translations', 'processfiles'] %}
             {% for stage_key in stage_order %}
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
@@ -74,7 +74,7 @@
                 </thead>
                 <tbody>
                     {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
-                    {% for item in result_data.files_processed.values() %}
+                    {% for item in result_data.files_processed %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -88,10 +88,6 @@
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}
                             {% if step %}
-
-                            {% if step_key == 'inject' %}
-                            {{ step.new_languages}}
-                            {% else %}
                             {% if step.result == true %}
                             <span class="badge bg-success" title="{{ step.msg }}">
                                 <i class="bi bi-check-lg"></i>
@@ -100,13 +96,12 @@
                             <span class="badge bg-danger" title="{{ step.msg }}">
                                 <i class="bi bi-x-lg"></i>
                             </span>
-                            {% elif step.result is none and step.msg %}
+                            {% elif step.result is none %}
                             <span class="badge bg-secondary" title="{{ step.msg }}">
                                 <i class="bi bi-dash"></i>
                             </span>
                             {% else %}
                             <span class="text-muted">-</span>
-                            {% endif %}
                             {% endif %}
                             {% else %}
                             <span class="text-muted">-</span>

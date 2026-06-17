@@ -33,7 +33,7 @@ def temp_output_dir(tmp_path):
 def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.api_services.utils.download_file_utils.download_commons_file_core",
+        "src.main_app.api_services.utils.download_file_utils.download_file_rate_limit",
         _mock,
     )
     return _mock

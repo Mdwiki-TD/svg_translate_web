@@ -49,31 +49,46 @@ def upload_fixed_svg(
     file_path: Path,
     tags_fixed: int,
     site: Site,
+    summary: str | None = None,
 ) -> dict[str, Any]:
     """Upload fixed SVG file to Commons."""
 
     logger.info(f"Uploading fixed file: {filename}")
 
+    summary = summary or f"Fixed {tags_fixed} nested tag(s)"
+
     result = upload_file(
         file_name=filename,
         file_path=file_path,
         site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s)",
+        summary=summary,
     )
+    result_status = result.get("result", "")
 
-    if result.get("result") != "Success":
+    if result_status == "Success":
         return {
-            "ok": False,
-            "error": result.get("error", "upload_failed"),
-            "error_details": result.get("error_details", ""),
+            "ok": True,
+            "error": None,
+            "error_details": None,
+            "msg": None,
+            "result": result,
+        }
+
+    if result_status == "fileexists-no-change":
+        return {
+            "ok": None,
+            "error": "skipped",
+            "error_details": None,
+            "msg": "File already exists with same content",
             "result": None,
         }
 
     return {
-        "ok": True,
-        "error": None,
-        "error_details": None,
-        "result": result,
+        "ok": False,
+        "error": result.get("error", "upload_failed"),
+        "error_details": result.get("error_details", ""),
+        "msg": None,
+        "result": None,
     }
 
 

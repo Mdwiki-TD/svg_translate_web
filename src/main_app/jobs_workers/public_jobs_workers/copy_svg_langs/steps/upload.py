@@ -17,7 +17,7 @@ def upload_step(
     main_title: str,
     site: Site,
     cancel_check: Callable[[], bool] | None = None,
-    progress_callback: Callable[[int, int, str], None] | None = None,
+    progress_callback: Callable[[int], None] | None = None,
     upload_limit: int | None = None,
 ) -> dict[str, Any]:
     """
@@ -70,30 +70,31 @@ def upload_step(
 
         try:
             upload_result = upload_file(file_name, file_path, site=site, summary=summary) or {}
-            result_status = upload_result.get("result", "")
-
-            if result_status == "Success":
-                done += 1
-                results[title] = {"result": True, "msg": "Uploaded successfully"}
-            elif result_status == "fileexists-no-change":
-                no_changes += 1
-                results[title] = {"result": True, "msg": "File already exists with same content"}
-            else:
-                not_done += 1
-                err_msg = upload_result.get("error", "Unknown upload error")
-                results[title] = {"result": False, "msg": err_msg}
-                if "error" in upload_result:
-                    errors.append(f"{file_name}: {err_msg}")
 
         except Exception as e:
             logger.exception(f"Exception uploading {file_name}")
             not_done += 1
             results[title] = {"result": False, "msg": str(e)}
             errors.append(f"{file_name}: {str(e)}")
+            continue
+
+        result_status = upload_result.get("result", "")
+
+        if result_status == "Success":
+            done += 1
+            results[title] = {"result": True, "msg": "Uploaded successfully"}
+        elif result_status == "fileexists-no-change":
+            no_changes += 1
+            results[title] = {"result": True, "msg": "File already exists with same content"}
+        else:
+            not_done += 1
+            err_msg = upload_result.get("error", "Unknown upload error")
+            results[title] = {"result": False, "msg": err_msg}
+            if "error" in upload_result:
+                errors.append(f"{file_name}: {err_msg}")
 
         if progress_callback and (index == 1 or index % 10 == 0 or index == len(to_work)):
-            msg = f"Uploaded {done}, no changes: {no_changes}, failed: {not_done}"
-            progress_callback(index, len(to_work), msg)
+            progress_callback(index)
 
     summary = {
         "total": total_files,

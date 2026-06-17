@@ -116,8 +116,8 @@ def test_upload_progress_callback(mock_upload, mock_site):
     mock_upload.return_value = {"result": "Success"}
     progress_calls = []
 
-    def progress_cb(index, total, msg):
-        progress_calls.append({"index": index, "msg": msg})
+    def progress_cb(index):
+        progress_calls.append({"index": index})
 
     files = {f"f{i}": {"file_path": f"/p{i}", "new_languages": 1} for i in range(15)}
 
