@@ -45,9 +45,11 @@
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.extract_translations')) }}
                     </li>
-                    <li class="{{ nav_item_class }}">
-                        {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
-                    </li>
+                    {#
+                        <li class="{{ nav_item_class }}">
+                            {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
+                        </li>
+                    #}
                     <li class="{{ nav_item_class }}">
                         {{ nav_link('owid_charts.', 'bi-graph-up', 'OWID Charts', url_for('owid_charts.all_charts'), 'OWID Charts') }}
                     </li>
