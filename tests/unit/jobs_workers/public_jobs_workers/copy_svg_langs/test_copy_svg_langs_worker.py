@@ -7,9 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import (
-    CopySvgLangsWorkerObject,
-)
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
     copy_svg_langs_worker_entry,
@@ -26,6 +23,45 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
         _mock_class,
     )
     return _mock_class
+
+
+
+@pytest.fixture
+def mock_steps():
+    with (
+        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step") as m_text,
+        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step") as m_titles,
+        patch(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step"
+        ) as m_trans,
+    ):
+        yield {
+            "text": m_text,
+            "titles": m_titles,
+            "translations": m_trans,
+        }
+
+
+@pytest.fixture
+def mock_clients():
+    with (
+        patch(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session"
+        ) as m_session,
+        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.get_user_site") as m_site,
+    ):
+        m_session.return_value = MagicMock()
+        m_site.return_value = MagicMock()
+        yield {"session": m_session, "site": m_site}
+
+
+@pytest.fixture
+def mock_worker():
+    user = {"username": "testuser", "id": 123}
+    args = {"title": "File:Test.svg", "upload": True}
+    _worker = CopySvgLangsWorker(job_id=1, user=user, args=args)
+    _worker._save_progress = MagicMock()
+    return _worker
 
 
 class TestCopySvgLangsWorker:
@@ -199,99 +235,60 @@ class TestCopySvgLangsWorkerEntry:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"] is None
 
-
-@pytest.fixture
-def mock_steps():
-    with (
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step") as m_text,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step") as m_titles,
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step"
-        ) as m_trans,
-    ):
-        yield {
-            "text": m_text,
-            "titles": m_titles,
-            "translations": m_trans,
-        }
-
-
-@pytest.fixture
-def mock_clients():
-    with (
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session"
-        ) as m_session,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.get_user_site") as m_site,
-    ):
-        m_session.return_value = MagicMock()
-        m_site.return_value = MagicMock()
-        yield {"session": m_session, "site": m_site}
-
-
-@pytest.fixture
-def worker():
-    user = {"username": "testuser", "id": 123}
-    args = {"title": "File:Test.svg", "upload": True}
-    _worker = CopySvgLangsWorker(job_id=1, user=user, args=args)
-    _worker._save_progress = MagicMock()
-    return _worker
-
-
 class TestCopySvgLangsWorkerProcess:
-    def test_process_no_title(self, worker: CopySvgLangsWorker, mock_clients):
-        worker.title = None
-        result: CopySvgLangsWorkerObject = worker.process()
+    def test_process_no_title(self, mock_worker: CopySvgLangsWorker, mock_clients):
+        mock_worker.title = None
+        result = mock_worker.process()
         assert result.status == "failed"
 
-    def test_process_success(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
-        worker.output_dir = tmp_path
+    def test_process_success(self, mock_worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
+        mock_worker.output_dir = tmp_path
 
         mock_steps["text"].return_value = {"success": True, "text": "some text"}
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
-        result: CopySvgLangsWorkerObject = worker.process()
+        result = mock_worker.process()
 
         # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
         assert result.status == "pending"
-    def test_process_stage_fails(self, worker: CopySvgLangsWorker, mock_steps, mock_clients):
+    def test_process_stage_fails(self, mock_worker: CopySvgLangsWorker, mock_steps, mock_clients):
         mock_steps["text"].return_value = {"success": False, "error": "Extraction failed"}
 
-        result: CopySvgLangsWorkerObject = worker.process()
+        result = mock_worker.process()
 
         assert result.status == "failed"
         assert result.stages.text.status == "failed"
         assert result.stages.text.message == "Extraction failed"
 
-    def test_process_auth_failed(self, worker: CopySvgLangsWorker, mock_clients, tmp_path):
-        worker.output_dir = tmp_path
+    def test_process_auth_failed(self, mock_worker: CopySvgLangsWorker, mock_clients, tmp_path):
+        mock_worker.output_dir = tmp_path
         mock_clients["site"].return_value = None
 
-        result: CopySvgLangsWorkerObject = worker.process()
+        result = mock_worker.process()
 
         assert result.errors[0].get("error") == "No authenticated user site available."
 
-    def test_process_cancelled(self, worker: CopySvgLangsWorker, mock_clients):
+    def test_process_cancelled(self, mock_worker: CopySvgLangsWorker, mock_clients):
         with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
-            result: CopySvgLangsWorkerObject = worker.process()
+            result = mock_worker.process()
             assert result.stages.text.status == "cancelled"
 
-    def test_compute_output_dir_none(self, worker: CopySvgLangsWorker):
-        assert worker._compute_output_dir(None) is None
+    def test_compute_output_dir_none(self, mock_worker: CopySvgLangsWorker):
+        assert mock_worker._compute_output_dir(None) is None
 
-    def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):
-        worker.output_dir = tmp_path
+    def test_save_files_stats_error(self, mock_worker: CopySvgLangsWorker, tmp_path):
+        mock_worker.output_dir = tmp_path
         bad_path = tmp_path / "files_stats.json"
         bad_path.mkdir()
 
         # Should not raise exception
-        worker._save_files_stats({"data": "test"})
+        mock_worker._save_files_stats({"data": "test"})
 
-    def test_save_files_stats_unexpected_exception(self, worker: CopySvgLangsWorker, tmp_path):
-        worker.output_dir = tmp_path
+    def test_save_files_stats_unexpected_exception(self, mock_worker: CopySvgLangsWorker, tmp_path):
+        mock_worker.output_dir = tmp_path
 
         with patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.json.dump",
             side_effect=RuntimeError("unexpected"),
         ):
-            worker._save_files_stats({"key": "value"})
+            mock_worker._save_files_stats({"key": "value"})
