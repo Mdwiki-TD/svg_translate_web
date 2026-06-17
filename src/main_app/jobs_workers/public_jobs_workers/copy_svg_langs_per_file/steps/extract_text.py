@@ -26,7 +26,11 @@ def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
         logger.error("No title found")
         return {"success": False, "text": "", "error": "No title found"}
 
-    text = MwClientPage(title, site).get_text()
+    try:
+        text = MwClientPage(title, site).get_text()
+    except Exception:
+        logger.exception(f"Failed to fetch wikitext for title: {title}")
+        return {"success": False, "text": "", "error": "Failed to fetch wikitext"}
 
     if not text:
         logger.error(f"No wikitext found for title: {title}")

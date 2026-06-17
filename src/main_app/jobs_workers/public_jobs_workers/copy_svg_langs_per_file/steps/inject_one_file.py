@@ -71,7 +71,8 @@ def start_injects(
             new_languages=new_languages,
             updated_translations=updated_translations,
         )
-    except Exception:
+    except (OSError, Exception):
+        logger.error("Failed to write translated SVG: %s", output_file)
         return InjectResult(
             result=False,
             msg="Failed to write file",
