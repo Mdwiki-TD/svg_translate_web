@@ -24,8 +24,6 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
 # private API
 # ------------------
 
-
-@db_guard_rollback
 def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
     """
     Update job status and result file.
@@ -283,7 +281,7 @@ def update_job_status(
         return _update_status(job_id, status, result_file, job_type=job_type)
 
     except OperationalError as e:
-        if e.connection_invalidated or "MySQL server has gone away" in str(e):
+        if getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(e):
             if _retry_count < MAX_RETRIES:
                 logger.warning(
                     "Job %s: MySQL server has gone away. Rolling back and retrying update (Attempt %s/%s).",
