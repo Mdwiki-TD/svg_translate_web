@@ -118,7 +118,7 @@ class BaseObjectsJobWorker(ABC):
         except (StaleDataError, LookupError):
             logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
         except Exception:
-            logger.error("Job %s: Failed to update final status", self.job_id)
+            logger.exception("Job %s: Failed to update final status", self.job_id)
 
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 

@@ -287,6 +287,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             )
             ok = self._process_one(title, title_info)
 
+            if title_info.status.lower() in ["pending", "running"]:
+                title_info.status = "completed"
+
             self.result.files_processed.append(title_info)
 
             if ok and self.check_cancel_db_periodic():
@@ -297,7 +300,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if processfiles_stage.status == "Running":
+        if processfiles_stage.status in ["Pending", "Running"]:
             processfiles_stage.status = "Completed"
 
         return self.result
