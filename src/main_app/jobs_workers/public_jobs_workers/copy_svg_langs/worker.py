@@ -308,7 +308,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def inject_step_file(
         self,
         file_path_str: str,
-    ) -> Tuple[StepResult, None | str]:
+    ) -> tuple[StepResult, Path | None]:
 
         if not file_path_str:
             return StepResult(result=False, msg="No file path found"), None
@@ -416,6 +416,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 return False
             else:
                 verify_fixed = verify.fixed
+                title_info.steps.nested = StepResult(
+                    result=True,
+                    msg=f"Fixed {verify.fixed} nested tag(s)",
+                    details=verify.to_dict(),
+                )
 
         # ----------------------------------------------
         # At this point, no nested tags remaining in the file
