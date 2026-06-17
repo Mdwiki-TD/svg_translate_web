@@ -213,7 +213,7 @@ class TestIsRedirect:
 class TestEdit:
     def test_success(self):
         wrapper, mock_page = _mwclient_page(exists=True)
-        mock_page.edit.return_value = {"result": "Success"}
+        mock_page.edit.return_value = {"result": "success"}
 
         result = wrapper.edit("content", "summary")
 
@@ -276,7 +276,7 @@ class TestEdit:
 class TestCreate:
     def test_success_on_new_page(self):
         wrapper, mock_page = _mwclient_page(exists=False)
-        mock_page.edit.return_value = {"result": "Success"}
+        mock_page.edit.return_value = {"result": "success"}
 
         result = wrapper.create("content", "summary")
 
@@ -425,7 +425,7 @@ class TestWithRetry:
         wrapper, mock_page = _mwclient_page(exists=True)
         mock_page.edit.side_effect = [
             mwclient.errors.APIError("ratelimited", "Rate limited", ""),
-            {"result": "Success"},
+            {"result": "success"},
         ]
 
         result = wrapper.edit("content", "summary")

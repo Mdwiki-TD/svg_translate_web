@@ -70,12 +70,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             )
             return True
 
-        self.result.stages.download._update("Failed", "Downloaded Failed")
+        self.result.stages.download._update("failed", "Downloaded Failed")
 
         # Update stage message
         self.result.file_result = FileResult(
             success=False,
-            status="Failed",
+            status="failed",
             path=None,
             error=download_result.get("error") or "download_failed",
         )
@@ -91,7 +91,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         file_path = Path(self.result.file_result.path)
         if not file_path.is_file():
-            self.result.stages.analyze._update("Failed", "File not found")
+            self.result.stages.analyze._update("failed", "File not found")
             return False
 
         detect_result: DetectionResult = detect_nested_tags(file_path)
@@ -122,7 +122,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self.result.stages.fix._update("success", "Nested tags fixed successfully")
             return True
 
-        self.result.stages.fix._update("Failed", "Failed to fix nested tags")
+        self.result.stages.fix._update("failed", "Failed to fix nested tags")
         return False
 
     def _verify_step(self) -> bool | None:
@@ -145,7 +145,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return True
 
         message = "No tags were fixed"
-        self.result.stages.verify._update("Failed", message)
+        self.result.stages.verify._update("failed", message)
 
         return False
 
@@ -158,7 +158,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return None
 
         if not self.site:
-            self.result.stages.upload._update("Failed", "Authentication failed")
+            self.result.stages.upload._update("failed", "Authentication failed")
             return None
 
         if self.result.stages.verify.status != "success":
@@ -181,7 +181,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         message = upload_result.get("error") or "Upload failed"
 
-        self.result.stages.upload._update("Failed", message)
+        self.result.stages.upload._update("failed", message)
 
         return False
 
@@ -194,10 +194,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         stage_name = stage.name
 
         if self.is_cancelled():
-            stage.status = "Cancelled"
+            stage.status = "cancelled"
             return False
 
-        stage.status = "Running"
+        stage.status = "running"
         self._save_progress()
 
         try:
@@ -206,7 +206,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             if step_result:
                 return True
             elif step_result is False:
-                self.result.status = "Failed"
+                self.result.status = "failed"
                 return False
             else:
                 self.result.status = "skipped"
@@ -214,9 +214,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         except Exception as e:
             logger.exception("Error in stage %s", stage_name)
-            stage.status = "Failed"
+            stage.status = "failed"
             stage.message = str(e)
-            self.result.status = "Failed"
+            self.result.status = "failed"
             return False
 
     def process(self) -> FixNestedJobsWorkerObject:
@@ -226,7 +226,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         if not self.filename:
             logger.error("No filename found")
-            self.result.status = "Failed"
+            self.result.status = "failed"
             return self.result
 
         self.result.filename = self.filename

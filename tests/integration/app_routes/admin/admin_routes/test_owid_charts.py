@@ -286,7 +286,7 @@ class TestUpdateChart:
             "/admin/owidcharts/update",
             data={
                 "slug": "updated",
-                "title": "Updated",
+                "title": "updated",
             },
             follow_redirects=True,
         )
@@ -302,7 +302,7 @@ class TestUpdateChart:
             data={
                 "chart_id": "1",
                 "slug": "",
-                "title": "Updated",
+                "title": "updated",
             },
             follow_redirects=True,
         )
@@ -319,7 +319,7 @@ class TestUpdateChart:
             data={
                 "chart_id": "1",
                 "slug": "updated",
-                "title": "Updated",
+                "title": "updated",
                 "from_popup": "1",
             },
         )

@@ -257,7 +257,7 @@ def test_fix_nested_job_detail_page_shows_result_data(admin_jobs_client, jobs_db
             "skipped": 1,
         },
         "pages_success": [
-            {"id": 1, "title": "Template:Test1", "main_file": "test1.svg", "fix_result": {"message": "Success"}},
+            {"id": 1, "title": "Template:Test1", "main_file": "test1.svg", "fix_result": {"message": "success"}},
         ],
         "pages_failed": [
             {"id": 2, "title": "Template:Test2", "main_file": "test2.svg", "reason": "Failed to fix"},

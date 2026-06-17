@@ -16,7 +16,7 @@ class TestStageDetail:
     def test_defaults(self):
         s = StageDetail()
         assert s.name == ""
-        assert s.status == "Pending"
+        assert s.status == "pending"
         assert s.message == ""
         assert s.data is None
 

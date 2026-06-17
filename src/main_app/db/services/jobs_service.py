@@ -25,7 +25,6 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
 # ------------------
 
 
-@db_guard_rollback
 def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
     """
     Update job status and result file.
@@ -37,13 +36,13 @@ def _update_status(job_id: int, status: str, result_file: str | None, job_type: 
 
     if not job:
         raise LookupError(f"Job id {job_id} was not found")
+    status_lower = status.lower()
+    job.status = status_lower
 
-    job.status = status
-
-    if status.lower() == "running" and not job.started_at:
+    if status_lower == "running" and not job.started_at:
         job.started_at = datetime.now(UTC)
 
-    if status.lower() in ("completed", "failed", "cancelled", "skipped"):
+    if status_lower in ("completed", "failed", "cancelled", "skipped"):
         job.completed_at = datetime.now(UTC)
         job.is_running = None
 
@@ -76,7 +75,7 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     if record:
         # Refresh from database to ensure we don't use a stale cached status
         db.session.refresh(record)
-        return record.status == "cancelled"
+        return (record.status or "").lower() == "cancelled"
     return False
 
 
@@ -283,7 +282,7 @@ def update_job_status(
         return _update_status(job_id, status, result_file, job_type=job_type)
 
     except OperationalError as e:
-        if e.connection_invalidated or "MySQL server has gone away" in str(e):
+        if getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(e):
             if _retry_count < MAX_RETRIES:
                 logger.warning(
                     "Job %s: MySQL server has gone away. Rolling back and retrying update (Attempt %s/%s).",

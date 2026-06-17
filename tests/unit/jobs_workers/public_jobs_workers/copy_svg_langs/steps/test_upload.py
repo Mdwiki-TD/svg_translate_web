@@ -24,7 +24,7 @@ def test_upload_task_no_files(mock_site):
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
 def test_upload_task_success(mock_upload, mock_site):
-    mock_upload.return_value = {"result": "Success"}
+    mock_upload.return_value = {"result": "success"}
 
     files = {"f1": {"file_path": "/path/to/f1.svg", "new_languages": 1}}
 
@@ -47,7 +47,7 @@ def test_upload_no_new_languages(mock_site):
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
 def test_upload_cancelled(mock_upload, mock_site):
-    mock_upload.return_value = {"result": "Success"}
+    mock_upload.return_value = {"result": "success"}
     files = {
         "f1": {"file_path": "/p1", "new_languages": 1},
         "f2": {"file_path": "/p2", "new_languages": 1},
@@ -60,7 +60,7 @@ def test_upload_cancelled(mock_upload, mock_site):
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
 def test_upload_limit(mock_upload, mock_site):
-    mock_upload.return_value = {"result": "Success"}
+    mock_upload.return_value = {"result": "success"}
     files = {
         "f1": {"file_path": "/p1", "new_languages": 1},
         "f2": {"file_path": "/p2", "new_languages": 1},
@@ -113,7 +113,7 @@ def test_upload_exception(mock_upload, mock_site):
 
 @patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.upload.upload_file")
 def test_upload_progress_callback(mock_upload, mock_site):
-    mock_upload.return_value = {"result": "Success"}
+    mock_upload.return_value = {"result": "success"}
     progress_calls = []
 
     def progress_cb(index):

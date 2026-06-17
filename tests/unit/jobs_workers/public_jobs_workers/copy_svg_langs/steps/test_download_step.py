@@ -154,7 +154,7 @@ class TestDownloadStep:
     ) -> None:
         def mock_download(title: str, **kwargs: object) -> dict:
             if "Fail" in title:
-                return {"result": "failed", "path": "", "msg": "Failed"}
+                return {"result": "failed", "path": "", "msg": "failed"}
             return {"result": "success", "path": f"/path/{title}", "msg": "ok"}
 
         with patch(

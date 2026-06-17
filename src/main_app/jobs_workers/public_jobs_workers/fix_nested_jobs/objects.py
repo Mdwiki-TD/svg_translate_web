@@ -13,7 +13,7 @@ from ...base_worker_object import WorkerObject
 @dataclass
 class StageDetail:
     name: str = ""
-    status: str = "Pending"
+    status: str = "pending"
     message: str = ""
 
     def _update(self, status: str, message: str) -> None:
@@ -97,11 +97,11 @@ _old_result = {
         "error": None,
     },
     "stages": {
-        "download": {"status": "Pending", "message": "Downloading files"},
-        "analyze": {"status": "Pending", "message": "Analyzing nested tags"},
-        "fix": {"status": "Pending", "message": "Fixing nested tags"},
-        "verify": {"status": "Pending", "message": "Verifying fixes"},
-        "upload": {"status": "Pending", "message": "Uploading fixed files"},
+        "download": {"status": "pending", "message": "Downloading files"},
+        "analyze": {"status": "pending", "message": "Analyzing nested tags"},
+        "fix": {"status": "pending", "message": "Fixing nested tags"},
+        "verify": {"status": "pending", "message": "Verifying fixes"},
+        "upload": {"status": "pending", "message": "Uploading fixed files"},
     },
 }
 

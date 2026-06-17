@@ -122,7 +122,7 @@ def test_admin_required_is_admin():
     # A dummy view function
     @admin_required
     def dummy_view():
-        return "Success"
+        return "success"
 
     # Mock user who is in the admin list
     mock_user = MockUser(username="admin1", is_active_admin=True)
@@ -130,4 +130,4 @@ def test_admin_required_is_admin():
     with (patch("src.main_app.app_routes.admin.admins_required.load_user", return_value=mock_user),):
         # The view should be executed and return its value
         response = dummy_view()
-        assert response == "Success"
+        assert response == "success"

@@ -50,7 +50,7 @@ class TestUploadFixedSvg:
         assert res.get("details") is None
 
     def test_upload_fixed_svg_success(self, mock_api, mock_site):
-        mock_api["upload"].return_value = {"result": "Success", "newrevid": 123}
+        mock_api["upload"].return_value = {"result": "success", "newrevid": 123}
         res = upload_fixed_svg("Test.svg", Path("test.svg"), 2, mock_site)
         assert res.get("ok") is True
 

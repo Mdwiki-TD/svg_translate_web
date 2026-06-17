@@ -50,12 +50,12 @@ class TestRunStageDetails:
 
         assert success is True
         assert worker.result.stages.text.message == "Custom message"
-        assert worker.result.stages.text.status == "Completed"
+        assert worker.result.stages.text.status == "completed"
 
     def test_run_stage_summary_formatting(self, worker: CopySvgLangsWorker):
         from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import StageDetail
 
-        stage = StageDetail(name="test", status="Pending", message="")
+        stage = StageDetail(name="test", status="pending", message="")
 
         def step():
             return {"success": True, "summary": {"total": 5, "fixed": 3}}
@@ -69,7 +69,7 @@ class TestRunStageDetails:
     def test_run_stage_summary_not_dict(self, worker: CopySvgLangsWorker):
         from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import StageDetail
 
-        stage = StageDetail(name="test", status="Pending", message="")
+        stage = StageDetail(name="test", status="pending", message="")
 
         def step():
             return {"success": True, "summary": "not a dict"}
@@ -133,7 +133,7 @@ class TestProcessStageFailures:
 
         assert result.status == "failed"
         assert result.stages.titles.message == "No titles found"
-        assert result.stages.titles.status == "Failed"
+        assert result.stages.titles.status == "failed"
 
     def test_process_translations_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -155,7 +155,7 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.translations.status == "Failed"
+        assert result.stages.translations.status == "failed"
 
     def test_process_download_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -181,7 +181,7 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.download.status == "Failed"
+        assert result.stages.download.status == "failed"
 
     def test_process_nested_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -211,7 +211,7 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.nested.status == "Failed"
+        assert result.stages.nested.status == "failed"
 
     def test_process_inject_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -245,7 +245,7 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.inject.status == "Failed"
+        assert result.stages.inject.status == "failed"
 
     def test_process_upload_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -292,7 +292,7 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.upload.status == "Failed"
+        assert result.stages.upload.status == "failed"
 
 
 class TestProcessProgressCallbacks:
@@ -649,4 +649,4 @@ class TestProcessProgressCallbacks:
         ):
             result = worker.process()
 
-        assert result.stages.upload.status == "Completed"
+        assert result.stages.upload.status == "completed"
