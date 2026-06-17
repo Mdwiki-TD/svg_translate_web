@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
 
@@ -14,12 +15,18 @@ class DetectionResult:
     count: int
     tags: list[str] = field(default_factory=list)
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 @dataclass
 class VerificationResult:
     before: int
     after: int
     fixed: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 def detect_nested_tags(file_path: Path) -> DetectionResult:

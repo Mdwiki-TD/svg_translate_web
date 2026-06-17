@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import requests
 from mwclient.client import Site
 
 from .upload_bot import upload_file
@@ -12,7 +13,11 @@ from .utils import download_one_file
 logger = logging.getLogger(__name__)
 
 
-def download_svg_file(filename: str, temp_dir: Path) -> dict[str, Any]:
+def download_svg_file(
+    filename: str,
+    temp_dir: Path,
+    session: requests.Session | None = None,
+) -> dict[str, Any]:
     """Download SVG file and return file path or error info."""
     logger.info(f"Downloading file: {filename}")
 
@@ -21,6 +26,7 @@ def download_svg_file(filename: str, temp_dir: Path) -> dict[str, Any]:
         out_dir=temp_dir,
         i=1,
         overwrite=True,
+        session=session,
     )
 
     if file_data.get("result") != "success":
@@ -52,7 +58,7 @@ def upload_fixed_svg(
         file_name=filename,
         file_path=file_path,
         site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s) using svg_translate_web",
+        summary=f"Fixed {tags_fixed} nested tag(s)",
     )
 
     if result.get("result") != "Success":

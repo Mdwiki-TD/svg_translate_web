@@ -121,6 +121,10 @@ class TestProcessStageFailures:
                 return_value={"success": True, "text": "some text"},
             ),
             patch(
+                "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step",
+                return_value={"success": True, "translations": {"new": {"en": "Text"}}},
+            ),
+            patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step",
                 return_value={"success": False, "error": "No titles found"},
             ),
@@ -128,8 +132,8 @@ class TestProcessStageFailures:
             result = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.titles.status == "Failed"
         assert result.stages.titles.message == "No titles found"
+        assert result.stages.titles.status == "Failed"
 
     def test_process_translations_stage_fails(self, worker, mock_clients, tmp_path):
         worker.output_dir = tmp_path

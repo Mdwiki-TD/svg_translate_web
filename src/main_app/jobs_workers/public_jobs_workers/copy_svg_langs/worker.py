@@ -174,6 +174,35 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # clean up
         self.result.stages.text.data["text"] = ""
 
+    def save_stats_summary(self) -> None:
+        stats_data = {
+            "main_title": self.main_title,
+            "translations": self.translations,
+            "titles": self.titles,
+            "files": self.files_dict,
+            "files_dict": self.files_dict,
+            "nested_task_result": self.nested_data,
+            "injects_result": self.inject_data,
+        }
+
+        self._save_files_stats(stats_data)
+
+        # Compile final results for database
+        self.result.results_summary.update(
+            {
+                "total_files": len(self.files_dict),
+                "files_to_upload_count": len(self.files_to_upload),
+                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
+                "injects_result": {
+                    "nested_files": self.inject_data.get("nested_files", 0),
+                    "success": self.inject_data.get("success", 0),
+                    "failed": self.inject_data.get("failed", 0),
+                },
+                "new_translations_count": len(self.translations.get("new", {})),
+                "main_title": self.main_title,
+            }
+        )
+
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
 
@@ -437,33 +466,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # ----------------------------------------------
         # Stage 8: save stats and mark done
-        stats_data = {
-            "main_title": self.main_title,
-            "translations": self.translations,
-            "titles": self.titles,
-            "files": self.files_dict,
-            "files_dict": self.files_dict,
-            "nested_task_result": self.nested_data,
-            "injects_result": self.inject_data,
-        }
-
-        self._save_files_stats(stats_data)
-
-        # Compile final results for database
-        self.result.results_summary.update(
-            {
-                "total_files": len(self.files_dict),
-                "files_to_upload_count": len(self.files_to_upload),
-                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
-                "injects_result": {
-                    "nested_files": self.inject_data.get("nested_files", 0),
-                    "success": self.inject_data.get("success", 0),
-                    "failed": self.inject_data.get("failed", 0),
-                },
-                "new_translations_count": len(self.translations.get("new", {})),
-                "main_title": self.main_title,
-            }
-        )
+        self.save_stats_summary()
 
         return self.result
 
