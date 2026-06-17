@@ -71,6 +71,7 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[[Callable[P
 
     return decorator
 
+
 def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
     """
     Retry a db.session-using function if the connection was invalidated
@@ -78,6 +79,7 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
     session between attempts. Any other OperationalError (or exhausting
     retries) is logged and re-raised.
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -86,22 +88,21 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                 try:
                     return func(*args, **kwargs)
                 except OperationalError as e:
-                    is_disconnect = getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(e)
+                    is_disconnect = getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(
+                        e
+                    )
 
                     if not is_disconnect:
                         logger.exception("%s: db operation failed", func.__name__)
                         raise
 
                     if attempt >= max_retries:
-                        logger.error(
-                            "%s: failed after %s retries.", func.__name__, max_retries
-                        )
+                        logger.error("%s: failed after %s retries.", func.__name__, max_retries)
                         raise
 
                     attempt += 1
                     logger.warning(
-                        "%s: MySQL server has gone away. Rolling back and retrying "
-                        "(attempt %s/%s).",
+                        "%s: MySQL server has gone away. Rolling back and retrying " "(attempt %s/%s).",
                         func.__name__,
                         attempt,
                         max_retries,
@@ -116,7 +117,9 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                     db.session.remove()
 
         return wrapper
+
     return decorator
+
 
 __all__ = [
     "db_guard_rollback",

@@ -19,6 +19,7 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
         return default
     return min(limit, max_limit)
 
+
 # ── SELECT ───────────────────────────────────────────────
 
 
@@ -220,6 +221,7 @@ def create_job(job_type: str, username: str) -> JobRecord:
     db.session.refresh(job)
     return job
 
+
 @retry_on_db_disconnect()
 def update_job_status(
     job_id: int,
@@ -256,6 +258,7 @@ def update_job_status(
     db.session.refresh(job)
 
     return job
+
 
 @db_guard_rollback
 def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:

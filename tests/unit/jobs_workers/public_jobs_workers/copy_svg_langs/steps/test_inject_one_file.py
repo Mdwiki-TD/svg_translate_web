@@ -105,7 +105,12 @@ class TestStartInjects:
     def test_stats_error(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.return_value = (
             mock_tree,
-            {"new_languages": 0, "updated_translations": 0, "error": "Some error occurred", "nested_tspan_error": False},
+            {
+                "new_languages": 0,
+                "updated_translations": 0,
+                "error": "Some error occurred",
+                "nested_tspan_error": False,
+            },
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
