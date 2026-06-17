@@ -26,40 +26,22 @@ class Stages:
             message="Getting text",
         )
     )
-    translations: StageDetail = field(
-        default_factory=lambda: StageDetail(
-            name="translations",
-            message="Getting translations",
-        )
-    )
     titles: StageDetail = field(
         default_factory=lambda: StageDetail(
             name="titles",
             message="Getting titles",
         )
     )
-    download: StageDetail = field(
+    translations: StageDetail = field(
         default_factory=lambda: StageDetail(
-            name="download",
-            message="Downloading files",
+            name="translations",
+            message="Getting translations",
         )
     )
-    nested: StageDetail = field(
+    processfiles: StageDetail = field(
         default_factory=lambda: StageDetail(
-            name="nested",
-            message="Analyze nested files",
-        )
-    )
-    inject: StageDetail = field(
-        default_factory=lambda: StageDetail(
-            name="inject",
-            message="Injecting translations",
-        )
-    )
-    upload: StageDetail = field(
-        default_factory=lambda: StageDetail(
-            name="upload",
-            message="Uploading files",
+            name="processfiles",
+            message="process Files",
         )
     )
 
@@ -68,6 +50,7 @@ class Stages:
 class StepResult:
     result: Optional[bool] = None
     msg: str = ""
+    details: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -81,6 +64,7 @@ class FileSteps:
 @dataclass
 class FilesProcessedItem:
     title: str
+    file_path: Optional[str] = None
     status: str = "pending"
     error: Optional[str] = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
@@ -88,14 +72,9 @@ class FilesProcessedItem:
 
 @dataclass
 class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
-    job_id: Optional[int] = None
-    note: str = ""
-    args: dict[str, Any] = field(default_factory=dict)
-    summary: dict[str, Any] = field(default_factory=dict)
     title: Optional[str] = None
     stages: Stages = field(default_factory=Stages)
-    results_summary: dict[str, Any] = field(default_factory=dict)
-    files_processed: dict[str, FilesProcessedItem] = field(default_factory=dict)
+    files_processed: list[FilesProcessedItem] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         """
@@ -106,8 +85,6 @@ class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
 
 
 __all__ = [
-    "StageDetail",
-    "Stages",
     "StepResult",
     "FileSteps",
     "FilesProcessedItem",
