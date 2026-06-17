@@ -108,7 +108,7 @@ def check_active_route(route_name: str) -> str:
 
 
 def is_job_running(job_status: str | None) -> bool:
-    return job_status in ["running", "pending"]
+    return job_status and job_status.lower() in ["running", "pending"]
 
 
 filters = {
