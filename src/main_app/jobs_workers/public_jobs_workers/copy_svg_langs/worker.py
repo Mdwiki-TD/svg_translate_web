@@ -185,7 +185,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         """Run a single stage and update result."""
         stage_name = stage.name
 
-        if self._is_cancelled(stage):
+        if self.is_cancelled():
             stage.status = "Cancelled"
             return False
 
@@ -228,10 +228,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage = self.result.stages.translations
         stage.status = "Running"
 
-        step_result = extract_translations_step(
-            self.main_title,
-            self.output_dir / "files",
-        )
+        try:
+            step_result = extract_translations_step(
+                self.main_title,
+                self.output_dir / "files",
+            )
+        except Exception as e:
+            logger.exception("Error in stage translations")
+            stage.status = "Failed"
+            stage.message = str(e)
+            self.result.status = "failed"
+            return False
+
         new_translations = step_result.get("translations", {})
 
         if step_result.get("success") and new_translations:
@@ -253,10 +261,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "Cancelled"
             return False
 
-        step_result = extract_text_step(
-            self.title,
-            self.site,
-        )
+        try:
+            step_result = extract_text_step(
+                self.title,
+                self.site,
+            )
+        except Exception as e:
+            logger.exception("Error in stage text")
+            stage.status = "Failed"
+            stage.message = str(e)
+            self.result.status = "failed"
+            return False
+
         text = step_result.get("text", "")
 
         if step_result.get("success") and text:

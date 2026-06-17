@@ -161,6 +161,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _extract_translations_step(self) -> bool | None:
         stage = self.result.stages.translations
         stage.status = "Running"
+
         try:
             step_result = extract_translations_step(
                 self.main_title,
