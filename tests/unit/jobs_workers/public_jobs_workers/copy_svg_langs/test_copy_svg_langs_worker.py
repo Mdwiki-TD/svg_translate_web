@@ -299,7 +299,7 @@ class TestCopySvgLangsWorkerProcess:
 
         mock_steps["text"].return_value = {"success": True, "text": "some text"}
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": []}
-        mock_steps["translations"].return_value = {"success": True, "translations": {"test":["data"]}}
+        mock_steps["translations"].return_value = {"success": True, "translations": {"test": ["data"]}}
         mock_steps["download"].return_value = {"success": True, "files_dict": {}}
         mock_steps["nested"].return_value = {"success": True, "data": {}, "results": {}}
         mock_steps["inject"].return_value = {"success": True, "results": {}, "data": {"files": {}}}

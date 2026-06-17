@@ -51,15 +51,19 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.args = args or {}
         self.result.args = self.args
 
-        self.upload_limit = self.args.get("upload_limit") or 0
+        self.upload_done = 0
         self.title = self.args.get("title")
+        self.overwrite_downloads = bool(self.args.get("overwrite_downloads"))
+        self.overwrite_translations = bool(self.args.get("overwrite"))
+
+        upload_limit = self.args.get("upload_limit") or 0
+        self.upload_limit = upload_limit if isinstance(upload_limit, int) else 0
 
         self.output_dir = self._compute_output_dir(self.title)
         self.files_dict: list[str] = []
         self.site: Site | None = None
         self.session: requests.Session | None = None
 
-        self.overwrite_downloads = bool(self.args.get("overwrite_downloads"))
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
@@ -143,6 +147,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "Failed"
             stage.message = str(e)
             self.result.status = "failed"
+
             return False
 
         if step_result.get("message"):
@@ -457,7 +462,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 self.files_dict,
                 self.translations,
                 self.output_dir,
-                overwrite=bool(self.args.get("overwrite")),
+                overwrite=self.overwrite_translations,
             ),
             run_after_func=inject_run_after,
         ):
@@ -512,6 +517,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             return self.result
 
+        # Start uploading
         if not self._run_stage(
             self.result.stages.upload,
             step_func=lambda: upload_step(

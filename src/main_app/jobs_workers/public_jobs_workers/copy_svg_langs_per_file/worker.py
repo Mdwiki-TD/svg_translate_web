@@ -137,10 +137,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         if step_result.get("success"):
             stage.status = "Completed"
-            if "summary" in step_result and not stage.message:
-                summary = step_result["summary"]
-                if isinstance(summary, dict):
-                    stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
 
             self.main_title = step_result["main_title"]
             self.titles = list(step_result["titles"])
@@ -387,7 +383,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             title_info.status = "skipped"
             return False
 
-        # Start uploading
         if self.upload_done >= self.upload_limit:
             title_info.steps.upload = StepResult(
                 result=None,
@@ -397,36 +392,49 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             title_info.status = "skipped"
             return False
 
+        # Start uploading
         upload = upload_fixed_svg(
             title_info.title,
             title_info.file_path_to_upload,
             verify.fixed,
             self.site,
         )
+        upload_success = upload.get("ok")
+        upload_error = upload.get("error") or ""
+        upload_msg = upload.get("msg") or ""
 
-        if not upload.get("ok"):
-            title_info.error = upload.get("error", "")
-            error_and_details = {
-                "error": upload.get("error", ""),
-                "error_details": upload.get("error_details", ""),
-            }
+        if upload_success is True:
             title_info.steps.upload = StepResult(
-                result=False,
-                msg=f"Fixed {verify.fixed} nested tag(s), but upload failed.",
+                result=True,
+                msg=f"Successfully fixed {verify.fixed} nested tag(s) and file uploaded.",
+                details=upload.get("result", ""),
+            )
+
+            self.upload_done += 1
+            title_info.status = "completed"
+            # return True, all steps passed and upload is success
+            return True
+
+        error_and_details = {
+            "error": upload_error,
+            "error_details": upload.get("error_details", ""),
+        }
+
+        if upload_success is None and upload_error == "skipped":
+            title_info.steps.upload = StepResult(
+                result=None,
+                msg=upload_msg,
                 details=error_and_details,
             )
             return False
 
+        title_info.error = upload_error
         title_info.steps.upload = StepResult(
-            result=True,
-            msg=f"Successfully fixed {verify.fixed} nested tag(s) and file uploaded.",
-            details=upload.get("result", ""),
+            result=False,
+            msg=f"Fixed {verify.fixed} nested tag(s), but upload failed.",
+            details=error_and_details,
         )
-
-        self.upload_done += 1
-        title_info.status = "completed"
-        # return True, all steps passed and upload is success
-        return True
+        return False
 
 
 # --- main pipeline --------------------------------------------

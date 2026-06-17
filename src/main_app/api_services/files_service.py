@@ -60,20 +60,32 @@ def upload_fixed_svg(
         site=site,
         summary=f"Fixed {tags_fixed} nested tag(s)",
     )
+    result_status = result.get("result", "")
 
-    if result.get("result") != "Success":
+    if result_status == "Success":
         return {
-            "ok": False,
-            "error": result.get("error", "upload_failed"),
-            "error_details": result.get("error_details", ""),
+            "ok": True,
+            "error": None,
+            "error_details": None,
+            "msg": None,
+            "result": result,
+        }
+
+    if result_status == "fileexists-no-change":
+        return {
+            "ok": None,
+            "error": "skipped",
+            "error_details": None,
+            "msg": "File already exists with same content",
             "result": None,
         }
 
     return {
-        "ok": True,
-        "error": None,
-        "error_details": None,
-        "result": result,
+        "ok": False,
+        "error": result.get("error", "upload_failed"),
+        "error_details": result.get("error_details", ""),
+        "msg": None,
+        "result": None,
     }
 
 
