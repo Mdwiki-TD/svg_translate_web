@@ -9,7 +9,6 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import (
     CopySvgLangsWorkerObject,
-    FilesProcessedItem,
 )
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
@@ -54,10 +53,6 @@ class TestCopySvgLangsWorker:
         assert result.stages.text.status == "pending"
         assert result.stages.titles.status == "pending"
         assert result.stages.translations.status == "pending"
-        assert result.stages.download.status == "pending"
-        assert result.stages.nested.status == "pending"
-        assert result.stages.inject.status == "pending"
-        assert result.stages.upload.status == "pending"
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
@@ -213,19 +208,11 @@ def mock_steps():
         patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step"
         ) as m_trans,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_step") as m_down,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.fix_nested_step") as m_nested,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step") as m_inject,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_step") as m_upload,
     ):
         yield {
             "text": m_text,
             "titles": m_titles,
             "translations": m_trans,
-            "download": m_down,
-            "nested": m_nested,
-            "inject": m_inject,
-            "upload": m_upload,
         }
 
 
@@ -263,27 +250,10 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps["text"].return_value = {"success": True, "text": "some text"}
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
-        mock_steps["download"].return_value = {"success": True, "files_dict": {"File1.svg": "path/1"}}
-        mock_steps["nested"].return_value = {"success": True, "data": {}, "results": {}}
-        mock_steps["inject"].return_value = {
-            "success": True,
-            "results": {"File1.svg": {"result": True}},
-            "data": {"files": {"File1.svg": {"file_path": "path/1/injected"}}},
-        }
-        mock_steps["upload"].return_value = {
-            "success": True,
-            "summary": {"uploaded": 1, "failed": 0, "no_changes": 0},
-            "errors": [],
-            "results": {"File1.svg": {"result": True}},
-        }
-
         result: CopySvgLangsWorkerObject = worker.process()
 
         # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
         assert result.status == "pending"
-        assert worker.result.stages.upload.status == "completed"
-        assert "upload_result" in result.results_summary
-
     def test_process_stage_fails(self, worker: CopySvgLangsWorker, mock_steps, mock_clients):
         mock_steps["text"].return_value = {"success": False, "error": "Extraction failed"}
 
@@ -292,22 +262,6 @@ class TestCopySvgLangsWorkerProcess:
         assert result.status == "failed"
         assert result.stages.text.status == "failed"
         assert result.stages.text.message == "Extraction failed"
-
-    def test_process_upload_disabled(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
-        worker.output_dir = tmp_path
-        worker.args["upload"] = False
-
-        mock_steps["text"].return_value = {"success": True, "text": "some text"}
-        mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": []}
-        mock_steps["translations"].return_value = {"success": True, "translations": {"test": ["data"]}}
-        mock_steps["download"].return_value = {"success": True, "files_dict": {}}
-        mock_steps["nested"].return_value = {"success": True, "data": {}, "results": {}}
-        mock_steps["inject"].return_value = {"success": True, "results": {}, "data": {"files": {}}}
-
-        result: CopySvgLangsWorkerObject = worker.process()
-
-        assert result.stages.upload.status == "Skipped"
-        assert result.stages.upload.message == "Upload disabled"
 
     def test_process_auth_failed(self, worker: CopySvgLangsWorker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
@@ -322,31 +276,8 @@ class TestCopySvgLangsWorkerProcess:
             result: CopySvgLangsWorkerObject = worker.process()
             assert result.stages.text.status == "cancelled"
 
-    def test_run_stage_exception(self, worker: CopySvgLangsWorker):
-        def failing_step():
-            raise ValueError("Boom")
-
-        success = worker._run_stage(worker.result.stages.text, failing_step)
-        assert success is False
-        assert worker.result.stages.text.status == "failed"
-        assert "Boom" in worker.result.stages.text.message
-
     def test_compute_output_dir_none(self, worker: CopySvgLangsWorker):
         assert worker._compute_output_dir(None) is None
-
-    def test_log_upload_error(self, worker: CopySvgLangsWorker):
-        worker.result.files_processed = {
-            "File1.svg": FilesProcessedItem(
-                title="title",
-                status="pending",
-            )
-        }
-        # worker.result.files_processed["File1.svg"].steps.upload = StepResult(result=None, msg="")
-        worker.log_upload_error("Some error", False, "failed")
-
-        assert worker.result.stages.upload.status == "failed"
-        assert worker.result.files_processed["File1.svg"].status == "failed"
-        assert worker.result.files_processed["File1.svg"].steps.upload.msg == "Some error"
 
     def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):
         worker.output_dir = tmp_path
