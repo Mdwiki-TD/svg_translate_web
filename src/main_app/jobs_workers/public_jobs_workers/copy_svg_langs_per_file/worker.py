@@ -124,7 +124,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "cancelled"
             return False
 
-        stage.status = "Running"
+        stage.status = "running"
         self._save_progress()
 
         try:
@@ -160,7 +160,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _extract_translations_step(self) -> bool | None:
         stage = self.result.stages.translations
-        stage.status = "Running"
+        stage.status = "running"
 
         try:
             step_result = extract_translations_step(
@@ -189,7 +189,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _extract_text_step(self) -> bool | None:
         stage = self.result.stages.text
-        stage.status = "Running"
+        stage.status = "running"
 
         if self.is_cancelled():
             stage.status = "cancelled"
@@ -262,7 +262,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         title_to_work = self._apply_limits(self.titles)
 
         per_item = self.get_priority(len(title_to_work))
-        processfiles_stage.status = "Running"
+        processfiles_stage.status = "running"
 
         for n, title in enumerate(title_to_work, start=1):
             processfiles_stage.message = f"Processing files {n}/{len(title_to_work)}"
@@ -300,7 +300,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if processfiles_stage.status in ["pending", "Running"]:
+        if processfiles_stage.status in ["pending", "running"]:
             processfiles_stage.status = "completed"
 
         return self.result

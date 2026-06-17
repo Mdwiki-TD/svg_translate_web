@@ -197,7 +197,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             stage.status = "cancelled"
             return False
 
-        stage.status = "Running"
+        stage.status = "running"
         self._save_progress()
 
         try:

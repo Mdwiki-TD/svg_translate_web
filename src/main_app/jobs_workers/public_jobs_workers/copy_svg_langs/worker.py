@@ -142,7 +142,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "cancelled"
             return False
 
-        stage.status = "Running"
+        stage.status = "running"
         self._save_progress()
 
         try:
@@ -189,7 +189,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "cancelled"
             return False
 
-        stage.status = "Running"
+        stage.status = "running"
         self._save_progress()
 
         try:
@@ -226,7 +226,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _extract_translations_step(self) -> bool | None:
         stage = self.result.stages.translations
-        stage.status = "Running"
+        stage.status = "running"
 
         try:
             step_result = extract_translations_step(
@@ -255,7 +255,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _extract_text_step(self) -> bool | None:
         stage = self.result.stages.text
-        stage.status = "Running"
+        stage.status = "running"
 
         if self.is_cancelled():
             stage.status = "cancelled"
