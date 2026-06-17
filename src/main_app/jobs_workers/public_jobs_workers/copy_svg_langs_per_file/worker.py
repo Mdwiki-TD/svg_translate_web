@@ -9,7 +9,7 @@ import logging
 import re
 import threading
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Tuple
 
 import requests
 from mwclient.client import Site
@@ -296,37 +296,37 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def inject_step_file(
         self,
         title_info: FilesProcessedItem,
-    ) -> bool:
+    ) -> Tuple[StepResult, None | str]:
 
-        _result: InjectResult = inject_step_one_file(
-            title_info.title,
-            title_info.file_path,
+        file_path = Path(title_info.file_path)
+        output_file = self.output_dir / "translated" / file_path.name
+
+        inject_result: InjectResult = inject_step_one_file(
+            file_path,
             self.translations,
-            self.output_dir / "translated",
+            output_file,
             overwrite=self.overwrite_translations,
         )
 
-        if _result.result is None:
-            title_info.steps.inject = StepResult(
+        if inject_result.result is None:
+            step_result = StepResult(
                 result=None,
-                msg=_result.msg,
+                msg=inject_result.msg,
             )
-            return False
+            return step_result, None
 
-        if _result.result is not True or not _result.new_path:
-            title_info.steps.inject = StepResult(
+        if inject_result.result is False:
+            step_result = StepResult(
                 result=False,
-                msg=_result.msg,
+                msg=inject_result.msg,
             )
-            return False
+            return step_result, None
 
-        title_info.steps.inject = StepResult(
+        step_result = StepResult(
             result=True,
-            msg=_result.msg,
+            msg=inject_result.msg,
         )
-        title_info.file_path_to_upload = _result.new_path
-
-        return True
+        return step_result, output_file
 
     def _process_one(self, title: str) -> bool:
         self.result.summary.processed += 1
@@ -403,9 +403,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # At this point, no nested tags remaining in the file
         # Stage 6: Inject translations
 
-        if not self.inject_step_file(title_info):
+        inject_result, new_path = self.inject_step_file(title_info)
+        if not inject_result.result:
             return False
 
+        title_info.file_path_to_upload = new_path
         # ----------------------------------------------
         # Stage 7: Upload
 
@@ -429,8 +431,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         upload = upload_fixed_svg(
-            title,
-            file_path,
+            title_info.title,
+            title_info.file_path_to_upload,
             verify.fixed,
             self.site,
         )
