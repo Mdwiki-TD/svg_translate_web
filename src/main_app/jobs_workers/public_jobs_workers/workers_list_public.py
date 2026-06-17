@@ -23,6 +23,7 @@ jobs_data_public: dict[str, JobData] = {
         job_callable=copy_svg_langs_per_file_worker_entry,
         job_args=[
             {"key": "copy_svg_langs_upload_limit", "as": "upload_limit"},
+            {"key": "copy_svg_langs_pages_limit", "as": "limit_items"},
         ],
         start_confirm_message="",
     ),

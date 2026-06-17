@@ -29,7 +29,7 @@
             </tr>
         </thead>
         <tbody>
-            {% set stage_order = ['text', 'translations', 'titles', 'processfiles'] %}
+            {% set stage_order = ['text', 'titles', 'translations', 'processfiles'] %}
             {% for stage_key in stage_order %}
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}

@@ -49,16 +49,19 @@ def upload_fixed_svg(
     file_path: Path,
     tags_fixed: int,
     site: Site,
+    summary: str | None = None,
 ) -> dict[str, Any]:
     """Upload fixed SVG file to Commons."""
 
     logger.info(f"Uploading fixed file: {filename}")
 
+    summary = summary or f"Fixed {tags_fixed} nested tag(s)"
+
     result = upload_file(
         file_name=filename,
         file_path=file_path,
         site=site,
-        summary=f"Fixed {tags_fixed} nested tag(s)",
+        summary=summary,
     )
     result_status = result.get("result", "")
 

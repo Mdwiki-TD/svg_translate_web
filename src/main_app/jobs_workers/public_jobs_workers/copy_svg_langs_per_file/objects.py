@@ -65,7 +65,6 @@ class FileSteps:
 class FilesProcessedItem:
     title: str
     file_path: Optional[str] = None
-    file_path_to_upload: Optional[str] = None
     status: str = "pending"
     error: Optional[str] = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
