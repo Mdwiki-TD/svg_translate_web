@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 import tempfile
 import threading
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -87,7 +86,7 @@ def repair_nested_svg_tags(
         return {
             "success": False,
             "message": f"No nested tags were fixed in {filename}",
-            "details": asdict(verify),
+            "details": verify.to_dict(),
         }
 
     upload = upload_fixed_svg(
@@ -101,14 +100,14 @@ def repair_nested_svg_tags(
         return {
             "success": False,
             "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-            "details": {**asdict(verify), **upload},
+            "details": {**verify.to_dict(), **upload},
         }
 
     return {
         "success": True,
         "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
         "details": {
-            **asdict(verify),
+            **verify.to_dict(),
             "upload_result": upload.get("result"),
         },
     }
@@ -134,7 +133,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _process_one(self, template: TemplateRecord) -> None:
+    def _process_one(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         template_info = TemplateInfo(
