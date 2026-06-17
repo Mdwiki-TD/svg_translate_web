@@ -323,7 +323,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
         self.site = get_user_site(self.user)
-
         if not self.site:
             upload_result = {"done": 0, "not_done": len(self.files_to_upload), "failed": True}
             self.result.results_summary["upload_result"] = upload_result
