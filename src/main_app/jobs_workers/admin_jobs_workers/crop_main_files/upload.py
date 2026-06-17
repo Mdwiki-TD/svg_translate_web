@@ -62,7 +62,8 @@ def upload_cropped_file(
             new_file=True,
         )
 
-        if upload_result.get("result", "").lower() == "success":
+        result_status = upload_result.get("result") or ""
+        if result_status.lower() == "success":
             result["success"] = True
             logger.info("Successfully uploaded cropped file: %s", cropped_filename)
         else:

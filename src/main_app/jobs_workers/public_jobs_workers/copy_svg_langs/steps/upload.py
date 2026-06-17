@@ -78,7 +78,7 @@ def upload_step(
             errors.append(f"{file_name}: {str(e)}")
             continue
 
-        result_status = upload_result.get("result", "")
+        result_status = upload_result.get("result") or ""
 
         if result_status.lower() == "success":
             done += 1
