@@ -74,7 +74,7 @@
                 </thead>
                 <tbody>
                     {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
-                    {% for item in result_data.files_processed.values() %}
+                    {% for item in result_data.files_processed %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>

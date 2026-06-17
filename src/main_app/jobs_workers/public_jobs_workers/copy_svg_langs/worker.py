@@ -226,27 +226,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
         # ----------------------------------------------
-        # Stage 2: Extract Translations
-        output_dir_main = self.output_dir / "files"
-        output_dir_main.mkdir(parents=True, exist_ok=True)
-
-        def translations_run_after() -> None:
-            data = self.result.stages.translations.data
-            self.translations = data["translations"]
-            # self.result.stages.translations.message = data["message"]
-
-        if not self._run_stage(
-            self.result.stages.translations,
-            step_func=lambda: extract_translations_step(
-                self.main_title,
-                output_dir_main,
-            ),
-            run_after_func=translations_run_after,
-        ):
-            return self.result
-        # ----------------------------------------------
-
-        # Stage 3: Extract Titles
+        # Stage 2: Extract Titles
         def titles_run_after() -> None:
             titles_data = self.result.stages.titles.data
             self.main_title = titles_data["main_title"]
@@ -262,6 +242,26 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 manual_main_title=self.args.get("manual_main_title"),
             ),
             run_after_func=titles_run_after,
+        ):
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 3: Extract Translations
+        output_dir_main = self.output_dir / "files"
+        output_dir_main.mkdir(parents=True, exist_ok=True)
+
+        def translations_run_after() -> None:
+            data = self.result.stages.translations.data
+            self.translations = data["translations"]
+            # self.result.stages.translations.message = data["message"]
+
+        if not self._run_stage(
+            self.result.stages.translations,
+            step_func=lambda: extract_translations_step(
+                self.main_title,
+                output_dir_main,
+            ),
+            run_after_func=translations_run_after,
         ):
             return self.result
 

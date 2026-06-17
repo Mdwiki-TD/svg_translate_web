@@ -9,7 +9,7 @@ import logging
 import re
 import threading
 from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any, Tuple
 
 import requests
 from mwclient.client import Site
@@ -25,7 +25,7 @@ from ....shared.fix_nested.worker import (
     verify_fix,
 )
 from ...base_worker_object import BaseObjectsJobWorker
-from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, FileSteps, StageDetail, StepResult
+from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
     InjectResult,
     extract_text_step,
@@ -74,9 +74,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.main_title: str = ""
         self.titles: list[str] = []
         self.translations: dict[str, str] = {}
-        self.nested_data: dict[str, str] = {}
-        self.nested_results: dict[str, str] = {}
-        self.files_to_upload: dict[str, str] = {}
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -99,13 +96,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return out
 
-    def _is_cancelled(self, stage: StageDetail) -> bool:
-        if self.is_cancelled():
-            stage.status = "Cancelled"
-            return True
-
-        return False
-
     def _save_files_stats(self, stats_data) -> None:
         files_stats_path = self.output_dir / "files_stats.json"
         try:
@@ -117,16 +107,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         except Exception:
             logger.exception(f"Unexpected error saving json, path: {files_stats_path!s}")
 
-    def _run_stage(
-        self,
-        stage: StageDetail,
-        step_func: Callable[[], dict[str, Any]],  # Accepts a zero-argument callable that returns a dict
-        run_after_func: Callable[[], None] | None = None,
-    ) -> bool:
-        """Run a single stage and update result."""
-        stage_name = stage.name
+    def _extract_titles_step(self) -> bool:
+        stage = self.result.stages.titles
 
-        if self._is_cancelled(stage):
+        if self.is_cancelled():
             stage.status = "Cancelled"
             return False
 
@@ -134,70 +118,79 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self._save_progress()
 
         try:
-            # Call the lambda / callback directly without passing args
-            step_result = step_func()
-            stage.data = step_result
-
-            if step_result.get("message"):
-                stage.message = step_result["message"]
-
-            if step_result.get("success"):
-                stage.status = "Completed"
-                if "summary" in step_result and not stage.message:
-                    summary = step_result["summary"]
-                    if isinstance(summary, dict):
-                        stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
-
-                if run_after_func:
-                    run_after_func()
-                return True
-            else:
-                stage.status = "Failed"
-                stage.message = step_result.get("error", "Unknown error")
-                self.result.status = "failed"
-                return False
+            step_result = extract_titles_step(
+                self.text,
+                manual_main_title=self.args.get("manual_main_title"),
+            )
 
         except Exception as e:
-            logger.exception(f"Error in stage {stage_name}")
+            logger.exception("Error in stage titles")
             stage.status = "Failed"
             stage.message = str(e)
             self.result.status = "failed"
             return False
 
-    def _extract_step(self) -> bool | None:
-        data = extract_text_step(
+        if step_result.get("message"):
+            stage.message = step_result["message"]
+
+        if step_result.get("success"):
+            stage.status = "Completed"
+            if "summary" in step_result and not stage.message:
+                summary = step_result["summary"]
+                if isinstance(summary, dict):
+                    stage.message = ", ".join(f"{k}: {v}" for k, v in summary.items())
+
+            self.main_title = step_result["main_title"]
+            self.titles = list(step_result["titles"])
+
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error", "Unknown error")
+        self.result.status = "failed"
+        return False
+
+    def _extract_translations_step(self) -> bool | None:
+        stage = self.result.stages.translations
+        stage.status = "Running"
+
+        step_result = extract_translations_step(
+            self.main_title,
+            self.output_dir / "files",
+        )
+        new_translations = step_result.get("translations", {})
+
+        if step_result.get("success") and new_translations:
+            stage.status = "Completed"
+            self.translations = new_translations
+            return True
+
+        stage.status = "Failed"
+        stage.message = step_result.get("error") or step_result.get("message") or "Unknown error"
+        self.result.status = "failed"
+
+        return False
+
+    def _extract_text_step(self) -> bool | None:
+        stage = self.result.stages.text
+        stage.status = "Running"
+
+        step_result = extract_text_step(
             self.title,
             self.site,
         )
-        return data
+        text = step_result.get("text", "")
 
-    def text_run_after(self) -> None:
-        self.text = self.result.stages.text.data["text"]
-        # clean up
-        self.result.stages.text.data["text"] = ""
+        if step_result.get("success") and text:
+            stage.status = "Completed"
+            self.text = text
+            return True
 
-    def save_stats_summary(self):
-        stats_data = {
-            "main_title": self.main_title,
-            "translations": self.translations,
-            "titles": self.titles,
-            "files": self.files_dict,
-            "files_dict": self.files_dict,
-            "nested_task_result": self.nested_data,
-        }
+        stage.status = "Failed"
+        stage.message = step_result.get("error") or "Unknown error"
+        self.result.status = "failed"
 
-        self._save_files_stats(stats_data)
-
-        # Compile final results for database
-        self.result.results_summary.update(
-            {
-                "total_files": len(self.files_dict),
-                "files_to_upload_count": len(self.files_to_upload),
-                "no_file_path": len(self.files_dict) - len(self.files_to_upload),
-                "new_translations_count": len(self.translations.get("new", {})),
-                "main_title": self.main_title,
-            }
-        )
+        return False
 
     def process(self) -> CopySvgLangsPerFileWorkerObject:
         """Execute the full pipeline."""
@@ -217,57 +210,26 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        if not self._run_stage(
-            self.result.stages.text,
-            step_func=self._extract_step,
-            run_after_func=self.text_run_after,
-        ):
+        self._save_progress()
+
+        if not self._extract_text_step():
             return self.result
 
         # ----------------------------------------------
-        # Stage 2: Extract Translations
-        output_dir_main = self.output_dir / "files"
+        # Stage 2: Extract Titles
+        # extract titles runs before extract_translations because it returns self.main_title
+        # which is used in extract_translations
 
-        def translations_run_after() -> None:
-            data = self.result.stages.translations.data
-            self.translations = data["translations"]
-            # self.result.stages.translations.message = data["message"]
-
-        if not self._run_stage(
-            self.result.stages.translations,
-            step_func=lambda: extract_translations_step(
-                self.main_title,
-                output_dir_main,
-            ),
-            run_after_func=translations_run_after,
-        ):
+        if not self._extract_titles_step():
             return self.result
 
         # ----------------------------------------------
-        # Stage 3: Extract Titles
-        def titles_run_after() -> None:
-            titles_data = self.result.stages.titles.data
-            self.main_title = titles_data["main_title"]
-            self.titles = list(titles_data["titles"])
+        # Stage 3: Extract Translations
 
-            # clean up
-            self.result.stages.titles.data["titles"] = []
-
-        if not self._run_stage(
-            self.result.stages.titles,
-            step_func=lambda: extract_titles_step(
-                self.text,
-                manual_main_title=self.args.get("manual_main_title"),
-            ),
-            run_after_func=titles_run_after,
-        ):
+        if not self._extract_translations_step():
             return self.result
-
-        # ----------------------------------------------
-        # TODO: download, nested, inject, upload stages should be run per file
 
         # Initialize files_processed
-
         per_item = self.get_priority(len(self.titles))
 
         for n, title in enumerate(self.titles, start=1):
@@ -277,7 +239,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            ok = self._process_one(title)
+            ok, title_info = self._process_one(title)
+
+            self.result.files_processed.append(title_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -286,10 +250,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
                 self._save_progress()
-
-        # ----------------------------------------------
-        # Stage 8: save stats and mark done
-        self.save_stats_summary()
 
         return self.result
 
@@ -344,14 +304,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 upload=StepResult(result=None, msg=""),
             ),
         )
-
-        self.result.files_processed[title] = title_info
-        output_dir_main = self.output_dir / "files"
         # ----------------------------------------------
         # Stage 4: download SVG files
 
         try:
-            download = download_svg_file(title, output_dir_main, session=self.session)
+            download = download_svg_file(
+                title,
+                self.output_dir / "files",
+                session=self.session,
+            )
         except Exception as e:
             logger.exception("Error downloading SVG file")
             title_info.steps.download = StepResult(result=False, msg="Error downloading", details={"error": str(e)})
@@ -456,6 +417,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             details=upload.get("result", ""),
         )
 
+        self.upload_done += 1
         title_info.status = "completed"
         # return True, all steps passed and upload is success
         return True
