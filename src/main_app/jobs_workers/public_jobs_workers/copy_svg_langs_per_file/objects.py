@@ -38,6 +38,12 @@ class Stages:
             message="Getting translations",
         )
     )
+    processfiles: StageDetail = field(
+        default_factory=lambda: StageDetail(
+            name="processfiles",
+            message="process Files",
+        )
+    )
 
 
 @dataclass

@@ -233,15 +233,31 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # Initialize files_processed
         per_item = self.get_priority(len(self.titles))
+        self.result.stages.processfiles.status = "Running"
 
         for n, title in enumerate(self.titles, start=1):
+            self.result.stages.processfiles.message = f"Processing files {n}/{len(self.titles)}"
             logger.info("Job %s: Processing title %d/%d: %s", self.job_id, n, len(self.titles), title)
 
             if self.is_cancelled():
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
+                self.result.stages.processfiles.status = "Cancelled"
                 break
 
-            ok, title_info = self._process_one(title)
+            title_info = FilesProcessedItem(
+                title=title,
+                file_path=None,
+                file_path_to_upload=None,
+                status="pending",
+                error=None,
+                steps=FileSteps(
+                    download=StepResult(result=None, msg=""),
+                    nested=StepResult(result=None, msg=""),
+                    inject=StepResult(result=None, msg=""),
+                    upload=StepResult(result=None, msg=""),
+                ),
+            )
+            ok = self._process_one(title, title_info)
 
             self.result.files_processed.append(title_info)
 
@@ -253,6 +269,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
+        self.result.stages.processfiles.status = "Completed"
         return self.result
 
     def inject_step_file(
@@ -290,22 +307,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         )
         return step_result, output_file
 
-    def _process_one(self, title: str) -> bool:
+    def _process_one(self, title: str, title_info: FilesProcessedItem) -> bool:
         self.result.summary.processed += 1
 
-        title_info = FilesProcessedItem(
-            title=title,
-            file_path=None,
-            file_path_to_upload=None,
-            status="pending",
-            error=None,
-            steps=FileSteps(
-                download=StepResult(result=None, msg=""),
-                nested=StepResult(result=None, msg=""),
-                inject=StepResult(result=None, msg=""),
-                upload=StepResult(result=None, msg=""),
-            ),
-        )
         # ----------------------------------------------
         # Stage 4: download SVG files
 

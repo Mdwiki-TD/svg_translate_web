@@ -8,7 +8,10 @@ from typing import Any, Dict
 
 import requests
 
-from ...api_services import create_commons_session, download_commons_file_core
+from ...api_services import (
+    create_commons_session,
+    download_file_rate_limit,
+)
 from ...config import settings
 
 logger = logging.getLogger(__name__)
@@ -58,13 +61,14 @@ def download_one_file(
 
     # Use the core download function with shorter timeout
     try:
-        content = download_commons_file_core(title, session, timeout=30)
+        content = download_file_rate_limit(title, session, timeout=30, max_attempts=5)
+        if not content:
+            raise Exception("Empty content")
     except Exception as e:
         data["result"] = "failed"
         logger.error(f"[{i}] Failed: {title} -> {e}")
         if "404 Client Error: Not Found for url" in str(e):
             data["msg"] = "File not found"
-        # 2026-03-02 02:28:16,694 - main_app.utils.download_file_utils - ERROR [1] Failed: share with mental and substance disorders, World, 2021zz.svg -> 404 Client Error: Not Found for url: https://commons.wikimedia.org/wiki/Special:Redirect/file/share_with_mental_and_substance_disorders,_World,_2021zz.svg
         return data
 
     try:
