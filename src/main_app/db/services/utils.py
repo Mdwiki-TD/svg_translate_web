@@ -86,10 +86,8 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                 try:
                     return func(*args, **kwargs)
                 except OperationalError as e:
-                    is_disconnect = (
-                        getattr(e, "connection_invalidated", False)
-                        or "MySQL server has gone away" in str(e)
-                    )
+                    is_disconnect = getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(e)
+
                     if not is_disconnect:
                         logger.exception("%s: db operation failed", func.__name__)
                         raise

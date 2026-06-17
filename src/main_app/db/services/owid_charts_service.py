@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
-from .utils import db_guard_rollback
+from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ def add_chart(
     return chart
 
 
-@db_guard_rollback
+@retry_on_db_disconnect()
 def update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
