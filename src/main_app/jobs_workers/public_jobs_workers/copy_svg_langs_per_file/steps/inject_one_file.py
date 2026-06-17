@@ -17,6 +17,7 @@ class InjectResult:
     result: Optional[bool] = None
     msg: Optional[str] = None
     new_languages: Optional[int] = None
+    updated_translations: Optional[int] = None
 
 
 def start_injects(
@@ -48,25 +49,34 @@ def start_injects(
         return InjectResult(result=False, msg="Failed to translate")
 
     new_languages = stats.get("new_languages", 0)
+    updated_translations = stats.get("updated_translations", 0)
+
     if stats.get("error"):
         logger.debug(f"Failed to translate {file.name}")
         return InjectResult(result=False, msg=stats.get("error"))
 
-    if new_languages == 0 and stats.get("updated_translations", 0) == 0:
+    if new_languages == 0 and updated_translations == 0:
         return InjectResult(result=None, msg="No changes")
+
+    msg = f"{new_languages} languages injected"
+
+    if new_languages == 0 and updated_translations > 0:
+        msg = f"{updated_translations} translations Updated"
 
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
         return InjectResult(
             result=True,
-            msg=f"Injected {new_languages} languages",
+            msg=msg,
             new_languages=new_languages,
+            updated_translations=updated_translations,
         )
     except Exception:
         return InjectResult(
             result=False,
             msg="Failed to write file",
             new_languages=new_languages,
+            updated_translations=updated_translations,
         )
 
 

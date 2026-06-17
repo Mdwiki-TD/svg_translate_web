@@ -157,6 +157,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "Completed"
             self.main_title = step_result["main_title"]
             self.titles = list(step_result["titles"])
+            self.titles.sort()
 
             return True
 

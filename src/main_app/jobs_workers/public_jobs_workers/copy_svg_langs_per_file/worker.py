@@ -149,6 +149,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             self.main_title = step_result["main_title"]
             self.titles = list(step_result["titles"])
+            self.titles.sort()
 
             return True
 
@@ -317,7 +318,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         step_result = StepResult(
             result=True,
             msg=inject_result.msg,
-            details={"new_languages": inject_result.new_languages},
+            details={
+                "new_languages": inject_result.new_languages,
+                "updated_translations": inject_result.updated_translations,
+            },
         )
         return step_result, output_file
 
@@ -454,8 +458,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if upload_success is True:
             title_info.steps.upload = StepResult(
                 result=True,
-                msg="file Successfully uploaded.",
-                details=upload.get("result", ""),
+                msg="File Successfully uploaded.",
+                # details=upload.get("result", ""),
             )
 
             self.upload_done += 1
