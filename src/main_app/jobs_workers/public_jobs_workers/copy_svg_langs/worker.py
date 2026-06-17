@@ -174,7 +174,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # clean up
         self.result.stages.text.data["text"] = ""
 
-    def save_stats_summary(self):
+    def save_stats_summary(self) -> None:
         stats_data = {
             "main_title": self.main_title,
             "translations": self.translations,
