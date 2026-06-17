@@ -87,11 +87,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
         slug = slug.replace(" ", "_").lower()
         out = Path(settings.paths.svg_data) / slug
+        out.mkdir(parents=True, exist_ok=True)
 
         out_translated = out / "translated"
         out_translated.mkdir(parents=True, exist_ok=True)
 
-        out_dir_main = self.output_dir / "files"
+        out_dir_main = out / "files"
         out_dir_main.mkdir(parents=True, exist_ok=True)
 
         return out
@@ -128,6 +129,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "Failed"
             stage.message = str(e)
             self.result.status = "failed"
+
             return False
 
         if step_result.get("message"):
@@ -174,6 +176,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _extract_text_step(self) -> bool | None:
         stage = self.result.stages.text
         stage.status = "Running"
+
+        if self.is_cancelled():
+            stage.status = "Cancelled"
+            return False
 
         step_result = extract_text_step(
             self.title,

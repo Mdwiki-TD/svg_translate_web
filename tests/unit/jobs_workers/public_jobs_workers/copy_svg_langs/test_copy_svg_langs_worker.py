@@ -299,7 +299,7 @@ class TestCopySvgLangsWorkerProcess:
 
         mock_steps["text"].return_value = {"success": True, "text": "some text"}
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": []}
-        mock_steps["translations"].return_value = {"success": True, "translations": {}}
+        mock_steps["translations"].return_value = {"success": True, "translations": {"test":["data"]}}
         mock_steps["download"].return_value = {"success": True, "files_dict": {}}
         mock_steps["nested"].return_value = {"success": True, "data": {}, "results": {}}
         mock_steps["inject"].return_value = {"success": True, "results": {}, "data": {"files": {}}}
@@ -309,21 +309,13 @@ class TestCopySvgLangsWorkerProcess:
         assert result.stages.upload.status == "Skipped"
         assert result.stages.upload.message == "Upload disabled"
 
-    def test_process_auth_failed(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
+    def test_process_auth_failed(self, worker: CopySvgLangsWorker, mock_clients, tmp_path):
         worker.output_dir = tmp_path
         mock_clients["site"].return_value = None
 
-        mock_steps["text"].return_value = {"success": True, "text": "some text"}
-        mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": []}
-        mock_steps["translations"].return_value = {"success": True, "translations": {}}
-        mock_steps["download"].return_value = {"success": True, "files_dict": {}}
-        mock_steps["nested"].return_value = {"success": True, "data": {}, "results": {}}
-        mock_steps["inject"].return_value = {"success": True, "results": {}, "data": {"files": {}}}
-
         result: CopySvgLangsWorkerObject = worker.process()
 
-        assert result.stages.upload.status == "Failed"
-        assert result.stages.upload.message == "Authentication failed"
+        assert result.errors[0].get("error") == "No authenticated user site available."
 
     def test_process_cancelled(self, worker: CopySvgLangsWorker, mock_clients):
         with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
