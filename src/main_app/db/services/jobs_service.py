@@ -283,7 +283,7 @@ def update_job_status(
         return _update_status(job_id, status, result_file, job_type=job_type)
 
     except OperationalError as e:
-        if "MySQL server has gone away" in str(e):
+        if e.connection_invalidated or "MySQL server has gone away" in str(e):
             if _retry_count < MAX_RETRIES:
                 logger.warning(
                     "Job %s: MySQL server has gone away. Rolling back and retrying update (Attempt %s/%s).",
