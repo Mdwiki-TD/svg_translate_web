@@ -17,7 +17,7 @@ def upload_step(
     main_title: str,
     site: Site,
     cancel_check: Callable[[], bool] | None = None,
-    progress_callback: Callable[[int, int, str], None] | None = None,
+    progress_callback: Callable[[int], None] | None = None,
     upload_limit: int | None = None,
 ) -> dict[str, Any]:
     """
@@ -94,8 +94,7 @@ def upload_step(
                 errors.append(f"{file_name}: {err_msg}")
 
         if progress_callback and (index == 1 or index % 10 == 0 or index == len(to_work)):
-            msg = f"Uploaded {done}, no changes: {no_changes}, failed: {not_done}"
-            progress_callback(index, len(to_work), msg)
+            progress_callback(index)
 
     summary = {
         "total": total_files,

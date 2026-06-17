@@ -605,7 +605,7 @@ class TestProcessProgressCallbacks:
         def upload_side_effect(*args, **kwargs):
             cb = kwargs.get("progress_callback")
             if cb:
-                cb(10, 10, "uploaded 10")
+                cb(10)
             return {
                 "success": True,
                 "summary": {"uploaded": 1, "failed": 0, "no_changes": 0},

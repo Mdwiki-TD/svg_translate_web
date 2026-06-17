@@ -470,7 +470,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 7: Upload
 
-        def upload_progress(index: int, total: int, msg: str) -> None:
+        def upload_progress(index: int) -> None:
             if index % 10 == 0:
                 self._save_progress()
 
