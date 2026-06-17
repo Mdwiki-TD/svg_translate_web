@@ -27,11 +27,11 @@ from ....shared.fix_nested.worker import (
 from ...base_worker_object import BaseObjectsJobWorker
 from .objects import CopySvgLangsPerFileWorkerObject, FilesProcessedItem, FileSteps, StageDetail, StepResult
 from .steps import (
+    InjectResult,
     extract_text_step,
     extract_titles_step,
     extract_translations_step,
     inject_step_one_file,
-    InjectResult,
 )
 
 logger = logging.getLogger(__name__)

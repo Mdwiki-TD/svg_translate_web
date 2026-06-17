@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
@@ -31,7 +31,7 @@ def start_injects(
         "error": None,
         "nested_tspan_error": False,
         "new_languages": 0,
-        'updated_translations': 0,
+        "updated_translations": 0,
     }
     tree, stats = inject(
         file,
@@ -56,10 +56,25 @@ def start_injects(
         return InjectResult(**{"result": False, "msg": "No changes"})
 
     try:
-        tree.write(str(output_file), encoding='utf-8', xml_declaration=True, pretty_print=True) # type: ignore
-        return InjectResult(**{"result": True, "msg": "Injected", "new_path": str(output_file), "new_languages": stats.get("new_languages", 0)})
+        tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
+        return InjectResult(
+            **{
+                "result": True,
+                "msg": "Injected",
+                "new_path": str(output_file),
+                "new_languages": stats.get("new_languages", 0),
+            }
+        )
     except Exception:
-        return InjectResult(**{"result": False, "msg": "Failed to write file", "new_path": None, "new_languages": stats.get("new_languages", 0)})
+        return InjectResult(
+            **{
+                "result": False,
+                "msg": "Failed to write file",
+                "new_path": None,
+                "new_languages": stats.get("new_languages", 0),
+            }
+        )
+
 
 def inject_step_one_file(
     title: str,
