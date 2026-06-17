@@ -291,6 +291,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         file_path_str: str,
     ) -> Tuple[StepResult, None | str]:
 
+        if not file_path_str:
+            return StepResult(result=False, msg="No file path found"), None
+
         file_path = Path(file_path_str)
         output_file = self.output_dir / "translated" / file_path.name
 
@@ -351,7 +354,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         title_info.steps.download = StepResult(result=True, msg="Downloaded successfully", details=download)
 
         file_path = download.get("path")
-        title_info.file_path = file_path
+        if not file_path:
+            title_info.steps.download = StepResult(result=False, msg="Failed to get file path", details=download)
+            title_info.status = "failed"
+            return False
+
+        title_info.file_path = str(file_path)
 
         # ----------------------------------------------
         # Stage 5: Analyze And Fix Nested Files
@@ -394,7 +402,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # At this point, no nested tags remaining in the file
         # Stage 6: Inject translations
 
-        inject_result, new_path = self.inject_step_file(str(title_info.file_path))
+        inject_result, new_path = self.inject_step_file(title_info.file_path)
         title_info.steps.inject = inject_result
 
         if inject_result.result is True:

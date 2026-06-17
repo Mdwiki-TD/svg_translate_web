@@ -55,6 +55,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.title = self.args.get("title")
         self.overwrite_downloads = bool(self.args.get("overwrite_downloads"))
         self.overwrite_translations = bool(self.args.get("overwrite"))
+        self.limit_items = self.args.get("limit_items") or 0
 
         upload_limit = self.args.get("upload_limit") or 0
         self.upload_limit = upload_limit if isinstance(upload_limit, int) else 0
@@ -76,6 +77,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "copy_svg_langs"
+
+    def _apply_limits(self, titles: list[str]) -> list[str]:
+        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
+        if _limit > 0 and len(titles) > _limit:
+            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
+            return titles[:_limit]
+
+        return titles
 
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
@@ -155,6 +164,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         if step_result.get("success"):
             stage.status = "Completed"
+
             self.main_title = step_result["main_title"]
             self.titles = list(step_result["titles"])
             self.titles.sort()
@@ -363,7 +373,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # Initialize files_processed
 
-        for title in self.titles:
+        title_to_work = self._apply_limits(self.titles)
+
+        for title in title_to_work:
             self.result.files_processed[title] = FilesProcessedItem(
                 title=title,
                 status="pending",
@@ -373,7 +385,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if not self._run_stage(
             self.result.stages.download,
             step_func=lambda: download_step(
-                titles=self.titles,
+                titles=title_to_work,
                 output_dir=self.output_dir / "files",
                 session=self.session,
                 cancel_check=lambda: self._is_cancelled(self.result.stages.download),
