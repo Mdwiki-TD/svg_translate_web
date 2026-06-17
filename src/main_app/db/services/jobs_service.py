@@ -24,6 +24,7 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
 # private API
 # ------------------
 
+
 def _update_status(job_id: int, status: str, result_file: str | None, job_type: str) -> JobRecord:
     """
     Update job status and result file.
@@ -74,7 +75,7 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
     if record:
         # Refresh from database to ensure we don't use a stale cached status
         db.session.refresh(record)
-        return record.status.lower() == "cancelled"
+        return (record.status or "").lower() == "cancelled"
     return False
 
 

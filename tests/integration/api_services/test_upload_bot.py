@@ -30,7 +30,7 @@ def tmp_file(tmp_path):
     return f
 
 
-def make_upload_response(result: str = "Success") -> dict:
+def make_upload_response(result: str = "success") -> dict:
     return {"result": result, "filename": "Test_file.jpg"}
 
 
@@ -66,7 +66,7 @@ class TestUpload:
             ]
         )
         result = u.upload()
-        assert result["result"] == "Success"
+        assert result["result"] == "success"
 
     def test_rate_limited_exhausts_all_retries(self, mock_site, tmp_file):
         u = self._make_uploader(mock_site, tmp_file)
@@ -97,7 +97,7 @@ class TestUpload:
         u._site_upload = MagicMock(return_value=make_upload_response())
         with patch("builtins.open", mock_open(read_data=b"data")):
             result = u.upload()
-        assert result["result"] == "Success"
+        assert result["result"] == "success"
 
 
 class TestUploadBotIntegration:
@@ -119,12 +119,12 @@ class TestUploadBotIntegration:
 
         def fake_upload(*, file, **kwargs):
             assert file.read() == image_content
-            return {"result": "Success"}
+            return {"result": "success"}
 
         mock_site.upload.side_effect = fake_upload
         result = uploader.upload()
 
-        assert result["result"] == "Success"
+        assert result["result"] == "success"
         assert image_path.exists()
 
     def test_invalid_path_error_handling(self, mock_site, tmp_path):

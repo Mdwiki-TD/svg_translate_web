@@ -207,7 +207,7 @@ class TestDownloadStep:
         assert result is False
         assert proc.result.file_result.success is False
         assert proc.result.file_result.error == "network_error"
-        assert proc.result.stages.download.status == "Failed"
+        assert proc.result.stages.download.status == "failed"
 
     def test_failure_defaults_error_when_missing(self, mock_services):
         mock_services["download_svg_file"].return_value = {"ok": False}
@@ -225,7 +225,7 @@ class TestAnalyzeStep:
 
     def test_skips_when_download_not_success(self, mock_services):
         proc = _make_processor()
-        proc.result.stages.download.status = "Failed"
+        proc.result.stages.download.status = "failed"
         result = proc._analyze_step()
         assert result is None
         mock_services["detect_nested_tags"].assert_not_called()
@@ -284,7 +284,7 @@ class TestFixStep:
         proc = self._proc_after_analyze(tmp_path / "x.svg")
         result = proc._fix_step()
         assert result is False
-        assert proc.result.stages.fix.status == "Failed"
+        assert proc.result.stages.fix.status == "failed"
 
 
 class TestVerifyStep:
@@ -296,7 +296,7 @@ class TestVerifyStep:
 
     def test_skips_when_fix_not_success(self, mock_services):
         proc = _make_processor()
-        proc.result.stages.fix.status = "Failed"
+        proc.result.stages.fix.status = "failed"
         result = proc._verify_step()
         assert result is None
         mock_services["verify_fix"].assert_not_called()
@@ -315,7 +315,7 @@ class TestVerifyStep:
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
         result = proc._verify_step()
         assert result is False
-        assert proc.result.stages.verify.status == "Failed"
+        assert proc.result.stages.verify.status == "failed"
 
 
 class TestUploadStep:
@@ -351,7 +351,7 @@ class TestUploadStep:
 
     def test_skips_when_verify_not_success(self, mock_services, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
-        proc.result.stages.verify.status = "Failed"
+        proc.result.stages.verify.status = "failed"
         result = proc._upload_step()
         assert result is None
         mock_services["upload_fixed_svg"].assert_not_called()
@@ -368,7 +368,7 @@ class TestUploadStep:
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
-        assert proc.result.stages.upload.status == "Failed"
+        assert proc.result.stages.upload.status == "failed"
         assert proc.result.stages.upload.message == "permission_denied"
 
 
@@ -387,7 +387,7 @@ class TestRunStage:
         mock_services["is_job_cancelled"].return_value = False
         proc = _make_processor()
         assert proc._run_stage(proc.result.stages.download, lambda: False) is False
-        assert proc.result.status == "Failed"
+        assert proc.result.status == "failed"
 
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
@@ -403,9 +403,9 @@ class TestRunStage:
             raise ValueError("oops")
 
         assert proc._run_stage(proc.result.stages.download, boom) is False
-        assert proc.result.stages.download.status == "Failed"
+        assert proc.result.stages.download.status == "failed"
         assert "oops" in proc.result.stages.download.message
-        assert proc.result.status == "Failed"
+        assert proc.result.status == "failed"
 
     def test_returns_false_immediately_when_cancelled(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
@@ -429,7 +429,7 @@ class TestRunStage:
 
         proc = _make_processor()
         proc._run_stage(proc.result.stages.download, capture_status)
-        assert statuses[0] == "Running"
+        assert statuses[0] == "running"
 
 
 # ---------------------------------------------------------------------------
@@ -514,7 +514,7 @@ class TestRun:
         try:
             proc = _make_processor(args={})
             result = proc.run()
-            assert result["status"] == "Failed"
+            assert result["status"] == "failed"
         finally:
             for p in patchers.values():
                 p.stop()
@@ -528,7 +528,7 @@ class TestRun:
         try:
             proc = _make_processor()
             result = proc.run()
-            assert result["status"] == "Failed"
+            assert result["status"] == "failed"
             mocks["detect"].assert_not_called()
         finally:
             for p in patchers.values():

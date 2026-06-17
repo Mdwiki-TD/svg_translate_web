@@ -51,13 +51,13 @@ class TestCopySvgLangsWorker:
         assert result.completed_at is None
         assert result.cancelled_at is None
         assert result.title is None
-        assert result.stages.text.status == "Pending"
-        assert result.stages.titles.status == "Pending"
-        assert result.stages.translations.status == "Pending"
-        assert result.stages.download.status == "Pending"
-        assert result.stages.nested.status == "Pending"
-        assert result.stages.inject.status == "Pending"
-        assert result.stages.upload.status == "Pending"
+        assert result.stages.text.status == "pending"
+        assert result.stages.titles.status == "pending"
+        assert result.stages.translations.status == "pending"
+        assert result.stages.download.status == "pending"
+        assert result.stages.nested.status == "pending"
+        assert result.stages.inject.status == "pending"
+        assert result.stages.upload.status == "pending"
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
@@ -281,7 +281,7 @@ class TestCopySvgLangsWorkerProcess:
 
         # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
         assert result.status == "pending"
-        assert worker.result.stages.upload.status == "Completed"
+        assert worker.result.stages.upload.status == "completed"
         assert "upload_result" in result.results_summary
 
     def test_process_stage_fails(self, worker: CopySvgLangsWorker, mock_steps, mock_clients):
@@ -290,7 +290,7 @@ class TestCopySvgLangsWorkerProcess:
         result: CopySvgLangsWorkerObject = worker.process()
 
         assert result.status == "failed"
-        assert result.stages.text.status == "Failed"
+        assert result.stages.text.status == "failed"
         assert result.stages.text.message == "Extraction failed"
 
     def test_process_upload_disabled(self, worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path):
@@ -320,7 +320,7 @@ class TestCopySvgLangsWorkerProcess:
     def test_process_cancelled(self, worker: CopySvgLangsWorker, mock_clients):
         with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
             result: CopySvgLangsWorkerObject = worker.process()
-            assert result.stages.text.status == "Cancelled"
+            assert result.stages.text.status == "cancelled"
 
     def test_run_stage_exception(self, worker: CopySvgLangsWorker):
         def failing_step():
@@ -328,7 +328,7 @@ class TestCopySvgLangsWorkerProcess:
 
         success = worker._run_stage(worker.result.stages.text, failing_step)
         assert success is False
-        assert worker.result.stages.text.status == "Failed"
+        assert worker.result.stages.text.status == "failed"
         assert "Boom" in worker.result.stages.text.message
 
     def test_compute_output_dir_none(self, worker: CopySvgLangsWorker):
@@ -342,10 +342,10 @@ class TestCopySvgLangsWorkerProcess:
             )
         }
         # worker.result.files_processed["File1.svg"].steps.upload = StepResult(result=None, msg="")
-        worker.log_upload_error("Some error", False, "Failed")
+        worker.log_upload_error("Some error", False, "failed")
 
-        assert worker.result.stages.upload.status == "Failed"
-        assert worker.result.files_processed["File1.svg"].status == "Failed"
+        assert worker.result.stages.upload.status == "failed"
+        assert worker.result.files_processed["File1.svg"].status == "failed"
         assert worker.result.files_processed["File1.svg"].steps.upload.msg == "Some error"
 
     def test_save_files_stats_error(self, worker: CopySvgLangsWorker, tmp_path):

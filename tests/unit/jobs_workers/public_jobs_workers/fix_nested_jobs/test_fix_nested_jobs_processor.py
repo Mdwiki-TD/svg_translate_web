@@ -75,7 +75,7 @@ class TestFixNestedJobsProcessorSteps:
         result = processor._verify_step()
 
         assert result is False
-        assert processor.result.stages.verify.status == "Failed"
+        assert processor.result.stages.verify.status == "failed"
 
     def test_upload_step_success(self, mock_services, tmp_path) -> None:
         processor = _make_processor()
@@ -99,7 +99,7 @@ class TestFixNestedJobsProcessorSteps:
         result = processor._upload_step()
 
         assert result is False
-        assert processor.result.stages.upload.status == "Failed"
+        assert processor.result.stages.upload.status == "failed"
 
 
 class TestFixNestedJobsProcessor:
@@ -144,4 +144,4 @@ class TestFixNestedJobsProcessor:
 
         result = processor._run_stage(processor.result.stages.download, mock_step)
         assert result is False
-        assert processor.result.status == "Failed"
+        assert processor.result.status == "failed"

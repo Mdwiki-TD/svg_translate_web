@@ -33,11 +33,11 @@ class TestFixNestedJobsProcessor:
         assert result.completed_at is None
         assert result.cancelled_at is None
         assert result.filename is None  # filename comes from args, not set until processor runs
-        assert result.stages.download.status == "Pending"
-        assert result.stages.analyze.status == "Pending"
-        assert result.stages.fix.status == "Pending"
-        assert result.stages.verify.status == "Pending"
-        assert result.stages.upload.status == "Pending"
+        assert result.stages.download.status == "pending"
+        assert result.stages.analyze.status == "pending"
+        assert result.stages.fix.status == "pending"
+        assert result.stages.verify.status == "pending"
+        assert result.stages.upload.status == "pending"
 
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}

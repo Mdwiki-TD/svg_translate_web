@@ -15,7 +15,7 @@ def test_upload_cropped_file_success(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -73,7 +73,7 @@ def test_upload_cropped_file_strips_file_prefix(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -91,7 +91,7 @@ def test_upload_cropped_file_without_file_prefix(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -109,7 +109,7 @@ def test_upload_cropped_file_with_special_characters(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -126,7 +126,7 @@ def test_upload_cropped_file_uses_new_file_flag(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -143,7 +143,7 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -173,7 +173,7 @@ def test_upload_cropped_file_with_very_long_filename(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -206,7 +206,7 @@ def test_upload_cropped_file_with_unicode_filename(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -224,7 +224,7 @@ def test_upload_cropped_file_passes_correct_site(tmp_path):
     site.name = "commons"
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -242,7 +242,7 @@ def test_upload_cropped_file_with_path_object(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -260,7 +260,7 @@ def test_upload_cropped_file_empty_filename(tmp_path):
     site = Mock()
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -277,7 +277,7 @@ def test_upload_cropped_file_with_wikitext(tmp_path):
     wikitext = "==Summary==\nTest description"
 
     with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.upload.upload_file") as mock_upload:
-        mock_upload.return_value = {"result": "Success"}
+        mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site, wikitext)
 
