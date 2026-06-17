@@ -218,6 +218,7 @@ class BaseObjectsJobWorker(ABC):
 
     def log_no_site_error(self) -> None:
         """ """
+
         self.result.status = "failed"
         self.result.failed_at = datetime.now().isoformat()
         self.log_errors("No authenticated user site available.")
