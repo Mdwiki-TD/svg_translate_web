@@ -13,7 +13,7 @@ from ...shared_objects import StandardAdminWorkerObject
 @dataclass
 class StageDetail:
     name: str = ""
-    status: str = "Pending"
+    status: str = "pending"
     message: str = ""
     data: Any = None
 

@@ -121,7 +121,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage = self.result.stages.titles
 
         if self.is_cancelled():
-            stage.status = "Cancelled"
+            stage.status = "cancelled"
             return False
 
         stage.status = "Running"
@@ -135,7 +135,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         except Exception as e:
             logger.exception("Error in stage titles")
-            stage.status = "Failed"
+            stage.status = "failed"
             stage.message = str(e)
             self.result.status = "failed"
 
@@ -145,7 +145,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.message = step_result["message"]
 
         if step_result.get("success"):
-            stage.status = "Completed"
+            stage.status = "completed"
 
             self.main_title = step_result["main_title"]
             self.titles = list(step_result["titles"])
@@ -153,7 +153,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             return True
 
-        stage.status = "Failed"
+        stage.status = "failed"
         stage.message = step_result.get("error", "Unknown error")
         self.result.status = "failed"
         return False
@@ -169,7 +169,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             )
         except Exception as e:
             logger.exception("Error in stage translations")
-            stage.status = "Failed"
+            stage.status = "failed"
             stage.message = str(e)
             self.result.status = "failed"
             return False
@@ -177,11 +177,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         new_translations = step_result.get("translations", {})
 
         if step_result.get("success") and new_translations:
-            stage.status = "Completed"
+            stage.status = "completed"
             self.translations = new_translations
             return True
 
-        stage.status = "Failed"
+        stage.status = "failed"
         stage.message = step_result.get("error") or step_result.get("message") or "Unknown error"
         self.result.status = "failed"
 
@@ -192,7 +192,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage.status = "Running"
 
         if self.is_cancelled():
-            stage.status = "Cancelled"
+            stage.status = "cancelled"
             return False
 
         try:
@@ -202,7 +202,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             )
         except Exception as e:
             logger.exception("Error in stage text")
-            stage.status = "Failed"
+            stage.status = "failed"
             stage.message = str(e)
             self.result.status = "failed"
             return False
@@ -210,11 +210,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         text = step_result.get("text", "")
 
         if step_result.get("success") and text:
-            stage.status = "Completed"
+            stage.status = "completed"
             self.text = text
             return True
 
-        stage.status = "Failed"
+        stage.status = "failed"
         stage.message = step_result.get("error") or "Unknown error"
         self.result.status = "failed"
 
@@ -270,7 +270,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             if self.is_cancelled():
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
-                processfiles_stage.status = "Cancelled"
+                processfiles_stage.status = "cancelled"
                 break
 
             title_info = FilesProcessedItem(
@@ -300,8 +300,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if processfiles_stage.status in ["Pending", "Running"]:
-            processfiles_stage.status = "Completed"
+        if processfiles_stage.status in ["pending", "Running"]:
+            processfiles_stage.status = "completed"
 
         return self.result
 

@@ -80,7 +80,7 @@ def upload_step(
 
         result_status = upload_result.get("result", "")
 
-        if result_status == "Success":
+        if result_status.lower() == "success":
             done += 1
             results[title] = {"result": True, "msg": "Uploaded successfully"}
         elif result_status == "fileexists-no-change":

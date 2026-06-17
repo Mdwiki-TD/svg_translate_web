@@ -65,7 +65,7 @@ def upload_fixed_svg(
     )
     result_status = result.get("result", "")
 
-    if result_status == "Success":
+    if result_status.lower() == "success":
         return {
             "ok": True,
             "error": None,
