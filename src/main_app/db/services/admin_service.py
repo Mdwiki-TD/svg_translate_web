@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from ...extensions import db
 from ..exceptions import UserNotFoundError
