@@ -3,7 +3,7 @@
 from types import SimpleNamespace
 
 from src.main_app import create_app
-from src.main_app.app_routes.auth import oauth as oauth_helpers
+from src.main_app.su_services import mwoauth_handshake as oauth_helpers
 from src.main_app.config import TestingConfig
 
 

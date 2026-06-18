@@ -6,8 +6,8 @@ import logging
 from collections.abc import Sequence
 from typing import Any, Tuple
 
-from ..app_routes.auth.oauth import complete_login
 from .auth_users_service import AuthUserService
+from .mwoauth_handshake import complete_login
 
 logger = logging.getLogger(__name__)
 

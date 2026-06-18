@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from src.main_app.app_routes.auth import oauth
+from src.main_app.su_services import mwoauth_handshake as oauth
 
 
 @pytest.fixture(autouse=True)

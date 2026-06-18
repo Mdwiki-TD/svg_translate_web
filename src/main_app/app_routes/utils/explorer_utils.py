@@ -142,6 +142,7 @@ def get_informations(title) -> dict:
 
 
 __all__ = [
+    "_validate_path_under_base",
     "get_main_data",
     "get_files_full_path",
     "get_files",

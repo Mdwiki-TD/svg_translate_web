@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app.app_routes.auth import oauth as oauth_helpers
+from src.main_app.su_services import mwoauth_handshake as oauth_helpers
 
 
 class StubConsumerToken:

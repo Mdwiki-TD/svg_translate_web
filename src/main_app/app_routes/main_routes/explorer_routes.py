@@ -8,6 +8,7 @@ from typing import Any
 
 from flask import (
     Blueprint,
+    abort,
     render_template,
     send_from_directory,
 )
@@ -16,6 +17,7 @@ from flask.wrappers import Response
 from ...config import settings
 from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
+    _validate_path_under_base,
     get_files,
     get_informations,
 )
@@ -119,15 +121,13 @@ def main() -> str:
 
 @bp_explorer.route("/media/<title_dir>/<subdir>/<string:filename>")
 def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
-    """
-    Serve SVG files
-    """
-    svg_data_path = load_svg_data_path()
-    dir_path = svg_data_path / title_dir / subdir
-    dir_path = str(dir_path.absolute())
+    """Serve SVG files."""
+    try:
+        dir_path = _validate_path_under_base(title_dir, subdir)
+    except PermissionError:
+        abort(403)
 
-    # dir_path = "I:/SVG_EXPLORER/svg_data/Parkinsons prevalence/translated"
-    response = send_from_directory(dir_path, filename)
+    response = send_from_directory(str(dir_path), filename)
     response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
@@ -135,13 +135,15 @@ def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
 
 @bp_explorer.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")
 def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
-    # ---
-    dir_path = load_svg_data_path() / title_dir / subdir
+    try:
+        dir_path = _validate_path_under_base(title_dir, subdir)
+    except PermissionError:
+        abort(403)
+
     thumb_path = load_thumb_path() / title_dir / subdir
-    # ---
     file_path = dir_path / filename
     file_thumb_path = thumb_path / filename
-    # ---
+
     if not file_thumb_path.exists():
         save_thumb(file_path, file_thumb_path)
 
