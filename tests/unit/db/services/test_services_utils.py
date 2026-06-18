@@ -8,14 +8,14 @@ TODO: write tests
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import patch
 
+import pytest
 from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
 
-from src.main_app.db.services.utils import db_guard_rollback
 from src.main_app.db.services.utils import (
     db_guard,
+    db_guard_rollback,
 )
 
 

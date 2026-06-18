@@ -8,13 +8,13 @@ import pytest
 import requests
 
 from src.main_app.api_services.clients.owid_client import (
+    INDICATORS_METADATA_URL,
+    METADATA_URL,
+    REQUEST_TIMEOUT,
     _build_session,
     _thread_local,
     fetch_grapher_metadata,
     fetch_indicators_metadata,
-    METADATA_URL,
-    INDICATORS_METADATA_URL,
-    REQUEST_TIMEOUT,
 )
 
 
