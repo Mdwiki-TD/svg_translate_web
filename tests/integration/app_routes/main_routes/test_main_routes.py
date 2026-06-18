@@ -7,7 +7,7 @@ from src.main_app.app_routes.main_routes.routes import bp_main
 
 
 @pytest.fixture
-def app_mock():
+def app_main_mock():
     app = Flask(__name__)
     app.register_blueprint(bp_main)
     app.secret_key = "test"
@@ -15,10 +15,10 @@ def app_mock():
 
 
 @patch("src.main_app.app_routes.main_routes.routes.render_template")
-def test_index(mock_render, app_mock):
+def test_index(mock_render, app_main_mock):
     mock_render.return_value = "rendered"
 
-    with app_mock.test_client() as client:
+    with app_main_mock.test_client() as client:
         resp = client.get("/")
         assert resp.data == b"rendered"
 
@@ -30,10 +30,10 @@ def test_index(mock_render, app_mock):
 
 
 @patch("src.main_app.app_routes.main_routes.routes.send_from_directory")
-def test_favicon(mock_send, app_mock):
+def test_favicon(mock_send, app_main_mock):
     mock_send.return_value = "icon"
 
-    with app_mock.test_client() as client:
+    with app_main_mock.test_client() as client:
         resp = client.get("/favicon.ico")
         assert resp.data == b"icon"
 

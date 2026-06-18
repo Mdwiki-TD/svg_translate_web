@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 from src.main_app.app_routes.admin_routes import templates
 
 
-def test_update_template_uses_request_form_type_parameter(app_mock):
+def test_update_template_uses_request_form_type_parameter(mock_app):
     """Test that _update_template uses request.form.get with type=int parameter."""
-    with app_mock.test_request_context(
+    with mock_app.test_request_context(
         method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}
     ):
         mock_update_template = Mock(return_value=Mock(title="Test Title"))
@@ -26,9 +26,9 @@ def test_update_template_uses_request_form_type_parameter(app_mock):
                             mock_get.assert_any_call("id", default=0, type=int)
 
 
-def test_update_template_correct_error_message_for_missing_title(app_mock):
+def test_update_template_correct_error_message_for_missing_title(mock_app):
     """Test that _update_template shows correct error message for update (not 'add')."""
-    with app_mock.test_request_context(method="POST", data={"id": "1", "title": "", "main_file": "test.svg"}):
+    with mock_app.test_request_context(method="POST", data={"id": "1", "title": "", "main_file": "test.svg"}):
         with patch("src.main_app.app_routes.admin_routes.templates.flash") as mock_flash:
             with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
                 with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
@@ -41,9 +41,9 @@ def test_update_template_correct_error_message_for_missing_title(app_mock):
         assert "Title is required to update a template" in flash_message
 
 
-def test_update_template_missing_id_shows_error(app_mock):
+def test_update_template_missing_id_shows_error(mock_app):
     """Test that _update_template shows error when template ID is missing."""
-    with app_mock.test_request_context(method="POST", data={"id": "0", "title": "Test", "main_file": "test.svg"}):
+    with mock_app.test_request_context(method="POST", data={"id": "0", "title": "Test", "main_file": "test.svg"}):
         with patch("src.main_app.app_routes.admin_routes.templates.flash") as mock_flash:
             with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
                 with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
