@@ -104,7 +104,7 @@ class TestGetUserSite:
 @patch("src.main_app.api_services.clients.wiki_client.settings")
 @patch("src.main_app.api_services.clients.wiki_client.Site")
 @patch("src.main_app.api_services.clients.wiki_client.decrypt_value")
-def test_get_user_site(mock_decrypt, mock_site, mock_settings, app):
+def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):
     mock_settings.oauth = MagicMock()
     mock_settings.other = MagicMock()
     mock_decrypt.side_effect = lambda x: x.decode() if isinstance(x, bytes) else x
