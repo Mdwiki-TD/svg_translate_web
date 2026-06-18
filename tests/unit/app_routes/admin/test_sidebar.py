@@ -102,19 +102,19 @@ class TestGenerateListItem:
 
 
 class TestCreateSide:
-    def test_returns_html_string(self, app):
-        with app.test_request_context():
+    def test_returns_html_string(self, mock_app):
+        with mock_app.test_request_context():
             html = create_side("admins")
             assert isinstance(html, str)
             assert "<ul" in html
 
-    def test_contains_coordinators_link(self, app):
-        with app.test_request_context():
+    def test_contains_coordinators_link(self, mock_app):
+        with mock_app.test_request_context():
             html = create_side("admins")
             assert "Coordinators" in html
 
-    def test_contains_users_link(self, app):
-        with app.test_request_context():
+    def test_contains_users_link(self, mock_app):
+        with mock_app.test_request_context():
             html = create_side("admins")
             assert "Users" in html
 

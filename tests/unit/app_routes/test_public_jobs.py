@@ -99,7 +99,7 @@ def mock_template_data() -> MagicMock:
 
 
 @pytest.fixture
-def app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
+def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     """Create a minimal Flask app with the JobsPublicRoutes blueprint registered."""
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
@@ -115,9 +115,9 @@ def app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
 
 
 @pytest.fixture
-def client(app: Flask):
+def mock_p_client(mock_p_app: Flask):
     """Return a test client for the minimal Flask app."""
-    return app.test_client()
+    return mock_p_app.test_client()
 
 
 # =========================================================================
@@ -531,93 +531,95 @@ class TestJobsPublicRoutesRoutes:
 
     # ── jobs_list ──────────────────────────────────────────────────────
 
-    def test_jobs_list_200(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/test_job")
+    def test_jobs_list_200(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/test_job")
         assert resp.status_code == 200
         assert b"test_job" in resp.data
 
-    def test_jobs_list_unknown_job_type_404(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/nonexistent_type")
+    def test_jobs_list_unknown_job_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/nonexistent_type")
         assert resp.status_code == 404
 
     # ── job_detail ─────────────────────────────────────────────────────
 
-    def test_job_detail_200(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/test_job/1")
+    def test_job_detail_200(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/test_job/1")
         assert resp.status_code == 200
         assert b"detail" in resp.data
 
-    def test_job_detail_unknown_type_404(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/nonexistent_type/1")
+    def test_job_detail_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/nonexistent_type/1")
         assert resp.status_code == 404
 
     # ── job_detail_expand ──────────────────────────────────────────────
 
-    def test_job_detail_expand_200(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/test_job/1/expand")
+    def test_job_detail_expand_200(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/test_job/1/expand")
         assert resp.status_code == 200
         assert b"True" in resp.data
 
-    def test_job_detail_expand_unknown_type_404(self, client: Flask.test_client) -> None:
-        resp = client.get("/jobs/nonexistent_type/1/expand")
+    def test_job_detail_expand_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.get("/jobs/nonexistent_type/1/expand")
         assert resp.status_code == 404
 
     # ── cancel_job ─────────────────────────────────────────────────────
 
-    def test_cancel_job_302(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/test_job/1/cancel")
+    def test_cancel_job_302(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/test_job/1/cancel")
         assert resp.status_code == 302
 
-    def test_cancel_job_unknown_type_404(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/nonexistent_type/1/cancel")
+    def test_cancel_job_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/nonexistent_type/1/cancel")
         assert resp.status_code == 404
 
-    def test_cancel_job_not_logged_in(self, client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: None)
-        resp = client.post("/jobs/test_job/1/cancel")
+        resp = mock_p_client.post("/jobs/test_job/1/cancel")
         assert resp.status_code == 302
 
     # ── start_job ──────────────────────────────────────────────────────
 
-    def test_start_job_302(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/test_job/start", data={"key": "value"})
+    def test_start_job_302(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})
         assert resp.status_code == 302
 
-    def test_start_job_unknown_type_404(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/nonexistent_type/start", data={"key": "value"})
+    def test_start_job_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/nonexistent_type/start", data={"key": "value"})
         assert resp.status_code == 404
 
     def test_start_job_failure_redirects_to_list(
-        self, client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
+        self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(
             "src.main_app.jobs_workers.jobs_worker.start_job",
             MagicMock(side_effect=DuplicateJobError()),
         )
-        resp = client.post("/jobs/test_job/start", data={"key": "value"})
+        resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})
         assert resp.status_code == 302
 
     # ── delete_job ─────────────────────────────────────────────────────
 
-    def test_delete_job_302(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/test_job/1/delete")
+    def test_delete_job_302(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 302
 
-    def test_delete_job_unknown_type_404(self, client: Flask.test_client) -> None:
-        resp = client.post("/jobs/nonexistent_type/1/delete")
+    def test_delete_job_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
+        resp = mock_p_client.post("/jobs/nonexistent_type/1/delete")
         assert resp.status_code == 404
 
-    def test_delete_job_not_admin_403(self, client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delete_job_not_admin_403(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
         non_admin = MagicMock(username="regular", is_active_admin=False)
         monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", lambda: non_admin)
-        resp = client.post("/jobs/test_job/1/delete")
+        resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 403
 
-    def test_delete_job_not_logged_in_302(self, client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delete_job_not_logged_in_302(
+        self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", lambda: None)
         monkeypatch.setattr(
             "src.main_app.app_routes.admin.admins_required.url_for",
             lambda endpoint, **values: f"/{endpoint}",
         )
-        resp = client.post("/jobs/test_job/1/delete")
+        resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 302

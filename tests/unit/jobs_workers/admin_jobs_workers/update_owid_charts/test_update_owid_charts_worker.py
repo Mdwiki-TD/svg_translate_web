@@ -5,6 +5,8 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
     update_owid_charts_worker_entry,
@@ -14,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
 class TestUpdateOwidChartsWorkerInitialization:
     """Tests for UpdateOwidChartsWorker initialization."""
 
-    def test_worker_initialization(self, mock_jobs_service):
+    def test_worker_initialization(self):
         """Test worker initializes correctly with default args."""
         worker = UpdateOwidChartsWorker(job_id=1, user={"username": "test"}, cancel_event=None)
 
@@ -23,7 +25,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         assert worker.get_job_type() == "update_owid_charts"
         assert worker.limit_items == 0
 
-    def test_worker_initialization_with_limit_items(self, mock_jobs_service):
+    def test_worker_initialization_with_limit_items(self):
         """Test worker reads limit_items from args."""
         worker = UpdateOwidChartsWorker(
             job_id=1,
@@ -34,13 +36,13 @@ class TestUpdateOwidChartsWorkerInitialization:
 
         assert worker.limit_items == 5
 
-    def test_worker_initialization_with_none_args(self, mock_jobs_service):
+    def test_worker_initialization_with_none_args(self):
         """Test worker defaults limit_items to 0 when args is None."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None, args=None)
 
         assert worker.limit_items == 0
 
-    def test_worker_initialization_limit_items_none_when_key_missing(self, mock_jobs_service):
+    def test_worker_initialization_limit_items_none_when_key_missing(self):
         """Test worker sets limit_items to None when args has no limit_items key."""
         worker = UpdateOwidChartsWorker(
             job_id=1,
@@ -51,12 +53,12 @@ class TestUpdateOwidChartsWorkerInitialization:
 
         assert worker.limit_items == 0
 
-    def test_get_job_type(self, mock_jobs_service):
+    def test_get_job_type(self):
         """Test get_job_type returns correct value."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         assert worker.get_job_type() == "update_owid_charts"
 
-    def test_initial_result_structure(self, mock_jobs_service):
+    def test_initial_result_structure(self):
         """Test initial result matches expected structure."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         result = worker.result
@@ -76,7 +78,7 @@ class TestUpdateOwidChartsWorkerInitialization:
 class TestUpdateOwidChartsWorkerApplyLimits:
     """Tests for _apply_limits method."""
 
-    def test_apply_limits_with_limit_set(self, mock_jobs_service):
+    def test_apply_limits_with_limit_set(self):
         """Test _apply_limits respects the limit_items setting."""
         charts = [
             MagicMock(chart_id=1, slug="chart-1"),
@@ -94,7 +96,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 
         assert len(result) == 2
 
-    def test_apply_limits_with_zero_limit(self, mock_jobs_service):
+    def test_apply_limits_with_zero_limit(self):
         """Test _apply_limits with zero limit returns all charts."""
         charts = [
             MagicMock(chart_id=1, slug="chart-1"),
@@ -106,7 +108,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 
         assert len(result) == 2
 
-    def test_apply_limits_with_limit_greater_than_charts(self, mock_jobs_service):
+    def test_apply_limits_with_limit_greater_than_charts(self):
         """Test _apply_limits when limit is greater than number of charts."""
         charts = [
             MagicMock(chart_id=1, slug="chart-1"),
@@ -117,7 +119,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 
         assert len(result) == 1
 
-    def test_apply_limits_with_non_integer_limit(self, mock_jobs_service):
+    def test_apply_limits_with_non_integer_limit(self):
         """Test _apply_limits treats non-integer limit as 0."""
         charts = [
             MagicMock(chart_id=1, slug="chart-1"),
@@ -138,7 +140,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 class TestUpdateOwidChartsWorkerEntry:
     """Tests for update_owid_charts_worker_entry entry point."""
 
-    def test_entry_point_creates_worker_and_runs(self, mock_jobs_service):
+    def test_entry_point_creates_worker_and_runs(self):
         """Test that entry point creates worker and runs it."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -156,7 +158,7 @@ class TestUpdateOwidChartsWorkerEntry:
             )
             mock_instance.run.assert_called_once()
 
-    def test_entry_point_with_cancel_event(self, mock_jobs_service):
+    def test_entry_point_with_cancel_event(self):
         """Test entry point with cancel event."""
         cancel_event = threading.Event()
         with patch(
@@ -170,7 +172,7 @@ class TestUpdateOwidChartsWorkerEntry:
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["cancel_event"] is cancel_event
 
-    def test_entry_point_accepts_args_keyword_param(self, mock_jobs_service):
+    def test_entry_point_accepts_args_keyword_param(self):
         """Test that the entry point accepts args= keyword-only param."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -182,7 +184,7 @@ class TestUpdateOwidChartsWorkerEntry:
 
             mock_instance.run.assert_called_once()
 
-    def test_entry_point_args_defaults_to_none(self, mock_jobs_service):
+    def test_entry_point_args_defaults_to_none(self):
         """Test that args defaults to None and entry point works without it."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -195,7 +197,7 @@ class TestUpdateOwidChartsWorkerEntry:
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None
 
-    def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self, mock_jobs_service):
+    def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self):
         """Test that limit_items is mapped to limit_items in args."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -212,7 +214,7 @@ class TestUpdateOwidChartsWorkerEntry:
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"]["limit_items"] == 10
 
-    def test_entry_point_does_not_map_when_key_absent(self, mock_jobs_service):
+    def test_entry_point_does_not_map_when_key_absent(self):
         """Test that args are passed unchanged when limit_items is absent."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -229,7 +231,7 @@ class TestUpdateOwidChartsWorkerEntry:
             call_kwargs = MockWorker.call_args.kwargs
             assert "limit_items" not in call_kwargs["args"]
 
-    def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_jobs_service):
+    def test_entry_point_does_not_modify_args_when_args_is_none(self):
         """Test that entry point works correctly when args is None."""
         with patch(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker"
@@ -246,7 +248,7 @@ class TestUpdateOwidChartsWorkerEntry:
 class TestProcessChart:
     """Tests for _process_chart method."""
 
-    def test_process_chart_metadata_none(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_metadata_none(self, monkeypatch):
         """When fetch_grapher_metadata returns None -> status 'failed'."""
         mock_fetch = MagicMock(return_value=None)
         monkeypatch.setattr(
@@ -271,7 +273,7 @@ class TestProcessChart:
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "Could not fetch metadata JSON"
 
-    def test_process_chart_nothing_to_update(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_nothing_to_update(self, monkeypatch):
         """When metadata has no timespan AND no owidVariableId -> skipped."""
         metadata = {"columns": {"col1": {"some_key": "some_value"}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -301,7 +303,7 @@ class TestProcessChart:
         assert worker.result.skipped_charts[0]["status"] == "skipped"
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_owid_variable_id_update_only(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_owid_variable_id_update_only(self, monkeypatch):
         """When only owid_variable_id changes -> calls update_chart_data."""
         metadata = {"columns": {"col1": {"owidVariableId": 123}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -336,7 +338,7 @@ class TestProcessChart:
         mock_service.update_chart_data.assert_called_once_with(1, {"owid_variable_id": 123})
         assert len(worker.result.updated_charts) == 1
 
-    def test_process_chart_parse_timespan_fails(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_parse_timespan_fails(self, monkeypatch):
         """When timespan exists but cannot be parsed -> failed."""
         metadata = {"columns": {"col1": {"timespan": "invalid"}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -365,7 +367,7 @@ class TestProcessChart:
         assert len(worker.result.failed_charts) == 1
         assert "Could not parse timespan" in worker.result.failed_charts[0]["error"]
 
-    def test_process_chart_full_update(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_full_update(self, monkeypatch):
         """When both timespan parsed and owid_variable_id changed -> full update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 123}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -402,7 +404,7 @@ class TestProcessChart:
             {"min_time": 2000, "max_time": 2020, "len_years": 21, "owid_variable_id": 123},
         )
 
-    def test_process_chart_no_change_timespan(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_no_change_timespan(self, monkeypatch):
         """When timespan values match existing -> skipped."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -431,7 +433,7 @@ class TestProcessChart:
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_db_update_exception(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_db_update_exception(self, monkeypatch):
         """When update_chart_data raises -> status failed."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -468,7 +470,7 @@ class TestProcessChart:
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "DB error"
 
-    def test_process_chart_timespan_no_owid_variable_id(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_timespan_no_owid_variable_id(self, monkeypatch):
         """When owid_variable_id is None and chart has none -> no variable update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -505,7 +507,7 @@ class TestProcessChart:
             {"min_time": 2000, "max_time": 2020, "len_years": 21},
         )
 
-    def test_process_chart_owid_variable_id_same(self, mock_jobs_service, monkeypatch):
+    def test_process_chart_owid_variable_id_same(self, monkeypatch):
         """When owid_variable_id matches existing -> no update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 42}}}
         mock_fetch = MagicMock(return_value=metadata)
@@ -545,7 +547,7 @@ class TestProcessChart:
 class TestProcess:
     """Tests for process method."""
 
-    def test_process_empty_charts(self, mock_jobs_service, monkeypatch):
+    def test_process_empty_charts(self, monkeypatch):
         """When no charts loaded -> completed with total=0."""
         mock_service = MagicMock()
         mock_service.list_charts.return_value = []
@@ -560,7 +562,7 @@ class TestProcess:
         assert result.status == "completed"
         assert result.summary.total == 0
 
-    def test_process_single_chart(self, mock_jobs_service, monkeypatch):
+    def test_process_single_chart(self, monkeypatch):
         """When one chart processes successfully -> completed."""
         mock_service = MagicMock()
         chart = MagicMock(
@@ -590,7 +592,7 @@ class TestProcess:
         assert result.status == "completed"
         assert result.summary.total == 1
 
-    def test_process_cancelled_during_loop(self, mock_jobs_service, monkeypatch):
+    def test_process_cancelled_during_loop(self, monkeypatch):
         """When is_cancelled() returns True -> stops early."""
         mock_service = MagicMock()
         mock_service.list_charts.return_value = [
@@ -614,7 +616,7 @@ class TestProcess:
         assert result.summary.total == 2
         assert result.summary.processed == 0
 
-    def test_process_cancelled_by_periodic_check(self, mock_jobs_service, monkeypatch):
+    def test_process_cancelled_by_periodic_check(self, monkeypatch):
         """When check_cancel_db_periodic() returns True -> stops, saves progress."""
         mock_service = MagicMock()
         chart1 = MagicMock(chart_id=1, slug="chart-1")

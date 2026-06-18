@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -65,7 +66,7 @@ class TestGetUserSite:
         assert get_user_site(user) is None
 
     def test_get_user_site_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        calls: list = []
+        calls: list[Any] = []
 
         class DummySite:
             def __init__(self, host: str, **kwargs: object) -> None:
@@ -104,7 +105,7 @@ class TestGetUserSite:
 @patch("src.main_app.api_services.clients.wiki_client.settings")
 @patch("src.main_app.api_services.clients.wiki_client.Site")
 @patch("src.main_app.api_services.clients.wiki_client.decrypt_value")
-def test_get_user_site(mock_decrypt, mock_site, mock_settings, app):
+def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):
     mock_settings.oauth = MagicMock()
     mock_settings.other = MagicMock()
     mock_decrypt.side_effect = lambda x: x.decode() if isinstance(x, bytes) else x

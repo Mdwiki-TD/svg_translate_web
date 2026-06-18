@@ -315,7 +315,7 @@ class TestDownloadCommonsSvgs:
 ```python
 class TestAddSvgLanguages:
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_args_defaults_to_none(self, mock_worker_class, mock_jobs_service):
+    def test_function_args_defaults_to_none(self, mock_worker_class):
         mock_worker_instance = MagicMock()
         mock_worker_class.return_value = mock_worker_instance
 
@@ -325,7 +325,7 @@ class TestAddSvgLanguages:
         mock_worker_instance.run.assert_called_once()
 
     @patch("src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate")
-    def test_function_maps_limit_items(self, mock_worker_class, mock_jobs_service):
+    def test_function_maps_limit_items(self, mock_worker_class):
         mock_worker_instance = MagicMock()
         mock_worker_class.return_value = mock_worker_instance
 
@@ -351,7 +351,7 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 class TestAddSvgLanguages:
-    def test_function_args_defaults_to_none(self, mock_worker_class, mock_jobs_service):
+    def test_function_args_defaults_to_none(self, mock_worker_class):
         mock_worker_instance = mock_worker_class.return_value  # already wired in fixture
 
         add_svglanguages_template_to_templates(job_id=2, user=None)
@@ -359,7 +359,7 @@ class TestAddSvgLanguages:
         mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_maps_limit_items(self, mock_worker_class, mock_jobs_service):
+    def test_function_maps_limit_items(self, mock_worker_class):
         add_svglanguages_template_to_templates(job_id=1, user=None, args={"add_svglanguages_limit_items": 10})
 
         call_kwargs = mock_worker_class.call_args.kwargs
@@ -469,7 +469,7 @@ Key changes:
 
 ```python
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_create_page = MagicMock()
     monkeypatch.setattr("...worker.create_page", mock_create_page)
 
@@ -518,7 +518,7 @@ class MockServices:
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service) -> MockServices:
+def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     mock_create_page = MagicMock()
     monkeypatch.setattr("...worker.create_page", mock_create_page)
 

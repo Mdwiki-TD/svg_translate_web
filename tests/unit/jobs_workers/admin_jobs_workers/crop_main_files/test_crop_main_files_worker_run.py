@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     """Mock the services used by worker module."""
 
     # Mock jobs_service
@@ -30,9 +30,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
         "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
         mock_save_job_result,
     )
+    mock_is_cancelled = MagicMock(return_value=False)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
-        mock_jobs_service,
+        mock_is_cancelled,
     )
 
     # Mock list_templates
@@ -132,7 +133,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
         "update_template_page_file_reference": mock_update_template_page_file_reference,
         "generate_cropped_filename": mock_generate_cropped_filename,
         "settings": mock_settings,
-        "is_job_cancelled": mock_jobs_service,
+        "is_job_cancelled": mock_is_cancelled,
     }
 
 

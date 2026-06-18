@@ -127,7 +127,7 @@ class TestFixNestedJobsProcessor:
         assert processor.is_cancelled() is True
         assert processor.result.status == "cancelled"
 
-    def test_run_stage_success(self, mock_jobs_service) -> None:
+    def test_run_stage_success(self) -> None:
         processor = _make_processor()
 
         def mock_step():
@@ -136,7 +136,7 @@ class TestFixNestedJobsProcessor:
         result = processor._run_stage(processor.result.stages.download, mock_step)
         assert result is True
 
-    def test_run_stage_failure(self, mock_jobs_service) -> None:
+    def test_run_stage_failure(self) -> None:
         processor = _make_processor()
 
         def mock_step():

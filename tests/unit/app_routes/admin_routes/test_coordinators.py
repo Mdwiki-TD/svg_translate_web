@@ -13,7 +13,7 @@ import pytest
 from src.main_app.app_routes.admin_routes.coordinators import CoordinatorsRoutes  # noqa: F401
 
 
-@pytest.mark.usefixtures("app")
+@pytest.mark.usefixtures("mock_app")
 class TestCoordinatorRoutes:
     def test_dashboard_requires_auth(self, mock_client):
         resp = mock_client.get("/admin/coordinators/")

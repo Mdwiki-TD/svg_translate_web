@@ -68,14 +68,14 @@ def _make_chart_template_mock(**attrs: Any) -> MagicMock:
 class TestTemplatesList:
     """Tests for GET /api/templates."""
 
-    def test_templates_list(self, client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """list_templates returns list of templates; response has data and summary."""
         t1 = _make_template_mock(id=1, title="T1", main_file="f1.svg")
         t2 = _make_template_mock(id=2, title="T2")
 
         monkeypatch.setattr("src.main_app.app_routes.api_routes.list_templates", lambda: [t1, t2])
 
-        resp = client.get("/api/templates")
+        resp = mock_client.get("/api/templates")
         assert resp.status_code == 200
 
         body = resp.get_json()
@@ -85,7 +85,7 @@ class TestTemplatesList:
         assert body["data"][1]["title"] == "T2"
         assert body["summary"]["total"] == 2
 
-    def test_templates_list_summary_counts(self, client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list_summary_counts(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """Summary counts reflect which optional fields are set."""
         t1 = _make_template_mock(
             id=1,
@@ -106,7 +106,7 @@ class TestTemplatesList:
 
         monkeypatch.setattr("src.main_app.app_routes.api_routes.list_templates", lambda: [t1, t2])
 
-        resp = client.get("/api/templates")
+        resp = mock_client.get("/api/templates")
         body = resp.get_json()
 
         assert body["summary"]["total"] == 2
@@ -115,11 +115,11 @@ class TestTemplatesList:
         assert body["summary"]["with_last_world_year"] == 1
         assert body["summary"]["with_source"] == 1
 
-    def test_templates_list_empty(self, client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list_empty(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """When no templates exist, data is empty and counts are zero."""
         monkeypatch.setattr("src.main_app.app_routes.api_routes.list_templates", list)
 
-        resp = client.get("/api/templates")
+        resp = mock_client.get("/api/templates")
         body = resp.get_json()
 
         assert body["data"] == []
@@ -133,7 +133,7 @@ class TestTemplatesList:
 class TestTemplatesNeedUpdateList:
     """Tests for GET /api/templates-need-update."""
 
-    def test_templates_need_update_list(self, client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_need_update_list(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """list_templates_need_update returns records; JSON has data key."""
         t1 = MagicMock()
         t1.to_dict.return_value = {"template_id": 1, "template_title": "T1", "difference": 2}
@@ -142,7 +142,7 @@ class TestTemplatesNeedUpdateList:
 
         monkeypatch.setattr("src.main_app.app_routes.api_routes.list_templates_need_update", lambda: [t1, t2])
 
-        resp = client.get("/api/templates-need-update")
+        resp = mock_client.get("/api/templates-need-update")
         body = resp.get_json()
 
         assert body["data"] == [
@@ -154,7 +154,7 @@ class TestTemplatesNeedUpdateList:
 class TestChartsTemplates:
     """Tests for GET /api/charts_templates."""
 
-    def test_charts_templates(self, client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_charts_templates(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """Only records with a template_id are included in the response."""
         ct1 = _make_chart_template_mock(chart_id=1, template_id=10, template_title="T1")
         ct2 = _make_chart_template_mock(chart_id=2, template_id=None, template_title=None)
@@ -165,7 +165,7 @@ class TestChartsTemplates:
             lambda: [ct1, ct2, ct3],
         )
 
-        resp = client.get("/api/charts_templates")
+        resp = mock_client.get("/api/charts_templates")
         body = resp.get_json()
 
         assert body is not None
@@ -197,34 +197,34 @@ class TestOwidChartsList:
             lambda: self.chart_templates,
         )
 
-    def test_owid_charts_list_no_filter(self, client: FlaskClient) -> None:
+    def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:
         """Without a filter, all charts are returned."""
-        resp = client.get("/api/owidcharts/")
+        resp = mock_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         assert len(body["data"]) == 3
         assert body["selected_template"] == ""
 
-    def test_owid_charts_list_has_template_filter(self, client: FlaskClient) -> None:
+    def test_owid_charts_list_has_template_filter(self, mock_client: FlaskClient) -> None:
         """has_template filter returns only charts having a template."""
-        resp = client.get("/api/owidcharts/has_template")
+        resp = mock_client.get("/api/owidcharts/has_template")
         body = resp.get_json()
 
         assert len(body["data"]) == 1
         assert body["data"][0]["chart_id"] == 1
 
-    def test_owid_charts_list_no_template_filter(self, client: FlaskClient) -> None:
+    def test_owid_charts_list_no_template_filter(self, mock_client: FlaskClient) -> None:
         """no_template filter returns only charts without a template."""
-        resp = client.get("/api/owidcharts/no_template")
+        resp = mock_client.get("/api/owidcharts/no_template")
         body = resp.get_json()
 
         assert len(body["data"]) == 2
         chart_ids = {c["chart_id"] for c in body["data"]}
         assert chart_ids == {2, 3}
 
-    def test_owid_charts_list_summary(self, client: FlaskClient) -> None:
+    def test_owid_charts_list_summary(self, mock_client: FlaskClient) -> None:
         """Summary counts for published, template, map_tab, timeline are correct."""
-        resp = client.get("/api/owidcharts/")
+        resp = mock_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         summary = body["summary"]
@@ -234,9 +234,9 @@ class TestOwidChartsList:
         assert summary["map_tab"] == {"with": 1, "without": 2}
         assert summary["timeline"] == {"with": 2, "without": 1}
 
-    def test_owid_charts_list_enriches_with_template_data(self, client: FlaskClient) -> None:
+    def test_owid_charts_list_enriches_with_template_data(self, mock_client: FlaskClient) -> None:
         """Each chart dict has template_id and template_title from the join."""
-        resp = client.get("/api/owidcharts/")
+        resp = mock_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         chart_by_id = {c["chart_id"]: c for c in body["data"]}

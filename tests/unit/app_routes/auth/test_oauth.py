@@ -1,4 +1,4 @@
-"""Tests for OAuth helpers."""
+"""Unit tests for src/main_app/app_routes/auth/oauth.py."""
 
 from __future__ import annotations
 
