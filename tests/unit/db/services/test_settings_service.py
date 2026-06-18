@@ -101,7 +101,9 @@ class TestGetAllSettingsRaw:
         mock_record1.to_dict.return_value = {"key": "setting1", "value": "val1"}
         mock_record2 = MagicMock()
         mock_record2.to_dict.return_value = {"key": "setting2", "value": "val2"}
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record1, mock_record2])
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.list_settings", lambda: [mock_record1, mock_record2]
+        )
         result = get_all_settings_raw()
         assert result == [{"key": "setting1", "value": "val1"}, {"key": "setting2", "value": "val2"}]
 
@@ -281,7 +283,9 @@ class TestCreateSetting:
 
     def test_creates_setting_successfully(self, monkeypatch):
         added_settings = []
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s))
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s)
+        )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
         result = create_setting("test_key", "Test Title", "string", "test_value")
@@ -309,7 +313,9 @@ class TestCreateSetting:
 
     def test_default_value_boolean(self, monkeypatch):
         added_settings = []
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s))
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s)
+        )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
         create_setting("bool_key", "Bool Setting", "boolean")
@@ -317,7 +323,9 @@ class TestCreateSetting:
 
     def test_default_value_integer(self, monkeypatch):
         added_settings = []
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s))
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s)
+        )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
         create_setting("int_key", "Int Setting", "integer")
@@ -325,7 +333,9 @@ class TestCreateSetting:
 
     def test_default_value_string(self, monkeypatch):
         added_settings = []
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s))
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.db.session.add", lambda s: added_settings.append(s)
+        )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
         create_setting("str_key", "Str Setting", "string")

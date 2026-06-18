@@ -8,10 +8,10 @@ import pytest
 from flask import Blueprint, Flask
 
 from src.main_app.app_routes.admin_routes.users import (
+    UsersRoutes,
     _dashboard,
     _update_can_run_bg_jobs,
     _update_can_run_jobs,
-    UsersRoutes,
 )
 from src.main_app.db.exceptions import UserNotFoundError
 

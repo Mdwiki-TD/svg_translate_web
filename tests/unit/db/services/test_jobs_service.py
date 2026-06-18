@@ -242,7 +242,9 @@ class TestIsJobCancelled:
             mock_record.status = status
             mock_query = MagicMock()
             mock_query.filter.return_value.first.return_value = mock_record
-            monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls, _mock=mock_query: _mock)
+            monkeypatch.setattr(
+                "src.main_app.db.services.jobs_service.db.session.query", lambda cls, _mock=mock_query: _mock
+            )
             monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
             result = is_job_cancelled(1, "test")
             assert result is False
@@ -345,7 +347,9 @@ class TestGetAllUserJobsStats:
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
 
         mock_base_query = MagicMock()
-        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
+        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+            MagicMock(id=1)
+        ]
 
         call_count = [0]
 
@@ -368,10 +372,14 @@ class TestGetUserJobsStats:
     def test_with_jobs_types_filters_correctly(self, monkeypatch):
         mock_group_records = [("completed", 2)]
         mock_group_query = MagicMock()
-        mock_group_query.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_group_records
+        mock_group_query.filter.return_value.filter.return_value.group_by.return_value.all.return_value = (
+            mock_group_records
+        )
 
         mock_base_query = MagicMock()
-        mock_base_query.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
+        mock_base_query.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+            MagicMock(id=1)
+        ]
 
         call_count = [0]
 

@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from typing import Any, Tuple
 
 from ..app_routes.auth.oauth import complete_login
-from .auth_users_service import UserService
+from .auth_users_service import AuthUserService
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
     if not username:
         raise OAuthCallbackError("Missing username")
 
-    user_record = UserService.save_and_get_user(
+    user_record = AuthUserService.save_and_get_user(
         username=username,
         access_key=token_key,
         access_secret=token_secret,

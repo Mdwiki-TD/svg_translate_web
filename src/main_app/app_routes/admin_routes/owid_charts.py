@@ -205,7 +205,10 @@ def _update_chart() -> ResponseReturnValue:
         flash("Unable to update chart. Please try again.", "danger")
         save_error = True
     else:
-        flash(f"Chart '{record.title}' updated.", "success")
+        if record:
+            flash(f"Chart '{record.title}' updated.", "success")
+        else:
+            flash(f"Chart '{chart_id}' not found.", "warning")
 
     if from_popup and save_error:
         return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))

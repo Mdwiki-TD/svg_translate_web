@@ -1,6 +1,7 @@
 """
 Unit tests for src/main_app/utils/wikitext/categories_utils.py module.
 """
+
 from __future__ import annotations
 
 from src.main_app.utils.wikitext.categories_utils import (

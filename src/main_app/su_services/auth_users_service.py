@@ -19,7 +19,7 @@ from .current_user import CurrentUser
 logger = logging.getLogger(__name__)
 
 
-class UserService:
+class AuthUserService:
     @staticmethod
     def save_and_get_user(
         username: str,
@@ -104,5 +104,5 @@ class UserService:
 
 
 __all__ = [
-    "UserService",
+    "AuthUserService",
 ]

@@ -11,7 +11,7 @@ from typing import Any, Callable, TypeVar, cast
 from flask import g, redirect, request, session, url_for
 
 from ...config import settings
-from ...su_services.auth_users_service import UserService
+from ...su_services.auth_users_service import AuthUserService
 from .cookie import extract_user_id
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
@@ -62,7 +62,7 @@ def load_logged_in_user() -> None:
             g._current_user = None
             return
 
-        user = UserService.get_authenticated_user(user_id)
+        user = AuthUserService.get_authenticated_user(user_id)
         g._current_user = user
         if user and session.get("username") != user.username:
             session["username"] = user.username

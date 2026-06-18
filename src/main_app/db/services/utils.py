@@ -102,7 +102,7 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
 
                     attempt += 1
                     logger.warning(
-                        "%s: MySQL server has gone away. Rolling back and retrying " "(attempt %s/%s).",
+                        "%s: MySQL server has gone away. Rolling back and retrying (attempt %s/%s).",
                         func.__name__,
                         attempt,
                         max_retries,

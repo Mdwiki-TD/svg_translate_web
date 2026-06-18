@@ -12,7 +12,6 @@ import pytest
 
 from src.main_app.api_services.category import get_category_members
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────────────────
 
 
@@ -139,9 +138,7 @@ class TestGetCategoryMembers:
         assert result == []
 
     @patch("src.main_app.api_services.category.logger")
-    def test_logger_exception_on_api_error(
-        self, mock_logger: MagicMock, mock_site: MagicMock
-    ):
+    def test_logger_exception_on_api_error(self, mock_logger: MagicMock, mock_site: MagicMock):
         """APIError triggers logger.warning with the error info."""
         category = MagicMock()
         category.members.side_effect = mwclient.errors.APIError(
@@ -159,9 +156,7 @@ class TestGetCategoryMembers:
         assert "api-error-code" in args[0]
 
     @patch("src.main_app.api_services.category.logger")
-    def test_logger_exception_on_key_error(
-        self, mock_logger: MagicMock, mock_site: MagicMock
-    ):
+    def test_logger_exception_on_key_error(self, mock_logger: MagicMock, mock_site: MagicMock):
         """KeyError triggers logger.warning with the error message."""
         pages = MagicMock()
         pages.__getitem__.side_effect = KeyError("bogus-key")

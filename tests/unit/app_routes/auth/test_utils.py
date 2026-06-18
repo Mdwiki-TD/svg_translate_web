@@ -55,7 +55,7 @@ class TestLoadLoggedInUser:
     def test_from_session_uid(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
-            "src.main_app.app_routes.auth.utils.UserService.get_authenticated_user",
+            "src.main_app.app_routes.auth.utils.AuthUserService.get_authenticated_user",
             lambda uid: mock_user,
         )
         with app.test_request_context():
@@ -83,7 +83,7 @@ class TestLoadLoggedInUser:
         )
         mock_user = MagicMock(username="bob")
         monkeypatch.setattr(
-            "src.main_app.app_routes.auth.utils.UserService.get_authenticated_user",
+            "src.main_app.app_routes.auth.utils.AuthUserService.get_authenticated_user",
             lambda uid: mock_user,
         )
         with app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}):
@@ -109,7 +109,7 @@ class TestLoadLoggedInUser:
     def test_updates_session_username_when_different(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="new-name")
         monkeypatch.setattr(
-            "src.main_app.app_routes.auth.utils.UserService.get_authenticated_user",
+            "src.main_app.app_routes.auth.utils.AuthUserService.get_authenticated_user",
             lambda uid: mock_user,
         )
         with app.test_request_context():
@@ -121,7 +121,7 @@ class TestLoadLoggedInUser:
     def test_does_not_update_session_username_when_same(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
-            "src.main_app.app_routes.auth.utils.UserService.get_authenticated_user",
+            "src.main_app.app_routes.auth.utils.AuthUserService.get_authenticated_user",
             lambda uid: mock_user,
         )
         with app.test_request_context():
@@ -132,7 +132,7 @@ class TestLoadLoggedInUser:
 
     def test_user_service_returns_none_sets_g_none(self, app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.app_routes.auth.utils.UserService.get_authenticated_user",
+            "src.main_app.app_routes.auth.utils.AuthUserService.get_authenticated_user",
             lambda uid: None,
         )
         with app.test_request_context():
