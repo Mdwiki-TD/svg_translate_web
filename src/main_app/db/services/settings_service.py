@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
 from ...extensions import db
 from ..models.settings import SettingRecord
@@ -145,7 +145,7 @@ def create_setting(key: str, title: str, value_type: str, value: str | None = No
     try:
         db.session.commit()
         return True
-    except (IntegrityError, OperationalError):
+    except SQLAlchemyError:
         db.session.rollback()
         return False
 

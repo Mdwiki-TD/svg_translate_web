@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from flask import Blueprint, flash, render_template
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 from ..db.services import get_all_user_jobs_stats, get_user_jobs_stats
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
@@ -38,7 +38,7 @@ def dashboard(user_name: str = "") -> str:
                 jobs_types=list(jobs_data_public.keys()),
             )
 
-    except (OperationalError, ValueError):  # pragma: no cover - defensive guard
+    except (SQLAlchemyError, ValueError):  # pragma: no cover - defensive guard
         logger.exception("Unable to load user stats.")
         flash("Unable to load user job statistics.", "danger")
         data = {

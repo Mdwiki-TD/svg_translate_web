@@ -30,7 +30,7 @@ def is_active_coordinator(username: str) -> bool:
             .first()
         )
         return record is not None
-    except (OperationalError, ValueError):
+    except (SQLAlchemyError, ValueError):
         logger.exception("Failed to check coordinator status")
     return False
 

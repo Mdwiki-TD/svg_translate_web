@@ -43,10 +43,17 @@ def _safe_job_path(filename: str) -> Path:
 
     file_path = Path(filename)
     if file_path.is_absolute():
-        return file_path
+        resolved = file_path.resolve()
+    else:
+        jobs_dir = get_jobs_data_dir()
+        resolved = (jobs_dir / file_path).resolve()
 
-    jobs_dir = get_jobs_data_dir()
-    return (jobs_dir / file_path).resolve()
+    import tempfile
+    jobs_dir = get_jobs_data_dir().resolve()
+    temp_dir = Path(tempfile.gettempdir()).resolve()
+    if not (jobs_dir in resolved.parents or resolved == jobs_dir or temp_dir in resolved.parents or resolved == temp_dir):
+        raise ValueError(f"Path traversal blocked: {resolved}")
+    return resolved
 
 
 def save_data(result_data: dict[str, Any], filepath: Path) -> None:
