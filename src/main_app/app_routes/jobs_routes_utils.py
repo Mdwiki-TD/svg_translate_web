@@ -127,6 +127,11 @@ def start_job_handler(job_type: str, args: dict[str, Any], bp_name: str) -> int 
     return None
 
 
+# ================================
+# Jobs handlers
+# ================================
+
+
 def jobs_list_handler(job_type: str, template_data: JobData, bp_name: str) -> str:
     """Render the jobs list dashboard for any job type."""
     try:
@@ -136,8 +141,10 @@ def jobs_list_handler(job_type: str, template_data: JobData, bp_name: str) -> st
         flash("Unable to load jobs list.", "danger")
         jobs: list[Any] = []
 
+    template_name = template_data.job_list_template
+
     return render_template(
-        template_data.job_list_template,
+        template_name,
         jobs=jobs,
         job_type=job_type,
         list_title=template_data.job_name,
@@ -154,6 +161,7 @@ def job_detail_handler(
     expand_all: bool = False,
 ) -> Response | str:
     """Render the job detail page for any job type."""
+
     try:
         job = get_job(job_id, job_type)
     except LookupError as exc:
@@ -161,12 +169,16 @@ def job_detail_handler(
         flash(str(exc), "warning")
         return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
 
+    # Load job result if available
     result_data = None
+
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
+    template_name = template_data.job_details_template
+
     return render_template(
-        template_data.job_details_template,
+        template_name,
         job=job,
         job_type=job_type,
         result_data=result_data,

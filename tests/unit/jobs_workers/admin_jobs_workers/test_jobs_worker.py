@@ -290,11 +290,6 @@ def test_start_job_without_args_passes_none(mock_services):
     assert thread_args[5] == {}
 
 
-def test_start_job_is_alias_for_start_job():
-    """Test that start_job is the same callable as start_job."""
-    assert jobs_worker.start_job is jobs_worker.start_job
-
-
 def test_start_job_alias_works(mock_services):
     """Test that the start_job alias behaves identically to start_job."""
     mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")

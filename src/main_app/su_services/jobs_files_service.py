@@ -25,22 +25,28 @@ def get_jobs_data_dir() -> Path:
 
 
 def _safe_job_path(filename: str) -> Path:
-    """Resolve a job file path and verify it stays within the jobs directory.
+    """Resolve a job file path, rejecting traversal attempts.
 
     Args:
-        filename: The job file name (may contain relative path segments).
+        filename: Job file name. If relative, joined with jobs_dir.
+                  If absolute, returned as-is. Traversal (..) is blocked.
 
     Returns:
-        The resolved, validated absolute Path.
+        The resolved Path.
 
     Raises:
-        ValueError: If the resolved path escapes the jobs directory.
+        ValueError: If the path contains traversal sequences (..).
     """
+    segments = filename.replace("\\", "/").split("/")
+    if ".." in segments:
+        raise ValueError(f"Path traversal blocked in: {filename}")
+
+    file_path = Path(filename)
+    if file_path.is_absolute():
+        return file_path
+
     jobs_dir = get_jobs_data_dir()
-    candidate = (jobs_dir / filename).resolve()
-    if jobs_dir not in candidate.parents and candidate != jobs_dir:
-        raise ValueError(f"Path traversal blocked: {candidate}")
-    return candidate
+    return (jobs_dir / file_path).resolve()
 
 
 def save_data(result_data: dict[str, Any], filepath: Path) -> None:

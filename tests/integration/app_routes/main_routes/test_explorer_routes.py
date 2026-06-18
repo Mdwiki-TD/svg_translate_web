@@ -104,6 +104,7 @@ def test_serve_media_returns_directory(monkeypatch: pytest.MonkeyPatch) -> None:
         return SimpleNamespace(headers={})
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda: Path("/base"))
+    monkeypatch.setattr("src.main_app.app_routes.utils.explorer_utils.load_svg_data_path", lambda: Path("/base"))
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
     _result = explorer_routes.serve_media("title", "files", "file.svg")
@@ -120,6 +121,7 @@ def test_serve_thumb_prefers_cached_file(tmp_path: Path, monkeypatch: pytest.Mon
     (base / "topic" / "files" / "file.svg").write_text("<svg/>", encoding="utf-8")
 
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda: base)
+    monkeypatch.setattr("src.main_app.app_routes.utils.explorer_utils.load_svg_data_path", lambda: base)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_thumb_path", lambda: thumbs)
 
     def fake_save(src: Path, dest: Path) -> None:

@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from sqlalchemy.exc import IntegrityError, OperationalError
+
 from ...extensions import db
 from ..models.settings import SettingRecord
 from .delete_service import delete_setting
@@ -143,7 +145,7 @@ def create_setting(key: str, title: str, value_type: str, value: str | None = No
     try:
         db.session.commit()
         return True
-    except Exception:
+    except (IntegrityError, OperationalError):
         db.session.rollback()
         return False
 

@@ -114,20 +114,14 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
     return local_cancelled or cancelled_file or db_cancelled
 
 
-def start_job(
+def _start_job_impl(
     user: dict[str, Any] | None,
     job_type: str,
     args: dict[str, Any] | None = None,
+    *,
+    daemon: bool = False,
+    flask_app: Flask | None = None,
 ) -> int:
-    """
-    Start a background job.
-    Returns the job ID.
-
-    Args:
-        user: User authentication data for OAuth uploads
-        job_type: The type of job to start
-        args: Optional arguments to pass to the worker
-    """
     job_data: JobData | None = jobs_data_admins.get(job_type) or jobs_data_public.get(job_type)
     target_func = job_data.job_callable if job_data else None
 
@@ -143,35 +137,42 @@ def start_job(
         resolved_args.update(args)
 
     try:
-        # Create job record
         job = create_job(job_type, username)
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
         raise
     except Exception:
-        logger.exception(f"Failed to create job record for job type {job_type}")
+        logger.exception("Failed to create job record for job type %s", job_type)
         raise
 
     cancel_event = threading.Event()
     _register_cancel_event(job.id, cancel_event)
 
-    # Capture the Flask app for the background thread (requires app context)
-    flask_app = current_app._get_current_object()  # type: ignore[attr-defined]
+    resolved_flask_app = flask_app or current_app._get_current_object()  # type: ignore[attr-defined]
 
     if "csrf_token" in resolved_args:
         del resolved_args["csrf_token"]
 
-    # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
-        daemon=True,
+        args=(job.id, user, cancel_event, target_func, resolved_flask_app, resolved_args),
+        daemon=daemon,
     )
     thread.start()
 
-    logger.info(f"Started background job {job.id} for {job_type}")
+    logger.info("Started background job %s for %s", job.id, job_type)
 
     return job.id
+
+
+def start_job(
+    user: dict[str, Any] | None,
+    job_type: str,
+    args: dict[str, Any] | None = None,
+) -> int:
+    """Start a background job as a daemon thread. Returns the job ID."""
+    return _start_job_impl(user, job_type, args, daemon=True,
+                           flask_app=current_app._get_current_object())  # type: ignore[attr-defined]
 
 
 def start_job_cli(
@@ -180,58 +181,9 @@ def start_job_cli(
     args: dict[str, Any] | None = None,
     app: Flask | None = None,
 ) -> int:
-    """
-    Start a background job.
-    Returns the job ID.
-
-    Args:
-        user: User authentication data for OAuth uploads
-        job_type: The type of job to start
-        args: Optional arguments to pass to the worker
-    """
-    job_data: JobData | None = jobs_data_admins.get(job_type) or jobs_data_public.get(job_type)
-    target_func = job_data.job_callable if job_data else None
-
-    if not job_data or not target_func:
-        raise ValueError(f"Unknown job type: {job_type}")
-
-    username = user.get("username") if user else None
-    if not username:
-        raise ValueError("User authentication data is required")
-
-    resolved_args = _load_job_args(job_data.job_args) if job_data.job_args else {}
-    if args:
-        resolved_args.update(args)
-
-    try:
-        # Create job record
-        job = create_job(job_type, username)
-    except DuplicateJobError:
-        logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
-        raise
-    except Exception:
-        logger.exception(f"Failed to create job record for job type {job_type}")
-        raise
-
-    cancel_event = threading.Event()
-    _register_cancel_event(job.id, cancel_event)
-
-    # Capture the Flask app for the background thread (requires app context)
+    """Start a background job from CLI. Returns the job ID."""
     flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
-
-    if "csrf_token" in resolved_args:
-        del resolved_args["csrf_token"]
-
-    # Start background thread
-    thread = threading.Thread(
-        target=_runner,
-        args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
-    )
-    thread.start()
-
-    logger.info(f"Started background job {job.id} for {job_type}")
-
-    return job.id
+    return _start_job_impl(user, job_type, args, flask_app=flask_app)
 
 
 __all__ = [

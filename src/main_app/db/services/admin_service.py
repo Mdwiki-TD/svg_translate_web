@@ -30,7 +30,7 @@ def is_active_coordinator(username: str) -> bool:
             .first()
         )
         return record is not None
-    except Exception:
+    except (OperationalError, ValueError):
         logger.exception("Failed to check coordinator status")
     return False
 

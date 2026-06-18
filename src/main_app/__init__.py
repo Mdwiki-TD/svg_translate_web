@@ -121,13 +121,7 @@ def create_app(config_class: Type) -> Flask:
 
     @app.teardown_appcontext
     def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
-        # Idempotent teardown - safe for Flask 3.1.2+ stream_with_context regression
-        # See: https://github.com/pallets/flask/issues/5804
-        # try:
-        #     close_cached_db()
-        # except Exception:
-        #     logger.debug("Failed to close cached DB during teardown", exc_info=True)
-        pass
+        _db.session.remove()
 
     db_is_ok = True
     # Initialize Flask-SQLAlchemy and Flask-Migrate

@@ -135,4 +135,4 @@ class TestCookieHeaderClient:
             assert call_kwargs["headers"] == {"Accept": "text/html"}
 
     def test_cookie_header_client_subclass(self) -> None:
-        assert issubclass(CookieHeaderClient, object)
+        assert issubclass(CookieHeaderClient, FlaskClient)
