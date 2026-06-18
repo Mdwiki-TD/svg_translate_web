@@ -32,7 +32,7 @@ from ..jobs_workers.objects import JobData
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
-from .auth.utils import load_user
+from .auth.utils import load_user, user_login_required
 from .jobs_routes_utils import can_manage_job
 from .utils.routes_utils import load_auth_payload
 
@@ -44,10 +44,6 @@ JOBS_BP = "public_jobs"
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     user = load_user()
-    if not user:
-        flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
-
     try:
         job = get_job(job_id, job_type)
     except LookupError:
@@ -73,17 +69,13 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
 
-    user = load_user()
-    if not user:
-        flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
-
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
         return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
+    user = load_user()
     if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
         return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
@@ -107,10 +99,6 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
-
-    if not user:
-        flash("You must be logged in to start this job.", "danger")
-        return None
 
     try:
         # Get auth payload for OAuth uploads
@@ -211,6 +199,7 @@ class JobsPublicRoutes:
         # ================================
 
         @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
+        @user_login_required
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 flash("Job type not found.", "warning")
@@ -259,6 +248,7 @@ class JobsPublicRoutes:
         # ================================
 
         @self.bp.post("/<string:job_type>/start")
+        @user_login_required
         def start_job(job_type: str) -> ResponseReturnValue:
             if job_type not in self.jobs_data_infos:
                 abort(404)
