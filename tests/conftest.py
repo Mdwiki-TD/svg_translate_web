@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import logging
 import os
-import re
 import secrets
 import sys
 from pathlib import Path
@@ -69,73 +68,7 @@ def stop_nets(request):
     disable_socket(allow_unix_socket=True)
 
 
-@pytest.fixture(scope="session")
-def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
-    """
-    Create and configure a test Flask application.
-    """
-    application = create_app(TestingConfig)
-    application.config.update(TESTING=True)
-
-    with application.app_context():
-        yield application
-
-@pytest.fixture
-def client(mock_app: Flask) -> FlaskClient:
-    """
-    Create a test client for the app.
-    """
-    return mock_app.test_client()
-
-
-@pytest.fixture
-def mock_client(mock_app: Flask) -> FlaskClient:
-    """Fresh test client per test."""
-
-    return mock_app.test_client()
-
-@pytest.fixture
-def mock_csrf_token(mock_client):
-    """Helper fixture to generate CSRF tokens for tests."""
-
-    pattern = re.compile(r'name="csrf_token" value="([^"]+)"')
-
-    def _get_csrf_token(path: str = "/") -> str:
-        body = mock_client.get(path).data.decode()
-        match = pattern.search(body)
-        if not match:
-            raise AssertionError(f"no csrf_token found in body for {path!r}")
-        return match.group(1)
-
-    return _get_csrf_token
-
-
-# ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
-
-
-@pytest.fixture
-def mock_site() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_page() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_site_pages(mock_site, mock_page):
-    def _factory(page_exists: bool) -> MagicMock:
-        mock_page.exists = page_exists
-
-        mock_pages = MagicMock()
-        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
-
-        mock_site.pages = mock_pages
-        return mock_site
-
-    return _factory
-
+# ── db fixtures ───────────────────────────────────────────────────────────────────
 
 @pytest.fixture(autouse=True)
 def setup_db(mock_app):
@@ -189,3 +122,50 @@ def setup_db(mock_app):
         # Drop only real tables
         real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
         _db.metadata.drop_all(_db.engine, tables=real_tables)
+
+# ── app fixtures ───────────────────────────────────────────────────────────────────
+
+@pytest.fixture(scope="session")
+def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
+    """
+    Create and configure a test Flask application.
+    """
+    application = create_app(TestingConfig)
+    application.config.update(TESTING=True)
+
+    with application.app_context():
+        yield application
+
+@pytest.fixture
+def mock_client(mock_app: Flask) -> FlaskClient:
+    """Fresh test client per test."""
+
+    return mock_app.test_client()
+
+
+# ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_site() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_page() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_site_pages(mock_site, mock_page):
+    def _factory(page_exists: bool) -> MagicMock:
+        mock_page.exists = page_exists
+
+        mock_pages = MagicMock()
+        mock_pages.__getitem__ = MagicMock(return_value=mock_page)
+
+        mock_site.pages = mock_pages
+        return mock_site
+
+    return _factory
+

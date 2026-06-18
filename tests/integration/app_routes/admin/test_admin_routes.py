@@ -21,7 +21,6 @@ from src.main_app.db.services.admin_service import (
 )
 from src.main_app.db.services.users_service import create_user
 
-
 def _upsert_u_token(username: str, access_key: str, access_secret: str) -> int:
     user = create_user(username)
     upsert_user_token(

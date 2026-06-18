@@ -333,7 +333,7 @@ class TestRenameOne:
         assert result is False
         assert w.result.summary.skipped_target_exists == 1
         assert w.result.summary.failed == 0
-        w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")
+        w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily") # type: ignore
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
 
