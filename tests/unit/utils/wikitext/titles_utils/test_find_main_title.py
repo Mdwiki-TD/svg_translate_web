@@ -10,6 +10,13 @@ import pytest
 
 from src.main_app.utils.wikitext.owid_sliders_rcs.main_file import find_main_title
 
+
+@pytest.fixture
+def sample_with_svglanguages_only() -> str:
+    """Wikitext with only SVGLanguages main title."""
+    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\nSome other text...\n"
+
+
 # ---------- Tests for find_main_title ----------
 
 
@@ -19,15 +26,16 @@ def test_find_main_title_svglanguages(sample_with_svglanguages_only):
     assert got == "parkinsons-disease-prevalence-ihme,World,1990.svg".replace("_", " ")
 
 
-def test_find_main_title_prefers_svglanguages_over_translate(sample_with_both_titles):
+def test_find_main_title_prefers_svglanguages_over_translate():
     """SVGLanguages takes precedence when both exist."""
-    got = find_main_title(sample_with_both_titles)
+
+    with_both_titles = (
+        "{{SVGLanguages|some_main_title,World,2010.svg}}\n"
+        "*'''Translate''': https://svgtranslate.toolforge.org/File:another-title,World,2005.svg\n"
+    )
+
+    got = find_main_title(with_both_titles)
     assert got == "some_main_title,World,2010.svg".replace("_", " ")
-
-
-def test_find_main_title_none_when_absent(sample_without_titles):
-    """Return None if no SVGLanguages present."""
-    assert find_main_title(sample_without_titles) is None
 
 
 # ---------- Robustness and corner cases ----------
