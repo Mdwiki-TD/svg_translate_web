@@ -6,7 +6,7 @@ from typing import Any, Callable, ParamSpec, cast
 
 from sqlalchemy.exc import IntegrityError, OperationalError, PendingRollbackError, SQLAlchemyError
 
-from ...extensions import db
+from ....extensions import db
 
 logger = logging.getLogger(__name__)
 
