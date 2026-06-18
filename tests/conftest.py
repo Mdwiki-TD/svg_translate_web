@@ -70,7 +70,7 @@ def stop_nets(request):
 
 
 @pytest.fixture(scope="session")
-def app() -> Generator[Flask, Any, None]:  # noqa: UP043
+def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
     """
     Create and configure a test Flask application.
     """
@@ -89,18 +89,18 @@ def app_mock():
 
 
 @pytest.fixture
-def client(app: Flask) -> FlaskClient:
+def client(mock_app: Flask) -> FlaskClient:
     """
     Create a test client for the app.
     """
-    return app.test_client()
+    return mock_app.test_client()
 
 
 @pytest.fixture
-def mock_client(app: Flask) -> FlaskClient:
+def mock_client(mock_app: Flask) -> FlaskClient:
     """Fresh test client per test."""
 
-    return app.test_client()
+    return mock_app.test_client()
 
 
 @pytest.fixture
@@ -178,13 +178,13 @@ def mock_site_pages(mock_site, mock_page):
 
 
 @pytest.fixture(autouse=True)
-def setup_db(app):
+def setup_db(mock_app):
     """Initialize an in-memory SQLite database for tests using Flask-SQLAlchemy.
 
     Creates all real tables (skipping views) and creates views manually.
     The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
-    with app.app_context():
+    with mock_app.app_context():
         # Create only real tables; skip view-backed mapped classes
         real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
         _db.metadata.create_all(_db.engine, tables=real_tables, checkfirst=True)
