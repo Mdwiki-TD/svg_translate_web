@@ -8,11 +8,12 @@ TODO: write tests
 
 from __future__ import annotations
 
+import pytest
 from unittest.mock import patch
 
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
 
-from src.main_app.db.services.utils import db_guard_rollback  # noqa: F401
+from src.main_app.db.services.utils import db_guard_rollback
 from src.main_app.db.services.utils import (
     db_guard,
 )
@@ -77,3 +78,77 @@ class TestDbGuard:
                 raise SQLAlchemyError("fail")
 
             assert my_func() == {"error": True}
+
+
+class TestDbGuardRollback:
+    """Tests for db_guard_rollback decorator."""
+
+    def test_returns_func_result_on_success(self):
+        @db_guard_rollback
+        def my_func():
+            return "success"
+
+        assert my_func() == "success"
+
+    def test_rollback_on_integrity_error_and_re_raises(self):
+        with patch("src.main_app.db.services.utils.db") as mock_db:
+
+            @db_guard_rollback
+            def my_func():
+                raise IntegrityError("stmt", "params", Exception("constraint"))
+
+            with pytest.raises(IntegrityError):
+                my_func()
+            mock_db.session.rollback.assert_called_once()
+
+    def test_rollback_on_generic_exception_and_re_raises(self):
+        with patch("src.main_app.db.services.utils.db") as mock_db:
+
+            @db_guard_rollback
+            def my_func():
+                raise ValueError("boom")
+
+            with pytest.raises(ValueError):
+                my_func()
+            mock_db.session.rollback.assert_called_once()
+
+    def test_preserves_function_name(self):
+        @db_guard_rollback
+        def my_named_func():
+            return True
+
+        assert my_named_func.__name__ == "my_named_func"
+
+    def test_passes_args_and_kwargs(self):
+        @db_guard_rollback
+        def add(a, b, extra=0):
+            return a + b + extra
+
+        assert add(1, 2, extra=10) == 13
+
+
+class TestDbGuardEdgeCases:
+    """Edge-case tests for db_guard decorator."""
+
+    def test_pending_rollback_error_returns_default(self):
+        with patch("src.main_app.db.services.utils.db") as mock_db:
+
+            @db_guard(default_return=None)
+            def my_func():
+                raise PendingRollbackError("stmt", "params", Exception("pending"))
+
+            result = my_func()
+            assert result is None
+            mock_db.session.rollback.assert_called_once()
+
+    def test_with_msg_param(self):
+        with patch("src.main_app.db.services.utils.db") as mock_db:
+            with patch("src.main_app.db.services.utils.logger") as mock_logger:
+
+                @db_guard(default_return=None, msg="Custom error message")
+                def my_func():
+                    raise SQLAlchemyError("fail")
+
+                result = my_func()
+                assert result is None
+                mock_db.session.rollback.assert_called_once()

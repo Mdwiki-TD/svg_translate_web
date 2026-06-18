@@ -5,7 +5,7 @@ from .jobs_files_service import (
     load_job_result,
     save_job_result_by_name,
 )
-from .users_service import (
+from .auth_users_service import (
     UserService,
 )
 

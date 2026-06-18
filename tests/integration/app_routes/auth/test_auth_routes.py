@@ -96,7 +96,7 @@ def test_callback_success(app_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> N
 
     fake_user = types.SimpleNamespace(user_id=123, username="Tester")
     monkeypatch.setattr(
-        "src.main_app.su_services.users_service.UserService.save_and_get_user",
+        "src.main_app.su_services.auth_users_service.UserService.save_and_get_user",
         staticmethod(lambda **kwargs: fake_user),
     )
     monkeypatch.setattr("src.main_app.app_routes.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")

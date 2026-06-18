@@ -104,3 +104,10 @@ def inject_step_one_file(
         )
 
     return injects_result
+
+
+__all__ = [
+    "InjectResult",
+    "start_injects",
+    "inject_step_one_file",
+]

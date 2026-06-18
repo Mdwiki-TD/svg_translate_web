@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from typing import Any, Tuple
 
 from ..app_routes.auth.oauth import complete_login
-from .users_service import UserService
+from .auth_users_service import UserService
 
 logger = logging.getLogger(__name__)
 

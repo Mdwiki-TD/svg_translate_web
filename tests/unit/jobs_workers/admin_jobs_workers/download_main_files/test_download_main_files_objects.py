@@ -1,7 +1,12 @@
 # ruff: noqa: F401
-"""Unit tests for download_main_files objects module."""
+"""
+Unit tests for src/main_app/jobs_workers/admin_jobs_workers/download_main_files/objects.py module.
 
-from __future__ import annotations
+Classes to test: FileInfo, DownloadMainFilesWorkerObject
+
+TODO: write tests
+"""
+
 
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.objects import (
     DownloadMainFilesWorkerObject,

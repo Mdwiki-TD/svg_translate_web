@@ -32,10 +32,6 @@ class TestStages:
         assert stages.text.name == "text"
         assert stages.titles.name == "titles"
         assert stages.translations.name == "translations"
-        assert stages.download.name == "download"
-        assert stages.nested.name == "nested"
-        assert stages.inject.name == "inject"
-        assert stages.upload.name == "upload"
 
 
 class TestStepResult:
@@ -66,7 +62,7 @@ class TestFilesProcessedItem:
 class TestCopySvgLangsWorkerObject:
     def test_defaults(self):
         obj = CopySvgLangsWorkerObject()
-        assert obj.job_id is None
+        assert obj.job_id == 0
         assert obj.note == ""
         assert obj.args == {}
         assert obj.title is None
