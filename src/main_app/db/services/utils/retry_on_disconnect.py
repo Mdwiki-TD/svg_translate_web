@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MAX_RETRIES = 3
 
+
 def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
     """
     Retry a db.session-using function if the connection was invalidated

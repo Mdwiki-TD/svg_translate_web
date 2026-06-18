@@ -5,14 +5,15 @@ Functions to test: retry_on_db_disconnect
 """
 
 from __future__ import annotations
+
+from unittest.mock import MagicMock, call
+
 import pytest
 from sqlalchemy.exc import OperationalError
 
+import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
 
-import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
-
-from unittest.mock import MagicMock, call
 
 def make_operational_error(message="some error", connection_invalidated=False):
     """Build an OperationalError with a controllable message and

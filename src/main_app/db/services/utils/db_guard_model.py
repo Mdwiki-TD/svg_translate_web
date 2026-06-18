@@ -69,6 +69,7 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[[Callable[P
 
     return decorator
 
+
 __all__ = [
     "db_guard_rollback",
     "db_guard",

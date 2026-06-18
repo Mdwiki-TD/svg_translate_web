@@ -10,6 +10,7 @@ because DetachedInstanceError is a genuine SQLAlchemy object-state error
 -- a MagicMock `db` can't reproduce it, it can only record that
 .remove() was called.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -19,9 +20,10 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, relationship, scoped_session, sessionmaker
 from sqlalchemy.orm.exc import DetachedInstanceError
 
-from src.main_app.db.services.utils import retry_on_db_disconnect
-
-import src.main_app.db.services.utils as decorators_module
+import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
+from src.main_app.db.models import SettingRecord
+from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
+from src.main_app.extensions import db
 
 Base = declarative_base()
 
@@ -91,9 +93,7 @@ class TestRetryDetachesUnrelatedSessionObjects:
     unloaded attribute on that object blows up.
     """
 
-    def test_other_loaded_object_becomes_detached_after_retry(
-        self, real_session, seeded_author_id
-    ):
+    def test_other_loaded_object_becomes_detached_after_retry(self, real_session, seeded_author_id):
         # Caller loads an object BEFORE calling the decorated function,
         # and has NOT yet touched its lazy relationship.
         author = real_session.query(Author).filter_by(id=seeded_author_id).one()
@@ -110,7 +110,7 @@ class TestRetryDetachesUnrelatedSessionObjects:
 
         # But the caller's earlier object is now unusable.
         with pytest.raises(DetachedInstanceError):
-            author.books
+            author.books  # noqa: B018
 
     def test_even_already_loaded_scalar_attributes_become_inaccessible_after_retry(
         self, real_session, seeded_author_id
@@ -137,7 +137,7 @@ class TestRetryDetachesUnrelatedSessionObjects:
         assert "name" not in author.__dict__
         # ...and remove() means it can never be refreshed again.
         with pytest.raises(DetachedInstanceError):
-            author.name
+            author.name  # noqa: B018
 
     def test_rollback_alone_does_not_detach_objects(self, real_session, seeded_author_id):
         """
@@ -154,9 +154,7 @@ class TestRetryDetachesUnrelatedSessionObjects:
         # No error: object is expired but still bound to an open session.
         assert [b.title for b in author.books] == ["The Lord of the Rings"]
 
-    def test_retrying_function_observes_a_fresh_object_each_attempt(
-        self, real_session, seeded_author_id
-    ):
+    def test_retrying_function_observes_a_fresh_object_each_attempt(self, real_session, seeded_author_id):
         """
         Shows the other half of the same root cause from the decorated
         function's own perspective: because .remove() tears down the
@@ -181,3 +179,94 @@ class TestRetryDetachesUnrelatedSessionObjects:
             "the session was torn down between attempts, so the retry "
             "loaded a brand-new instance instead of reusing identity map state"
         )
+
+
+class TestRetryOnDbDisconnectDetachedInstance:
+    """Tests demonstrating that retry_on_db_disconnect causes DetachedInstanceError
+    for SQLAlchemy objects the caller loaded before calling the decorated function.
+    This is because db.session.remove() expires and detaches all ORM-managed objects."""
+
+    def test_detached_instance_error_after_retries_exhausted(self):
+        """After retries exhaust, db.session.remove() detaches previously loaded models."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded.value == "v"
+
+        @retry_on_db_disconnect(max_retries=1)
+        def fail():
+            exc = OperationalError("stmt", "params", Exception("MySQL server has gone away"))
+            exc.connection_invalidated = True
+            raise exc
+
+        with pytest.raises(OperationalError):
+            fail()
+
+        with pytest.raises(DetachedInstanceError):
+            _ = loaded.value
+
+    def test_detached_instance_error_after_retry_succeeds(self):
+        """Even when the retry succeeds, previously loaded objects get detached.
+        This is the most insidious case — the decorated function appears to work,
+        but the caller's objects are silently broken."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded.value == "v"
+
+        call_count = 0
+
+        @retry_on_db_disconnect(max_retries=1)
+        def may_fail():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                exc = OperationalError("stmt", "params", Exception("MySQL server has gone away"))
+                exc.connection_invalidated = True
+                raise exc
+            return "recovered"
+
+        assert may_fail() == "recovered"
+        assert call_count == 2
+
+        with pytest.raises(DetachedInstanceError):
+            _ = loaded.value
+
+    def test_objects_usable_on_first_try_success(self):
+        """No retry → session.remove() never called → objects remain usable."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded.value == "v"
+
+        @retry_on_db_disconnect()
+        def ok():
+            return "ok"
+
+        assert ok() == "ok"
+        assert loaded.value == "v"
+
+    def test_objects_usable_on_non_disconnect_error(self):
+        """Non-disconnect OperationalError is re-raised immediately,
+        db.session.remove() is never called → objects remain usable."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded.value == "v"
+
+        @retry_on_db_disconnect()
+        def fail():
+            raise OperationalError("stmt", "params", Exception("other db error"))
+
+        with pytest.raises(OperationalError):
+            fail()
+
+        assert loaded.value == "v"
