@@ -175,7 +175,7 @@ class TestRenameInfo:
 
 
 class TestWorkerInit:
-    def test_default_initialization(self, mock_jobs_service, mock_base_services):
+    def test_default_initialization(self, mock_base_services):
         w = _make_worker()
         assert w.job_id == 1
         assert w.user == {"username": "tester"}
@@ -183,15 +183,15 @@ class TestWorkerInit:
         assert w.args == {}
         assert w.site is None
 
-    def test_args_passed(self, mock_jobs_service, mock_base_services):
+    def test_args_passed(self, mock_base_services):
         w = _make_worker(args={"some": "value"})
         assert w.args == {"some": "value"}
 
-    def test_get_job_type(self, mock_jobs_service, mock_base_services):
+    def test_get_job_type(self, mock_base_services):
         w = _make_worker()
         assert w.get_job_type() == "rename_owid_pages"
 
-    def test_initial_result_structure(self, mock_jobs_service, mock_base_services):
+    def test_initial_result_structure(self, mock_base_services):
         w = _make_worker()
         result = w.result
         assert result.status == "pending"
@@ -209,7 +209,7 @@ class TestWorkerInit:
 
 
 class TestProcess:
-    def test_no_site_authentication(self, mock_jobs_service, mock_base_services, monkeypatch):
+    def test_no_site_authentication(self, mock_base_services, monkeypatch):
         mock_get = MagicMock(return_value=None)
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.get_user_site",
@@ -228,7 +228,7 @@ class TestRenameOne:
 
     # ── helpers ─────────────────────────────────────────────────────────
 
-    def _worker_with_mocks(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
+    def _worker_with_mocks(self, monkeypatch, mock_base_services, mock_db_services):
         """Create a worker and patch MwClientPage."""
         w = _make_worker()
 
@@ -254,8 +254,8 @@ class TestRenameOne:
 
     # ── branch: new_title does NOT exist → move ──────────────────────────
 
-    def test_move_success(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+    def test_move_success(self, monkeypatch, mock_base_services, mock_db_services):
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 42}
@@ -266,8 +266,8 @@ class TestRenameOne:
         assert w.result.summary.renamed == 1
         assert w.result.summary.failed == 0
 
-    def test_move_failure(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+    def test_move_failure(self, monkeypatch, mock_base_services, mock_db_services):
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": False, "error": "permission denied"}
@@ -277,8 +277,8 @@ class TestRenameOne:
         assert result is False
         assert w.result.summary.failed == 1
 
-    def test_move_failure_with_details(self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+    def test_move_failure_with_details(self, monkeypatch, mock_base_services, mock_db_services):
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {
@@ -295,9 +295,9 @@ class TestRenameOne:
     # ── branch: new_title exists, is redirect → overwrite via move ───────
 
     def test_target_is_redirect_overwrite_succeeds(
-        self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services
+        self, monkeypatch, mock_base_services, mock_db_services
     ):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 99}
@@ -308,9 +308,9 @@ class TestRenameOne:
         assert w.result.summary.renamed == 1
 
     def test_target_is_redirect_overwrite_fails(
-        self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services
+        self, monkeypatch, mock_base_services, mock_db_services
     ):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": False, "error": "error"}
@@ -323,9 +323,9 @@ class TestRenameOne:
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
     def test_source_is_redirect_skip_and_update_db(
-        self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services
+        self, monkeypatch, mock_base_services, mock_db_services
     ):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=True)
 
         result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
@@ -338,9 +338,9 @@ class TestRenameOne:
     # ── branch: new_title exists, neither is redirect → redirect old ─────
 
     def test_both_real_pages_redirects_old_to_new(
-        self, monkeypatch, mock_jobs_service, mock_base_services, mock_db_services
+        self, monkeypatch, mock_base_services, mock_db_services
     ):
-        w = self._worker_with_mocks(monkeypatch, mock_jobs_service, mock_base_services, mock_db_services)
+        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=False)
 
         # Mock _redirect_old_to_new
@@ -362,14 +362,14 @@ class TestRenameOne:
 
 
 class TestRedirectOldToNew:
-    def _worker(self, mock_jobs_service, mock_base_services, mock_db_services):
+    def _worker(self, mock_base_services, mock_db_services):
         w = _make_worker()
         monkeypatch = pytest.MonkeyPatch()
         monkeypatch.setattr(w, "_update_template_title", MagicMock())
         return w
 
-    def test_redirect_success(self, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker(mock_jobs_service, mock_base_services, mock_db_services)
+    def test_redirect_success(self, mock_base_services, mock_db_services):
+        w = self._worker(mock_base_services, mock_db_services)
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
@@ -387,8 +387,8 @@ class TestRedirectOldToNew:
             summary="Redirecting to [[Template:OWID/Daily]] (capitalize first letter of OWID subpage)",
         )
 
-    def test_redirect_failure(self, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker(mock_jobs_service, mock_base_services, mock_db_services)
+    def test_redirect_failure(self, mock_base_services, mock_db_services):
+        w = self._worker(mock_base_services, mock_db_services)
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
@@ -401,8 +401,8 @@ class TestRedirectOldToNew:
         assert info.status == "failed"
         assert w.result.summary.failed == 1
 
-    def test_redirect_failure_with_details(self, mock_jobs_service, mock_base_services, mock_db_services):
-        w = self._worker(mock_jobs_service, mock_base_services, mock_db_services)
+    def test_redirect_failure_with_details(self, mock_base_services, mock_db_services):
+        w = self._worker(mock_base_services, mock_db_services)
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
@@ -419,7 +419,7 @@ class TestRedirectOldToNew:
 
 
 class TestUpdateTemplateTitle:
-    def test_updates_title_when_record_found(self, mock_jobs_service, mock_base_services, mock_db_services):
+    def test_updates_title_when_record_found(self, mock_base_services, mock_db_services):
         w = _make_worker()
         mock_record = MagicMock()
         mock_record.id = 7
@@ -430,7 +430,7 @@ class TestUpdateTemplateTitle:
         mock_db_services["get_template_by_title"].assert_called_once_with("Old")
         mock_db_services["update_template_data"].assert_called_once_with(7, {"title": "New"})
 
-    def test_noop_when_record_not_found(self, mock_jobs_service, mock_base_services, mock_db_services):
+    def test_noop_when_record_not_found(self, mock_base_services, mock_db_services):
         w = _make_worker()
         mock_db_services["get_template_by_title"].return_value = None
 
@@ -438,7 +438,7 @@ class TestUpdateTemplateTitle:
 
         mock_db_services["update_template_data"].assert_not_called()
 
-    def test_handles_exception_gracefully(self, mock_jobs_service, mock_base_services, mock_db_services):
+    def test_handles_exception_gracefully(self, mock_base_services, mock_db_services):
         w = _make_worker()
         mock_db_services["get_template_by_title"].side_effect = RuntimeError("DB down")
 
@@ -453,7 +453,7 @@ class TestUpdateTemplateTitle:
 class TestRenameOwidPagesForTemplatesEntryPoint:
     """Tests for the rename_owid_pages_for_templates entry point unified signature."""
 
-    def test_entry_point_creates_and_runs_worker(self, mock_worker_class, mock_jobs_service):
+    def test_entry_point_creates_and_runs_worker(self, mock_worker_class):
         rename_owid_pages_for_templates(job_id=1, user={"username": "tester"})
 
         mock_worker_class.assert_called_once_with(
@@ -463,12 +463,12 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
         mock_worker_class.return_value.run.assert_called_once()
 
-    def test_entry_point_accepts_args_keyword_param(self, mock_worker_class, mock_jobs_service):
+    def test_entry_point_accepts_args_keyword_param(self, mock_worker_class):
         rename_owid_pages_for_templates(job_id=1, user=None, args={"some_key": "some_value"})
 
         mock_worker_class.return_value.run.assert_called_once()
 
-    def test_entry_point_args_defaults_to_none(self, mock_worker_class, mock_jobs_service):
+    def test_entry_point_args_defaults_to_none(self, mock_worker_class):
         rename_owid_pages_for_templates(job_id=2, user=None)
 
         mock_worker_class.assert_called_once_with(
@@ -478,7 +478,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
         mock_worker_class.return_value.run.assert_called_once()
 
-    def test_entry_point_with_cancel_event(self, mock_worker_class, mock_jobs_service):
+    def test_entry_point_with_cancel_event(self, mock_worker_class):
         cancel_event = threading.Event()
         rename_owid_pages_for_templates(job_id=3, user=None, cancel_event=cancel_event)
 
@@ -489,7 +489,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
         mock_worker_class.return_value.run.assert_called_once()
 
-    def test_entry_point_args_does_not_affect_worker_creation(self, mock_worker_class, mock_jobs_service):
+    def test_entry_point_args_does_not_affect_worker_creation(self, mock_worker_class):
         rename_owid_pages_for_templates(job_id=4, user=None, args={"update_all": "true"})
 
         mock_worker_class.assert_called_once_with(
@@ -504,7 +504,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
 
 class TestWorkerEdgeCases:
     def test_cancel_event_set_stops_processing(
-        self, mock_jobs_service, mock_base_services, mock_db_services, mock_get_user_site
+        self, mock_base_services, mock_db_services, mock_get_user_site
     ):
         cancel_event = threading.Event()
         cancel_event.set()

@@ -12,7 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import wor
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by download_main_files worker."""
 
     # Mock template_service

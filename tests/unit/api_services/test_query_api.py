@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
-import pytest
-
 from src.main_app.api_services.query_api import (
     get_page_links,
     get_template_pages,
@@ -13,14 +9,6 @@ from src.main_app.api_services.query_api import (
     resolve_redirects,
     search_pages,
 )
-
-
-@pytest.fixture
-def mock_site():
-    """A mock Site instance."""
-    site = MagicMock()
-    return site
-
 
 class TestGetTemplatePages:
     def test_returns_titles(self, mock_site):

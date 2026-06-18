@@ -33,7 +33,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     """Mock the services used by collect_templates_data_worker."""
 
     # Mock template_service
@@ -116,7 +116,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service, tmp_path):
         "MwClientPage": mock_mwclientpage,
         "find_main_title": mock_find_main_title,
         "get_chart_by_slug": mock_get_chart_by_slug,
-        "is_job_cancelled": mock_jobs_service,
         "get_user_site": mock_get_user_site,
     }
 

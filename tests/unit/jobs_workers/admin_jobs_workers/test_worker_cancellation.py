@@ -14,7 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import w
 
 
 @pytest.fixture
-def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_common_services(monkeypatch: pytest.MonkeyPatch):
     """Mock services common to both workers."""
     mock_list_templates = MagicMock()
     mock_update_job_status = MagicMock()
@@ -45,7 +45,6 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
-        "is_job_cancelled": mock_jobs_service,
     }
 
 

@@ -66,7 +66,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_add_svg_worker(mock_jobs_service, monkeypatch: pytest.MonkeyPatch) -> AddSvgSVGLanguagesTemplate:
+def mock_add_svg_worker(monkeypatch: pytest.MonkeyPatch) -> AddSvgSVGLanguagesTemplate:
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
@@ -128,7 +128,7 @@ class TestTemplateInfo:
 class TestAddSvgSVGLanguagesTemplateInit:
     """Tests for AddSvgSVGLanguagesTemplate initialization."""
 
-    def test_worker_initialization(self, mock_jobs_service):
+    def test_worker_initialization(self):
         """Test worker is initialized correctly."""
         user = {"username": "test_user"}
         cancel_event = threading.Event()
@@ -141,7 +141,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.site is None
         assert worker.result.status == "pending"
 
-    def test_worker_reads_limit_items_from_args(self, mock_jobs_service):
+    def test_worker_reads_limit_items_from_args(self):
         """Test worker reads limit_items from args."""
         worker = AddSvgSVGLanguagesTemplate(
             job_id=1,
@@ -152,13 +152,13 @@ class TestAddSvgSVGLanguagesTemplateInit:
 
         assert worker.limit_items == 10
 
-    def test_worker_defaults_limit_items_when_args_none(self, mock_jobs_service):
+    def test_worker_defaults_limit_items_when_args_none(self):
         """Test worker defaults limit_items to 0 when args is None."""
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None, cancel_event=None, args=None)
 
         assert worker.limit_items == 0
 
-    def test_worker_limit_items_none_when_key_missing(self, mock_jobs_service):
+    def test_worker_limit_items_none_when_key_missing(self):
         """Test worker sets limit_items to 0 when args has no limit_items key."""
         worker = AddSvgSVGLanguagesTemplate(
             job_id=1,
@@ -169,12 +169,12 @@ class TestAddSvgSVGLanguagesTemplateInit:
 
         assert worker.limit_items == 0
 
-    def test_get_job_type(self, mock_jobs_service):
+    def test_get_job_type(self):
         """Test get_job_type returns correct job type."""
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         assert worker.get_job_type() == "add_svglanguages_template"
 
-    def test_get_initial_result(self, mock_jobs_service):
+    def test_get_initial_result(self):
         """Test initial result structure."""
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         result = worker.result
@@ -194,7 +194,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
 class TestLoadTemplates:
     """Tests for _load_templates and _apply_limits methods."""
 
-    def test_load_templates_filters_owid_templates(self, mock_services, mock_jobs_service):
+    def test_load_templates_filters_owid_templates(self, mock_services):
         """Test that only OWID templates are loaded."""
         mock_templates = [
             MagicMock(id=1, title="Template:OWID/test1"),
@@ -466,7 +466,7 @@ class TestHelperMethods:
 class TestProcessMethod:
     """Tests for the main process() method."""
 
-    def test_process_success(self, mock_services, mock_jobs_service, mock_site, monkeypatch: pytest.MonkeyPatch):
+    def test_process_success(self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test successful processing of all templates."""
         mock_services["get_user_site"].return_value = mock_site
 
@@ -488,7 +488,7 @@ class TestProcessMethod:
         assert result.summary.total == 1
         mock_services["get_user_site"].assert_called_once()
 
-    def test_process_fails_without_site(self, mock_services, mock_jobs_service, monkeypatch: pytest.MonkeyPatch):
+    def test_process_fails_without_site(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test that process fails when site authentication is not available."""
         mock_services["get_user_site"].return_value = None
 
@@ -503,7 +503,7 @@ class TestProcessMethod:
         assert result.failed_at is not None
 
     def test_process_handles_cancellation(
-        self, mock_services, mock_jobs_service, mock_site, monkeypatch: pytest.MonkeyPatch
+        self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch
     ):
         """Test that process stops when cancelled."""
         mock_services["get_user_site"].return_value = mock_site
@@ -541,7 +541,7 @@ class TestProcessMethod:
 class TestAddSvgSVGLanguagesTemplateToTemplates:
     """Tests for the add_svglanguages_template_to_templates function."""
 
-    def test_function_creates_and_runs_worker(self, mock_services, mock_jobs_service):
+    def test_function_creates_and_runs_worker(self, mock_services):
         """Test that the function creates and runs a worker."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
@@ -554,7 +554,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_accepts_args_keyword_param(self, mock_services, mock_jobs_service):
+    def test_function_accepts_args_keyword_param(self, mock_services):
         """Test that the entry point accepts args= keyword-only param (unified signature)."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
@@ -564,7 +564,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_args_defaults_to_none(self, mock_services, mock_jobs_service):
+    def test_function_args_defaults_to_none(self, mock_services):
         """Test that args defaults to None and the entry point works without it."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
@@ -575,7 +575,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_maps_limit_items(self, mock_services, mock_jobs_service):
+    def test_function_maps_limit_items(self, mock_services):
         """Test that limit_items is mapped to limit_items in args."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
@@ -588,7 +588,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"]["limit_items"] == 10
 
-    def test_function_does_not_map_when_key_absent(self, mock_services, mock_jobs_service):
+    def test_function_does_not_map_when_key_absent(self, mock_services):
         """Test that args are passed unchanged when limit_items is absent."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 
@@ -601,7 +601,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "limit_items" not in call_kwargs["args"]
 
-    def test_function_does_not_modify_args_when_args_is_none(self, mock_services, mock_jobs_service):
+    def test_function_does_not_modify_args_when_args_is_none(self, mock_services):
         """Test that entry point works correctly when args is None."""
         mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
 

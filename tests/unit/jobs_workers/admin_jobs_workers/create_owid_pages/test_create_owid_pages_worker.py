@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by create_owid_pages worker."""
 
     # Mock jobs_service
@@ -30,9 +30,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
         mock_save_job_result,
     )
+    mock_is_cancelled = MagicMock(return_value=False)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
-        mock_jobs_service,
+        mock_is_cancelled,
     )
 
     # Mock generate_result_file_name
@@ -106,7 +107,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
         "list_templates": mock_list_templates,
         "get_user_site": mock_get_user_site,
         "create_new_text": mock_create_new_text,
-        "is_job_cancelled": mock_jobs_service,
+        "is_job_cancelled": mock_is_cancelled,
         "is_pages_exists": mock_is_pages_exists,
         "merge_categories": mock_merge_categories,
         "sort_categories": mock_sort_categories,

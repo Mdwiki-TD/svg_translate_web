@@ -94,20 +94,8 @@ def mock_client(mock_app: Flask) -> FlaskClient:
 
     return mock_app.test_client()
 
-
 @pytest.fixture
-def login(mock_client):
-    """Helper to set ``session['username']`` to a given user."""
-
-    def _login(username: str) -> None:
-        with mock_client.session_transaction() as session:
-            session["username"] = username
-
-    return _login
-
-
-@pytest.fixture
-def csrf_token(mock_client):
+def mock_csrf_token(mock_client):
     """Helper fixture to generate CSRF tokens for tests."""
 
     pattern = re.compile(r'name="csrf_token" value="([^"]+)"')
@@ -120,26 +108,6 @@ def csrf_token(mock_client):
         return match.group(1)
 
     return _get_csrf_token
-
-
-@pytest.fixture
-def mock_jobs_service(monkeypatch: pytest.MonkeyPatch):
-    """Mock the jobs_service.is_job_cancelled function to avoid database calls.
-
-    This fixture mocks the is_job_cancelled function to return False by default,
-    allowing worker tests to run without requiring database configuration.
-
-    Returns:
-        MagicMock: The mock is_job_cancelled function that can be configured per test.
-    """
-
-    mock_is_cancelled = MagicMock(return_value=False)
-    monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.is_job_cancelled",
-        mock_is_cancelled,
-    )
-
-    return mock_is_cancelled
 
 
 # ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────

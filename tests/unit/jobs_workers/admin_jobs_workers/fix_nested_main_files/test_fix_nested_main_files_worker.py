@@ -16,7 +16,7 @@ from src.main_app.shared.fix_nested.worker import (
 
 
 @pytest.fixture
-def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_jobs_service):
+def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by fix_nested_main_files worker."""
 
     # Mock template_service
