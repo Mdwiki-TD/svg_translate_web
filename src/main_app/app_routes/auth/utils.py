@@ -85,6 +85,7 @@ def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
 
     return cast(FuncType, wrapper)
 
+
 def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
     """
     Decorator that requires user login
@@ -104,6 +105,7 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
         return func(*args, **kwargs)
 
     return wrapper
+
 
 __all__ = [
     "load_logged_in_user",

@@ -115,7 +115,7 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
 
 
 def start_job(
-    user: dict[str, Any] | None,
+    auth_payload: dict[str, Any] | None,
     job_type: str,
     args: dict[str, Any] | None = None,
 ) -> int:
@@ -124,7 +124,7 @@ def start_job(
     Returns the job ID.
 
     Args:
-        user: User authentication data for OAuth uploads
+        auth_payload: User authentication data for OAuth uploads
         job_type: The type of job to start
         args: Optional arguments to pass to the worker
     """
@@ -134,7 +134,7 @@ def start_job(
     if not job_data or not target_func:
         raise ValueError(f"Unknown job type: {job_type}")
 
-    username = user.get("username") if user else None
+    username = auth_payload.get("username") if auth_payload else None
     if not username:
         raise ValueError("User authentication data is required")
 
@@ -164,7 +164,7 @@ def start_job(
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, user, cancel_event, target_func, flask_app, resolved_args),
+        args=(job.id, auth_payload, cancel_event, target_func, flask_app, resolved_args),
         daemon=True,
     )
     thread.start()

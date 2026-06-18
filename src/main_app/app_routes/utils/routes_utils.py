@@ -10,9 +10,11 @@ from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_pu
 
 logger = logging.getLogger(__name__)
 
+
 def load_user():
     user = getattr(g, "_current_user", None)
     return user
+
 
 def _is_admin(user: Any) -> bool:
     """Check if user is an active coordinator (admin)."""
