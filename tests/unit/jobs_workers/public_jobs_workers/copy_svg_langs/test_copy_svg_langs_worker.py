@@ -510,7 +510,8 @@ class TestCopySvgLangsWorkerProcessOne:
         result = mock_worker._process_one("File:Test.svg", title_info)
 
         # nested step not updated on success (stays default)
-        assert title_info.steps.nested.result is None
+        assert title_info.steps.nested.result is True
+        assert title_info.steps.nested.msg == "Fixed 2 nested tag(s)"
         assert title_info.steps.inject.result is False
         assert title_info.steps.inject.msg == "Failed"
         assert result is True
