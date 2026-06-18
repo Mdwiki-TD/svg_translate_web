@@ -103,7 +103,7 @@ def delete_job_handler(job_id: int, job_type: str) -> Response:
     return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
 
-def start_job_handler(job_type: str, args: dict[str, Any]) -> int | None:
+def start_job_handler(job_type: str, args: dict[str, Any], bp_name: str) -> int | None:
     """Start a job."""
     user = load_user()
 
@@ -112,7 +112,6 @@ def start_job_handler(job_type: str, args: dict[str, Any]) -> int | None:
         return None
 
     try:
-        # Get auth payload for OAuth uploads
         auth_payload = load_auth_payload(user)
     except Exception:
         logger.exception("Failed to load auth payload")
@@ -140,9 +139,8 @@ def start_job_handler(job_type: str, args: dict[str, Any]) -> int | None:
 # ================================
 
 
-def jobs_list_handler(job_type: str, template_data: JobData) -> str:
+def jobs_list_handler(job_type: str, template_data: JobData, bp_name: str) -> str:
     """Render the jobs list dashboard for any job type."""
-    # Filter jobs at database level for better performance
     try:
         jobs = list_jobs(limit=100, job_type=job_type)
     except Exception:  # pragma: no cover - defensive guard
@@ -166,6 +164,7 @@ def job_detail_handler(
     job_id: int,
     job_type: str,
     template_data: JobData,
+    bp_name: str,
     expand_all: bool = False,
 ) -> Response | str:
     """Render the job detail page for any job type."""
@@ -175,7 +174,7 @@ def job_detail_handler(
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+        return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
 
     # Load job result if available
     result_data = None
@@ -244,7 +243,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return job_detail_handler(job_id, job_type, template_data)
+            return job_detail_handler(job_id, job_type, template_data, bp_name=JOBS_BP)
 
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         @admin_required
@@ -255,7 +254,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return job_detail_handler(job_id, job_type, template_data, expand_all=True)
+            return job_detail_handler(job_id, job_type, template_data, bp_name=JOBS_BP, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -269,7 +268,7 @@ class Jobs:
 
             args = request.form.to_dict()
 
-            job_id = start_job_handler(job_type, args)
+            job_id = start_job_handler(job_type, args, bp_name=JOBS_BP)
             if not job_id:
                 return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
