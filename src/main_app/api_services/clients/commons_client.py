@@ -105,7 +105,11 @@ def download_file_rate_limit(
 
             # Handle Rate Limiting (Error 429)
             elif response.status_code == 429:
-                wait_time = int(response.headers.get("Retry-After", 5))
+                retry_after = response.headers.get("Retry-After")
+                try:
+                    wait_time = int(retry_after) if retry_after else 5
+                except ValueError:
+                    wait_time = 5
                 logger.error(f"Hit 429 (Rate Limit). Attempt {attempts + 1}/{max_attempts}. Waiting {wait_time}s...")
                 time.sleep(wait_time)
 
