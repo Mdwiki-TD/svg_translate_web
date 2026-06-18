@@ -409,7 +409,7 @@ class TestJobDetail:
 
         result = job_detail_handler(99, "test_job", mock_template_data, BP_NAME)
 
-        assert result == "job_detail"
+        assert result == "redirected"
         mocks["flash"].assert_called_once_with("Job id 99 was not found", "warning")
 
 
