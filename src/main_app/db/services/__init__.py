@@ -101,6 +101,23 @@ __all__ = [
     "get_user_jobs_stats",
     "cancel_job_db",
     "is_job_cancelled",
+    # settings_service
+    "get_all_settings_ready",
+    "get_all_settings_raw",
+    "update_setting",
+    "create_setting",
+    "settings_update_form",
+    "list_settings",
+    # delete
+    "delete_record_by_pk",
+    "delete_template",
+    "delete_slug_redirect",
+    "delete_chart",
+    "delete_setting",
+    "delete_coordinator",
+    "delete_job",
+    "delete_user",
+    "delete_user_token",
     # owid_charts_service
     "get_chart_by_id",
     "get_chart_by_slug",
@@ -116,13 +133,6 @@ __all__ = [
     "count_slug_redirects",
     "bulk_update_slug_redirects",
     "bulk_delete_slug_redirects",
-    # settings_service
-    "get_all_settings_ready",
-    "get_all_settings_raw",
-    "update_setting",
-    "create_setting",
-    "settings_update_form",
-    "list_settings",
     # template_service
     "get_template",
     "get_template_by_title",
@@ -132,14 +142,4 @@ __all__ = [
     # views_service
     "list_templates_need_update",
     "list_owid_charts_templates",
-    # delete
-    "delete_record_by_pk",
-    "delete_template",
-    "delete_slug_redirect",
-    "delete_setting",
-    "delete_chart",
-    "delete_coordinator",
-    "delete_job",
-    "delete_user",
-    "delete_user_token",
 ]

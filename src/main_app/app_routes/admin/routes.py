@@ -12,7 +12,7 @@ from flask import (
 )
 
 from ...db.services import list_jobs
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..admin_routes import (
     coordinators_module,
     jobs_module,
@@ -32,7 +32,7 @@ bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 def _get_display_name(job_type: str) -> str:
-    job_data = jobs_data.get(job_type)
+    job_data = jobs_data_admins.get(job_type)
     return job_data.job_name if job_data else job_type
 
 
@@ -76,9 +76,9 @@ def admin_dashboard() -> str:
 def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(coordinators_module.bp)
     bp_admin.register_blueprint(users_module.bp)
-    bp_admin.register_blueprint(templates_module.bp)
     bp_admin.register_blueprint(settings_module.bp)
     bp_admin.register_blueprint(jobs_module.bp)
+    bp_admin.register_blueprint(templates_module.bp)
     bp_admin.register_blueprint(owidcharts_module.bp)
     bp_admin.register_blueprint(slug_redirects_module.bp)
 

@@ -50,20 +50,8 @@ def delete_user(user_id: int) -> bool:
     return delete_record_by_pk(UsersRecord, user_id)
 
 
-def delete_template(template_id: int) -> bool:
-    return delete_record_by_pk(TemplateRecord, template_id)
-
-
 def delete_setting(key: str) -> bool:
     return delete_record_by_pk(SettingRecord, key)
-
-
-def delete_slug_redirect(redirect_id: int) -> bool:
-    return delete_record_by_pk(OwidSlugRedirectRecord, redirect_id)
-
-
-def delete_chart(chart_id: int) -> bool:
-    return delete_record_by_pk(OwidChartRecord, chart_id)
 
 
 def delete_coordinator(coordinator_id: int) -> bool:
@@ -88,13 +76,25 @@ def delete_job(job_id: int, job_type: str) -> bool:
         return False
 
 
+def delete_template(template_id: int) -> bool:
+    return delete_record_by_pk(TemplateRecord, template_id)
+
+
+def delete_slug_redirect(redirect_id: int) -> bool:
+    return delete_record_by_pk(OwidSlugRedirectRecord, redirect_id)
+
+
+def delete_chart(chart_id: int) -> bool:
+    return delete_record_by_pk(OwidChartRecord, chart_id)
+
+
 __all__ = [
+    "delete_record_by_pk",
     "delete_user",
     "delete_user_token",
     "delete_coordinator",
     "delete_job",
     "delete_chart",
-    "delete_record_by_pk",
     "delete_setting",
     "delete_slug_redirect",
     "delete_template",

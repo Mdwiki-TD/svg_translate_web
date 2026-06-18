@@ -25,11 +25,12 @@ from ...db.services import (
     list_jobs,
 )
 from ...jobs_workers import jobs_worker
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...jobs_workers.objects import JobData
+from ...su_services import load_job_result
 from ..admin.admins_required import admin_required
 from ..auth.utils import load_user
-from ..jobs_routes_utils import can_manage_job, load_job_result_and_fix
+from ..jobs_routes_utils import can_manage_job
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -156,7 +157,7 @@ def _job_detail(
     # Load job result if available
     result_data = None
     if job.result_file:
-        result_data = load_job_result_and_fix(job.result_file, job_type)
+        result_data = load_job_result(job.result_file)
 
     template_name = template_data.job_details_template
 
@@ -266,14 +267,14 @@ class Jobs:
         @admin_required
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
-            result_data = load_job_result_and_fix(result_file, job_type)
+            result_data = load_job_result(result_file)
             return jsonify(result_data)
 
 
 # Public API module
 jobs_module = Jobs(
     name="jobs",
-    jobs_data_infos=jobs_data,
+    jobs_data_infos=jobs_data_admins,
 )
 
 __all__ = [

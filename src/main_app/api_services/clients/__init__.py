@@ -13,7 +13,7 @@ __all__ = [
     "download_commons_file_core",
     "get_user_site",
     "get_cronjob_site",
+    "download_file_rate_limit",
     "fetch_grapher_metadata",
     "fetch_indicators_metadata",
-    "download_file_rate_limit",
 ]

@@ -8,7 +8,7 @@ from .fix_nested_main_files.worker import fix_nested_main_files_for_templates
 from .rename_owid_pages import rename_owid_pages_for_templates
 from .update_owid_charts.worker import update_owid_charts_worker_entry
 
-jobs_data = {
+jobs_data_admins = {
     "collect_templates_data": JobData(
         job_type="collect_templates_data",
         job_name="Collect Templates data",
@@ -97,5 +97,5 @@ jobs_data = {
 # ------------------
 
 __all__ = [
-    "jobs_data",
+    "jobs_data_admins",
 ]

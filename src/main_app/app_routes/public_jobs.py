@@ -30,7 +30,7 @@ from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_pub
 from ..su_services import load_job_result
 from .admin.admins_required import admin_required
 from .auth.utils import load_user
-from .jobs_routes_utils import can_manage_job, load_job_result_and_fix
+from .jobs_routes_utils import can_manage_job
 from .utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -262,7 +262,7 @@ class JobsPublicRoutes:
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
-            result_data = load_job_result_and_fix(result_file, job_type)
+            result_data = load_job_result(result_file)
             return jsonify(result_data)
 
 

@@ -5,7 +5,7 @@ import logging
 from flask import Blueprint, flash, render_template
 
 from ..db.services import get_all_user_jobs_stats, get_user_jobs_stats
-from ..jobs_workers.jobs_worker import jobs_data_public
+from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .auth.utils import load_user
 
 logger = logging.getLogger(__name__)
