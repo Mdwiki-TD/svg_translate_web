@@ -301,15 +301,15 @@ class TestGetAllUserJobsStats:
 
         mock_recent_jobs = [MagicMock(id=1)]
         mock_base_query = MagicMock()
-        mock_base_query.order_by.return_value.limit.return_value.all.return_value = mock_recent_jobs
+        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = mock_recent_jobs
 
         call_count = [0]
 
         def query_side_effect(*args):
             call_count[0] += 1
             if call_count[0] == 1:
-                return mock_group_query
-            return mock_base_query
+                return mock_base_query
+            return mock_group_query
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user")
@@ -322,15 +322,15 @@ class TestGetAllUserJobsStats:
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = []
 
         mock_base_query = MagicMock()
-        mock_base_query.order_by.return_value.limit.return_value.all.return_value = []
+        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
 
         call_count = [0]
 
         def query_side_effect(*args):
             call_count[0] += 1
             if call_count[0] == 1:
-                return mock_group_query
-            return mock_base_query
+                return mock_base_query
+            return mock_group_query
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user")
@@ -345,15 +345,15 @@ class TestGetAllUserJobsStats:
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
 
         mock_base_query = MagicMock()
-        mock_base_query.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
+        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
 
         call_count = [0]
 
         def query_side_effect(*args):
             call_count[0] += 1
             if call_count[0] == 1:
-                return mock_group_query
-            return mock_base_query
+                return mock_base_query
+            return mock_group_query
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user", limit=5)
@@ -371,15 +371,15 @@ class TestGetUserJobsStats:
         mock_group_query.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_group_records
 
         mock_base_query = MagicMock()
-        mock_base_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
+        mock_base_query.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [MagicMock(id=1)]
 
         call_count = [0]
 
         def query_side_effect(*args):
             call_count[0] += 1
             if call_count[0] == 1:
-                return mock_group_query
-            return mock_base_query
+                return mock_base_query
+            return mock_group_query
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])

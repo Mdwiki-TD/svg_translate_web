@@ -265,7 +265,7 @@ class TestDeleteJob:
             "src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False
         )
         monkeypatch.setattr(
-            "src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: False
+            "src.main_app.app_routes.public_jobs.can_manage_job", lambda job, user: False
         )
 
         result = _delete_job(1, "test_job")
@@ -594,7 +594,7 @@ class TestJobsPublicRoutesRoutes:
             "src.main_app.app_routes.public_jobs.load_auth_payload", lambda u: {"token": "abc"}
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt, j: True
+            "src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda *a: True
         )
         monkeypatch.setattr(
             "src.main_app.jobs_workers.jobs_worker.start_job", lambda au, jt, args: 42
@@ -605,9 +605,10 @@ class TestJobsPublicRoutesRoutes:
         monkeypatch.setattr(
             "src.main_app.app_routes.public_jobs.load_job_result", lambda rf: {"result": "ok"}
         )
-        # Allow delete route's @admin_required decorator to pass
+        # Allow delete route's @admin_required decorator to pass by default
+        _admin_user = MagicMock(username="admin", is_active_admin=True)
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin.admins_required.load_user", lambda: mock_user
+            "src.main_app.app_routes.admin.admins_required.load_user", lambda: _admin_user
         )
         self._mock_user = mock_user
 
@@ -706,6 +707,10 @@ class TestJobsPublicRoutesRoutes:
     ) -> None:
         monkeypatch.setattr(
             "src.main_app.app_routes.admin.admins_required.load_user", lambda: None
+        )
+        monkeypatch.setattr(
+            "src.main_app.app_routes.admin.admins_required.url_for",
+            lambda endpoint, **values: f"/{endpoint}",
         )
         resp = client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 302
