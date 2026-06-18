@@ -1,16 +1,16 @@
 """
-Unit tests for src/main_app/db/services/utils.py module.
+Unit tests for src/main_app/db/services/utils/retry_on_disconnect.py module.
 
-Functions to test: db_guard_rollback, db_guard, retry_on_db_disconnect
+Functions to test: retry_on_db_disconnect
 """
 
 from __future__ import annotations
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from src.main_app.db.services.utils import retry_on_db_disconnect
+from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
 
-import src.main_app.db.services.utils as decorators_module
+import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 
 from unittest.mock import MagicMock, call
 
