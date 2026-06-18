@@ -100,6 +100,7 @@ class TestGetStatusClass:
     def test_case_insensitive(self):
         assert get_status_class("RUNNING") == "primary"
         assert get_status_class("failed") == "danger"
+        assert get_status_class("Failed") == "danger"
 
     def test_unknown_status_returns_secondary(self):
         assert get_status_class("unknown_status") == "secondary"

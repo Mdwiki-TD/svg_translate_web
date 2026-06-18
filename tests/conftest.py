@@ -43,7 +43,6 @@ os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
 # ── Now safe to import third-party and src packages ──────────────────────────
 
-
 _CopySVGTranslation_PATH = os.getenv(
     "CopySVGTranslation_PATH", "I:/TOOLFORGE_TOOLS/SVG_PY/CopySVGTranslation/CopySVGTranslation"
 )
@@ -66,6 +65,35 @@ def stop_nets(request):
         return
     # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
+
+# ── app fixtures ───────────────────────────────────────────────────────────────────
+
+@pytest.fixture(scope="session")
+def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
+    """
+    Create and configure a test Flask application.
+    """
+    application = create_app(TestingConfig)
+    application.config.update(TESTING=True)
+
+    with application.app_context():
+        yield application
+
+@pytest.fixture
+def mock_client(mock_app: Flask) -> FlaskClient:
+    """Fresh test client per test."""
+
+    return mock_app.test_client()
+
+@pytest.fixture
+def mock_login(mock_client):
+    """Helper to set ``session['username']`` to a given user."""
+
+    def _login(username: str) -> None:
+        with mock_client.session_transaction() as session:
+            session["username"] = username
+
+    return _login
 
 
 # ── db fixtures ───────────────────────────────────────────────────────────────────
@@ -123,25 +151,6 @@ def setup_db(mock_app):
         real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
         _db.metadata.drop_all(_db.engine, tables=real_tables)
 
-# ── app fixtures ───────────────────────────────────────────────────────────────────
-
-@pytest.fixture(scope="session")
-def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
-    """
-    Create and configure a test Flask application.
-    """
-    application = create_app(TestingConfig)
-    application.config.update(TESTING=True)
-
-    with application.app_context():
-        yield application
-
-@pytest.fixture
-def mock_client(mock_app: Flask) -> FlaskClient:
-    """Fresh test client per test."""
-
-    return mock_app.test_client()
-
 
 # ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────
 
@@ -168,4 +177,3 @@ def mock_site_pages(mock_site, mock_page):
         return mock_site
 
     return _factory
-
