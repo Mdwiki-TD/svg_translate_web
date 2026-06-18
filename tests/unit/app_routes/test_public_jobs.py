@@ -180,7 +180,7 @@ class TestCancelJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt, j: True)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt, j: True)
 
         result = _cancel_job(1, "test_job")
 
@@ -192,7 +192,7 @@ class TestCancelJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt, j: False)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt, j: False)
 
         result = _cancel_job(1, "test_job")
 
@@ -224,7 +224,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
 
         result = _delete_job(1, "test_job")
@@ -240,7 +240,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: True)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt: True)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
 
         result = _delete_job(1, "test_job")
@@ -253,7 +253,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: False)
 
         result = _delete_job(1, "test_job")
@@ -268,7 +268,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr(
             "src.main_app.app_routes.public_jobs.delete_job",
             MagicMock(side_effect=RuntimeError("DB error")),
@@ -320,7 +320,7 @@ class TestStartJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_auth_payload", lambda u: {"token": "abc"})
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.jobs_worker.start_job",
+            "src.main_app.app_routes.public_jobs.start_job",
             MagicMock(side_effect=DuplicateJobError()),
         )
 
@@ -336,7 +336,7 @@ class TestStartJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_auth_payload", lambda u: {"token": "abc"})
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.jobs_worker.start_job",
+            "src.main_app.app_routes.public_jobs.start_job",
             MagicMock(side_effect=ValueError("unexpected")),
         )
 
@@ -349,7 +349,7 @@ class TestStartJob:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.start_job", lambda au, jt, args: 42)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.start_job", lambda au, jt, args: 42)
 
         result = _start_job("test_job", {})
 
@@ -538,8 +538,8 @@ class TestJobsPublicRoutesRoutes:
         )
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda job, user: True)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda *a: True)
-        monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.start_job", lambda au, jt, args: 42)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.cancel_job_worker", lambda *a: True)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.start_job", lambda au, jt, args: 42)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_job_result", lambda rf: {"result": "ok"})
         # Allow delete route's @admin_required decorator to pass by default
@@ -609,7 +609,7 @@ class TestJobsPublicRoutesRoutes:
         self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.jobs_worker.start_job",
+            "src.main_app.app_routes.public_jobs.start_job",
             MagicMock(side_effect=DuplicateJobError()),
         )
         resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})

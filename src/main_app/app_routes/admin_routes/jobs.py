@@ -24,7 +24,10 @@ from ...db.services import (
     get_job,
     list_jobs,
 )
-from ...jobs_workers import jobs_worker
+from ...jobs_workers.jobs_worker import (
+    start_job,
+    cancel_job_worker,
+)
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...jobs_workers.objects import JobData
 from ...su_services import load_job_result
@@ -56,7 +59,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
         return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
-        if jobs_worker.cancel_job_worker(job_id, job_type, job):
+        if cancel_job_worker(job_id, job_type, job):
             flash(f"Job {job_id} cancellation requested.", "success")
         else:
             flash(f"Job {job_id} is not running or already cancelled.", "warning")
@@ -86,7 +89,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
-        if jobs_worker.cancel_job_worker(job_id, job_type):
+        if cancel_job_worker(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
         if delete_job(job_id, job_type):
@@ -117,7 +120,7 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
         return None
 
     try:
-        job_id = jobs_worker.start_job(auth_payload, job_type, args)
+        job_id = start_job(auth_payload, job_type, args)
         flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
     except DuplicateJobError:
