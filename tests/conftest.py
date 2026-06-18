@@ -80,14 +80,6 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
     with application.app_context():
         yield application
 
-
-@pytest.fixture
-def app_mock():
-    app = Flask(__name__)
-    app.secret_key = "test"
-    return app
-
-
 @pytest.fixture
 def client(mock_app: Flask) -> FlaskClient:
     """
