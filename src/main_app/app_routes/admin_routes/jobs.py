@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 JOBS_BP = "admin.jobs"
 
 
-def _cancel_job(job_id: int, job_type: str) -> Response:
+def cancel_job_handler(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     user = load_user()
     if not user:
@@ -70,7 +70,7 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
     return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
 
-def _delete_job(job_id: int, job_type: str) -> Response:
+def delete_job_handler(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
 
     user = load_user()
@@ -103,7 +103,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
     return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
 
-def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
+def start_job_handler(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
 
@@ -140,7 +140,7 @@ def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
 # ================================
 
 
-def _jobs_list(job_type: str, template_data: JobData) -> str:
+def jobs_list_handler(job_type: str, template_data: JobData) -> str:
     """Render the jobs list dashboard for any job type."""
     # Filter jobs at database level for better performance
     try:
@@ -162,7 +162,7 @@ def _jobs_list(job_type: str, template_data: JobData) -> str:
     )
 
 
-def _job_detail(
+def job_detail_handler(
     job_id: int,
     job_type: str,
     template_data: JobData,
@@ -216,7 +216,7 @@ class Jobs:
                 flash("Job type not found.", "warning")
                 abort(404)
 
-            return _cancel_job(job_id, job_type)
+            return cancel_job_handler(job_id, job_type)
 
         # ================================
         # Jobs List routes
@@ -229,7 +229,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return _jobs_list(job_type, template_data)
+            return jobs_list_handler(job_type, template_data)
 
         # ================================
         # Job Detail routes
@@ -244,7 +244,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return _job_detail(job_id, job_type, template_data)
+            return job_detail_handler(job_id, job_type, template_data)
 
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         @admin_required
@@ -255,7 +255,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return _job_detail(job_id, job_type, template_data, expand_all=True)
+            return job_detail_handler(job_id, job_type, template_data, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -269,7 +269,7 @@ class Jobs:
 
             args = request.form.to_dict()
 
-            job_id = _start_job(job_type, args)
+            job_id = start_job_handler(job_type, args)
             if not job_id:
                 return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
@@ -284,7 +284,7 @@ class Jobs:
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 abort(404)
-            return _delete_job(job_id, job_type)
+            return delete_job_handler(job_id, job_type)
 
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         @admin_required
