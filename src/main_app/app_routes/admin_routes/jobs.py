@@ -85,7 +85,6 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
-        # Cancel the job if it's running
         if jobs_worker.cancel_job_worker(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
