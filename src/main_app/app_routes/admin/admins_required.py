@@ -25,7 +25,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
     def wrapped(*args, **kwargs):
         user = load_user()
         if not user:
-            return redirect(url_for("auth.login", next=request.url))
+            return redirect(url_for("auth.login"))
         if not user.is_active_admin:
             abort(403)
         return view(*args, **kwargs)

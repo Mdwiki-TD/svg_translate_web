@@ -96,7 +96,7 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
         user = load_user()
         if not user:
             # Get the page the user came from, or default to the home page
-            next_page = request.referrer or url_for("main.index")
+            next_page = request.referrer or "/"
 
             # Return him to previous page with flash msg
             flash("You must be logged in.", "danger")
