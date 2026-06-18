@@ -49,14 +49,10 @@
 {% endif %}
 {% endblock %}
 
-{% block job_details %}
-
-
-<!-- Files Processed -->
-{% if result_data.files_processed %}
+{% macro pages_table(data, table_title) %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Files Processed (" ~ result_data.files_processed|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -74,7 +70,7 @@
                 </thead>
                 <tbody>
                     {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
-                    {% for item in result_data.files_processed %}
+                    {% for item in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -115,17 +111,31 @@
         </div>
     </div>
 </div>
+{%- endmacro -%}
+
+{% block job_details %}
+
+{% if result_data.files_success %}
+{{ pages_table(result_data.files_success, "Success") }}
+{% endif %}
+
+{% if result_data.files_processed %}
+{{ pages_table(result_data.files_processed, "Processed") }}
+{% endif %}
+
+{% if result_data.files_skipped %}
+{{ pages_table(result_data.files_skipped, "Skipped") }}
+{% endif %}
+
+{% if result_data.files_failed %}
+{{ pages_table(result_data.files_failed, "Failed") }}
 {% endif %}
 
 <!-- Translations -->
-{% if result_data.stages and result_data.stages.translations and result_data.stages.translations.data %}
-{% set trans_data = result_data.stages.translations.data.translations %}
-{% if trans_data and trans_data.new %}
-{% set new_trans = trans_data.new %}
-{% set new_count = new_trans | length %}
+{% if result_data.new_translations %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("New Translations (" ~ new_count ~ ")") }}
+        {{ card_header("New Translations (" ~ result_data.new_translations | length ~ ")") }}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -144,7 +154,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for key, translations in new_trans | dictsort %}
+                    {% for key, translations in result_data.new_translations | dictsort %}
                     {% if translations %}
                     <tr>
                         <td> {{ loop.index }} </td>
@@ -160,7 +170,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 {% endif %}
 
 {% endblock %}
