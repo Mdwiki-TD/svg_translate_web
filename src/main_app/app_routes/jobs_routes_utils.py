@@ -47,22 +47,22 @@ def can_manage_job(job: Any, user: Any) -> bool:
     return False
 
 
-def cancel_job_handler(job_id: int, job_type: str) -> Response:
+def cancel_job_handler(job_id: int, job_type: str) -> str:
     """Cancel a running job."""
     user = load_user()
     if not user:
         flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+        return "job_detail"
 
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
-        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+        return "jobs_list"
 
     if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+        return "job_detail"
 
     try:
         if cancel_job_worker(job_id, job_type, job):
@@ -73,30 +73,29 @@ def cancel_job_handler(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to cancel job")
         flash(f"Failed to cancel job {job_id}", "danger")
 
-    return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+    return "job_detail"
 
 
-def delete_job_handler(job_id: int, job_type: str) -> Response:
+def delete_job_handler(job_id: int, job_type: str) -> str:
     """Delete a job by ID and job type."""
-
     user = load_user()
     if not user:
-        flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+        flash("You must be logged in to delete jobs.", "danger")
+        return "job_detail"
 
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
-        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+        return "jobs_list"
 
     if not can_manage_job(job, user):
-        flash("You don't have permission to cancel this job.", "danger")
-        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+        flash("You don't have permission to delete this job.", "danger")
+        return "job_detail"
 
     try:
         if cancel_job_worker(job_id, job_type, job):
-            logger.info(f"Cancelled running job {job_id} before deletion")
+            logger.info("Cancelled running job %s before deletion", job_id)
 
         if delete_job(job_id, job_type):
             flash(f"Job {job_id} deleted successfully.", "success")
@@ -106,7 +105,7 @@ def delete_job_handler(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}", "danger")
 
-    return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+    return "jobs_list"
 
 
 def start_job_handler(job_type: str, args: dict[str, Any], bp_name: str) -> int | None:

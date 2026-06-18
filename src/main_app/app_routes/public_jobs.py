@@ -15,6 +15,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
+
 from ..jobs_workers.objects import JobData
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..su_services import load_job_result
@@ -23,14 +24,15 @@ from .auth.utils import user_login_required
 from .jobs_routes_utils import (
     cancel_job_handler,
     delete_job_handler,
-    start_job_handler,
     job_detail_handler,
     jobs_list_handler,
+    start_job_handler,
 )
 
 logger = logging.getLogger(__name__)
 
 JOBS_BP = "public_jobs"
+
 
 class JobsPublicRoutes:
     """Jobs management routes."""
@@ -52,7 +54,12 @@ class JobsPublicRoutes:
                 flash("Job type not found.", "warning")
                 abort(404)
 
-            return cancel_job_handler(job_id, job_type)
+            result = cancel_job_handler(job_id, job_type)
+
+            if result == "job_detail":
+                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
+            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
         # ================================
         # Jobs List routes
@@ -117,7 +124,12 @@ class JobsPublicRoutes:
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 abort(404)
-            return delete_job_handler(job_id, job_type)
+            result = delete_job_handler(job_id, job_type)
+
+            if result == "job_detail":
+                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
+            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         def read_job_result_file(result_file: str, job_type: str) -> ResponseReturnValue:

@@ -23,9 +23,9 @@ from ..admin.admins_required import admin_required
 from ..jobs_routes_utils import (
     cancel_job_handler,
     delete_job_handler,
-    start_job_handler,
     job_detail_handler,
     jobs_list_handler,
+    start_job_handler,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,12 @@ class Jobs:
                 flash("Job type not found.", "warning")
                 abort(404)
 
-            return cancel_job_handler(job_id, job_type)
+            result = cancel_job_handler(job_id, job_type)
+
+            if result == "job_detail":
+                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
+            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
         # ================================
         # Jobs List routes
@@ -121,7 +126,12 @@ class Jobs:
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 abort(404)
-            return delete_job_handler(job_id, job_type)
+            result = delete_job_handler(job_id, job_type)
+
+            if result == "job_detail":
+                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
+            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         @admin_required
