@@ -1,5 +1,5 @@
 from .auth_users_service import (
-    UserService,
+    AuthUserService,
 )
 from .current_user import CurrentUser
 from .jobs_files_service import (
@@ -14,6 +14,6 @@ __all__ = [
     "create_job_cancelled_file",
     "save_job_result_by_name",
     "load_job_result",
-    "UserService",
+    "AuthUserService",
     "CurrentUser",
 ]
