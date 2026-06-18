@@ -309,7 +309,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self,
         file_path_str: str,
     ) -> tuple[StepResult, Path | None]:
-
         if not file_path_str:
             return StepResult(result=False, msg="No file path found"), None
 

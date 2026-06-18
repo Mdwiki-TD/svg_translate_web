@@ -123,7 +123,6 @@ class BaseObjectsJobWorker(ABC):
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 
     def _save_progress(self, insert_last_update: bool = True) -> None:
-
         if insert_last_update:
             self.result.last_update = datetime.now().isoformat()
         result = self.result.to_json()
@@ -237,7 +236,6 @@ class BaseObjectsJobWorker(ABC):
         try:
             # Pre-processing setup
             if not self.before_run():
-
                 return self.result.to_json()
 
             # Main processing
