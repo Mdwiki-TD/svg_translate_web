@@ -8,7 +8,6 @@ from typing import Callable, TypeVar, cast
 from flask import (
     abort,
     redirect,
-    request,
     url_for,
 )
 from flask.typing import ResponseReturnValue
