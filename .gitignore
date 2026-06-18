@@ -28,3 +28,4 @@ righttyper.log
 righttyper.out
 run_tests.py
 **/__pycache__/**
+/.commandcode
