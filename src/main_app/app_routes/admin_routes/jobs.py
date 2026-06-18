@@ -35,34 +35,54 @@ from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
 
+JOBS_BP = "admin.jobs"
 
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     user = load_user()
     if not user:
         flash("You must be logged in to cancel jobs.", "danger")
-        return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
-        return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
     if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
-        return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
-    if jobs_worker.cancel_job_worker(job_id, job_type, job):
-        flash(f"Job {job_id} cancellation requested.", "success")
-    else:
-        flash(f"Job {job_id} is not running or already cancelled.", "warning")
+    try:
+        if jobs_worker.cancel_job_worker(job_id, job_type, job):
+            flash(f"Job {job_id} cancellation requested.", "success")
+        else:
+            flash(f"Job {job_id} is not running or already cancelled.", "warning")
+    except Exception:
+        logger.exception("Failed to cancel job")
+        flash(f"Failed to cancel job {job_id}", "danger")
 
-    return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
+    return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
 
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
+
+    user = load_user()
+    if not user:
+        flash("You must be logged in to cancel jobs.", "danger")
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
+    try:
+        job = get_job(job_id, job_type)
+    except LookupError:
+        flash("Job not found.", "warning")
+        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+
+    if not can_manage_job(job, user):
+        flash("You don't have permission to cancel this job.", "danger")
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
         # Cancel the job if it's running
@@ -77,7 +97,7 @@ def _delete_job(job_id: int, job_type: str) -> Response:
         logger.exception("Failed to delete job")
         flash(f"Failed to delete job {job_id}", "danger")
 
-    return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+    return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
 
 def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
@@ -152,10 +172,11 @@ def _job_detail(
     except LookupError as exc:
         logger.exception("Job not found")
         flash(str(exc), "warning")
-        return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+        return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
     # Load job result if available
     result_data = None
+
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
@@ -175,8 +196,8 @@ def _job_detail(
 class Jobs:
     """Jobs management routes."""
 
-    def __init__(self, name: str, jobs_data_infos: dict[str, JobData]) -> None:
-        self.bp = Blueprint(name, __name__, url_prefix="/jobs")
+    def __init__(self, name: str, jobs_data_infos: dict[str, JobData], url_prefix: str) -> None:
+        self.bp = Blueprint(name, __name__, url_prefix=url_prefix)
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self._setup_routes()
 
@@ -190,7 +211,7 @@ class Jobs:
         def cancel_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
                 flash("Job type not found.", "warning")
-                return abort(404)
+                abort(404)
 
             return _cancel_job(job_id, job_type)
 
@@ -203,7 +224,7 @@ class Jobs:
         def jobs_list(job_type: str) -> str:
             template_data: JobData | None = self.jobs_data_infos.get(job_type)
             if not template_data:
-                return abort(404)
+                abort(404)
 
             return _jobs_list(job_type, template_data)
 
@@ -218,7 +239,7 @@ class Jobs:
             template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
-                return abort(404)
+                abort(404)
 
             return _job_detail(job_id, job_type, template_data)
 
@@ -229,7 +250,7 @@ class Jobs:
             template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
             if not template_data:
-                return abort(404)
+                abort(404)
 
             return _job_detail(job_id, job_type, template_data, expand_all=True)
 
@@ -241,15 +262,15 @@ class Jobs:
         @admin_required
         def start_job(job_type: str) -> ResponseReturnValue:
             if job_type not in self.jobs_data_infos:
-                return abort(404)
+                abort(404)
 
             args = request.form.to_dict()
 
             job_id = _start_job(job_type, args)
             if not job_id:
-                return redirect(url_for("admin.jobs.jobs_list", job_type=job_type))
+                return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
-            return redirect(url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id))
+            return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
         # Delete Job routes
@@ -259,7 +280,7 @@ class Jobs:
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
             if job_type not in self.jobs_data_infos:
-                return abort(404)
+                abort(404)
             return _delete_job(job_id, job_type)
 
         @self.bp.get("/job-file/<string:result_file>")
@@ -268,7 +289,7 @@ class Jobs:
         def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
             """ """
             if job_type not in self.jobs_data_infos:
-                return abort(404)
+                abort(404)
             result_data = load_job_result(result_file)
             return jsonify(result_data)
 
@@ -277,6 +298,7 @@ class Jobs:
 jobs_module = Jobs(
     name="jobs",
     jobs_data_infos=jobs_data_admins,
+    url_prefix="/jobs",
 )
 
 __all__ = [

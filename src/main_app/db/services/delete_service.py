@@ -51,7 +51,10 @@ def delete_user(user_id: int) -> bool:
 
 
 def delete_setting(key: str) -> bool:
-    return delete_record_by_pk(SettingRecord, key)
+    setting = SettingRecord.query.filter_by(key=key).first()
+    if setting:
+        return delete_record_by_pk(SettingRecord, setting.id)
+    return False
 
 
 def delete_coordinator(coordinator_id: int) -> bool:
