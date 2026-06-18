@@ -8,6 +8,7 @@ from typing import Callable, TypeVar, cast
 from flask import (
     abort,
     redirect,
+    request,
     url_for,
 )
 from flask.typing import ResponseReturnValue
@@ -24,7 +25,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
     def wrapped(*args, **kwargs):
         user = load_user()
         if not user:
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login", next=request.url))
         if not user.is_active_admin:
             abort(403)
         return view(*args, **kwargs)

@@ -8,7 +8,7 @@ import logging
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 
-from flask import g, redirect, request, session, url_for
+from flask import flash, g, redirect, request, session, url_for
 
 from ...config import settings
 from ...su_services.auth_users_service import AuthUserService
@@ -80,6 +80,23 @@ def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
         if not user:
             session["post_login_redirect"] = request.url
             return redirect(url_for("auth.login"))
+
+        return func(*args, **kwargs)
+
+    return cast(FuncType, wrapper)
+
+def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
+    """
+    Decorator that requires user login
+    """
+
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any):
+        user = load_user()
+        if not user:
+            # return him to previous page with flash msg
+            flash("You must be logged in.", "danger")
+
 
         return func(*args, **kwargs)
 
