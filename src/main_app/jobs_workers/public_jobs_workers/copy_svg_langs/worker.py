@@ -259,6 +259,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         processfiles_stage = self.result.stages.processfiles
 
+        self.result.summary.total = len(self.titles)
         title_to_work = self._apply_limits(self.titles)
 
         per_item = self.get_priority(len(title_to_work))
