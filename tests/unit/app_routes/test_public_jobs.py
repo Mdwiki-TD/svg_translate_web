@@ -265,7 +265,7 @@ class TestDeleteJob:
             "src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False
         )
         monkeypatch.setattr(
-            "src.main_app.app_routes.public_jobs.can_manage_job", lambda job, user: False
+            "src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: False
         )
 
         result = _delete_job(1, "test_job")
