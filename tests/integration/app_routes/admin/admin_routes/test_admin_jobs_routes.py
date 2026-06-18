@@ -418,7 +418,7 @@ def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
     # Try to delete a job that doesn't exist
     response = admin_jobs_client.post("/admin/jobs/collect_templates_data/999/delete", follow_redirects=True)
     assert response.status_code == 200
-    mock_flash.assert_called_with("Failed to delete job 999", "danger")
+    mock_flash.assert_called_with("Job not found.", "warning")
 
 
 def test_delete_job_with_wrong_type(admin_jobs_client, jobs_db):
