@@ -49,7 +49,8 @@ def complete_login(request_token: object, query_string: str) -> Tuple[str, dict[
     """Complete the OAuth login flow and return the access token and user identity."""
 
     handshaker = get_handshaker()
-    access_token = handshaker.complete(request_token, query_string)
+    access_token: mwoauth.AccessToken = handshaker.complete(request_token, query_string)
+
     try:
         identity: dict[str, Any] = handshaker.identify(access_token)
     except Exception as exc:
