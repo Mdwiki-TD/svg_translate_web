@@ -74,6 +74,7 @@ def init_db(_db) -> None:
             except Exception:
                 logger.exception("Failed to create view %s", table.name)
 
+
 __all__ = [
     "init_db",
 ]
