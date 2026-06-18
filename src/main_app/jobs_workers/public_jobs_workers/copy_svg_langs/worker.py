@@ -9,7 +9,7 @@ import logging
 import re
 import threading
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any
 
 import requests
 from mwclient.client import Site
