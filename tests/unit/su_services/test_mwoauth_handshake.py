@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
 import types
+from types import SimpleNamespace
 
 import pytest
 
@@ -120,6 +120,7 @@ def test_oauthidentityerror() -> None:
 
     assert str(error) == "message"
     assert isinstance(error.original_exception, RuntimeError)
+
 
 class StubConsumerToken:
     def __init__(self, key, secret):

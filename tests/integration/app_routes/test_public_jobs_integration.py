@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from src.main_app.app_routes.public_jobs import JobsPublicRoutes  # noqa: F401
 
+
 class TestJobsPublicRoutesInit:
     """Test JobsPublicRoutes initialization and route registration."""
 
