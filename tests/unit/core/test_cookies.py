@@ -12,46 +12,46 @@ from src.main_app.core.cookies import CookieHeaderClient
 
 class TestCookieHeaderClient:
     @pytest.fixture
-    def app_mock(self) -> Flask:
+    def app_c_mock(self) -> Flask:
         app = Flask(__name__)
         app.config["SECRET_KEY"] = "test-secret"
         app.test_client_class = CookieHeaderClient
         return app
 
     @pytest.fixture
-    def client(self, app_mock: Flask) -> CookieHeaderClient:
-        return app_mock.test_client()
+    def mock_c_client(self, app_c_mock: Flask) -> CookieHeaderClient:
+        return app_c_mock.test_client()
 
-    def test_open_with_dict_headers_and_cookie(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers={"Cookie": "session=abc123"})
+    def test_open_with_dict_headers_and_cookie(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers={"Cookie": "session=abc123"})
         assert response.status_code == 404
 
-    def test_open_with_tuple_headers_and_cookie(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers=[("Cookie", "session=xyz789")])
+    def test_open_with_tuple_headers_and_cookie(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers=[("Cookie", "session=xyz789")])
         assert response.status_code == 404
 
-    def test_open_without_cookie_header(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers={"Accept": "text/html"})
+    def test_open_without_cookie_header(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers={"Accept": "text/html"})
         assert response.status_code == 404
 
-    def test_open_with_empty_headers(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers={})
+    def test_open_with_empty_headers(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers={})
         assert response.status_code == 404
 
-    def test_open_with_none_headers(self, client: CookieHeaderClient) -> None:
-        response = client.get("/")
+    def test_open_with_none_headers(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/")
         assert response.status_code == 404
 
-    def test_open_with_case_insensitive_cookie(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers={"cookie": "session=lower"})
+    def test_open_with_case_insensitive_cookie(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers={"cookie": "session=lower"})
         assert response.status_code == 404
 
-    def test_open_with_multiple_cookies(self, client: CookieHeaderClient) -> None:
-        response = client.get("/", headers={"Cookie": "a=1; b=2; c=3"})
+    def test_open_with_multiple_cookies(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get("/", headers={"Cookie": "a=1; b=2; c=3"})
         assert response.status_code == 404
 
-    def test_open_with_cookie_and_other_headers(self, client: CookieHeaderClient) -> None:
-        response = client.get(
+    def test_open_with_cookie_and_other_headers(self, mock_c_client: CookieHeaderClient) -> None:
+        response = mock_c_client.get(
             "/",
             headers={
                 "Cookie": "session=test",
@@ -61,10 +61,10 @@ class TestCookieHeaderClient:
         )
         assert response.status_code == 404
 
-    def test_open_strips_cookie_from_headers(self, app_mock: Flask) -> None:
-        client = app_mock.test_client()
+    def test_open_strips_cookie_from_headers(self, app_c_mock: Flask) -> None:
+        client = app_c_mock.test_client()
 
-        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -79,10 +79,10 @@ class TestCookieHeaderClient:
             assert "cookie" not in passed_headers
             assert passed_headers.get("Accept") == "text/html"
 
-    def test_open_handles_tuple_cookie_header(self, app_mock: Flask) -> None:
-        client = app_mock.test_client()
+    def test_open_handles_tuple_cookie_header(self, app_c_mock: Flask) -> None:
+        client = app_c_mock.test_client()
 
-        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -95,10 +95,10 @@ class TestCookieHeaderClient:
             assert ("Cookie", "session=xyz") not in passed_headers
             assert ("Accept", "text/html") in passed_headers
 
-    def test_open_without_cookie_preserves_headers(self, app_mock: Flask) -> None:
-        client = app_mock.test_client()
+    def test_open_without_cookie_preserves_headers(self, app_c_mock: Flask) -> None:
+        client = app_c_mock.test_client()
 
-        with patch.object(app_mock.test_client_class.__bases__[0], "open") as mock_super_open:
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
