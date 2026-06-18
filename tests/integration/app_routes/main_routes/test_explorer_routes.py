@@ -96,15 +96,16 @@ def test_main_lists_titles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, patc
     assert data["beta"]["translated"] == 0
 
 
-def test_serve_media_returns_directory(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_serve_media_returns_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     called: list[tuple[str, str]] = []
+    base = tmp_path / "base"
 
     def fake_send(directory: str, filename: str):
         called.append((directory, filename))
         return SimpleNamespace(headers={})
 
-    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda: Path("/base"))
-    monkeypatch.setattr("src.main_app.app_routes.utils.explorer_utils.load_svg_data_path", lambda: Path("/base"))
+    monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.load_svg_data_path", lambda: base)
+    monkeypatch.setattr("src.main_app.app_routes.utils.explorer_utils.load_svg_data_path", lambda: base)
     monkeypatch.setattr("src.main_app.app_routes.main_routes.explorer_routes.send_from_directory", fake_send)
 
     _result = explorer_routes.serve_media("title", "files", "file.svg")
