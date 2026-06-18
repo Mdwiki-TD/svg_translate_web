@@ -94,14 +94,16 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
     def wrapper(*args: Any, **kwargs: Any):
         user = load_user()
         if not user:
-            # return him to previous page with flash msg
-            flash("You must be logged in.", "danger")
+            # Get the page the user came from, or default to the home page
+            next_page = request.referrer or url_for("main.index")
 
+            # Return him to previous page with flash msg
+            flash("You must be logged in.", "danger")
+            return redirect(next_page)
 
         return func(*args, **kwargs)
 
-    return cast(FuncType, wrapper)
-
+    return wrapper
 
 __all__ = [
     "load_logged_in_user",
