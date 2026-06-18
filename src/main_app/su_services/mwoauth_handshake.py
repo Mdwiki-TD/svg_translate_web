@@ -9,11 +9,11 @@ import mwoauth
 from flask import url_for
 from mwoauth.handshaker import Handshaker
 
-from ...config import settings
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-IDENTITY_ERROR_MESSAGE = "We couldn’t verify your MediaWiki identity. Please try again."
+IDENTITY_ERROR_MESSAGE = "We couldn't verify your MediaWiki identity. Please try again."
 
 
 class OAuthIdentityError(Exception):

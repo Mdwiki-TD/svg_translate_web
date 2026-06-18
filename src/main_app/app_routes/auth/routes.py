@@ -26,8 +26,8 @@ from mwoauth import RequestToken
 from ...config import settings
 from ...db.services import delete_user_token
 from ...su_services.auth_service import OAuthCallbackError, complete_oauth_callback
+from ...su_services.mwoauth_handshake import OAuthIdentityError, start_login
 from .cookie import extract_user_id, sign_state_token, sign_user_id, verify_state_token
-from .oauth import OAuthIdentityError, start_login
 from .rate_limit import callback_rate_limiter, login_rate_limiter
 from .utils import load_logged_in_user
 

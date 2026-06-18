@@ -25,8 +25,8 @@ from ..db.services import (
     list_jobs,
 )
 from ..jobs_workers.jobs_worker import (
-    start_job,
     cancel_job_worker,
+    start_job,
 )
 from ..jobs_workers.objects import JobData
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
