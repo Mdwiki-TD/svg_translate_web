@@ -137,6 +137,7 @@ def _start_job_impl(
         resolved_args.update(args)
 
     try:
+        # Create job record
         job = create_job(job_type, username)
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
@@ -153,6 +154,7 @@ def _start_job_impl(
     if "csrf_token" in resolved_args:
         del resolved_args["csrf_token"]
 
+    # Start background thread
     thread = threading.Thread(
         target=_runner,
         args=(job.id, user, cancel_event, target_func, resolved_flask_app, resolved_args),
@@ -171,8 +173,9 @@ def start_job(
     args: dict[str, Any] | None = None,
 ) -> int:
     """Start a background job as a daemon thread. Returns the job ID."""
-    return _start_job_impl(user, job_type, args, daemon=True,
-                           flask_app=current_app._get_current_object())  # type: ignore[attr-defined]
+    return _start_job_impl(
+        user, job_type, args, daemon=True, flask_app=current_app._get_current_object()
+    )  # type: ignore[attr-defined]
 
 
 def start_job_cli(
@@ -183,7 +186,12 @@ def start_job_cli(
 ) -> int:
     """Start a background job from CLI. Returns the job ID."""
     flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
-    return _start_job_impl(user, job_type, args, flask_app=flask_app)
+    return _start_job_impl(
+        user,
+        job_type,
+        args,
+        flask_app=flask_app,
+    )
 
 
 __all__ = [

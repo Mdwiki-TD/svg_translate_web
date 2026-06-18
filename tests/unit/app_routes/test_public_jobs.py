@@ -124,9 +124,9 @@ class TestCancelJob:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr(f"{MODULE_PATH}.load_user", lambda: None)
 
-        result = cancel_job_handler(1, "test_job", BP_NAME)
+        result = cancel_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "job_detail"
         mocks["flash"].assert_called_once_with("You must be logged in to cancel jobs.", "danger")
 
     def test_job_not_found(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
@@ -134,9 +134,9 @@ class TestCancelJob:
         monkeypatch.setattr(f"{MODULE_PATH}.load_user", lambda: mock_user)
         monkeypatch.setattr(f"{MODULE_PATH}.get_job", MagicMock(side_effect=LookupError("not found")))
 
-        result = cancel_job_handler(1, "test_job", BP_NAME)
+        result = cancel_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "jobs_list"
         mocks["flash"].assert_called_once_with("Job not found.", "warning")
 
     def test_no_permission(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
@@ -145,9 +145,9 @@ class TestCancelJob:
         monkeypatch.setattr(f"{MODULE_PATH}.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr(f"{MODULE_PATH}.can_manage_job", lambda j, u: False)
 
-        result = cancel_job_handler(1, "test_job", BP_NAME)
+        result = cancel_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "job_detail"
         mocks["flash"].assert_called_once_with("You don't have permission to cancel this job.", "danger")
 
     def test_cancel_successful(
@@ -159,9 +159,9 @@ class TestCancelJob:
         monkeypatch.setattr(f"{MODULE_PATH}.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt, j: True)
 
-        result = cancel_job_handler(1, "test_job", BP_NAME)
+        result = cancel_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "job_detail"
         mocks["flash"].assert_called_once_with("Job 1 cancellation requested.", "success")
 
     def test_cancel_fails(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
@@ -171,9 +171,9 @@ class TestCancelJob:
         monkeypatch.setattr(f"{MODULE_PATH}.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt, j: False)
 
-        result = cancel_job_handler(1, "test_job", BP_NAME)
+        result = cancel_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "job_detail"
         mocks["flash"].assert_called_once_with("Job 1 is not running or already cancelled.", "warning")
 
 
@@ -197,9 +197,9 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr(f"{MODULE_PATH}.delete_job", lambda jid, jt: True)
 
-        result = delete_job_handler(1, "test_job", BP_NAME)
+        result = delete_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "jobs_list"
         mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
 
     def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
@@ -210,9 +210,9 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr(f"{MODULE_PATH}.delete_job", lambda jid, jt: False)
 
-        result = delete_job_handler(1, "test_job", BP_NAME)
+        result = delete_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "jobs_list"
         mocks["flash"].assert_called_once_with("Failed to delete job 1", "danger")
 
     def test_exception_during_delete(
@@ -225,9 +225,9 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr(f"{MODULE_PATH}.delete_job", MagicMock(side_effect=RuntimeError("DB error")))
 
-        result = delete_job_handler(1, "test_job", BP_NAME)
+        result = delete_job_handler(1, "test_job")
 
-        assert result == "redirected"
+        assert result == "jobs_list"
         mocks["flash"].assert_called_once_with("Failed to delete job 1", "danger")
 
 
@@ -409,7 +409,7 @@ class TestJobDetail:
 
         result = job_detail_handler(99, "test_job", mock_template_data, BP_NAME)
 
-        assert result == "redirected"
+        assert result == "job_detail"
         mocks["flash"].assert_called_once_with("Job id 99 was not found", "warning")
 
 
