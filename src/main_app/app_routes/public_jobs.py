@@ -278,9 +278,8 @@ class JobsPublicRoutes:
                 abort(404)
             return _delete_job(job_id, job_type)
 
-        @self.bp.get("/job-file/<string:result_file>")
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
-        def read_job_result_file(result_file: str, job_type: str = "") -> ResponseReturnValue:
+        def read_job_result_file(result_file: str, job_type: str) -> ResponseReturnValue:
             """ """
             if job_type not in self.jobs_data_infos:
                 abort(404)
