@@ -82,7 +82,7 @@ def delete_job_handler(job_id: int, job_type: str) -> str:
         return "job_detail"
 
     try:
-        if jobs_worker.cancel_job_worker(job_id, job_type):
+        if jobs_worker.cancel_job_worker(job_id, job_type, job):
             logger.info("Cancelled running job %s before deletion", job_id)
 
         if delete_job(job_id, job_type):
