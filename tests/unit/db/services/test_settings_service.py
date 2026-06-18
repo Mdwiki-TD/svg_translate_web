@@ -298,10 +298,12 @@ class TestCreateSetting:
         assert added_settings[0].value_type == "string"
 
     def test_handles_exception_rollback(self, monkeypatch):
+        from sqlalchemy.exc import OperationalError
+
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", lambda s: None)
         monkeypatch.setattr(
             "src.main_app.db.services.settings_service.db.session.commit",
-            MagicMock(side_effect=Exception("DB error")),
+            MagicMock(side_effect=OperationalError("DB error", None, None)),
         )
         rollback = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.rollback", rollback)
