@@ -468,7 +468,7 @@ class TestCopySvgLangsWorkerProcessOne:
 
         assert result is True
         assert title_info.steps.upload.result is True
-        assert title_info.status == "completed"
+        assert title_info.status == "success"
 
     def test_inject_none_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
         dl_path = tmp_path / "test.svg"
@@ -580,7 +580,7 @@ class TestCopySvgLangsWorkerUploadStep:
         assert result is True
         assert title_info.steps.upload.result is True
         assert title_info.steps.upload.msg == "File Successfully uploaded."
-        assert title_info.status == "completed"
+        assert title_info.status == "success"
         assert mock_worker.upload_done == 1
 
     def test_upload_skipped(self, mock_worker: CopySvgLangsWorker, monkeypatch):
@@ -720,7 +720,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             result = mock_worker.process()
 
         # periodic check breaks loop early - only first file processed
-        assert len(result.files_processed) == 1
+        assert len(result.files_success) == 1
+        assert len(result.files_processed) == 0
 
     def test_process_multiple_files_progress_save(
         self, mock_worker: CopySvgLangsWorker, mock_steps, mock_clients, tmp_path
