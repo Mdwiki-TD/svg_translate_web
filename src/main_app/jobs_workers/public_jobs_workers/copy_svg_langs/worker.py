@@ -290,7 +290,16 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if title_info.status.lower() in ["pending", "running"]:
                 title_info.status = "completed"
 
-            self.result.files_processed.append(title_info)
+            if title_info.status == "success":
+                self.result.files_success.append(title_info)
+
+            elif title_info.status == "skipped":
+                self.result.files_skipped.append(title_info)
+
+            elif title_info.status == "failed":
+                self.result.files_failed.append(title_info)
+            else:
+                self.result.files_processed.append(title_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -494,7 +503,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             )
 
             self.upload_done += 1
-            title_info.status = "completed"
+            title_info.status = "success"
             # return True, all steps passed and upload is success
             return True
 
