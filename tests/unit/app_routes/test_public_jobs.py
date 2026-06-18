@@ -542,6 +542,9 @@ class TestJobsPublicRoutesRoutes:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.start_job", lambda au, jt, args: 42)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_job_result", lambda rf: {"result": "ok"})
+
+        monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", lambda: mock_user)
+
         # Allow delete route's @admin_required decorator to pass by default
         _admin_user = MagicMock(username="admin", is_active_admin=True)
         monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", lambda: _admin_user)

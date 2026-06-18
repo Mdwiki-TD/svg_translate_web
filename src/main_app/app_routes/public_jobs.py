@@ -44,6 +44,10 @@ JOBS_BP = "public_jobs"
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     user = load_user()
+    if not user:
+        flash("You must be logged in to cancel jobs.", "danger")
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
     try:
         job = get_job(job_id, job_type)
     except LookupError:
@@ -69,19 +73,22 @@ def _cancel_job(job_id: int, job_type: str) -> Response:
 def _delete_job(job_id: int, job_type: str) -> Response:
     """Delete a job by ID and job type."""
 
+    user = load_user()
+    if not user:
+        flash("You must be logged in to cancel jobs.", "danger")
+        return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+
     try:
         job = get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
         return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
 
-    user = load_user()
     if not can_manage_job(job, user):
         flash("You don't have permission to cancel this job.", "danger")
         return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
 
     try:
-        # Cancel the job if it's running
         if cancel_job_worker(job_id, job_type):
             logger.info(f"Cancelled running job {job_id} before deletion")
 
@@ -99,6 +106,10 @@ def _delete_job(job_id: int, job_type: str) -> Response:
 def _start_job(job_type: str, args: dict[str, Any]) -> int | None:
     """Start a job."""
     user = load_user()
+
+    if not user:
+        flash("You must be logged in to start this job.", "danger")
+        return None
 
     try:
         # Get auth payload for OAuth uploads
