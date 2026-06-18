@@ -139,7 +139,7 @@ def start_job_handler(job_type: str, args: dict[str, Any], bp_name: str) -> int 
 # ================================
 
 
-def jobs_list_handler(job_type: str, template_data: JobData, bp_name: str) -> str:
+def jobs_list_handler(job_type: str, template_data: JobData) -> str:
     """Render the jobs list dashboard for any job type."""
     try:
         jobs = list_jobs(limit=100, job_type=job_type)
