@@ -1,4 +1,4 @@
-"""Unit tests for CookieHeaderClient."""
+"""Unit tests for src/main_app/core/cookies.py module."""
 
 from __future__ import annotations
 
@@ -8,6 +8,31 @@ import pytest
 from flask import Flask
 
 from src.main_app.core.cookies import CookieHeaderClient
+
+
+class TestCookieHeaderClientLite:
+    def test_class_is_subclass_of_flask_client(self):
+        from flask.testing import FlaskClient
+
+        assert issubclass(CookieHeaderClient, FlaskClient)
+
+    def test_open_with_no_headers(self, mock_app):
+        """Calling open with no headers should not crash."""
+        with mock_app.test_client() as client:
+            resp = client.get("/")
+            assert resp.status_code == 200
+
+    def test_open_with_dict_headers_no_cookie(self, mock_app):
+        """Dict headers without Cookie key should pass through."""
+        with mock_app.test_client() as client:
+            resp = client.get("/", headers={"X-Custom": "value"})
+            assert resp.status_code == 200
+
+    def test_open_with_list_headers_no_cookie(self, mock_app):
+        """List-of-tuple headers without cookie should pass through."""
+        with mock_app.test_client() as client:
+            resp = client.get("/", headers=[("X-Custom", "value")])
+            assert resp.status_code == 200
 
 
 class TestCookieHeaderClient:

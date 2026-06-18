@@ -12,6 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
     update_owid_charts_worker_entry,
 )
 
+
 class TestUpdateOwidChartsWorkerInitialization:
     """Tests for UpdateOwidChartsWorker initialization."""
 

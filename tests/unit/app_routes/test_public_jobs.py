@@ -613,7 +613,9 @@ class TestJobsPublicRoutesRoutes:
         resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 403
 
-    def test_delete_job_not_logged_in_302(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delete_job_not_logged_in_302(
+        self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", lambda: None)
         monkeypatch.setattr(
             "src.main_app.app_routes.admin.admins_required.url_for",

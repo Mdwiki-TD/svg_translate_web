@@ -294,9 +294,7 @@ class TestRenameOne:
 
     # ── branch: new_title exists, is redirect → overwrite via move ───────
 
-    def test_target_is_redirect_overwrite_succeeds(
-        self, monkeypatch, mock_base_services, mock_db_services
-    ):
+    def test_target_is_redirect_overwrite_succeeds(self, monkeypatch, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
@@ -307,9 +305,7 @@ class TestRenameOne:
         assert result is True
         assert w.result.summary.renamed == 1
 
-    def test_target_is_redirect_overwrite_fails(
-        self, monkeypatch, mock_base_services, mock_db_services
-    ):
+    def test_target_is_redirect_overwrite_fails(self, monkeypatch, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
@@ -322,9 +318,7 @@ class TestRenameOne:
 
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
-    def test_source_is_redirect_skip_and_update_db(
-        self, monkeypatch, mock_base_services, mock_db_services
-    ):
+    def test_source_is_redirect_skip_and_update_db(self, monkeypatch, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=True)
 
@@ -333,13 +327,11 @@ class TestRenameOne:
         assert result is False
         assert w.result.summary.skipped_target_exists == 1
         assert w.result.summary.failed == 0
-        w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily") # type: ignore
+        w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")  # type: ignore
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
 
-    def test_both_real_pages_redirects_old_to_new(
-        self, monkeypatch, mock_base_services, mock_db_services
-    ):
+    def test_both_real_pages_redirects_old_to_new(self, monkeypatch, mock_base_services, mock_db_services):
         w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=False)
 
@@ -503,9 +495,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
 
 
 class TestWorkerEdgeCases:
-    def test_cancel_event_set_stops_processing(
-        self, mock_base_services, mock_db_services, mock_get_user_site
-    ):
+    def test_cancel_event_set_stops_processing(self, mock_base_services, mock_db_services, mock_get_user_site):
         cancel_event = threading.Event()
         cancel_event.set()
         w = _make_worker(cancel_event=cancel_event)

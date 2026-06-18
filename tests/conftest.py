@@ -66,7 +66,9 @@ def stop_nets(request):
     # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
 
+
 # ── app fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture(scope="session")
 def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
@@ -79,11 +81,13 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
     with application.app_context():
         yield application
 
+
 @pytest.fixture
 def mock_client(mock_app: Flask) -> FlaskClient:
     """Fresh test client per test."""
 
     return mock_app.test_client()
+
 
 @pytest.fixture
 def mock_login(mock_client):
@@ -97,6 +101,7 @@ def mock_login(mock_client):
 
 
 # ── db fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture(autouse=True)
 def setup_db(mock_app):

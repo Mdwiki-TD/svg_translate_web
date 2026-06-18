@@ -502,9 +502,7 @@ class TestProcessMethod:
         assert result.status == "failed"
         assert result.failed_at is not None
 
-    def test_process_handles_cancellation(
-        self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_process_handles_cancellation(self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test that process stops when cancelled."""
         mock_services["get_user_site"].return_value = mock_site
 

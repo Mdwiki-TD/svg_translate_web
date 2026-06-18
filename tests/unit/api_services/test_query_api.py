@@ -10,6 +10,7 @@ from src.main_app.api_services.query_api import (
     search_pages,
 )
 
+
 class TestGetTemplatePages:
     def test_returns_titles(self, mock_site):
         mock_site.get.return_value = {
