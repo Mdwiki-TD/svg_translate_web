@@ -17,8 +17,8 @@ from src.main_app.db.models.users import (
 from src.main_app.extensions import db
 
 
-def test_users_record(app: Flask) -> None:
-    with app.app_context():
+def test_users_record(mock_app: Flask) -> None:
+    with mock_app.app_context():
         user = UsersRecord(user_id=42, username="model_test_user")
         db.session.add(user)
         db.session.commit()
@@ -28,8 +28,8 @@ def test_users_record(app: Flask) -> None:
         assert user.created_at is not None
 
 
-def test_admin_user_record(app: Flask) -> None:
-    with app.app_context():
+def test_admin_user_record(mock_app: Flask) -> None:
+    with mock_app.app_context():
         user = UsersRecord(user_id=1, username="model_admin_user")
         db.session.add(user)
         db.session.commit()
@@ -43,8 +43,8 @@ def test_admin_user_record(app: Flask) -> None:
         assert admin.is_active is True
 
 
-def test_user_token_record(app: Flask) -> None:
-    with app.app_context():
+def test_user_token_record(mock_app: Flask) -> None:
+    with mock_app.app_context():
         user = UsersRecord(user_id=123, username="model_token_user")
         db.session.add(user)
         db.session.commit()
@@ -63,8 +63,8 @@ def test_user_token_record(app: Flask) -> None:
         assert user_token.access_secret != b"access_secret_val"
 
 
-def test_user_token_record_validation(app: Flask) -> None:
-    with app.app_context():
+def test_user_token_record_validation(mock_app: Flask) -> None:
+    with mock_app.app_context():
         user = UsersRecord(user_id=456, username="model_validation_user")
         db.session.add(user)
         db.session.commit()
