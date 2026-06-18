@@ -1,7 +1,7 @@
 """
 Unit tests for src/main_app/db/services/utils.py module.
 
-Functions to test: db_guard_rollback, db_guard
+Functions to test: db_guard_rollback, db_guard, retry_on_db_disconnect
 
 TODO: write tests
 """
@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
 from src.main_app.db.services.utils import (
     db_guard,
     db_guard_rollback,
+    retry_on_db_disconnect,
 )
 
 
