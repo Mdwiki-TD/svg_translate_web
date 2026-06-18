@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 JOBS_BP = "public_jobs"
 
+
 def _cancel_job(job_id: int, job_type: str) -> Response:
     """Cancel a running job."""
     user = load_user()

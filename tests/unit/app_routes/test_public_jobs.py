@@ -248,9 +248,7 @@ class TestDeleteJob:
         assert result == "redirected"
         mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
 
-    def test_delete_failure(
-        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
-    ) -> None:
+    def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
