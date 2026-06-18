@@ -109,7 +109,7 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     app = Flask(__name__, template_folder=str(templates_dir))
     app.secret_key = "test"
 
-    module = JobsPublicRoutes(name="public_jobs", jobs_data_infos=mock_jobs_data)
+    module = JobsPublicRoutes(name="public_jobs", jobs_data_infos=mock_jobs_data, url_prefix="/jobs")
     app.register_blueprint(module.bp)
     return app
 
@@ -217,8 +217,13 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.url_for", url_for)
         return {"flash": flash, "redirect": redirect, "url_for": url_for}
 
-    def test_delete_successful(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delete_successful(
+        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
+    ) -> None:
         mocks = self._setup_mocks(monkeypatch)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
 
@@ -227,9 +232,14 @@ class TestDeleteJob:
         assert result == "redirected"
         mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
 
-    def test_cancel_then_delete(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_cancel_then_delete(
+        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
+    ) -> None:
         """When cancel_job_worker returns True, the job is still deleted."""
         mocks = self._setup_mocks(monkeypatch)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: True)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: True)
 
@@ -238,8 +248,11 @@ class TestDeleteJob:
         assert result == "redirected"
         mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
 
-    def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr("src.main_app.app_routes.public_jobs.delete_job", lambda jid, jt: False)
 
@@ -248,8 +261,13 @@ class TestDeleteJob:
         assert result == "redirected"
         mocks["flash"].assert_called_once_with("Failed to delete job 1", "danger")
 
-    def test_exception_during_delete(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_exception_during_delete(
+        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
+    ) -> None:
         mocks = self._setup_mocks(monkeypatch)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.load_user", lambda: mock_user)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.get_job", lambda jid, jt: mock_job)
+        monkeypatch.setattr("src.main_app.app_routes.public_jobs.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_worker", lambda jid, jt: False)
         monkeypatch.setattr(
             "src.main_app.app_routes.public_jobs.delete_job",

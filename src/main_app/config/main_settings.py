@@ -140,13 +140,7 @@ def _get_paths() -> Paths:
     The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
 
     Returns:
-        Paths: A dataclass with the following populated fields:
-            - svg_data: path for original SVG files
-            - svg_data_thumb: path for SVG thumbnails
-            - log_dir: path for log files
-            - fix_nested_data: path for nested-fix data
-            - jobs_path: path for SVG job files
-            - main_files_path: path for main files
+        Paths: A dataclass
     """
     main_dir = os.getenv("MAIN_DIR", "~/data")
     main_dir = resolve_path(main_dir)

@@ -154,7 +154,7 @@ src/
     sqlalchemy_db/       # SQLAlchemy models & services
     jobs_workers/        # Background job workers (BaseJobWorker pattern)
       base_worker.py     # Abstract base with lifecycle, retry, cancellation
-      workers_list.py    # Job registry (jobs_data, jobs_data_public)
+      workers_list.py    # Job registry (jobs_data_admins, jobs_data_public)
       create_owid_pages/ # Create OWID gallery pages from templates
       rename_owid_pages/ # Capitalize OWID subpage first letter (move/redirect)
       crop_main_files/   # Crop newest world files
@@ -174,7 +174,7 @@ _works_files/            # Offline CLI tools (not part of Flask app)
 1. Create `src/main_app/jobs_workers/<job_name>/worker.py` with a class extending `BaseJobWorker`
 2. Implement: `get_job_type()`, `get_initial_result()`, `process()`
 3. Create `__init__.py` exporting the entry-point function
-4. Register in `workers_list.py`: add to `jobs_data` (or `jobs_data_public` for public jobs)
+4. Register in `workers_list.py`: add to `jobs_data_admins` (or `jobs_data_public` for public jobs)
 5. Add sidebar item in `app_routes/admin/sidebar.py`
 6. Create templates: `src/templates/jobs_templates/admin/<job_name>/list.html` and `details.html`
 

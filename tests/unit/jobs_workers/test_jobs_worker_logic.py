@@ -90,7 +90,7 @@ def test_cancel_job_worker(mock_db_services):
 
 class TestStartJob:
     @patch(
-        "src.main_app.jobs_workers.jobs_worker.jobs_data",
+        "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
         {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
     )
     def test_start_job_success(self, mock_db_services, flask_app):
@@ -106,12 +106,12 @@ class TestStartJob:
             start_job({"username": "u"}, "unknown")
 
     def test_start_job_no_username(self, mock_db_services):
-        with patch("src.main_app.jobs_workers.jobs_worker.jobs_data", {"test": MagicMock()}):
+        with patch("src.main_app.jobs_workers.jobs_worker.jobs_data_admins", {"test": MagicMock()}):
             with pytest.raises(ValueError, match="User authentication data is required"):
                 start_job({}, "test")
 
     @patch(
-        "src.main_app.jobs_workers.jobs_worker.jobs_data",
+        "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
         {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
     )
     def test_start_job_duplicate(self, mock_db_services, flask_app):
@@ -121,7 +121,7 @@ class TestStartJob:
                 start_job({"username": "u"}, "test")
 
     @patch(
-        "src.main_app.jobs_workers.jobs_worker.jobs_data",
+        "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
         {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
     )
     def test_start_job_cli_success(self, mock_db_services, flask_app):

@@ -31,7 +31,6 @@ src/
 │   │   │   ├── coordinators.py
 │   │   │   ├── jobs.py
 │   │   │   ├── owid_charts.py
-│   │   │   ├── results_utils.py
 │   │   │   ├── settings.py
 │   │   │   ├── slug_redirects.py
 │   │   │   ├── templates.py

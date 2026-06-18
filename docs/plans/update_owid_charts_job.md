@@ -22,7 +22,7 @@ and updates the database record when values have changed.
 
 | #   | File                                        | Change                                                                              |
 | --- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1   | `src/main_app/jobs_workers/workers_list.py` | Register new job in `jobs_data` |
+| 1   | `src/main_app/jobs_workers/workers_list.py` | Register new job in `jobs_data_admins` |
 | 2   | `src/main_app/app_routes/admin/sidebar.py`  | Add `Update OWID Charts` menu item under `"Jobs"` group                             |
 
 ---
@@ -178,7 +178,7 @@ Add three entries:
 # Import (top)
 from .update_owid_charts import update_owid_charts_for_templates
 
-# jobs_data dict entry
+# jobs_data_admins dict entry
 "update_owid_charts": JobData(
     job_type="update_owid_charts",
     job_name="Update OWID Charts",
