@@ -168,9 +168,9 @@
                     <tr>
                         <th>#</th>
                         <th>Original Text</th>
-                        {% set first_key = new_trans | dictsort | first %}
+                        {% set first_key = result_data.new_translations | dictsort | first %}
                         {% if first_key %}
-                        {% set first_val = new_trans[first_key[0]] %}
+                        {% set first_val = result_data.new_translations[first_key[0]] %}
                         {% for lang in first_val %}
                         <th>{{ lang }}</th>
                         {% endfor %}
