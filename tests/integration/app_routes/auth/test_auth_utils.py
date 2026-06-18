@@ -5,8 +5,8 @@ from src.main_app.app_routes.auth.utils import (
 )
 
 
-def test_resolve_user_id(mock_app):
-    with mock_app.test_request_context():
+def test_resolve_user_id(app_mock):
+    with app_mock.test_request_context():
         session["uid"] = 123
         assert _resolve_user_id(session["uid"]) == 123
 
