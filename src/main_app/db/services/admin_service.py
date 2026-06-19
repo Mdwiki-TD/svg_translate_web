@@ -12,7 +12,7 @@ from typing import List
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
-from ..exceptions import UserNotFoundError, DuplicateUserError
+from ..exceptions import DuplicateUserError, UserNotFoundError
 from ..models import AdminUserRecord
 from .utils import db_guard_rollback
 

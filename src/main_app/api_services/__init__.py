@@ -22,6 +22,7 @@ from .query_api import (
     resolve_redirects,
     search_pages,
 )
+
 __all__ = [
     "download_svg_file",
     "upload_fixed_svg",

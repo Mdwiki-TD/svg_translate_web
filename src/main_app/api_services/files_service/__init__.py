@@ -2,7 +2,6 @@
 
 from .download_file_utils import download_commons_svgs, download_one_file
 from .files_helpers import download_svg_file, upload_fixed_svg
-
 from .upload_bot import UploadFile, upload_file
 
 __all__ = [

@@ -17,7 +17,6 @@ class DuplicateJobError(Exception):
     """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
 
 
-
 class DuplicateUserError(Exception):
     """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
 

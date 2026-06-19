@@ -8,11 +8,11 @@ from typing import Any, Dict
 
 import requests
 
+from ...config import settings
 from .. import (
     create_commons_session,
     download_file_rate_limit,
 )
-from ...config import settings
 
 logger = logging.getLogger(__name__)
 
