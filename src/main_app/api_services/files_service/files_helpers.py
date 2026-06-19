@@ -7,7 +7,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from . import download_one_file
+from .download_file_utils import download_one_file
 from .upload_bot import upload_file
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict
 
 import requests
 
@@ -83,17 +83,6 @@ def download_one_file(
 
     return data
 
-
-def download_commons_svgs(titles, files_dir) -> list:
-    files: list[Any] = []
-    for n, title in enumerate(titles, 1):
-        file = download_one_file(title, files_dir, n)
-        if file.get("path"):
-            files.append(file["path"])
-    return files
-
-
 __all__ = [
     "download_one_file",
-    "download_commons_svgs",
 ]
