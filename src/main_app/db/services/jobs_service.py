@@ -42,19 +42,6 @@ def is_job_cancelled(job_id: int, job_type: str) -> bool:
 def get_job(job_id: int, job_type: str) -> JobRecord:
     """
     Get a job by ID.
-
-    def get(self, job_id: int, job_type: str = "fix_nested_main_files") -> JobRecord:
-        rows = self.db.fetch_query_safe(
-            '''
-            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            WHERE id = %s AND job_type = %s
-            ''',
-            (job_id, job_type),
-        )
-        if not rows:
-            raise LookupError(f"Job id {job_id} was not found")
-        return self._row_to_record(rows[0])
     """
     query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
     if job_type:

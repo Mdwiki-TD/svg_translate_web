@@ -95,12 +95,12 @@ def _add_template() -> ResponseReturnValue:
     }
     try:
         record = add_template_data(data)
-    except ValueError as exc:
+    except ValueError:
         logger.exception("Unable to add template.")
-        flash(str(exc), "warning")
-    except LookupError as exc:
+        flash(f"Template '{title}' already exists", "warning")
+    except LookupError:
         logger.exception("Unable to add template.")
-        flash(str(exc), "warning")
+        flash("Unable to add template.", "danger")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to add template.")
         flash("Unable to add template. Please try again.", "danger")
@@ -140,9 +140,9 @@ def _update_template() -> ResponseReturnValue:
     }
     try:
         record = update_template_data(template_id, data)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to Update template.")
-        flash(str(exc), "warning")
+        flash(f"template with id {template_id} was not found", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to update template.")
         flash("Unable to update template main file. Please try again.", "danger")
@@ -162,9 +162,9 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
         template = get_template(template_id)
         title = template.title
         delete_template(template_id)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to delete template.")
-        flash(str(exc), "warning")
+        flash(f"template with id {template_id} was not found", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to delete template.")
         flash("Unable to delete template. Please try again.", "danger")

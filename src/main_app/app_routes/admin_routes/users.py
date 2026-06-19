@@ -44,9 +44,9 @@ def _update_can_run_jobs(user_id: int, desired: int) -> ResponseReturnValue:
 
     try:
         record = users_service.toggle_can_run_jobs(user_id, desired)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to update user permissions.")
-        flash(str(exc), "warning")
+        flash(f"User with id {user_id} was not found", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to update user permissions.")
         flash("Unable to update user permissions. Please try again.", "danger")
@@ -62,9 +62,9 @@ def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
 
     try:
         record = users_service.toggle_can_run_bg_jobs(user_id, desired)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to update user permissions.")
-        flash(str(exc), "warning")
+        flash(f"User with id {user_id} was not found", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to update user permissions.")
         flash("Unable to update user permissions. Please try again.", "danger")

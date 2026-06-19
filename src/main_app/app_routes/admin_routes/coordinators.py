@@ -26,8 +26,8 @@ def _coordinators_dashboard() -> str:
     """Render the coordinator management dashboard."""
     try:
         coordinators = admin_service.list_coordinators()
-    except Exception:  # pragma: no cover - defensive guard
-        logger.exception("Unable to list coordinators.")
+    except Exception as e:  # pragma: no cover - defensive guard
+        logger.error(f"Unable to list coordinators: {e}")
         flash("Unable to list coordinators.", "danger")
         coordinators: list[Any] = []
 
@@ -55,10 +55,10 @@ def _add_coordinator() -> ResponseReturnValue:
         record = admin_service.add_coordinator(username)
     except UserNotFoundError as exc:
         logger.error("UserNotFoundError: %s", exc)
-        flash(str(exc), "warning")
-    except (LookupError, ValueError) as exc:
+        flash(f"User '{username}' does not exist", "warning")
+    except (LookupError, ValueError):
         logger.exception("Unable to Add coordinator.")
-        flash(str(exc), "warning")
+        flash(f"Unable to add '{username}' as coordinator", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to add coordinator.")
         flash("Unable to add coordinator.", "danger")
@@ -74,9 +74,9 @@ def _update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
     desired = request.form.get("active", "0") == "1"
     try:
         record = admin_service.set_coordinator_active(coordinator_id, desired)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to update coordinator.")
-        flash(str(exc), "warning")
+        flash("Unable to add update coordinator", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to update coordinator.")
         flash("Unable to update coordinator status. Please try again.", "danger")
@@ -94,9 +94,9 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
         record = admin_service.get_coordinator_by_id(coordinator_id)
         username = record.username
         delete_coordinator(coordinator_id)
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to delete coordinator.")
-        flash(str(exc), "warning")
+        flash("Unable to add delete coordinator", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to delete coordinator.")
         flash("Unable to delete coordinator. Please try again.", "danger")

@@ -127,9 +127,9 @@ def _add_chart() -> ResponseReturnValue:
             len_years=len_years,
             has_timeline=has_timeline,
         )
-    except ValueError as exc:
+    except ValueError:
         logger.exception("Unable to add chart.")
-        flash(str(exc), "warning")
+        flash("Unable to add chart.", "danger")
         save_error = True
     except IntegrityError:
         logger.exception("Unable to add chart.")
@@ -192,13 +192,13 @@ def _update_chart() -> ResponseReturnValue:
             chart_id=chart_id,
             chart_data=chart_data,
         )
-    except LookupError as exc:
+    except LookupError:
         logger.exception("Unable to update chart.")
-        flash(str(exc), "warning")
+        flash(f"Chart with id {chart_id} was not found", "warning")
         save_error = True
-    except ValueError as exc:
+    except ValueError:
         logger.exception("Unable to update chart.")
-        flash(str(exc), "warning")
+        flash("Unable to update chart.", "danger")
         save_error = True
     except Exception:
         logger.exception("Unable to update chart.")
