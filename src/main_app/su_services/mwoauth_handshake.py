@@ -9,11 +9,11 @@ import mwoauth
 from flask import url_for
 from mwoauth.handshaker import Handshaker
 
-from ...config import settings
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-IDENTITY_ERROR_MESSAGE = "We couldn’t verify your MediaWiki identity. Please try again."
+IDENTITY_ERROR_MESSAGE = "We couldn't verify your MediaWiki identity. Please try again."
 
 
 class OAuthIdentityError(Exception):
@@ -49,7 +49,8 @@ def complete_login(request_token: object, query_string: str) -> Tuple[str, dict[
     """Complete the OAuth login flow and return the access token and user identity."""
 
     handshaker = get_handshaker()
-    access_token = handshaker.complete(request_token, query_string)
+    access_token: mwoauth.AccessToken = handshaker.complete(request_token, query_string)
+
     try:
         identity: dict[str, Any] = handshaker.identify(access_token)
     except Exception as exc:

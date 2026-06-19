@@ -13,28 +13,29 @@ logger = logging.getLogger(__name__)
 
 
 def register_cli_jobs(app: Flask) -> None:
-    @app.cli.command("run-collect-templates-data")
-    def _run() -> None:
-        """ """
-        start_job_cli(
-            user={"username": "Background job"},
-            job_type="collect_templates_data",
-            args={"update_all": "true"},
-            app=app,
-        )
 
     @app.cli.command("run-job")
     @click.argument("job_type")
-    def _run_job(job_type: str) -> None:
+    # Adds an optional flag --update-all (default is False if not provided)
+    @click.option("--update-all", is_flag=True, help="Set to True if you want to update all.")
+    def _run_job(job_type: str, update_all: bool) -> None:
         """
-        how to test locally:
+        How to test locally:
         .venv/Scripts/activate
+
+        Without update_all (False):
         flask --app src/app1.py run-job collect_templates_data
+
+        With update_all (True):
+        flask --app src/app1.py run-job collect_templates_data --update-all
         """
+        # Convert boolean to string ("true" or "false") to match your current format
+        update_all_str = "true" if update_all else "false"
+
         start_job_cli(
-            user={"username": "Background job"},
+            auth_payload={"username": "Background job"},
             job_type=job_type,
-            args={"update_all": "false"},
+            args={"update_all": update_all_str},
             app=app,
         )
 

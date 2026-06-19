@@ -11,6 +11,11 @@ from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_pu
 logger = logging.getLogger(__name__)
 
 
+def load_user():
+    user = getattr(g, "_current_user", None)
+    return user
+
+
 def _is_admin(user: Any) -> bool:
     """Check if user is an active coordinator (admin)."""
     return bool(user and getattr(user, "is_active_admin", False))
@@ -25,7 +30,7 @@ def context_user(
     Used in @app.context_processor to inject variables into templates.
     """
     # Safe retrieval from g with a fallback to None
-    user = getattr(g, "_current_user", None)
+    user = load_user()
 
     username = user.username if user else None
 
