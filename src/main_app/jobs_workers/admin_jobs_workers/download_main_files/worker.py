@@ -19,7 +19,7 @@ from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker_object import BaseObjectsJobWorker
-from .download_helper import download_file_from_commons
+from ....api_services.clients.download_helper import download_file_from_commons
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 # Zip file name constant

@@ -8,7 +8,7 @@ from typing import Any
 
 import requests
 
-from ....api_services import download_commons_file_core
+from .. import download_commons_file_core
 
 logger = logging.getLogger(__name__)
 
