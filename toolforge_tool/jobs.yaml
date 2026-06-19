@@ -1,0 +1,5 @@
+- name: offline
+  command: "~/shs/run_job.sh"
+  schedule: "@daily"
+  image: python3.13
+  emails: none
