@@ -8,7 +8,7 @@ from typing import Any
 
 from CopySVGTranslation import extract  # type: ignore
 
-from .....api_services.utils import download_one_file
+from .....api_services.files_service import download_one_file
 
 logger = logging.getLogger(__name__)
 

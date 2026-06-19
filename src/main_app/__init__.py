@@ -115,7 +115,11 @@ def create_app(config_class: Type) -> Flask:
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
-        return context_user(settings.other.wiki_domain, settings.other.static_server)
+        return context_user(
+            settings.other.wiki_domain,
+            settings.other.static_server,
+            tool_title="Copy SVG Translations",
+        )
 
     app.jinja_env.filters.update(filters)
 

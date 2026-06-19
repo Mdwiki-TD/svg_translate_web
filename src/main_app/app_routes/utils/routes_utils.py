@@ -4,16 +4,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from flask import g, url_for
+from flask import url_for
 
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
+from ..auth.utils import load_user
 
 logger = logging.getLogger(__name__)
-
-
-def load_user():
-    user = getattr(g, "_current_user", None)
-    return user
 
 
 def _is_admin(user: Any) -> bool:
@@ -24,7 +20,7 @@ def _is_admin(user: Any) -> bool:
 def context_user(
     wiki_domain: str,
     static_server: str,
-    tool_title: str = "Copy SVG Translations",
+    tool_title: str = "",
 ) -> dict[str, Any]:
     """
     Used in @app.context_processor to inject variables into templates.

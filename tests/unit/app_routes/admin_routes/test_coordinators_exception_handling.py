@@ -36,7 +36,7 @@ def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplo
     assert "Unable to Add coordinator" in caplog.text
 
     # Verify flash was called with the error message
-    mock_flash.assert_called_once_with("Username invalid", "warning")
+    mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
 
     # Reset for next part
     mock_flash.reset_mock()
@@ -48,4 +48,4 @@ def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplo
     with caplog.at_level(logging.ERROR):
         coordinators._add_coordinator()
 
-    mock_flash.assert_called_once_with("User not found", "warning")
+    mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")

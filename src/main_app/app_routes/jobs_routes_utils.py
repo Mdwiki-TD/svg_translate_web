@@ -188,9 +188,9 @@ def job_detail_handler(
 
     try:
         job = get_job(job_id, job_type)
-    except LookupError as exc:
-        logger.exception("Job not found")
-        flash(str(exc), "warning")
+    except LookupError:
+        logger.error("Job not found: id=%s, type=%s", job_id, job_type)
+        flash(f"Job id {job_id} was not found", "warning")
         return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
 
     # Load job result if available
@@ -252,11 +252,16 @@ class JobsBp(ABC):
 
         return job_detail_handler(job_id, job_type, template_data, bp_name=self.bp_name, expand_all=expand_all)
 
-    def start_job(self, job_type: str, args: dict[str, Any]) -> ResponseReturnValue:
+    def start_job(
+        self,
+        job_type: str,
+        args: dict[str, Any],
+        check_can_run_bg_jobs: bool = False,
+    ) -> ResponseReturnValue:
         if job_type not in self.jobs_data_infos:
             abort(404)
 
-        job_id = start_job_handler(job_type, args)
+        job_id = start_job_handler(job_type, args, check_can_run_bg_jobs)
         if not job_id:
             return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 

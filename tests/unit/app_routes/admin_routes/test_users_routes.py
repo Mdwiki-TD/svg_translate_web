@@ -128,7 +128,7 @@ class TestUpdatePermissions:
     def test_lookup_error(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
         monkeypatch.setattr(
             f"src.main_app.app_routes.admin_routes.users.users_service.{toggle_func_name}",
-            MagicMock(side_effect=UserNotFoundError("User not found")),
+            MagicMock(side_effect=UserNotFoundError("User with id 999 was not found")),
         )
         mock_flash = MagicMock()
         monkeypatch.setattr(
@@ -148,7 +148,7 @@ class TestUpdatePermissions:
 
         result = self._call_target(toggle_func_name, 999, 1)
 
-        mock_flash.assert_called_once_with("User not found", "warning")
+        mock_flash.assert_called_once_with("User with id 999 was not found", "warning")
         mock_url_for.assert_called_once_with("admin.users.dashboard")
         mock_redirect.assert_called_once_with("/admin/users/")
         assert result == "redirect_response"

@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.api_services.files_service import (
+from src.main_app.api_services.files_service.files_helpers import (
     download_svg_file,
     upload_fixed_svg,
 )
@@ -16,8 +16,8 @@ from src.main_app.api_services.files_service import (
 @pytest.fixture
 def mock_api():
     with (
-        patch("src.main_app.api_services.files_service.download_one_file") as m_down,
-        patch("src.main_app.api_services.files_service.upload_file") as m_upload,
+        patch("src.main_app.api_services.files_service.files_helpers.download_one_file") as m_down,
+        patch("src.main_app.api_services.files_service.files_helpers.upload_file") as m_upload,
     ):
         yield {"down": m_down, "upload": m_upload}
 

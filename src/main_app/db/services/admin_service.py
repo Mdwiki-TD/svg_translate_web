@@ -12,7 +12,7 @@ from typing import List
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
-from ..exceptions import UserNotFoundError
+from ..exceptions import DuplicateUserError, UserNotFoundError
 from ..models import AdminUserRecord
 from .utils import db_guard_rollback
 
@@ -66,7 +66,7 @@ def add_coordinator(username: str) -> AdminUserRecord:
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
     if record:
         # This assumes a UNIQUE constraint on the username column
-        raise ValueError(f"Coordinator '{username}' already exists") from None
+        raise DuplicateUserError(f"Coordinator '{username}' already exists") from None
 
     record = AdminUserRecord(username=username, is_active=True)
     db.session.add(record)

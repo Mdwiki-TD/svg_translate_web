@@ -4,14 +4,14 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from src.main_app.api_services.upload_bot import _RETRY_DELAYS, UploadFile
+from src.main_app.api_services.files_service.upload_bot import _RETRY_DELAYS, UploadFile
 
 
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.api_services.upload_bot.time.sleep",
+        "src.main_app.api_services.files_service.upload_bot.time.sleep",
         _mock,
     )
     return _mock
