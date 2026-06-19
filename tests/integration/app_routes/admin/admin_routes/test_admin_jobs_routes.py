@@ -54,7 +54,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.utils.routes_utils._is_admin",
@@ -150,20 +150,20 @@ def test_job_detail_page_handles_nonexistent_job(admin_jobs_client, jobs_db, mon
     """Test that the job detail page handles nonexistent job gracefully."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     response = admin_jobs_client.get("/admin/jobs/collect_templates_data/999", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.app_routes.admin_routes.jobs.start_job")
-@patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
+@patch("src.main_app.app_routes.jobs_routes_utils.start_job")
+@patch("src.main_app.app_routes.jobs_routes_utils.load_auth_payload")
 def test_start_collect_templates_data_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start collect templates data job route works."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
@@ -287,20 +287,20 @@ def test_fix_nested_job_detail_page_handles_nonexistent_job(admin_jobs_client, j
     """Test that the fix nested job detail page handles nonexistent job gracefully."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     response = admin_jobs_client.get("/admin/jobs/fix_nested_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.app_routes.admin_routes.jobs.start_job")
-@patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
+@patch("src.main_app.app_routes.jobs_routes_utils.start_job")
+@patch("src.main_app.app_routes.jobs_routes_utils.load_auth_payload")
 def test_start_fix_nested_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start fix nested main files job route works."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
@@ -347,7 +347,7 @@ def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(admin_jobs_clie
     """Test that accessing a non-fix_nested job via fix_nested route redirects."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a collect_templates_data job
     job = jobs_db.create("collect_templates_data")
@@ -361,7 +361,7 @@ def test_job_detail_rejects_wrong_job_type(admin_jobs_client, jobs_db, monkeypat
     """Test that accessing detail page of non-collect_templates_data job is rejected."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     job = jobs_db.create("other_job_type")
 
@@ -374,14 +374,14 @@ def test_delete_collect_templates_data_job(admin_jobs_client, jobs_db, monkeypat
     """Test deleting a collect_templates_data job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("collect_templates_data")
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=False):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -394,14 +394,14 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
     """Test deleting a fix_nested_main_files job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("fix_nested_main_files")
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=False):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -413,7 +413,7 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
 def test_delete_nonexistent_job(monkeypatch, admin_jobs_client):
     """Test deleting a non-existent job shows appropriate error."""
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Try to delete a job that doesn't exist
     response = admin_jobs_client.post("/admin/jobs/collect_templates_data/999/delete", follow_redirects=True)
@@ -466,14 +466,14 @@ def test_cancel_collect_templates_data_job(admin_jobs_client, jobs_db, monkeypat
     """Test cancelling a collect_templates_data job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("collect_templates_data")
     jobs_db.update_status(job.id, "running", job_type="collect_templates_data")
 
     # Cancel the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=True):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=True):
         response = admin_jobs_client.post(f"/admin/jobs/collect_templates_data/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
@@ -483,14 +483,14 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client, jobs_db, monkeypatc
     """Test cancelling a fix_nested_main_files job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("fix_nested_main_files")
     jobs_db.update_status(job.id, "running", job_type="fix_nested_main_files")
 
     # Cancel the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=True):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=True):
         response = admin_jobs_client.post(f"/admin/jobs/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
@@ -589,20 +589,20 @@ def test_download_main_files_job_detail_page_handles_nonexistent_job(admin_jobs_
     """Test that the download main files job detail page handles nonexistent job gracefully."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     response = admin_jobs_client.get("/admin/jobs/download_main_files/999", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
 
-@patch("src.main_app.app_routes.admin_routes.jobs.start_job")
-@patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
+@patch("src.main_app.app_routes.jobs_routes_utils.start_job")
+@patch("src.main_app.app_routes.jobs_routes_utils.load_auth_payload")
 def test_start_download_main_files_job_route(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that the start download main files job route works."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Mock the auth payload and job creation
     mock_load_auth.return_value = {"username": "admin"}
@@ -649,7 +649,7 @@ def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(admin_
     """Test that accessing a non-download_main_files job via download route redirects."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a collect_templates_data job
     job = jobs_db.create("collect_templates_data")
@@ -663,14 +663,14 @@ def test_delete_download_main_files_job(admin_jobs_client, jobs_db, monkeypatch)
     """Test deleting a download_main_files job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("download_main_files")
     assert len(jobs_db.list()) == 1
 
     # Delete the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=False):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -683,14 +683,14 @@ def test_cancel_download_main_files_job(admin_jobs_client, jobs_db, monkeypatch)
     """Test cancelling a download_main_files job."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Create a job
     job = jobs_db.create("download_main_files")
     jobs_db.update_status(job.id, "running", job_type="download_main_files")
 
     # Cancel the job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=True):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=True):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
@@ -700,13 +700,13 @@ def test_cancel_job_not_running(admin_jobs_client, jobs_db, monkeypatch):
     """Test cancelling a job that's not running shows appropriate message."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     job = jobs_db.create("download_main_files")
     jobs_db.update_status(job.id, "completed", job_type="download_main_files")
 
     # Try to cancel a completed job
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=False):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
@@ -723,23 +723,23 @@ def test_start_job_without_user_login(admin_jobs_client, monkeypatch):
     """Test starting a job without being logged in."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     # Mock current_user to return None
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.load_user", lambda: None)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_user", lambda: None)
 
     response = admin_jobs_client.post("/admin/jobs/collect_templates_data/start", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with("You must be logged in to start this job.", "danger")
 
 
-@patch("src.main_app.app_routes.admin_routes.jobs.start_job")
-@patch("src.main_app.app_routes.admin_routes.jobs.load_auth_payload")
+@patch("src.main_app.app_routes.jobs_routes_utils.start_job")
+@patch("src.main_app.app_routes.jobs_routes_utils.load_auth_payload")
 def test_start_job_handles_exception(mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
     """Test that job start handles exceptions gracefully."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     mock_load_auth.return_value = {"username": "admin"}
     mock_start_job.side_effect = Exception("Database error")
@@ -753,7 +753,7 @@ def test_delete_job_handles_exception(admin_jobs_client, jobs_db, monkeypatch):
     """Test that job deletion handles exceptions gracefully."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     job = jobs_db.create("collect_templates_data")
 
@@ -761,7 +761,7 @@ def test_delete_job_handles_exception(admin_jobs_client, jobs_db, monkeypatch):
     def mock_delete_job(job_id, job_type):
         raise Exception("Database error")
 
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.delete_job", mock_delete_job)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.delete_job", mock_delete_job)
 
     response = admin_jobs_client.post(f"/admin/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
@@ -812,13 +812,13 @@ def test_cancel_already_cancelled_job(admin_jobs_client, jobs_db, monkeypatch):
     """Test cancelling a job that's already been cancelled."""
 
     mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.app_routes.admin_routes.jobs.flash", mock_flash)
+    monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.flash", mock_flash)
 
     job = jobs_db.create("download_main_files")
     jobs_db.update_status(job.id, "cancelled", job_type="download_main_files")
 
     # Try to cancel again
-    with patch("src.main_app.app_routes.admin_routes.jobs.cancel_job_worker", return_value=False):
+    with patch("src.main_app.app_routes.jobs_routes_utils.cancel_job_worker", return_value=False):
         response = admin_jobs_client.post(f"/admin/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
