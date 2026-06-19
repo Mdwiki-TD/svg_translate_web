@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.api_services.utils.download_file_utils import download_commons_svgs
+from src.main_app.api_services.files_service.download_file_utils import download_commons_svgs
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def temp_output_dir(tmp_path):
 def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.api_services.utils.download_file_utils.download_file_rate_limit",
+        "src.main_app.api_services.files_service.download_file_utils.download_file_rate_limit",
         _mock,
     )
     return _mock
