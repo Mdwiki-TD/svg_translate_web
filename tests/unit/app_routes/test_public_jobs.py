@@ -443,7 +443,7 @@ class TestJobDetail:
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_job_result", lambda rf: None)
 
-        result = job_detail_handler(1, "test_job", mock_template_data)
+        result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
         self._render_template.assert_called_once_with(
@@ -469,7 +469,7 @@ class TestJobDetail:
             lambda rf: {"key": "value"},
         )
 
-        result = job_detail_handler(2, "test_job", mock_template_data)
+        result = job_detail_handler(2, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
         self._render_template.assert_called_once_with(
@@ -489,7 +489,7 @@ class TestJobDetail:
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_job_result", lambda rf: None)
 
-        result = job_detail_handler(1, "test_job", mock_template_data, expand_all=True)
+        result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs", expand_all=True)
 
         assert result == "rendered"
         self._render_template.assert_called_once_with(
@@ -509,7 +509,7 @@ class TestJobDetail:
             MagicMock(side_effect=LookupError("Job id 99 was not found")),
         )
 
-        result = job_detail_handler(99, "test_job", mock_template_data)
+        result = job_detail_handler(99, "test_job", mock_template_data, "public_jobs")
 
         assert result == "redirected"
         self._flash.assert_called_once_with("Job id 99 was not found", "warning")
