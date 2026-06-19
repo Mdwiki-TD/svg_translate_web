@@ -302,7 +302,7 @@ class TestStartJob:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_user", lambda: None)
 
-        result = start_job_handler("test_job", {}, "public_jobs")
+        result = start_job_handler("test_job", {})
 
         assert result is None
         mocks["flash"].assert_called_once_with("You must be logged in to start this job.", "danger")
@@ -315,7 +315,7 @@ class TestStartJob:
             MagicMock(side_effect=RuntimeError("OAuth error")),
         )
 
-        result = start_job_handler("test_job", {}, "public_jobs")
+        result = start_job_handler("test_job", {})
 
         assert result is None
         mocks["flash"].assert_called_once_with("Failed to load auth payload. Please try again.", "danger")
@@ -329,7 +329,7 @@ class TestStartJob:
             MagicMock(side_effect=DuplicateJobError()),
         )
 
-        result = start_job_handler("test_job", {}, "public_jobs")
+        result = start_job_handler("test_job", {})
 
         assert result is None
         mocks["flash"].assert_called_once_with(
@@ -345,7 +345,7 @@ class TestStartJob:
             MagicMock(side_effect=ValueError("unexpected")),
         )
 
-        result = start_job_handler("test_job", {}, "public_jobs")
+        result = start_job_handler("test_job", {})
 
         assert result is None
         mocks["flash"].assert_called_once_with("Failed to start job. Please try again.", "danger")
@@ -356,7 +356,7 @@ class TestStartJob:
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.load_auth_payload", lambda u: {"token": "abc"})
         monkeypatch.setattr("src.main_app.app_routes.jobs_routes_utils.start_job", lambda au, jt, args: 42)
 
-        result = start_job_handler("test_job", {}, "public_jobs")
+        result = start_job_handler("test_job", {})
 
         assert result == 42
         mocks["flash"].assert_called_once_with("Job 42 started to test_job.", "success")

@@ -114,7 +114,7 @@ class JobsPublicRoutes:
 
             args = request.form.to_dict()
 
-            job_id = start_job_handler(job_type, args, bp_name=self.jobs_bp)
+            job_id = start_job_handler(job_type, args)
             if not job_id:
                 return redirect(url_for(f"{self.jobs_bp}.jobs_list", job_type=job_type))
 
