@@ -30,7 +30,7 @@ from ..jobs_workers.jobs_worker import (
 from ..jobs_workers.objects import JobData
 from ..su_services import load_job_result
 from .auth.utils import load_user
-from .utils.routes_utils import load_auth_payload  # , can_run_bg_jobs
+from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
 
 logger = logging.getLogger(__name__)
 
@@ -112,12 +112,20 @@ def delete_job_handler(job_id: int, job_type: str) -> str:
     return "jobs_list"
 
 
-def start_job_handler(job_type: str, args: dict[str, Any]) -> int | None:
+def start_job_handler(
+    job_type: str,
+    args: dict[str, Any],
+    check_can_run_bg_jobs: bool = False,
+) -> int | None:
     """Start a job."""
     user = load_user()
 
     if not user:
         flash("You must be logged in to start this job.", "danger")
+        return None
+
+    if check_can_run_bg_jobs and not can_run_bg_jobs(user):
+        flash("You do not have permission to run background jobs.", "danger")
         return None
 
     try:
@@ -266,6 +274,8 @@ class JobsBp(ABC):
 
     def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
         """ """
+        if job_type not in self.jobs_data_infos:
+            abort(404)
         result_data = load_job_result(result_file)
         return jsonify(result_data)
 

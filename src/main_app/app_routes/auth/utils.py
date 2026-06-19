@@ -108,6 +108,7 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
 
 
 __all__ = [
+    "user_login_required",
     "load_logged_in_user",
     "oauth_required",
 ]
