@@ -44,7 +44,7 @@ class JobsPublicRoutes:
     ) -> None:
         self.bp = Blueprint(name, __name__, url_prefix=url_prefix)
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
-        self.jobs_bp: jobs_bp
+        self.jobs_bp = jobs_bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:

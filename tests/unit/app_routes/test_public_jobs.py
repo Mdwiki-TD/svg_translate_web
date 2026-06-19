@@ -109,7 +109,12 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     app = Flask(__name__, template_folder=str(templates_dir))
     app.secret_key = "test"
 
-    module = JobsPublicRoutes(name="public_jobs", jobs_data_infos=mock_jobs_data, url_prefix="/jobs")
+    module = JobsPublicRoutes(
+        name="public_jobs",
+        jobs_data_infos=mock_jobs_data,
+        url_prefix="/jobs",
+        jobs_bp="public_jobs",
+    )
     app.register_blueprint(module.bp)
     return app
 
