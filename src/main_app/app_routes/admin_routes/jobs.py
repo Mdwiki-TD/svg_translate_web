@@ -6,7 +6,6 @@ import logging
 
 from flask import (
     Blueprint,
-    abort,
     request,
 )
 from flask.typing import ResponseReturnValue
@@ -20,7 +19,7 @@ from ..jobs_routes_utils import JobsBp
 logger = logging.getLogger(__name__)
 
 
-class Jobs(JobsBp):
+class AdminJobsRoutes(JobsBp):
     """Jobs management routes."""
 
     def __init__(
@@ -74,7 +73,7 @@ class Jobs(JobsBp):
 
 
 # Public API module
-jobs_module = Jobs(
+jobs_module = AdminJobsRoutes(
     bp=Blueprint("jobs", __name__, url_prefix="/jobs"),
     jobs_data_infos=jobs_data_admins,
     bp_name="admin.jobs",

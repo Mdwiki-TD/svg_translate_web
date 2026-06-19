@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from src.main_app.app_routes.public_jobs import JobsPublicRoutes  # noqa: F401
+from src.main_app.app_routes.public_jobs import PublicJobsRoutes  # noqa: F401
 
 
 class TestJobsPublicRoutesInit:
-    """Test JobsPublicRoutes initialization and route registration."""
+    """Test PublicJobsRoutes initialization and route registration."""
 
 
 def test_client_key_with_forwarded_for(mock_app):

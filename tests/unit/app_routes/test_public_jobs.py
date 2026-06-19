@@ -10,16 +10,16 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from flask import Flask
+from flask import Blueprint, Flask
 
-from src.main_app.app_routes.public_jobs import (
-    JobsPublicRoutes,
+from src.main_app.app_routes.jobs_routes_utils import (
     cancel_job_handler,
     delete_job_handler,
     job_detail_handler,
     jobs_list_handler,
     start_job_handler,
 )
+from src.main_app.app_routes.public_jobs import PublicJobsRoutes
 from src.main_app.db.exceptions import DuplicateJobError
 
 # =========================================================================
@@ -100,7 +100,7 @@ def mock_template_data() -> MagicMock:
 
 @pytest.fixture
 def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
-    """Create a minimal Flask app with the JobsPublicRoutes blueprint registered."""
+    """Create a minimal Flask app with the PublicJobsRoutes blueprint registered."""
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
     (templates_dir / "test_list.html").write_text("list_{{ job_type }}_{{ list_title }}")
@@ -109,11 +109,10 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     app = Flask(__name__, template_folder=str(templates_dir))
     app.secret_key = "test"
 
-    module = JobsPublicRoutes(
-        name="public_jobs",
+    module = PublicJobsRoutes(
+        bp=Blueprint("public_jobs", __name__, url_prefix="/jobs"),
         jobs_data_infos=mock_jobs_data,
-        url_prefix="/jobs",
-        jobs_bp="public_jobs",
+        bp_name="public_jobs",
     )
     app.register_blueprint(module.bp)
     return app
@@ -527,7 +526,7 @@ class TestJobDetail:
 
 
 class TestJobsPublicRoutesRoutes:
-    """Integration tests for routes registered by JobsPublicRoutes."""
+    """Integration tests for routes registered by PublicJobsRoutes."""
 
     @pytest.fixture(autouse=True)
     def _common_mocks(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
