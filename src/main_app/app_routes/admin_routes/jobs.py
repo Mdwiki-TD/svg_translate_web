@@ -30,15 +30,20 @@ from ..jobs_routes_utils import (
 
 logger = logging.getLogger(__name__)
 
-JOBS_BP = "admin.jobs"
-
 
 class Jobs:
     """Jobs management routes."""
 
-    def __init__(self, name: str, jobs_data_infos: dict[str, JobData], url_prefix: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        jobs_data_infos: dict[str, JobData],
+        url_prefix: str,
+        jobs_bp: str,
+    ) -> None:
         self.bp = Blueprint(name, __name__, url_prefix=url_prefix)
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
+        self.jobs_bp: jobs_bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -56,9 +61,9 @@ class Jobs:
             result = cancel_job_handler(job_id, job_type)
 
             if result == "job_detail":
-                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+                return redirect(url_for(f"{self.jobs_bp}.job_detail", job_type=job_type, job_id=job_id))
 
-            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+            return redirect(url_for(f"{self.jobs_bp}.jobs_list", job_type=job_type))
 
         # ================================
         # Jobs List routes
@@ -86,7 +91,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return job_detail_handler(job_id, job_type, template_data, bp_name=JOBS_BP)
+            return job_detail_handler(job_id, job_type, template_data, bp_name=self.jobs_bp)
 
         @self.bp.get("/<string:job_type>/<int:job_id>/expand")
         @admin_required
@@ -97,7 +102,7 @@ class Jobs:
             if not template_data:
                 abort(404)
 
-            return job_detail_handler(job_id, job_type, template_data, bp_name=JOBS_BP, expand_all=True)
+            return job_detail_handler(job_id, job_type, template_data, bp_name=self.jobs_bp, expand_all=True)
 
         # ================================
         # Start Job routes
@@ -111,11 +116,11 @@ class Jobs:
 
             args = request.form.to_dict()
 
-            job_id = start_job_handler(job_type, args, bp_name=JOBS_BP)
+            job_id = start_job_handler(job_type, args, bp_name=self.jobs_bp)
             if not job_id:
-                return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+                return redirect(url_for(f"{self.jobs_bp}.jobs_list", job_type=job_type))
 
-            return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+            return redirect(url_for(f"{self.jobs_bp}.job_detail", job_type=job_type, job_id=job_id))
 
         # ================================
         # Delete Job routes
@@ -129,9 +134,9 @@ class Jobs:
             result = delete_job_handler(job_id, job_type)
 
             if result == "job_detail":
-                return redirect(url_for(f"{JOBS_BP}.job_detail", job_type=job_type, job_id=job_id))
+                return redirect(url_for(f"{self.jobs_bp}.job_detail", job_type=job_type, job_id=job_id))
 
-            return redirect(url_for(f"{JOBS_BP}.jobs_list", job_type=job_type))
+            return redirect(url_for(f"{self.jobs_bp}.jobs_list", job_type=job_type))
 
         @self.bp.get("/job-file/<string:result_file>/<string:job_type>")
         @admin_required
@@ -148,6 +153,7 @@ jobs_module = Jobs(
     name="jobs",
     jobs_data_infos=jobs_data_admins,
     url_prefix="/jobs",
+    jobs_bp="admin.jobs",
 )
 
 __all__ = [
