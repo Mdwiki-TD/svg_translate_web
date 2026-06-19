@@ -22,13 +22,9 @@ from .query_api import (
     resolve_redirects,
     search_pages,
 )
-from .upload_bot import UploadFile, upload_file
-
 __all__ = [
     "download_svg_file",
     "upload_fixed_svg",
-    "upload_file",
-    "UploadFile",
     "MwClientPage",
     "get_user_site",
     "get_template_pages",
