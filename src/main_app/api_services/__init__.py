@@ -15,7 +15,6 @@ from .files_service import (
     upload_fixed_svg,
 )
 from .files_service.upload_bot import UploadFile, upload_file
-
 from .mwclient_page import MwClientPage
 from .query_api import (
     get_page_links,
@@ -24,6 +23,7 @@ from .query_api import (
     resolve_redirects,
     search_pages,
 )
+
 __all__ = [
     "download_svg_file",
     "upload_fixed_svg",

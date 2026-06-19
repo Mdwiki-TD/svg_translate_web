@@ -8,11 +8,11 @@ from typing import Dict
 
 import requests
 
+from ...config import settings
 from .. import (
     create_commons_session,
     download_file_rate_limit,
 )
-from ...config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,7 @@ def download_one_file(
         logger.error(f"[{i}] Failed to save: {title} -> {e}")
 
     return data
+
 
 __all__ = [
     "download_one_file",
