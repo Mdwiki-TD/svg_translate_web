@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+
 @pytest.fixture
 def mock_requests_session():
     """Create a mock requests session."""
