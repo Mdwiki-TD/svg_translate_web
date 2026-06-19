@@ -189,7 +189,7 @@ def job_detail_handler(
     try:
         job = get_job(job_id, job_type)
     except LookupError:
-        logger.error("Job not found")
+        logger.error("Job not found: id=%s, type=%s", job_id, job_type)
         flash(f"Job id {job_id} was not found", "warning")
         return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
 

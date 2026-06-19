@@ -18,7 +18,7 @@ class DuplicateJobError(Exception):
 
 
 class DuplicateUserError(Exception):
-    """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
+    """Raised when attempting to create a user or coordinator that already exists."""
 
 
 class InsufficientDatabaseConfigError(RuntimeError):

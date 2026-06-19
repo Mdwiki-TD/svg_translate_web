@@ -77,9 +77,11 @@ def _update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
     desired = request.form.get("active", "0") == "1"
     try:
         record = admin_service.set_coordinator_active(coordinator_id, desired)
+        if record is None:
+            raise LookupError(f"Coordinator with id {coordinator_id} not found")
     except LookupError:
         logger.exception("Unable to update coordinator.")
-        flash("Unable to add update coordinator", "warning")
+        flash("Unable to update coordinator", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to update coordinator.")
         flash("Unable to update coordinator status. Please try again.", "danger")
