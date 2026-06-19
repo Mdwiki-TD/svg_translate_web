@@ -15,7 +15,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db.exceptions import UserNotFoundError
+from ...db.exceptions import DuplicateUserError, UserNotFoundError
 from ...db.services import admin_service, delete_coordinator
 from ..admin.admins_required import admin_required
 
@@ -56,6 +56,9 @@ def _add_coordinator() -> ResponseReturnValue:
     except UserNotFoundError as exc:
         logger.error("UserNotFoundError: %s", exc)
         flash(f"User '{username}' does not exist", "warning")
+    except DuplicateUserError:
+        logger.error(f"Coordinator '{username}' already exists")
+        flash(f"Coordinator '{username}' already exists", "warning")
     except (LookupError, ValueError):
         logger.exception("Unable to Add coordinator.")
         flash(f"Unable to add '{username}' as coordinator", "warning")
@@ -96,7 +99,7 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
         delete_coordinator(coordinator_id)
     except LookupError:
         logger.exception("Unable to delete coordinator.")
-        flash("Unable to add delete coordinator", "warning")
+        flash(f"Coordinator id {coordinator_id} was not found", "warning")
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to delete coordinator.")
         flash("Unable to delete coordinator. Please try again.", "danger")
