@@ -14,7 +14,6 @@ class TestCanManageJob:
         job.username = "test_user"
         assert can_manage_job(job, None) is False
 
-
     def test_can_manage_job_admin(self):
         """Test can_manage_job returns True when user is admin (coordinator)."""
         job = MagicMock()
@@ -25,7 +24,6 @@ class TestCanManageJob:
         user.is_active_admin = True
         assert can_manage_job(job, user) is True
 
-
     def test_can_manage_job_owner(self):
         """Test can_manage_job returns True when user is job owner."""
         job = MagicMock()
@@ -35,7 +33,6 @@ class TestCanManageJob:
         user.username = "owner_user"
         user.is_active_admin = False
         assert can_manage_job(job, user) is True
-
 
     def test_can_manage_job_not_owner_not_admin(self):
         """Test can_manage_job returns False when user is not owner and not admin."""
