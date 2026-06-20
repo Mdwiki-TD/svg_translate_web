@@ -28,7 +28,7 @@ from sqlalchemy import text
 system_temp_dir = Path(tempfile.gettempdir())
 
 # Now correctly combine it with "test" and set the environment variable
-os.environ.setdefault("MAIN_DIR", str(system_temp_dir / "test"))
+os.environ["MAIN_DIR"] = str(system_temp_dir / "test")
 
 # Make the src/ directory importable as `main_app`. The repo's prod
 # entrypoint src/app.py does the same trick.
