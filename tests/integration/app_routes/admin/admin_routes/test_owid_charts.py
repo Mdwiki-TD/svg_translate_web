@@ -50,7 +50,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", fake_current_user)
 
     mock_service = MagicMock()
     mock_service.list_charts.return_value = []

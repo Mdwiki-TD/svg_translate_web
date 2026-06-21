@@ -53,7 +53,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.admins_required.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.app_routes.utils.routes_utils._is_admin",
         lambda user: bool(getattr(user, "is_active_admin", False)),

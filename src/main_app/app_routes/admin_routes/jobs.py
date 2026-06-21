@@ -13,7 +13,7 @@ from werkzeug.wrappers.response import Response
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...jobs_workers.objects import JobData
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 from ..jobs_routes_utils import JobsBp
 
 logger = logging.getLogger(__name__)

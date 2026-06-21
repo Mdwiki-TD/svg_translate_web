@@ -26,7 +26,7 @@ from ...db.services import (
     list_templates,
     update_template_data,
 )
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

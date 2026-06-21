@@ -22,7 +22,7 @@ from ...db.services import (
     list_slug_redirects,
     update_slug_redirect,
 )
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

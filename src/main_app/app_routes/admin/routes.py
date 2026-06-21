@@ -23,7 +23,7 @@ from ..admin_routes import (
     users_module,
 )
 from ..utils.routes_utils import get_job_detail_url
-from .admins_required import admin_required
+from .decorators import admin_required
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)

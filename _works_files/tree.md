@@ -23,7 +23,7 @@ src/
 │   ├── app_routes/
 │   │   ├── admin/
 │   │   │   ├── __init__.py
-│   │   │   ├── admins_required.py
+│   │   │   ├── decorators.py
 │   │   │   ├── routes.py
 │   │   │   └── sidebar.py
 │   │   ├── admin_routes/

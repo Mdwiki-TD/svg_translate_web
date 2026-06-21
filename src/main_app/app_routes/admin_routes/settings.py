@@ -11,7 +11,7 @@ from ...db.services import (
     get_all_settings_raw,
     settings_update_form,
 )
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 
 
 class SettingsRoutes:

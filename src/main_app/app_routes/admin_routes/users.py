@@ -16,7 +16,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ...db.services import users_service
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

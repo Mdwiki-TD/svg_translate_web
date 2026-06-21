@@ -62,7 +62,7 @@ def init_db(_db) -> None:
                 continue
 
             if not table.info.get("create_query"):
-                logger.warning(f"View {table.name} has no create_query, skipping")
+                logger.warning("View %s has no create_query, skipping", table.name)
                 continue
 
             if table.name in existing_views:

@@ -17,7 +17,7 @@ from flask.typing import ResponseReturnValue
 
 from ...db.exceptions import DuplicateUserError, UserNotFoundError
 from ...db.services import admin_service, delete_coordinator
-from ..admin.admins_required import admin_required
+from ..admin.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
