@@ -496,7 +496,7 @@ class UserUpdate(BaseModel):
     """User update schema."""
 
     email: Optional[EmailStr] = None
-    name: str | None = Field(None, min_length=2, max_length=80)
+    name: Optional[str] = Field(None, min_length=2, max_length=80)
 
 class UserResponse(BaseModel):
     """User response schema."""
