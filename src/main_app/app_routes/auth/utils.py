@@ -12,7 +12,7 @@ from flask import flash, g, redirect, request, session, url_for
 
 from ...config import settings
 from ...su_services.auth_users_service import AuthUserService
-from .cookie import extract_user_id
+from ...core.cookies import extract_user_id
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
