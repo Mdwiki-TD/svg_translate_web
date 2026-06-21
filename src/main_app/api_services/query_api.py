@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from mwclient.client import Site
+from mwclient.errors import APIError
 
 logger = logging.getLogger(__name__)
 
@@ -209,6 +211,81 @@ def get_page_links(
     return out
 
 
+def get_category_members_titles(
+    site: Site,
+    category_name: str,
+    namespace: int | None = None,
+) -> list[str]:
+    """
+    Fetch all file titles from the OWID category using MediaWiki API with pagination.
+
+    Returns:
+        List of file titles (strings).
+    """
+    page_count = 0
+    delay = 0.1  # seconds
+    max_delay = 8.0
+
+    logger.info(f"Starting to fetch files from {category_name}")
+
+    params = {
+        # "action": "query",
+        "format": "json",
+        "list": "categorymembers",
+        "cmtitle": category_name,
+        # "cmtype": "file",
+        "cmlimit": "max",
+    }
+
+    if namespace is not None:
+        if namespace == 14:
+            params["cmtype"] = "subcat"
+        elif namespace == 6:
+            params["cmtype"] = "file"
+        else:
+            params["cmnamespace"] = str(namespace)
+
+    all_files = []
+    first_request = True
+    cmcontinue = None
+    while first_request or cmcontinue is not None:
+        first_request = False
+        if len(all_files) % 1000 == 0:
+            logger.info(f"loaded {len(all_files)} members")
+
+        if cmcontinue:
+            params["cmcontinue"] = cmcontinue
+
+        try:
+            data = site.get("query", **params)
+            members = data.get("query", {}).get("categorymembers", [])
+            all_files.extend([x.get("title", "") for x in members])
+            page_count += 1
+
+            logger.debug(f"Fetched category members {page_count}: {len(members)} page, (total: {len(all_files)})")
+
+            if "continue" in data:
+                cmcontinue = data["continue"].get("cmcontinue")
+                time.sleep(delay)
+            else:
+                break
+
+        except APIError as e:
+            if e.code == "invalidcategory":
+                logger.warning(f"Invalid category: {category_name}")
+                break
+
+        except Exception as e:
+            logger.exception("API request failed")
+            if delay < max_delay:
+                delay = min(delay * 2, max_delay)
+                time.sleep(delay)
+                continue
+
+    logger.info(f"Finished fetching {len(all_files)} files in {page_count} pages")
+    return all_files
+
+
 __all__ = [
     "get_template_pages",
     "get_page_links",
@@ -216,4 +293,5 @@ __all__ = [
     "resolve_redirects",
     "search_pages",
     "get_double_redirects",
+    "get_category_members_titles",
 ]

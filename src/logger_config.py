@@ -29,7 +29,7 @@ def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Pa
 
 
 def setup_logging(
-    level: str = "WARNING",
+    level: str | int = "WARNING",
     name: str = "main_app",
     log_file: str | None = None,
     error_log_file: str | None = None,
