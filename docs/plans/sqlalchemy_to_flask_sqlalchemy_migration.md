@@ -228,7 +228,7 @@ src/main_app/
 Blueprints remain unchanged. The key integration point is that services now use `db.session` which is automatically scoped to the request lifecycle by Flask-SQLAlchemy.
 
 ```python
-# app_routes/admin_routes/jobs.py — No changes needed if services handle DB
+# admin/routes/jobs.py — No changes needed if services handle DB
 from ...services.jobs_service import create_job, get_job
 
 @bp.route('/jobs', methods=['POST'])
@@ -1646,7 +1646,7 @@ def import_chart_with_template(chart_data: dict, template_title: str) -> OwidCha
 ### 13.4 Flask Route Integration
 
 ```python
-# src/main_app/app_routes/admin_routes/jobs.py
+# src/main_app/admin/routes/jobs.py
 from flask import Blueprint, jsonify, request, g, abort
 from ...services.jobs_service import create_job, get_job, update_job_status
 

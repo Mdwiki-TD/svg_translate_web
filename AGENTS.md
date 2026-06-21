@@ -141,9 +141,9 @@ src/
   main_app/
     __init__.py          # Flask app factory
     config.py            # Settings dataclasses
+    admin/               # Admin panel (sidebar, routes, auth)
+      routes/      # Admin sub-routes (coordinators, jobs, etc.)
     app_routes/          # Flask blueprints
-      admin/             # Admin panel (sidebar, routes, auth)
-      admin_routes/      # Admin sub-routes (coordinators, jobs, etc.)
       auth/              # OAuth authentication
       main_routes/       # Public routes
     api_services/        # MediaWiki API clients
