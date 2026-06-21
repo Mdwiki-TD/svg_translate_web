@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.app_routes.admin.sidebar import (
+from src.main_app.admin.sidebar import (
     SidebarItem,
     create_side,
     generate_list_item,

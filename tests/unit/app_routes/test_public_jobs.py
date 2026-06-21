@@ -551,7 +551,7 @@ class TestJobsPublicRoutesRoutes:
 
         # Allow delete route's @admin_required decorator to pass by default
         _admin_user = MagicMock(username="admin", is_active_admin=True)
-        monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", lambda: _admin_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: _admin_user)
         self._mock_user = mock_user
 
     # ── jobs_list ──────────────────────────────────────────────────────
@@ -634,16 +634,16 @@ class TestJobsPublicRoutesRoutes:
 
     def test_delete_job_not_admin_403(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
         non_admin = MagicMock(username="regular", is_active_admin=False)
-        monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", lambda: non_admin)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: non_admin)
         resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 403
 
     def test_delete_job_not_logged_in_302(
         self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", lambda: None)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: None)
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin.decorators.url_for",
+            "src.main_app.admin.decorators.url_for",
             lambda endpoint, **values: f"/{endpoint}",
         )
         resp = mock_p_client.post("/jobs/test_job/1/delete")

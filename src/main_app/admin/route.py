@@ -11,9 +11,11 @@ from flask import (
     request,
 )
 
-from ...db.services import list_jobs
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
-from ..admin_routes import (
+from ..app_routes.utils.routes_utils import get_job_detail_url
+from ..db.services import list_jobs
+from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
+from .decorators import admin_required
+from .routes import (
     coordinators_module,
     jobs_module,
     owidcharts_module,
@@ -22,8 +24,6 @@ from ..admin_routes import (
     templates_module,
     users_module,
 )
-from ..utils.routes_utils import get_job_detail_url
-from .decorators import admin_required
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)

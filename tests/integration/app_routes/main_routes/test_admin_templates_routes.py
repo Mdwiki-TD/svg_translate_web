@@ -42,7 +42,7 @@ def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.main_app.app_routes.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.app_routes.admin.decorators.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True

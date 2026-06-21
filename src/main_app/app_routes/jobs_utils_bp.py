@@ -16,9 +16,9 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
+from ..admin.decorators import admin_required
 from ..config import settings
 from ..jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
-from .admin.decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

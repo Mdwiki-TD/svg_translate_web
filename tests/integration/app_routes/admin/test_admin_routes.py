@@ -203,7 +203,7 @@ class TestCoordinatorRoutes:
     def test_add_coordinator_empty_username_flash(self, mock_app, mock_client, monkeypatch):
         """Adding coordinator with empty username should flash error."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.app_routes.admin_routes.coordinators.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
@@ -217,7 +217,7 @@ class TestCoordinatorRoutes:
     def test_add_duplicate_coordinator_flash(self, mock_app, mock_client, monkeypatch):
         """Adding a duplicate coordinator should flash warning."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.app_routes.admin_routes.coordinators.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
 
         _login_admin(mock_app, mock_client)
         mock_client.post(
@@ -309,7 +309,7 @@ class TestCoordinatorRoutes:
     def test_delete_nonexistent_coordinator_flash(self, mock_app, mock_client, monkeypatch):
         """Deleting a non-existent coordinator should flash warning."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.app_routes.admin_routes.coordinators.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(

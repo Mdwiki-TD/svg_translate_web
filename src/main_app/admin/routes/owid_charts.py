@@ -22,7 +22,7 @@ from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateRecord
 from ...db.services import delete_chart, owid_charts_service
 from ...db.services.views_service import list_owid_charts_templates
-from ..admin.decorators import admin_required
+from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

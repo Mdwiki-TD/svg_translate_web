@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.app_routes.admin_routes.coordinators import CoordinatorsRoutes  # noqa: F401
+from src.main_app.admin.routes.coordinators import CoordinatorsRoutes  # noqa: F401
 
 
 @pytest.mark.usefixtures("mock_app")

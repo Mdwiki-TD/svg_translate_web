@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Blueprint, Flask
 
-from src.main_app.app_routes.admin_routes.slug_redirects import (
+from src.main_app.admin.routes.slug_redirects import (
     SlugRedirects,
     _edit_slug_redirect,
 )
@@ -20,12 +20,12 @@ class TestEditSlugRedirect:
         """_edit_slug_redirect should pass the record to the template."""
         record = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
             MagicMock(return_value=record),
         )
         mock_render = MagicMock(return_value="rendered")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -37,12 +37,12 @@ class TestEditSlugRedirect:
     def test_with_not_found_record(self, monkeypatch):
         """_edit_slug_redirect should pass an error when the record is missing."""
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
             MagicMock(return_value=None),
         )
         mock_render = MagicMock(return_value="rendered")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -79,7 +79,7 @@ class TestSlugRedirectsRoutes:
     def app_with_routes(self, monkeypatch):
         """Build a minimal Flask app with the slug_redirects blueprint and a mocked admin_required."""
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.admin_required",
+            "src.main_app.admin.routes.slug_redirects.admin_required",
             lambda f: f,
         )
 
@@ -106,12 +106,12 @@ class TestSlugRedirectsRoutes:
         mock_records[0].should_be_replaced = True
         mock_records[1].should_be_replaced = False
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.list_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.list_slug_redirects",
             MagicMock(return_value=mock_records),
         )
         mock_render = MagicMock(return_value="dashboard")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -132,12 +132,12 @@ class TestSlugRedirectsRoutes:
         """GET /<id>/edit should render the edit form with the record."""
         record = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
             MagicMock(return_value=record),
         )
         mock_render = MagicMock(return_value="edit_page")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -149,12 +149,12 @@ class TestSlugRedirectsRoutes:
     def test_edit_get_not_found(self, client, monkeypatch):
         """GET /<id>/edit for a missing record should render with an error."""
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
             MagicMock(return_value=None),
         )
         mock_render = MagicMock(return_value="error_page")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -173,7 +173,7 @@ class TestSlugRedirectsRoutes:
         """POST /update with valid data should update and redirect."""
         mock_update = MagicMock(return_value=MagicMock())
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
             mock_update,
         )
 
@@ -189,7 +189,7 @@ class TestSlugRedirectsRoutes:
         """POST /update without an id should not call the service and redirect."""
         mock_update = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
             mock_update,
         )
 
@@ -205,7 +205,7 @@ class TestSlugRedirectsRoutes:
         """POST /update when update_slug_redirect returns None should redirect."""
         mock_update = MagicMock(return_value=None)
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
             mock_update,
         )
 
@@ -221,12 +221,12 @@ class TestSlugRedirectsRoutes:
         """POST /update with from_popup=1 should render popup_action.html."""
         mock_update = MagicMock(return_value=MagicMock())
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
             mock_update,
         )
         mock_render = MagicMock(return_value="popup")
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.render_template",
+            "src.main_app.admin.routes.slug_redirects.render_template",
             mock_render,
         )
 
@@ -245,7 +245,7 @@ class TestSlugRedirectsRoutes:
         """POST /<id>/delete should delete and redirect on success."""
         mock_delete = MagicMock(return_value=True)
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.delete_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.delete_slug_redirect",
             mock_delete,
         )
 
@@ -258,7 +258,7 @@ class TestSlugRedirectsRoutes:
         """POST /<id>/delete should redirect when the record is not found."""
         mock_delete = MagicMock(return_value=False)
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.delete_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.delete_slug_redirect",
             mock_delete,
         )
 
@@ -273,7 +273,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=mark_replace should bulk update."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -289,7 +289,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=mark_no_replace should set should_be_replaced=False."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -305,7 +305,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=delete should bulk delete."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_delete_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_delete_slug_redirects",
             mock_bulk,
         )
 
@@ -321,12 +321,12 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with an invalid action should not call any service."""
         mock_bulk_update = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
             mock_bulk_update,
         )
         mock_bulk_delete = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_delete_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_delete_slug_redirects",
             mock_bulk_delete,
         )
 
@@ -343,7 +343,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action without selected_ids should not call any service."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -359,7 +359,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action should handle exceptions gracefully."""
         mock_bulk = MagicMock(side_effect=Exception("DB error"))
         monkeypatch.setattr(
-            "src.main_app.app_routes.admin_routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
             mock_bulk,
         )
 

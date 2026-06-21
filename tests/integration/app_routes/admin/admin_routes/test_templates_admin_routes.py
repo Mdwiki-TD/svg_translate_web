@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-from src.main_app.app_routes.admin_routes import templates
+from src.main_app.admin.routes import templates
 
 
 def test_update_template_uses_request_form_type_parameter(mock_app):
@@ -14,10 +14,10 @@ def test_update_template_uses_request_form_type_parameter(mock_app):
     ):
         mock_update_template = Mock(return_value=Mock(title="Test Title"))
 
-        with patch("src.main_app.app_routes.admin_routes.templates.update_template_data", mock_update_template):
-            with patch("src.main_app.app_routes.admin_routes.templates.flash"):
-                with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
-                    with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
+        with patch("src.main_app.admin.routes.templates.update_template_data", mock_update_template):
+            with patch("src.main_app.admin.routes.templates.flash"):
+                with patch("src.main_app.admin.routes.templates.redirect"):
+                    with patch("src.main_app.admin.routes.templates.url_for"):
                         # We want to spy on request.form.get
                         with patch.object(templates.request.form, "get", wraps=templates.request.form.get) as mock_get:
                             templates._update_template()
@@ -29,9 +29,9 @@ def test_update_template_uses_request_form_type_parameter(mock_app):
 def test_update_template_correct_error_message_for_missing_title(mock_app):
     """Test that _update_template shows correct error message for update (not 'add')."""
     with mock_app.test_request_context(method="POST", data={"id": "1", "title": "", "main_file": "test.svg"}):
-        with patch("src.main_app.app_routes.admin_routes.templates.flash") as mock_flash:
-            with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
-                with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
+        with patch("src.main_app.admin.routes.templates.flash") as mock_flash:
+            with patch("src.main_app.admin.routes.templates.redirect"):
+                with patch("src.main_app.admin.routes.templates.url_for"):
                     templates._update_template()
 
         # Verify the correct error message (should say "update" not "add")
@@ -44,9 +44,9 @@ def test_update_template_correct_error_message_for_missing_title(mock_app):
 def test_update_template_missing_id_shows_error(mock_app):
     """Test that _update_template shows error when template ID is missing."""
     with mock_app.test_request_context(method="POST", data={"id": "0", "title": "Test", "main_file": "test.svg"}):
-        with patch("src.main_app.app_routes.admin_routes.templates.flash") as mock_flash:
-            with patch("src.main_app.app_routes.admin_routes.templates.redirect"):
-                with patch("src.main_app.app_routes.admin_routes.templates.url_for"):
+        with patch("src.main_app.admin.routes.templates.flash") as mock_flash:
+            with patch("src.main_app.admin.routes.templates.redirect"):
+                with patch("src.main_app.admin.routes.templates.url_for"):
                     templates._update_template()
 
         mock_flash.assert_called_once_with("Template ID is required to update a template.", "danger")
