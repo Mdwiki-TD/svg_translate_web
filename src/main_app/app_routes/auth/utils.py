@@ -11,8 +11,8 @@ from typing import Any, Callable, TypeVar, cast
 from flask import flash, g, redirect, request, session, url_for
 
 from ...config import settings
-from ...su_services.auth_users_service import AuthUserService
 from ...core.cookies import extract_user_id
+from ...su_services.auth_users_service import AuthUserService
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 

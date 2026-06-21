@@ -12,11 +12,11 @@ import logging
 import os
 import secrets
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import MagicMock
 
-import tempfile
 import pytest
 from cryptography.fernet import Fernet
 from flask.app import Flask

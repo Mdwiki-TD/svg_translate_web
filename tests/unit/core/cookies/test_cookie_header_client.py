@@ -89,7 +89,7 @@ class TestCookieHeaderClient:
     def test_open_strips_cookie_from_headers(self, app_c_mock: Flask) -> None:
         client = app_c_mock.test_client()
 
-        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open: # type: ignore
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:  # type: ignore
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -107,7 +107,7 @@ class TestCookieHeaderClient:
     def test_open_handles_tuple_cookie_header(self, app_c_mock: Flask) -> None:
         client = app_c_mock.test_client()
 
-        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open: # type: ignore
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:  # type: ignore
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 
@@ -123,7 +123,7 @@ class TestCookieHeaderClient:
     def test_open_without_cookie_preserves_headers(self, app_c_mock: Flask) -> None:
         client = app_c_mock.test_client()
 
-        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open: # type: ignore
+        with patch.object(app_c_mock.test_client_class.__bases__[0], "open") as mock_super_open:  # type: ignore
             mock_response = MagicMock()
             mock_super_open.return_value = mock_response
 

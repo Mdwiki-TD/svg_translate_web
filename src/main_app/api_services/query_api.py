@@ -285,6 +285,7 @@ def get_category_members_titles(
     logger.info(f"Finished fetching {len(all_files)} files in {page_count} pages")
     return all_files
 
+
 __all__ = [
     "get_template_pages",
     "get_page_links",
