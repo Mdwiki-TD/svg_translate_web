@@ -14,12 +14,12 @@ echo ""
 
 # Routes importing models directly (should go through services)
 echo "--- Routes → Models (V-R3) ---"
-grep -rn "from.*db\.models\|import.*db\.models" "$ROOT/main_app/app_routes" 2>/dev/null || echo "(none)"
+grep -rn "from.*db\.models\|import.*db\.models" "$ROOT/main_app/public" 2>/dev/null || echo "(none)"
 
 # Routes calling db.session directly (V-R2)
 echo ""
 echo "--- Routes → db.session (V-R2) ---"
-grep -rn "db\.session\|\.query\." "$ROOT/main_app/app_routes" 2>/dev/null || echo "(none)"
+grep -rn "db\.session\|\.query\." "$ROOT/main_app/public" 2>/dev/null || echo "(none)"
 
 # Models importing services (V-M1 / inverted dependency)
 echo ""
@@ -34,7 +34,7 @@ grep -rn "from flask import\|current_app\|from flask" "$ROOT/main_app/db/models"
 # Services importing routes (V-S1)
 echo ""
 echo "--- Services → Routes (V-S1) ---"
-grep -rn "from.*app_routes\|import.*app_routes" "$ROOT/main_app/db/services" 2>/dev/null || echo "(none)"
+grep -rn "from.*public\|import.*public" "$ROOT/main_app/db/services" 2>/dev/null || echo "(none)"
 
 # Services using jsonify / abort (V-S2)
 echo ""
@@ -54,7 +54,7 @@ grep -rn "= .*()$\|= .*(\s" "$ROOT/main_app/config" 2>/dev/null | grep -v "^.*#"
 # Background workers importing routes (V-BG1)
 echo ""
 echo "--- Background Jobs → Routes (V-BG1) ---"
-grep -rn "from.*app_routes\|import.*app_routes" "$ROOT/main_app/background_jobs" 2>/dev/null || echo "(none)"
+grep -rn "from.*public\|import.*public" "$ROOT/main_app/background_jobs" 2>/dev/null || echo "(none)"
 
 # Workers missing app context (V-BG3) — heuristic
 echo ""
@@ -76,7 +76,7 @@ echo ""
 echo "--- os.getenv outside config/ (V-CF3) ---"
 grep -rn "os\.getenv\|os\.environ" \
   "$ROOT/main_app/db" \
-  "$ROOT/main_app/app_routes" \
+  "$ROOT/main_app/public" \
   "$ROOT/main_app/core" \
   "$ROOT/main_app/background_jobs" \
   "$ROOT/main_app/api_services" \

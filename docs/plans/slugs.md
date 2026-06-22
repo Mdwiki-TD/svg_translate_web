@@ -6,23 +6,23 @@ Instead of immediately changing slugs, introduce a **database-backed slug redire
 ## Existing Logic
 ### Block 1
 ```python
-original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "") 
-if original_chart_url and "/grapher/" in original_chart_url: 
-    original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0] 
-    if original_slug != chart.slug: 
-        data["slug"] = original_slug 
+original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+if original_chart_url and "/grapher/" in original_chart_url:
+    original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+    if original_slug != chart.slug:
+        data["slug"] = original_slug
 
 ```
 ### Block 2
 ```python
-if _slug_to_check: 
-    metadata = fetch_grapher_metadata(_slug_to_check) 
-    if metadata: 
-        original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "") 
-        if original_chart_url and "/grapher/" in original_chart_url: 
-            original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0] 
-            if original_slug != _slug_to_check: 
-                _slug = original_slug 
+if _slug_to_check:
+    metadata = fetch_grapher_metadata(_slug_to_check)
+    if metadata:
+        original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+        if original_chart_url and "/grapher/" in original_chart_url:
+            original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
+            if original_slug != _slug_to_check:
+                _slug = original_slug
 
 ```
 ## Required Changes
@@ -42,12 +42,12 @@ class OwidSlugRedirectRecord(db.Model):
 | **should_be_replaced** | Boolean | Default: False |
 | **created_at** | DateTime | Default: current timestamp |
 > **Note:** Add appropriate indexes where useful.
-> 
+>
 ### 2. Create Service Layer
 Create the file path: src/main_app/db/services/owid_slugs_redirects_service.py
 Implement the following function:
 ```python
-def add_new_slug_redirect(slug: str, redirect_to: str) -> None: 
+def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
 
 ```
 **Requirements:**
@@ -58,32 +58,32 @@ def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
 Replace the automatic slug replacement behavior with logging to the new service.
 Instead of:
 ```python
-if original_slug != chart.slug: 
-    data["slug"] = original_slug 
+if original_slug != chart.slug:
+    data["slug"] = original_slug
 
 ```
 Use:
 ```python
-if original_slug != chart.slug: 
-    add_new_slug_redirect(slug=chart.slug, redirect_to=original_slug) 
+if original_slug != chart.slug:
+    add_new_slug_redirect(slug=chart.slug, redirect_to=original_slug)
 
 ```
 Similarly, replace:
 ```python
-_slug = original_slug 
+_slug = original_slug
 
 ```
 With:
 ```python
-add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug) 
+add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug)
 
 ```
 > ⚠️ **Important:** Do not modify owid_charts.slug or templates.slug, and do not perform automatic replacements. Only record the redirect for later manual review.
-> 
+>
 ### 4. Admin Dashboard
 Create a new admin section to manage slug redirects.
- * **Route File:** src/main_app/app_routes/admin_routes/slug_redirects.py
- * **Registration:** Register the blueprint inside src/main_app/app_routes/admin/routes.py
+ * **Route File:** src/main_app/admin/routes/slug_redirects.py
+ * **Registration:** Register the blueprint inside src/main_app/public/admin/routes.py
 ### 5. Admin Features
 Create administrative views to manage records with the following criteria:
  * **List Redirects:**
@@ -98,7 +98,7 @@ Create the following admin templates:
  * templates/admin/slug_redirects/list.html
  * templates/admin/slug_redirects/edit.html
 > **Note:** Use styling and structural UI patterns consistent with existing admin sub-pages.
-> 
+>
 ### 7. Existing Models for Reference
 Use the following project models as examples for codebase style and conventions:
  * TemplateRecord

@@ -50,7 +50,7 @@ def delete_user(user_id: int) -> bool:
     return delete_record_by_pk(UsersRecord, user_id)
 
 
-def delete_setting(key: str) -> bool:
+def delete_setting_by_key(key: str) -> bool:
     setting = SettingRecord.query.filter_by(key=key).first()
     if setting:
         return delete_record_by_pk(SettingRecord, setting.id)
@@ -98,7 +98,7 @@ __all__ = [
     "delete_coordinator",
     "delete_job",
     "delete_chart",
-    "delete_setting",
+    "delete_setting_by_key",
     "delete_slug_redirect",
     "delete_template",
 ]

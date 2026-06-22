@@ -25,6 +25,7 @@ exclude = '''
       | buck-out
       | build
       | dist
+      | typings
     )/
 '''
 
@@ -78,6 +79,7 @@ exclude = [
     ".tox",
     ".venv",
     ".vscode",
+    "typings",
     "__pypackages__",
     "_build",
     "buck-out",
@@ -174,7 +176,7 @@ pythonVersion = "3.13"
 stubPath = "typings"
 # Paths to include and exclude from checking
 include = ["src"]
-exclude = ["**/node_modules", "**/__pycache__", ".venv"]
+exclude = ["typings", "**/node_modules", "**/__pycache__", ".venv"]
 
 # Diagnostic modes: "basic" or "standard" or "strict"
 typeCheckingMode = "basic"

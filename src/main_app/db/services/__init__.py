@@ -10,7 +10,7 @@ from .delete_service import (
     delete_coordinator,
     delete_job,
     delete_record_by_pk,
-    delete_setting,
+    delete_setting_by_key,
     delete_slug_redirect,
     delete_template,
     delete_user,
@@ -48,7 +48,6 @@ from .settings_service import (
     get_all_settings_raw,
     get_all_settings_ready,
     list_settings,
-    settings_update_form,
     update_setting,
 )
 from .template_service import (
@@ -106,14 +105,13 @@ __all__ = [
     "get_all_settings_raw",
     "update_setting",
     "create_setting",
-    "settings_update_form",
     "list_settings",
     # delete
     "delete_record_by_pk",
     "delete_template",
     "delete_slug_redirect",
     "delete_chart",
-    "delete_setting",
+    "delete_setting_by_key",
     "delete_coordinator",
     "delete_job",
     "delete_user",

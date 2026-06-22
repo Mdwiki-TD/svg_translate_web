@@ -23,7 +23,7 @@ Before scanning, internalize the expected responsibilities of each layer:
 
 | Layer               | Path Pattern       | Allowed Responsibilities                                                      |
 | ------------------- | ------------------ | ----------------------------------------------------------------------------- |
-| **Routes / Views**  | `app_routes/`      | HTTP request parsing, input validation, calling services, returning responses |
+| **Routes / Views**  | `public/`      | HTTP request parsing, input validation, calling services, returning responses |
 | **Services**        | `db/services/`     | Business logic, orchestration between models, transactions                    |
 | **Models**          | `db/models/`       | Data structure, relationships, simple computed properties                     |
 | **Core / Utils**    | `core/`, `utils/`  | Reusable helpers with no Flask/DB dependencies                                |
@@ -88,12 +88,12 @@ report with:
 
 -   **Route files** should contain almost no `if`/`for` logic beyond input validation.
     If a route function is >30 lines, flag it.
--   **Model files** should not import from `services/` or `app_routes/`. Any method
+-   **Model files** should not import from `services/` or `public/`. Any method
     on a model that queries _other_ models is a violation.
--   **Services** are allowed to import models but must not import from `app_routes/`.
+-   **Services** are allowed to import models but must not import from `public/`.
 -   **`core/` and `utils/`** must have zero Flask app-context dependencies (`current_app`,
     `g`, `request`) unless explicitly documented as Flask-aware utilities.
--   **`background_jobs/`** workers must not import from `app_routes/`; they may
+-   **`background_jobs/`** workers must not import from `public/`; they may
     import services.
 -   **`config/`** must not instantiate anything — only define classes/dicts/constants.
 -   **`extensions.py`** must only call `ext = ExtensionClass()` — no configuration logic.

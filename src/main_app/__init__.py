@@ -10,8 +10,6 @@ from typing import Any, Tuple, Type
 from flask import Flask, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
-from .app_routes import register_blueprints
-from .app_routes.utils import context_user
 from .config import ensure_directories, settings
 from .core.cookies import CookieHeaderClient
 from .core.jinja_filters import filters
@@ -20,6 +18,8 @@ from .db.exceptions import DatabaseInitError
 from .extensions import db as _db
 from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
+from .public import register_blueprints
+from .public.utils import context_user
 
 logger = logging.getLogger(__name__)
 

@@ -59,9 +59,9 @@ def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
 
 def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
-
-    if not username:
+    if not username or not username.strip():
         raise ValueError("Username is required")
+    username = username.strip()
 
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
     if record:

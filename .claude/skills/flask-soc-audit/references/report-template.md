@@ -43,7 +43,7 @@ Replace every `{{ ... }}` placeholder with actual content.
 
 | Layer                                | Status                                   | Notes       |
 | ------------------------------------ | ---------------------------------------- | ----------- |
-| Routes (`app_routes/`)               | {{ ✅ Clean / ⚠️ Issues / 🚨 Critical }} | {{ brief }} |
+| Routes (`public/`)               | {{ ✅ Clean / ⚠️ Issues / 🚨 Critical }} | {{ brief }} |
 | Services (`db/services/`)            | {{ status }}                             | {{ brief }} |
 | Models (`db/models/`)                | {{ status }}                             | {{ brief }} |
 | Core (`core/`)                       | {{ status }}                             | {{ brief }} |

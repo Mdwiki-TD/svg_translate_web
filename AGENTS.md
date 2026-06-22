@@ -141,9 +141,9 @@ src/
   main_app/
     __init__.py          # Flask app factory
     config.py            # Settings dataclasses
-    app_routes/          # Flask blueprints
-      admin/             # Admin panel (sidebar, routes, auth)
-      admin_routes/      # Admin sub-routes (coordinators, jobs, etc.)
+    admin/               # Admin panel (sidebar, routes, auth)
+      routes/      # Admin sub-routes (coordinators, jobs, etc.)
+    public/          # Flask blueprints
       auth/              # OAuth authentication
       main_routes/       # Public routes
     api_services/        # MediaWiki API clients
@@ -175,7 +175,7 @@ _works_files/            # Offline CLI tools (not part of Flask app)
 2. Implement: `get_job_type()`, `get_initial_result()`, `process()`
 3. Create `__init__.py` exporting the entry-point function
 4. Register in `workers_list.py`: add to `jobs_data_admins` (or `jobs_data_public` for public jobs)
-5. Add sidebar item in `app_routes/admin/sidebar.py`
+5. Add sidebar item in `public/admin/sidebar.py`
 6. Create templates: `src/templates/jobs_templates/admin/<job_name>/list.html` and `details.html`
 
 ### MwClientPage Pattern
