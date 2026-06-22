@@ -2,7 +2,7 @@
 """
 Unit tests for src/main_app/public/utils/routes_utils.py module.
 
-Functions to test: context_user, load_auth_payload, get_job_detail_url
+Functions to test: context_data, load_auth_payload, get_job_detail_url
 
 TODO: write tests
 """
@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 from src.main_app.public.utils.routes_utils import (
     can_run_bg_jobs,
     can_run_jobs,
-    context_user,
+    context_data,
     get_job_detail_url,
     load_auth_payload,
 )

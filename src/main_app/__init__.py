@@ -19,7 +19,7 @@ from .extensions import db as _db
 from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .public import register_blueprints
-from .public.utils import context_user
+from .public.utils import context_data
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ def create_app(config_class: Type) -> Flask:
 
     @app.context_processor
     def _inject_user() -> dict[str, Any]:
-        return context_user(
+        return context_data(
             settings.other.wiki_domain,
             settings.other.static_server,
             tool_title="Copy SVG Translations",
