@@ -17,7 +17,7 @@ bp_main = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)
 
 
-@bp_main.get("/")
+@bp_main.route("/", methods=["GET"])
 def index() -> str:
     return render_template(
         "index.html",

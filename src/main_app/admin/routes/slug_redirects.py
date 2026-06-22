@@ -50,7 +50,7 @@ class SlugRedirects:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        @self.bp.get("/")
+        @self.bp.route("/", methods=["GET"])
         @admin_required
         def dashboard():
             records = list_slug_redirects()

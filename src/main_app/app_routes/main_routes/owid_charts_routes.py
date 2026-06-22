@@ -15,7 +15,7 @@ bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owidcharts")
 logger = logging.getLogger(__name__)
 
 
-@bp_owid_charts.get("/")
+@bp_owid_charts.route("/", methods=["GET"])
 def index() -> str:
     """Display a list of all published OWID charts."""
     charts = list_published_charts()

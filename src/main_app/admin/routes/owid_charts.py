@@ -260,7 +260,7 @@ class OwidCharts:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        @self.bp.get("/")
+        @self.bp.route("/", methods=["GET"])
         @self.bp.get("/<string:template_filter>")
         @admin_required
         def dashboard(template_filter: str = ""):

@@ -101,7 +101,7 @@ def by_title(title: str) -> str:
     )
 
 
-@bp_explorer.get("/")
+@bp_explorer.route("/", methods=["GET"])
 def main() -> str:
     svg_data_path = load_svg_data_path()
     titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
