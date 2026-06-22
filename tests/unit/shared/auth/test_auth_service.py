@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.shared.auth._service import (
+from src.main_app.shared.auth.auth_service import (
     OAuthCallbackError,
     complete_oauth_callback,
     extract_token_credentials,

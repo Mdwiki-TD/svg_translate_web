@@ -6,18 +6,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.shared.auth._users_service import AuthUserService
+from src.main_app.shared.auth.auth_users_service import AuthUserService
 
 
 @pytest.fixture
 def mock_db_services():
     with (
-        patch("src.main_app.shared.auth._users_service.get_user_by_username") as m_get_by_name,
-        patch("src.main_app.shared.auth._users_service.upsert_user_token") as m_update,
-        patch("src.main_app.shared.auth._users_service.create_user") as m_create,
-        patch("src.main_app.shared.auth._users_service.get_user_token") as m_get_token,
-        patch("src.main_app.shared.auth._users_service.is_active_coordinator") as m_is_coord,
-        patch("src.main_app.shared.auth._users_service.get_authenticated_user_token") as m_get_auth,
+        patch("src.main_app.shared.auth.auth_users_service.get_user_by_username") as m_get_by_name,
+        patch("src.main_app.shared.auth.auth_users_service.upsert_user_token") as m_update,
+        patch("src.main_app.shared.auth.auth_users_service.create_user") as m_create,
+        patch("src.main_app.shared.auth.auth_users_service.get_user_token") as m_get_token,
+        patch("src.main_app.shared.auth.auth_users_service.is_active_coordinator") as m_is_coord,
+        patch("src.main_app.shared.auth.auth_users_service.get_authenticated_user_token") as m_get_auth,
     ):
         yield {
             "get_by_name": m_get_by_name,
