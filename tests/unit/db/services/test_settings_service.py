@@ -1,14 +1,12 @@
 from unittest.mock import MagicMock
 
 from src.main_app.db.services.settings_service import (
-    _parse_setting_value,
     _serialize_value,
     create_setting,
     get_all_settings_raw,
     get_all_settings_ready,
     get_setting_by_key,
     list_settings,
-    settings_update_form,
     update_setting,
     update_setting_bool,
 )
@@ -45,41 +43,6 @@ def test_get_all_settings_ready() -> None:
 
     records = get_all_settings_ready()
     assert records == {"crop_newest_upload_limit": 5000}
-
-
-class TestParseSettingValue:
-    """Tests for _parse_setting_value."""
-
-    def test_boolean_on(self):
-        assert _parse_setting_value("boolean", "on") == (True, True)
-
-    def test_boolean_off(self):
-        assert _parse_setting_value("boolean", "off") == (False, True)
-
-    def test_boolean_empty(self):
-        assert _parse_setting_value("boolean", "") == (False, True)
-
-    def test_boolean_other(self):
-        assert _parse_setting_value("boolean", "true") == (False, True)
-
-    def test_integer_valid(self):
-        assert _parse_setting_value("integer", "42") == (42, True)
-
-    def test_integer_negative(self):
-        assert _parse_setting_value("integer", "-10") == (-10, True)
-
-    def test_integer_invalid(self):
-        assert _parse_setting_value("integer", "abc") == (0, True)
-
-    def test_integer_empty(self):
-        assert _parse_setting_value("integer", "") == (0, True)
-
-    def test_string(self):
-        assert _parse_setting_value("string", "hello") == ("hello", True)
-
-    def test_unknown_type(self):
-        assert _parse_setting_value("unknown", "raw") == ("raw", True)
-
 
 class TestListSettings:
     """Tests for list_settings."""
@@ -340,101 +303,3 @@ class TestCreateSetting:
 
         create_setting("str_key", "Str Setting", "string")
         assert added_settings[0].value == ""
-
-
-class TestSettingsUpdateForm:
-    """Tests for settings_update_form."""
-
-    def test_processes_boolean_value(self, monkeypatch):
-        mock_settings = [
-            {"key": "test_bool", "value_type": "boolean", "value": "false"},
-        ]
-        monkeypatch.setattr("src.main_app.db.services.settings_service.get_all_settings_raw", lambda: mock_settings)
-
-        updated = {}
-
-        def mock_update(key, value, v_type):
-            updated[key] = (value, v_type)
-            return True
-
-        monkeypatch.setattr("src.main_app.db.services.settings_service.update_setting", mock_update)
-
-        request_form = {"setting_test_bool": "on"}
-
-        failed, deleted = settings_update_form(request_form)
-
-        assert failed == []
-        assert deleted == []
-        assert updated == {"test_bool": (True, "boolean")}
-
-    def test_processes_integer_value(self, monkeypatch):
-        mock_settings = [
-            {"key": "test_int", "value_type": "integer", "value": "0"},
-        ]
-        monkeypatch.setattr("src.main_app.db.services.settings_service.get_all_settings_raw", lambda: mock_settings)
-
-        updated = {}
-
-        def mock_update(key, value, v_type):
-            updated[key] = (value, v_type)
-            return True
-
-        monkeypatch.setattr("src.main_app.db.services.settings_service.update_setting", mock_update)
-
-        request_form = {"setting_test_int": "42"}
-
-        failed, deleted = settings_update_form(request_form)
-
-        assert failed == []
-        assert deleted == []
-        assert updated == {"test_int": (42, "integer")}
-
-    def test_handles_delete_action(self, monkeypatch):
-        mock_settings = [
-            {"key": "test_key", "value_type": "string", "value": "val"},
-        ]
-        monkeypatch.setattr("src.main_app.db.services.settings_service.get_all_settings_raw", lambda: mock_settings)
-        monkeypatch.setattr("src.main_app.db.services.settings_service.delete_setting", lambda k: True)
-
-        request_form = {"delete_test_key": "on"}
-
-        failed, deleted = settings_update_form(request_form)
-
-        assert failed == []
-        assert deleted == ["test_key"]
-
-    def test_collects_failed_keys_on_error(self, monkeypatch):
-        mock_settings = [
-            {"key": "test_key", "value_type": "string", "value": "val"},
-        ]
-        monkeypatch.setattr("src.main_app.db.services.settings_service.get_all_settings_raw", lambda: mock_settings)
-        monkeypatch.setattr("src.main_app.db.services.settings_service.update_setting", lambda k, v, vt: False)
-
-        request_form = {"setting_test_key": "new_val"}
-
-        failed, deleted = settings_update_form(request_form)
-
-        assert failed == ["test_key"]
-        assert deleted == []
-
-    def test_skips_when_form_key_not_in_request_form(self, monkeypatch):
-        mock_settings = [
-            {"key": "test_key", "value_type": "string", "value": "val"},
-        ]
-        monkeypatch.setattr("src.main_app.db.services.settings_service.get_all_settings_raw", lambda: mock_settings)
-
-        update_called = []
-
-        def mock_update(key, value, v_type):
-            update_called.append(key)
-            return True
-
-        monkeypatch.setattr("src.main_app.db.services.settings_service.update_setting", mock_update)
-
-        request_form = {"other_key": "value"}
-
-        failed, deleted = settings_update_form(request_form)
-
-        assert failed == []
-        assert deleted == []
-        assert update_called == []
