@@ -1,6 +1,6 @@
 """
 Tests for cookie helpers.
-src/main_app/app_routes/auth/cookie.py
+src/main_app/public/auth/cookie.py
 """
 
 from __future__ import annotations

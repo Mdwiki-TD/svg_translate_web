@@ -199,7 +199,7 @@ autotyping --none-return src
 svg_translate_web/
 ├── src/
 │   ├── app/                    # Flask application
-│   │   ├── app_routes/         # Route blueprints
+│   │   ├── public/         # Route blueprints
 │   │   │   ├── admin/          # Admin routes
 │   │   │   ├── auth/           # Authentication routes
 │   │   │   ├── tasks/          # Task management routes

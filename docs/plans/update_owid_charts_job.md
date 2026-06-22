@@ -23,7 +23,7 @@ and updates the database record when values have changed.
 | #   | File                                        | Change                                                                              |
 | --- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
 | 1   | `src/main_app/jobs_workers/workers_list.py` | Register new job in `jobs_data_admins` |
-| 2   | `src/main_app/app_routes/admin/sidebar.py`  | Add `Update OWID Charts` menu item under `"Jobs"` group                             |
+| 2   | `src/main_app/public/admin/sidebar.py`  | Add `Update OWID Charts` menu item under `"Jobs"` group                             |
 
 ---
 

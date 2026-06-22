@@ -5,7 +5,7 @@ tests/
 │   │   ├── clients/
 │   │   ├── files_service/
 │   │   └── utils/
-│   ├── app_routes/
+│   ├── public/
 │   │   ├── admin/
 │   │   │   └── admin_routes/
 │   │   ├── admin_routes/
@@ -41,7 +41,7 @@ tests/
     │   ├── files_service/
     │   ├── mwclient_page/
     │   └── utils/
-    ├── app_routes/
+    ├── public/
     │   ├── auth/
     │   └── utils/
     ├── config/
@@ -82,7 +82,7 @@ tests/
     │   │   └── fix_nested_jobs/
     │   └── utils/
     ├── public/
-    │   └── app_routes/
+    │   └── public/
     │       ├── auth/
     │       └── utils/
     ├── shared/

@@ -5,7 +5,7 @@ for Flask-SQLAlchemy projects, organized by the **offending layer**.
 
 ---
 
-## 1. Route / View Violations (`app_routes/`)
+## 1. Route / View Violations (`public/`)
 
 ### V-R1 · Business logic in route functions
 
@@ -25,7 +25,7 @@ request parsing or response building.
 
 ### V-R3 · Direct import of models in routes
 
-**Pattern**: `from main_app.db.models.user import User` inside `app_routes/`.
+**Pattern**: `from main_app.db.models.user import User` inside `public/`.
 **Detection**: Any `from ...db.models` import in a route file.
 **Severity**: 🟠 High (routes should call services, not models directly)
 
@@ -76,7 +76,7 @@ multiple records, applying discount rules) inside a model method instead of a se
 
 ### V-S1 · Services importing from routes
 
-**Pattern**: `from main_app.app_routes` import in a service file.
+**Pattern**: `from main_app.public` import in a service file.
 **Severity**: 🔴 Critical (inverted dependency)
 
 ### V-S2 · HTTP response construction in services
@@ -140,7 +140,7 @@ inside what should be a pure cryptographic utility.
 
 ### V-BG1 · Workers importing from routes
 
-**Pattern**: `from main_app.app_routes` in any worker.
+**Pattern**: `from main_app.public` in any worker.
 **Severity**: 🔴 Critical
 
 ### V-BG2 · HTTP request/response handling inside workers

@@ -11,9 +11,9 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...app_routes.jobs_routes_utils import JobsBp
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...jobs_workers.objects import JobData
+from ...public.jobs_routes_utils import JobsBp
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)

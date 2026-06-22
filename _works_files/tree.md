@@ -9,7 +9,7 @@ src/
 │   │   ├── mwclient_page/
 │   │   ├── utils/
 │   │   └── README.md
-│   ├── app_routes/
+│   ├── public/
 │   │   ├── auth/
 │   │   ├── main_routes/
 │   │   └── utils/

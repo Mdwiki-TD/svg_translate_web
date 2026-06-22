@@ -53,7 +53,7 @@ mypy --config-file=0/mypy.ini src # Type checking
 
 ### Flask Application Factory
 
-The app uses the factory pattern via `create_app()` in `src/main_app/__init__.py`. Routes are organized as Flask blueprints under `src/main_app/app_routes/`.
+The app uses the factory pattern via `create_app()` in `src/main_app/__init__.py`. Routes are organized as Flask blueprints under `src/main_app/public/`.
 
 ### Task Pipeline (8 stages)
 
@@ -77,14 +77,14 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 
 | Blueprint       | Prefix        | Location                 |
 | --------------- | ------------- | ------------------------ |
-| `bp_main`       | `/`           | `app_routes/main/`       |
-| `bp_auth`       | `/auth`       | `app_routes/auth/`       |
-| `bp_tasks`      | `/tasks`      | `app_routes/tasks/`      |
-| `bp_explorer`   | `/explorer`   | `app_routes/explorer/`   |
-| `bp_admin`      | `/admin`      | `app_routes/admin/`      |
-| `bp_templates`  | `/templates`  | `app_routes/templates/`  |
-| `bp_fix_nested` | `/fix-nested` | `app_routes/fix_nested/` |
-| `bp_extract`    | `/extract`    | `app_routes/extract/`    |
+| `bp_main`       | `/`           | `public/main/`       |
+| `bp_auth`       | `/auth`       | `public/auth/`       |
+| `bp_tasks`      | `/tasks`      | `public/tasks/`      |
+| `bp_explorer`   | `/explorer`   | `public/explorer/`   |
+| `bp_admin`      | `/admin`      | `public/admin/`      |
+| `bp_templates`  | `/templates`  | `public/templates/`  |
+| `bp_fix_nested` | `/fix-nested` | `public/fix_nested/` |
+| `bp_extract`    | `/extract`    | `public/extract/`    |
 
 ### Configuration
 

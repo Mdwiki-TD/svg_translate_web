@@ -8,7 +8,6 @@ from src.main_app.db.services.settings_service import (
     get_setting_by_key,
     list_settings,
     update_setting,
-    update_setting_bool,
 )
 
 
@@ -43,6 +42,7 @@ def test_get_all_settings_ready() -> None:
 
     records = get_all_settings_ready()
     assert records == {"crop_newest_upload_limit": 5000}
+
 
 class TestListSettings:
     """Tests for list_settings."""
@@ -211,34 +211,6 @@ class TestUpdateSetting:
 
         update_setting("test_key", 99, value_type=None)
         assert mock_setting.value == "99"
-
-
-class TestUpdateSettingBool:
-    """Tests for update_setting_bool (wrapped with @db_guard_rollback)."""
-
-    def test_updates_existing_setting(self, monkeypatch):
-        mock_setting = MagicMock()
-        mock_setting.value = None
-        mock_setting.title = "Original"
-        mock_setting.value_type = "boolean"
-
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_setting
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
-
-        result = update_setting_bool("test_key", True, "boolean")
-
-        assert mock_setting.value == "true"
-        assert result is True
-
-    def test_returns_false_when_not_found(self, monkeypatch):
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = None
-        monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
-
-        result = update_setting_bool("nonexistent", True)
-        assert result is False
 
 
 class TestCreateSetting:

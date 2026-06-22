@@ -11,9 +11,9 @@ from flask import (
     request,
 )
 
-from ..app_routes.utils.routes_utils import get_job_detail_url
 from ..db.services import list_jobs
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
+from ..public.utils.routes_utils import get_job_detail_url
 from .decorators import admin_required
 from .routes import (
     coordinators_module,

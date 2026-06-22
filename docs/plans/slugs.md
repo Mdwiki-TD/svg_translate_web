@@ -83,7 +83,7 @@ add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug)
 ### 4. Admin Dashboard
 Create a new admin section to manage slug redirects.
  * **Route File:** src/main_app/admin/routes/slug_redirects.py
- * **Registration:** Register the blueprint inside src/main_app/app_routes/admin/routes.py
+ * **Registration:** Register the blueprint inside src/main_app/public/admin/routes.py
 ### 5. Admin Features
 Create administrative views to manage records with the following criteria:
  * **List Redirects:**

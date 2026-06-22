@@ -54,7 +54,7 @@ src/main_app/
 │       ├── template_need_update_service.py
 │       ├── template_service.py
 │       └── user_token_service.py
-└── app_routes/                    # Flask Blueprints
+└── public/                    # Flask Blueprints
 ```
 
 ### 1.2 Current Patterns in Use
@@ -214,7 +214,7 @@ src/main_app/
 │   ├── template_need_update_service.py
 │   ├── template_service.py
 │   └── user_token_service.py
-├── app_routes/                    # Unchanged — Blueprints
+├── public/                    # Unchanged — Blueprints
 ├── migrations/                    # NEW: Flask-Migrate / Alembic
 │   ├── alembic.ini
 │   ├── env.py
@@ -886,7 +886,7 @@ def _register_view_creation_listener():
 
 
 def _register_blueprints(app: Flask) -> None:
-    from .app_routes import (
+    from .public import (
         bp_admin, bp_api, bp_auth, bp_explorer,
         bp_extract, bp_jobs, bp_main, bp_owid_charts,
     )

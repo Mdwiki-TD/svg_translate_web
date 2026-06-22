@@ -19,7 +19,7 @@ from src.main_app.db.services.delete_service import (
     delete_coordinator,
     delete_job,
     delete_record_by_pk,
-    delete_setting,
+    delete_setting_by_key,
     delete_slug_redirect,
     delete_template,
     delete_user,
@@ -173,14 +173,14 @@ class TestDeleteSetting:
             _db.session.add(record)
             _db.session.commit()
 
-            result = delete_setting("test_setting")
+            result = delete_setting_by_key("test_setting")
             assert result is True
             _db.session.expire_all()
             assert _db.session.get(SettingRecord, record.id) is None
 
     def test_delete_non_existent_setting(self, mock_app, setup_db):
         with mock_app.app_context():
-            result = delete_setting("nonexistent_key")
+            result = delete_setting_by_key("nonexistent_key")
             assert result is False
 
 

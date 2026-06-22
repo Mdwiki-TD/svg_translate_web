@@ -9,8 +9,8 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from ...db.services import (
     create_setting,
+    delete_setting_by_key,
     get_all_settings_raw,
-    delete_setting,
     update_setting,
 )
 from ..decorators import admin_required
@@ -34,17 +34,18 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
     failed_keys: list[str] = []
     deleted_keys: list[str] = []
 
-    for s in all_settings:
-        key = s["key"]
-        v_type = s["value_type"]
+    for setting in all_settings:
+        key = setting["key"]
+        v_type = setting["value_type"]
         form_key = f"setting_{key}"
         delete_key = f"delete_{key}"
 
         # Check if marked for deletion
         if request_form.get(delete_key) == "on":
-            if delete_setting(key):
+            try:
+                delete_setting_by_key(key)
                 deleted_keys.append(key)
-            else:
+            except Exception:
                 failed_keys.append(key)
             continue
 
@@ -56,11 +57,16 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
             continue
 
         value, success = _parse_setting_value(v_type, raw_val)
-        if not success or not update_setting(key, value, v_type):
+        if not success:
+            failed_keys.append(key)
+            continue
+
+        try:
+            update_setting(key, value, v_type)
+        except Exception:
             failed_keys.append(key)
 
     return failed_keys, deleted_keys
-
 
 
 class SettingsRoutes:
@@ -91,6 +97,7 @@ class SettingsRoutes:
                     "danger",
                 )
                 return redirect(url_for("admin.settings.dashboard"))
+
             if key and title:
                 success = create_setting(key, title, value_type)
                 if success:

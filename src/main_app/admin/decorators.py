@@ -12,7 +12,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ..app_routes.auth.utils import load_user
+from ..public.auth.utils import load_user
 
 FuncType = TypeVar("FuncType", bound=Callable[..., ResponseReturnValue])
 
