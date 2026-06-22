@@ -101,7 +101,8 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 
     try:
         record = get_coordinator_by_id(coordinator_id)
-        username = record.username
+        if record is None:
+            raise LookupError(f"Coordinator with id {coordinator_id} not found")
         delete_coordinator(coordinator_id)
     except LookupError:
         logger.exception("Unable to delete coordinator.")
@@ -110,7 +111,7 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
         logger.exception("Unable to delete coordinator.")
         flash("Unable to delete coordinator. Please try again.", "danger")
     else:
-        flash(f"Coordinator '{username}' removed.", "success")
+        flash(f"Coordinator '{coordinator_id}' removed.", "success")
 
     return redirect(url_for("admin.coordinators.dashboard"))
 

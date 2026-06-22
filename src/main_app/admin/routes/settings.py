@@ -42,10 +42,9 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
 
         # Check if marked for deletion
         if request_form.get(delete_key) == "on":
-            try:
-                delete_setting_by_key(key)
+            if delete_setting_by_key(key):
                 deleted_keys.append(key)
-            except Exception:
+            else:
                 failed_keys.append(key)
             continue
 
@@ -61,9 +60,7 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
             failed_keys.append(key)
             continue
 
-        try:
-            update_setting(key, value, v_type)
-        except Exception:
+        if not update_setting(key, value, v_type):
             failed_keys.append(key)
 
     return failed_keys, deleted_keys
