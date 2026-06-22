@@ -73,7 +73,7 @@ def admin_dashboard() -> str:
     )
 
 
-def register_blueprints(bp_admin) -> None:
+def register_bp_admin_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(coordinators_module.bp)
     bp_admin.register_blueprint(users_module.bp)
     bp_admin.register_blueprint(settings_module.bp)
@@ -83,9 +83,9 @@ def register_blueprints(bp_admin) -> None:
     bp_admin.register_blueprint(slug_redirects_module.bp)
 
 
-register_blueprints(bp_admin)
-
+register_bp_admin_blueprints(bp_admin)
 
 __all__ = [
     "bp_admin",
+    "register_bp_admin_blueprints",
 ]

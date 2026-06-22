@@ -10,8 +10,8 @@ from src.main_app.admin.routes import coordinators
 
 def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):
     """Test that _add_coordinator catches both LookupError and ValueError in single except clause."""
-    mock_service = Mock()
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.admin_service", mock_service)
+    mock_add_coordinator = Mock()
+    monkeypatch.setattr("src.main_app.admin.routes.coordinators.add_coordinator", mock_add_coordinator)
 
     # Mock Flask globals to avoid "Working outside of request context" errors
     mock_request = Mock()
@@ -27,7 +27,7 @@ def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplo
     monkeypatch.setattr("src.main_app.admin.routes.coordinators.url_for", lambda x: f"/{x}")
 
     # Test with ValueError
-    mock_service.add_coordinator = Mock(side_effect=ValueError("Username invalid"))
+    mock_add_coordinator = Mock(side_effect=ValueError("Username invalid"))
 
     with caplog.at_level(logging.ERROR):
         coordinators._add_coordinator()
@@ -43,7 +43,7 @@ def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplo
     caplog.clear()
 
     # Test with LookupError
-    mock_service.add_coordinator = Mock(side_effect=LookupError("User not found"))
+    mock_add_coordinator = Mock(side_effect=LookupError("User not found"))
 
     with caplog.at_level(logging.ERROR):
         coordinators._add_coordinator()
