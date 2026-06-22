@@ -1,4 +1,4 @@
-"""Integration tests for src/main_app/app_routes/admin/routes.py module.
+"""Integration tests for src/main_app/admin/route.py module.
 
 Tests the admin dashboard, users listing, and coordinator management through
 the Flask test client with a real SQLite database (via TestingConfig).
@@ -249,8 +249,7 @@ class TestCoordinatorRoutes:
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
-            f"/admin/coordinators/{coord.id}/active",
-            data={"active": "0"},
+            f"/admin/coordinators/{coord.id}/deactivate",
             follow_redirects=True,
         )
         assert resp.status_code == 200
@@ -273,8 +272,7 @@ class TestCoordinatorRoutes:
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
-            f"/admin/coordinators/{coord.id}/active",
-            data={"active": "1"},
+            f"/admin/coordinators/{coord.id}/activate",
             follow_redirects=True,
         )
         assert resp.status_code == 200
@@ -355,8 +353,7 @@ class TestAdminRouteIntegration:
 
         # Deactivate
         mock_client.post(
-            f"/admin/coordinators/{coord.id}/active",
-            data={"active": "0"},
+            f"/admin/coordinators/{coord.id}/deactivate",
             follow_redirects=True,
         )
         with mock_app.app_context():
@@ -365,8 +362,7 @@ class TestAdminRouteIntegration:
 
         # Reactivate
         mock_client.post(
-            f"/admin/coordinators/{coord.id}/active",
-            data={"active": "1"},
+            f"/admin/coordinators/{coord.id}/activate",
             follow_redirects=True,
         )
         with mock_app.app_context():

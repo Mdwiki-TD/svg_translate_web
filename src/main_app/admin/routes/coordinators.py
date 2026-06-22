@@ -77,12 +77,10 @@ def _add_coordinator() -> ResponseReturnValue:
     return redirect(url_for("admin.coordinators.dashboard"))
 
 
-def _update_coordinator_active(coordinator_id: int) -> ResponseReturnValue:
-    """Toggle the active flag for a coordinator."""
-
-    desired = request.form.get("active", "0") == "1"
+def _set_record_active_status(coordinator_id: int, is_active: bool) -> ResponseReturnValue:
+    """Shared helper to update coordinator is_active status."""
     try:
-        record = set_coordinator_active(coordinator_id, desired)
+        record = set_coordinator_active(coordinator_id, is_active)
         if record is None:
             raise LookupError(f"Coordinator with id {coordinator_id} not found")
     except LookupError:
@@ -135,10 +133,15 @@ class CoordinatorsRoutes:
         def add() -> ResponseReturnValue:
             return _add_coordinator()
 
-        @self.bp.post("/<int:coordinator_id>/active")
+        @self.bp.post("/<int:coordinator_id>/activate")
         @admin_required
-        def update_active(coordinator_id: int) -> ResponseReturnValue:
-            return _update_coordinator_active(coordinator_id)
+        def activate(coordinator_id: int) -> ResponseReturnValue:
+            return _set_record_active_status(coordinator_id, True)
+
+        @self.bp.post("/<int:coordinator_id>/deactivate")
+        @admin_required
+        def deactivate(coordinator_id: int) -> ResponseReturnValue:
+            return _set_record_active_status(coordinator_id, False)
 
         @self.bp.post("/<int:coordinator_id>/delete")
         @admin_required

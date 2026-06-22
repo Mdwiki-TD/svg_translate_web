@@ -59,7 +59,7 @@ def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
 
 def add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
-
+    username = username.strip()
     if not username:
         raise ValueError("Username is required")
 
