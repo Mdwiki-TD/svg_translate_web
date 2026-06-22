@@ -9,7 +9,7 @@ import mwoauth
 from flask import url_for
 from mwoauth.handshaker import Handshaker
 
-from ..config import settings
+from ...config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from typing import Any, Tuple
 
 from .auth_users_service import AuthUserService
-from .mwoauth_handshake import complete_login
+from ..shared.auth.mwoauth_handshake import complete_login
 
 logger = logging.getLogger(__name__)
 

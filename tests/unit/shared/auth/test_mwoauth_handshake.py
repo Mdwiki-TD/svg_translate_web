@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/su_services/mwoauth_handshake.py."""
+"""Unit tests for src/main_app/shared/auth/mwoauth_handshake.py."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app.su_services import mwoauth_handshake
+from src.main_app.shared.auth import mwoauth_handshake
 
 
 @pytest.fixture(autouse=True)
@@ -23,7 +23,7 @@ def fake_settings(monkeypatch: pytest.MonkeyPatch) -> None:
             user_agent="agent",
         ),
     )
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.settings", settings)
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.settings", settings)
 
 
 def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -50,7 +50,7 @@ def test_get_handshaker(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_get_handshaker_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.settings", types.SimpleNamespace(oauth=None))
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.settings", types.SimpleNamespace(oauth=None))
 
     with pytest.raises(RuntimeError):
         mwoauth_handshake.get_handshaker()
@@ -69,8 +69,8 @@ def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert callback == "https://host/callback"
             return "https://auth", ("token", "secret")
 
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.url_for", fake_url_for)
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.url_for", fake_url_for)
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
 
     redirect_url, request_token = mwoauth_handshake.start_login("signed-state")
 
@@ -90,11 +90,11 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert token.key == "k"
             return {"sub": "123", "username": "Tester"}
 
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
 
     access_token, identity = mwoauth_handshake.complete_login("request-token", "oauth=1")
 
-    assert access_token.key == "k"
+    assert access_token.key == "k" # type: ignore
     assert identity["username"] == "Tester"
 
 
@@ -106,7 +106,7 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
         def identify(self, token) -> dict:
             raise ValueError("bad")
 
-    monkeypatch.setattr("src.main_app.su_services.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.shared.auth.mwoauth_handshake.get_handshaker", lambda: DummyHandshaker())
 
     with pytest.raises(mwoauth_handshake.OAuthIdentityError) as excinfo:
         mwoauth_handshake.complete_login("request-token", "query")
