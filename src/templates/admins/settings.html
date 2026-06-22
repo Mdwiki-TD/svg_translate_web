@@ -14,7 +14,7 @@
                 <h5 class="mb-0 mt-1">Add New Setting</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="{{ url_for('admin.settings.settings_create') }}" class="row g-3">
+                <form method="post" action="{{ url_for('admin.settings.create') }}" class="row g-3">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="col-md-4">
                         <label class="form-label" for="new-setting-key">Key <small class="text-muted">(Code
@@ -50,7 +50,7 @@
                 <h5 class="mb-0 mt-1">Manage Settings</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="{{ url_for('admin.settings.settings_update') }}">
+                <form method="post" action="{{ url_for('admin.settings.update') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                     <div class="table-responsive">

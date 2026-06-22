@@ -37,15 +37,15 @@ def test_key_validation_pattern_invalid():
         assert re.fullmatch(KEY_PATTERN, key) is None, f"Key '{key}' should be invalid"
 
 
-def test_settings_create_key_too_long():
-    """Test settings_create rejects key that's too long (190+ chars)."""
+def test_create_key_too_long():
+    """Test create rejects key that's too long (190+ chars)."""
     long_key = "a" * 200
     result = re.fullmatch(KEY_PATTERN, long_key)
     assert result is None
 
 
-def test_settings_create_key_max_length():
-    """Test settings_create accepts key at max length (190 chars)."""
+def test_create_key_max_length():
+    """Test create accepts key at max length (190 chars)."""
     max_key = "a" + "a" * 189  # 190 chars total
     result = re.fullmatch(KEY_PATTERN, max_key)
     assert result is not None

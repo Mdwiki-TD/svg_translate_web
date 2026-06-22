@@ -1,10 +1,14 @@
+"""
+SQLAlchemy-based service for managing settings.
+"""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 from ...extensions import db
-from ..models.settings import SettingRecord
+from ..models import SettingRecord
 from .delete_service import delete_setting
 from .utils import db_guard, db_guard_rollback
 
@@ -38,8 +42,9 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
 
 
 def list_settings() -> list[SettingRecord]:
-    """List all settings."""
-    return db.session.query(SettingRecord).all()
+    """Return all setting records."""
+    orm_objs = db.session.query(SettingRecord).all()
+    return orm_objs
 
 
 def get_all_settings_raw() -> list[dict[str, Any]]:
@@ -77,6 +82,15 @@ def get_all_settings_ready() -> dict[str, Any]:
 def get_setting_by_key(key: str) -> SettingRecord:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
+
+
+def get_setting_by_id(setting_id: int) -> SettingRecord | None:
+    """Get a setting record by ID."""
+    orm_obj = db.session.get(SettingRecord, setting_id)
+    if not orm_obj:
+        logger.warning(f"Setting record with ID {setting_id} not found")
+        return None
+    return orm_obj
 
 
 @db_guard(default_return=False)
@@ -127,7 +141,12 @@ def update_setting_bool(
     return True
 
 
-def create_setting(key: str, title: str, value_type: str, value: str | None = None) -> bool:
+def create_setting(
+    key: str,
+    title: str,
+    value_type: str,
+    value: str | None = None,
+) -> bool:
     """
     Create new setting.
     """
@@ -138,7 +157,12 @@ def create_setting(key: str, title: str, value_type: str, value: str | None = No
 
     value = value or default_value_types.get(value_type, "")
 
-    setting = SettingRecord(key=key, title=title, value=value, value_type=value_type)
+    setting = SettingRecord(
+        key=key,
+        title=title,
+        value=value,
+        value_type=value_type,
+    )
     db.session.add(setting)
     try:
         db.session.commit()
