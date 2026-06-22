@@ -94,7 +94,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
 
     access_token, identity = mwoauth_handshake.complete_login("request-token", "oauth=1")
 
-    assert access_token.key == "k" # type: ignore
+    assert access_token.key == "k"  # type: ignore
     assert identity["username"] == "Tester"
 
 

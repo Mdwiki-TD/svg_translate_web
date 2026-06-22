@@ -18,7 +18,7 @@ from src.main_app.public.utils.routes_utils import (
     get_job_detail_url,
     load_auth_payload,
 )
-from src.main_app.su_services.current_user import CurrentUser
+from src.main_app.shared.auth.current_user import CurrentUser
 
 
 class TestLoadAuthPayload:

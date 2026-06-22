@@ -1,7 +1,7 @@
-from .auth_users_service import (
+from ..shared.auth.auth_users_service import (
     AuthUserService,
 )
-from .current_user import CurrentUser
+from ..shared.auth.current_user import CurrentUser
 from .jobs_files_service import (
     create_job_cancelled_file,
     is_job_cancelled_file_exist,

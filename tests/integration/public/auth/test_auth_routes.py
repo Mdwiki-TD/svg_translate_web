@@ -92,11 +92,11 @@ def test_callback_success(app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch)
         identity = {"sub": "123", "username": "Tester"}
         return access, identity
 
-    monkeypatch.setattr("src.main_app.su_services.auth_service.complete_login", fake_complete)
+    monkeypatch.setattr("src.main_app.shared.auth.auth_service.complete_login", fake_complete)
 
     fake_user = types.SimpleNamespace(user_id=123, username="Tester")
     monkeypatch.setattr(
-        "src.main_app.su_services.auth_users_service.AuthUserService.save_and_get_user",
+        "src.main_app.shared.auth._users_service.AuthUserService.save_and_get_user",
         staticmethod(lambda **kwargs: fake_user),
     )
     monkeypatch.setattr("src.main_app.public.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")

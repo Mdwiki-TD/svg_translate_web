@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from ..db.services import (
+from ...db.services import (
     create_user,
     get_authenticated_user_token,
     get_user_by_username,
@@ -13,7 +13,7 @@ from ..db.services import (
     is_active_coordinator,
     upsert_user_token,
 )
-from ..db.services.users_service import UsersRecord
+from ...db.services.users_service import UsersRecord
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
