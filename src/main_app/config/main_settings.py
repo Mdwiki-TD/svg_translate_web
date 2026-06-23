@@ -180,11 +180,14 @@ def load_other_config() -> OtherConfig:
         "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
     )
 
+    ui_test_bypass_coordinator_check = _env_bool("UI_TEST_BYPASS_COORDINATOR_CHECK", False)
+
     _config = OtherConfig(
         csrf_time_limit=csrf_time_limit,
         user_agent=user_agent,
         wiki_domain=wiki_domain,
         static_server=static_server,
+        ui_test_bypass_coordinator_check=ui_test_bypass_coordinator_check,
     )
 
     return _config

@@ -16,6 +16,7 @@ class OtherConfig:
     user_agent: str
     wiki_domain: str
     static_server: str
+    ui_test_bypass_coordinator_check: bool
 
 
 @dataclass(frozen=True)

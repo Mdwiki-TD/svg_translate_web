@@ -186,6 +186,14 @@ pyright src/              # Type check
 
 Line length is 120 across all tools.
 
+### Development UI Testing
+
+-   The admin area normally requires the authenticated user to exist in the coordinators table.
+-   Developers and AI agents can bypass this requirement during local UI testing.
+-   To use the bypass, start the application using `DevelopmentConfig` (e.g., via `src/app1.py`).
+-   Enable the bypass by setting the environment variable `UI_TEST_BYPASS_COORDINATOR_CHECK=true`.
+-   Note that this bypass is explicitly ignored when `ProductionConfig` is used.
+
 #### Auto Typing
 
 ```bash

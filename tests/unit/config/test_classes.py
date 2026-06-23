@@ -116,6 +116,7 @@ def test_Settings():
         csrf_time_limit=3600,
         static_server="static_server",
         wiki_domain="upload.example.com",
+        ui_test_bypass_coordinator_check=False,
     )
 
     settings = Settings(

@@ -37,8 +37,10 @@ class Config:
     """
 
     # Flask core settings
+    ENV: str = "production"
     DEBUG: bool = False
     TESTING: bool = False
+    UI_TEST_BYPASS_COORDINATOR_CHECK: bool = False
     SECRET_KEY: str = settings.security.secret_key
     SECRET_KEY_FALLBACKS: list[str] = list(settings.security.secret_key_fallbacks or [])
 
@@ -114,8 +116,10 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration with debugging enabled."""
 
+    ENV: str = "development"
     DEBUG: bool = True
     TESTING: bool = True
+    UI_TEST_BYPASS_COORDINATOR_CHECK: bool = settings.other.ui_test_bypass_coordinator_check
     SQLALCHEMY_ECHO: bool = False  # Log SQL in development
 
     # Production should always use secure cookies
@@ -129,6 +133,9 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Production configuration with strict security settings."""
+
+    ENV: str = "production"
+    UI_TEST_BYPASS_COORDINATOR_CHECK: bool = False
 
     # Production should always use secure cookies
     SESSION_COOKIE_SECURE: bool = True
