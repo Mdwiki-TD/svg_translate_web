@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from flask import current_app
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
@@ -24,16 +23,6 @@ logger = logging.getLogger(__name__)
 
 def is_active_coordinator(username: str) -> bool:
     """Check whether a single username is an active coordinator."""
-    # This bypass exists only for local development and automated UI/E2E testing.
-    # It must not be used as a production authorization mechanism.
-    bypass_enabled = current_app.config.get("ENV") == "development" and current_app.config.get(
-        "UI_TEST_BYPASS_COORDINATOR_CHECK",
-        False,
-    )
-
-    if bypass_enabled:
-        return True
-
     try:
         record = (
             db.session.query(AdminUserRecord)

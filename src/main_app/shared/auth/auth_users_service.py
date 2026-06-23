@@ -14,6 +14,7 @@ from ...db.services import (
     upsert_user_token,
 )
 from ...db.services.users_service import UsersRecord
+from .bypass_utils import is_coordinator_bypass_enabled
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class AuthUserService:
             if not token:
                 return None
 
-            is_active_admin = is_active_coordinator(username)
+            is_active_admin = is_coordinator_bypass_enabled() or is_active_coordinator(username)
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
@@ -94,7 +95,7 @@ class AuthUserService:
                 username=username,
                 access_token=token.access_token,
                 access_secret=token.access_secret,
-                is_active_admin=is_active_coordinator(username),
+                is_active_admin=is_coordinator_bypass_enabled() or is_active_coordinator(username),
                 can_run_jobs=token.user.can_run_jobs,
                 can_run_bg_jobs=token.user.can_run_bg_jobs,
             )

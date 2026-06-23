@@ -34,37 +34,3 @@ class TestGetCoordinatorById:
         with patch("src.main_app.db.services.admin_service.db", mock_db):
             with pytest.raises(LookupError, match="not found"):
                 get_coordinator_by_id(999)
-
-
-class TestIsActiveCoordinatorBypass:
-    def test_bypass_enabled_in_development(self):
-        mock_app = MagicMock()
-        mock_app.config = {"ENV": "development", "UI_TEST_BYPASS_COORDINATOR_CHECK": True}
-        with patch("src.main_app.db.services.admin_service.current_app", mock_app):
-            assert is_active_coordinator("any_user") is True
-
-    def test_bypass_ignored_in_production(self):
-        mock_app = MagicMock()
-        mock_app.config = {"ENV": "production", "UI_TEST_BYPASS_COORDINATOR_CHECK": True}
-        mock_db = MagicMock()
-        mock_db.session.query.return_value.filter.return_value.first.return_value = None
-        with (
-            patch("src.main_app.db.services.admin_service.current_app", mock_app),
-            patch("src.main_app.db.services.admin_service.db", mock_db),
-        ):
-            assert is_active_coordinator("any_user") is False
-            # Verify it actually queried the DB
-            assert mock_db.session.query.called
-
-    def test_bypass_disabled_in_development(self):
-        mock_app = MagicMock()
-        mock_app.config = {"ENV": "development", "UI_TEST_BYPASS_COORDINATOR_CHECK": False}
-        mock_db = MagicMock()
-        mock_db.session.query.return_value.filter.return_value.first.return_value = None
-        with (
-            patch("src.main_app.db.services.admin_service.current_app", mock_app),
-            patch("src.main_app.db.services.admin_service.db", mock_db),
-        ):
-            assert is_active_coordinator("any_user") is False
-            # Verify it actually queried the DB
-            assert mock_db.session.query.called
