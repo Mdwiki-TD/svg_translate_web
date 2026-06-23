@@ -13,6 +13,8 @@ from flask import flash, g, redirect, request, session, url_for
 from ...config import settings
 from ...core.cookies import extract_user_id
 from ...shared.auth.auth_users_service import AuthUserService
+from ...shared.auth.bypass_utils import is_coordinator_bypass_enabled
+from ...shared.auth.current_user import CurrentUser
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
@@ -39,6 +41,18 @@ def load_logged_in_user() -> None:
     Populates g._current_user for the lifecycle of the request.
     """
     if hasattr(g, "_current_user"):
+        return
+
+    if is_coordinator_bypass_enabled():
+        g._current_user = CurrentUser(
+            user_id=0,
+            username="BYPASS_ADMIN",
+            access_token=b"placeholder",
+            access_secret=b"placeholder",
+            is_active_admin=True,
+            can_run_jobs=True,
+            can_run_bg_jobs=True,
+        )
         return
 
     # 1. Try to resolve user_id from session

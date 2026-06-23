@@ -46,6 +46,14 @@ class TestResolveUserId:
 
 
 class TestLoadLoggedInUser:
+    def test_bypass_enabled_sets_g_user(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr("src.main_app.public.auth.utils.is_coordinator_bypass_enabled", lambda: True)
+        with mock_app.test_request_context():
+            auth_utils.load_logged_in_user()
+            assert g._current_user is not None
+            assert g._current_user.username == "BYPASS_ADMIN"
+            assert g._current_user.is_active_admin is True
+
     def test_short_circuits_when_g_user_exists(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
             g._current_user = "existing"

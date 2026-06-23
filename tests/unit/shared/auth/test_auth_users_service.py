@@ -18,7 +18,6 @@ def mock_db_services():
         patch("src.main_app.shared.auth.auth_users_service.get_user_token") as m_get_token,
         patch("src.main_app.shared.auth.auth_users_service.is_active_coordinator") as m_is_coord,
         patch("src.main_app.shared.auth.auth_users_service.get_authenticated_user_token") as m_get_auth,
-        patch("src.main_app.shared.auth.auth_users_service.is_coordinator_bypass_enabled") as m_bypass,
     ):
         yield {
             "get_by_name": m_get_by_name,
@@ -27,7 +26,6 @@ def mock_db_services():
             "get_token": m_get_token,
             "is_coord": m_is_coord,
             "get_auth": m_get_auth,
-            "bypass": m_bypass,
         }
 
 
@@ -40,7 +38,6 @@ class TestUserService:
         mock_db_services["get_by_name"].return_value = user_mock
         mock_db_services["get_token"].return_value = MagicMock(access_token="key", access_secret="secret")
         mock_db_services["is_coord"].return_value = True
-        mock_db_services["bypass"].return_value = False
 
         res = AuthUserService.save_and_get_user("testuser", "key", "secret")
 
@@ -53,7 +50,6 @@ class TestUserService:
         mock_db_services["create"].return_value = MagicMock(user_id=2)
         mock_db_services["get_token"].return_value = MagicMock(access_token="k2", access_secret="s2")
         mock_db_services["is_coord"].return_value = False
-        mock_db_services["bypass"].return_value = False
 
         res = AuthUserService.save_and_get_user("newuser", "k2", "s2")
 
@@ -77,7 +73,6 @@ class TestUserService:
             access_secret="as",
         )
         mock_db_services["is_coord"].return_value = True
-        mock_db_services["bypass"].return_value = False
 
         res = AuthUserService.get_authenticated_user(123)
         assert res.username == "authuser"
@@ -90,25 +85,3 @@ class TestUserService:
     def test_get_authenticated_user_error(self, mock_db_services):
         mock_db_services["get_auth"].side_effect = Exception("Load error")
         assert AuthUserService.get_authenticated_user(123) is None
-
-    def test_save_and_get_user_bypass_enabled(self, mock_db_services):
-        user_mock = MagicMock(user_id=1)
-        mock_db_services["get_by_name"].return_value = user_mock
-        mock_db_services["get_token"].return_value = MagicMock(access_token="key", access_secret="secret")
-        mock_db_services["is_coord"].return_value = False
-        mock_db_services["bypass"].return_value = True
-
-        res = AuthUserService.save_and_get_user("testuser", "key", "secret")
-        assert res.is_active_admin is True
-
-    def test_get_authenticated_user_bypass_enabled(self, mock_db_services):
-        mock_db_services["get_auth"].return_value = MagicMock(
-            user=MagicMock(username="authuser"),
-            access_token="atk",
-            access_secret="as",
-        )
-        mock_db_services["is_coord"].return_value = False
-        mock_db_services["bypass"].return_value = True
-
-        res = AuthUserService.get_authenticated_user(123)
-        assert res.is_active_admin is True
