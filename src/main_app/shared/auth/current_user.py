@@ -1,4 +1,6 @@
-"""Composite user identity + credentials for request handling."""
+"""
+Helpers for loading the current authenticated user.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +9,7 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class CurrentUser:
-    """Bundles user identity (from ``users`` table) and OAuth credentials
-    (from ``user_tokens`` table) into a single object for request handling.
-
+    """Bundles user identity and OAuth credentials
     Stored in ``g._current_user`` during the request lifecycle.
     """
 
@@ -22,7 +22,6 @@ class CurrentUser:
     can_run_bg_jobs: bool = False
 
     def to_auth_payload(self) -> dict[str, int | str | bytes]:
-        """Return the dict expected by ``api_services/clients/wiki_client``."""
         return {
             "id": self.user_id,
             "username": self.username,
