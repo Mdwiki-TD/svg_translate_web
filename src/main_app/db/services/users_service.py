@@ -11,42 +11,42 @@ from typing import Optional
 
 from ...extensions import db
 from ..exceptions import UserNotFoundError
-from ..models import UsersRecord
+from ..models import UseRecord
 
 logger = logging.getLogger(__name__)
 
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_users() -> list[UsersRecord]:
+def list_users() -> list[UseRecord]:
     """Return all user identity records."""
-    return db.session.query(UsersRecord).all()
+    return db.session.query(UseRecord).all()
 
 
-def get_user(user_id: int) -> Optional[UsersRecord]:
+def get_user(user_id: int) -> Optional[UseRecord]:
     """Fetch a user by user_id."""
     if not user_id:
         return None
-    return db.session.query(UsersRecord).filter(UsersRecord.user_id == int(user_id)).first()
+    return db.session.query(UseRecord).filter(UseRecord.user_id == int(user_id)).first()
 
 
-def get_user_by_username(username: str) -> Optional[UsersRecord]:
+def get_user_by_username(username: str) -> Optional[UseRecord]:
     """Fetch a user by username."""
     username = (username or "").strip()
     if not username:
         return None
-    return db.session.query(UsersRecord).filter(UsersRecord.username == username).first()
+    return db.session.query(UseRecord).filter(UseRecord.username == username).first()
 
 
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
-def create_user(username: str) -> UsersRecord:
+def create_user(username: str) -> UseRecord:
     """Create a user identity row. Idempotent — returns existing if present."""
-    existing = db.session.query(UsersRecord).filter(UsersRecord.username == username).first()
+    existing = db.session.query(UseRecord).filter(UseRecord.username == username).first()
     if existing:
         return existing
-    record = UsersRecord(username=username)
+    record = UseRecord(username=username)
     db.session.add(record)
     try:
         db.session.commit()
@@ -54,14 +54,14 @@ def create_user(username: str) -> UsersRecord:
     except Exception:
         db.session.rollback()
         # Handle potential race condition where user was created concurrently
-        existing = db.session.query(UsersRecord).filter(UsersRecord.username == username).first()
+        existing = db.session.query(UseRecord).filter(UseRecord.username == username).first()
         if existing:
             return existing
         raise
     return record
 
 
-def toggle_can_run_jobs(user_id: int, value: bool) -> UsersRecord:
+def toggle_can_run_jobs(user_id: int, value: bool) -> UseRecord:
     """Toggle can_run_jobs."""
     record = get_user(user_id)
 
@@ -75,7 +75,7 @@ def toggle_can_run_jobs(user_id: int, value: bool) -> UsersRecord:
     return record
 
 
-def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UsersRecord:
+def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UseRecord:
     """Toggle can_run_bg_jobs."""
     record = get_user(user_id)
 

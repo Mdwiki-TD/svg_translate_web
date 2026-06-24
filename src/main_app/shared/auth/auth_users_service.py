@@ -13,7 +13,7 @@ from ...db.services import (
     is_active_coordinator,
     upsert_user_token,
 )
-from ...db.services.users_service import UsersRecord
+from ...db.services.users_service import UseRecord
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
@@ -34,10 +34,10 @@ class AuthUserService:
 
         try:
             # Ensure user identity row exists
-            user: Optional[UsersRecord] = get_user_by_username(username)
+            user: Optional[UseRecord] = get_user_by_username(username)
 
             if not user:
-                user: Optional[UsersRecord] = create_user(username)
+                user: Optional[UseRecord] = create_user(username)
 
             if not user:
                 return None
