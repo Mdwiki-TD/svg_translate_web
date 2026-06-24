@@ -35,7 +35,7 @@ class UtilsJobsBp:
         # download_main_files routes
         # ================================
 
-        @self.bp.get("/download_main_files/file/<string:filename>")
+        @self.bp.route("/download_main_files/file/<string:filename>", methods=["GET"])
         @admin_required
         def serve_download_main_file(filename: str) -> Response:
             """
@@ -46,7 +46,7 @@ class UtilsJobsBp:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/download_main_files/download-all")
+        @self.bp.route("/download_main_files/download-all", methods=["GET"])
         @admin_required
         def download_all_main_files() -> ResponseReturnValue:
             """Download all main files as a zip archive."""
@@ -64,7 +64,7 @@ class UtilsJobsBp:
         # crop-main-files routes
         # ================================
 
-        @self.bp.get("/crop-main-files/original/<string:filename>")
+        @self.bp.route("/crop-main-files/original/<string:filename>", methods=["GET"])
         @admin_required
         def serve_crop_original_file(filename: str) -> Response:
             """
@@ -76,7 +76,7 @@ class UtilsJobsBp:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/cropped/<string:filename>")
+        @self.bp.route("/crop-main-files/cropped/<string:filename>", methods=["GET"])
         @admin_required
         def serve_crop_cropped_file(filename: str) -> Response:
             """
@@ -88,7 +88,7 @@ class UtilsJobsBp:
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
-        @self.bp.get("/crop-main-files/compare/<string:original>/<string:cropped>")
+        @self.bp.route("/crop-main-files/compare/<string:original>/<string:cropped>", methods=["GET"])
         @admin_required
         def compare_crop_files(original: str, cropped: str) -> ResponseReturnValue:
             """Compare crop files"""

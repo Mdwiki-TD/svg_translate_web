@@ -66,7 +66,7 @@ class SlugRedirects:
                 total_should_not_be_replaced=total_should_not_be_replaced,
             )
 
-        @self.bp.get("/<int:redirect_id>/edit")
+        @self.bp.route("/<int:redirect_id>/edit", methods=["GET"])
         @admin_required
         def edit_slug_redirect(redirect_id: int) -> ResponseReturnValue:
             return _edit_slug_redirect(redirect_id)
