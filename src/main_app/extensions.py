@@ -30,7 +30,7 @@ class BaseModel(Model):
             data[column.name] = value  # type: ignore
         return data
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

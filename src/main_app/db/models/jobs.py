@@ -61,7 +61,7 @@ class JobRecord(db.Model):
     )
     is_running: Mapped[int | None] = mapped_column(nullable=True)
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
