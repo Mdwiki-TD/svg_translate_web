@@ -100,7 +100,7 @@ def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: in
 
 
 def configure_logging(
-    level: str,
+    level: str | int,
     use_colorlog: bool = False,
 ) -> None:
     """

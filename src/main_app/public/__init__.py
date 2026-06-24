@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-from ..admin.route import bp_admin
+from ..admin.admin_panel import bp_admin
 from .api_routes import bp_api
 from .auth.routes import bp_auth
 from .jobs_utils_bp import jobs_utils_module
