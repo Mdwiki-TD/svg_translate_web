@@ -13,7 +13,7 @@ from ...shared.decode_bytes import coerce_bytes
 logger = logging.getLogger(__name__)
 
 
-class UseRecord(db.Model):
+class UserRecord(db.Model):
     """Stable user identity — source of truth for user_id and username.
 
     CREATE TABLE `users` (
@@ -166,7 +166,7 @@ class UserTokenRecord(db.Model):
     rotated_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # Clean explicit relationship mapping matching SQLAlchemy 2.0 recommendations via back_populates
-    user: Mapped[UseRecord] = relationship(back_populates="token")
+    user: Mapped[UserRecord] = relationship(back_populates="token")
 
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value) -> bytes:
@@ -201,5 +201,5 @@ class UserTokenRecord(db.Model):
 __all__ = [
     "AdminUserRecord",
     "UserTokenRecord",
-    "UseRecord",
+    "UserRecord",
 ]
