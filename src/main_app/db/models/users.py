@@ -17,13 +17,13 @@ class UsersRecord(db.Model):
     """Stable user identity — source of truth for user_id and username.
 
     CREATE TABLE `users` (
-      `user_id` int NOT NULL AUTO_INCREMENT,
-      `username` varchar(255) NOT NULL,
-      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `user_id` int NOT NULL AUTO_INCREMENT,
+        `username` varchar(255) NOT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `can_run_jobs` tinyint(1) NOT NULL DEFAULT '0',
         `can_run_bg_jobs` tinyint(1) NOT NULL DEFAULT '0',
-      PRIMARY KEY (`user_id`),
-      UNIQUE KEY `uq_users_username` (`username`)
+        PRIMARY KEY (`user_id`),
+        UNIQUE KEY `uq_users_username` (`username`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
 
