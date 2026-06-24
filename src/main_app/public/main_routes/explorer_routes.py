@@ -176,4 +176,6 @@ def compare(title_dir: str, filename: str) -> str:
     )
 
 
-__all__ = ["bp_explorer"]
+__all__ = [
+    "bp_explorer",
+]
