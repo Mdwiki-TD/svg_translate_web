@@ -105,7 +105,7 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
 
         return func(*args, **kwargs)
 
-    return wrapper
+    return cast(FuncType, wrapper)
 
 
 __all__ = [

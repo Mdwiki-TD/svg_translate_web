@@ -5,6 +5,13 @@ Helpers for loading the current authenticated user.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
+
+def parse_bool(value: str) -> bool:
+    """Parse boolean value from CSV string."""
+    if not value:
+        return False
+    return value.strip().lower() in {"yes", "true", "1", "y"}
 
 
 @dataclass(frozen=True)
@@ -20,6 +27,13 @@ class CurrentUser:
     is_active_admin: bool = False
     can_run_jobs: bool = False
     can_run_bg_jobs: bool = False
+
+    def __init__(self, **kwargs: Any) -> None:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                if key in ("can_run_jobs", "can_run_bg_jobs"):
+                    value = parse_bool(value)
+                setattr(self, key, value)
 
     def to_auth_payload(self) -> dict[str, int | str | bytes]:
         return {
