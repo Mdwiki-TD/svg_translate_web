@@ -27,7 +27,7 @@ class TestUpdaterOutcome:
     def test_frozen(self):
         o = UpdaterOutcome(kind="changed")
         with pytest.raises(AttributeError):
-            o.kind = "error" # type: ignore
+            o.kind = "error"  # type: ignore
 
     def test_to_json(self):
         o = UpdaterOutcome(kind="missing", msg="not found")
