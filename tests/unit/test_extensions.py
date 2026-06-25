@@ -10,7 +10,6 @@ from datetime import datetime
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from flask.app import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy

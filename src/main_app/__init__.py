@@ -15,7 +15,9 @@ from .db import init_db
 from .db.exceptions import DatabaseInitError
 from .extensions import (
     csrf_init_app,
-    db as _db,
+)
+from .extensions import db as _db
+from .extensions import (
     migrate,
 )
 from .jobs_workers.cli_jobs import register_cli_jobs

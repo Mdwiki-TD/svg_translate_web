@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -411,7 +411,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
         mock_process_one_deps["detect"].return_value = MagicMock(count=0)
         mock_process_one_deps["inject"].return_value = MagicMock(result=None, msg="No changes")
-        from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem, FileSteps
+        from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -503,7 +503,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["verify"].return_value = MagicMock(fixed=2)
         mock_process_one_deps["inject"].return_value = MagicMock(result=False, msg="Failed")
         mock_process_one_deps["upload"].return_value = {"ok": True, "msg": "uploaded", "error": ""}
-        from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem, FileSteps
+        from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 

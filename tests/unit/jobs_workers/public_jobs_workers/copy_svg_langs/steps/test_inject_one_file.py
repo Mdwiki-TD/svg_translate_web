@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
-    InjectResult,
     inject_step_one_file,
     start_injects,
 )
