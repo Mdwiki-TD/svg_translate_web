@@ -11,8 +11,6 @@ from flask import Flask, Response, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .config import ensure_directories, settings
-from .shared.core.cookies import CookieHeaderClient
-from .shared.core.jinja_filters import filters
 from .db import init_db
 from .db.exceptions import DatabaseInitError
 from .extensions import db as _db
@@ -20,6 +18,8 @@ from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .public import register_blueprints
 from .public.utils import context_data
+from .shared.core.cookies import CookieHeaderClient
+from .shared.core.jinja_filters import filters
 
 logger = logging.getLogger(__name__)
 

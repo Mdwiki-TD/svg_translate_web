@@ -128,6 +128,7 @@ class AdminUserRecord(db.Model):
     def __repr__(self) -> str:
         return f"<Coordinator id={self.id} username={self.username!r} is_active={self.is_active}>"
 
+
 class UserTokenRecord(db.Model):
     """
     OAuth credentials — child of users table.

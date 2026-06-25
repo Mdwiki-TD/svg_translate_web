@@ -12,8 +12,8 @@ from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from ...shared.core.crypto import encrypt_value
 from ...extensions import db
+from ...shared.core.crypto import encrypt_value
 from ..models import UserTokenRecord
 from .utils import db_guard_rollback
 

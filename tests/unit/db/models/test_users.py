@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from flask.app import Flask
 
-from src.main_app.shared.core.crypto import encrypt_value
 from src.main_app.db.models.users import (
     AdminUserRecord,
     UserRecord,
     UserTokenRecord,
 )
 from src.main_app.extensions import db
+from src.main_app.shared.core.crypto import encrypt_value
 
 
 def test_users_record(mock_app: Flask) -> None:
