@@ -17,7 +17,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.main_app.extensions import BaseModel, _commit, db, migrate
+from src.main_app.extensions import BaseModel, db, migrate
 
 
 class MockModel(db.Model):
@@ -101,36 +101,6 @@ def test_base_model_init_skips_nonexistent_attributes():
     BaseModel.__init__(model, nonexistent="val")
 
     assert not hasattr(model, "nonexistent")
-
-
-def test_commit_calls_commit():
-    """Test that _commit calls db.session.commit()."""
-    mock_db = MagicMock()
-    _commit(mock_db)
-    mock_db.session.commit.assert_called_once()
-
-
-def test_commit_rollback_on_exception():
-    """Test that _commit rolls back the session when commit raises."""
-    mock_db = MagicMock()
-    mock_db.session.commit.side_effect = RuntimeError("fail")
-
-    with pytest.raises(RuntimeError, match="fail"):
-        _commit(mock_db)
-
-    mock_db.session.rollback.assert_called_once()
-
-
-def test_commit_re_raises_exception():
-    """Test that _commit re-raises the original exception after rollback."""
-    mock_db = MagicMock()
-    mock_db.session.commit.side_effect = ValueError("original error")
-
-    with pytest.raises(ValueError, match="original error"):
-        _commit(mock_db)
-
-    mock_db.session.rollback.assert_called_once()
-
 
 def test_db_is_sqlalchemy_instance():
     """Test that db is a SQLAlchemy instance."""

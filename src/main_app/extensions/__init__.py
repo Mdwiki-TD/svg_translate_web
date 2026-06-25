@@ -22,6 +22,7 @@ from ._csrf import (
 )
 from .data_base import (
     db,
+    BaseModel,
 )
 
 # Flask-Migrate instance (Alembic integration)
@@ -30,6 +31,7 @@ migrate = Migrate()
 
 __all__ = [
     "db",
+    "BaseModel",
     "migrate",
     "csrf",
     "csrf_init_app",
