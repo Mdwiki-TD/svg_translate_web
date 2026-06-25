@@ -102,6 +102,7 @@ def test_base_model_init_skips_nonexistent_attributes():
 
     assert not hasattr(model, "nonexistent")
 
+
 def test_db_is_sqlalchemy_instance():
     """Test that db is a SQLAlchemy instance."""
     assert isinstance(db, SQLAlchemy)
