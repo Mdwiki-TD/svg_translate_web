@@ -21,8 +21,8 @@ from ._csrf import (
     csrf_init_app,
 )
 from .data_base import (
-    db,
     BaseModel,
+    db,
 )
 
 # Flask-Migrate instance (Alembic integration)
