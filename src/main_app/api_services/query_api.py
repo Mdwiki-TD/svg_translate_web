@@ -275,7 +275,7 @@ def get_category_members_titles(
                 logger.warning(f"Invalid category: {category_name}")
                 break
 
-        except Exception as e:
+        except Exception:
             logger.exception("API request failed")
             if delay < max_delay:
                 delay = min(delay * 2, max_delay)
