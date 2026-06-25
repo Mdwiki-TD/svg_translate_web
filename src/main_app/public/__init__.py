@@ -15,7 +15,6 @@ from .public_jobs import jobs_public_module
 
 
 def register_blueprints(app: Flask) -> None:
-
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_admin)

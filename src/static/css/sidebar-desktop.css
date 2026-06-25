@@ -30,6 +30,7 @@
     .collapsed-toggle-btn {
         transform: rotate(180deg);
     }
+
     .show-on-collapse-inline,
     .show-on-collapse {
         display: none;
