@@ -174,7 +174,7 @@ class TestUpdateSetting:
 
         assert mock_setting.value == "new_value"
         assert mock_setting.title == "New Title"
-        assert result == mock_setting
+        assert result is True
 
     def test_returns_false_when_not_found(self, monkeypatch):
         mock_query = MagicMock()
