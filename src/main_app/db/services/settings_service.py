@@ -67,7 +67,7 @@ def get_all_settings_ready() -> dict[str, Any]:
     return records
 
 
-def get_setting_by_key(key: str) -> SettingRecord | None:
+def get_setting_by_key(key: str) -> SettingRecord:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
@@ -87,7 +87,7 @@ def update_setting(
     value: Any,
     value_type: str = "string",
     title: str | None = None,
-) -> SettingRecord:
+) -> bool:
     """
     Update an existing setting.
     """
@@ -102,7 +102,7 @@ def update_setting(
     if title:
         setting.title = title
     db.session.commit()
-    return setting
+    return True
 
 
 def create_setting(

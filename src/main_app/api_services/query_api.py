@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def get_template_pages(
     title: str,
     site: Site,
-    namespace: str = "*",
+    namespace: str | int = "*",
 ) -> list[str]:
     # ---
     logger.debug(f"get_template_pages for template: {title=}, {namespace=}")
