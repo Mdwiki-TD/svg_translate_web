@@ -5,7 +5,7 @@ src/main_app/public/auth/cookie.py
 
 from __future__ import annotations
 
-from src.main_app.core.cookies.cookie import (
+from src.main_app.shared.core.cookies.cookie import (
     _serializer,
     _state_serializer,
     extract_user_id,

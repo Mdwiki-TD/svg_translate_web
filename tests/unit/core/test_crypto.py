@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.core.crypto import decrypt_value, encrypt_value
+from src.main_app.shared.core.crypto import decrypt_value, encrypt_value
 
 
 def test_encrypt_decrypt_roundtrip():

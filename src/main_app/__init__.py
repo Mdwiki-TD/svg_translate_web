@@ -11,8 +11,8 @@ from flask import Flask, Response, flash, render_template
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from .config import ensure_directories, settings
-from .core.cookies import CookieHeaderClient
-from .core.jinja_filters import filters
+from .shared.core.cookies import CookieHeaderClient
+from .shared.core.jinja_filters import filters
 from .db import init_db
 from .db.exceptions import DatabaseInitError
 from .extensions import db as _db

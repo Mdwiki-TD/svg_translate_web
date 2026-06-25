@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flask.app import Flask
 
-from src.main_app.core.crypto import encrypt_value
+from src.main_app.shared.core.crypto import encrypt_value
 from src.main_app.db.models.users import (
     AdminUserRecord,
     UserRecord,
