@@ -7,12 +7,13 @@ from __future__ import annotations
 import logging
 from typing import Any, Tuple, Type
 
-from flask import Flask, Response, flash, render_template
-from flask_wtf.csrf import CSRFError, CSRFProtect
+from flask import Flask, Response, flash, jsonify, render_template, request
+from flask_wtf.csrf import CSRFError
 
 from .config import ensure_directories, settings
 from .db import init_db
 from .db.exceptions import DatabaseInitError
+from .extensions import csrf_init_app
 from .extensions import db as _db
 from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
@@ -29,13 +30,27 @@ def register_error_pages(app: Flask) -> None:
     def bad_request(e: Exception) -> Tuple[str | Response, int]:
         """Handle 400 errors"""
         logger.error("Bad request: %s", e)
-        flash("Invalid request", "warning")
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Bad request", "message": str(e)}), 400
+
+        flash("Bad request", "warning")
         return render_template("error.html", title="Bad Request"), 400
+
+    @app.errorhandler(401)
+    def unauthorized(e: Exception) -> Tuple[str | Response, int]:
+        """Handle 401 errors"""
+        logger.warning("Unauthorized: %s", e)
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Unauthorized", "message": "Authentication required"}), 401
+        flash("Please log in to access this page", "warning")
+        return render_template("error.html", title="Unauthorized"), 401
 
     @app.errorhandler(403)
     def forbidden(e: Exception) -> Tuple[str | Response, int]:
         """Handle 403 errors"""
         logger.error("Forbidden access: %s", e)
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Forbidden", "message": "Access denied"}), 403
         flash("Access denied", "danger")
         return render_template("error.html", title="Access Denied"), 403
 
@@ -43,6 +58,9 @@ def register_error_pages(app: Flask) -> None:
     def page_not_found(e: Exception) -> Tuple[str | Response, int]:
         """Handle 404 errors"""
         logger.error("Page not found: %s", e)
+        logger.error(f"Request url: {request.url}")
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Not found", "message": str(e)}), 404
         flash("Page not found", "warning")
         return render_template("error.html", title="Page Not Found"), 404
 
@@ -53,10 +71,21 @@ def register_error_pages(app: Flask) -> None:
         flash("Method not allowed", "warning")
         return render_template("error.html", title="Method Not Allowed"), 405
 
+    @app.errorhandler(429)
+    def too_many_requests(e: Exception) -> Tuple[str | Response, int]:
+        """Handle 429 rate limit errors"""
+        logger.warning("Rate limit exceeded: %s", e)
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Too many requests", "message": "Rate limit exceeded"}), 429
+        flash("Too many requests. Please try again later.", "warning")
+        return render_template("error.html", title="Rate Limit Exceeded"), 429
+
     @app.errorhandler(500)
     def internal_server_error(e: Exception) -> Tuple[str | Response, int]:
         """Handle 500 errors"""
         logger.error("Internal Server Error: %s", e)
+        if request.is_json or request.path.startswith("/api/"):
+            return jsonify({"error": "Internal server error"}), 500
         flash("Internal Server Error", "danger")
         return render_template("error.html", title="Internal Server Error"), 500
 
@@ -84,14 +113,11 @@ def init_app_and_db(app, _db) -> bool:
 
     return False
 
-
 def create_app(config_class: Type) -> Flask:
     """Instantiate and configure the Flask application.
 
     Args:
-        config_class: Configuration class for ``app.config.from_object()``.
-            When *None*, auto-detected from the ``FLASK_ENV`` environment
-            variable (defaults to ``ProductionConfig``).
+        config_class: configuration class to use.
 
     Returns:
         Configured Flask application instance.
@@ -111,10 +137,10 @@ def create_app(config_class: Type) -> Flask:
     app.config.from_object(config_class())
 
     # Initialize CSRF protection
-    csrf = CSRFProtect(app)  # noqa: F841
+    csrf_init_app(app)
 
     @app.context_processor
-    def _inject_user() -> dict[str, Any]:
+    def _inject_data() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
         return context_data(
             settings.other.wiki_domain,
             settings.other.static_server,
@@ -123,15 +149,6 @@ def create_app(config_class: Type) -> Flask:
 
     app.jinja_env.filters.update(filters)
 
-    # @app.teardown_appcontext
-    def _cleanup_connections(exception: Exception | None) -> None:  # pragma: no cover - teardown
-        # Idempotent teardown - safe for Flask 3.1.2+ stream_with_context regression
-        # See: https://github.com/pallets/flask/issues/5804
-        # try:
-        #     close_cached_db()
-        # except Exception:
-        #     logger.debug("Failed to close cached DB during teardown", exc_info=True)
-        pass
 
     db_is_ok = True
     # Initialize Flask-SQLAlchemy and Flask-Migrate
@@ -158,7 +175,5 @@ def create_app(config_class: Type) -> Flask:
 
 
 __all__ = [
-    "register_error_pages",
-    "init_app_and_db",
     "create_app",
 ]
