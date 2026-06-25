@@ -29,11 +29,12 @@ class CurrentUser:
     can_run_bg_jobs: bool = False
 
     def __init__(self, **kwargs: Any) -> None:
+        fields = self.__dataclass_fields__
         for key, value in kwargs.items():
-            if hasattr(self, key):
+            if key in fields:
                 if key in ("can_run_jobs", "can_run_bg_jobs"):
                     value = parse_bool(value)
-                setattr(self, key, value)
+                object.__setattr__(self, key, value)
 
     def to_auth_payload(self) -> dict[str, int | str | bytes]:
         return {
