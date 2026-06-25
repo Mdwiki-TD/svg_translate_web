@@ -9,7 +9,7 @@ class UniqueError(DatabaseError):
 
     def __init__(self, title) -> None:
         self.title = title
-        super().__init__(f"Unique constraint failed for title: {title}", None, None)
+        super().__init__(f"Unique constraint failed for title: {title}", None, None) # type: ignore
 
 
 class DatabaseInitError(Exception):

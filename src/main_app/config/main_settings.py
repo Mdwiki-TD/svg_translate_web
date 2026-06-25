@@ -29,7 +29,7 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _env_int(name: str, default: int | None, safe: bool = False) -> int | None:
+def _env_int(name: str, default: int, safe: bool = False) -> int:
     """Convert environment variable to integer."""
     value = os.getenv(name)
     if value is None:
@@ -210,7 +210,9 @@ def _load_jobs_config() -> JobsConfig:
     jobs_max_workers = max(1, _env_int("JOBS_MAX_WORKERS", 2))
     jobs_log_lines = max(10, _env_int("JOBS_LOG_LINES", 200))
 
-    priority_per_item = _env_int("PRIORITY_PER_ITEM", None, safe=True)
+    priority_per_item = _env_int("PRIORITY_PER_ITEM", 0, safe=True)
+    if priority_per_item == 0:
+        priority_per_item = None
 
     _config = JobsConfig(
         jobs_max_workers=jobs_max_workers,
