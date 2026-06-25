@@ -42,7 +42,7 @@ class OwidSlugRedirectRecord(db.Model):
     should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

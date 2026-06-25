@@ -6,7 +6,7 @@ import threading
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from ..config import settings
+from ...config import settings
 
 _fernet: Fernet | None = None
 _fernet_lock = threading.Lock()

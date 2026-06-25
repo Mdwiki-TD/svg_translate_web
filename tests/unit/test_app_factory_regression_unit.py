@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-# from src.main_app.core.jinja_filters import get_status_class, short_url
+# from src.main_app.shared.core.jinja_filters import get_status_class, short_url

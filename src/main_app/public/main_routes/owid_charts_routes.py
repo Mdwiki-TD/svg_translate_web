@@ -37,4 +37,6 @@ def all_charts() -> str:
     return render_template("owid_charts/all_charts.html", charts=charts)
 
 
-__all__ = ["bp_owid_charts"]
+__all__ = [
+    "bp_owid_charts",
+]

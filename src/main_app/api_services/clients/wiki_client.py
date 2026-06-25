@@ -10,7 +10,7 @@ import requests
 from mwclient.client import Site
 
 from ...config import settings
-from ...core.crypto import decrypt_value
+from ...shared.core.crypto import decrypt_value
 
 logger = logging.getLogger(__name__)
 

@@ -66,7 +66,7 @@ class OwidChartRecord(db.Model):  # type: ignore
     # Table-level indexes as requested by the original CREATE TABLE DDL
     # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

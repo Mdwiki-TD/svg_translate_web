@@ -261,12 +261,12 @@ class OwidCharts:
 
     def _setup_routes(self) -> None:
         @self.bp.route("/", methods=["GET"])
-        @self.bp.get("/<string:template_filter>")
+        @self.bp.route("/<string:template_filter>", methods=["GET"])
         @admin_required
         def dashboard(template_filter: str = ""):
             return render_template("admins/owid_charts/list.html", selected_template=template_filter)
 
-        @self.bp.get("/add")
+        @self.bp.route("/add", methods=["GET"])
         @admin_required
         def add_chart_popup() -> ResponseReturnValue:
             return _add_chart_popup()
@@ -295,12 +295,12 @@ class OwidCharts:
         def delete_chart(chart_id: int) -> ResponseReturnValue:
             return _delete_chart(chart_id)
 
-        @self.bp.get("/<int:chart_id>/edit")
+        @self.bp.route("/<int:chart_id>/edit", methods=["GET"])
         @admin_required
         def edit_chart(chart_id: int) -> ResponseReturnValue:
             return _edit_chart(chart_id)
 
-        @self.bp.get("/download-json")
+        @self.bp.route("/download-json", methods=["GET"])
         @admin_required
         def download_owid_charts_json() -> ResponseReturnValue:
             """Download all charts as a JSON file."""

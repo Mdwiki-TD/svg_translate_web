@@ -1,25 +1,25 @@
 """
 Unit tests for src/main_app/db/models/users.py module.
 
-Classes to test: UsersRecord, AdminUserRecord, UserTokenRecord
+Classes to test: UserRecord, AdminUserRecord, UserTokenRecord
 """
 
 from __future__ import annotations
 
 from flask.app import Flask
 
-from src.main_app.core.crypto import encrypt_value
 from src.main_app.db.models.users import (
     AdminUserRecord,
-    UsersRecord,
+    UserRecord,
     UserTokenRecord,
 )
 from src.main_app.extensions import db
+from src.main_app.shared.core.crypto import encrypt_value
 
 
 def test_users_record(mock_app: Flask) -> None:
     with mock_app.app_context():
-        user = UsersRecord(user_id=42, username="model_test_user")
+        user = UserRecord(user_id=42, username="model_test_user")
         db.session.add(user)
         db.session.commit()
 
@@ -30,7 +30,7 @@ def test_users_record(mock_app: Flask) -> None:
 
 def test_admin_user_record(mock_app: Flask) -> None:
     with mock_app.app_context():
-        user = UsersRecord(user_id=1, username="model_admin_user")
+        user = UserRecord(user_id=1, username="model_admin_user")
         db.session.add(user)
         db.session.commit()
 
@@ -45,7 +45,7 @@ def test_admin_user_record(mock_app: Flask) -> None:
 
 def test_user_token_record(mock_app: Flask) -> None:
     with mock_app.app_context():
-        user = UsersRecord(user_id=123, username="model_token_user")
+        user = UserRecord(user_id=123, username="model_token_user")
         db.session.add(user)
         db.session.commit()
 
@@ -65,7 +65,7 @@ def test_user_token_record(mock_app: Flask) -> None:
 
 def test_user_token_record_validation(mock_app: Flask) -> None:
     with mock_app.app_context():
-        user = UsersRecord(user_id=456, username="model_validation_user")
+        user = UserRecord(user_id=456, username="model_validation_user")
         db.session.add(user)
         db.session.commit()
 

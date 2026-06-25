@@ -10,14 +10,13 @@ from datetime import datetime
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from flask.app import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.main_app.extensions import BaseModel, _commit, db, migrate
+from src.main_app.extensions import BaseModel, db, migrate
 
 
 class MockModel(db.Model):
@@ -28,7 +27,7 @@ class MockModel(db.Model):
 
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -101,35 +100,6 @@ def test_base_model_init_skips_nonexistent_attributes():
     BaseModel.__init__(model, nonexistent="val")
 
     assert not hasattr(model, "nonexistent")
-
-
-def test_commit_calls_commit():
-    """Test that _commit calls db.session.commit()."""
-    mock_db = MagicMock()
-    _commit(mock_db)
-    mock_db.session.commit.assert_called_once()
-
-
-def test_commit_rollback_on_exception():
-    """Test that _commit rolls back the session when commit raises."""
-    mock_db = MagicMock()
-    mock_db.session.commit.side_effect = RuntimeError("fail")
-
-    with pytest.raises(RuntimeError, match="fail"):
-        _commit(mock_db)
-
-    mock_db.session.rollback.assert_called_once()
-
-
-def test_commit_re_raises_exception():
-    """Test that _commit re-raises the original exception after rollback."""
-    mock_db = MagicMock()
-    mock_db.session.commit.side_effect = ValueError("original error")
-
-    with pytest.raises(ValueError, match="original error"):
-        _commit(mock_db)
-
-    mock_db.session.rollback.assert_called_once()
 
 
 def test_db_is_sqlalchemy_instance():

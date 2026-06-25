@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """
 Tests for src.main_app.db.services.owid_charts_service.
 """

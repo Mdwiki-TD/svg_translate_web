@@ -17,7 +17,7 @@ def _is_admin(user: Any) -> bool:
     return bool(user and getattr(user, "is_active_admin", False))
 
 
-def context_user(
+def context_data(
     wiki_domain: str,
     static_server: str,
     tool_title: str = "",
@@ -84,7 +84,7 @@ def get_job_detail_url(job_id: int, job_type: str) -> str:
 __all__ = [
     "can_run_bg_jobs",
     "can_run_jobs",
-    "context_user",
+    "context_data",
     "load_auth_payload",
     "get_job_detail_url",
 ]

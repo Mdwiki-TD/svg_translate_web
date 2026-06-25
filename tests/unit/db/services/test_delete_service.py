@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from src.main_app.db.models import (
     AdminUserRecord,
     JobRecord,
@@ -11,7 +9,7 @@ from src.main_app.db.models import (
     OwidSlugRedirectRecord,
     SettingRecord,
     TemplateRecord,
-    UsersRecord,
+    UserRecord,
     UserTokenRecord,
 )
 from src.main_app.db.services.delete_service import (
@@ -31,31 +29,31 @@ from src.main_app.extensions import db as _db
 class TestDeleteRecordByPk:
     def test_delete_existing_record(self, mock_app, setup_db):
         with mock_app.app_context():
-            record = UsersRecord(username="testuser", user_id=100)
+            record = UserRecord(username="testuser", user_id=100)
             _db.session.add(record)
             _db.session.commit()
 
-            result = delete_record_by_pk(UsersRecord, record.user_id)
+            result = delete_record_by_pk(UserRecord, record.user_id)
             assert result is True
             _db.session.expire_all()
-            assert _db.session.get(UsersRecord, record.user_id) is None
+            assert _db.session.get(UserRecord, record.user_id) is None
 
     def test_delete_non_existent_record(self, mock_app, setup_db):
         with mock_app.app_context():
-            result = delete_record_by_pk(UsersRecord, 99999)
+            result = delete_record_by_pk(UserRecord, 99999)
             assert result is False
 
     def test_delete_with_none_pk(self, mock_app, setup_db):
         with mock_app.app_context():
-            result = delete_record_by_pk(UsersRecord, None)
+            result = delete_record_by_pk(UserRecord, None)
             assert result is False
 
 
 class TestDeleteUserToken:
     def test_delete_existing_token(self, mock_app, setup_db):
         with mock_app.app_context():
-            # UserTokenRecord FK → UsersRecord
-            user = UsersRecord(username="token_user", user_id=200)
+            # UserTokenRecord FK → UserRecord
+            user = UserRecord(username="token_user", user_id=200)
             _db.session.add(user)
             _db.session.commit()
 
@@ -77,14 +75,14 @@ class TestDeleteUserToken:
 class TestDeleteUser:
     def test_delete_existing_user(self, mock_app, setup_db):
         with mock_app.app_context():
-            record = UsersRecord(username="delete_me", user_id=300)
+            record = UserRecord(username="delete_me", user_id=300)
             _db.session.add(record)
             _db.session.commit()
 
             result = delete_user(300)
             assert result is True
             _db.session.expire_all()
-            assert _db.session.get(UsersRecord, 300) is None
+            assert _db.session.get(UserRecord, 300) is None
 
     def test_delete_non_existent_user(self, mock_app, setup_db):
         with mock_app.app_context():
@@ -95,8 +93,8 @@ class TestDeleteUser:
 class TestDeleteCoordinator:
     def test_delete_existing_coordinator(self, mock_app, setup_db):
         with mock_app.app_context():
-            # AdminUserRecord FK → UsersRecord, so create a user first
-            user = UsersRecord(username="admin_user", user_id=401)
+            # AdminUserRecord FK → UserRecord, so create a user first
+            user = UserRecord(username="admin_user", user_id=401)
             _db.session.add(user)
             _db.session.commit()
 

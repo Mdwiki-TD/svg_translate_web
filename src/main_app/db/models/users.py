@@ -13,17 +13,18 @@ from ...shared.decode_bytes import coerce_bytes
 logger = logging.getLogger(__name__)
 
 
-class UsersRecord(db.Model):
-    """Stable user identity — source of truth for user_id and username.
+class UserRecord(db.Model):
+    """
+    Stable user identity — source of truth for user_id and username.
 
-    CREATE TABLE `users` (
-      `user_id` int NOT NULL AUTO_INCREMENT,
-      `username` varchar(255) NOT NULL,
-      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `can_run_jobs` tinyint(1) NOT NULL DEFAULT '0',
-        `can_run_bg_jobs` tinyint(1) NOT NULL DEFAULT '0',
-      PRIMARY KEY (`user_id`),
-      UNIQUE KEY `uq_users_username` (`username`)
+    CREATE TABLE IF NOT EXISTS users (
+        user_id int NOT NULL AUTO_INCREMENT,
+        username varchar(255) NOT NULL,
+        created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        can_run_jobs tinyint(1) NOT NULL DEFAULT '0',
+        can_run_bg_jobs tinyint(1) NOT NULL DEFAULT '0',
+        PRIMARY KEY (user_id),
+        UNIQUE KEY uq_users_username (username)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
 
@@ -40,7 +41,7 @@ class UsersRecord(db.Model):
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -69,15 +70,15 @@ class AdminUserRecord(db.Model):
     Coordinator/admin role — username references users.username.
 
     CREATE TABLE `admin_users` (
-      `id` int NOT NULL AUTO_INCREMENT,
-      `username` varchar(255) NOT NULL,
-      `is_active` tinyint(1) NOT NULL DEFAULT '0',
-      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (`id`),
-      UNIQUE KEY `username` (`username`),
-      CONSTRAINT `admin_users_ibfk_1` FOREIGN KEY (`username`)
-        REFERENCES `users` (`username`) ON DELETE CASCADE ON UPDATE CASCADE
+      id int NOT NULL AUTO_INCREMENT,
+      username varchar(255) NOT NULL,
+      is_active tinyint(1) NOT NULL DEFAULT '0',
+      created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY username (username),
+      CONSTRAINT admin_users_ibfk_1 FOREIGN KEY (username)
+        REFERENCES users (username) ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
 
@@ -101,7 +102,7 @@ class AdminUserRecord(db.Model):
         onupdate=func.current_timestamp(),
     )
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -123,6 +124,9 @@ class AdminUserRecord(db.Model):
             data[column] = value
 
         return data
+
+    def __repr__(self) -> str:
+        return f"<Coordinator id={self.id} username={self.username!r} is_active={self.is_active}>"
 
 
 class UserTokenRecord(db.Model):
@@ -166,13 +170,13 @@ class UserTokenRecord(db.Model):
     rotated_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # Clean explicit relationship mapping matching SQLAlchemy 2.0 recommendations via back_populates
-    user: Mapped[UsersRecord] = relationship(back_populates="token")
+    user: Mapped[UserRecord] = relationship(back_populates="token")
 
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -201,5 +205,5 @@ class UserTokenRecord(db.Model):
 __all__ = [
     "AdminUserRecord",
     "UserTokenRecord",
-    "UsersRecord",
+    "UserRecord",
 ]

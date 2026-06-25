@@ -15,15 +15,6 @@ from ..db.services import list_jobs
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..public.utils.routes_utils import get_job_detail_url
 from .decorators import admin_required
-from .routes import (
-    coordinators_module,
-    jobs_module,
-    owidcharts_module,
-    settings_module,
-    slug_redirects_module,
-    templates_module,
-    users_module,
-)
 from .sidebar import create_side
 
 logger = logging.getLogger(__name__)
@@ -73,19 +64,6 @@ def admin_dashboard() -> str:
     )
 
 
-def register_bp_admin_blueprints(bp_admin) -> None:
-    bp_admin.register_blueprint(coordinators_module.bp)
-    bp_admin.register_blueprint(users_module.bp)
-    bp_admin.register_blueprint(settings_module.bp)
-    bp_admin.register_blueprint(jobs_module.bp)
-    bp_admin.register_blueprint(templates_module.bp)
-    bp_admin.register_blueprint(owidcharts_module.bp)
-    bp_admin.register_blueprint(slug_redirects_module.bp)
-
-
-register_bp_admin_blueprints(bp_admin)
-
 __all__ = [
     "bp_admin",
-    "register_bp_admin_blueprints",
 ]

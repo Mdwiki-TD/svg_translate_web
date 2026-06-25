@@ -31,6 +31,18 @@
         transform: rotate(180deg);
     }
 
+    .show-on-collapse-inline,
+    .show-on-collapse {
+        display: none;
+    }
+    .collapsed1 .show-on-collapse-inline {
+        display: inline;
+    }
+
+    .collapsed1 .show-on-collapse {
+        display: inline;
+    }
+
     body.sidebar-collapsed .sidebar .hide-on-collapse-inline {
         display: inline;
     }

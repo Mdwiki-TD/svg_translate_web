@@ -100,7 +100,7 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
         logger.info(f"Local cancellation requested for job {job_id}")
         local_cancelled = True
 
-    cancelled_file = False
+    cancelled_file = None
     # 2. Create result_file_cancelled file
     if job and job.result_file:
         cancelled_file = create_job_cancelled_file(f"{job.result_file}.cancelled")
@@ -115,7 +115,7 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
         logger.exception("Failed to cancel job %s in database.", job_id)
         db_cancelled = False
 
-    return local_cancelled or cancelled_file or db_cancelled
+    return local_cancelled or cancelled_file is not None or db_cancelled
 
 
 def _start_job_impl(

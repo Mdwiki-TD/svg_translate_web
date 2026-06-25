@@ -199,7 +199,7 @@ def job_detail_handler(
     if job.result_file:
         result_data = load_job_result(job.result_file)
 
-    template_name = template_data.job_details_template
+    template_name = str(template_data.job_details_template)
 
     return render_template(
         template_name,

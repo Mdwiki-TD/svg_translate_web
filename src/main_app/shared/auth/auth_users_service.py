@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from ...db.models import UserRecord
 from ...db.services import (
     create_user,
     get_authenticated_user_token,
@@ -13,7 +14,6 @@ from ...db.services import (
     is_active_coordinator,
     upsert_user_token,
 )
-from ...db.services.users_service import UsersRecord
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
@@ -34,10 +34,10 @@ class AuthUserService:
 
         try:
             # Ensure user identity row exists
-            user: Optional[UsersRecord] = get_user_by_username(username)
+            user: Optional[UserRecord] = get_user_by_username(username)
 
             if not user:
-                user: Optional[UsersRecord] = create_user(username)
+                user: Optional[UserRecord] = create_user(username)
 
             if not user:
                 return None

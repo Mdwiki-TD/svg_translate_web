@@ -225,7 +225,7 @@ class Templates:
                 "admins/templates.html",
             )
 
-        @self.bp.get("/templates-need-update")
+        @self.bp.route("/templates-need-update", methods=["GET"])
         @admin_required
         def templates_need_update() -> ResponseReturnValue:
             """Show templates that need year update based on OWID charts."""
@@ -248,17 +248,17 @@ class Templates:
         def delete_template(template_id: int) -> ResponseReturnValue:
             return _delete_template(template_id)
 
-        @self.bp.get("/<int:template_id>/edit")
+        @self.bp.route("/<int:template_id>/edit", methods=["GET"])
         @admin_required
         def edit_template(template_id: int) -> ResponseReturnValue:
             return _edit_template(template_id)
 
-        @self.bp.get("/<path:template_title>/edit_by_title")
+        @self.bp.route("/<path:template_title>/edit_by_title", methods=["GET"])
         @admin_required
         def edit_by_title(template_title: str) -> ResponseReturnValue:
             return _edit_template_by_title(template_title)
 
-        @self.bp.get("/download-json")
+        @self.bp.route("/download-json", methods=["GET"])
         @admin_required
         def download_templates_json() -> ResponseReturnValue:
             """Download all templates as a json file."""

@@ -18,8 +18,11 @@ def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:
     ``None`` if the exception is unrecognised (caller should log and
     handle it themselves).
     """
+    code = getattr(exc, "code", None)
+    info = getattr(exc, "info", None)
+
     if isinstance(exc, mwclient.errors.ProtectedPageError):
-        return {"success": False, "error": "protectedpageerror", "details": f"code: {exc.code}, info: {exc.info}"}
+        return {"success": False, "error": "protectedpageerror", "details": f"code: {code}, info: {info}"}
 
     if isinstance(exc, mwclient.errors.EditError):
         return {"success": False, "error": "editerror", "details": str(exc)}
@@ -31,9 +34,9 @@ def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:
         return {"success": False, "error": "userblocked"}
 
     if isinstance(exc, mwclient.errors.APIError):
-        if exc.code == "ratelimited":
+        if code == "ratelimited":
             return {"success": False, "error": "ratelimited"}
-        return {"success": False, "error": exc.code, "details": str(exc)}
+        return {"success": False, "error": code, "details": str(exc)}
 
     return None  # unrecognised — let the caller log and handle
 

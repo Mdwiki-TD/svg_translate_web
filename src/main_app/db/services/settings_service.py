@@ -87,7 +87,7 @@ def update_setting(
     value: Any,
     value_type: str = "string",
     title: str | None = None,
-) -> SettingRecord:
+) -> bool:
     """
     Update an existing setting.
     """
@@ -102,7 +102,7 @@ def update_setting(
     if title:
         setting.title = title
     db.session.commit()
-    return setting
+    return True
 
 
 def create_setting(

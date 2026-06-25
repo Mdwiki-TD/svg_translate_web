@@ -11,8 +11,8 @@ from typing import Any, Callable, TypeVar, cast
 from flask import flash, g, redirect, request, session, url_for
 
 from ...config import settings
-from ...core.cookies import extract_user_id
 from ...shared.auth.auth_users_service import AuthUserService
+from ...shared.core.cookies import extract_user_id
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
@@ -105,7 +105,7 @@ def user_login_required(func: FuncType) -> FuncType:  # noqa: UP047
 
         return func(*args, **kwargs)
 
-    return wrapper
+    return cast(FuncType, wrapper)
 
 
 __all__ = [

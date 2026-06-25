@@ -49,7 +49,7 @@ class TemplateNeedUpdateRecord(db.Model):
         },
     )
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -100,7 +100,7 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
         },
     )
 
-    def __init__(self, **kwargs: dict[str, Any]) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

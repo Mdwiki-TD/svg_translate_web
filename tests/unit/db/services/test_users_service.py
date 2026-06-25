@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.db.exceptions import UserNotFoundError
-from src.main_app.db.models import UsersRecord
+from src.main_app.db.models import UserRecord
 from src.main_app.db.services import users_service
 from src.main_app.extensions import db
 
@@ -17,9 +17,9 @@ from src.main_app.extensions import db
 
 
 @pytest.fixture
-def user_record() -> UsersRecord:
-    """Insert and return a fresh UsersRecord in the real test DB."""
-    record = UsersRecord(username="test_user")
+def user_record() -> UserRecord:
+    """Insert and return a fresh UserRecord in the real test DB."""
+    record = UserRecord(username="test_user")
     db.session.add(record)
     db.session.commit()
     db.session.refresh(record)
@@ -32,7 +32,7 @@ def user_record() -> UsersRecord:
 class TestListUsers:
     """Tests for list_users()."""
 
-    def test_returns_all_users(self, user_record: UsersRecord) -> None:
+    def test_returns_all_users(self, user_record: UserRecord) -> None:
         """Verify list_users returns all records from the users table."""
         result = users_service.list_users()
         assert len(result) == 1
@@ -50,7 +50,7 @@ class TestListUsers:
 class TestGetUser:
     """Tests for get_user()."""
 
-    def test_returns_user_by_valid_id(self, user_record: UsersRecord) -> None:
+    def test_returns_user_by_valid_id(self, user_record: UserRecord) -> None:
         """Verify get_user returns the correct user for a valid id."""
         result = users_service.get_user(user_record.user_id)
         assert result is not None
@@ -76,7 +76,7 @@ class TestGetUser:
 class TestGetUserByUsername:
     """Tests for get_user_by_username()."""
 
-    def test_returns_user_by_existing_username(self, user_record: UsersRecord) -> None:
+    def test_returns_user_by_existing_username(self, user_record: UserRecord) -> None:
         """Verify get_user_by_username returns the correct user."""
         result = users_service.get_user_by_username("test_user")
         assert result is not None
@@ -109,11 +109,11 @@ class TestCreateUser:
         assert result.username == "new_user"
         assert result.user_id is not None
 
-        persisted = db.session.query(UsersRecord).filter_by(username="new_user").first()
+        persisted = db.session.query(UserRecord).filter_by(username="new_user").first()
         assert persisted is not None
         assert persisted.user_id == result.user_id
 
-    def test_returns_existing_user(self, user_record: UsersRecord) -> None:
+    def test_returns_existing_user(self, user_record: UserRecord) -> None:
         """Verify create_user is idempotent — returns existing row when username already exists."""
         result = users_service.create_user("test_user")
         assert result.user_id == user_record.user_id
@@ -124,7 +124,7 @@ class TestCreateUser:
 
         Simulates: first query → None, commit → exception, rollback, second query → existing.
         """
-        existing_user = MagicMock(spec=UsersRecord)
+        existing_user = MagicMock(spec=UserRecord)
         existing_user.username = "race_user"
 
         mock_db = MagicMock()
@@ -166,21 +166,21 @@ class TestCreateUser:
 class TestToggleCanRunJobs:
     """Tests for toggle_can_run_jobs()."""
 
-    def test_toggles_to_true(self, user_record: UsersRecord) -> None:
+    def test_toggles_to_true(self, user_record: UserRecord) -> None:
         """Verify toggle_can_run_jobs sets can_run_jobs to True."""
         result = users_service.toggle_can_run_jobs(user_record.user_id, True)
         assert bool(result.can_run_jobs) is True
 
-        refreshed = db.session.get(UsersRecord, user_record.user_id)
+        refreshed = db.session.get(UserRecord, user_record.user_id)
         assert refreshed is not None
         assert bool(refreshed.can_run_jobs) is True
 
-    def test_toggles_to_false(self, user_record: UsersRecord) -> None:
+    def test_toggles_to_false(self, user_record: UserRecord) -> None:
         """Verify toggle_can_run_jobs sets can_run_jobs to False."""
         result = users_service.toggle_can_run_jobs(user_record.user_id, False)
         assert bool(result.can_run_jobs) is False
 
-        refreshed = db.session.get(UsersRecord, user_record.user_id)
+        refreshed = db.session.get(UserRecord, user_record.user_id)
         assert refreshed is not None
         assert bool(refreshed.can_run_jobs) is False
 
@@ -196,21 +196,21 @@ class TestToggleCanRunJobs:
 class TestToggleCanRunBgJobs:
     """Tests for toggle_can_run_bg_jobs()."""
 
-    def test_toggles_to_true(self, user_record: UsersRecord) -> None:
+    def test_toggles_to_true(self, user_record: UserRecord) -> None:
         """Verify toggle_can_run_bg_jobs sets can_run_bg_jobs to True."""
         result = users_service.toggle_can_run_bg_jobs(user_record.user_id, True)
         assert bool(result.can_run_bg_jobs) is True
 
-        refreshed = db.session.get(UsersRecord, user_record.user_id)
+        refreshed = db.session.get(UserRecord, user_record.user_id)
         assert refreshed is not None
         assert bool(refreshed.can_run_bg_jobs) is True
 
-    def test_toggles_to_false(self, user_record: UsersRecord) -> None:
+    def test_toggles_to_false(self, user_record: UserRecord) -> None:
         """Verify toggle_can_run_bg_jobs sets can_run_bg_jobs to False."""
         result = users_service.toggle_can_run_bg_jobs(user_record.user_id, False)
         assert bool(result.can_run_bg_jobs) is False
 
-        refreshed = db.session.get(UsersRecord, user_record.user_id)
+        refreshed = db.session.get(UserRecord, user_record.user_id)
         assert refreshed is not None
         assert bool(refreshed.can_run_bg_jobs) is False
 

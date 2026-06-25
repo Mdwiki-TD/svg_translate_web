@@ -1,15 +1,22 @@
-"""Composite user identity + credentials for request handling."""
+"""
+Helpers for loading the current authenticated user.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
+
+def parse_bool(value: str) -> bool:
+    """Parse boolean value from CSV string."""
+    if not value:
+        return False
+    return value.strip().lower() in {"yes", "true", "1", "y"}
 
 
 @dataclass(frozen=True)
 class CurrentUser:
-    """Bundles user identity (from ``users`` table) and OAuth credentials
-    (from ``user_tokens`` table) into a single object for request handling.
-
+    """Bundles user identity and OAuth credentials
     Stored in ``g._current_user`` during the request lifecycle.
     """
 
@@ -21,8 +28,15 @@ class CurrentUser:
     can_run_jobs: bool = False
     can_run_bg_jobs: bool = False
 
+    def __init__(self, **kwargs: Any) -> None:
+        fields = self.__dataclass_fields__
+        for key, value in kwargs.items():
+            if key in fields:
+                if key in ("can_run_jobs", "can_run_bg_jobs"):
+                    value = parse_bool(value)
+                object.__setattr__(self, key, value)
+
     def to_auth_payload(self) -> dict[str, int | str | bytes]:
-        """Return the dict expected by ``api_services/clients/wiki_client``."""
         return {
             "id": self.user_id,
             "username": self.username,

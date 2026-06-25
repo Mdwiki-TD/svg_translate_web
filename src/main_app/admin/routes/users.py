@@ -43,7 +43,7 @@ def _update_can_run_jobs(user_id: int, desired: int) -> ResponseReturnValue:
     """Toggle the can_run_jobs column for a user."""
 
     try:
-        record = users_service.toggle_can_run_jobs(user_id, desired)
+        record = users_service.toggle_can_run_jobs(user_id, bool(desired))
     except LookupError:
         logger.exception("Unable to update user permissions.")
         flash(f"User with id {user_id} was not found", "warning")
@@ -61,7 +61,7 @@ def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
     """Toggle the can_run_bg_jobs column for a user."""
 
     try:
-        record = users_service.toggle_can_run_bg_jobs(user_id, desired)
+        record = users_service.toggle_can_run_bg_jobs(user_id, bool(desired))
     except LookupError:
         logger.exception("Unable to update user permissions.")
         flash(f"User with id {user_id} was not found", "warning")

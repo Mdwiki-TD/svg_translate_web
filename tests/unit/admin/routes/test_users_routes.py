@@ -43,7 +43,7 @@ class TestDashboard:
     def test_with_0_users(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
             "src.main_app.admin.routes.users.users_service.list_users",
-            lambda: [],
+            list,
         )
         mock_render = MagicMock(return_value="rendered")
         monkeypatch.setattr(

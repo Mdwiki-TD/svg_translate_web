@@ -36,7 +36,7 @@ def get_handshaker() -> Handshaker:
     )
 
 
-def start_login(state_token: str) -> Tuple[str, object]:
+def start_login(state_token: str) -> Tuple[str, Any]:
     """Begin the OAuth login process and return the redirect URL and request token."""
     logger.debug("Starting OAuth login with state_token")
     callback_url = url_for("auth.callback", _external=True, state=state_token)

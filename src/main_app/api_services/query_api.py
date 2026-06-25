@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def get_template_pages(
     title: str,
     site: Site,
-    namespace: str = "*",
+    namespace: str | int = "*",
 ) -> list[str]:
     # ---
     logger.debug(f"get_template_pages for template: {title=}, {namespace=}")
@@ -275,7 +275,7 @@ def get_category_members_titles(
                 logger.warning(f"Invalid category: {category_name}")
                 break
 
-        except Exception as e:
+        except Exception:
             logger.exception("API request failed")
             if delay < max_delay:
                 delay = min(delay * 2, max_delay)

@@ -11,7 +11,7 @@ from src.main_app.api_services.clients.wiki_client import (
     coerce_encrypted,
     get_user_site,
 )
-from src.main_app.core.crypto import encrypt_value
+from src.main_app.shared.core.crypto import encrypt_value
 
 
 class TestCoerceEncrypted:
