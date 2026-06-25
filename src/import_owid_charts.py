@@ -20,10 +20,12 @@ if os.getenv("APP_ENV", os.getenv("FLASK_ENV")) not in ["production", "testing"]
     load_dotenv(_env_file_path)
 
 
-def parse_bool(value: str) -> bool:
+def parse_bool(value: str | int) -> bool:
     """Parse boolean value from CSV string."""
     if not value:
         return False
+    if isinstance(value, int):
+        value = str(value)
     return value.strip().lower() in {"yes", "true", "1", "y"}
 
 

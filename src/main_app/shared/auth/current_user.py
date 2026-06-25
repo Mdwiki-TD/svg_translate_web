@@ -7,10 +7,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-def parse_bool(value: str) -> bool:
+
+def parse_bool(value: str | int) -> bool:
     """Parse boolean value from CSV string."""
     if not value:
         return False
+    if isinstance(value, int):
+        value = str(value)
     return value.strip().lower() in {"yes", "true", "1", "y"}
 
 
