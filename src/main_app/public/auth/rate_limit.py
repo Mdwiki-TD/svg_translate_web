@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from collections import deque
 from datetime import UTC, datetime, timedelta
 from threading import Lock
 from typing import Deque, Dict
+
+logger = logging.getLogger(__name__)
 
 
 class RateLimiter:
@@ -19,15 +22,16 @@ class RateLimiter:
 
     def allow(self, key: str) -> bool:
         """Return True if the key is allowed to proceed, False when throttled."""
-
         now = datetime.now(UTC)
         with self._lock:
             hits = self._hits.setdefault(key, deque())
             while hits and now - hits[0] > self._period:
                 hits.popleft()
             if len(hits) >= self._limit:
+                logger.warning("Rate limit exceeded for key: %s (limit=%d, period=%s)", key, self._limit, self._period)
                 return False
             hits.append(now)
+            logger.debug("Rate limit check passed for key: %s (hits=%d/%d)", key, len(hits), self._limit)
             return True
 
     def try_after(self, key: str) -> timedelta:

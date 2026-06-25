@@ -1,5 +1,16 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import DatabaseError
+
+
+class UniqueError(DatabaseError):
+    code = "gkpj-unique"
+    message = "Unique constraint failed"
+
+    def __init__(self, title) -> None:
+        self.title = title
+        super().__init__(f"Unique constraint failed for title: {title}", None, None)
+
 
 class DatabaseInitError(Exception):
     """Raised when database initialization fails."""
@@ -28,6 +39,7 @@ class InsufficientDatabaseConfigError(RuntimeError):
 
 
 __all__ = [
+    "UniqueError",
     "DatabaseInitError",
     "MaxUserConnectionsError",
     "UserNotFoundError",

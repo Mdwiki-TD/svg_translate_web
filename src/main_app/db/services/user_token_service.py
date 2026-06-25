@@ -1,7 +1,5 @@
 """
-SQLAlchemy-based service for managing users and user tokens.
-
-Users table is the stable identity layer. Tokens are a child of users.
+SQLAlchemy-based service for managing user tokens.
 """
 
 from __future__ import annotations
@@ -100,7 +98,11 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
 
 @db_guard_rollback
-def upsert_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+def upsert_user_token(
+    user_id: int,
+    access_key: str,
+    access_secret: str,
+) -> UserTokenRecord:
     """
     Upsert the encrypted OAuth credentials for a user.
     Creates a new token row if one does not exist.
