@@ -113,6 +113,7 @@ def init_app_and_db(app, _db) -> bool:
 
     return False
 
+
 def create_app(config_class: Type) -> Flask:
     """Instantiate and configure the Flask application.
 
@@ -148,7 +149,6 @@ def create_app(config_class: Type) -> Flask:
         )
 
     app.jinja_env.filters.update(filters)
-
 
     db_is_ok = True
     # Initialize Flask-SQLAlchemy and Flask-Migrate

@@ -4,6 +4,7 @@ import logging
 import sqlite3
 from typing import Any
 
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event, text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -23,25 +24,7 @@ def _enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -
         raise DatabaseInitError("Failed to enable SQLite foreign key enforcement") from exc
 
 
-def init_db(_db) -> None:
-    """
-    Initialize database tables and views if they don't exist.
-
-    Creates all real tables (skipping views) and creates views manually
-    using the SQL stored in each view model's ``__table_args__["info"]``.
-    This is idempotent-safe to call on every app startup.
-
-    Raises:
-        DatabaseInitError: If table creation fails.
-    """
-    from . import models  # noqa: F401 - register models on db.metadata
-
-    # Enable foreign keys for SQLite (used in tests)
-    if _db.engine.dialect.name == "sqlite":
-        if not event.contains(_db.engine, "connect", _enable_sqlite_foreign_keys):
-            event.listen(_db.engine, "connect", _enable_sqlite_foreign_keys)
-
-    # Create only real tables; skip view-backed mapped classes
+def create_tables(_db: SQLAlchemy) -> None:
     real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
     try:
         _db.metadata.create_all(
@@ -52,6 +35,8 @@ def init_db(_db) -> None:
     except SQLAlchemyError as exc:
         raise DatabaseInitError(f"Failed to create tables: {exc}") from exc
 
+
+def create_views(_db: SQLAlchemy) -> None:
     from sqlalchemy import inspect as sa_inspect
 
     existing_views = set(sa_inspect(_db.engine).get_view_names())
@@ -73,6 +58,30 @@ def init_db(_db) -> None:
                     conn.execute(text(create_sql))
             except Exception:
                 logger.exception("Failed to create view %s", table.name)
+
+
+def init_db(_db: SQLAlchemy) -> None:
+    """
+    Initialize database tables and views if they don't exist.
+
+    Creates all real tables (skipping views) and creates views manually
+    using the SQL stored in each view model's ``__table_args__["info"]``.
+    This is idempotent-safe to call on every app startup.
+
+    Raises:
+        DatabaseInitError: If table creation fails.
+    """
+    from . import models  # noqa: F401 - register models on db.metadata
+
+    # Enable foreign keys for SQLite (used in tests)
+    if _db.engine.dialect.name == "sqlite":
+        if not event.contains(_db.engine, "connect", _enable_sqlite_foreign_keys):
+            event.listen(_db.engine, "connect", _enable_sqlite_foreign_keys)
+
+    # Create only real tables; skip view-backed mapped classes
+    create_tables(_db)
+
+    create_views(_db)
 
 
 __all__ = [
