@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from src.main_app.db.models import (
     AdminUserRecord,
     JobRecord,
