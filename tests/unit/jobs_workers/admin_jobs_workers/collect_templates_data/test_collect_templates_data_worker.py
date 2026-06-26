@@ -182,7 +182,16 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
     mock_services["find_main_title"].assert_called_once()
 
     # Should update template with main_file
-    mock_services["update_template_data"].assert_called_once_with(1, {"main_file": "test.svg", "slug": "test"})
+    mock_services["update_template_data"].assert_called_once_with(
+        1,
+        {
+            "main_file": "test.svg",
+            "last_world_file": None,
+            "last_world_year": None,
+            "slug": "test",
+            "source": None,
+        },
+    )
 
     # Should save result with updated template
     result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
@@ -389,7 +398,14 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
 
     # Should update the new template with main file
     mock_services["update_template_data"].assert_called_once_with(
-        2, {"main_file": "newfile.svg", "slug": "newfromcategory"}
+        2,
+        {
+            "main_file": "newfile.svg",
+            "last_world_file": None,
+            "last_world_year": None,
+            "slug": "newfromcategory",
+            "source": None,
+        },
     )
 
     # Should save result with correct counts
