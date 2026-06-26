@@ -122,4 +122,5 @@ def find_newest_year(text: str) -> str | None:
 __all__ = [
     "match_newest_world_file",
     "find_newest_world_file",
+    "find_newest_year",
 ]
