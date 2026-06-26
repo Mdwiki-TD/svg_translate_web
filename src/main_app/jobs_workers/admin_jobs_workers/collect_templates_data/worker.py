@@ -320,7 +320,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             )
             return False
 
-        valid_data = all(template_data.values() and template_data.values())
+        valid_data = any(v is not None for v in template_data.values())
         if not valid_data:
             template_info.status = "skipped"
             template_info.error = skip_msg
