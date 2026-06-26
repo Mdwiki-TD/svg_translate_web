@@ -110,11 +110,14 @@ def find_newest_year(text: str) -> str | None:
             continue
         tpl_text = tpl.string
         # match all `!year=2009` in tpl_text then select the biggest year
-        matches = re.findall(r"!year=(\d{4})", tpl_text)
+        matches = re.findall(r"!\s*year\s*=\s*(\d{4})", tpl_text)
         if matches:
             last_world_year = max(matches)
         # break when match owidslidersrcs template
         break
+
+    if isinstance(last_world_year, str):
+        last_world_year = int(last_world_year)
 
     return last_world_year
 
