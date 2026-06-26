@@ -445,7 +445,14 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
 
     # Should update template with both main_file and last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"main_file": "test.svg", "last_world_file": "test, World, 2021.svg", "slug": "test"}
+        1,
+        {
+            "main_file": "test.svg",
+            "last_world_file": "test, World, 2021.svg",
+            "last_world_year": "2021",
+            "slug": "test",
+            "source": None,
+        },
     )
 
     # Should save result with correct data
@@ -571,7 +578,14 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
 
     # Should update template with only last_world_file
     mock_services["update_template_data"].assert_called_once_with(
-        1, {"last_world_file": "test, World, 2021.svg", "slug": "test"}
+        1,
+        {
+            "main_file": None,
+            "last_world_file": "test, World, 2021.svg",
+            "last_world_year": "2021",
+            "slug": "test",
+            "source": None,
+        },
     )
 
     # Should save result as updated
