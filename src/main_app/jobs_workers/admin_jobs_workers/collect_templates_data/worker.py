@@ -320,7 +320,8 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             )
             return False
 
-        if not template_data:
+        valid_data = all(template_data.values() and template_data.values())
+        if not valid_data:
             template_info.status = "skipped"
             template_info.error = skip_msg
             self.result.pages_skipped.append(template_info.to_dict())
