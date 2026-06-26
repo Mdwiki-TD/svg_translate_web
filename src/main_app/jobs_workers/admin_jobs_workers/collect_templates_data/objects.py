@@ -36,6 +36,7 @@ class StepResult:
 class FileSteps:
     main_file: StepResult = field(default_factory=lambda: StepResult())
     last_world_file: StepResult = field(default_factory=lambda: StepResult())
+    newest_year: StepResult = field(default_factory=lambda: StepResult())
     source: StepResult = field(default_factory=lambda: StepResult())
     slug: StepResult = field(default_factory=lambda: StepResult())
 
@@ -50,6 +51,7 @@ class TemplateInfo:
     title: str
     new_main_file: str
     last_world_file: str
+    newest_year: int | None
     source: str
     status: str = "processing"
     error: str | None = None

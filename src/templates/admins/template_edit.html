@@ -40,6 +40,12 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="last_world_year" class="form-label">Template Newest year</label>
+                    <input type="text" class="form-control" id="last_world_year" name="last_world_year"
+                        value="{{ template.last_world_year or '' }}" />
+                </div>
+
+                <div class="mb-3">
                     <label for="source" class="form-label">Source</label>
                     <input type="text" class="form-control" id="source" name="source"
                         value="{{ template.source or '' }}" />

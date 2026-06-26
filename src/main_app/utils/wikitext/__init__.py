@@ -9,6 +9,7 @@ from .other_versions import add_other_versions
 from .owid_sliders_rcs import (
     find_main_title,
     find_newest_world_file,
+    find_newest_year,
 )
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
@@ -25,6 +26,7 @@ def ensure_file_prefix(file_name) -> str:
 
 __all__ = [
     "find_newest_world_file",
+    "find_newest_year",
     "find_main_title",
     "ensure_file_prefix",
     "merge_categories",

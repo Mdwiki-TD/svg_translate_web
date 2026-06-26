@@ -23,6 +23,7 @@ from ....db.templates_utils import extract_slug
 from ....utils.wikitext import (
     find_main_title,
     find_newest_world_file,
+    find_newest_year,
     find_template_source,
 )
 from ...base_worker_object import BaseObjectsJobWorker
@@ -121,6 +122,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 title=title,
                 new_main_file="",
                 last_world_file="",
+                newest_year=None,
                 source="",
                 status="",
             )
@@ -167,6 +169,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             title=template.title,
             new_main_file="",
             last_world_file="",
+            newest_year=None,
             source="",
             status="",
         )
@@ -198,7 +201,13 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
             return False
 
-        template_data: dict[str, Any] = {}
+        template_data: dict[str, Any] = {
+            "main_file": None,
+            "last_world_file": None,
+            "last_world_year": None,
+            "slug": None,
+            "source": None,
+        }
         skip_msg = "No changes"
 
         # ------------------
@@ -226,26 +235,44 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # ------------------
         # template_info step # 2 last_world_file
         try:
-            last_world_file = find_newest_world_file(wikitext)
-            if not last_world_file:
+            last_file = find_newest_world_file(wikitext)
+            if not last_file:
                 raise Exception("Could not find newest world file")
 
-            last_world_file = last_world_file.removeprefix("File:")
+            last_file = last_file.removeprefix("File:")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting newest world file: {e}")
-            last_world_file = None
+            last_file = None
             template_info.steps.last_world_file._update(result="failed", msg=str(e))
 
-        if last_world_file:
-            if last_world_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
+        if last_file:
+            if last_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
                 # template_info.last_world_file = last_world_file
-                template_info.steps.last_world_file._update(result="updated", new_value=last_world_file)
-                template_data["last_world_file"] = last_world_file
+                template_info.steps.last_world_file._update(result="updated", new_value=last_file)
+                template_data["last_world_file"] = last_file
             else:
                 template_info.steps.last_world_file._update(result="skipped", msg="No changes")
 
         # ------------------
-        # template_info step # 3 source
+        # template_info step # 2 newest_year
+        try:
+            newest_year = find_newest_year(wikitext)
+            if not newest_year:
+                raise Exception("Could not find newest year")
+        except Exception as e:
+            logger.error(f"Job {self.job_id}: Error while extracting newest year: {e}")
+            newest_year = None
+            template_info.steps.newest_year._update(result="failed", msg=str(e))
+        if newest_year:
+            if newest_year != template.last_world_year:
+                # template_info.newest_year = newest_year
+                template_info.steps.newest_year._update(result="updated", new_value=newest_year)
+                template_data["last_world_year"] = newest_year
+            else:
+                template_info.steps.newest_year._update(result="skipped", msg="No changes")
+
+        # ------------------
+        # template_info step # 4 source
         try:
             source = find_template_source(wikitext, check_grapher=False)
             if not source:
@@ -264,7 +291,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 template_info.steps.source._update(result="skipped", msg="No changes")
 
         # ------------------
-        # template_info step # 4 slug
+        # template_info step # 5 slug
         try:
             _slug = self._load_slug(template.title, template.slug, template_data.get("source", ""))
             if not _slug:
@@ -283,7 +310,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         # ------------------
         # update status
-        if not main_file and not last_world_file and not source:
+        if not main_file and not last_file and not source:
             template_info.status = "failed"
             template_info.error = "Could not find (main file or newest world file or source) in wikitext"
             self.result.pages_failed.append(template_info.to_dict())
@@ -303,7 +330,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Update template with main file
         logger.info(
             f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
-            f"and last_world_file: {last_world_file} "
+            f"and last_world_file: {last_file} "
             f"and source: {source}"
         )
 

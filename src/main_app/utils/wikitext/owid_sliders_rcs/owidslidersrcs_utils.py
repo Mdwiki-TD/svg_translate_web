@@ -98,6 +98,27 @@ def find_newest_world_file(text: str) -> str | None:
     return newest_world_file
 
 
+def find_newest_year(text: str) -> str | None:
+    """ """
+    # Parse the text using wikitextparser
+    parsed = wtp.parse(text)
+
+    # --- 1. Extract last_world_year from {{owidslidersrcs|gallery-World=...}}
+    last_world_year = None
+    for tpl in parsed.templates:
+        if tpl.name.strip().lower() != "owidslidersrcs":
+            continue
+        tpl_text = tpl.string
+        # match all `!year=2009` in tpl_text then select the biggest year
+        matches = re.findall(r"!year=(\d{4})", tpl_text)
+        if matches:
+            last_world_year = max(matches)
+        # break when match owidslidersrcs template
+        break
+
+    return last_world_year
+
+
 __all__ = [
     "match_newest_world_file",
     "find_newest_world_file",
