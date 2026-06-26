@@ -449,7 +449,7 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
         {
             "main_file": "test.svg",
             "last_world_file": "test, World, 2021.svg",
-            "last_world_year": "2021",
+            "last_world_year": 2021,
             "slug": "test",
             "source": None,
         },
@@ -582,7 +582,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
         {
             "main_file": None,
             "last_world_file": "test, World, 2021.svg",
-            "last_world_year": "2021",
+            "last_world_year": 2021,
             "slug": "test",
             "source": None,
         },
