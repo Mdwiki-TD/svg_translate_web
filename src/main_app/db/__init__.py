@@ -70,8 +70,14 @@ def receive_checkout(dbapi_conn, connection_record, connection_proxy) -> None:
 
 
 def register_events(engine) -> None:
+    # Enable foreign keys for SQLite (used in tests)
+    if engine.dialect.name == "sqlite":
+        if not event.contains(engine, "connect", _enable_sqlite_foreign_keys):
+            event.listen(engine, "connect", _enable_sqlite_foreign_keys)
+
     if not event.contains(engine, "connect", receive_connect):
         event.listen(engine, "connect", receive_connect)
+
     if not event.contains(engine, "checkout", receive_checkout):
         event.listen(engine, "checkout", receive_checkout)
 
@@ -88,17 +94,12 @@ def init_db(_db: SQLAlchemy) -> None:
     """
     from . import models  # noqa: F401 - register models on db.metadata
 
-    # Enable foreign keys for SQLite (used in tests)
-    if _db.engine.dialect.name == "sqlite":
-        if not event.contains(_db.engine, "connect", _enable_sqlite_foreign_keys):
-            event.listen(_db.engine, "connect", _enable_sqlite_foreign_keys)
+    register_events(_db.engine)
 
     # Create only real tables; skip view-backed mapped classes
     create_tables(_db)
 
     create_views(_db)
-
-    register_events(_db.engine)
 
 
 __all__ = [
