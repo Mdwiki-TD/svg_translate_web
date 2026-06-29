@@ -59,15 +59,21 @@ def create_views(_db: SQLAlchemy) -> None:
             except Exception:
                 logger.exception("Failed to create view %s", table.name)
 
+def receive_connect(dbapi_conn, connection_record) -> None:
+    logger.debug("New connection established")
+
+
+def receive_checkout(dbapi_conn, connection_record, connection_proxy) -> None:
+    pool = connection_record.owner
+    pool_status = pool.status() if hasattr(pool, "status") else "unknown"
+    logger.debug("Connection checked out from pool. Pool size: %s", pool_status)
+
 
 def register_events(engine) -> None:
-    @event.listens_for(engine, "connect")
-    def receive_connect(dbapi_conn, connection_record) -> None:
-        logger.debug("New connection established")
-
-    @event.listens_for(engine, "checkout")
-    def receive_checkout(dbapi_conn, connection_record, connection_proxy):
-        logger.debug("Connection checked out from pool. Pool size: %s", engine.pool.status())
+    if not event.contains(engine, "connect", receive_connect):
+        event.listen(engine, "connect", receive_connect)
+    if not event.contains(engine, "checkout", receive_checkout):
+        event.listen(engine, "checkout", receive_checkout)
 
 def init_db(_db: SQLAlchemy) -> None:
     """
