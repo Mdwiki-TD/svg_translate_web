@@ -60,6 +60,15 @@ def create_views(_db: SQLAlchemy) -> None:
                 logger.exception("Failed to create view %s", table.name)
 
 
+def register_events(engine) -> None:
+    @event.listens_for(engine, "connect")
+    def receive_connect(dbapi_conn, connection_record) -> None:
+        logger.debug("New connection established")
+
+    @event.listens_for(engine, "checkout")
+    def receive_checkout(dbapi_conn, connection_record, connection_proxy):
+        logger.debug("Connection checked out from pool. Pool size: %s", engine.pool.status())
+
 def init_db(_db: SQLAlchemy) -> None:
     """
     Initialize database tables and views if they don't exist.
@@ -82,6 +91,8 @@ def init_db(_db: SQLAlchemy) -> None:
     create_tables(_db)
 
     create_views(_db)
+
+    register_events(_db.engine)
 
 
 __all__ = [
