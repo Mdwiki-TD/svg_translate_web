@@ -64,8 +64,8 @@ def receive_connect(dbapi_conn, connection_record) -> None:
 
 
 def receive_checkout(dbapi_conn, connection_record, connection_proxy) -> None:
-    pool = connection_record.owner
-    pool_status = pool.status() if hasattr(pool, "status") else "unknown"
+    pool = connection_record.owner if hasattr(connection_record, "owner") else None
+    pool_status = pool.status() if pool and hasattr(pool, "status") else "unknown"
     logger.debug("Connection checked out from pool. Pool size: %s", pool_status)
 
 
