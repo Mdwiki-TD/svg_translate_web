@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
-    match_newest_world_file,
     find_newest_world_file,
+    match_newest_world_file,
 )
-
 
 
 class TestMatchLastWorldFileWithFullDate:

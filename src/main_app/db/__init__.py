@@ -59,6 +59,7 @@ def create_views(_db: SQLAlchemy) -> None:
             except Exception:
                 logger.exception("Failed to create view %s", table.name)
 
+
 def receive_connect(dbapi_conn, connection_record) -> None:
     logger.debug("New connection established")
 
@@ -80,6 +81,7 @@ def register_events(engine) -> None:
 
     if not event.contains(engine, "checkout", receive_checkout):
         event.listen(engine, "checkout", receive_checkout)
+
 
 def init_db(_db: SQLAlchemy) -> None:
     """
