@@ -391,6 +391,30 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Public entry-point
     # ------------------------------------------------------------------
 
+    def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
+        """Process a single template by title."""
+
+        template: TemplateRecord = get_template_by_title(template_title)
+        if not template:
+            logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
+            self.result.summary.total = 0
+            self.finish()
+            return self.result
+
+        self.result.summary.total = 1
+
+        self._save_progress()
+
+        logger.info(f"Job {self.job_id}: Processing single template {template.title}")
+
+        _updated = self._process_one_item(template)
+        if _updated:
+            logger.info(f"Job {self.job_id}: Template {template.title} updated")
+
+        self.finish()
+
+        return self.result
+
     def process(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
 
@@ -399,6 +423,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.log_no_site_error()
             return self.result
+
+        # Single template mode: if a title arg is provided, process only that one
+        if self.args.get("title"):
+            return self.process_one(self.args["title"])
 
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
