@@ -29,7 +29,7 @@
                         <th scope="col" style="width: 15%">Created</th>
                         <th scope="col" style="width: 15%">Started</th>
                         <th scope="col" style="width: 15%">Completed</th>
-                        <th scope="col" class="text-center" style="width: 10%">Details</th>
+                        <th scope="col" class="text-center" style="width: 15%">Details</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,18 +41,26 @@
                             {{ status_icon(job.status) }}
                         </td>
                         <td>{{ job.username if job.username else '-' }}</td>
-                        <td>{{ job.created_at | format_long_date("-") }}</td>
+                        <td>{{ job.created_at | format_date("%Y-%m-%d", "-") }}</td>
                         <td>{{ job.started_at | format_short_date("-") }}</td>
                         <td>{{ job.completed_at | format_short_date("-") }}</td>
                         <td class="text-center">
-                            <div class="btn-group">
-                                <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
-                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
-                                {% if job.status | is_job_running %}
-                                {{ form_cancel_job(url_for('admin.jobs.cancel_job', job_type=job_type, job_id=job.id)) }}
-                                {% endif %}
+                            <div class="d-flex gap-2">
+                                <div class="btn-group d-inline nowrap-text">
+                                    {% if job.status | is_job_running %}
+                                    {{ form_cancel_job(url_for(
+                                        'admin.jobs.cancel_job',
+                                        job_type=job_type,
+                                        job_id=job.id),
+                                        btn_class='btn btn-warning btn-sm') }}
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group d-inline nowrap-text">
+                                    <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
+                                        class="btn btn-outline-primary btn-sm nowrap-text">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
                                 {% block table_extra_actions %}{% endblock %}
                             </div>
                         </td>

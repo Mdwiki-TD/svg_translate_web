@@ -1,4 +1,3 @@
-
 a {
     text-decoration: none;
 }
@@ -66,14 +65,23 @@ a {
 }
 
 /* Auto-refresh toggle */
-.cursor-pointer { cursor: pointer; }
+.cursor-pointer {
+    cursor: pointer;
+}
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 #auto-refresh-indicator.spin {
     display: inline-block;
     animation: spin 1s linear infinite;
+}
+.nowrap-text {
+    white-space: nowrap;
 }
