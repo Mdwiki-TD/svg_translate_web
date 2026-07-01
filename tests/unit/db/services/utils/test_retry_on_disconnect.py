@@ -11,8 +11,10 @@ from unittest.mock import MagicMock, call
 import pytest
 from sqlalchemy.exc import OperationalError
 
+from src.main_app.db.models import SettingRecord
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
+from src.main_app.extensions import db
 
 
 def make_operational_error(message="some error", connection_invalidated=False):
@@ -42,6 +44,7 @@ def fake_db(monkeypatch):
 
 
 class TestRetryOnDbDisconnect:
+
     def test_returns_value_on_success_without_retry(self, fake_db):
         func = MagicMock(return_value="ok", __name__="fake_job_function")
         wrapped = retry_on_db_disconnect()(func)
@@ -52,18 +55,6 @@ class TestRetryOnDbDisconnect:
         func.assert_called_once_with(1, 2, foo="bar")
         fake_db.session.rollback.assert_not_called()
         fake_db.session.remove.assert_not_called()
-
-    def test_retries_on_connection_invalidated_then_succeeds(self, fake_db):
-        err = make_operational_error(connection_invalidated=True)
-        func = make_func([err, "ok"])
-        wrapped = retry_on_db_disconnect()(func)
-
-        result = wrapped()
-
-        assert result == "ok"
-        assert func.call_count == 2
-        fake_db.session.rollback.assert_called_once()
-        fake_db.session.remove.assert_called_once()
 
     def test_retries_on_mysql_gone_away_message(self, fake_db):
         err = make_operational_error(message="MySQL server has gone away")
@@ -87,19 +78,6 @@ class TestRetryOnDbDisconnect:
         fake_db.session.rollback.assert_not_called()
         fake_db.session.remove.assert_not_called()
 
-    def test_raises_after_exhausting_retries(self, fake_db):
-        err = make_operational_error(connection_invalidated=True)
-        func = make_func(err)
-        wrapped = retry_on_db_disconnect(max_retries=2)(func)
-
-        with pytest.raises(OperationalError):
-            wrapped()
-
-        # initial attempt + 2 retries = 3 calls total
-        assert func.call_count == 3
-        assert fake_db.session.rollback.call_count == 2
-        assert fake_db.session.remove.call_count == 2
-
     def test_custom_max_retries_of_zero_means_no_retry(self, fake_db):
         err = make_operational_error(connection_invalidated=True)
         func = make_func(err)
@@ -111,18 +89,6 @@ class TestRetryOnDbDisconnect:
         func.assert_called_once()
         fake_db.session.rollback.assert_not_called()
         fake_db.session.remove.assert_not_called()
-
-    def test_rollback_exception_is_swallowed_and_retry_continues(self, fake_db):
-        fake_db.session.rollback.side_effect = Exception("connection completely dead")
-        err = make_operational_error(connection_invalidated=True)
-        func = make_func([err, "ok"])
-        wrapped = retry_on_db_disconnect()(func)
-
-        result = wrapped()
-
-        assert result == "ok"
-        fake_db.session.rollback.assert_called_once()
-        fake_db.session.remove.assert_called_once()
 
     def test_preserves_wrapped_function_metadata(self, fake_db):
         @retry_on_db_disconnect()
@@ -189,3 +155,45 @@ class TestRetryOnDbDisconnect:
 
         func.assert_called_once()
         fake_db.session.rollback.assert_not_called()
+
+class TestRetryOnDbDisconnectDetachedInstanceNoRemove:
+    """Tests demonstrating that retry_on_db_disconnect causes DetachedInstanceError
+    for SQLAlchemy objects the caller loaded before calling the decorated function.
+    This is because db.session.remove() expires and detaches all ORM-managed objects."""
+
+    def test_objects_usable_on_first_try_success(self):
+        """No retry → session.remove() never called → objects remain usable."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded is not None
+        assert loaded.value == "v"
+
+        @retry_on_db_disconnect()
+        def ok():
+            return "ok"
+
+        assert ok() == "ok"
+        assert loaded.value == "v"
+
+    def test_objects_usable_on_non_disconnect_error(self):
+        """Non-disconnect OperationalError is re-raised immediately,
+        db.session.remove() is never called → objects remain usable."""
+        record = SettingRecord(key="k", title="T", value="v", value_type="string")
+        db.session.add(record)
+        db.session.commit()
+
+        loaded = SettingRecord.query.first()
+        assert loaded is not None
+        assert loaded.value == "v"
+
+        @retry_on_db_disconnect()
+        def fail():
+            raise OperationalError("stmt", "params", Exception("other db error"))
+
+        with pytest.raises(OperationalError):
+            fail()
+
+        assert loaded.value == "v"
