@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from sqlalchemy.exc import OperationalError
+
 from ....api_services import fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import owid_charts_service
@@ -264,6 +266,15 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             info.status = "updated"
             self.result.updated_charts.append(info.to_dict())
             return True
+        except OperationalError as exc:
+            info.status = "failed"
+            info.error = str(exc)
+
+            if exc.code == 2006:
+                logger.error("Job %s: MySQL server has gone away", self.job_id)
+            else:
+                logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
+
         except Exception as exc:
             logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
             info.status = "failed"

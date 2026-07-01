@@ -30,10 +30,12 @@ def retry_on_db_disconnect(
             while True:
                 try:
                     return func(*args, **kwargs)
-                except OperationalError as e:
-                    code = e.code
+                except OperationalError as exc:
+                    code = exc.code
                     is_disconnect = (
-                        code == 2006 or "server has gone away" in str(e) or getattr(e, "connection_invalidated", False)
+                        code == 2006
+                        or "server has gone away" in str(exc)
+                        or getattr(exc, "connection_invalidated", False)
                     )
 
                     if not is_disconnect:
