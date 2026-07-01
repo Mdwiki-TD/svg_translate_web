@@ -319,9 +319,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 f"Job {self.job_id}: Could not find main file or newest world file or source for {template.title}"
             )
             return False
-
-        valid_data = any(v is not None for v in template_data.values())
-        if not valid_data:
+            
+        template_data = { x:v for x, v in template_data.items() if v and v is not None }
+        if not template_data:
             template_info.status = "skipped"
             template_info.error = skip_msg
             self.result.pages_skipped.append(template_info.to_dict())
