@@ -54,7 +54,8 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                         # connection may be completely dead; ignore
                         pass
 
-                    db.session.remove()
+                    # db.session.remove()
+                    # logger.warning("session removed.")
 
         return wrapper
 
