@@ -388,7 +388,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         )
 
     # ------------------------------------------------------------------
-    # Public entry-point
+    # sub public entry-point
     # ------------------------------------------------------------------
 
     def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
@@ -417,18 +417,8 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def process(self) -> CollectTemplatesDataWorkerObject:
+    def process_all(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
-
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.log_no_site_error()
-            return self.result
-
-        # Single template mode: if a title arg is provided, process only that one
-        if self.args.get("title"):
-            return self.process_one(self.args["title"])
 
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
@@ -470,6 +460,25 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.result
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> CollectTemplatesDataWorkerObject:
+        """Execute the collection processing logic."""
+
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.log_no_site_error()
+            return self.result
+
+        # Single template mode: if a title arg is provided, process only that one
+        if self.args.get("title"):
+            return self.process_one(self.args["title"])
+
+        # Default mode: process all templates
+        return self.process_all()
 
 def collect_templates_data_entry(
     *,
