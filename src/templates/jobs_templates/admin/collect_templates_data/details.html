@@ -136,7 +136,7 @@
                             {% if template.steps %}
                             {{ render_step(template.steps.newest_year) }}
                             {% else %}
-                            <code>-</code>
+                            <code>{{ template.newest_year or "-" }}</code>
                             {% endif %}
                         </td>
                         <td>

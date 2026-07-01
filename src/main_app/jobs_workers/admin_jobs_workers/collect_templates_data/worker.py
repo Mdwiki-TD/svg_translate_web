@@ -310,7 +310,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         # ------------------
         # update status
-        if not main_file and not last_file and not source:
+        if not main_file and not last_file and not newest_year and not source:
             template_info.status = "failed"
             template_info.error = "Could not find (main file or newest world file or source) in wikitext"
             self.result.pages_failed.append(template_info.to_dict())

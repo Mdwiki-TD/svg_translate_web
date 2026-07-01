@@ -98,7 +98,7 @@ def find_newest_world_file(text: str) -> str | None:
     return newest_world_file
 
 
-def find_newest_year(text: str) -> str | None:
+def find_newest_year(text: str) -> int | None:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
