@@ -17,6 +17,7 @@ from ....db.services import (
     add_template_data,
     get_chart_by_slug,
     list_templates,
+    get_template_by_title,
     update_template_data,
 )
 from ....db.templates_utils import extract_slug
@@ -376,6 +377,16 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return _slug
 
+    def finish(self) -> None:
+        # Update summary skipped count
+        self.result.summary.skipped = len(self.result.pages_skipped)
+
+        logger.info(
+            f"Job {self.job_id} completed: {len(self.result.pages_updated)} updated, "
+            f"{self.result.summary.failed} failed, "
+            f"{self.result.summary.skipped} skipped"
+        )
+
     # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
@@ -425,15 +436,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if _updated and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
                 break
-
-        # Update summary skipped count
-        self.result.summary.skipped = len(self.result.pages_skipped)
-
-        logger.info(
-            f"Job {self.job_id} completed: {len(self.result.pages_updated)} updated, "
-            f"{self.result.summary.failed} failed, "
-            f"{self.result.summary.skipped} skipped"
-        )
+        self.finish()
 
         return self.result
 
