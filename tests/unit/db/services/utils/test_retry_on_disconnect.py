@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, call
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from src.main_app.db.models import SettingRecord
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
+from src.main_app.db.models import SettingRecord
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
 from src.main_app.extensions import db
 
@@ -155,6 +155,7 @@ class TestRetryOnDbDisconnect:
 
         func.assert_called_once()
         fake_db.session.rollback.assert_not_called()
+
 
 class TestRetryOnDbDisconnectDetachedInstanceNoRemove:
     """Tests demonstrating that retry_on_db_disconnect causes DetachedInstanceError

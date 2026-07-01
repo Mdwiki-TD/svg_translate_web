@@ -29,13 +29,19 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
     # Mock template_service
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates", mocks["list_templates"]
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates",
+        mocks["list_templates"],
     )
 
     # Mock jobs_service (base worker)
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mocks["update_job_status"])
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry", mocks["update_job_status_with_retry"])
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        mocks["update_job_status_with_retry"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+    )
 
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
@@ -65,6 +71,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mocks["download_commons_file_core"],
     )
     return mocks
+
 
 def test_download_main_files_with_no_templates(mock_services, tmp_path):
     """Test processing when no templates have main files."""

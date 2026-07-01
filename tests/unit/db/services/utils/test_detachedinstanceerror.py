@@ -12,12 +12,13 @@ because DetachedInstanceError is a genuine SQLAlchemy object-state error
 """
 
 from unittest.mock import MagicMock
+
 import pytest
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import DetachedInstanceError
 
-from src.main_app.db.models import SettingRecord
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
+from src.main_app.db.models import SettingRecord
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
 from src.main_app.extensions import db
 
@@ -29,8 +30,8 @@ def make_operational_error(message="some error", connection_invalidated=False):
     err.connection_invalidated = connection_invalidated
     return err
 
-class TestRetryOnDbDisconnectRemove:
 
+class TestRetryOnDbDisconnectRemove:
 
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch):
@@ -79,6 +80,7 @@ class TestRetryOnDbDisconnectRemove:
         assert func.call_count == 2
         self.fake_db.session.rollback.assert_called_once()
         self.fake_db.session.remove.assert_called_once()
+
 
 class TestRetryOnDbDisconnectDetachedInstance:
     """Tests demonstrating that retry_on_db_disconnect causes DetachedInstanceError
