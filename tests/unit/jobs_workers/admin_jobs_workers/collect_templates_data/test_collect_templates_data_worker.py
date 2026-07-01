@@ -398,9 +398,7 @@ def test_collect_templates_data_full_workflow_with_new_templates(mock_services, 
         2,
         {
             "main_file": "newfile.svg",
-            
             "slug": "newfromcategory",
-            
         },
     )
 
@@ -447,7 +445,6 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
             "last_world_file": "test, World, 2021.svg",
             "last_world_year": 2021,
             "slug": "test",
-           # "source": None,
         },
     )
 
@@ -576,11 +573,9 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     mock_services["update_template_data"].assert_called_once_with(
         1,
         {
-            #"main_file": None,
             "last_world_file": "test, World, 2021.svg",
             "last_world_year": 2021,
             "slug": "test",
-            #"source": None,
         },
     )
 
