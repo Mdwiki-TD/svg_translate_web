@@ -257,7 +257,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             return False
 
         try:
-            owid_charts_service.update_chart_data(
+            owid_charts_service.update_chart_data_with_retry(
                 chart.chart_id,
                 data,
             )
