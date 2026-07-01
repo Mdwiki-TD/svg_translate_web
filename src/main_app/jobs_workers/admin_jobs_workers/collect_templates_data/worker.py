@@ -398,6 +398,8 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         if not template:
             logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
             self.result.summary.total = 0
+            self.result.status = "failed"
+            self.log_errors(f"Template '{template_title}' not found")
             self.finish()
             return self.result
 
