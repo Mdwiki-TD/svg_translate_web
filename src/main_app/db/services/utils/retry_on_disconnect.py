@@ -54,6 +54,7 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                         # connection may be completely dead; ignore
                         pass
 
+                    # NOTE: this will causes DetachedInstanceError
                     # db.session.remove()
                     # logger.warning("session removed.")
 
