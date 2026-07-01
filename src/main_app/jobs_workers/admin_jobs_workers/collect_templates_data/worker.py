@@ -480,6 +480,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Default mode: process all templates
         return self.process_all()
 
+
 def collect_templates_data_entry(
     *,
     job_id: int,
