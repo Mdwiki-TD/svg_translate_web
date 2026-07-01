@@ -65,10 +65,23 @@
                 <input type="hidden" name="from_popup" value="1" />
             </form>
 
+            <form id="collectDataForm" method="post"
+                action="{{ url_for('admin.jobs.start_job', job_type='collect_templates_data') }}" class="d-inline"
+                onsubmit="return confirm('Start collecting templates data for {{ template.title }}?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="title" value="{{ template.title }}" />
+            </form>
+
             <div class="d-flex justify-content-between mt-4">
-                <button type="submit" form="updateForm" class="btn btn-outline-primary">
-                    <i class="bi bi-save"></i> Save Changes
-                </button>
+                <div>
+                    <button type="submit" form="updateForm" class="btn btn-outline-primary">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+
+                    <button type="submit" form="collectDataForm" class="btn btn-info ms-2">
+                        <i class="bi bi-play-circle"></i> Collect Data
+                    </button>
+                </div>
 
                 <button type="submit" form="deleteForm" class="btn btn-outline-danger">
                     <i class="bi bi-trash"></i> Delete
