@@ -133,7 +133,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _process_one(self, template: TemplateRecord) -> bool:
+    def _process_one_item(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
         template_info = TemplateInfo(
@@ -207,7 +207,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            ok = self._process_one(template)
+            ok = self._process_one_item(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)

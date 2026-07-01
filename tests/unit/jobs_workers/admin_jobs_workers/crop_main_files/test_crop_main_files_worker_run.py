@@ -330,7 +330,7 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
         assert file_info.steps["download"]["result"] is True
-        assert processor.result.summary.processed == 0  # processed is now under _process_one
+        assert processor.result.summary.processed == 0  # processed is now under _process_one_item
 
     def test_step_download_failure(self, mock_services):
         """Test _step_download when download fails."""
@@ -747,7 +747,7 @@ class TestCropMainFilesProcessorHelpers:
 
 
 class TestCropMainFilesProcessorProcessTemplate:
-    """Tests for _process_one method."""
+    """Tests for _process_one_item method."""
 
     def test_process_one_file_already_exists(self, mock_services, mock_site_pages):
         """Test processing when cropped file already exists on Commons."""
@@ -769,7 +769,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_one(template)
+        processor._process_one_item(template)
 
         # Should skip download, crop, and upload steps
         assert hasattr(processor.result, "pages_updated")
@@ -802,7 +802,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_one(template)
+        processor._process_one_item(template)
 
         file_result = processor.result.pages_uploaded[0]
         assert file_result["steps"]["download"]["result"] is True
@@ -827,7 +827,7 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        processor._process_one(template)
+        processor._process_one_item(template)
 
         # Should skip upload steps
         assert hasattr(processor.result, "pages_skipped")

@@ -286,7 +286,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                     upload=StepResult(result=None, msg=""),
                 ),
             )
-            ok = self._process_one(title, title_info)
+            ok = self._process_one_item(title, title_info)
 
             if title_info.status.lower() in ["pending", "running"]:
                 title_info.status = "completed"
@@ -356,7 +356,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         )
         return step_result, output_file
 
-    def _process_one(self, title: str, title_info: FilesProcessedItem) -> bool:
+    def _process_one_item(self, title: str, title_info: FilesProcessedItem) -> bool:
         self.result.summary.processed += 1
 
         # ----------------------------------------------

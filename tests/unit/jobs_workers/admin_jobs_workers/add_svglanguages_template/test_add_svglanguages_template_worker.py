@@ -212,7 +212,7 @@ class TestLoadTemplates:
 
 
 class TestProcessTemplate:
-    """Tests for _process_one method."""
+    """Tests for _process_one_item method."""
 
     def test_process_one_success_flow(self, mock_services, mock_add_svg_worker):
         """Test successful processing of a template."""
@@ -239,7 +239,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_add_template = MagicMock(side_effect=mock_add)
         mock_add_svg_worker._step_save_new_text = MagicMock(return_value=True)
 
-        mock_add_svg_worker._process_one(template)
+        mock_add_svg_worker._process_one_item(template)
 
         # Verify all steps were called
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -259,7 +259,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
 
-        mock_add_svg_worker._process_one(template)
+        mock_add_svg_worker._process_one_item(template)
 
         # Only load step should be called
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -283,7 +283,7 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
 
-        mock_add_svg_worker._process_one(template)
+        mock_add_svg_worker._process_one_item(template)
 
         mock_add_svg_worker._step_load_template_text.assert_called_once()
         mock_add_svg_worker._step_generate_template_text.assert_called_once()
@@ -320,7 +320,7 @@ class TestStepLoadTemplateText:
         assert info.steps["load_template_text"]["result"] is False
 
     def test_load_template_text_skips_if_already_has_svglanguages(self, mock_services, mock_add_svg_worker):
-        """Test that _process_one skips if template already has SVGLanguages."""
+        """Test that _process_one_item skips if template already has SVGLanguages."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
         # Mock regex to match (template already has SVGLanguages)
@@ -338,7 +338,7 @@ class TestStepLoadTemplateText:
 
         mock_add_svg_worker._skip_step = MagicMock()
 
-        result = mock_add_svg_worker._process_one(template)
+        result = mock_add_svg_worker._process_one_item(template)
 
         assert result is False
         mock_add_svg_worker._step_load_template_text.assert_called_once()
@@ -479,8 +479,8 @@ class TestProcessMethod:
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
-        # Mock _process_one to do nothing
-        worker._process_one = MagicMock()
+        # Mock _process_one_item to do nothing
+        worker._process_one_item = MagicMock()
 
         result = worker.process()
 
@@ -528,7 +528,7 @@ class TestProcessMethod:
             if call_count[0] == 1:
                 cancel_event.set()
 
-        worker._process_one = mock_process_one  # type: ignore
+        worker._process_one_item = mock_process_one  # type: ignore
 
         _result = worker.process()
 

@@ -378,7 +378,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["download"].side_effect = ValueError("Network error")
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.download.result is False
@@ -389,7 +389,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["download"].return_value = {"ok": False}
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.download.result is False
@@ -399,7 +399,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["download"].return_value = {"ok": True, "path": ""}
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.download.result is False
@@ -415,7 +415,7 @@ class TestCopySvgLangsWorkerProcessOne:
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert title_info.steps.nested.result is None
         assert title_info.steps.nested.msg == "No nested tags found"
@@ -428,7 +428,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["fix"].return_value = False
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.nested.result is False
@@ -445,7 +445,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["verify"].return_value = MagicMock(fixed=0)
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.nested.result is False
@@ -464,7 +464,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_worker.main_title = "Main.svg"
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is True
         assert title_info.steps.upload.result is True
@@ -478,7 +478,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["inject"].return_value = MagicMock(result=None, msg="No changes")
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
 
@@ -490,7 +490,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_process_one_deps["inject"].return_value = MagicMock(result=False, msg="Failed")
         title_info = MagicMock(title="File:Test.svg", steps=MagicMock(inject=MagicMock(result=False)))
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
 
@@ -507,7 +507,7 @@ class TestCopySvgLangsWorkerProcessOne:
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         # nested step not updated on success (stays default)
         assert title_info.steps.nested.result is True
@@ -529,7 +529,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_worker.main_title = "Main.svg"
         title_info = MagicMock(title="File:Test.svg")
 
-        result = mock_worker._process_one("File:Test.svg", title_info)
+        result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
         assert title_info.steps.upload.result is None

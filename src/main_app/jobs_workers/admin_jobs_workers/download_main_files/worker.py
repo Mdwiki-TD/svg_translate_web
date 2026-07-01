@@ -66,7 +66,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 
-    def _process_one(self, template: TemplateRecord) -> None:
+    def _process_one_item(self, template: TemplateRecord) -> None:
         self.result.summary.processed += 1
 
         file_info = FileInfo(
@@ -146,7 +146,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            ok = self._process_one(template)
+            ok = self._process_one_item(template)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
