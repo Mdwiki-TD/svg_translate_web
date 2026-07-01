@@ -16,8 +16,8 @@ from ....db.models import TemplateRecord
 from ....db.services import (
     add_template_data,
     get_chart_by_slug,
-    list_templates,
     get_template_by_title,
+    list_templates,
     update_template_data,
 )
 from ....db.templates_utils import extract_slug
