@@ -186,10 +186,7 @@ def test_collect_templates_data_updates_template_without_main_file(mock_services
         1,
         {
             "main_file": "test.svg",
-            "last_world_file": None,
-            "last_world_year": None,
             "slug": "test",
-            "source": None,
         },
     )
 
