@@ -15,61 +15,56 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import wor
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by download_main_files worker."""
 
+    mocks = {
+        "list_templates": MagicMock(),
+        "update_job_status": MagicMock(),
+        "update_job_status_with_retry": MagicMock(),
+        "save_job_result_by_name": MagicMock(),
+        "download_file_from_commons": MagicMock(),
+        "generate_main_files_zip": MagicMock(),
+        "create_commons_session": MagicMock(),
+        "download_commons_file_core": MagicMock(return_value=b"svg-content"),
+        "before_run": MagicMock(return_value=True),
+    }
+
     # Mock template_service
-    mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates", mocks["list_templates"]
     )
 
     # Mock jobs_service (base worker)
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry", mocks["update_job_status_with_retry"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"])
 
     # Bypass BaseObjectsJobWorker.before_run
-    mock_before_run = MagicMock(return_value=True)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
-        mock_before_run,
+        mocks["before_run"],
     )
 
     # Mock api_services
-    mock_download_file = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.download_file_from_commons",
-        mock_download_file,
+        mocks["download_file_from_commons"],
     )
 
     # Mock zip generation
-    mock_generate_zip = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.generate_main_files_zip",
-        mock_generate_zip,
+        mocks["generate_main_files_zip"],
     )
 
-    mock_create_commons_session = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.create_commons_session",
-        mock_create_commons_session,
+        mocks["create_commons_session"],
     )
 
-    mock_download_commons_file_core = MagicMock(return_value=b"svg-content")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.download_helper.download_commons_file_core",
-        mock_download_commons_file_core,
+        mocks["download_commons_file_core"],
     )
-
-    return {
-        "list_templates": mock_list_templates,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "download_file_from_commons": mock_download_file,
-        "generate_main_files_zip": mock_generate_zip,
-        "create_commons_session": mock_create_commons_session,
-        "download_commons_file_core": mock_download_commons_file_core,
-    }
-
+    return mocks
 
 def test_download_main_files_with_no_templates(mock_services, tmp_path):
     """Test processing when no templates have main files."""
@@ -271,7 +266,7 @@ def test_download_main_files_fatal_error_handling(mock_services, tmp_path):
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        mock_services["update_job_status"].assert_called_with(
+        mock_services["update_job_status_with_retry"].assert_called_with(
             1, "failed", "download_main_files_job_1.json", job_type="download_main_files"
         )
 
