@@ -95,6 +95,7 @@
                         <th><i class="bi bi-pencil me-3"></i></th>
                         <th>Main File</th>
                         <th>Newest World File</th>
+                        <th>Template year</th>
                         <th>Source</th>
                         <th>Slug</th>
                         <th>Msg</th>
@@ -129,6 +130,13 @@
                             {{ render_step(template.steps.last_world_file) }}
                             {% else %}
                             {{ commons_file_link(template.last_world_file) }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps %}
+                            {{ render_step(template.steps.newest_year) }}
+                            {% else %}
+                            <code>{{ template.newest_year or "-" }}</code>
                             {% endif %}
                         </td>
                         <td>
