@@ -45,7 +45,7 @@ class TestRetryOnDbDisconnectRemove:
         err = make_operational_error(connection_invalidated=True)
         func = MagicMock(side_effect=err)
         func.__name__ = "fake_job_function"
-        wrapped = retry_on_db_disconnect(max_retries=2)(func)
+        wrapped = retry_on_db_disconnect(max_retries=2, remove_session=True)(func)
 
         with pytest.raises(OperationalError):
             wrapped()
@@ -60,7 +60,7 @@ class TestRetryOnDbDisconnectRemove:
         err = make_operational_error(connection_invalidated=True)
         func = MagicMock(side_effect=[err, "ok"])
         func.__name__ = "fake_job_function"
-        wrapped = retry_on_db_disconnect()(func)
+        wrapped = retry_on_db_disconnect(remove_session=True)(func)
 
         result = wrapped()
 
@@ -72,7 +72,7 @@ class TestRetryOnDbDisconnectRemove:
         err = make_operational_error(connection_invalidated=True)
         func = MagicMock(side_effect=[err, "ok"])
         func.__name__ = "fake_job_function"
-        wrapped = retry_on_db_disconnect()(func)
+        wrapped = retry_on_db_disconnect(remove_session=True)(func)
 
         result = wrapped()
 
@@ -97,7 +97,7 @@ class TestRetryOnDbDisconnectDetachedInstance:
         assert loaded is not None
         assert loaded.value == "v"
 
-        @retry_on_db_disconnect(max_retries=1)
+        @retry_on_db_disconnect(max_retries=1, remove_session=True)
         def fail():
             exc = OperationalError("stmt", "params", Exception("MySQL server has gone away"))
             exc.connection_invalidated = True
@@ -123,7 +123,7 @@ class TestRetryOnDbDisconnectDetachedInstance:
 
         call_count = 0
 
-        @retry_on_db_disconnect(max_retries=1)
+        @retry_on_db_disconnect(max_retries=1, remove_session=True)
         def may_fail():
             nonlocal call_count
             call_count += 1
