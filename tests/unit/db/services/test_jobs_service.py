@@ -20,6 +20,7 @@ from src.main_app.db.services.jobs_service import (
     is_job_cancelled,
     list_jobs,
     update_job_status,
+    update_job_status_with_retry,
 )
 
 
@@ -315,9 +316,9 @@ class TestGetAllUserJobsStats:
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user")
-        assert result["stats"]["total"] == 7
-        assert result["stats"]["completed"] == 5
-        assert result["stats"]["failed"] == 2
+        assert result["stats"]["total"] == 7  # type: ignore
+        assert result["stats"]["completed"] == 5  # type: ignore
+        assert result["stats"]["failed"] == 2  # type: ignore
 
     def test_handles_empty_records(self, monkeypatch):
         mock_group_query = MagicMock()
@@ -336,9 +337,9 @@ class TestGetAllUserJobsStats:
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user")
-        assert result["stats"]["total"] == 0
-        assert result["stats"]["completed"] == 0
-        assert result["stats"]["failed"] == 0
+        assert result["stats"]["total"] == 0  # type: ignore
+        assert result["stats"]["completed"] == 0  # type: ignore
+        assert result["stats"]["failed"] == 0  # type: ignore
         assert result["recent_jobs"] == []
 
     def test_respects_limit_parameter(self, monkeypatch):
@@ -361,8 +362,8 @@ class TestGetAllUserJobsStats:
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_all_user_jobs_stats("test_user", limit=5)
-        assert result["stats"]["total"] == 3
-        assert result["stats"]["completed"] == 3
+        assert result["stats"]["total"] == 3  # type: ignore
+        assert result["stats"]["completed"] == 3  # type: ignore
         assert len(result["recent_jobs"]) == 1
 
 
@@ -391,8 +392,8 @@ class TestGetUserJobsStats:
 
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
         result = get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])
-        assert result["stats"]["total"] == 2
-        assert result["stats"]["completed"] == 2
+        assert result["stats"]["total"] == 2  # type: ignore
+        assert result["stats"]["completed"] == 2  # type: ignore
 
     def test_with_none_jobs_types_delegates(self, monkeypatch):
         mock_return = {"stats": {"total": 0}, "recent_jobs": []}
@@ -488,6 +489,38 @@ class TestUpdateJobStatus:
         assert updated.status == "cancelled"
         assert updated.completed_at is not None
 
+    def test_re_raises_after_max_retries(self, monkeypatch):
+        mock_job = MagicMock()
+        mock_job.started_at = None
+        mock_job.status = "pending"
+        mock_job.completed_at = None
+        mock_job.result_file = None
+        mock_job.is_running = 1
+
+        mock_query = MagicMock()
+        mock_query.filter.return_value.filter.return_value.first.return_value = mock_job
+
+        def mock_commit():
+            error = OperationalError("stmt", {}, None)
+            error.connection_invalidated = True
+            raise error
+
+        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.commit", mock_commit)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.rollback", lambda: None)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.remove", lambda: None)
+
+        with pytest.raises(OperationalError):
+            update_job_status(1, "completed", job_type="test_job")
+
+
+# ── Status updates with retry ──
+
+
+class TestUpdateJobStatusWithRetry:
+    """Tests for update_job_status_with_retry."""
+
     def test_retries_on_connection_error(self, monkeypatch):
         mock_job = MagicMock()
         mock_job.started_at = None
@@ -514,32 +547,7 @@ class TestUpdateJobStatus:
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.rollback", lambda: None)
         monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.remove", lambda: None)
 
-        result = update_job_status(1, "completed", job_type="test_job")
+        result = update_job_status_with_retry(1, "completed", job_type="test_job")
         assert result == mock_job
         assert result.status == "completed"
         assert commit_call_count[0] == 2
-
-    def test_re_raises_after_max_retries(self, monkeypatch):
-        mock_job = MagicMock()
-        mock_job.started_at = None
-        mock_job.status = "pending"
-        mock_job.completed_at = None
-        mock_job.result_file = None
-        mock_job.is_running = 1
-
-        mock_query = MagicMock()
-        mock_query.filter.return_value.filter.return_value.first.return_value = mock_job
-
-        def mock_commit():
-            error = OperationalError("stmt", {}, None)
-            error.connection_invalidated = True
-            raise error
-
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.commit", mock_commit)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.rollback", lambda: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.remove", lambda: None)
-
-        with pytest.raises(OperationalError):
-            update_job_status(1, "completed", job_type="test_job")

@@ -88,8 +88,7 @@ def add_chart(
     return chart
 
 
-@retry_on_db_disconnect()
-def update_chart_data(
+def _update_chart_data(
     chart_id: int,
     chart_data: dict[str, Any],
 ) -> OwidChartRecord | None:
@@ -110,11 +109,31 @@ def update_chart_data(
     return chart
 
 
+@db_guard_rollback
+def update_chart_data(
+    chart_id: int,
+    chart_data: dict[str, Any],
+) -> OwidChartRecord | None:
+    """
+    Update chart fields if they are not None.
+    """
+    return _update_chart_data(chart_id, chart_data)
+
+
+@retry_on_db_disconnect()
+def update_chart_data_with_retry(
+    chart_id: int,
+    chart_data: dict[str, Any],
+) -> OwidChartRecord | None:
+    return _update_chart_data(chart_id, chart_data)
+
+
 __all__ = [
     "get_chart_by_id",
     "get_chart_by_slug",
     "add_chart",
-    "update_chart_data",
     "list_charts",
     "list_published_charts",
+    "update_chart_data",
+    "update_chart_data_with_retry",
 ]
