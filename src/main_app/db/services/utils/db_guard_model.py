@@ -64,6 +64,8 @@ def db_guard(default_return: Any = False, msg: str = "") -> Callable[[Callable[P
                 logger.exception("%s: %s", msg, exc)
                 db.session.rollback()
                 return default_return
+            finally:
+                logger.debug("db_guard wrapper for %s completed", func.__qualname__)
 
         return wrapper
 
