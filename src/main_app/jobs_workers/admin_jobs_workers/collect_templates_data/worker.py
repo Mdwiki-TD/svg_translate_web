@@ -16,6 +16,7 @@ from ....db.models import TemplateRecord
 from ....db.services import (
     add_template_data,
     get_chart_by_slug,
+    get_template_by_title,
     list_templates,
     update_template_data,
 )
@@ -376,18 +377,48 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return _slug
 
+    def finish(self) -> None:
+        # Update summary skipped count
+        self.result.summary.skipped = len(self.result.pages_skipped)
+
+        logger.info(
+            f"Job {self.job_id} completed: {len(self.result.pages_updated)} updated, "
+            f"{self.result.summary.failed} failed, "
+            f"{self.result.summary.skipped} skipped"
+        )
+
     # ------------------------------------------------------------------
-    # Public entry-point
+    # sub public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> CollectTemplatesDataWorkerObject:
-        """Execute the collection processing logic."""
+    def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
+        """Process a single template by title."""
 
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.log_no_site_error()
+        template: TemplateRecord = get_template_by_title(template_title)
+        if not template:
+            logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
+            self.result.summary.total = 0
+            self.result.status = "failed"
+            self.log_errors(f"Template '{template_title}' not found")
+            self.finish()
             return self.result
+
+        self.result.summary.total = 1
+
+        self._save_progress()
+
+        logger.info(f"Job {self.job_id}: Processing single template {template.title}")
+
+        _updated = self._process_one_item(template)
+        if _updated:
+            logger.info(f"Job {self.job_id}: Template {template.title} updated")
+
+        self.finish()
+
+        return self.result
+
+    def process_all(self) -> CollectTemplatesDataWorkerObject:
+        """Execute the collection processing logic."""
 
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
@@ -425,18 +456,29 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if _updated and self.check_cancel_db_periodic():
                 logger.info(f"Job {self.job_id}: Cancelled due to periodic check")
                 break
-
-        # Update summary skipped count
-        self.result.summary.skipped = len(self.result.pages_skipped)
-
-        logger.info(
-            f"Job {self.job_id} completed: {len(self.result.pages_updated)} updated, "
-            f"{self.result.summary.failed} failed, "
-            f"{self.result.summary.skipped} skipped"
-        )
+        self.finish()
 
         return self.result
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> CollectTemplatesDataWorkerObject:
+        """Execute the collection processing logic."""
+
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.log_no_site_error()
+            return self.result
+
+        # Single template mode: if a title arg is provided, process only that one
+        if self.args.get("title"):
+            return self.process_one(self.args["title"])
+
+        # Default mode: process all templates
+        return self.process_all()
 
 def collect_templates_data_entry(
     *,

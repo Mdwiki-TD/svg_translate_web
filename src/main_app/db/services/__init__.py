@@ -25,6 +25,7 @@ from .jobs_service import (
     is_job_cancelled,
     list_jobs,
     update_job_status,
+    update_job_status_with_retry,
 )
 from .owid_charts_service import (
     add_chart,
@@ -96,6 +97,7 @@ __all__ = [
     "get_job",
     "list_jobs",
     "update_job_status",
+    "update_job_status_with_retry",
     "get_all_user_jobs_stats",
     "get_user_jobs_stats",
     "cancel_job_db",

@@ -12,7 +12,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_RETRIES = 3
 
 
-def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
+def retry_on_db_disconnect(
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    remove_session: bool = False,
+):
     """
     Retry a db.session-using function if the connection was invalidated
     or MySQL reports it has gone away. Rolls back and refreshes the
@@ -27,9 +30,12 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
             while True:
                 try:
                     return func(*args, **kwargs)
-                except OperationalError as e:
-                    is_disconnect = getattr(e, "connection_invalidated", False) or "MySQL server has gone away" in str(
-                        e
+                except OperationalError as exc:
+                    code = exc.code
+                    is_disconnect = (
+                        code == 2006
+                        or "server has gone away" in str(exc)
+                        or getattr(exc, "connection_invalidated", False)
                     )
 
                     if not is_disconnect:
@@ -54,7 +60,13 @@ def retry_on_db_disconnect(max_retries: int = DEFAULT_MAX_RETRIES):
                         # connection may be completely dead; ignore
                         pass
 
-                    db.session.remove()
+                    # NOTE: this will causes DetachedInstanceError
+                    if remove_session:
+                        db.session.remove()
+                        logger.warning("session removed.")
+                finally:
+                    if attempt > 0:
+                        logger.info("retry_on_db_disconnect: complete with %s attempts.", attempt)
 
         return wrapper
 

@@ -15,11 +15,16 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by worker module."""
+    mock_update_job_status_with_retry = MagicMock()
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.update_job_status",
         mock_update_job_status,
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        mock_update_job_status_with_retry,
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
@@ -38,6 +43,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     )
 
     return {
+        "update_job_status_with_retry": mock_update_job_status_with_retry,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
         "generate_result_file_name": mock_generate_result_file_name,
@@ -81,7 +87,7 @@ def test_crop_main_files_worker_entry_basic_flow(mock_services):
     mock_process.assert_called_once()
 
     # Verify final status was updated via after_run()
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][0] == 1
     assert final_call[0][1] == "completed"
 
@@ -117,7 +123,7 @@ def test_crop_main_files_worker_entry_with_user(mock_services):
     mock_process.assert_called_once()
 
     # Verify final status is updated
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][1] == "completed"
 
 
@@ -135,7 +141,7 @@ def test_crop_main_files_worker_entry_with_cancel_event(mock_services):
 
     mock_process.assert_called_once()
     # Verify cancelled status is preserved
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][1] == "cancelled"
 
 
@@ -200,7 +206,7 @@ def test_crop_main_files_worker_entry_updates_final_status(mock_services):
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][0] == 1
     assert final_call[0][1] == "completed"
     assert final_call[0][2] == "crop_main_files_job_1.json"
@@ -276,7 +282,7 @@ def test_crop_main_files_worker_entry_preserves_cancelled_status(mock_services):
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][1] == "cancelled"
 
 
@@ -291,7 +297,7 @@ def test_crop_main_files_worker_entry_preserves_failed_status(mock_services):
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][1] == "failed"
 
 
@@ -378,7 +384,7 @@ def test_crop_main_files_worker_entry_completed_status_default(mock_services):
 
         worker.crop_main_files_worker_entry(job_id=1, user=None)
 
-    final_call = mock_services["update_job_status"].call_args
+    final_call = mock_services["update_job_status_with_retry"].call_args
     assert final_call[0][1] == "completed"
 
 

@@ -302,7 +302,7 @@ class TestProcessChart:
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
     def test_process_chart_owid_variable_id_update_only(self, monkeypatch):
-        """When only owid_variable_id changes -> calls update_chart_data."""
+        """When only owid_variable_id changes -> calls update_chart_data_with_retry."""
         metadata = {"columns": {"col1": {"owidVariableId": 123}}}
         mock_fetch = MagicMock(return_value=metadata)
         monkeypatch.setattr(
@@ -333,7 +333,7 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data.assert_called_once_with(1, {"owid_variable_id": 123})
+        mock_service.update_chart_data_with_retry.assert_called_once_with(1, {"owid_variable_id": 123})
         assert len(worker.result.updated_charts) == 1
 
     def test_process_chart_parse_timespan_fails(self, monkeypatch):
@@ -397,7 +397,7 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data.assert_called_once_with(
+        mock_service.update_chart_data_with_retry.assert_called_once_with(
             1,
             {"min_time": 2000, "max_time": 2020, "len_years": 21, "owid_variable_id": 123},
         )
@@ -432,7 +432,7 @@ class TestProcessChart:
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
     def test_process_chart_db_update_exception(self, monkeypatch):
-        """When update_chart_data raises -> status failed."""
+        """When update_chart_data_with_retry raises -> status failed."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_fetch = MagicMock(return_value=metadata)
         monkeypatch.setattr(
@@ -445,7 +445,7 @@ class TestProcessChart:
         )
 
         mock_service = MagicMock()
-        mock_service.update_chart_data.side_effect = Exception("DB error")
+        mock_service.update_chart_data_with_retry.side_effect = Exception("DB error")
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
             mock_service,
@@ -500,7 +500,7 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data.assert_called_once_with(
+        mock_service.update_chart_data_with_retry.assert_called_once_with(
             1,
             {"min_time": 2000, "max_time": 2020, "len_years": 21},
         )
@@ -537,7 +537,7 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is False
-        mock_service.update_chart_data.assert_not_called()
+        mock_service.update_chart_data_with_retry.assert_not_called()
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 

@@ -14,6 +14,7 @@ from ..config import settings
 from ..db.services import (
     is_job_cancelled,
     update_job_status,
+    update_job_status_with_retry,
 )
 from ..su_services import is_job_cancelled_file_exist, save_job_result_by_name
 from .shared_objects import WorkerObject
@@ -114,7 +115,7 @@ class BaseObjectsJobWorker(ABC):
 
         # Update final status
         try:
-            update_job_status(self.job_id, final_status, self.result_file, job_type=self.job_type)
+            update_job_status_with_retry(self.job_id, final_status, self.result_file, job_type=self.job_type)
         except (StaleDataError, LookupError):
             logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
         except Exception:

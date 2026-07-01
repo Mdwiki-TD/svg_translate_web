@@ -278,7 +278,7 @@ class OwidCharts:
 
         @self.bp.post("/update")
         @admin_required
-        def update_chart_data() -> ResponseReturnValue:
+        def update_chart() -> ResponseReturnValue:
             chart_id = request.form.get("chart_id", default=0, type=int)
             from_popup = request.form.get("from_popup") == "1"
 

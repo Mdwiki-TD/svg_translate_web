@@ -58,9 +58,9 @@ if sys:
         sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
 # Import after environment setup
-from src.main_app import create_app  # noqa: E402
-from src.main_app.config import TestingConfig  # noqa: E402
-from src.main_app.extensions import db as _db  # noqa: E402
+from src.main_app import create_app
+from src.main_app.config import TestingConfig
+from src.main_app.extensions import db as _db
 
 
 @pytest.fixture(autouse=True)

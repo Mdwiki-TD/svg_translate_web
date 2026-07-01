@@ -209,8 +209,7 @@ def create_job(job_type: str, username: str) -> JobRecord:
     return job
 
 
-@retry_on_db_disconnect()
-def update_job_status(
+def _update_job_status(
     job_id: int,
     status: str,
     result_file: str | None = None,
@@ -245,6 +244,31 @@ def update_job_status(
     db.session.refresh(job)
 
     return job
+
+
+@db_guard_rollback
+def update_job_status(
+    job_id: int,
+    status: str,
+    result_file: str | None = None,
+    *,
+    job_type: str,
+) -> JobRecord:
+    """
+    Update job status and result file.
+    """
+    return _update_job_status(job_id, status, result_file, job_type=job_type)
+
+
+@retry_on_db_disconnect()
+def update_job_status_with_retry(
+    job_id: int,
+    status: str,
+    result_file: str | None = None,
+    *,
+    job_type: str,
+) -> JobRecord:
+    return _update_job_status(job_id, status, result_file, job_type=job_type)
 
 
 @db_guard_rollback
@@ -292,4 +316,5 @@ __all__ = [
     "is_job_cancelled",
     "get_all_user_jobs_stats",
     "get_user_jobs_stats",
+    "update_job_status_with_retry",
 ]
