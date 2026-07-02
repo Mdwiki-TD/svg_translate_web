@@ -234,20 +234,3 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.generate_result_file_name", mocks["generate_result_file_name"]
     )
     return mocks
-
-
-@pytest.fixture
-def mock_base_is_cancelled(monkeypatch: pytest.MonkeyPatch,):
-    mocks = {
-        "is_job_cancelled": MagicMock(),
-        "is_job_cancelled_file_exist": MagicMock(),
-    }
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
-        mocks["is_job_cancelled"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
-        mocks["is_job_cancelled_file_exist"],
-    )
-    return mocks
