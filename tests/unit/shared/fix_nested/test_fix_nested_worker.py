@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -13,30 +13,36 @@ from src.main_app.shared.fix_nested.worker import (
     verify_fix,
 )
 
-
 @pytest.fixture
-def mock_copy_svg():
-    with (
-        patch("src.main_app.shared.fix_nested.worker.match_nested_tags") as m_match,
-        patch("src.main_app.shared.fix_nested.worker.fix_nested_file") as m_fix,
-    ):
-        yield {"match": m_match, "fix": m_fix}
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "match": MagicMock(),
+        "fix": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.shared.fix_nested.worker.match_nested_tags",
+        mocks["match"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.shared.fix_nested.worker.fix_nested_file",
+        mocks["fix"],
+    )
+    return mocks
 
-
-def test_detect_nested_tags(mock_copy_svg):
-    mock_copy_svg["match"].return_value = ["tag1", "tag2"]
+def test_detect_nested_tags(mock_services):
+    mock_services["match"].return_value = ["tag1", "tag2"]
     res = detect_nested_tags(Path("test.svg"))
     assert res.count == 2
     assert res.tags == ["tag1", "tag2"]
 
 
-def test_fix_nested_tags(mock_copy_svg):
-    mock_copy_svg["fix"].return_value = True
+def test_fix_nested_tags(mock_services):
+    mock_services["fix"].return_value = True
     assert fix_nested_tags(Path("test.svg")) is True
 
 
-def test_verify_fix(mock_copy_svg):
-    mock_copy_svg["match"].return_value = ["tag1"]
+def test_verify_fix(mock_services):
+    mock_services["match"].return_value = ["tag1"]
     res = verify_fix(Path("test.svg"), before_count=3)
     assert res.before == 3
     assert res.after == 1
