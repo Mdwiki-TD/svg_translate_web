@@ -207,45 +207,20 @@ class MockServices:
     update_job_status_with_retry: MagicMock
 
 
-@pytest.fixture
-def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
-    """Mock all base_worker_object services."""
 
+@pytest.fixture
+def mock_base_worker_services(mocker) -> MockServices:
+    """Mock all base_worker_object services using pytest-mock."""
+
+    import src.main_app.jobs_workers.base_worker_object as base_worker
     mocks = MockServices(
-        generate_result_file_name=MagicMock(return_value="result.json"),
-        get_user_site=MagicMock(return_value=MagicMock(name="mw_site")),
-        is_job_cancelled=MagicMock(),
-        is_job_cancelled_file_exist=MagicMock(),
-        save_job_result_by_name=MagicMock(),
-        update_job_status=MagicMock(),
-        update_job_status_with_retry=MagicMock(),
+        generate_result_file_name=mocker.patch.object(base_worker, "generate_result_file_name", return_value="result.json"),
+        get_user_site=mocker.patch.object(base_worker, "get_user_site", return_value=MagicMock(name="mw_site")),
+        is_job_cancelled=mocker.patch.object(base_worker, "is_job_cancelled"),
+        is_job_cancelled_file_exist=mocker.patch.object(base_worker, "is_job_cancelled_file_exist"),
+        save_job_result_by_name=mocker.patch.object(base_worker, "save_job_result_by_name"),
+        update_job_status=mocker.patch.object(base_worker, "update_job_status"),
+        update_job_status_with_retry=mocker.patch.object(base_worker, "update_job_status_with_retry"),
     )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mocks.get_user_site,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status",
-        mocks.update_job_status,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
-        mocks.is_job_cancelled,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
-        mocks.update_job_status_with_retry,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist",
-        mocks.is_job_cancelled_file_exist,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
-        mocks.save_job_result_by_name,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
-        mocks.generate_result_file_name,
-    )
+
     return mocks
