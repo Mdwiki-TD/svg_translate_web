@@ -64,12 +64,6 @@ def receive_connect(dbapi_conn, connection_record) -> None:
     logger.debug("New connection established")
 
 
-def receive_checkout(dbapi_conn, connection_record, connection_proxy) -> None:
-    pool = connection_record.owner if hasattr(connection_record, "owner") else None
-    pool_status = pool.status() if pool and hasattr(pool, "status") else "unknown"
-    logger.debug("Connection checked out from pool. Pool size: %s", pool_status)
-
-
 def register_events(engine) -> None:
     # Enable foreign keys for SQLite (used in tests)
     if engine.dialect.name == "sqlite":
@@ -78,9 +72,6 @@ def register_events(engine) -> None:
 
     if not event.contains(engine, "connect", receive_connect):
         event.listen(engine, "connect", receive_connect)
-
-    if not event.contains(engine, "checkout", receive_checkout):
-        event.listen(engine, "checkout", receive_checkout)
 
 
 def init_db(_db: SQLAlchemy) -> None:

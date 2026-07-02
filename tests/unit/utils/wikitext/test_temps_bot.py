@@ -2,7 +2,7 @@
 
 """
 Pytest test suite for:
-- get_files_list
+- get_files_list_data
 - get_titles
 - get_titles_from_wikilinks
 
@@ -13,10 +13,16 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.utils.wikitext.temps_bot import (
-    get_files_list,
+    get_files_list_data,
     get_titles,
     get_titles_from_wikilinks,
 )
+
+
+def get_files_list(text: str, filter_duplicates: bool = True) -> tuple:
+    data = get_files_list_data(text, filter_duplicates=filter_duplicates)
+    return data["main_title"], data["titles"]
+
 
 # ── texts fixtures ───────────────────────────────────────────────────────────────────
 

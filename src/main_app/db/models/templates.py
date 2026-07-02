@@ -31,7 +31,7 @@ class TemplateRecord(db.Model):
         KEY last_world_file (last_world_file),
         KEY source (source),
         KEY last_world_year (last_world_year)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     """
 
     __tablename__ = "templates"

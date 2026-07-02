@@ -56,6 +56,7 @@ from .template_service import (
     get_template,
     get_template_by_title,
     list_templates,
+    list_templates_mismatched_years,
     update_template_data,
 )
 from .user_token_service import (
@@ -137,6 +138,7 @@ __all__ = [
     "get_template",
     "get_template_by_title",
     "list_templates",
+    "list_templates_mismatched_years",
     "add_template_data",
     "update_template_data",
     # views_service

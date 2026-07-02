@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from ...config import settings
+from ...db.services import get_template_by_title
 
 logger = logging.getLogger(__name__)
 
@@ -99,15 +100,21 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     return sorted(set(languages))
 
 
-def get_informations(title) -> dict:
+def get_informations(title: str) -> dict:
     data: dict[str, Any] = {}
     downloaded, title_path = get_files(title, "files")
     translated, _ = get_files(title, "translated")
 
+    full_title = f"Template:OWID/{title}" if not title.startswith("Template:OWID/") else title
+    full_title = full_title.replace("_", " ")
+    template = get_template_by_title(full_title)
+    if not template:
+        logger.info(f"Template {full_title} not found")
+
     data = get_main_data(title)
     len_titles = len(data.get("titles", []))
 
-    main_file = data.get("main_title", "")
+    main_file = template.main_file if template else ""
 
     if main_file and not main_file.lower().startswith("file:"):
         main_file = f"File:{main_file}"

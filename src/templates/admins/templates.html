@@ -13,7 +13,7 @@
     </div>
     <div class="card-body">
         <div class="row g-3 mb-4" id="summaryCards">
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Templates</h2>
@@ -21,27 +21,35 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Main File</h2>
+                        <h2 class="h6 text-uppercase text-muted">With Oldest File</h2>
                         <p class="display-6 mb-0" id="withMainFile">-</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Last World File</h2>
+                        <h2 class="h6 text-uppercase text-muted">With Newest File</h2>
                         <p class="display-6 mb-0" id="withLastWorldFile">-</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">With Source</h2>
                         <p class="display-6 mb-0" id="withSource">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 text-uppercase text-muted">mismatched year</h2>
+                        <p class="display-6 mb-0" id="mismatched_year">-</p>
                     </div>
                 </div>
             </div>
@@ -75,10 +83,11 @@
                     <tr>
                         <th scope="col" style="width: 5%">#</th>
                         <th scope="col">Template</th>
-                        <th scope="col" class="text-center">Main File</th>
-                        <th scope="col" class="text-center">Last World File</th>
+                        <th scope="col" class="text-center">Oldest File</th>
+                        <th scope="col" class="text-center">Newest File</th>
+                        <th scope="col" class="text-center">Newest Year</th>
                         <th scope="col" class="text-center" style="width: 20%">Source</th>
-                        <th scope="col" class="text-center" style="width: 10%">Actions</th>
+                        <th scope="col" class="text-center" style="width: 10%">Edit</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -92,6 +101,10 @@
 
 <script>
     $(document).ready(function () {
+        // get `/api/templates-mismatched-years`, count data, set #mismatched_year = count
+        $.get('/api/templates-mismatched-years', function (result) {
+            $('#mismatched_year').text(result.data ? result.data.length : 0);
+        });
         const table = $("#templatesTable").DataTable({
             ajax: {
                 url: "/api/templates",
@@ -134,12 +147,19 @@
                     }
                 },
                 {
+                    data: "last_world_year",
+                    title: "Newest Year",
+                },
+                {
                     data: "source",
                     render: function (data, type, row) {
                         if (!data) return "";
+                        if (type === 'filter' || type === 'search') {
+                            return data;
+                        }
                         let shortUrl = data.split("/").pop().split("?")[0].trim();
                         if (shortUrl.length > 50) shortUrl = shortUrl.substring(0, 50) + "...";
-                        return `<a href="${data}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
+                        return `<a title="${data}" href="${data}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
                     }
                 },
                 {

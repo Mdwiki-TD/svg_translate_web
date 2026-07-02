@@ -10,6 +10,7 @@ from ..db.services import (
     list_charts,
     list_owid_charts_templates,
     list_templates,
+    list_templates_mismatched_years,
     list_templates_need_update,
 )
 
@@ -34,6 +35,18 @@ def templates_list():
     }
 
     return jsonify({"data": data, "summary": summary})
+
+
+@bp_api.get("/templates-mismatched-years")
+def templates_mismatched_years_list():
+    try:
+        templates = list_templates_mismatched_years()
+        data = [t.to_dict() for t in templates]
+    except Exception as e:
+        logger.exception(e)
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"data": data})
 
 
 @bp_api.get("/templates-need-update")

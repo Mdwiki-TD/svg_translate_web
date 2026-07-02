@@ -24,7 +24,7 @@ class OwidSlugRedirectRecord(db.Model):
         UNIQUE KEY `unique_slug_redirect` (`slug`, `redirect_to`),
         KEY `idx_slug` (`slug`),
         KEY `idx_redirect_to` (`redirect_to`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
 
     __tablename__ = "owid_slug_redirects"
