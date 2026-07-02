@@ -41,7 +41,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_upload_fixed_svg,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
         mock_is_job_cancelled,
     )
 

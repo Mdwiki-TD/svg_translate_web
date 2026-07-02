@@ -53,8 +53,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_verify_fix = MagicMock()
     mock_upload_fixed_svg = MagicMock()
 
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.is_job_cancelled", mock_is_job_cancelled)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", mock_is_job_cancelled)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
         mock_download_svg_file,
@@ -447,22 +447,22 @@ class TestRun:
             # against the real DB and then tries to do `self.result.status =`
             # attribute access on a dict). Returning True lets process() run.
             "before_run": patch(
-                "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+                "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
                 return_value=True,
             ),
             # Bypass the DB write inside BaseObjectsJobWorker.after_run().
             "update_job_status": patch(
-                "src.main_app.jobs_workers.base_worker_object.update_job_status",
+                "src.main_app.jobs_workers.base_worker.update_job_status",
                 return_value=None,
             ),
             # Bypass disk writes from _save_progress().
             "save_job_result_by_name": patch(
-                "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+                "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
                 return_value=None,
             ),
-            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker_object.is_job_cancelled"),
+            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
             "is_job_cancelled_file_exist": patch(
-                "src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist",
+                "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
                 return_value=False,
             ),
             "get_site": patch(

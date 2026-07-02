@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.jobs_workers.base_worker_object import (
+from src.main_app.jobs_workers.base_worker import (
     BaseObjectsJobWorker,
     WorkerObject,
 )
@@ -24,11 +24,11 @@ class MockWorker(BaseObjectsJobWorker):
 @pytest.fixture
 def mock_db_services():
     with (
-        patch("src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry") as m_update_retry,
-        patch("src.main_app.jobs_workers.base_worker_object.update_job_status") as m_update,
-        patch("src.main_app.jobs_workers.base_worker_object.is_job_cancelled") as m_is_cancelled,
-        patch("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name") as m_save,
-        patch("src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist") as m_file_exists,
+        patch("src.main_app.jobs_workers.base_worker.update_job_status_with_retry") as m_update_retry,
+        patch("src.main_app.jobs_workers.base_worker.update_job_status") as m_update,
+        patch("src.main_app.jobs_workers.base_worker.is_job_cancelled") as m_is_cancelled,
+        patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name") as m_save,
+        patch("src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist") as m_file_exists,
     ):
         yield {
             "update_retry": m_update_retry,

@@ -28,12 +28,12 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     # Mock jobs_service (base worker)
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
 
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
         MagicMock(return_value=True),
     )
 

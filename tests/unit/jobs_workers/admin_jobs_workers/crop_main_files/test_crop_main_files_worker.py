@@ -19,27 +19,27 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status",
+        "src.main_app.jobs_workers.base_worker.update_job_status",
         mock_update_job_status,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        "src.main_app.jobs_workers.base_worker.update_job_status_with_retry",
         mock_update_job_status_with_retry,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mock_save_job_result,
     )
 
     mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
         mock_generate_result_file_name,
     )
 
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
 
     return {
@@ -367,7 +367,7 @@ def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_
     """Test that exceptions are logged with full traceback."""
     with (
         patch.object(worker.CropMainFilesWorker, "process") as mock_process,
-        patch("src.main_app.jobs_workers.base_worker_object.logger") as mock_logger,
+        patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger,
     ):
         mock_process.side_effect = RuntimeError("Test error")
 

@@ -55,13 +55,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     # Mock jobs_service
     mock_update_job_status = MagicMock()
     mock_save_job_result = MagicMock(return_value=str(tmp_path / "job_1.json"))
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
 
     # Bypass BaseObjectsJobWorker.before_run
     mock_before_run = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
         mock_before_run,
     )
 

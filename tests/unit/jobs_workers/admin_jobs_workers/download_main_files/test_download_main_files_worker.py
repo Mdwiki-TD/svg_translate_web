@@ -34,18 +34,18 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     )
 
     # Mock jobs_service (base worker)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mocks["update_job_status"])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        "src.main_app.jobs_workers.base_worker.update_job_status_with_retry",
         mocks["update_job_status_with_retry"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )
 
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
         mocks["before_run"],
     )
 

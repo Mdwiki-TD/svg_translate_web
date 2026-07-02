@@ -22,7 +22,7 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
