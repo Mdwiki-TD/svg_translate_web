@@ -12,6 +12,29 @@ from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
 
+
+class _JobsStore:
+    """Adapter bridging old JobsDB API to SQLAlchemy jobs_service functions."""
+
+    def create(self, job_type, username="z"):
+        return _sqlalchemy_jobs_service.create_job(job_type, username)
+
+    def list(self, limit=100, job_type=None):
+        return _sqlalchemy_jobs_service.list_jobs(limit, job_type)
+
+    def update_status(self, job_id, status, result_file=None, *, job_type):
+        return _sqlalchemy_jobs_service.update_job_status(job_id, status, result_file, job_type=job_type)
+
+    def get(self, job_id, job_type):
+        return _sqlalchemy_jobs_service.get_job(job_id, job_type)
+
+    def delete(self, job_id, job_type):
+        return delete_service.delete_job(job_id, job_type)
+
+    def cancel(self, job_id, job_type=None):
+        return _sqlalchemy_jobs_service.cancel_job_db(job_id, job_type)
+
+
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     """Return a configured Flask test client paired with a fake jobs jobs_db."""
@@ -40,29 +63,6 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         yield app.test_client()
         _db.session.remove()
         _db.metadata.drop_all(_db.engine, tables=real_tables)
-
-
-class _JobsStore:
-    """Adapter bridging old JobsDB API to SQLAlchemy jobs_service functions."""
-
-    def create(self, job_type, username="z"):
-        return _sqlalchemy_jobs_service.create_job(job_type, username)
-
-    def list(self, limit=100, job_type=None):
-        return _sqlalchemy_jobs_service.list_jobs(limit, job_type)
-
-    def update_status(self, job_id, status, result_file=None, *, job_type):
-        return _sqlalchemy_jobs_service.update_job_status(job_id, status, result_file, job_type=job_type)
-
-    def get(self, job_id, job_type):
-        return _sqlalchemy_jobs_service.get_job(job_id, job_type)
-
-    def delete(self, job_id, job_type):
-        return delete_service.delete_job(job_id, job_type)
-
-    def cancel(self, job_id, job_type=None):
-        return _sqlalchemy_jobs_service.cancel_job_db(job_id, job_type)
-
 
 @pytest.fixture
 def jobs_db():
