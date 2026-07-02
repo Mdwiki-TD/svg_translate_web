@@ -12,7 +12,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, create_commons_session, get_user_site, is_pages_exists
+from ....api_services import MwClientPage, create_commons_session, is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
@@ -22,7 +22,7 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
@@ -75,10 +75,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
     def process(self) -> CropMainFilesWorkerObject:
         """Execute the full pipeline."""
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
+
+        if not self._check_site():
             return self.result
 
         templates = self._load_templates()

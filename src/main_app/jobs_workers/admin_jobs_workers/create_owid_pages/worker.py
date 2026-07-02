@@ -12,12 +12,12 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, get_user_site, is_pages_exists
+from ....api_services import MwClientPage, is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....utils.wikitext import merge_categories, sort_categories
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
@@ -93,10 +93,8 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return "create_owid_pages"
 
     def process(self) -> CreateOwidPagesWorkerObject:
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
+
+        if not self._check_site():
             return self.result
 
         templates = self._load_templates()

@@ -7,12 +7,14 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch):
-    mock_get_files_list_data = MagicMock()
+    mocks = {
+        "get_files_list_data": MagicMock(),
+    }
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data",
-        mock_get_files_list_data,
+        mocks["get_files_list_data"],
     )
-    return {"get_files_list_data": mock_get_files_list_data}
+    return mocks
 
 
 def test_titles_task_success(mock_services):

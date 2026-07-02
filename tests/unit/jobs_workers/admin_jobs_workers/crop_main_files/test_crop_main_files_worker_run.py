@@ -16,125 +16,95 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
     """Mock the services used by worker module."""
 
-    # Mock jobs_service
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status",
-        mock_update_job_status,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
-        mock_save_job_result,
-    )
-    mock_is_cancelled = MagicMock(return_value=False)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
-        mock_is_cancelled,
-    )
+    mock_settings = MagicMock()
+    mock_settings.paths.crop_main_files_path = tmp_path / "crop_main_files"
+    mock_settings.other.user_agent = "TestBot/1.0"
 
-    # Mock list_templates
-    mock_list_templates = MagicMock()
+    mocks = {
+        "update_job_status": MagicMock(),
+        "save_job_result_by_name": MagicMock(),
+        "is_job_cancelled": MagicMock(return_value=False),
+        "list_templates": MagicMock(),
+        "create_commons_session": MagicMock(),
+        "MwClientPage": MagicMock(),
+        "download_file": MagicMock(),
+        "crop_svg_file": MagicMock(),
+        "upload_cropped_file": MagicMock(),
+        "create_cropped_file_text": MagicMock(return_value="Cropped file wikitext"),
+        "update_original_file_text": MagicMock(return_value="Updated original text"),
+        "update_template_page_file_reference": MagicMock(return_value="Updated template text"),
+        "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
+        "settings": mock_settings,
+        "get_user_site": mock_base_worker["get_user_site"],
+    }
+
+    mocks["MwClientPage"].return_value.exists.return_value = False
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.update_job_status",
+        mocks["update_job_status"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        mocks["save_job_result_by_name"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mocks["is_job_cancelled"],
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.list_templates",
-        mock_list_templates,
-    )
-
-    # Mock API clients
-    mock_get_user_site = MagicMock()
-    mock_create_commons_session = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.get_user_site",
-        mock_get_user_site,
+        mocks["list_templates"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_commons_session",
-        mock_create_commons_session,
+        mocks["create_commons_session"],
     )
-
-    # Mock MwClientPage
-    mock_mwclientpage = MagicMock()
-    mock_mwclientpage.return_value.exists.return_value = False
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MwClientPage",
-        mock_mwclientpage,
+        mocks["MwClientPage"],
     )
-    # Mock query_api functions
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
         MagicMock(return_value={}),
     )
-
-    # Mock crop_file functions
-    mock_download_file = MagicMock()
-    mock_crop_svg_file = MagicMock()
-    mock_upload_cropped_file = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.download_file_for_cropping",
-        mock_download_file,
+        mocks["download_file"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.crop_svg_file",
-        mock_crop_svg_file,
+        mocks["crop_svg_file"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.upload_cropped_file",
-        mock_upload_cropped_file,
+        mocks["upload_cropped_file"],
     )
-
-    # Mock wikitext utilities
-    mock_create_cropped_file_text = MagicMock(return_value="Cropped file wikitext")
-    mock_update_original_file_text = MagicMock(return_value="Updated original text")
-    mock_update_template_page_file_reference = MagicMock(return_value="Updated template text")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_cropped_file_text",
-        mock_create_cropped_file_text,
+        mocks["create_cropped_file_text"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_original_file_text",
-        mock_update_original_file_text,
+        mocks["update_original_file_text"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_template_page_file_reference",
-        mock_update_template_page_file_reference,
+        mocks["update_template_page_file_reference"],
     )
-
-    # Mock utils
-    mock_generate_cropped_filename = MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
-        mock_generate_cropped_filename,
+        mocks["generate_cropped_filename"],
     )
-
-    # Mock settings
-    mock_settings = MagicMock()
-    mock_settings.paths.crop_main_files_path = tmp_path / "crop_main_files"
-    mock_settings.other.user_agent = "TestBot/1.0"
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.settings",
-        mock_settings,
+        mocks["settings"],
     )
 
-    return {
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "list_templates": mock_list_templates,
-        "get_user_site": mock_get_user_site,
-        "create_commons_session": mock_create_commons_session,
-        "MwClientPage": mock_mwclientpage,
-        "download_file": mock_download_file,
-        "crop_svg_file": mock_crop_svg_file,
-        "upload_cropped_file": mock_upload_cropped_file,
-        "create_cropped_file_text": mock_create_cropped_file_text,
-        "update_original_file_text": mock_update_original_file_text,
-        "update_template_page_file_reference": mock_update_template_page_file_reference,
-        "generate_cropped_filename": mock_generate_cropped_filename,
-        "settings": mock_settings,
-        "is_job_cancelled": mock_is_cancelled,
-    }
+    return mocks
 
 
 class TestFileProcessingInfo:
@@ -878,15 +848,15 @@ class TestCropMainFilesProcessorRun:
         mock_save_job_result = MagicMock()
         mock_is_job_cancelled_file_exist = MagicMock(return_value=False)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker_object.update_job_status",
+            "src.main_app.jobs_workers.base_worker.update_job_status",
             mock_update_job_status,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
+            "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
             mock_save_job_result,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist",
+            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")

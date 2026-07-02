@@ -14,7 +14,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from ....api_services import create_commons_session, get_user_site
+from ....api_services import create_commons_session
 from ....api_services.files_service import download_svg_file, upload_fixed_svg
 from ....config import settings
 from ....shared.fix_nested.worker import (
@@ -24,7 +24,7 @@ from ....shared.fix_nested.worker import (
     fix_nested_tags,
     verify_fix,
 )
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
     InjectResult,
@@ -222,15 +222,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
+        if not self._check_site():
+            return self.result
+
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"
-            return self.result
-
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
             return self.result
 
         self.session = create_commons_session(settings.other.user_agent)

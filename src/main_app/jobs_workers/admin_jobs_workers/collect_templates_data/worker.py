@@ -11,7 +11,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members, get_user_site
+from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
 from ....db.models import TemplateRecord
 from ....db.services import (
     add_template_data,
@@ -27,7 +27,7 @@ from ....utils.wikitext import (
     find_newest_year,
     find_template_source,
 )
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
 from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 
@@ -466,11 +466,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
     def process(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
-
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning(f"Job {self.job_id}: No site authentication available")
-            self.log_no_site_error()
+        if not self._check_site():
             return self.result
 
         # Single template mode: if a title arg is provided, process only that one
@@ -479,6 +475,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         # Default mode: process all templates
         return self.process_all()
+
 
 def collect_templates_data_entry(
     *,

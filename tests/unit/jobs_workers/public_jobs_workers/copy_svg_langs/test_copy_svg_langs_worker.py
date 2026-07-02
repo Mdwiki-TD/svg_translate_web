@@ -27,32 +27,39 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 @pytest.fixture
-def mock_steps():
-    with (
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step") as m_text,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step") as m_titles,
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step"
-        ) as m_trans,
-    ):
-        yield {
-            "text": m_text,
-            "titles": m_titles,
-            "translations": m_trans,
-        }
+def mock_steps(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "text": MagicMock(),
+        "titles": MagicMock(),
+        "translations": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step",
+        mocks["text"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step",
+        mocks["titles"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step",
+        mocks["translations"],
+    )
+    return mocks
 
 
 @pytest.fixture
-def mock_clients():
-    with (
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session"
-        ) as m_session,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.get_user_site") as m_site,
-    ):
-        m_session.return_value = MagicMock()
-        m_site.return_value = MagicMock()
-        yield {"session": m_session, "site": m_site}
+def mock_clients(monkeypatch, mock_base_worker):
+    m_session = MagicMock()
+    m_session.return_value = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session",
+        m_session,
+    )
+    return {
+        "session": m_session,
+        "site": mock_base_worker["get_user_site"],
+    }
 
 
 @pytest.fixture
@@ -297,23 +304,40 @@ class TestCopySvgLangsWorkerProcess:
 
 
 @pytest.fixture
-def mock_process_one_deps():
-    with (
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file") as m_dl,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.detect_nested_tags") as m_detect,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.fix_nested_tags") as m_fix,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.verify_fix") as m_verify,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file") as m_inject,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg") as m_upload,
-    ):
-        yield {
-            "download": m_dl,
-            "detect": m_detect,
-            "fix": m_fix,
-            "verify": m_verify,
-            "inject": m_inject,
-            "upload": m_upload,
-        }
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "download": MagicMock(),
+        "detect": MagicMock(),
+        "fix": MagicMock(),
+        "verify": MagicMock(),
+        "inject": MagicMock(),
+        "upload": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file",
+        mocks["download"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.detect_nested_tags",
+        mocks["detect"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.fix_nested_tags",
+        mocks["fix"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.verify_fix",
+        mocks["verify"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
+        mocks["inject"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg",
+        mocks["upload"],
+    )
+    return mocks
 
 
 class TestCopySvgLangsWorkerInjectStepFile:
@@ -374,8 +398,8 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
 
 class TestCopySvgLangsWorkerProcessOne:
-    def test_download_exception(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps):
-        mock_process_one_deps["download"].side_effect = ValueError("Network error")
+    def test_download_exception(self, mock_worker: CopySvgLangsWorker, mock_services):
+        mock_services["download"].side_effect = ValueError("Network error")
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
@@ -385,8 +409,8 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.download.msg == "Error downloading"
         assert title_info.status == "failed"
 
-    def test_download_not_ok(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps):
-        mock_process_one_deps["download"].return_value = {"ok": False}
+    def test_download_not_ok(self, mock_worker: CopySvgLangsWorker, mock_services):
+        mock_services["download"].return_value = {"ok": False}
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
@@ -395,8 +419,8 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.download.result is False
         assert title_info.status == "failed"
 
-    def test_download_no_file_path(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps):
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": ""}
+    def test_download_no_file_path(self, mock_worker: CopySvgLangsWorker, mock_services):
+        mock_services["download"].return_value = {"ok": True, "path": ""}
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
@@ -405,27 +429,27 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.download.result is False
         assert title_info.status == "failed"
 
-    def test_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=0)
-        mock_process_one_deps["inject"].return_value = MagicMock(result=None, msg="No changes")
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = MagicMock(result=None, msg="No changes")
         from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker._process_one_item("File:Test.svg", title_info)
+        _result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert title_info.steps.nested.result is None
         assert title_info.steps.nested.msg == "No nested tags found"
 
-    def test_fix_nested_tags_fails(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_fix_nested_tags_fails(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=2)
-        mock_process_one_deps["fix"].return_value = False
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=2)
+        mock_services["fix"].return_value = False
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
@@ -436,13 +460,13 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.inject.msg == "skipped"
         assert title_info.steps.upload.msg == "skipped"
 
-    def test_verify_fix_zero(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_verify_fix_zero(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=2)
-        mock_process_one_deps["fix"].return_value = True
-        mock_process_one_deps["verify"].return_value = MagicMock(fixed=0)
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=2)
+        mock_services["fix"].return_value = True
+        mock_services["verify"].return_value = MagicMock(fixed=0)
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
@@ -451,16 +475,14 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.nested.result is False
         assert title_info.status == "failed"
 
-    def test_inject_success_uploads(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_inject_success_uploads(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=0)
-        mock_process_one_deps["inject"].return_value = MagicMock(
-            result=True, msg="ok", new_languages=1, updated_translations=0
-        )
-        mock_process_one_deps["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
-        mock_process_one_deps["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
+        mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
+        mock_services["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
         mock_worker.main_title = "Main.svg"
         title_info = MagicMock(title="File:Test.svg")
 
@@ -470,39 +492,39 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.upload.result is True
         assert title_info.status == "success"
 
-    def test_inject_none_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_inject_none_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=0)
-        mock_process_one_deps["inject"].return_value = MagicMock(result=None, msg="No changes")
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = MagicMock(result=None, msg="No changes")
         title_info = MagicMock(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
 
-    def test_inject_false_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_inject_false_no_nested_tags(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=0)
-        mock_process_one_deps["inject"].return_value = MagicMock(result=False, msg="Failed")
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = MagicMock(result=False, msg="Failed")
         title_info = MagicMock(title="File:Test.svg", steps=MagicMock(inject=MagicMock(result=False)))
 
         result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert result is False
 
-    def test_inject_false_but_nested_fixed(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_inject_false_but_nested_fixed(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=2)
-        mock_process_one_deps["fix"].return_value = True
-        mock_process_one_deps["verify"].return_value = MagicMock(fixed=2)
-        mock_process_one_deps["inject"].return_value = MagicMock(result=False, msg="Failed")
-        mock_process_one_deps["upload"].return_value = {"ok": True, "msg": "uploaded", "error": ""}
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=2)
+        mock_services["fix"].return_value = True
+        mock_services["verify"].return_value = MagicMock(fixed=2)
+        mock_services["inject"].return_value = MagicMock(result=False, msg="Failed")
+        mock_services["upload"].return_value = {"ok": True, "msg": "uploaded", "error": ""}
         from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -516,16 +538,14 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.inject.msg == "Failed"
         assert result is True
 
-    def test_upload_disabled(self, mock_worker: CopySvgLangsWorker, mock_process_one_deps, tmp_path):
+    def test_upload_disabled(self, mock_worker: CopySvgLangsWorker, mock_services, tmp_path):
         mock_worker.args = {"upload": False}
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_process_one_deps["download"].return_value = {"ok": True, "path": str(dl_path)}
-        mock_process_one_deps["detect"].return_value = MagicMock(count=0)
-        mock_process_one_deps["inject"].return_value = MagicMock(
-            result=True, msg="ok", new_languages=1, updated_translations=0
-        )
-        mock_process_one_deps["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
+        mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
+        mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
         mock_worker.main_title = "Main.svg"
         title_info = MagicMock(title="File:Test.svg")
 

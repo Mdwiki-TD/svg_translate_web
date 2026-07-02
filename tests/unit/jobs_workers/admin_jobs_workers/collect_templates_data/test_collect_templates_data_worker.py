@@ -33,91 +33,66 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
     """Mock the services used by collect_templates_data_worker."""
 
-    # Mock template_service
-    mock_list_templates = MagicMock()
-    mock_add_template_data = MagicMock()
-    mock_update_template_data = MagicMock()
+    mocks = {
+        "list_templates": MagicMock(),
+        "add_template_data": MagicMock(),
+        "update_template_data": MagicMock(),
+        "update_job_status": MagicMock(),
+        "save_job_result_by_name": MagicMock(return_value=str(tmp_path / "job_1.json")),
+        "get_category_members": MagicMock(),
+        "MwClientPage": MagicMock(),
+        "find_main_title": MagicMock(),
+        "get_chart_by_slug": MagicMock(),
+        "fetch_grapher_metadata": MagicMock(return_value=None),
+        "get_user_site": mock_base_worker["get_user_site"],
+    }
+
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates",
+        mocks["list_templates"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.add_template_data",
-        mock_add_template_data,
+        mocks["add_template_data"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
-        mock_update_template_data,
+        mocks["update_template_data"],
     )
-
-    # Mock jobs_service
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock(return_value=str(tmp_path / "job_1.json"))
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mock_save_job_result)
-
-    # Bypass BaseObjectsJobWorker.before_run
-    mock_before_run = MagicMock(return_value=True)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
-        mock_before_run,
+        "src.main_app.jobs_workers.base_worker.update_job_status",
+        mocks["update_job_status"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        mocks["save_job_result_by_name"],
     )
 
-    # Mock get_category_members
-    mock_get_category_members = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
-        mock_get_category_members,
+        mocks["get_category_members"],
     )
-
-    # Mock MwClientPage
-    mock_mwclientpage = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage", mock_mwclientpage
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
+        mocks["MwClientPage"],
     )
-
-    # Mock find_main_title
-    mock_find_main_title = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
-        mock_find_main_title,
+        mocks["find_main_title"],
     )
-
-    # Mock get_chart_by_slug so slugify_title can return a slug
-    mock_get_chart_by_slug = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_chart_by_slug",
-        mock_get_chart_by_slug,
+        mocks["get_chart_by_slug"],
     )
-
-    # Mock get_user_site
-    mock_get_user_site = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
-        mock_get_user_site,
-    )
-
-    # Mock fetch_grapher_metadata (avoids real network calls)
-    mock_fetch_grapher_metadata = MagicMock(return_value=None)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
-        mock_fetch_grapher_metadata,
+        mocks["fetch_grapher_metadata"],
     )
 
-    return {
-        "list_templates": mock_list_templates,
-        "add_template_data": mock_add_template_data,
-        "update_template_data": mock_update_template_data,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "get_category_members": mock_get_category_members,
-        "MwClientPage": mock_mwclientpage,
-        "find_main_title": mock_find_main_title,
-        "get_chart_by_slug": mock_get_chart_by_slug,
-        "get_user_site": mock_get_user_site,
-    }
+    return mocks
 
 
 def test_collect_templates_data_with_no_templates(mock_services):

@@ -16,103 +16,60 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by create_owid_pages worker."""
 
-    # Mock jobs_service
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status",
-        mock_update_job_status,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name",
-        mock_save_job_result,
-    )
-    mock_is_cancelled = MagicMock(return_value=False)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled",
-        mock_is_cancelled,
-    )
+    mock_page_instance = MagicMock()
 
-    # Mock generate_result_file_name
-    mock_generate_result_file_name = MagicMock(side_effect=lambda job_id, job_type: f"{job_type}_job_{job_id}.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
-        mock_generate_result_file_name,
-    )
+    mocks = {
+        "is_job_cancelled": MagicMock(return_value=False),
+        "list_templates": MagicMock(),
+        "MwClientPage": MagicMock(),
+        "create_new_text": MagicMock(),
+        "is_pages_exists": MagicMock(return_value={}),
+        "merge_categories": MagicMock(side_effect=lambda current, new: new),
+        "sort_categories": MagicMock(side_effect=lambda text: text),
+        "is_job_cancelled_file_exist": MagicMock(return_value=False),
+        "page_instance": mock_page_instance,
+        "get_user_site": mock_base_worker["get_user_site"],
+    }
 
-    # Mock template_service
-    mock_list_templates = MagicMock()
+    mocks["MwClientPage"].return_value = mock_page_instance
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mocks["is_job_cancelled"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+        mocks["is_job_cancelled_file_exist"],
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.list_templates",
-        mock_list_templates,
+        mocks["list_templates"],
     )
-
-    # Mock get_user_site
-    mock_get_user_site = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_user_site",
-        mock_get_user_site,
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MwClientPage",
+        mocks["MwClientPage"],
     )
-
-    # Mock API services
-    mock_mwclientpage = MagicMock()
-    mock_page_instance = MagicMock()
-    mock_mwclientpage.return_value = mock_page_instance
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MwClientPage", mock_mwclientpage
-    )
-
-    # Mock create_new_text
-    mock_create_new_text = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.create_new_text",
-        mock_create_new_text,
+        mocks["create_new_text"],
     )
-
-    # Mock is_pages_exists (called by filter_created)
-    mock_is_pages_exists = MagicMock(return_value={})
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.is_pages_exists",
-        mock_is_pages_exists,
+        mocks["is_pages_exists"],
     )
-
-    # Mock merge_categories and sort_categories (called in _step_update)
-    mock_merge_categories = MagicMock(side_effect=lambda current, new: new)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.merge_categories",
-        mock_merge_categories,
+        mocks["merge_categories"],
     )
-    mock_sort_categories = MagicMock(side_effect=lambda text: text)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.sort_categories",
-        mock_sort_categories,
+        mocks["sort_categories"],
     )
 
-    # Mock is_job_cancelled_file_exist (called by is_cancelled in BaseObjectsJobWorker)
-    mock_is_job_cancelled_file_exist = MagicMock(return_value=False)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.is_job_cancelled_file_exist",
-        mock_is_job_cancelled_file_exist,
-    )
-
-    return {
-        "MwClientPage": mock_mwclientpage,
-        "page_instance": mock_page_instance,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "generate_result_file_name": mock_generate_result_file_name,
-        "list_templates": mock_list_templates,
-        "get_user_site": mock_get_user_site,
-        "create_new_text": mock_create_new_text,
-        "is_job_cancelled": mock_is_cancelled,
-        "is_pages_exists": mock_is_pages_exists,
-        "merge_categories": mock_merge_categories,
-        "sort_categories": mock_sort_categories,
-        "is_job_cancelled_file_exist": mock_is_job_cancelled_file_exist,
-    }
+    return mocks
 
 
 class TestTemplateProcessingInfo:
@@ -484,9 +441,6 @@ class TestCreateOwidPagesWorkerProcess:
     def test_process_no_site_authentication(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test process when site authentication fails."""
         mock_services["get_user_site"].return_value = None
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
@@ -498,9 +452,6 @@ class TestCreateOwidPagesWorkerProcess:
         """Test process when there are no templates to process."""
         mock_services["get_user_site"].return_value = MagicMock()
         mock_services["list_templates"].return_value = []
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
@@ -519,10 +470,6 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["create_new_text"].return_value = "New OWID content"
         mock_services["page_instance"].exists.return_value = False
         mock_services["page_instance"].create.return_value = {"success": True}
-
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
@@ -543,10 +490,6 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["create_new_text"].return_value = "New OWID content"
         mock_services["page_instance"].exists.return_value = True
         mock_services["MwClientPage"].return_value.get_text.return_value = "New OWID content"
-
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
@@ -577,10 +520,6 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["MwClientPage"].side_effect = _mwclientpage_side_effect
         mock_services["create_new_text"].return_value = "New OWID content"
 
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
-
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
 
@@ -603,10 +542,6 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["page_instance"].exists.return_value = False
         mock_services["page_instance"].create.return_value = {"success": True}
         mock_services["is_job_cancelled"].return_value = True
-
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", MagicMock())
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=cancel_event)
 

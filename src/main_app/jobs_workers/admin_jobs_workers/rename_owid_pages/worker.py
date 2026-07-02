@@ -24,9 +24,9 @@ from typing import Any, Iterable
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, get_user_site
+from ....api_services import MwClientPage
 from ....db.services import get_template_by_title, update_template_data
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .objects import RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)
@@ -107,10 +107,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         return "rename_owid_pages"
 
     def process(self) -> RenameOwidPagesWorkerObject:
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
+        if not self._check_site():
             return self.result
 
         # First pass: collect candidates so progress is bounded and we can

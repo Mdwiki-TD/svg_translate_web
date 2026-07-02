@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -14,12 +14,20 @@ from src.main_app.api_services.files_service.files_helpers import (
 
 
 @pytest.fixture
-def mock_api():
-    with (
-        patch("src.main_app.api_services.files_service.files_helpers.download_one_file") as m_down,
-        patch("src.main_app.api_services.files_service.files_helpers.upload_file") as m_upload,
-    ):
-        yield {"down": m_down, "upload": m_upload}
+def mock_api(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "down": MagicMock(),
+        "upload": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.api_services.files_service.files_helpers.download_one_file",
+        mocks["down"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.api_services.files_service.files_helpers.upload_file",
+        mocks["upload"],
+    )
+    return mocks
 
 
 class TestDownloadSvgFile:

@@ -12,14 +12,11 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import wor
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run):
     """Mock the services used by download_main_files worker."""
 
     mocks = {
         "list_templates": MagicMock(),
-        "update_job_status": MagicMock(),
-        "update_job_status_with_retry": MagicMock(),
-        "save_job_result_by_name": MagicMock(),
         "download_file_from_commons": MagicMock(),
         "generate_main_files_zip": MagicMock(),
         "create_commons_session": MagicMock(),
@@ -31,22 +28,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates",
         mocks["list_templates"],
-    )
-
-    # Mock jobs_service (base worker)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mocks["update_job_status"])
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
-        mocks["update_job_status_with_retry"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
-    )
-
-    # Bypass BaseObjectsJobWorker.before_run
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run",
-        mocks["before_run"],
     )
 
     # Mock api_services
@@ -73,7 +54,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     return mocks
 
 
-def test_download_main_files_with_no_templates(mock_services, tmp_path):
+def test_download_main_files_with_no_templates(mock_base_worker, mock_services, tmp_path):
     """Test processing when no templates have main files."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -82,12 +63,12 @@ def test_download_main_files_with_no_templates(mock_services, tmp_path):
         mock_services["list_templates"].return_value = []
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        assert mock_services["save_job_result_by_name"].called
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        assert mock_base_worker["save_job_result_by_name"].called
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 0
 
 
-def test_download_main_files_skips_templates_without_main_file(mock_services, tmp_path):
+def test_download_main_files_skips_templates_without_main_file(mock_base_worker, mock_services, tmp_path):
     """Test that templates without main files are skipped during loading."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -102,12 +83,12 @@ def test_download_main_files_skips_templates_without_main_file(mock_services, tm
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert mock_services["download_file_from_commons"].call_count == 1
 
 
-def test_download_main_files_downloads_template_with_main_file(mock_services, tmp_path):
+def test_download_main_files_downloads_template_with_main_file(mock_base_worker, mock_services, tmp_path):
     """Test successful download workflow."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -123,13 +104,13 @@ def test_download_main_files_downloads_template_with_main_file(mock_services, tm
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["success"] == 1
         assert len(result_dict["files_downloaded"]) == 1
         assert result_dict["files_downloaded"][0]["filename"] == "file1.svg"
 
 
-def test_download_main_files_handles_download_failure(mock_services, tmp_path):
+def test_download_main_files_handles_download_failure(mock_base_worker, mock_services, tmp_path):
     """Test handled failure during file download."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -141,13 +122,13 @@ def test_download_main_files_handles_download_failure(mock_services, tmp_path):
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["failed"] == 1
         assert len(result_dict["files_failed"]) == 1
         assert result_dict["files_failed"][0]["reason"] == "NotFound"
 
 
-def test_download_main_files_handles_exception(mock_services, tmp_path):
+def test_download_main_files_handles_exception(mock_base_worker, mock_services, tmp_path):
     """Test unhandled exception during processing."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -159,12 +140,12 @@ def test_download_main_files_handles_exception(mock_services, tmp_path):
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["failed"] == 1
         assert "Fatal error" in result_dict["files_failed"][0]["reason"]
 
 
-def test_download_main_files_processes_multiple_templates(mock_services, tmp_path):
+def test_download_main_files_processes_multiple_templates(mock_base_worker, mock_services, tmp_path):
     """Test multiple templates with mixed results."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -185,12 +166,12 @@ def test_download_main_files_processes_multiple_templates(mock_services, tmp_pat
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["success"] == 1
         assert result_dict["summary"]["failed"] == 1
 
 
-def test_download_main_files_respects_cancellation(mock_services, tmp_path):
+def test_download_main_files_respects_cancellation(mock_base_worker, mock_services, tmp_path):
     """Test cancellation after first template."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -213,7 +194,7 @@ def test_download_main_files_respects_cancellation(mock_services, tmp_path):
 
         worker.download_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
-        result_dict = mock_services["save_job_result_by_name"].call_args[0][1]
+        result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["processed"] == 1
         assert result_dict["status"] == "cancelled"
 
@@ -263,7 +244,7 @@ def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
         assert mock_services["download_file_from_commons"].called
 
 
-def test_download_main_files_fatal_error_handling(mock_services, tmp_path):
+def test_download_main_files_fatal_error_handling(mock_base_worker, mock_services, tmp_path):
     """Test workflow when an error occurs but partial results are saved."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -273,12 +254,12 @@ def test_download_main_files_fatal_error_handling(mock_services, tmp_path):
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        mock_services["update_job_status_with_retry"].assert_called_with(
+        mock_base_worker["update_job_status_with_retry"].assert_called_with(
             1, "failed", "download_main_files_job_1.json", job_type="download_main_files"
         )
 
 
-def test_download_main_files_saves_progress_periodically(mock_services, tmp_path):
+def test_download_main_files_saves_progress_periodically(mock_base_worker, mock_services, tmp_path):
     """Test that save_progress is called."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
         mock_instance = MagicMock()
@@ -290,7 +271,7 @@ def test_download_main_files_saves_progress_periodically(mock_services, tmp_path
 
         worker.download_main_files_for_templates(job_id=1, user=None)
 
-        assert mock_services["save_job_result_by_name"].call_count >= 2
+        assert mock_base_worker["save_job_result_by_name"].call_count >= 2
 
 
 def test_download_main_files_creates_output_directory(mock_services, tmp_path):
