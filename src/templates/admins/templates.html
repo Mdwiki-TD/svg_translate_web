@@ -103,7 +103,7 @@
     $(document).ready(function () {
         // get `/api/templates-mismatched-years`, count data, set #mismatched_year = count
         $.get('/api/templates-mismatched-years', function (result) {
-            $('#mismatched_year').text(result.data | length);
+            $('#mismatched_year').text(result.data ? result.data.length : 0);
         });
         const table = $("#templatesTable").DataTable({
             ajax: {

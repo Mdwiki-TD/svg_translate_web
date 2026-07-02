@@ -36,16 +36,21 @@ def list_templates_mismatched_years() -> List[TemplateRecord]:
         '%',
         cast(TemplateRecord.last_world_year, String),
         '%'
-    ).collate(target_collation)
+    )
 
-    # Construct the query
+    # SQLite does not support mysql collations, so only apply collate on mysql/mariadb
+    if db.engine.dialect.name == "mysql":
+        search_pattern = search_pattern.collate(target_collation)
+
+    # Construct the query, ensuring we only compare non-null values
     stmt = select(TemplateRecord).where(
+        TemplateRecord.last_world_file.is_not(None),
+        TemplateRecord.last_world_year.is_not(None),
         TemplateRecord.last_world_file.not_like(search_pattern)
     )
 
     results = db.session.scalars(stmt).all()
     return list(results)
-
 
 def get_template(template_id: int) -> TemplateRecord:
     """Fetch a template by ID."""
