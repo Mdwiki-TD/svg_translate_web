@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from ...base_worker import WorkerObject
+from ...base_worker_object import WorkerObject
 
 
 @dataclass

@@ -27,7 +27,7 @@ from ....utils.wikitext import (
     find_newest_year,
     find_template_source,
 )
-from ...base_worker import BaseObjectsJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
 from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 

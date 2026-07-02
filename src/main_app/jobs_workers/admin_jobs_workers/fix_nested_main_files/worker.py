@@ -23,7 +23,7 @@ from ....shared.fix_nested.worker import (
     fix_nested_tags,
     verify_fix,
 )
-from ...base_worker import BaseObjectsJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)

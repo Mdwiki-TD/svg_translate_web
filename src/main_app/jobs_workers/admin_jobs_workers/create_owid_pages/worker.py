@@ -17,7 +17,7 @@ from ....data import get_slug_categories
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....utils.wikitext import merge_categories, sort_categories
-from ...base_worker import BaseObjectsJobWorker
+from ...base_worker_object import BaseObjectsJobWorker
 from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
