@@ -17,7 +17,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     """Return a configured Flask test client paired with a fake jobs jobs_db."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin", is_active_admin=True)
+    admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
 
     def fake_current_user() -> SimpleNamespace:
         return admin_user
