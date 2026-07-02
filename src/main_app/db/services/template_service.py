@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
+from sqlalchemy import cast, func, String, select
 from ...extensions import db
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
@@ -20,6 +21,30 @@ def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     if limit is not None:
         query = query.limit(limit)
     return query.all()
+
+
+def list_templates_mismatched_years() -> List[TemplateRecord]:
+    """
+    Fetches all template records where the 'last_world_file'
+    does not contain the 'last_world_year', resolving collation conflicts.
+    """
+    # Define the target collation causing the issue
+    target_collation = "utf8mb4_unicode_ci"
+
+    # Cast and force the collation on the concatenated string
+    search_pattern = func.concat(
+        '%',
+        cast(TemplateRecord.last_world_year, String),
+        '%'
+    ).collate(target_collation)
+
+    # Construct the query
+    stmt = select(TemplateRecord).where(
+        TemplateRecord.last_world_file.not_like(search_pattern)
+    )
+
+    results = db.session.scalars(stmt).all()
+    return list(results)
 
 
 def get_template(template_id: int) -> TemplateRecord:
@@ -95,5 +120,6 @@ __all__ = [
     "add_template_data",
     "update_template_data",
     "list_templates",
+    "list_templates_mismatched_years",
     "get_template",
 ]

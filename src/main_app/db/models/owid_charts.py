@@ -34,7 +34,7 @@ class OwidChartRecord(db.Model):  # type: ignore
         UNIQUE KEY `unique_slug` (`slug`),
         KEY `idx_slug` (`slug`),
         KEY `idx_published` (`is_published`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
 
     __tablename__ = "owid_charts"

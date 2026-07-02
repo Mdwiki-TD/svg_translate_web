@@ -28,7 +28,7 @@ class JobRecord(db.Model):
         PRIMARY KEY (`id`),
         UNIQUE KEY `idx_unique_active_job` (`job_type`,`is_running`),
         KEY `username` (`username`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
     NOTE: username has no FK — jobs persist independently of user accounts.
     """

@@ -25,7 +25,7 @@ class UserRecord(db.Model):
         can_run_bg_jobs tinyint(1) NOT NULL DEFAULT '0',
         PRIMARY KEY (user_id),
         UNIQUE KEY uq_users_username (username)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
 
     __tablename__ = "users"
@@ -79,7 +79,7 @@ class AdminUserRecord(db.Model):
       UNIQUE KEY username (username),
       CONSTRAINT admin_users_ibfk_1 FOREIGN KEY (username)
         REFERENCES users (username) ON DELETE CASCADE ON UPDATE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
 
     __tablename__ = "admin_users"

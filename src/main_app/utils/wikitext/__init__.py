@@ -13,7 +13,7 @@ from .owid_sliders_rcs import (
 )
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
-from .temps_bot import get_files_list, get_files_list_data, get_titles, get_titles_from_wikilinks
+from .temps_bot import get_files_list_data, get_titles, get_titles_from_wikilinks
 
 
 def ensure_file_prefix(file_name) -> str:
@@ -42,6 +42,5 @@ __all__ = [
     "create_cropped_file_text",
     "get_titles",
     "get_titles_from_wikilinks",
-    "get_files_list",
     "get_files_list_data",
 ]

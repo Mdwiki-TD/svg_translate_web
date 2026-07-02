@@ -89,8 +89,8 @@ def test_delete_template_not_found_raises_lookup_error():
 
 def test_template_record_dataclass_with_none_main_file():
     """Test TemplateRecord with None main_file (type annotation change)."""
-    data = {"title": "No Main File", "main_file": ""}
+    data = {"title": "No Oldest File", "main_file": ""}
     record = template_service.add_template_data(data)
 
-    assert record.title == "No Main File"
+    assert record.title == "No Oldest File"
     assert isinstance(record.main_file, str)
