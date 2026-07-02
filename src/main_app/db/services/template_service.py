@@ -106,7 +106,7 @@ def update_template_data(
     template_data = ensure_template_data(template_data)
 
     for key, value in template_data.items():
-        if value is not None:
+        if value is not None and hasattr(template, key):
             setattr(template, key, value)
 
     db.session.commit()
