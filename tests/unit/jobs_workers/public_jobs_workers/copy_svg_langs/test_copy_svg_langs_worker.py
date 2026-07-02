@@ -27,19 +27,25 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 @pytest.fixture
-def mock_steps():
-    with (
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step") as m_text,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step") as m_titles,
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step"
-        ) as m_trans,
-    ):
-        yield {
-            "text": m_text,
-            "titles": m_titles,
-            "translations": m_trans,
-        }
+def mock_steps(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "text": MagicMock(),
+        "titles": MagicMock(),
+        "translations": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step",
+        mocks["text"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step",
+        mocks["titles"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_translations_step",
+        mocks["translations"],
+    )
+    return mocks
 
 
 @pytest.fixture
@@ -50,7 +56,7 @@ def mock_clients(monkeypatch, mock_get_user_site):
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session",
         m_session,
     )
-    yield {"session": m_session, "site": mock_get_user_site}
+    return {"session": m_session, "site": mock_get_user_site}
 
 
 @pytest.fixture
@@ -295,23 +301,40 @@ class TestCopySvgLangsWorkerProcess:
 
 
 @pytest.fixture
-def mock_process_one_deps():
-    with (
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file") as m_dl,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.detect_nested_tags") as m_detect,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.fix_nested_tags") as m_fix,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.verify_fix") as m_verify,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file") as m_inject,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg") as m_upload,
-    ):
-        yield {
-            "download": m_dl,
-            "detect": m_detect,
-            "fix": m_fix,
-            "verify": m_verify,
-            "inject": m_inject,
-            "upload": m_upload,
-        }
+def mock_process_one_deps(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "download": MagicMock(),
+        "detect": MagicMock(),
+        "fix": MagicMock(),
+        "verify": MagicMock(),
+        "inject": MagicMock(),
+        "upload": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file",
+        mocks["download"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.detect_nested_tags",
+        mocks["detect"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.fix_nested_tags",
+        mocks["fix"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.verify_fix",
+        mocks["verify"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
+        mocks["inject"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg",
+        mocks["upload"],
+    )
+    return mocks
 
 
 class TestCopySvgLangsWorkerInjectStepFile:
