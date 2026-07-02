@@ -30,5 +30,3 @@ run_tests.py
 **/__pycache__/**
 /.commandcode
 errors.log
-*.py,cover
-tests/coverage_report.txt
