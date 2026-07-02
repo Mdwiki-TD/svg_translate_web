@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock the services used by create_owid_pages worker."""
 
     # Mock jobs_service
@@ -48,13 +48,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.list_templates",
         mock_list_templates,
-    )
-
-    # Mock get_user_site
-    mock_get_user_site = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mock_get_user_site,
     )
 
     # Mock API services

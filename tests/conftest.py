@@ -191,3 +191,18 @@ def mock_site_pages(mock_site, mock_page):
         return mock_site
 
     return _factory
+
+
+# ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
+
+@pytest.fixture
+def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    """Mock get_user_site to return a fake Site."""
+    # Mock get_user_site to return a non-None site so the worker reaches the processing loop
+    mock_site = MagicMock(name="mw_site")
+    mock_get = MagicMock(return_value=mock_site)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        mock_get,
+    )
+    return mock_get

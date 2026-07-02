@@ -16,7 +16,7 @@ from src.main_app.shared.fix_nested.worker import (
 
 
 @pytest.fixture
-def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
+def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock the services used by fix_nested_main_files worker."""
 
     # Mock template_service
@@ -35,13 +35,6 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
         MagicMock(return_value=True),
-    )
-
-    # Mock get_user_site to return a mock site
-    mock_get_user_site = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mock_get_user_site
     )
 
     # Mock shared fix_nested utilities

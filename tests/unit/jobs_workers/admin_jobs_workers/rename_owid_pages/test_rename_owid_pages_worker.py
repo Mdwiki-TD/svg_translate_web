@@ -59,19 +59,6 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
         "generate_result_file_name": mock_generate,
     }
 
-
-@pytest.fixture
-def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    """Mock get_user_site to return a fake Site."""
-    mock_site = MagicMock(name="mw_site")
-    mock_get = MagicMock(return_value=mock_site)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mock_get,
-    )
-    return mock_site
-
-
 @pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Mock get_template_by_title and update_template_data."""
@@ -209,12 +196,7 @@ class TestWorkerInit:
 
 
 class TestProcess:
-    def test_no_site_authentication(self, mock_base_services, monkeypatch):
-        mock_get = MagicMock(return_value=None)
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker_object.get_user_site",
-            mock_get,
-        )
+    def test_no_site_authentication(self, mock_get_user_site, mock_base_services, monkeypatch):
         w = _make_worker()
         result = w.process()
         assert result.status == "failed"

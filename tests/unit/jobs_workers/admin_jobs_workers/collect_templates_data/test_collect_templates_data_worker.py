@@ -33,7 +33,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_get_user_site):
     """Mock the services used by collect_templates_data_worker."""
 
     # Mock template_service
@@ -90,13 +90,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_chart_by_slug",
         mock_get_chart_by_slug,
-    )
-
-    # Mock get_user_site
-    mock_get_user_site = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mock_get_user_site,
     )
 
     # Mock fetch_grapher_metadata (avoids real network calls)

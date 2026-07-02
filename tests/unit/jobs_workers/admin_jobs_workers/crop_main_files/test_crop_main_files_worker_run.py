@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_get_user_site):
     """Mock the services used by worker module."""
 
     # Mock jobs_service
@@ -44,12 +44,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     )
 
     # Mock API clients
-    mock_get_user_site = MagicMock()
     mock_create_commons_session = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mock_get_user_site,
-    )
+
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_commons_session",
         mock_create_commons_session,

@@ -12,9 +12,8 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker as collect_worker
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker as fix_worker
 
-
 @pytest.fixture
-def mock_common_services(monkeypatch: pytest.MonkeyPatch):
+def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock services common to both workers."""
     mock_list_templates = MagicMock()
     mock_update_job_status = MagicMock()
@@ -36,17 +35,12 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
     )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.get_user_site",
-        MagicMock(return_value=MagicMock()),
-    )
 
     return {
         "list_templates": mock_list_templates,
         "update_job_status": mock_update_job_status,
         "save_job_result_by_name": mock_save_job_result,
     }
-
 
 def test_collect_templates_data_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
     """Test that collect_templates_data_worker stops when cancelled."""
@@ -68,14 +62,6 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.add_template_data",
         mock_add_template_data,
-    )
-
-    # Mock get_user_site to return a non-None site so the worker reaches the processing loop
-    mock_get_user_site = MagicMock(return_value=MagicMock())
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        # "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
-        mock_get_user_site,
     )
 
     # Mock update_template_data to set the cancel event

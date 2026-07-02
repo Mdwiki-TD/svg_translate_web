@@ -43,16 +43,14 @@ def mock_steps():
 
 
 @pytest.fixture
-def mock_clients():
-    with (
-        patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session"
-        ) as m_session,
-        patch("src.main_app.jobs_workers.base_worker_object.get_user_site") as m_site,
-    ):
-        m_session.return_value = MagicMock()
-        m_site.return_value = MagicMock()
-        yield {"session": m_session, "site": m_site}
+def mock_clients(monkeypatch, mock_get_user_site):
+    m_session = MagicMock()
+    m_session.return_value = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session",
+        m_session,
+    )
+    yield {"session": m_session, "site": mock_get_user_site}
 
 
 @pytest.fixture
@@ -415,7 +413,7 @@ class TestCopySvgLangsWorkerProcessOne:
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker._process_one_item("File:Test.svg", title_info)
+        _result = mock_worker._process_one_item("File:Test.svg", title_info)
 
         assert title_info.steps.nested.result is None
         assert title_info.steps.nested.msg == "No nested tags found"
