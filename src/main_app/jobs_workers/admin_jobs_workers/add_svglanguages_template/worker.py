@@ -15,7 +15,7 @@ from mwclient.client import Site
 from ....api_services import MwClientPage
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, load_link_file_name
 

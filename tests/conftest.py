@@ -201,7 +201,7 @@ def mock_before_run(monkeypatch: pytest.MonkeyPatch):
 
     # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
 
 
@@ -216,21 +216,21 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "update_job_status_with_retry": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        "src.main_app.jobs_workers.base_worker.get_user_site",
         mocks["get_user_site"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        "src.main_app.jobs_workers.base_worker.update_job_status_with_retry",
         mocks["update_job_status_with_retry"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.update_job_status",
+        "src.main_app.jobs_workers.base_worker.update_job_status",
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name", mocks["generate_result_file_name"]
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name", mocks["generate_result_file_name"]
     )
     return mocks

@@ -368,7 +368,7 @@ def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_
     """Test that exceptions are logged with full traceback."""
     with (
         patch.object(worker.CropMainFilesWorker, "process") as mock_process,
-        patch("src.main_app.jobs_workers.base_worker_object.logger") as mock_logger,
+        patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger,
     ):
         mock_process.side_effect = RuntimeError("Test error")
 

@@ -26,7 +26,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....db.services import get_template_by_title, update_template_data
-from ...base_worker_object import BaseObjectsJobWorker
+from ...base_worker import BaseObjectsJobWorker
 from .objects import RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)
