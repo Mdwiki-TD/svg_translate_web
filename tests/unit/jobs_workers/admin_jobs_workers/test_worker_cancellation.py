@@ -14,7 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import w
 
 
 @pytest.fixture
-def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock services common to both workers."""
 
     mocks = {
@@ -46,13 +46,13 @@ def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     return mocks
 
 
-def test_collect_templates_data_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
+def test_collect_templates_data_worker_cancellation(mock_services, monkeypatch: pytest.MonkeyPatch):
     """Test that collect_templates_data_worker stops when cancelled."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
         TemplateRecord(id=2, title="T2", main_file=None, last_world_file=None),
     ]
-    mock_common_services["list_templates"].return_value = templates
+    mock_services["list_templates"].return_value = templates
 
     # Mock get_category_members to return empty list (no new templates to add)
     mock_get_category_members = MagicMock(return_value=[])
@@ -100,18 +100,18 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     # n=1: processes T1, updates template, sets cancel_event.
     # n=2: checks cancel_event.is_set() -> True. Breaks.
 
-    result = mock_common_services["save_job_result_by_name"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert result.get("status") == "cancelled"
     assert len(result["pages_updated"]) == 1
 
 
-def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
+def test_fix_nested_main_files_worker_cancellation(mock_services, monkeypatch: pytest.MonkeyPatch):
     """Test that fix_nested_main_files_worker stops when cancelled."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file="f1.svg", last_world_file=None),
         TemplateRecord(id=2, title="T2", main_file="f2.svg", last_world_file=None),
     ]
-    mock_common_services["list_templates"].return_value = templates
+    mock_services["list_templates"].return_value = templates
 
     cancel_event = threading.Event()
 
@@ -129,18 +129,18 @@ def test_fix_nested_main_files_worker_cancellation(mock_common_services, monkeyp
 
     fix_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
-    result = mock_common_services["save_job_result_by_name"].call_args[0][1]
+    result = mock_services["save_job_result_by_name"].call_args[0][1]
     assert len(result["pages_success"]) == 2
 
 
-def test_worker_handles_deleted_job(mock_common_services, monkeypatch: pytest.MonkeyPatch):
+def test_worker_handles_deleted_job(mock_services, monkeypatch: pytest.MonkeyPatch):
     """Test that workers handle LookupError when the job record is deleted."""
-    mock_common_services["list_templates"].return_value = []
+    mock_services["list_templates"].return_value = []
     # Force LookupError on status update
-    mock_common_services["update_job_status"].side_effect = LookupError("Job not found")
+    mock_services["update_job_status"].side_effect = LookupError("Job not found")
 
     # Should not raise exception
     collect_worker.collect_templates_data_entry(job_id=1, user=None)
     fix_worker.fix_nested_main_files_for_templates(job_id=2, user=None)
 
-    assert mock_common_services["update_job_status"].call_count >= 2
+    assert mock_services["update_job_status"].call_count >= 2
