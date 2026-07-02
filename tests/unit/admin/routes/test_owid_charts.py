@@ -292,6 +292,7 @@ class TestDeleteChart:
         mock_svc.delete_chart.return_value = True
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_svc.delete_chart)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: f"rendered:{t}")
         result = _delete_chart(1)
         assert "popup_action" in result

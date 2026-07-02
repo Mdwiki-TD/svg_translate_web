@@ -138,6 +138,7 @@ class TestTemplatesUnit:
         mock_record = MagicMock()
         mock_record.title = "T"
         monkeypatch.setattr("src.main_app.admin.routes.templates.update_template_data", lambda i, d: mock_record)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: f"rendered:{t}")
         result = _update_template()
         assert "popup_action" in result
@@ -183,6 +184,7 @@ class TestTemplatesUnit:
             return {"from_popup": "1"}.get(key, default if default else "")
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: f"rendered:{t}")
         result = _delete_template(1)
         assert "popup_action" in result
