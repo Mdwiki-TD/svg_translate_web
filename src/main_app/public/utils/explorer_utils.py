@@ -3,9 +3,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from ...db.services import get_template_by_title
-
 from ...config import settings
+from ...db.services import get_template_by_title
 
 logger = logging.getLogger(__name__)
 

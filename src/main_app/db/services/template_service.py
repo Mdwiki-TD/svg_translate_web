@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from sqlalchemy import cast, func, String, select
+from sqlalchemy import String, cast, func, select
+
 from ...extensions import db
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
@@ -32,11 +33,7 @@ def list_templates_mismatched_years() -> List[TemplateRecord]:
     target_collation = "utf8mb4_unicode_ci"
 
     # Cast and force the collation on the concatenated string
-    search_pattern = func.concat(
-        '%',
-        cast(TemplateRecord.last_world_year, String),
-        '%'
-    )
+    search_pattern = func.concat("%", cast(TemplateRecord.last_world_year, String), "%")
 
     # SQLite does not support mysql collations, so only apply collate on mysql/mariadb
     if db.engine.dialect.name == "mysql":
@@ -46,11 +43,12 @@ def list_templates_mismatched_years() -> List[TemplateRecord]:
     stmt = select(TemplateRecord).where(
         TemplateRecord.last_world_file.is_not(None),
         TemplateRecord.last_world_year.is_not(None),
-        TemplateRecord.last_world_file.not_like(search_pattern)
+        TemplateRecord.last_world_file.not_like(search_pattern),
     )
 
     results = db.session.scalars(stmt).all()
     return list(results)
+
 
 def get_template(template_id: int) -> TemplateRecord:
     """Fetch a template by ID."""

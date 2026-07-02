@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import pytest
 
+from src.main_app.db.services.delete_service import delete_template
 from src.main_app.db.services.template_service import (
     add_template_data,
-    list_templates,
-    list_templates_mismatched_years,
     get_template,
     get_template_by_title,
+    list_templates,
+    list_templates_mismatched_years,
     update_template_data,
 )
-from src.main_app.db.services.delete_service import delete_template
+
 
 class TestListTemplates:
     """Test list_templates function."""
@@ -41,6 +42,7 @@ class TestListTemplates:
 
 class TestDeleteTemplate:
     """Test delete_template function."""
+
     def test_delete_template_success(self):
         """Test successfully deleting a template."""
         data = {"title": "To Delete", "main_file": "delete.svg"}
@@ -51,7 +53,6 @@ class TestDeleteTemplate:
         assert result is True
         assert len(list_templates()) == 0
 
-
     def test_delete_template_not_found_raises_lookup_error(self):
         """Test that deleting a non-existent template raises LookupError."""
         result = delete_template(999)
@@ -60,6 +61,7 @@ class TestDeleteTemplate:
 
 class TestAddTemplate:
     """Test add_template_data function."""
+
     def test_template_record_dataclass_with_none_main_file(self):
         """Test TemplateRecord with None main_file (type annotation change)."""
         data = {"title": "No Oldest File", "main_file": ""}
@@ -77,7 +79,6 @@ class TestAddTemplate:
         with pytest.raises(ValueError, match="Title is required"):
             add_template_data(data)
 
-
     def test_add_template_success(self):
         """Test successfully adding a template."""
         data = {
@@ -89,7 +90,6 @@ class TestAddTemplate:
         assert record.title == "Test Template"
         assert record.main_file == "test.svg"
         assert record.id > 0
-
 
     def test_add_template_duplicate_raises_value_error(self):
         """Test that adding a duplicate template raises ValueError."""
@@ -110,11 +110,14 @@ class TestAddTemplate:
 class TestListTemplatesMismatchedYears:
     """Test list_templates_mismatched_years function."""
 
+
 class TestGetTemplate:
     """Test get_template function."""
 
+
 class TestGetTemplateByTitle:
     """Test get_template_by_title function."""
+
 
 class TestUpdateTemplateData:
     """Test update_template_data function."""
