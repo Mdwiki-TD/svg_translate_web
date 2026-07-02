@@ -69,7 +69,7 @@ def test_download_all_main_files_error(mock_create_zip, admin_jobs_client, monke
     mock_create_zip.assert_called_once()
 
 
-def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client, jobs_db):
+def test_serve_download_main_file_with_path_traversal_attempt(admin_jobs_client, mock_jobs_db):
     """Test that path traversal is handled by send_from_directory."""
 
     # send_from_directory should handle path traversal attempts

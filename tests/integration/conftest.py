@@ -37,7 +37,7 @@ class _JobsStore:
 
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client paired with a fake jobs jobs_db."""
+    """Return a configured Flask test client paired with a fake jobs mock_jobs_db."""
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
@@ -65,5 +65,5 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 @pytest.fixture
-def jobs_db():
+def mock_jobs_db() -> _JobsStore:
     return _JobsStore()
