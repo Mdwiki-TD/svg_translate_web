@@ -12,35 +12,39 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker as collect_worker
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker as fix_worker
 
+
 @pytest.fixture
 def mock_common_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock services common to both workers."""
-    mock_list_templates = MagicMock()
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock()
-    mock_generate_result_file_name = MagicMock(return_value="result.json")
 
-    # Mock for collect_templates_data_worker (now accessed via base_worker)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates", mock_list_templates
-    )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mock_generate_result_file_name,
-    )
-
-    # Mock for fix_nested_main_files_worker (now accessed via base_worker)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
-    )
-
-    return {
-        "list_templates": mock_list_templates,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
+    mocks = {
+        "list_templates": MagicMock(),
+        "update_job_status": MagicMock(),
+        "save_job_result_by_name": MagicMock(),
+        "generate_result_file_name": MagicMock(return_value="result.json"),
     }
+    # Mock for collect_templates_data_worker (now accessed via base_worker_object)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates",
+        mocks["list_templates"],
+    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker_object.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
+        mocks["generate_result_file_name"],
+    )
+
+    # Mock for fix_nested_main_files_worker (now accessed via base_worker_object)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates",
+        mocks["list_templates"],
+    )
+
+    return mocks
+
 
 def test_collect_templates_data_worker_cancellation(mock_common_services, monkeypatch: pytest.MonkeyPatch):
     """Test that collect_templates_data_worker stops when cancelled."""

@@ -195,6 +195,7 @@ def mock_site_pages(mock_site, mock_page):
 
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     """Mock get_user_site to return a fake Site."""

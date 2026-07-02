@@ -59,6 +59,7 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
         "generate_result_file_name": mock_generate,
     }
 
+
 @pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Mock get_template_by_title and update_template_data."""
