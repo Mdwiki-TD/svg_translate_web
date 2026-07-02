@@ -12,9 +12,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker as fix_worker
 
 
-
-
-
 def test_fix_nested_main_files_worker_cancellation(mock_base_worker_object, monkeypatch: pytest.MonkeyPatch):
     """Test that fix_nested_main_files_worker stops when cancelled."""
     mock_list_templates = MagicMock()

@@ -197,6 +197,19 @@ def mock_site_pages(mock_site, mock_page):
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
 
 
+@pytest.fixture
+def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    """Mock get_user_site to return a fake Site."""
+    # Mock get_user_site to return a non-None site so the worker reaches the processing loop
+    mock_site = MagicMock(name="mw_site")
+    mock_get = MagicMock(return_value=mock_site)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        mock_get,
+    )
+    return mock_get
+
+
 @dataclass
 class MockServices:
     generate_result_file_name: MagicMock
@@ -208,12 +221,12 @@ class MockServices:
     update_job_status_with_retry: MagicMock
 
 @pytest.fixture
-def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
+def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site) -> MockServices:
     """Mock all base_worker_object services cleanly using a loop."""
 
     mocks = MockServices(
         generate_result_file_name=MagicMock(return_value="result.json"),
-        get_user_site=MagicMock(return_value=MagicMock(name="mw_site")),
+        get_user_site=mock_get_user_site,
         is_job_cancelled=MagicMock(),
         is_job_cancelled_file_exist=MagicMock(),
         save_job_result_by_name=MagicMock(),
@@ -232,17 +245,13 @@ def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     return mocks
 
 @pytest.fixture
-def mock_base_worker_object(monkeypatch: pytest.MonkeyPatch):
+def mock_base_worker_object(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock services common to both workers."""
     mocks = {
         "save_job_result_by_name": MagicMock(),
     }
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        MagicMock(),
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.update_job_status",
