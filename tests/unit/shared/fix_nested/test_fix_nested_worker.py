@@ -13,6 +13,7 @@ from src.main_app.shared.fix_nested.worker import (
     verify_fix,
 )
 
+
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
@@ -28,6 +29,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mocks["fix"],
     )
     return mocks
+
 
 def test_detect_nested_tags(mock_services):
     mock_services["match"].return_value = ["tag1", "tag2"]

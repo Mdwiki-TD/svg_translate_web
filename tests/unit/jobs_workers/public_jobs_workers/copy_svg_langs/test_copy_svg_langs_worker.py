@@ -49,14 +49,14 @@ def mock_steps(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_clients(monkeypatch, mock_get_user_site):
+def mock_clients(monkeypatch, mock_base_worker_services):
     m_session = MagicMock()
     m_session.return_value = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session",
         m_session,
     )
-    return {"session": m_session, "site": mock_get_user_site}
+    return {"session": m_session, "site": mock_base_worker_services.get_user_site}
 
 
 @pytest.fixture
@@ -477,9 +477,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(
-            result=True, msg="ok", new_languages=1, updated_translations=0
-        )
+        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
         mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
         mock_services["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
         mock_worker.main_title = "Main.svg"
@@ -543,9 +541,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"ok": True, "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(
-            result=True, msg="ok", new_languages=1, updated_translations=0
-        )
+        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
         mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
         mock_worker.main_title = "Main.svg"
         title_info = MagicMock(title="File:Test.svg")

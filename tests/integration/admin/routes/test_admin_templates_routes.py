@@ -27,6 +27,7 @@ class _TemplatesStore:
     def delete(self, template_id):
         return delete_service.delete_template(template_id)
 
+
 @pytest.fixture
 def jobs_db(admin_jobs_client):
     store = _TemplatesStore()

@@ -28,9 +28,10 @@ class UtilsJobsBp:
 
     def __init__(self, name: str) -> None:
         self.bp = Blueprint(name, __name__, url_prefix="/jobs_utils")
-        self._setup_routes()
+        self._setup_download_main_files_routes()
+        self._setup_crop_main_files_routes()
 
-    def _setup_routes(self) -> None:
+    def _setup_download_main_files_routes(self) -> None:
         # ================================
         # download_main_files routes
         # ================================
@@ -60,6 +61,7 @@ class UtilsJobsBp:
 
             return response
 
+    def _setup_crop_main_files_routes(self) -> None:
         # ================================
         # crop-main-files routes
         # ================================

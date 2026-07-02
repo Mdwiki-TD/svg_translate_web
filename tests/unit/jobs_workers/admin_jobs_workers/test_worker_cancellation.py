@@ -14,7 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import w
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker_services):
     """Mock services common to both workers."""
 
     mocks = {

@@ -12,6 +12,7 @@ from src.main_app.api_services.files_service.files_helpers import (
     upload_fixed_svg,
 )
 
+
 @pytest.fixture
 def mock_api(monkeypatch: pytest.MonkeyPatch):
     mocks = {

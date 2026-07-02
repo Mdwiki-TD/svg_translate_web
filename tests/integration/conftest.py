@@ -6,10 +6,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app.db.services import delete_service
-from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
+from src.main_app.db.services import delete_service
+from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 from src.main_app.extensions import db as _db
 
 
@@ -63,6 +63,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         yield app.test_client()
         _db.session.remove()
         _db.metadata.drop_all(_db.engine, tables=real_tables)
+
 
 @pytest.fixture
 def mock_jobs_db() -> _JobsStore:

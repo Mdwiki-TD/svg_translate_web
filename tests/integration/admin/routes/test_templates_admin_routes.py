@@ -18,9 +18,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "redirect": Mock(),
         "url_for": Mock(),
     }
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.update_template_data", mocks["update_template_data"]
-    )
+    monkeypatch.setattr("src.main_app.admin.routes.templates.update_template_data", mocks["update_template_data"])
     monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mocks["flash"])
     monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", mocks["redirect"])
     monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", mocks["url_for"])

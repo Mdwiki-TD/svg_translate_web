@@ -19,24 +19,12 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
         "is_coord": MagicMock(),
         "get_auth": MagicMock(),
     }
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.get_user_by_username", mocks["get_by_name"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.upsert_user_token", mocks["update"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.create_user", mocks["create"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.get_user_token", mocks["get_token"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.is_active_coordinator", mocks["is_coord"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.get_authenticated_user_token", mocks["get_auth"]
-    )
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_user_by_username", mocks["get_by_name"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.upsert_user_token", mocks["update"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.create_user", mocks["create"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_user_token", mocks["get_token"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.is_active_coordinator", mocks["is_coord"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_authenticated_user_token", mocks["get_auth"])
     return mocks
 
 

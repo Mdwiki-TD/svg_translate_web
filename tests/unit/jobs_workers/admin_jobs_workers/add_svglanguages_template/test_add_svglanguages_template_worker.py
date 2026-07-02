@@ -17,7 +17,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker_services):
     """Mock the services used by add_svglanguages_template worker."""
 
     _mock_class = MagicMock()
@@ -29,7 +29,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
         "add_template_to_text": MagicMock(),
         "list_templates": MagicMock(),
         "AddSvgSVGLanguagesTemplate": _mock_class,
-        "get_user_site": mock_get_user_site,
+        "get_user_site": mock_base_worker_services.get_user_site,
     }
 
     monkeypatch.setattr(

@@ -482,7 +482,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
 
 
 class TestWorkerEdgeCases:
-    def test_cancel_event_set_stops_processing(self, mock_base_services, mock_db_services, mock_get_user_site):
+    def test_cancel_event_set_stops_processing(self, mock_base_services, mock_db_services, mock_base_worker_services):
         cancel_event = threading.Event()
         cancel_event.set()
         w = _make_worker(cancel_event=cancel_event)
