@@ -204,6 +204,7 @@ def mock_before_run(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
 
+
 @pytest.fixture
 def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     """Mock services common to both workers."""
@@ -230,20 +231,23 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mocks["generate_result_file_name"]
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name", mocks["generate_result_file_name"]
     )
     return mocks
 
 
 @pytest.fixture
-def mock_base_is_cancelled(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
+def mock_base_is_cancelled(monkeypatch: pytest.MonkeyPatch,):
     mocks = {
         "is_job_cancelled": MagicMock(),
         "is_job_cancelled_file_exist": MagicMock(),
     }
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", mocks["is_job_cancelled"])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist", mocks["is_job_cancelled_file_exist"]
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mocks["is_job_cancelled"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+        mocks["is_job_cancelled_file_exist"],
     )
     return mocks

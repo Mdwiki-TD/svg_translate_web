@@ -19,6 +19,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates",
         mock_list_templates,
     )
+
     def mock_repair_nested_svg_tags(
         filename,
         site,

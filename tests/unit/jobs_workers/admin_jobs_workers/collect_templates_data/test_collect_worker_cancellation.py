@@ -11,8 +11,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker as collect_worker
 
 
-
-
 @pytest.fixture(autouse=True)
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock services common to both workers."""
@@ -67,6 +65,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     )
 
     return mocks
+
 
 def test_collect_templates_data_worker_cancellation(mock_services, mock_base_worker):
     """Test that collect_templates_data_worker stops when cancelled."""

@@ -461,10 +461,6 @@ class TestRun:
                 return_value=None,
             ),
             "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
-            "is_job_cancelled_file_exist": patch(
-                "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
-                return_value=False,
-            ),
             "get_site": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
@@ -534,7 +530,7 @@ class TestRun:
             for p in patchers.values():
                 p.stop()
 
-    def test_cancellation_mid_pipeline_stops_run(self, tmp_path):
+    def test_cancellation_mid_pipeline_stops_run(self, tmp_path, mock_base_is_cancelled):
         """Cancellation detected at the fix stage stops further stages."""
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
@@ -549,7 +545,8 @@ class TestRun:
             call_count[0] += 1
             return call_count[0] >= 3
 
-        mocks["is_job_cancelled_file_exist"].side_effect = cancel_on_third
+        mock_base_is_cancelled["is_job_cancelled_file_exist"].return_value = False
+        mock_base_is_cancelled["is_job_cancelled_file_exist"].side_effect = cancel_on_third
 
         try:
             proc = _make_processor()
