@@ -128,14 +128,16 @@ def _update_template() -> ResponseReturnValue:
             return render_template("admins/popup_action.html")
         return redirect(url_for("admin.templates.dashboard"))
 
-    main_file = request.form.get("main_file", "").strip()
-    last_world_file = request.form.get("last_world_file", "").strip()
-    source = request.form.get("source", "").strip()
+    main_file = request.form.get("main_file") or None
+    last_world_file = request.form.get("last_world_file") or None
+    last_world_year = request.form.get("last_world_year") or None
+    source = request.form.get("source") or None
 
     data = {
         "title": title,
         "main_file": main_file,
         "last_world_file": last_world_file,
+        "last_world_year": last_world_year,
         "source": source,
     }
     try:
