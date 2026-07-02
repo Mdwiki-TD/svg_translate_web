@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services import template_service
+from src.main_app.db.services.template_service import (
+    add_template_data,
+    list_templates,
+    list_templates_mismatched_years,
+    get_template,
+    get_template_by_title,
+    update_template_data,
+)
 from src.main_app.db.services.delete_service import delete_template
 
 
 def test_list_templates_empty():
     """Test listing templates when none exist."""
-    templates = template_service.list_templates()
+    templates = list_templates()
     assert templates == []
 
 
@@ -20,7 +27,7 @@ def test_add_template_success():
         "title": "Test Template",
         "main_file": "test.svg",
     }
-    record = template_service.add_template_data(data)
+    record = add_template_data(data)
 
     assert record.title == "Test Template"
     assert record.main_file == "test.svg"
@@ -33,14 +40,14 @@ def test_add_template_duplicate_raises_value_error():
         "title": "Duplicate",
         "main_file": "file1.svg",
     }
-    template_service.add_template_data(data1)
+    add_template_data(data1)
 
     data2 = {
         "title": "Duplicate",
         "main_file": "file2.svg",
     }
     with pytest.raises(ValueError, match="Template 'Duplicate' already exists"):
-        template_service.add_template_data(data2)
+        add_template_data(data2)
 
 
 def test_add_template_empty_title_raises_value_error():
@@ -50,7 +57,7 @@ def test_add_template_empty_title_raises_value_error():
         "main_file": "file.svg",
     }
     with pytest.raises(ValueError, match="Title is required"):
-        template_service.add_template_data(data)
+        add_template_data(data)
 
 
 def test_list_templates_returns_all():
@@ -58,11 +65,11 @@ def test_list_templates_returns_all():
     data1 = {"title": "Template 1", "main_file": "file1.svg"}
     data2 = {"title": "Template 2", "main_file": "file2.svg"}
     data3 = {"title": "Template 3", "main_file": "file3.svg"}
-    template_service.add_template_data(data1)
-    template_service.add_template_data(data2)
-    template_service.add_template_data(data3)
+    add_template_data(data1)
+    add_template_data(data2)
+    add_template_data(data3)
 
-    templates = template_service.list_templates()
+    templates = list_templates()
 
     assert len(templates) == 3
     assert templates[0].title == "Template 1"
@@ -73,12 +80,12 @@ def test_list_templates_returns_all():
 def test_delete_template_success():
     """Test successfully deleting a template."""
     data = {"title": "To Delete", "main_file": "delete.svg"}
-    record = template_service.add_template_data(data)
+    record = add_template_data(data)
 
     result = delete_template(record.id)
 
     assert result is True
-    assert len(template_service.list_templates()) == 0
+    assert len(list_templates()) == 0
 
 
 def test_delete_template_not_found_raises_lookup_error():
@@ -90,7 +97,7 @@ def test_delete_template_not_found_raises_lookup_error():
 def test_template_record_dataclass_with_none_main_file():
     """Test TemplateRecord with None main_file (type annotation change)."""
     data = {"title": "No Oldest File", "main_file": ""}
-    record = template_service.add_template_data(data)
+    record = add_template_data(data)
 
     assert record.title == "No Oldest File"
     assert isinstance(record.main_file, str)
