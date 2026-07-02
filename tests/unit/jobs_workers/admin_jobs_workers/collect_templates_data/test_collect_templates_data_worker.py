@@ -95,7 +95,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     # Mock get_user_site
     mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
+        # "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
         mock_get_user_site,
     )
 

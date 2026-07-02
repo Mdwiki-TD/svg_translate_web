@@ -73,7 +73,8 @@ def test_collect_templates_data_worker_cancellation(mock_common_services, monkey
     # Mock get_user_site to return a non-None site so the worker reaches the processing loop
     mock_get_user_site = MagicMock(return_value=MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        # "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_user_site",
         mock_get_user_site,
     )
 

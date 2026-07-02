@@ -43,7 +43,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_add_template_to_text,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site",
+        # "src.main_app.jobs_workers.base_worker_object.add_svglanguages_template.worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
         mock_get_user_site,
     )
     monkeypatch.setattr(
@@ -482,10 +483,10 @@ class TestProcessMethod:
         # Mock _process_one_item to do nothing
         worker._process_one_item = MagicMock()
 
-        result = worker.process()
+        result = worker.run()
 
-        assert result.status == "completed"
-        assert result.summary.total == 1
+        assert result["status"] == "completed"
+        assert result["summary"]["total"] == 1
         mock_services["get_user_site"].assert_called_once()
 
     def test_process_fails_without_site(self, mock_services, monkeypatch: pytest.MonkeyPatch):
@@ -497,10 +498,10 @@ class TestProcessMethod:
         monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        result = worker.process()
+        result = worker.run()
 
-        assert result.status == "failed"
-        assert result.failed_at is not None
+        assert result["status"] == "failed"
+        assert result["failed_at"] is not None
 
     def test_process_handles_cancellation(self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test that process stops when cancelled."""

@@ -9,6 +9,9 @@ from datetime import datetime
 from typing import Any, Final
 
 from sqlalchemy.orm.exc import StaleDataError
+from mwclient.client import Site
+
+from ..api_services import get_user_site
 
 from ..config import settings
 from ..db.services import (
@@ -45,18 +48,20 @@ class BaseObjectsJobWorker(ABC):
     def __init__(
         self,
         job_id: int,
-        user: dict[str, Any] | None,
+        user: dict[str, Any],
         cancel_event: threading.Event | None = None,
     ) -> None:
         self.job_id: Final[int] = job_id
-        self.user: Final[dict[str, Any] | None] = user
+        self.user: Final[dict[str, Any]] = user
         self.cancel_event: Final[threading.Event | None] = cancel_event
         self.job_type: str = self.get_job_type()
-        self.result_file: str = generate_result_file_name(job_id, self.job_type)
         self._status: str = "pending"
-        self.result_file_cancelled: str = f"{self.result_file}.cancelled"
-        self._edit_count: int = 0
 
+        self.result_file: str = generate_result_file_name(job_id, self.job_type)
+        self.result_file_cancelled: str = f"{self.result_file}.cancelled"
+
+        self._edit_count: int = 0
+        self.site: Site | None = None
         self.result: WorkerObject = WorkerObject()
 
     @abstractmethod
@@ -222,6 +227,15 @@ class BaseObjectsJobWorker(ABC):
         self.result.status = "failed"
         self.result.failed_at = datetime.now().isoformat()
         self.log_errors("No authenticated user site available.")
+
+
+    def _check_site(self) -> WorkerObject:
+        self.site = get_user_site(self.user)
+        if not self.site:
+            logger.warning(f"Job {self.job_id}: No site authentication available")
+            self.log_no_site_error()
+            return False
+        return True
 
     def run(self) -> dict[str, Any]:
         """Execute the complete job lifecycle.

@@ -13,7 +13,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import download_svg_file, get_user_site, upload_fixed_svg
+from ....api_services import download_svg_file, upload_fixed_svg
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ....shared.fix_nested.worker import (
@@ -187,10 +187,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Execute the fix nested tags processing logic."""
         # Get all templates
 
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
+        if not self._check_site():
             return self.result
 
         templates = list_templates()
