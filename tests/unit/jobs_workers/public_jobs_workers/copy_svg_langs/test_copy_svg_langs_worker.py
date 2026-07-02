@@ -48,7 +48,7 @@ def mock_clients():
         patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session"
         ) as m_session,
-        patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.get_user_site") as m_site,
+        patch("src.main_app.jobs_workers.base_worker_object.get_user_site") as m_site,
     ):
         m_session.return_value = MagicMock()
         m_site.return_value = MagicMock()

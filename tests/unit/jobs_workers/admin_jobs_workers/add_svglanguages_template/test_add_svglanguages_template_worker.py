@@ -43,7 +43,6 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         mock_add_template_to_text,
     )
     monkeypatch.setattr(
-        # "src.main_app.jobs_workers.base_worker_object.add_svglanguages_template.worker.get_user_site",
         "src.main_app.jobs_workers.base_worker_object.get_user_site",
         mock_get_user_site,
     )

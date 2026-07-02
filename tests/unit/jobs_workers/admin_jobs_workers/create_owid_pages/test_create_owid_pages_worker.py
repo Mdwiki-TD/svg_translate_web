@@ -53,7 +53,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     # Mock get_user_site
     mock_get_user_site = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
         mock_get_user_site,
     )
 

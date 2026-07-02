@@ -66,7 +66,7 @@ def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     mock_site = MagicMock(name="mw_site")
     mock_get = MagicMock(return_value=mock_site)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
         mock_get,
     )
     return mock_site
@@ -212,7 +212,7 @@ class TestProcess:
     def test_no_site_authentication(self, mock_base_services, monkeypatch):
         mock_get = MagicMock(return_value=None)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.get_user_site",
+            "src.main_app.jobs_workers.base_worker_object.get_user_site",
             mock_get,
         )
         w = _make_worker()
