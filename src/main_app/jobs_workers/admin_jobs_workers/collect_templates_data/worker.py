@@ -18,6 +18,7 @@ from ....db.services import (
     get_chart_by_slug,
     get_template_by_title,
     list_templates,
+    list_templates_need_update,
     update_template_data,
 )
 from ....db.templates_utils import extract_slug
@@ -419,7 +420,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
     def process_all(self) -> CollectTemplatesDataWorkerObject:
         """Execute the collection processing logic."""
-
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
 
@@ -438,6 +438,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             tmps_to_process = [t for t in templates if not (t.main_file and t.last_world_file and t.source)]
             logger.info(f"Job {self.job_id}: Found {len(templates)} templates, {len(tmps_to_process)} need processing")
 
+        return self.start_process(tmps_to_process)
+
+    def start_process(self, tmps_to_process) -> CollectTemplatesDataWorkerObject:
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
@@ -472,6 +475,15 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Single template mode: if a title arg is provided, process only that one
         if self.args.get("title"):
             return self.process_one(self.args["title"])
+
+        if self.args.get("list_titles") == "list_templates_need_update":
+            templates_to_update = list_templates_need_update()
+            templates_to_update_titles = {x.template_title for x in templates_to_update}
+
+            templates: list[TemplateRecord] = list_templates()
+            tmps_to_process = [x for x in templates if x.title in templates_to_update_titles]
+            self.result.summary.total = len(tmps_to_process)
+            return self.start_process(tmps_to_process)
 
         # Default mode: process all templates
         return self.process_all()

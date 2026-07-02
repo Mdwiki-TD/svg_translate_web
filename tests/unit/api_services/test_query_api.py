@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
+import pytest
+
 from src.main_app.api_services.query_api import (
+    get_category_members_titles,
+    get_double_redirects,
     get_page_links,
     get_template_pages,
     is_pages_exists,
@@ -37,7 +43,6 @@ class TestGetTemplatePages:
 
 class TestIsPagesExists:
     def test_existing_pages(self, mock_site):
-        # API returns pages as a dict keyed by pageid
         mock_site.get.return_value = {
             "query": {
                 "normalized": [{"from": "aspirin", "to": "Aspirin"}],
@@ -67,7 +72,6 @@ class TestIsPagesExists:
 
     def test_batching_over_50(self, mock_site):
         titles = [f"Page{i}" for i in range(55)]
-        # First batch returns dict of 50 pages, second batch returns dict of 5
         pages_batch1 = {str(i): {"pageid": i, "ns": 0, "title": f"Page{i}"} for i in range(50)}
         pages_batch2 = {str(i): {"pageid": i, "ns": 0, "title": f"Page{i}"} for i in range(50, 55)}
         mock_site.get.side_effect = [
@@ -169,3 +173,112 @@ class TestGetPageLinks:
         result = get_page_links("test", mock_site)
         assert len(result["normalized"]) == 1
         assert len(result["redirects"]) == 1
+
+
+class TestGetDoubleRedirects:
+    def test_returns_redirects(self, mock_site):
+        mock_site.get.return_value = {
+            "query": {
+                "redirects": [
+                    {"from": "A", "to": "B"},
+                    {"from": "B", "to": "C"},
+                ]
+            }
+        }
+        result = get_double_redirects(mock_site)
+        assert len(result) == 2
+        assert result[0]["from"] == "A"
+        assert result[1]["to"] == "C"
+
+    def test_empty_response(self, mock_site):
+        mock_site.get.return_value = {}
+        result = get_double_redirects(mock_site)
+        assert result == []
+
+    def test_no_query_key(self, mock_site):
+        mock_site.get.return_value = {}
+        result = get_double_redirects(mock_site)
+        assert result == []
+
+
+class TestGetCategoryMembersTitles:
+    def test_returns_titles(self, mock_site):
+        mock_site.get.return_value = {
+            "query": {
+                "categorymembers": [
+                    {"title": "File:A.svg"},
+                    {"title": "File:B.svg"},
+                ]
+            }
+        }
+        result = get_category_members_titles(mock_site, "Category:Test")
+        assert result == ["File:A.svg", "File:B.svg"]
+
+    def test_empty_category(self, mock_site):
+        mock_site.get.return_value = {"query": {"categorymembers": []}}
+        result = get_category_members_titles(mock_site, "Category:Empty")
+        assert result == []
+
+    def test_pagination(self, mock_site):
+        mock_site.get.side_effect = [
+            {
+                "query": {"categorymembers": [{"title": "File:A.svg"}]},
+                "continue": {"cmcontinue": "nextpage"},
+            },
+            {
+                "query": {"categorymembers": [{"title": "File:B.svg"}]},
+            },
+        ]
+        result = get_category_members_titles(mock_site, "Category:Test")
+        assert result == ["File:A.svg", "File:B.svg"]
+        assert mock_site.get.call_count == 2
+
+    def test_invalid_category(self, mock_site):
+        from mwclient.errors import APIError
+
+        mock_site.get.side_effect = APIError("invalidcategory", "Invalid category", {})
+        result = get_category_members_titles(mock_site, "Category:Invalid")
+        assert result == []
+
+    def test_retry_on_first_request_exits_loop(self, mock_site, monkeypatch):
+        """First-request exception exits while loop (first_request=False, cmcontinue=None)."""
+        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
+        mock_site.get.side_effect = Exception("Timeout error")
+        result = get_category_members_titles(mock_site, "Category:Test")
+        assert result == []
+
+    def test_retry_on_continuation(self, mock_site, monkeypatch):
+        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
+        mock_site.get.side_effect = [
+            {
+                "query": {"categorymembers": [{"title": "File:A.svg"}]},
+                "continue": {"cmcontinue": "next|page"},
+            },
+            Exception("Timeout error"),
+            {
+                "query": {"categorymembers": [{"title": "File:B.svg"}]},
+            },
+        ]
+        result = get_category_members_titles(mock_site, "Category:Test")
+        assert result == ["File:A.svg", "File:B.svg"]
+
+    def test_namespace_file(self, mock_site):
+        mock_site.get.return_value = {
+            "query": {"categorymembers": [{"title": "File:A.svg"}]},
+        }
+        result = get_category_members_titles(mock_site, "Category:Test", namespace=6)
+        assert result == ["File:A.svg"]
+
+    def test_namespace_subcat(self, mock_site):
+        mock_site.get.return_value = {
+            "query": {"categorymembers": [{"title": "Category:Sub"}]},
+        }
+        result = get_category_members_titles(mock_site, "Category:Test", namespace=14)
+        assert result == ["Category:Sub"]
+
+    def test_namespace_other(self, mock_site):
+        mock_site.get.return_value = {
+            "query": {"categorymembers": [{"title": "Template:Test"}]},
+        }
+        result = get_category_members_titles(mock_site, "Category:Test", namespace=10)
+        assert result == ["Template:Test"]

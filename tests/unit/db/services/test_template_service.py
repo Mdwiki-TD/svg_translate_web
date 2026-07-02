@@ -39,6 +39,16 @@ class TestListTemplates:
         assert templates[1].title == "Template 2"
         assert templates[2].title == "Template 3"
 
+    def test_list_templates_with_limit(self):
+        """Test listing templates with a limit."""
+        add_template_data({"title": "A", "main_file": "a.svg"})
+        add_template_data({"title": "B", "main_file": "b.svg"})
+        add_template_data({"title": "C", "main_file": "c.svg"})
+
+        result = list_templates(limit=2)
+
+        assert len(result) == 2
+
 
 class TestDeleteTemplate:
     """Test delete_template function."""
@@ -105,6 +115,19 @@ class TestAddTemplate:
         }
         with pytest.raises(ValueError, match="Template 'Duplicate' already exists"):
             add_template_data(data2)
+
+    def test_add_template_commit_failure_raises_error(self, monkeypatch):
+        """Test that a commit failure raises the original exception."""
+        from src.main_app.extensions import db
+
+        def _fail_commit():
+            raise RuntimeError("DB connection lost")
+
+        monkeypatch.setattr(db.session, "commit", _fail_commit)
+
+        data = {"title": "Fail", "main_file": "fail.svg"}
+        with pytest.raises(RuntimeError, match="DB connection lost"):
+            add_template_data(data)
 
 
 class TestListTemplatesMismatchedYears:
