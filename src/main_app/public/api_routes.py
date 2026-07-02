@@ -44,7 +44,7 @@ def templates_mismatched_years_list():
         data = [t.to_dict() for t in templates]
     except Exception as e:
         logger.exception(e)
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 500
 
     return jsonify({"data": data})
 
