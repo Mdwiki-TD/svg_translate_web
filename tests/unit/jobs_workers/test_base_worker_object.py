@@ -14,7 +14,9 @@ from src.main_app.jobs_workers.base_worker import (
 
 
 @pytest.fixture
-def mock_base_is_cancelled(monkeypatch: pytest.MonkeyPatch,):
+def mock_base_is_cancelled(
+    monkeypatch: pytest.MonkeyPatch,
+):
     mocks = {
         "is_job_cancelled": MagicMock(),
         "is_job_cancelled_file_exist": MagicMock(),
@@ -28,6 +30,7 @@ def mock_base_is_cancelled(monkeypatch: pytest.MonkeyPatch,):
         mocks["is_job_cancelled_file_exist"],
     )
     return mocks
+
 
 class MockWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
