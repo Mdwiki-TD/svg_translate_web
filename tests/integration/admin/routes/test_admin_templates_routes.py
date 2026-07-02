@@ -7,12 +7,9 @@ from typing import Iterable
 
 import pytest
 
-from src.main_app import create_app
-from src.main_app.config import TestingConfig
 from src.main_app.db.models import TemplateRecord
 from src.main_app.db.services import delete_service
 from src.main_app.db.services import template_service as _sqlalchemy_template_service
-from src.main_app.extensions import db as _db
 
 
 class _TemplatesStore:
@@ -30,34 +27,8 @@ class _TemplatesStore:
     def delete(self, template_id):
         return delete_service.delete_template(template_id)
 
-
 @pytest.fixture
-def admin_templates_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client with mocked templates service."""
-    from types import SimpleNamespace
-
-    admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
-
-    def fake_current_user():
-        return admin_user
-
-    monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
-
-    flask_app = create_app(TestingConfig)
-    flask_app.config["TESTING"] = True
-    flask_app.config["WTF_CSRF_ENABLED"] = False
-
-    with flask_app.app_context():
-        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables)
-        yield flask_app.test_client()
-        _db.session.remove()
-        _db.metadata.drop_all(_db.engine, tables=real_tables)
-
-
-@pytest.fixture
-def jobs_db(admin_templates_client):
+def jobs_db(admin_jobs_client):
     store = _TemplatesStore()
     store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
     return store
@@ -67,8 +38,8 @@ def snapshot(records: Iterable[TemplateRecord]) -> list[tuple[int, str, str | No
     return [(record.id, record.title, record.main_file) for record in records]
 
 
-def test_add_template_persists_record_and_flashes_success(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_add_template_persists_record_and_flashes_success(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
 
     before = len(jobs_db.list())
     response = client.post(
@@ -86,8 +57,8 @@ def test_add_template_persists_record_and_flashes_success(admin_templates_client
     assert any(record.title == "New Template" and record.main_file == "new.svg" for record in records)
 
 
-def test_update_template_mutates_store_and_flashes_success(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_update_template_mutates_store_and_flashes_success(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
     template_id = jobs_db.list()[0].id
 
     response = client.post(
@@ -104,8 +75,8 @@ def test_update_template_mutates_store_and_flashes_success(admin_templates_clien
     assert record.main_file == "updated.svg"
 
 
-def test_delete_template_removes_record_and_flashes_success(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_delete_template_removes_record_and_flashes_success(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
     template_id = jobs_db.list()[0].id
 
     response = client.post(
@@ -119,8 +90,8 @@ def test_delete_template_removes_record_and_flashes_success(admin_templates_clie
     assert not any(record.id == template_id for record in jobs_db.list())
 
 
-def test_add_template_requires_title_and_preserves_store(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_add_template_requires_title_and_preserves_store(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
     before = snapshot(jobs_db.list())
 
     response = client.post(
@@ -135,8 +106,8 @@ def test_add_template_requires_title_and_preserves_store(admin_templates_client,
     assert snapshot(jobs_db.list()) == before
 
 
-def test_update_template_requires_identifier(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_update_template_requires_identifier(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
     before = snapshot(jobs_db.list())
 
     response = client.post(
@@ -151,8 +122,8 @@ def test_update_template_requires_identifier(admin_templates_client, jobs_db):
     assert snapshot(jobs_db.list()) == before
 
 
-def test_update_template_requires_title(admin_templates_client, jobs_db):
-    client = admin_templates_client
+def test_update_template_requires_title(admin_jobs_client, jobs_db):
+    client = admin_jobs_client
     template_id = jobs_db.list()[0].id
     before = snapshot(jobs_db.list())
 
