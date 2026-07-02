@@ -22,7 +22,19 @@ from src.main_app.admin.routes.templates import (
 class TestTemplatesUnit:
     def test_create_json_file_success(self, monkeypatch):
         from src.main_app.db.models import TemplateRecord
-        templates = [TemplateRecord(id=1, title="T1", main_file="f.svg", last_world_file="", last_world_year=None, source=None, created_at=None, updated_at=None)]
+
+        templates = [
+            TemplateRecord(
+                id=1,
+                title="T1",
+                main_file="f.svg",
+                last_world_file="",
+                last_world_year=None,
+                source=None,
+                created_at=None,
+                updated_at=None,
+            )
+        ]
         monkeypatch.setattr("src.main_app.admin.routes.templates.list_templates", lambda: templates)
         response, status = create_json_file()
         assert status == 200
@@ -35,12 +47,16 @@ class TestTemplatesUnit:
         assert "No templates found" in msg
 
     def test_create_json_file_lookup_error(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.list_templates", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.list_templates", Mock(side_effect=LookupError("not found"))
+        )
         msg, status = create_json_file()
         assert status == 404
 
     def test_create_json_file_exception(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.list_templates", Mock(side_effect=RuntimeError("error")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.list_templates", Mock(side_effect=RuntimeError("error"))
+        )
         msg, status = create_json_file()
         assert status == 500
 
@@ -58,8 +74,10 @@ class TestTemplatesUnit:
 
     def test_add_template_success(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""}.get(key, default or "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         mock_record = MagicMock()
@@ -74,11 +92,15 @@ class TestTemplatesUnit:
 
     def test_add_template_value_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"title": "Dup", "main_file": "", "last_world_file": "", "source": ""}.get(key, default or "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.add_template_data", Mock(side_effect=ValueError("exists")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.add_template_data", Mock(side_effect=ValueError("exists"))
+        )
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
@@ -88,8 +110,10 @@ class TestTemplatesUnit:
 
     def test_update_template_missing_id(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"id": 0, "title": "T"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         mock_flash = Mock()
@@ -101,8 +125,12 @@ class TestTemplatesUnit:
 
     def test_update_template_success(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
-            return {"id": 1, "title": "UpdT", "main_file": "f.svg", "from_popup": "0"}.get(key, default if default else "")
+            return {"id": 1, "title": "UpdT", "main_file": "f.svg", "from_popup": "0"}.get(
+                key, default if default else ""
+            )
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         mock_record = MagicMock()
@@ -117,11 +145,15 @@ class TestTemplatesUnit:
 
     def test_update_template_lookup_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"id": 1, "title": "T", "main_file": "f.svg"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.update_template_data", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.update_template_data", Mock(side_effect=LookupError("not found"))
+        )
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
@@ -131,8 +163,10 @@ class TestTemplatesUnit:
 
     def test_update_template_from_popup(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"id": 1, "title": "T", "main_file": "f.svg", "from_popup": "1"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         mock_record = MagicMock()
@@ -153,22 +187,28 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         _delete_template(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 
     def test_delete_template_not_found(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.get_template", Mock(side_effect=LookupError("not found"))
+        )
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         _delete_template(999)
@@ -180,8 +220,10 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", lambda i: mock_record)
         monkeypatch.setattr("src.main_app.admin.routes.templates.delete_template", lambda i: None)
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "1"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", Mock())
@@ -198,7 +240,9 @@ class TestTemplatesUnit:
         assert result["error"] is None
 
     def test_edit_template_not_found(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.get_template", Mock(side_effect=LookupError("not found"))
+        )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
         result = _edit_template(999)
         assert result["template"] is None
@@ -213,7 +257,9 @@ class TestTemplatesUnit:
         assert result["error"] is None
 
     def test_edit_template_by_title_not_found(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.get_template_by_title", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.get_template_by_title", Mock(side_effect=LookupError("not found"))
+        )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
         result = _edit_template_by_title("Missing")
         assert result["template"] is None

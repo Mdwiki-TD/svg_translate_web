@@ -170,9 +170,15 @@ class TestCompare:
 
 class TestLoadPaths:
     def test_load_thumb_path(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.public.main_routes.explorer_routes.settings", SimpleNamespace(paths=SimpleNamespace(svg_data_thumb="/thumbs")))
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.explorer_routes.settings",
+            SimpleNamespace(paths=SimpleNamespace(svg_data_thumb="/thumbs")),
+        )
         assert explorer_routes.load_thumb_path() == Path("/thumbs")
 
     def test_load_svg_data_path(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.public.main_routes.explorer_routes.settings", SimpleNamespace(paths=SimpleNamespace(svg_data="/data")))
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.explorer_routes.settings",
+            SimpleNamespace(paths=SimpleNamespace(svg_data="/data")),
+        )
         assert explorer_routes.load_svg_data_path() == Path("/data")

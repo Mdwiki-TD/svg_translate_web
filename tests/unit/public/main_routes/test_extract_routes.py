@@ -57,7 +57,9 @@ class TestExtractPost:
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", lambda: str(tmp_path))
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", MagicMock())
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", MagicMock())
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.render_template", lambda t, **c: f"rendered:{t}")
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.render_template", lambda t, **c: f"rendered:{t}"
+        )
 
         mock_req = MagicMock()
         mock_req.form.get.return_value = "File: Test.svg"
@@ -123,7 +125,9 @@ class TestExtractPost:
         mock_download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         sample = {"new": {"hello": {"ar": "مرحبا"}}, "title": {}}
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.extract", lambda svg_file_path, case_insensitive: sample)
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.extract", lambda svg_file_path, case_insensitive: sample
+        )
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", lambda: str(tmp_path))
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", MagicMock())
         mock_req = MagicMock()
@@ -139,7 +143,9 @@ class TestExtractPost:
         mock_download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         sample = {"new": {"key1": {"ar": "a", "fr": "b"}, "key2": {"ar": "c", "de": "d"}}, "title": {}}
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.extract", lambda svg_file_path, case_insensitive: sample)
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.extract", lambda svg_file_path, case_insensitive: sample
+        )
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", lambda: str(tmp_path))
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", MagicMock())
         mock_req = MagicMock()

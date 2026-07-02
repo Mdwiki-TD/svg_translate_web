@@ -26,6 +26,7 @@ class TestClientKey:
         mock_req.remote_addr = "9.10.11.12"
         monkeypatch.setattr("src.main_app.public.auth.routes.request", mock_req)
         from src.main_app.public.auth.routes import _client_key
+
         assert _client_key() == "1.2.3.4"
 
     def test_falls_back_to_remote_addr(self, monkeypatch):
@@ -34,6 +35,7 @@ class TestClientKey:
         mock_req.remote_addr = "1.2.3.4"
         monkeypatch.setattr("src.main_app.public.auth.routes.request", mock_req)
         from src.main_app.public.auth.routes import _client_key
+
         assert _client_key() == "1.2.3.4"
 
     def test_falls_back_to_anonymous(self, monkeypatch):
@@ -42,6 +44,7 @@ class TestClientKey:
         mock_req.remote_addr = None
         monkeypatch.setattr("src.main_app.public.auth.routes.request", mock_req)
         from src.main_app.public.auth.routes import _client_key
+
         assert _client_key() == "anonymous"
 
 
@@ -49,16 +52,19 @@ class TestLoadRequestToken:
     def test_valid_token(self, monkeypatch):
         monkeypatch.setattr("src.main_app.public.auth.routes.RequestToken", lambda k, s: f"token:{k}:{s}")
         from src.main_app.public.auth.routes import _load_request_token
+
         result = _load_request_token(["key", "secret"])
         assert result is not None
 
     def test_none_raises(self, monkeypatch):
         from src.main_app.public.auth.routes import _load_request_token
+
         with pytest.raises(ValueError, match="Missing OAuth request token"):
             _load_request_token(None)
 
     def test_short_raises(self, monkeypatch):
         from src.main_app.public.auth.routes import _load_request_token
+
         with pytest.raises(ValueError, match="Invalid OAuth request token"):
             _load_request_token(["only"])
 
@@ -66,6 +72,7 @@ class TestLoadRequestToken:
 class TestSetResponseCookies:
     def test_sets_cookie(self, monkeypatch):
         from src.main_app.public.auth.routes import _set_response_cookies
+
         mock_response = Mock()
         mock_settings = MagicMock()
         mock_settings.cookie.name = "auth_cookie"

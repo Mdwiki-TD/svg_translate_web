@@ -90,6 +90,7 @@ class TestCreateJsonFile:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", lambda: [mock_template])
         response, status = create_json_file()
         import json as j
+
         data = j.loads(response.get_data())
         assert data[0]["template_id"] == 42
         assert data[0]["template_title"] == "Template:T"
@@ -105,8 +106,10 @@ class TestAddChartPopup:
 class TestAddChart:
     def test_missing_slug(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"slug": "", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_flash = Mock()
@@ -118,8 +121,10 @@ class TestAddChart:
 
     def test_success(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"slug": "s", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_record = MagicMock()
@@ -136,8 +141,10 @@ class TestAddChart:
 
     def test_value_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"slug": "s", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -152,8 +159,10 @@ class TestAddChart:
 
     def test_from_popup_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"slug": "s", "title": "T", "from_popup": "1"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -170,8 +179,10 @@ class TestAddChart:
 class TestUpdateChart:
     def test_missing_slug(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"chart_id": "1", "slug": "", "title": "T"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_flash = Mock()
@@ -183,8 +194,10 @@ class TestUpdateChart:
 
     def test_lookup_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -199,8 +212,10 @@ class TestUpdateChart:
 
     def test_success(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_record = MagicMock()
@@ -217,8 +232,10 @@ class TestUpdateChart:
 
     def test_record_none(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -233,8 +250,10 @@ class TestUpdateChart:
 
     def test_from_popup_error(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -250,8 +269,10 @@ class TestUpdateChart:
 class TestDeleteChart:
     def test_success(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -267,8 +288,10 @@ class TestDeleteChart:
 
     def test_not_found(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "0"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()
@@ -284,8 +307,10 @@ class TestDeleteChart:
 
     def test_from_popup(self, monkeypatch):
         mock_req = Mock()
+
         def form_get(key, default=None, **kwargs):
             return {"from_popup": "1"}.get(key, default if default else "")
+
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_svc = MagicMock()

@@ -481,7 +481,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             templates_to_update_titles = [x.template_title for x in templates_to_update]
 
             templates: list[TemplateRecord] = list_templates()
-            tmps_to_process = [ x for x in templates if x.title in templates_to_update_titles ]
+            tmps_to_process = [x for x in templates if x.title in templates_to_update_titles]
             self.result.summary.total = len(tmps_to_process)
             return self.start_process(tmps_to_process)
 
