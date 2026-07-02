@@ -4,12 +4,22 @@
 
 {% block job_info_extra %}
 {% if result_data and result_data.args %}
+{% if result_data.args.list_titles %}
+<tr>
+    <th>List of titles:</th>
+    <td>
+        {{ result_data.args.list_titles }}
+    </td>
+</tr>
+{% else %}
 <tr>
     <th>Update all data:</th>
     <td>
         {{ result_data.args.update_all }}
     </td>
 </tr>
+{% endif %}
+
 {% endif %}
 {% endblock %}
 
