@@ -7,12 +7,14 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch):
-    mock_mwclientpage = MagicMock()
+    mocks = {
+        "MwClientPage": MagicMock(),
+    }
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.MwClientPage",
-        mock_mwclientpage,
+        mocks["MwClientPage"],
     )
-    return {"MwClientPage": mock_mwclientpage}
+    return mocks
 
 
 def test_text_task_success(mock_services):

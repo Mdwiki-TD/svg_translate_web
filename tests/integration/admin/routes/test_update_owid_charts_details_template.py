@@ -15,45 +15,10 @@ from __future__ import annotations
 
 import json
 from html import unescape
-from types import SimpleNamespace
 
-import pytest
-
-from src.main_app import create_app
-from src.main_app.config import TestingConfig
 from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
-from src.main_app.extensions import db as _db
 
 _JOB_TYPE = "update_owid_charts"
-
-
-@pytest.fixture
-def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
-    """Flask test client with admin auth mocked out."""
-    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    admin_user = SimpleNamespace(username="admin", is_active_admin=True)
-
-    def fake_current_user() -> SimpleNamespace:
-        return admin_user
-
-    monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
-    monkeypatch.setattr(
-        "src.main_app.public.utils.routes_utils._is_admin",
-        lambda user: bool(getattr(user, "is_active_admin", False)),
-    )
-
-    app = create_app(TestingConfig)
-    app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False
-
-    with app.app_context():
-        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables)
-        yield app.test_client()
-        _db.session.remove()
-        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 def _make_chart(slug: str = "test-chart") -> dict:

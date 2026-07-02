@@ -129,11 +129,13 @@ class TestConfigureLogging:
 
     @pytest.fixture
     def mock_services(self, monkeypatch: pytest.MonkeyPatch):
-        mock_path_class = MagicMock()
-        mock_setup_logging = MagicMock()
-        monkeypatch.setattr("src.logger_config.Path", mock_path_class)
-        monkeypatch.setattr("src.logger_config.setup_logging", mock_setup_logging)
-        return {"Path": mock_path_class, "setup_logging": mock_setup_logging}
+        mocks = {
+            "Path": MagicMock(),
+            "setup_logging": MagicMock(),
+        }
+        monkeypatch.setattr("src.logger_config.Path", mocks["Path"])
+        monkeypatch.setattr("src.logger_config.setup_logging", mocks["setup_logging"])
+        return mocks
 
     def test_configure_logging_creates_log_dir(self, mock_services, tmp_path):
         """Test that configure_logging creates log directory."""

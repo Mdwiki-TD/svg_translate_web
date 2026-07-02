@@ -12,7 +12,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, get_user_site
+from ....api_services import MwClientPage
 from ....db.models import TemplateRecord
 from ....db.services import list_templates
 from ...base_worker import BaseObjectsJobWorker
@@ -233,10 +233,8 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def process(self) -> AddSvgLanguagesWorkerObject:
-        self.site = get_user_site(self.user)
-        if not self.site:
-            logger.warning("Job %s: No site authentication available", self.job_id)
-            self.log_no_site_error()
+
+        if not self._check_site():
             return self.result
 
         templates = self._load_templates()

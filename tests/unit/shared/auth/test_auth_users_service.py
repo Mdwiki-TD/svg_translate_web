@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -10,23 +10,22 @@ from src.main_app.shared.auth.auth_users_service import AuthUserService
 
 
 @pytest.fixture
-def mock_db_services():
-    with (
-        patch("src.main_app.shared.auth.auth_users_service.get_user_by_username") as m_get_by_name,
-        patch("src.main_app.shared.auth.auth_users_service.upsert_user_token") as m_update,
-        patch("src.main_app.shared.auth.auth_users_service.create_user") as m_create,
-        patch("src.main_app.shared.auth.auth_users_service.get_user_token") as m_get_token,
-        patch("src.main_app.shared.auth.auth_users_service.is_active_coordinator") as m_is_coord,
-        patch("src.main_app.shared.auth.auth_users_service.get_authenticated_user_token") as m_get_auth,
-    ):
-        yield {
-            "get_by_name": m_get_by_name,
-            "update": m_update,
-            "create": m_create,
-            "get_token": m_get_token,
-            "is_coord": m_is_coord,
-            "get_auth": m_get_auth,
-        }
+def mock_db_services(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "get_by_name": MagicMock(),
+        "update": MagicMock(),
+        "create": MagicMock(),
+        "get_token": MagicMock(),
+        "is_coord": MagicMock(),
+        "get_auth": MagicMock(),
+    }
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_user_by_username", mocks["get_by_name"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.upsert_user_token", mocks["update"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.create_user", mocks["create"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_user_token", mocks["get_token"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.is_active_coordinator", mocks["is_coord"])
+    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.get_authenticated_user_token", mocks["get_auth"])
+    return mocks
 
 
 class TestUserService:
@@ -40,7 +39,7 @@ class TestUserService:
         mock_db_services["is_coord"].return_value = True
 
         res = AuthUserService.save_and_get_user("testuser", "key", "secret")
-
+        assert res is not None
         assert res.username == "testuser"
         assert res.is_active_admin is True
         mock_db_services["update"].assert_called_once_with(user_id=1, access_key="key", access_secret="secret")
@@ -53,6 +52,7 @@ class TestUserService:
 
         res = AuthUserService.save_and_get_user("newuser", "k2", "s2")
 
+        assert res is not None
         assert res.user_id == 2
         assert res.is_active_admin is False
         mock_db_services["create"].assert_called_once()
@@ -75,6 +75,7 @@ class TestUserService:
         mock_db_services["is_coord"].return_value = True
 
         res = AuthUserService.get_authenticated_user(123)
+        assert res is not None
         assert res.username == "authuser"
         assert res.is_active_admin is True
 

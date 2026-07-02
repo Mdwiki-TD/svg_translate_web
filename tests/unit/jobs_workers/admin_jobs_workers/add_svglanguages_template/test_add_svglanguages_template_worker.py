@@ -17,66 +17,49 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by add_svglanguages_template worker."""
 
-    mock_re_svg_lang = MagicMock()
-    mock_mwclientpage = MagicMock()
-    mock_add_template_to_text = MagicMock()
-    mock_get_user_site = MagicMock()
-    mock_list_templates = MagicMock()
-
     _mock_class = MagicMock()
-    _mock_instance = MagicMock()
-    _mock_class.return_value = _mock_instance
+    _mock_class.return_value = MagicMock()
+
+    mocks = {
+        "RE_SVG_LANG": MagicMock(),
+        "MwClientPage": MagicMock(),
+        "add_template_to_text": MagicMock(),
+        "list_templates": MagicMock(),
+        "AddSvgSVGLanguagesTemplate": _mock_class,
+        "get_user_site": mock_base_worker["get_user_site"],
+    }
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.RE_SVG_LANG",
-        mock_re_svg_lang,
+        mocks["RE_SVG_LANG"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.MwClientPage",
-        mock_mwclientpage,
+        mocks["MwClientPage"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.add_template_to_text",
-        mock_add_template_to_text,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.get_user_site",
-        mock_get_user_site,
+        mocks["add_template_to_text"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates",
-        mock_list_templates,
+        mocks["list_templates"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.AddSvgSVGLanguagesTemplate",
-        _mock_class,
+        mocks["AddSvgSVGLanguagesTemplate"],
     )
 
-    return {
-        "RE_SVG_LANG": mock_re_svg_lang,
-        "MwClientPage": mock_mwclientpage,
-        "add_template_to_text": mock_add_template_to_text,
-        "get_user_site": mock_get_user_site,
-        "list_templates": mock_list_templates,
-        "AddSvgSVGLanguagesTemplate": _mock_class,
-    }
+    return mocks
 
 
 @pytest.fixture
-def mock_add_svg_worker(monkeypatch: pytest.MonkeyPatch) -> AddSvgSVGLanguagesTemplate:
-    # Bypass BaseObjectsJobWorker.before_run
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
-    )
-    # Bypass update_job_status in after_run
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", MagicMock())
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
-
+def mock_add_svg_worker(mock_base_worker, mock_before_run) -> AddSvgSVGLanguagesTemplate:
     worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-    worker.site = MagicMock()
+    worker.site = mock_base_worker["get_user_site"]
     return worker
 
 
@@ -473,34 +456,26 @@ class TestProcessMethod:
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
         mock_services["list_templates"].return_value = mock_templates
 
-        # Bypass update_job_status in before_run/after_run
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
-
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
         # Mock _process_one_item to do nothing
         worker._process_one_item = MagicMock()
 
-        result = worker.process()
+        result = worker.run()
 
-        assert result.status == "completed"
-        assert result.summary.total == 1
+        assert result["status"] == "completed"
+        assert result["summary"]["total"] == 1
         mock_services["get_user_site"].assert_called_once()
 
     def test_process_fails_without_site(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test that process fails when site authentication is not available."""
         mock_services["get_user_site"].return_value = None
 
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
-
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
-        result = worker.process()
+        result = worker.run()
 
-        assert result.status == "failed"
-        assert result.failed_at is not None
+        assert result["status"] == "failed"
+        assert result["failed_at"] is not None
 
     def test_process_handles_cancellation(self, mock_services, mock_site, monkeypatch: pytest.MonkeyPatch):
         """Test that process stops when cancelled."""
@@ -512,10 +487,6 @@ class TestProcessMethod:
             MagicMock(id=3, title="Template:OWID/test3"),
         ]
         mock_services["list_templates"].return_value = mock_templates
-
-        # Bypass update_job_status
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", MagicMock())
-        monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
 
         cancel_event = threading.Event()
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"}, cancel_event=cancel_event)

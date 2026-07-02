@@ -28,28 +28,26 @@ def _make_processor(filename="File:test.svg", user=None, args=None, cancel_event
 def mock_services(monkeypatch: pytest.MonkeyPatch):
     """Mock the services used by fix_nested_jobs worker."""
 
-    mock_verify_fix = MagicMock()
-    mock_upload_fixed_svg = MagicMock()
-    mock_is_job_cancelled = MagicMock()
+    mocks = {
+        "verify_fix": MagicMock(),
+        "upload_fixed_svg": MagicMock(),
+        "is_job_cancelled": MagicMock(),
+    }
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.verify_fix",
-        mock_verify_fix,
+        mocks["verify_fix"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
-        mock_upload_fixed_svg,
+        mocks["upload_fixed_svg"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.is_job_cancelled",
-        mock_is_job_cancelled,
+        mocks["is_job_cancelled"],
     )
 
-    return {
-        "verify_fix": mock_verify_fix,
-        "upload_fixed_svg": mock_upload_fixed_svg,
-        "is_job_cancelled": mock_is_job_cancelled,
-    }
+    return mocks
 
 
 class TestFixNestedJobsProcessorSteps:

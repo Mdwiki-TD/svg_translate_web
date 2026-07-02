@@ -27,19 +27,18 @@ def flask_app():
 
 
 @pytest.fixture
-def mock_db_services():
-    with (
-        patch("src.main_app.jobs_workers.jobs_worker.create_job") as m_create,
-        patch("src.main_app.jobs_workers.jobs_worker.cancel_job_db") as m_cancel_db,
-        patch("src.main_app.jobs_workers.jobs_worker.get_all_settings_ready") as m_settings,
-        patch("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file") as m_cancel_file,
-    ):
-        yield {
-            "create": m_create,
-            "cancel_db": m_cancel_db,
-            "settings": m_settings,
-            "cancel_file": m_cancel_file,
-        }
+def mock_db_services(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "create": MagicMock(),
+        "cancel_db": MagicMock(),
+        "settings": MagicMock(),
+        "cancel_file": MagicMock(),
+    }
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job", mocks["create"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_db", mocks["cancel_db"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.get_all_settings_ready", mocks["settings"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file", mocks["cancel_file"])
+    return mocks
 
 
 def test_register_pop_cancel_event():
