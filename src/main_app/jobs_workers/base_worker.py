@@ -8,11 +8,10 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Final
 
-from sqlalchemy.orm.exc import StaleDataError
 from mwclient.client import Site
+from sqlalchemy.orm.exc import StaleDataError
 
 from ..api_services import get_user_site
-
 from ..config import settings
 from ..db.services import (
     is_job_cancelled,
@@ -227,7 +226,6 @@ class BaseObjectsJobWorker(ABC):
         self.result.status = "failed"
         self.result.failed_at = datetime.now().isoformat()
         self.log_errors("No authenticated user site available.")
-
 
     def _check_site(self) -> WorkerObject:
         self.site = get_user_site(self.user)
