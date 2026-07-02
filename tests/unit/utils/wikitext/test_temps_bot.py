@@ -23,6 +23,7 @@ def get_files_list(text: str, filter_duplicates: bool = True) -> tuple:
     data = get_files_list_data(text, filter_duplicates=filter_duplicates)
     return data["main_title"], data["titles"]
 
+
 # ── texts fixtures ───────────────────────────────────────────────────────────────────
 
 

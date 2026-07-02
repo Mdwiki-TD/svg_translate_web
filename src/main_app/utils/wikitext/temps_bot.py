@@ -57,6 +57,7 @@ def get_titles(text: str, filter_duplicates: bool = True) -> list:
 
     return titles
 
+
 def get_files_list_data(text: str, filter_duplicates: bool = True) -> dict[str, Any]:
     """
     Returns (main_title, titles).

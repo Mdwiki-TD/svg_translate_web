@@ -73,6 +73,7 @@ def register_events(engine) -> None:
     if not event.contains(engine, "connect", receive_connect):
         event.listen(engine, "connect", receive_connect)
 
+
 def init_db(_db: SQLAlchemy) -> None:
     """
     Initialize database tables and views if they don't exist.
