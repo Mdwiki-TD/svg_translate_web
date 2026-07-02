@@ -58,6 +58,8 @@ class TestServeCropFiles:
 @pytest.mark.usefixtures("mock_app")
 class TestDownloadAllMainFiles:
     def test_download_success(self, mock_client, monkeypatch):
+        admin_user = MagicMock(is_active_admin=True)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("zip_content", 200)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
