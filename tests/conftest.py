@@ -5,7 +5,6 @@ real protection path) and provide helpers for scraping CSRF tokens and
 for switching session identity. Each test gets a fresh JobStore so jobs
 don't leak across tests.
 """
-
 from __future__ import annotations
 
 import logging
@@ -222,6 +221,10 @@ def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         update_job_status_with_retry=MagicMock(),
     )
     monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        mocks.get_user_site,
+    )
+    monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.update_job_status",
         mocks.update_job_status,
     )
@@ -244,9 +247,5 @@ def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
         mocks.generate_result_file_name,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker_object.get_user_site",
-        mocks.get_user_site,
     )
     return mocks
