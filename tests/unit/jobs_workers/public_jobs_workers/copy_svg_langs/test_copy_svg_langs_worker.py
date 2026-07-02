@@ -49,14 +49,17 @@ def mock_steps(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_clients(monkeypatch, mock_get_user_site):
+def mock_clients(monkeypatch, mock_base_worker):
     m_session = MagicMock()
     m_session.return_value = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.create_commons_session",
         m_session,
     )
-    return {"session": m_session, "site": mock_get_user_site}
+    return {
+        "session": m_session,
+        "site": mock_base_worker["get_user_site"],
+    }
 
 
 @pytest.fixture

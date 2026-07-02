@@ -68,7 +68,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
 
     return mocks
 
-def test_collect_templates_data_worker_cancellation(mock_services, mock_base_worker_object):
+def test_collect_templates_data_worker_cancellation(mock_services, mock_base_worker):
     """Test that collect_templates_data_worker stops when cancelled."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
@@ -78,6 +78,6 @@ def test_collect_templates_data_worker_cancellation(mock_services, mock_base_wor
 
     collect_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
 
-    result = mock_base_worker_object["save_job_result_by_name"].call_args[0][1]
+    result = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result.get("status") == "cancelled"
     assert len(result["pages_updated"]) == 1

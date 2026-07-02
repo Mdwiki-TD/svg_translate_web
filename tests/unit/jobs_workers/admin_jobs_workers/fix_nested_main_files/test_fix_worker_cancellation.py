@@ -12,7 +12,7 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker as fix_worker
 
 
-def test_fix_nested_main_files_worker_cancellation(mock_base_worker_object, monkeypatch: pytest.MonkeyPatch):
+def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch: pytest.MonkeyPatch):
     """Test that fix_nested_main_files_worker stops when cancelled."""
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
@@ -40,5 +40,5 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker_object, monk
 
     fix_worker.fix_nested_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
 
-    result = mock_base_worker_object["save_job_result_by_name"].call_args[0][1]
+    result = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert len(result["pages_success"]) == 2
