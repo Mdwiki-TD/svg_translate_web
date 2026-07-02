@@ -63,20 +63,19 @@ def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
 @pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Mock get_template_by_title and update_template_data."""
-    mock_get_template = MagicMock(return_value=None)
-    mock_update_data = MagicMock()
+    mocks = {
+        "get_template_by_title": MagicMock(return_value=None),
+        "update_template_data": MagicMock(),
+    }
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.get_template_by_title",
-        mock_get_template,
+        mocks["get_template_by_title"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.update_template_data",
-        mock_update_data,
+        mocks["update_template_data"],
     )
-    return {
-        "get_template_by_title": mock_get_template,
-        "update_template_data": mock_update_data,
-    }
+    return mocks
 
 
 def _make_mwclient_page_mock(*, exists: bool = True, is_redirect: bool = False) -> MagicMock:

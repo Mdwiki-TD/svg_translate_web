@@ -44,8 +44,7 @@ def jobs_db():
 
 @pytest.fixture
 def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client paired with a fake jobs jobs_db."""
-
+    """Flask test client with admin auth mocked out."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
     admin_user = SimpleNamespace(username="admin", is_active_admin=True)
 
@@ -53,6 +52,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.public.utils.routes_utils._is_admin",
