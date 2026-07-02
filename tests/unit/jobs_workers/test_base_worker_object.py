@@ -41,24 +41,6 @@ class MockWorker(BaseObjectsJobWorker):
 
 
 @pytest.fixture
-def mock_db_services():
-    with (
-        patch("src.main_app.jobs_workers.base_worker.update_job_status_with_retry") as m_update_retry,
-        patch("src.main_app.jobs_workers.base_worker.update_job_status") as m_update,
-        patch("src.main_app.jobs_workers.base_worker.is_job_cancelled") as m_is_cancelled,
-        patch("src.main_app.jobs_workers.base_worker.save_job_result_by_name") as m_save,
-        patch("src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist") as m_file_exists,
-    ):
-        yield {
-            "update_retry": m_update_retry,
-            "update": m_update,
-            "is_cancelled": m_is_cancelled,
-            "save": m_save,
-            "file_exists": m_file_exists,
-        }
-
-
-@pytest.fixture
 def worker():
     user = {"username": "testuser"}
     worker = MockWorker(job_id=123, user=user)
@@ -74,24 +56,28 @@ def test_worker_object_to_json():
 
 
 class TestBaseObjectsJobWorker:
-    def test_before_run_success(self, worker, mock_db_services):
+    def test_before_run_success(self, worker, mock_base_worker):
         assert worker.before_run() is True
-        mock_db_services["update"].assert_called_once_with(123, "running", worker.result_file, job_type="mock_job")
+        mock_base_worker["update_job_status"].assert_called_once_with(
+            123, "running", worker.result_file, job_type="mock_job"
+        )
         assert worker.result.status == "running"
 
-    def test_before_run_lookup_error(self, worker, mock_db_services):
-        mock_db_services["update"].side_effect = LookupError("Not found")
+    def test_before_run_lookup_error(self, worker, mock_base_worker):
+        mock_base_worker["update_job_status"].side_effect = LookupError("Not found")
         assert worker.before_run() is False
 
-    def test_after_run_success(self, worker, mock_db_services):
+    def test_after_run_success(self, worker, mock_base_worker):
         worker.result.status = "running"
         worker.after_run()
         assert worker.result.status == "completed"
         assert worker.result.completed_at is not None
-        mock_db_services["update_retry"].assert_called_with(123, "completed", worker.result_file, job_type="mock_job")
+        mock_base_worker["update_job_status_with_retry"].assert_called_with(
+            123, "completed", worker.result_file, job_type="mock_job"
+        )
 
-    def test_after_run_db_error(self, worker, mock_db_services):
-        mock_db_services["update_retry"].side_effect = Exception("DB Fail")
+    def test_after_run_db_error(self, worker, mock_base_worker):
+        mock_base_worker["update_job_status_with_retry"].side_effect = Exception("DB Fail")
         worker.after_run()  # Should handle exception and log it
 
     def test_is_cancelled_event(self, worker):
@@ -100,18 +86,18 @@ class TestBaseObjectsJobWorker:
         assert worker.is_cancelled() is True
         assert worker.result.status == "cancelled"
 
-    def test_is_cancelled_file(self, worker, mock_db_services):
-        mock_db_services["file_exists"].return_value = True
+    def test_is_cancelled_file(self, worker, mock_base_worker, mock_base_is_cancelled):
+        mock_base_is_cancelled["is_job_cancelled_file_exist"].return_value = True
         assert worker.is_cancelled() is True
         assert worker.result.status == "cancelled"
 
-    def test_is_cancelled_db(self, worker, mock_db_services):
-        mock_db_services["is_cancelled"].return_value = True
+    def test_is_cancelled_db(self, worker, mock_base_worker, mock_base_is_cancelled):
+        mock_base_is_cancelled["is_job_cancelled"].return_value = True
         assert worker.is_cancelled(check_db=True) is True
         assert worker.result.status == "cancelled"
 
-    def test_check_cancel_db_periodic(self, worker, mock_db_services):
-        mock_db_services["is_cancelled"].return_value = True
+    def test_check_cancel_db_periodic(self, worker, mock_base_worker, mock_base_is_cancelled):
+        mock_base_is_cancelled["is_job_cancelled"].return_value = True
         # Interval is 10
         for _ in range(9):
             assert worker.check_cancel_db_periodic(interval=10) is False
@@ -133,17 +119,17 @@ class TestBaseObjectsJobWorker:
         assert worker.result.status == "failed"
         assert "No authenticated user site available" in worker.result.errors[0]["error"]
 
-    def test_run_success(self, worker, mock_db_services):
-        mock_db_services["update"].return_value = None
+    def test_run_success(self, worker, mock_base_worker):
+        mock_base_worker["update_job_status"].return_value = None
         result = worker.run()
         assert result["status"] == "completed"
 
-    def test_run_before_fail(self, worker, mock_db_services):
-        mock_db_services["update"].side_effect = LookupError()
+    def test_run_before_fail(self, worker, mock_base_worker):
+        mock_base_worker["update_job_status"].side_effect = LookupError()
         result = worker.run()
         assert result["status"] == "pending"  # remains pending if before_run fails
 
-    def test_run_exception(self, worker, mock_db_services):
+    def test_run_exception(self, worker, mock_base_worker):
         with patch.object(MockWorker, "process", side_effect=Exception("Process failed")):
             result = worker.run()
             assert result["status"] == "failed"

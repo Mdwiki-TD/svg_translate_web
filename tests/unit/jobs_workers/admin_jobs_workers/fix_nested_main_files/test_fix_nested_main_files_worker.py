@@ -16,62 +16,52 @@ from src.main_app.shared.fix_nested.worker import (
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
+def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by fix_nested_main_files worker."""
 
-    # Mock template_service
-    mock_list_templates = MagicMock()
+    mocks = {
+        "list_templates": MagicMock(),
+        "update_job_status": MagicMock(),
+        "save_job_result_by_name": MagicMock(),
+        "download_svg_file": MagicMock(),
+        "detect_nested_tags": MagicMock(),
+        "fix_nested_tags": MagicMock(),
+        "verify_fix": MagicMock(),
+        "upload_fixed_svg": MagicMock(),
+        "get_user_site": mock_base_worker["get_user_site"],
+    }
+
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates", mock_list_templates
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates",
+        mocks["list_templates"],
+    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )
 
-    # Mock jobs_service (base worker)
-    mock_update_job_status = MagicMock()
-    mock_save_job_result = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mock_update_job_status)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
-
-    # Bypass BaseObjectsJobWorker.before_run
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
-        MagicMock(return_value=True),
-    )
-
-    # Mock shared fix_nested utilities
-    mock_download_svg = MagicMock()
-    mock_detect_nested = MagicMock()
-    mock_fix_nested = MagicMock()
-    mock_verify_fix = MagicMock()
-    mock_upload_fixed = MagicMock()
-
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file", mock_download_svg
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file",
+        mocks["download_svg_file"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags",
-        mock_detect_nested,
+        mocks["detect_nested_tags"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags", mock_fix_nested
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags",
+        mocks["fix_nested_tags"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix", mock_verify_fix
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix",
+        mocks["verify_fix"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg", mock_upload_fixed
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg",
+        mocks["upload_fixed_svg"],
     )
 
-    return {
-        "list_templates": mock_list_templates,
-        "update_job_status": mock_update_job_status,
-        "save_job_result_by_name": mock_save_job_result,
-        "get_user_site": mock_get_user_site,
-        "download_svg_file": mock_download_svg,
-        "detect_nested_tags": mock_detect_nested,
-        "fix_nested_tags": mock_fix_nested,
-        "verify_fix": mock_verify_fix,
-        "upload_fixed_svg": mock_upload_fixed,
-    }
+    return mocks
 
 
 def test_repair_nested_svg_tags_success(mock_services, tmp_path):

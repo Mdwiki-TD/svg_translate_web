@@ -32,35 +32,6 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 @pytest.fixture
-def mock_base_services(monkeypatch: pytest.MonkeyPatch) -> dict:
-    """Mock base worker services (update_job_status, save_job_result)."""
-    mock_update = MagicMock()
-    mock_save = MagicMock()
-    mock_generate = MagicMock(side_effect=lambda jid, jtype: f"{jtype}_job_{jid}.json")
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
-        mock_update,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mock_save,
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name",
-        mock_generate,
-    )
-    # Bypass before_run
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
-    )
-    return {
-        "update_job_status": mock_update,
-        "save_job_result": mock_save,
-        "generate_result_file_name": mock_generate,
-    }
-
-
-@pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Mock get_template_by_title and update_template_data."""
     mocks = {
@@ -162,25 +133,25 @@ class TestRenameInfo:
 
 
 class TestWorkerInit:
-    def test_default_initialization(self, mock_base_services):
-        w = _make_worker()
-        assert w.job_id == 1
-        assert w.user == {"username": "tester"}
-        assert w.cancel_event is None
-        assert w.args == {}
-        assert w.site is None
+    def test_default_initialization(self, mock_base_worker):
+        _worker = _make_worker()
+        assert _worker.job_id == 1
+        assert _worker.user == {"username": "tester"}
+        assert _worker.cancel_event is None
+        assert _worker.args == {}
+        assert _worker.site is None
 
-    def test_args_passed(self, mock_base_services):
-        w = _make_worker(args={"some": "value"})
-        assert w.args == {"some": "value"}
+    def test_args_passed(self, mock_base_worker):
+        _worker = _make_worker(args={"some": "value"})
+        assert _worker.args == {"some": "value"}
 
-    def test_get_job_type(self, mock_base_services):
-        w = _make_worker()
-        assert w.get_job_type() == "rename_owid_pages"
+    def test_get_job_type(self, mock_base_worker):
+        _worker = _make_worker()
+        assert _worker.get_job_type() == "rename_owid_pages"
 
-    def test_initial_result_structure(self, mock_base_services):
-        w = _make_worker()
-        result = w.result
+    def test_initial_result_structure(self, mock_base_worker):
+        _worker = _make_worker()
+        result = _worker.result
         assert result.status == "pending"
         assert result.summary.total == 0
         assert result.summary.processed == 0
@@ -196,14 +167,11 @@ class TestWorkerInit:
 
 
 class TestProcess:
-    def test_no_site_authentication(self, mock_base_services, monkeypatch):
-        mock_get = MagicMock(return_value=None)
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker_object.get_user_site",
-            mock_get,
-        )
-        w = _make_worker()
-        result = w.process()
+    def test_no_site_authentication(self, mock_base_worker):
+        mock_base_worker["get_user_site"].return_value = None
+
+        _worker = _make_worker()
+        result = _worker.process()
         assert result.status == "failed"
 
 
@@ -215,17 +183,18 @@ class TestRenameOne:
 
     # ── helpers ─────────────────────────────────────────────────────────
 
-    def _worker_with_mocks(self, monkeypatch, mock_base_services, mock_db_services):
+    @pytest.fixture(autouse=True)
+    def setup(self, monkeypatch, mock_base_worker, mock_db_services):
         """Create a worker and patch MwClientPage."""
-        w = _make_worker()
+        _worker = _make_worker()
 
         self._mock_page_cls = MagicMock(name="MwClientPage_class")
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.MwClientPage",
             self._mock_page_cls,
         )
-        monkeypatch.setattr(w, "_update_template_title", MagicMock())
-        return w
+        monkeypatch.setattr(_worker, "_update_template_title", MagicMock())
+        self.worker = _worker
 
     def _set_pages(self, new_exists, new_is_redirect, old_is_redirect):
         """Configure the mock MwClientPage instances returned by the class.
@@ -241,31 +210,31 @@ class TestRenameOne:
 
     # ── branch: new_title does NOT exist → move ──────────────────────────
 
-    def test_move_success(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_move_success(self):
+
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 42}
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is True
-        assert w.result.summary.renamed == 1
-        assert w.result.summary.failed == 0
+        assert self.worker.result.summary.renamed == 1
+        assert self.worker.result.summary.failed == 0
 
-    def test_move_failure(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_move_failure(self):
+
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": False, "error": "permission denied"}
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result.summary.failed == 1
+        assert self.worker.result.summary.failed == 1
 
-    def test_move_failure_with_details(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_move_failure_with_details(self, mock_base_worker, mock_db_services):
+
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {
@@ -274,60 +243,60 @@ class TestRenameOne:
             "details": "Title blacklist",
         }
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result.summary.failed == 1
+        assert self.worker.result.summary.failed == 1
 
     # ── branch: new_title exists, is redirect → overwrite via move ───────
 
-    def test_target_is_redirect_overwrite_succeeds(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_target_is_redirect_overwrite_succeeds(self):
+
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 99}
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is True
-        assert w.result.summary.renamed == 1
+        assert self.worker.result.summary.renamed == 1
 
-    def test_target_is_redirect_overwrite_fails(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_target_is_redirect_overwrite_fails(self):
+
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
         self._mock_old_page.move.return_value = {"success": False, "error": "error"}
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result.summary.failed == 1
+        assert self.worker.result.summary.failed == 1
 
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
-    def test_source_is_redirect_skip_and_update_db(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_source_is_redirect_skip_and_update_db(self):
+
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=True)
 
-        result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
         assert result is False
-        assert w.result.summary.skipped_target_exists == 1
-        assert w.result.summary.failed == 0
-        w._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")  # type: ignore
+        assert self.worker.result.summary.skipped_target_exists == 1
+        assert self.worker.result.summary.failed == 0
+        self.worker._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")  # type: ignore
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
 
-    def test_both_real_pages_redirects_old_to_new(self, monkeypatch, mock_base_services, mock_db_services):
-        w = self._worker_with_mocks(monkeypatch, mock_base_services, mock_db_services)
+    def test_both_real_pages_redirects_old_to_new(self, monkeypatch):
+
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=False)
 
         # Mock _redirect_old_to_new
         with monkeypatch.context() as m:
             mock_redirect = MagicMock(return_value=True)
-            m.setattr(w, "_redirect_old_to_new", mock_redirect)
+            m.setattr(self.worker, "_redirect_old_to_new", mock_redirect)
 
-            result = w._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+            result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
 
             mock_redirect.assert_called_once()
             call_args = mock_redirect.call_args
@@ -341,54 +310,52 @@ class TestRenameOne:
 
 
 class TestRedirectOldToNew:
-    def _worker(self, mock_base_services, mock_db_services):
-        w = _make_worker()
-        monkeypatch = pytest.MonkeyPatch()
-        monkeypatch.setattr(w, "_update_template_title", MagicMock())
-        return w
 
-    def test_redirect_success(self, mock_base_services, mock_db_services):
-        w = self._worker(mock_base_services, mock_db_services)
+    @pytest.fixture(autouse=True)
+    def setup(self, monkeypatch, mock_base_worker, mock_db_services):
+        self.worker = _make_worker()
+        monkeypatch.setattr(self.worker, "_update_template_title", MagicMock())
+
+    def test_redirect_success(self):
+
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
         mock_page.edit.return_value = {"success": True, "newrevid": 55}
 
-        result = w._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
+        result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
 
         assert result is True
         assert info.status == "redirected"
-        assert w.result.summary.redirected == 1
-        assert w.result.summary.failed == 0
+        assert self.worker.result.summary.redirected == 1
+        assert self.worker.result.summary.failed == 0
         mock_page.edit.assert_called_once_with(
             text="#REDIRECT [[Template:OWID/Daily]]",
             summary="Redirecting to [[Template:OWID/Daily]] (capitalize first letter of OWID subpage)",
         )
 
-    def test_redirect_failure(self, mock_base_services, mock_db_services):
-        w = self._worker(mock_base_services, mock_db_services)
+    def test_redirect_failure(self):
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
         mock_page.edit.return_value = {"success": False, "error": "protected page"}
 
-        result = w._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
+        result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
 
         assert result is False
         assert info.status == "failed"
-        assert w.result.summary.failed == 1
+        assert self.worker.result.summary.failed == 1
 
-    def test_redirect_failure_with_details(self, mock_base_services, mock_db_services):
-        w = self._worker(mock_base_services, mock_db_services)
+    def test_redirect_failure_with_details(self):
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
         mock_page.edit.return_value = {"success": False, "error": "blocked", "details": "abuse filter"}
 
-        result = w._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
+        result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
 
         assert result is False
         assert info.status == "failed"
@@ -398,30 +365,30 @@ class TestRedirectOldToNew:
 
 
 class TestUpdateTemplateTitle:
-    def test_updates_title_when_record_found(self, mock_base_services, mock_db_services):
-        w = _make_worker()
+    def test_updates_title_when_record_found(self, mock_base_worker, mock_db_services):
+        _worker = _make_worker()
         mock_record = MagicMock()
         mock_record.id = 7
         mock_db_services["get_template_by_title"].return_value = mock_record
 
-        w._update_template_title("Old", "New")
+        _worker._update_template_title("Old", "New")
 
         mock_db_services["get_template_by_title"].assert_called_once_with("Old")
         mock_db_services["update_template_data"].assert_called_once_with(7, {"title": "New"})
 
-    def test_noop_when_record_not_found(self, mock_base_services, mock_db_services):
-        w = _make_worker()
+    def test_noop_when_record_not_found(self, mock_base_worker, mock_db_services):
+        _worker = _make_worker()
         mock_db_services["get_template_by_title"].return_value = None
 
-        w._update_template_title("Old", "New")
+        _worker._update_template_title("Old", "New")
 
         mock_db_services["update_template_data"].assert_not_called()
 
-    def test_handles_exception_gracefully(self, mock_base_services, mock_db_services):
-        w = _make_worker()
+    def test_handles_exception_gracefully(self, mock_base_worker, mock_db_services):
+        _worker = _make_worker()
         mock_db_services["get_template_by_title"].side_effect = RuntimeError("DB down")
 
-        w._update_template_title("Old", "New")
+        _worker._update_template_title("Old", "New")
 
         mock_db_services["update_template_data"].assert_not_called()
 
@@ -482,12 +449,12 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
 
 
 class TestWorkerEdgeCases:
-    def test_cancel_event_set_stops_processing(self, mock_base_services, mock_db_services, mock_base_worker_object):
+    def test_cancel_event_set_stops_processing(self, mock_base_worker, mock_db_services):
         cancel_event = threading.Event()
         cancel_event.set()
-        w = _make_worker(cancel_event=cancel_event)
-        w.process()
-        assert w.result.status == "cancelled"
+        _worker = _make_worker(cancel_event=cancel_event)
+        _worker.process()
+        assert _worker.result.status == "cancelled"
 
     def test_module_constants(self):
         assert MOVE_REASON == "Capitalize first letter of OWID subpage name"

@@ -42,49 +42,49 @@ def _make_processor(
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by fix_nested_jobs worker."""
 
-    mock_save_job_result = MagicMock()
-    mock_is_job_cancelled = MagicMock()
-    mock_download_svg_file = MagicMock()
-    mock_detect_nested_tags = MagicMock()
-    mock_fix_nested_tags = MagicMock()
-    mock_verify_fix = MagicMock()
-    mock_upload_fixed_svg = MagicMock()
+    mocks = {
+        "save_job_result_by_name": MagicMock(),
+        "is_job_cancelled": MagicMock(),
+        "download_svg_file": MagicMock(),
+        "detect_nested_tags": MagicMock(),
+        "fix_nested_tags": MagicMock(),
+        "verify_fix": MagicMock(),
+        "upload_fixed_svg": MagicMock(),
+    }
 
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", mock_is_job_cancelled)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mocks["is_job_cancelled"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        mocks["save_job_result_by_name"],
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
-        mock_download_svg_file,
+        mocks["download_svg_file"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",
-        mock_detect_nested_tags,
+        mocks["detect_nested_tags"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags",
-        mock_fix_nested_tags,
+        mocks["fix_nested_tags"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.verify_fix",
-        mock_verify_fix,
+        mocks["verify_fix"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
-        mock_upload_fixed_svg,
+        mocks["upload_fixed_svg"],
     )
 
-    return {
-        "save_job_result": mock_save_job_result,
-        "is_job_cancelled": mock_is_job_cancelled,
-        "download_svg_file": mock_download_svg_file,
-        "detect_nested_tags": mock_detect_nested_tags,
-        "fix_nested_tags": mock_fix_nested_tags,
-        "verify_fix": mock_verify_fix,
-        "upload_fixed_svg": mock_upload_fixed_svg,
-    }
+    return mocks
 
 
 # ---------------------------------------------------------------------------
@@ -116,10 +116,10 @@ class TestSaveProgress:
     def test_delegates_to_jobs_service(self, mock_services):
         proc = _make_processor()
         proc._save_progress()
-        mock_services["save_job_result"].assert_called_once_with(proc.result_file, proc.result.to_json())
+        mock_services["save_job_result_by_name"].assert_called_once_with(proc.result_file, proc.result.to_json())
 
     def test_swallows_exceptions(self, mock_services):
-        mock_services["save_job_result"].side_effect = RuntimeError("disk full")
+        mock_services["save_job_result_by_name"].side_effect = RuntimeError("disk full")
         proc = _make_processor()
         # Must not raise
         proc._save_progress()
@@ -438,18 +438,16 @@ class TestRunStage:
 
 
 class TestRun:
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mock_before_run):
+        pass
+
     def _patch_all(self, tmp_path):
         """Return a context-manager-compatible list of patchers."""
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
-            # Bypass BaseObjectsJobWorker.before_run (which calls update_job_status
-            # against the real DB and then tries to do `self.result.status =`
-            # attribute access on a dict). Returning True lets process() run.
-            "before_run": patch(
-                "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run",
-                return_value=True,
-            ),
             # Bypass the DB write inside BaseObjectsJobWorker.after_run().
             "update_job_status": patch(
                 "src.main_app.jobs_workers.base_worker.update_job_status",
@@ -530,7 +528,7 @@ class TestRun:
             for p in patchers.values():
                 p.stop()
 
-    def test_cancellation_mid_pipeline_stops_run(self, tmp_path, mock_base_is_cancelled):
+    def test_cancellation_mid_pipeline_stops_run(self, tmp_path, monkeypatch):
         """Cancellation detected at the fix stage stops further stages."""
         patchers = self._patch_all(tmp_path)
         mocks = {k: v.start() for k, v in patchers.items()}
@@ -545,8 +543,13 @@ class TestRun:
             call_count[0] += 1
             return call_count[0] >= 3
 
-        mock_base_is_cancelled["is_job_cancelled_file_exist"].return_value = False
-        mock_base_is_cancelled["is_job_cancelled_file_exist"].side_effect = cancel_on_third
+        mock_is_job_cancelled_file_exist = MagicMock()
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+            mock_is_job_cancelled_file_exist,
+        )
+        mock_is_job_cancelled_file_exist.return_value = False
+        mock_is_job_cancelled_file_exist.side_effect = cancel_on_third
 
         try:
             proc = _make_processor()
