@@ -110,14 +110,120 @@ class TestAddTemplate:
 class TestListTemplatesMismatchedYears:
     """Test list_templates_mismatched_years function."""
 
+    def test_empty_when_no_templates(self):
+        """Test returns empty list when no templates exist."""
+        result = list_templates_mismatched_years()
+        assert result == []
+
+    def test_empty_when_all_match(self):
+        """Test returns empty when all templates have matching year in filename."""
+        add_template_data({"title": "T1", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024})
+        add_template_data({"title": "T2", "last_world_file": "chart,World,2025.svg", "last_world_year": 2025})
+
+        result = list_templates_mismatched_years()
+
+        assert result == []
+
+    def test_returns_mismatched(self):
+        """Test returns templates where year is not in filename."""
+        add_template_data({"title": "Match", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024})
+        add_template_data({"title": "Mismatch", "last_world_file": "old_file.svg", "last_world_year": 2024})
+
+        result = list_templates_mismatched_years()
+
+        assert len(result) == 1
+        assert result[0].title == "Mismatch"
+
+    def test_skips_null_fields(self):
+        """Test skips templates with null last_world_file or last_world_year."""
+        add_template_data({"title": "Null Year", "last_world_file": "file.svg"})
+        add_template_data({"title": "Null File", "last_world_year": 2024})
+
+        result = list_templates_mismatched_years()
+
+        assert result == []
+
 
 class TestGetTemplate:
     """Test get_template function."""
+
+    def test_returns_template_by_id(self):
+        """Test returns template when found by ID."""
+        record = add_template_data({"title": "Test", "main_file": "test.svg"})
+
+        result = get_template(record.id)
+
+        assert result is not None
+        assert result.id == record.id
+        assert result.title == "Test"
+
+    def test_returns_none_when_not_found(self):
+        """Test returns None when template ID does not exist."""
+        result = get_template(999)
+        assert result is None
 
 
 class TestGetTemplateByTitle:
     """Test get_template_by_title function."""
 
+    def test_returns_template_by_title(self):
+        """Test returns template when found by title."""
+        add_template_data({"title": "Unique Title", "main_file": "file.svg"})
+
+        result = get_template_by_title("Unique Title")
+
+        assert result is not None
+        assert result.title == "Unique Title"
+
+    def test_returns_none_when_not_found(self):
+        """Test returns None when title does not exist."""
+        result = get_template_by_title("Non-existent")
+        assert result is None
+
 
 class TestUpdateTemplateData:
     """Test update_template_data function."""
+
+    def test_update_fields_successfully(self):
+        """Test successfully updating template fields."""
+        record = add_template_data({"title": "Original", "main_file": "original.svg"})
+
+        updated = update_template_data(record.id, {"main_file": "updated.svg"})
+
+        assert updated is not None
+        assert updated.id == record.id
+        assert updated.title == "Original"
+        assert updated.main_file == "updated.svg"
+
+    def test_returns_none_when_template_not_found(self):
+        """Test returns None when template ID does not exist."""
+        result = update_template_data(999, {"main_file": "new.svg"})
+        assert result is None
+
+    def test_ignores_none_values(self):
+        """Test does not update fields with None values."""
+        record = add_template_data({"title": "Original", "main_file": "original.svg"})
+
+        updated = update_template_data(record.id, {"main_file": None, "title": "New Title"})
+
+        assert updated is not None
+        assert updated.title == "New Title"
+        assert updated.main_file == "original.svg"
+
+    def test_ignores_unknown_attributes(self):
+        """Test ignores keys that are not model attributes."""
+        record = add_template_data({"title": "Original", "main_file": "file.svg"})
+
+        updated = update_template_data(record.id, {"nonexistent_field": "value"})
+
+        assert updated is not None
+        assert updated.title == "Original"
+
+    def test_handles_file_prefix_stripping(self):
+        """Test ensure_template_data strips 'File:' prefix from main_file."""
+        record = add_template_data({"title": "Original", "main_file": "file.svg"})
+
+        updated = update_template_data(record.id, {"main_file": "File:new_file.svg"})
+
+        assert updated is not None
+        assert updated.main_file == "new_file.svg"
