@@ -221,12 +221,12 @@ class MockServices:
     update_job_status_with_retry: MagicMock
 
 @pytest.fixture
-def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch, mock_get_user_site) -> MockServices:
+def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     """Mock all base_worker_object services cleanly using a loop."""
 
     mocks = MockServices(
         generate_result_file_name=MagicMock(return_value="result.json"),
-        get_user_site=mock_get_user_site,
+        get_user_site=MagicMock(return_value=MagicMock(name="mw_site")),
         is_job_cancelled=MagicMock(),
         is_job_cancelled_file_exist=MagicMock(),
         save_job_result_by_name=MagicMock(),
