@@ -5,6 +5,7 @@ real protection path) and provide helpers for scraping CSRF tokens and
 for switching session identity. Each test gets a fresh JobStore so jobs
 don't leak across tests.
 """
+
 from __future__ import annotations
 
 import logging
@@ -12,7 +13,7 @@ import os
 import secrets
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import MagicMock
@@ -206,21 +207,49 @@ class MockServices:
     update_job_status: MagicMock
     update_job_status_with_retry: MagicMock
 
-
-
 @pytest.fixture
-def mock_base_worker_services(mocker) -> MockServices:
-    """Mock all base_worker_object services using pytest-mock."""
+def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
+    """Mock all base_worker_object services cleanly using a loop."""
 
-    import src.main_app.jobs_workers.base_worker_object as base_worker
     mocks = MockServices(
-        generate_result_file_name=mocker.patch.object(base_worker, "generate_result_file_name", return_value="result.json"),
-        get_user_site=mocker.patch.object(base_worker, "get_user_site", return_value=MagicMock(name="mw_site")),
-        is_job_cancelled=mocker.patch.object(base_worker, "is_job_cancelled"),
-        is_job_cancelled_file_exist=mocker.patch.object(base_worker, "is_job_cancelled_file_exist"),
-        save_job_result_by_name=mocker.patch.object(base_worker, "save_job_result_by_name"),
-        update_job_status=mocker.patch.object(base_worker, "update_job_status"),
-        update_job_status_with_retry=mocker.patch.object(base_worker, "update_job_status_with_retry"),
+        generate_result_file_name=MagicMock(return_value="result.json"),
+        get_user_site=MagicMock(return_value=MagicMock(name="mw_site")),
+        is_job_cancelled=MagicMock(),
+        is_job_cancelled_file_exist=MagicMock(),
+        save_job_result_by_name=MagicMock(),
+        update_job_status=MagicMock(),
+        update_job_status_with_retry=MagicMock(),
     )
 
+    # Target module path
+    module_path = "src.main_app.jobs_workers.base_worker_object"
+
+    # Dynamically monkeypatch all fields defined in MockServices
+    for field in fields(MockServices):
+        mock_value = getattr(mocks, field.name)
+        monkeypatch.setattr(f"{module_path}.{field.name}", mock_value)
+
+    return mocks
+
+@pytest.fixture
+def mock_base_worker_object(monkeypatch: pytest.MonkeyPatch):
+    """Mock services common to both workers."""
+    mocks = {
+        "save_job_result_by_name": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.get_user_site",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.update_job_status",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.generate_result_file_name",
+        MagicMock(return_value="result.json"),
+    )
     return mocks
