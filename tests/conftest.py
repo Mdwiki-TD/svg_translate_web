@@ -209,41 +209,6 @@ def mock_get_user_site(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return mock_get
 
-
-@dataclass
-class MockServices:
-    generate_result_file_name: MagicMock
-    get_user_site: MagicMock
-    is_job_cancelled: MagicMock
-    is_job_cancelled_file_exist: MagicMock
-    save_job_result_by_name: MagicMock
-    update_job_status: MagicMock
-    update_job_status_with_retry: MagicMock
-
-@pytest.fixture
-def mock_base_worker_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
-    """Mock all base_worker_object services cleanly using a loop."""
-
-    mocks = MockServices(
-        generate_result_file_name=MagicMock(return_value="result.json"),
-        get_user_site=MagicMock(return_value=MagicMock(name="mw_site")),
-        is_job_cancelled=MagicMock(),
-        is_job_cancelled_file_exist=MagicMock(),
-        save_job_result_by_name=MagicMock(),
-        update_job_status=MagicMock(),
-        update_job_status_with_retry=MagicMock(),
-    )
-
-    # Target module path
-    module_path = "src.main_app.jobs_workers.base_worker_object"
-
-    # Dynamically monkeypatch all fields defined in MockServices
-    for field in fields(MockServices):
-        mock_value = getattr(mocks, field.name)
-        monkeypatch.setattr(f"{module_path}.{field.name}", mock_value)
-
-    return mocks
-
 @pytest.fixture
 def mock_base_worker_object(monkeypatch: pytest.MonkeyPatch, mock_get_user_site):
     """Mock services common to both workers."""
@@ -252,6 +217,10 @@ def mock_base_worker_object(monkeypatch: pytest.MonkeyPatch, mock_get_user_site)
     }
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.save_job_result_by_name", mocks["save_job_result_by_name"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker_object.update_job_status_with_retry",
+        MagicMock(),
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker_object.update_job_status",
