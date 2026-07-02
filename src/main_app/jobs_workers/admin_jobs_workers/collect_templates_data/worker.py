@@ -478,7 +478,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         if self.args.get("list_titles") == "list_templates_need_update":
             templates_to_update = list_templates_need_update()
-            templates_to_update_titles = [x.template_title for x in templates_to_update]
+            templates_to_update_titles = {x.template_title for x in templates_to_update}
 
             templates: list[TemplateRecord] = list_templates()
             tmps_to_process = [x for x in templates if x.title in templates_to_update_titles]
