@@ -114,9 +114,7 @@ class OwidSlugRedirectsService:
     def __init__(self) -> None:
         pass
 
-    def list_slug_redirects(
-        self, limit: int | None = None, offset: int | None = None
-    ) -> list[OwidSlugRedirectRecord]:
+    def list_slug_redirects(self, limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
         return list_slug_redirects(limit, offset)
 
     def get_slug_redirect_by_id(self, redirect_id: int) -> OwidSlugRedirectRecord | None:

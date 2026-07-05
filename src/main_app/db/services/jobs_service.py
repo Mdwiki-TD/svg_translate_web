@@ -319,7 +319,11 @@ class JobsService:
     def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
         return list_jobs(limit, job_type)
 
-    def get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
+    def get_all_user_jobs_stats(
+        self,
+        username: str,
+        limit: int | None = 100,
+    ) -> dict[str, dict[str, int] | list[JobRecord]]:
         return get_all_user_jobs_stats(username, limit)
 
     def get_user_jobs_stats(

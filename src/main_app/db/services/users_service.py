@@ -91,6 +91,7 @@ def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UserRecord:
 
 # ── DELETE ───────────────────────────────────────────────
 
+
 class UsersService:
     def __init__(self) -> None:
         pass
