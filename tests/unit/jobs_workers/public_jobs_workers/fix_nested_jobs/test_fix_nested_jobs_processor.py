@@ -17,7 +17,7 @@ def _make_processor(
     user=None,
     args=None,
     cancel_event=None,
-    ) -> FixNestedJobsProcessor:
+) -> FixNestedJobsProcessor:
     """Factory for FixNestedJobsProcessor with sensible defaults."""
     if args is None:
         args = {"filename": filename, "upload": True}

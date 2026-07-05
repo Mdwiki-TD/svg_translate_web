@@ -11,9 +11,6 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import runner
 
 
-
-
-
 def test_collect_templates_data_with_no_templates(mock_services):
     """Test collect_templates_data_entry when there are no templates."""
     mock_services["get_category_members"].return_value = []

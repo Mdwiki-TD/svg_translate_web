@@ -12,6 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
     TemplateInfo,
 )
 
+
 @pytest.fixture
 def mock_add_svg_worker(mock_base_worker, mock_before_run) -> AddSvgSVGLanguagesTemplate:
     worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
@@ -258,7 +259,9 @@ class TestStepLoadTemplateText:
         assert info.error is not None
         assert info.steps["load_template_text"]["result"] is False
 
-    def test_load_template_text_skips_if_already_has_svglanguages(self, mock_add_svglanguages_services, mock_add_svg_worker):
+    def test_load_template_text_skips_if_already_has_svglanguages(
+        self, mock_add_svglanguages_services, mock_add_svg_worker
+    ):
         """Test that _process_one_item skips if template already has SVGLanguages."""
         template = MagicMock(id=1, title="Template:OWID/test")
 
@@ -316,7 +319,9 @@ class TestStepAddTemplate:
 
     def test_add_template_success(self, mock_add_svglanguages_services, mock_add_svg_worker):
         """Test successful addition of template to text."""
-        mock_add_svglanguages_services["add_template_to_text"].return_value = "original text\n*{{SVGLanguages|test.svg}}"
+        mock_add_svglanguages_services["add_template_to_text"].return_value = (
+            "original text\n*{{SVGLanguages|test.svg}}"
+        )
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "original text"
@@ -326,7 +331,9 @@ class TestStepAddTemplate:
 
         assert result is True
         assert info._new_text is not None
-        mock_add_svglanguages_services["add_template_to_text"].assert_called_once_with("original text", "{{SVGLanguages|test.svg}}")
+        mock_add_svglanguages_services["add_template_to_text"].assert_called_once_with(
+            "original text", "{{SVGLanguages|test.svg}}"
+        )
 
     def test_add_template_skips_if_identical(self, mock_add_svglanguages_services, mock_add_svg_worker):
         """Test that step is skipped if new text is identical to original."""
@@ -433,7 +440,9 @@ class TestProcessMethod:
         assert result["status"] == "failed"
         assert result["failed_at"] is not None
 
-    def test_process_handles_cancellation(self, mock_add_svglanguages_services, mock_site, monkeypatch: pytest.MonkeyPatch):
+    def test_process_handles_cancellation(
+        self, mock_add_svglanguages_services, mock_site, monkeypatch: pytest.MonkeyPatch
+    ):
         """Test that process stops when cancelled."""
         mock_add_svglanguages_services["get_user_site"].return_value = mock_site
 

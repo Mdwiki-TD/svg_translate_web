@@ -7,9 +7,6 @@ import pytest
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
 
-
-
-
 def test_worker_class_get_job_type(mock_services):
     """Test CollectMainFilesWorker.get_job_type returns correct type."""
     import threading

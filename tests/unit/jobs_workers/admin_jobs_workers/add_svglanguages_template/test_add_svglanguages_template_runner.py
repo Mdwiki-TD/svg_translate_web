@@ -8,6 +8,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.runn
     add_svglanguages_template_to_templates,
 )
 
+
 class TestAddSvgSVGLanguagesTemplateToTemplates:
     """Tests for the add_svglanguages_template_to_templates function."""
 
