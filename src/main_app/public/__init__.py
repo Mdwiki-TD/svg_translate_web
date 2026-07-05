@@ -3,14 +3,14 @@
 from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
-from .api_routes import bp_api
-from .auth.routes import bp_auth
+from .api_routes import ApiRoutes
+from .auth.routes import AuthRoutes
 from .jobs_utils_bp import UtilsJobsBp
-from .main_routes.explorer_routes import bp_explorer
-from .main_routes.extract_routes import bp_extract
+from .main_routes.explorer_routes import ExplorerRoutes
+from .main_routes.extract_routes import ExtractRoutes
 from .main_routes.owid_charts_routes import OwidChartsRoutes
 from .main_routes.routes import MainRoutes
-from .profile import bp_profile
+from .profile import ProfileRoutes
 from .public_jobs import PublicJobsRoutes
 
 
@@ -33,11 +33,26 @@ def register_blueprints(app: Flask) -> None:
         Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
     )
 
-    app.register_blueprint(bp_auth)
-    app.register_blueprint(bp_profile)
-    app.register_blueprint(bp_explorer)
-    app.register_blueprint(bp_extract)
-    app.register_blueprint(bp_api)
+    bp_auth = Blueprint("auth", __name__)
+    auth_model = AuthRoutes(bp_auth)
+
+    bp_profile = Blueprint("profile", __name__, url_prefix="/profile")
+    profile_model = ProfileRoutes(bp_profile)
+
+    bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
+    explorer_model = ExplorerRoutes(bp_explorer)
+
+    bp_extract = Blueprint("extract", __name__, url_prefix="/extract")
+    extract_model = ExtractRoutes(bp_extract)
+
+    bp_api = Blueprint("api", __name__, url_prefix="/api")
+    api_model = ApiRoutes(bp_api)
+
+    app.register_blueprint(auth_model.bp)
+    app.register_blueprint(profile_model.bp)
+    app.register_blueprint(explorer_model.bp)
+    app.register_blueprint(extract_model.bp)
+    app.register_blueprint(api_model.bp)
 
     app.register_blueprint(main_model.bp)
     app.register_blueprint(jobs_public_module.bp)
