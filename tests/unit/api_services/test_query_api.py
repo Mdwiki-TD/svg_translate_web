@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
-import pytest
-
 from src.main_app.api_services.query_api import (
     get_category_members_titles,
     get_double_redirects,

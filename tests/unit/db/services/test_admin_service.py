@@ -17,8 +17,6 @@ from src.main_app.db.services.admin_service import (
     list_coordinators,
     set_coordinator_active,
 )
-from src.main_app.db.services.delete_service import delete_coordinator
-
 
 class TestIsActiveCoordinator:
     def test_active_coordinator(self):

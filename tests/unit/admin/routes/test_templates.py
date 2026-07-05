@@ -4,7 +4,7 @@ Unit tests for src/main_app/admin/routes/templates.py module.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 

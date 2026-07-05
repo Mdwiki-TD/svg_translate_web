@@ -4,9 +4,7 @@ Unit tests for src/main_app/admin/routes/owid_charts.py module.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import MagicMock, Mock
 
 from src.main_app.admin.routes.owid_charts import (
     _add_chart,
@@ -35,7 +33,7 @@ class TestCreateJsonFile:
         mock_svc = MagicMock()
         mock_svc.list_charts.return_value = [mock_chart]
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", lambda: [])
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", list)
         response, status = create_json_file()
         assert status == 200
         assert "owid_charts.json" in response.headers["Content-Disposition"]
@@ -44,7 +42,7 @@ class TestCreateJsonFile:
         mock_svc = MagicMock()
         mock_svc.list_charts.return_value = []
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", lambda: [])
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", list)
         msg, status = create_json_file()
         assert status == 404
         assert "No charts found" in msg
@@ -53,7 +51,7 @@ class TestCreateJsonFile:
         mock_svc = MagicMock()
         mock_svc.list_charts.side_effect = LookupError("not found")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", lambda: [])
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", list)
         msg, status = create_json_file()
         assert status == 404
         assert "Charts not found" in msg
@@ -62,7 +60,7 @@ class TestCreateJsonFile:
         mock_svc = MagicMock()
         mock_svc.list_charts.side_effect = RuntimeError("error")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", lambda: [])
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_owid_charts_templates", list)
         msg, status = create_json_file()
         assert status == 500
         assert "Failed to create JSON file" in msg

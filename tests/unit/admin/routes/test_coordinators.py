@@ -30,7 +30,7 @@ class TestCoordinatorsDashboard:
         assert result["total_active_coordinators"] == 1
 
     def test_renders_with_empty_list(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.list_coordinators", lambda: [])
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.list_coordinators", list)
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.render_template", lambda t, **c: c)
         result = coordinators._coordinators_dashboard()
         assert result["total_coordinators"] == 0

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from src.main_app.public.main_routes import owid_charts_routes
 
@@ -32,11 +30,11 @@ class TestIndexRoute:
     def test_with_empty_list(self, monkeypatch):
         monkeypatch.setattr(
             "src.main_app.public.main_routes.owid_charts_routes.list_published_charts",
-            lambda: [],
+            list,
         )
         monkeypatch.setattr(
             "src.main_app.public.main_routes.owid_charts_routes.list_charts",
-            lambda: [],
+            list,
         )
         monkeypatch.setattr(
             "src.main_app.public.main_routes.owid_charts_routes.render_template",
@@ -65,7 +63,7 @@ class TestAllCharts:
     def test_empty_list(self, monkeypatch):
         monkeypatch.setattr(
             "src.main_app.public.main_routes.owid_charts_routes.list_charts",
-            lambda: [],
+            list,
         )
         monkeypatch.setattr(
             "src.main_app.public.main_routes.owid_charts_routes.render_template",
