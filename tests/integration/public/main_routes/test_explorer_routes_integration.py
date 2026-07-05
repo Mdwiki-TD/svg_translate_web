@@ -51,7 +51,9 @@ def test_by_title_downloaded_renders_list(explorer_app, monkeypatch: pytest.Monk
     assert context["subdir"] == "files"
 
 
-def test_by_title_translated_sets_compare_link(explorer_app, monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
+def test_by_title_translated_sets_compare_link(
+    explorer_app, monkeypatch: pytest.MonkeyPatch, patch_templates: dict
+) -> None:
     monkeypatch.setattr(
         "src.main_app.public.main_routes.explorer_routes.get_files",
         lambda title, subdir: (["b.svg"], Path("/data")),
@@ -96,7 +98,9 @@ def test_by_title_renders_information(explorer_app, monkeypatch: pytest.MonkeyPa
     assert patch_templates["context"] == {"result": {"title": "Topic"}}
 
 
-def test_main_lists_titles(explorer_app, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, patch_templates: dict) -> None:
+def test_main_lists_titles(
+    explorer_app, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, patch_templates: dict
+) -> None:
     root = tmp_path / "data"
     (root / "alpha").mkdir(parents=True)
     (root / "beta").mkdir()

@@ -236,6 +236,7 @@ class AuthRoutes:
             g._current_user = None
             return response
 
+
 __all__ = [
     "AuthRoutes",
 ]

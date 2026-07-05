@@ -82,7 +82,12 @@ class ExtractRoutes:
                     )
                 )
                 languages = sorted(
-                    {lang for entry in translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
+                    {
+                        lang
+                        for entry in translations.get("new", {}).values()
+                        if isinstance(entry, dict)
+                        for lang in entry
+                    }
                 )
                 logger.info("Extracted languages: %s", len(languages))
 

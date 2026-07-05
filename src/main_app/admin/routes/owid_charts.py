@@ -104,7 +104,7 @@ class OwidCharts:
         if not slug or not title:
             flash("Slug and Title are required.", "danger")
             if from_popup:
-                return redirect(url_for("admin.owidcharts.add_chart"))
+                return redirect(url_for("admin.owidcharts.add_chart_popup"))
             return redirect(url_for("admin.owidcharts.dashboard"))
 
         has_map_tab = 1 if request_form.get("has_map_tab") == "on" else 0
@@ -184,7 +184,7 @@ class OwidCharts:
             "has_map_tab": has_map_tab,
             "max_time": max_time,
             "min_time": min_time,
-            "default_tab": default_tab,
+            "default_tab": default_tab or None,
             "is_published": is_published,
             "single_year_data": single_year_data,
             "len_years": len_years,
@@ -238,9 +238,8 @@ class OwidCharts:
 
     def _edit_chart(self, chart_id: int) -> ResponseReturnValue:
         """Render the edit chart popup page."""
-        try:
-            chart = self.owid_charts_service.get_chart_by_id(chart_id)
-        except LookupError:
+        chart = self.owid_charts_service.get_chart_by_id(chart_id)
+        if not chart:
             return render_template(
                 "admins/owid_charts/edit.html",
                 error="Chart not found",

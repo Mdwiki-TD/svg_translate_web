@@ -19,6 +19,7 @@ from .sidebar import create_side
 
 logger = logging.getLogger(__name__)
 
+
 def _get_display_name(job_type: str) -> str:
     job_data = jobs_data_admins.get(job_type)
     return job_data.job_name if job_data else job_type
@@ -38,7 +39,6 @@ class AdminPanel:
             # logger.debug(f"Injecting sidebar for path='{request.path}', {active_route=}")
             sidebar_html = create_side(active_route=active_route, path=request.path)
             return {"sidebar": sidebar_html}
-
 
         @self.bp.route("/", methods=["GET"])
         @admin_required

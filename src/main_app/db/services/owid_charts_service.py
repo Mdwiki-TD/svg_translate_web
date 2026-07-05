@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
@@ -72,7 +72,7 @@ def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
 
 @db_guard_rollback
 def add_chart(
-    **chart_data: dict[str, Any],
+    **chart_data: Any,
 ) -> OwidChartRecord:
     """
     Add a new chart.
@@ -144,7 +144,7 @@ class OwidChartsService:
     def get_chart_by_slug(self, slug: str) -> Optional[OwidChartRecord]:
         return get_chart_by_slug(slug)
 
-    def add_chart(self, **chart_data: dict[str, Any]) -> OwidChartRecord:
+    def add_chart(self, **chart_data: Any) -> OwidChartRecord:
         return add_chart(**chart_data)
 
     def update_chart_data(

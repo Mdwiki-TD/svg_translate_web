@@ -40,6 +40,7 @@ class OwidChartsRoutes:
             logger.info(f"All charts page: {len(charts)} total charts")
             return render_template("owid_charts/all_charts.html", charts=charts)
 
+
 __all__ = [
     "OwidChartsRoutes",
 ]

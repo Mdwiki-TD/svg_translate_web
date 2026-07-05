@@ -101,6 +101,7 @@ class ExplorerRoutes:
                 "explorer/folder.html",
                 result=infos,
             )
+
         @self.bp.route("/", methods=["GET"])
         def main() -> str:
             svg_data_path = load_svg_data_path()
@@ -121,32 +122,34 @@ class ExplorerRoutes:
             """
             Serve SVG files
             """
-            svg_data_path = load_svg_data_path()
-            dir_path = svg_data_path / title_dir / subdir
-            dir_path = str(dir_path.absolute())
+            svg_data_path = load_svg_data_path().resolve()
+            dir_path = (svg_data_path / title_dir / subdir).resolve()
 
-            # dir_path = "I:/SVG_EXPLORER/svg_data/Parkinsons prevalence/translated"
-            response = send_from_directory(dir_path, filename)
+            if not dir_path.is_relative_to(svg_data_path):
+                return "Access Denied", 403
+
+            response = send_from_directory(str(dir_path), filename)
             response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
             response.headers["X-Content-Type-Options"] = "nosniff"
             return response
 
         @self.bp.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")
         def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
-            # ---
-            dir_path = load_svg_data_path() / title_dir / subdir
-            thumb_path = load_thumb_path() / title_dir / subdir
-            # ---
+
+            svg_data_path = load_svg_data_path().resolve()
+            thumb_base_path = load_thumb_path().resolve()
+            dir_path = (svg_data_path / title_dir / subdir).resolve()
+            thumb_path = (thumb_base_path / title_dir / subdir).resolve()
+            if not dir_path.is_relative_to(svg_data_path) or not thumb_path.is_relative_to(thumb_base_path):
+                return "Access Denied", 403
             file_path = dir_path / filename
             file_thumb_path = thumb_path / filename
-            # ---
             if not file_thumb_path.exists():
                 save_thumb(file_path, file_thumb_path)
-
             if file_thumb_path.exists():
-                response = send_from_directory(str(thumb_path.absolute()), filename)
+                response = send_from_directory(str(thumb_path), filename)
             else:
-                response = send_from_directory(str(dir_path.absolute()), filename)
+                response = send_from_directory(str(dir_path), filename)
 
             response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
             response.headers["X-Content-Type-Options"] = "nosniff"
@@ -171,6 +174,7 @@ class ExplorerRoutes:
                 downloaded_result=file1_result,
                 translated_result=file2_result,
             )
+
 
 __all__ = [
     "ExplorerRoutes",

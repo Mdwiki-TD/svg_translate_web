@@ -2,18 +2,18 @@
 
 from flask import Blueprint, Flask
 
+from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from .admin_panel import AdminPanel
 from .routes import (
     AdminJobsRoutes,
     CoordinatorsRoutes,
     OwidChartsRoutes,
     SettingsRoutes,
+    SlugRedirects,
     Templates,
     UsersRoutes,
-    SlugRedirects,
 )
 
-from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 
 def register_bp_admin_blueprints(app: Flask) -> None:
     bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -55,6 +55,7 @@ def register_bp_admin_blueprints(app: Flask) -> None:
     bp_admin.register_blueprint(jobs_module.bp)
 
     app.register_blueprint(bp_admin)
+
 
 __all__ = [
     "register_bp_admin_blueprints",

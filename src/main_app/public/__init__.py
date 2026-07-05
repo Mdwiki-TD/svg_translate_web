@@ -29,9 +29,7 @@ def register_blueprints(app: Flask) -> None:
     owid_charts_model = OwidChartsRoutes(bp_owid_charts)
 
     # Public API module
-    jobs_utils_module = UtilsJobsBp(
-        Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
-    )
+    jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
 
     bp_auth = Blueprint("auth", __name__)
     auth_model = AuthRoutes(bp_auth)

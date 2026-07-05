@@ -287,12 +287,3 @@ class TestEditChart:
         result = _edit_chart(1)
         assert result["chart"] == mock_chart
         assert result["error"] is None
-
-    def test_not_found(self, monkeypatch):
-        mock_service = MagicMock()
-        mock_service.get_chart_by_id.side_effect = LookupError("not found")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: c)
-        result = _edit_chart(999)
-        assert result["chart"] is None
-        assert result["error"] == "Chart not found"

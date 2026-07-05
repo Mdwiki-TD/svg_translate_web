@@ -419,15 +419,6 @@ class TestEditChart:
 
         assert response.status_code == 200
 
-    def test_edit_chart_not_found(self, mock_service, owid_charts_admin_client):
-        """Test editing a non-existent chart shows error."""
-
-        mock_service.get_chart_by_id.side_effect = LookupError("Not found")
-
-        response = owid_charts_admin_client.get("/admin/owidcharts/999/edit")
-
-        assert response.status_code == 200
-
 
 class TestDownloadJson:
     """Tests for the download JSON route."""

@@ -10,6 +10,7 @@ from typing import Any, Tuple, Type
 from flask import Flask, Response, flash, jsonify, render_template, request
 from flask_wtf.csrf import CSRFError
 
+from .admin import register_bp_admin_blueprints
 from .config import ensure_directories, settings
 from .db import init_db
 from .db.exceptions import DatabaseInitError
@@ -22,7 +23,6 @@ from .extensions import (
 )
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .public import register_blueprints
-from .admin import register_bp_admin_blueprints
 from .public.utils import context_data
 from .shared.core import CookieHeaderClient, filters
 

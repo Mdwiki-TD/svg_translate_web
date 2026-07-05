@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
-from flask import Blueprint
 import pytest
+from flask import Blueprint
 
 from src.main_app.public.jobs_utils_bp import UtilsJobsBp
 
@@ -46,9 +46,8 @@ class TestServeCropFiles:
 
     def test_original_file_strips_file_prefix(self, monkeypatch):
         from src.main_app.public.jobs_utils_bp import UtilsJobsBp
-        jobs_utils_module = UtilsJobsBp(
-            Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
-        )
+
+        jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
         mock_send = Mock()
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", mock_send)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.Path", lambda p: Path(p))
@@ -60,9 +59,8 @@ class TestServeCropFiles:
     def test_compare_crop_files_renders(self, monkeypatch):
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.render_template", lambda t, **c: c)
         from src.main_app.public.jobs_utils_bp import UtilsJobsBp
-        jobs_utils_module = UtilsJobsBp(
-            Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
-        )
+
+        jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
         bp = jobs_utils_module.bp
         for _rule in bp.deferred_functions:
             pass

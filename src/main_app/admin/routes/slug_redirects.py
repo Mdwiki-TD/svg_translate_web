@@ -127,6 +127,7 @@ class SlugRedirects:
 
             return redirect(url_for("admin.slugredirects.dashboard"))
 
+
 __all__ = [
     "SlugRedirects",
 ]

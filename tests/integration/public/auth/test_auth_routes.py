@@ -197,6 +197,7 @@ def test_callback_missing_state(auth_app: Flask, monkeypatch: pytest.MonkeyPatch
 def test_load_request_token_valid(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test _load_request_token parses valid token."""
     from mwoauth import RequestToken
+
     from src.main_app.public.auth.routes import _load_request_token
 
     result = _load_request_token(["key", "secret"])
