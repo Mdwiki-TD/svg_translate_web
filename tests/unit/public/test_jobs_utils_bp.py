@@ -80,7 +80,7 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
         resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
-        assert resp.status_code in (200, 302)
+        assert resp.status_code == 200
         mock_flash.assert_called_once_with("Not found", "warning")
 
     def test_download_error(self, mock_client, monkeypatch):
@@ -92,17 +92,5 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
         resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
-        assert resp.status_code in (200, 302)
+        assert resp.status_code == 200
         mock_flash.assert_called_once_with("Error", "danger")
-
-    def test_download_error(self, mock_client, monkeypatch):
-        mock_zip = Mock()
-        mock_zip.return_value = ("Error", 500)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
-        mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", mock_flash)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
-
-        resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
-        assert resp.status_code in (200, 302)
