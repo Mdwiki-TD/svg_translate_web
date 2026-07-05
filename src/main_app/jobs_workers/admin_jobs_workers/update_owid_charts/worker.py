@@ -27,7 +27,7 @@ from sqlalchemy.exc import OperationalError
 
 from ....api_services import fetch_grapher_metadata
 from ....db.models import OwidChartRecord
-from ....db.services import owid_charts_service
+from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
 from ..slugs_helpers import check_slugs
 from .objects import UpdateOwidChartsWorkerObject
@@ -144,6 +144,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.args = args or {}
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
+        self.owid_charts_service = OwidChartsService()
 
     def get_job_type(self) -> str:
         return "update_owid_charts"
@@ -259,7 +260,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             return False
 
         try:
-            owid_charts_service.update_chart_data_with_retry(
+            self.owid_charts_service.update_chart_data_with_retry(
                 chart.chart_id,
                 data,
             )
@@ -284,7 +285,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return False
 
     def _load_charts(self) -> list[OwidChartRecord]:
-        charts = owid_charts_service.list_charts()
+        charts = self.owid_charts_service.list_charts()
         return self._apply_limits(charts)
 
     def _apply_limits(self, charts: list[OwidChartRecord]) -> list[OwidChartRecord]:
