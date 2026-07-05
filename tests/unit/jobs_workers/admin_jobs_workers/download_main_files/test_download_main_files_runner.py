@@ -86,7 +86,9 @@ def test_download_main_files_with_no_templates(mock_path, mock_base_worker, mock
     assert result_dict["summary"]["total"] == 0
 
 
-def test_download_main_files_skips_templates_without_main_file(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
+def test_download_main_files_skips_templates_without_main_file(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test that templates without main files are skipped during loading."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file=None),
@@ -102,7 +104,9 @@ def test_download_main_files_skips_templates_without_main_file(mock_path, mock_b
     assert mock_services.download_file_from_commons.call_count == 1
 
 
-def test_download_main_files_downloads_template_with_main_file(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
+def test_download_main_files_downloads_template_with_main_file(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test successful download workflow."""
     templates = [TemplateRecord(id=1, title="T1", main_file="file1.svg")]
     mock_services.list_templates.return_value = templates
@@ -120,7 +124,9 @@ def test_download_main_files_downloads_template_with_main_file(mock_path, mock_b
     assert result_dict["files_downloaded"][0]["filename"] == "file1.svg"
 
 
-def test_download_main_files_handles_download_failure(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
+def test_download_main_files_handles_download_failure(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test handled failure during file download."""
     templates = [TemplateRecord(id=1, title="T1", main_file="file1.svg")]
     mock_services.list_templates.return_value = templates
@@ -147,7 +153,9 @@ def test_download_main_files_handles_exception(mock_path, mock_base_worker, mock
     assert "Fatal error" in result_dict["files_failed"][0]["reason"]
 
 
-def test_download_main_files_processes_multiple_templates(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
+def test_download_main_files_processes_multiple_templates(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test multiple templates with mixed results."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file="file1.svg"),
@@ -227,7 +235,9 @@ def test_download_main_files_fatal_error_handling(mock_path, mock_base_worker, m
     )
 
 
-def test_download_main_files_saves_progress_periodically(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
+def test_download_main_files_saves_progress_periodically(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test that save_progress is called."""
     templates = [TemplateRecord(id=i, title=f"T{i}", main_file=f"f{i}.svg") for i in range(1, 5)]
     mock_services.list_templates.return_value = templates
