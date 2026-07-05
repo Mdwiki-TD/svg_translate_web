@@ -91,7 +91,40 @@ def delete_chart(chart_id: int) -> bool:
     return delete_record_by_pk(OwidChartRecord, chart_id)
 
 
+class DeleteService:
+    def __init__(self) -> None:
+        pass
+
+    def delete_record_by_pk(self, model: Type[db.Model], pk_value: Any) -> bool:  # type: ignore
+        return delete_record_by_pk(model, pk_value)
+
+    def delete_user_token(self, user_id: int) -> bool:
+        return delete_user_token(user_id)
+
+    def delete_user(self, user_id: int) -> bool:
+        return delete_user(user_id)
+
+    def delete_setting_by_key(self, key: str) -> bool:
+        return delete_setting_by_key(key)
+
+    def delete_coordinator(self, coordinator_id: int) -> bool:
+        return delete_coordinator(coordinator_id)
+
+    def delete_job(self, job_id: int, job_type: str) -> bool:
+        return delete_job(job_id, job_type)
+
+    def delete_template(self, template_id: int) -> bool:
+        return delete_template(template_id)
+
+    def delete_slug_redirect(self, redirect_id: int) -> bool:
+        return delete_slug_redirect(redirect_id)
+
+    def delete_chart(self, chart_id: int) -> bool:
+        return delete_chart(chart_id)
+
+
 __all__ = [
+    "DeleteService",
     "delete_record_by_pk",
     "delete_user",
     "delete_user_token",

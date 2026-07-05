@@ -91,7 +91,32 @@ def toggle_can_run_bg_jobs(user_id: int, value: bool) -> UserRecord:
 
 # ── DELETE ───────────────────────────────────────────────
 
+
+class UsersService:
+    def __init__(self) -> None:
+        pass
+
+    def list_users(self) -> list[UserRecord]:
+        return list_users()
+
+    def get_user(self, user_id: int) -> Optional[UserRecord]:
+        return get_user(user_id)
+
+    def get_user_by_username(self, username: str) -> Optional[UserRecord]:
+        return get_user_by_username(username)
+
+    def create_user(self, username: str) -> UserRecord:
+        return create_user(username)
+
+    def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord:
+        return toggle_can_run_jobs(user_id, value)
+
+    def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
+        return toggle_can_run_bg_jobs(user_id, value)
+
+
 __all__ = [
+    "UsersService",
     "create_user",
     "get_user",
     "get_user_by_username",

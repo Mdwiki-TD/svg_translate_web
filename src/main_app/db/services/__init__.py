@@ -1,4 +1,5 @@
 from .admin_service import (
+    AdminService,
     add_coordinator,
     get_coordinator_by_id,
     is_active_coordinator,
@@ -6,6 +7,7 @@ from .admin_service import (
     set_coordinator_active,
 )
 from .delete_service import (
+    DeleteService,
     delete_chart,
     delete_coordinator,
     delete_job,
@@ -17,6 +19,7 @@ from .delete_service import (
     delete_user_token,
 )
 from .jobs_service import (
+    JobsService,
     cancel_job_db,
     create_job,
     get_all_user_jobs_stats,
@@ -28,6 +31,7 @@ from .jobs_service import (
     update_job_status_with_retry,
 )
 from .owid_charts_service import (
+    OwidChartsService,
     add_chart,
     get_chart_by_id,
     get_chart_by_slug,
@@ -36,6 +40,7 @@ from .owid_charts_service import (
     update_chart_data,
 )
 from .owid_slug_redirects_service import (
+    OwidSlugRedirectsService,
     add_new_slug_redirect,
     bulk_delete_slug_redirects,
     bulk_update_slug_redirects,
@@ -45,6 +50,7 @@ from .owid_slug_redirects_service import (
     update_slug_redirect,
 )
 from .settings_service import (
+    SettingsService,
     create_setting,
     get_all_settings_raw,
     get_all_settings_ready,
@@ -52,6 +58,7 @@ from .settings_service import (
     update_setting,
 )
 from .template_service import (
+    TemplateService,
     add_template_data,
     get_template,
     get_template_by_title,
@@ -60,23 +67,48 @@ from .template_service import (
     update_template_data,
 )
 from .user_token_service import (
+    UserTokenService,
     get_authenticated_user_token,
     get_user_token,
     update_user_token,
     upsert_user_token,
 )
 from .users_service import (
+    UsersService,
     create_user,
     get_user,
     get_user_by_username,
     list_users,
+    toggle_can_run_bg_jobs,
+    toggle_can_run_jobs,
 )
 from .views_service import (
+    ViewsService,
     list_owid_charts_templates,
     list_templates_need_update,
 )
 
 __all__ = [
+    # AdminService
+    "AdminService",
+    # UsersService
+    "UsersService",
+    # UserTokenService
+    "UserTokenService",
+    # JobsService
+    "JobsService",
+    # SettingsService
+    "SettingsService",
+    # DeleteService
+    "DeleteService",
+    # OwidChartsService
+    "OwidChartsService",
+    # OwidSlugRedirectsService
+    "OwidSlugRedirectsService",
+    # TemplateService
+    "TemplateService",
+    # ViewsService
+    "ViewsService",
     # users_service
     "create_user",
     "get_user",
@@ -87,6 +119,8 @@ __all__ = [
     "get_user_token",
     "get_authenticated_user_token",
     "list_users",
+    "toggle_can_run_jobs",
+    "toggle_can_run_bg_jobs",
     # admin_service
     "list_coordinators",
     "is_active_coordinator",

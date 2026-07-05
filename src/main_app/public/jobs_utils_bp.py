@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 class UtilsJobsBp:
     """Jobs utils routes."""
 
-    def __init__(self, name: str) -> None:
-        self.bp = Blueprint(name, __name__, url_prefix="/jobs_utils")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self._setup_download_main_files_routes()
         self._setup_crop_main_files_routes()
 
@@ -104,11 +104,6 @@ class UtilsJobsBp:
             )
 
 
-# Public API module
-jobs_utils_module = UtilsJobsBp(
-    name="jobs_utils",
-)
-
 __all__ = [
-    "jobs_utils_module",
+    "UtilsJobsBp",
 ]

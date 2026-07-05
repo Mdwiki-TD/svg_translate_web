@@ -13,7 +13,6 @@ from werkzeug.wrappers.response import Response
 
 from ..admin.decorators import admin_required
 from ..jobs_workers.objects import JobData
-from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .auth.utils import user_login_required
 from .jobs_routes_utils import JobsBp
 
@@ -65,17 +64,11 @@ class PublicJobsRoutes(JobsBp):
             return self.delete_job(job_type, job_id)
 
         @self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])
+        @user_login_required
         def read_job_result_file(result_file: str, job_type: str) -> ResponseReturnValue:
             return self.read_job_result_file(result_file, job_type)
 
 
-# Public API module
-jobs_public_module = PublicJobsRoutes(
-    bp=Blueprint("public_jobs", __name__, url_prefix="/jobs"),
-    jobs_data_infos=jobs_data_public,
-    bp_name="public_jobs",
-)
-
 __all__ = [
-    "jobs_public_module",
+    "PublicJobsRoutes",
 ]

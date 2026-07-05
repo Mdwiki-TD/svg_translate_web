@@ -43,7 +43,6 @@ from .rate_limit import callback_rate_limiter, login_rate_limiter
 from .utils import load_logged_in_user
 
 logger = logging.getLogger(__name__)
-bp_auth = Blueprint("auth", __name__)
 
 oauth_state_nonce = settings.sessions.state_key
 request_token_key = settings.sessions.request_token_key
@@ -84,163 +83,160 @@ def _load_request_token(raw: Sequence[Any] | None) -> RequestToken:
 
 
 # ---------------------------------------------------------
-# Hooks
-# ---------------------------------------------------------
-
-
-# Register the hook right after defining the blueprint
-@bp_auth.before_app_request
-def before_request() -> None:
-    """Automatically load the user before any route is processed."""
-    load_logged_in_user()
-
-
-# ---------------------------------------------------------
 # Routes
 # ---------------------------------------------------------
 
 
-@bp_auth.get("/login")
-def login() -> WerkzeugResponse:
-    logger.info("OAuth login initiated, client: %s", _client_key())
-    if not login_rate_limiter.allow(_client_key()):
-        time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
-        time_left_str = str(time_left).split(".")[0]
-        flash(f"Too many login attempts. Please try again after {time_left_str}s.", "warning")
-        logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _client_key(), time_left_str)
-        return redirect(
-            url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s.")
-        )
+class AuthRoutes:
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
+        self._setup_routes()
 
-    state_nonce = secrets.token_urlsafe(32)
-    session[oauth_state_nonce] = state_nonce
+    def _setup_routes(self) -> None:
+        @self.bp.before_app_request
+        def before_request() -> None:
+            """Automatically load the user before any route is processed."""
+            load_logged_in_user()
 
-    # ------------------
-    # start login
-    try:
-        redirect_url, request_token = start_login(sign_state_token(state_nonce))
-        logger.info("OAuth login started successfully, redirecting to MediaWiki")
-    except (RuntimeError, Exception):
-        logger.exception("Failed to start OAuth login")
-        flash("Failed to initiate OAuth login", "danger")
-        return redirect(url_for("main.index", error="Failed to initiate OAuth login"))
+        @self.bp.get("/login")
+        def login() -> WerkzeugResponse:
+            logger.info("OAuth login initiated, client: %s", _client_key())
+            if not login_rate_limiter.allow(_client_key()):
+                time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
+                time_left_str = str(time_left).split(".")[0]
+                flash(f"Too many login attempts. Please try again after {time_left_str}s.", "warning")
+                logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _client_key(), time_left_str)
+                return redirect(
+                    url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s.")
+                )
 
-    # ------------------
-    # add request_token to session
-    session[request_token_key] = cast(list[str], list(request_token))
-    logger.debug("OAuth request token stored in session")
-    return redirect(redirect_url)
+            state_nonce = secrets.token_urlsafe(32)
+            session[oauth_state_nonce] = state_nonce
 
+            # ------------------
+            # start login
+            try:
+                redirect_url, request_token = start_login(sign_state_token(state_nonce))
+                logger.info("OAuth login started successfully, redirecting to MediaWiki")
+            except (RuntimeError, Exception):
+                logger.exception("Failed to start OAuth login")
+                flash("Failed to initiate OAuth login", "danger")
+                return redirect(url_for("main.index", error="Failed to initiate OAuth login"))
 
-@bp_auth.get("/callback")
-def callback() -> WerkzeugResponse:
-    logger.info("OAuth callback initiated, client: %s", _client_key())
-    # ------------------
-    # callback rate limiter
-    if not callback_rate_limiter.allow(_client_key()):
-        flash("Too many login attempts", "warning")
-        logger.warning("OAuth callback rate limit exceeded, client: %s", _client_key())
-        return redirect(url_for("main.index", error="Too many login attempts"))
+            # ------------------
+            # add request_token to session
+            session[request_token_key] = cast(list[str], list(request_token))
+            logger.debug("OAuth request token stored in session")
+            return redirect(redirect_url)
 
-    # ------------------
-    # verify state token
-    expected_state = session.pop(oauth_state_nonce, None)
-    returned_state = request.args.get("state")
-    if not expected_state or not returned_state:
-        flash("Invalid OAuth state", "danger")
-        logger.warning("OAuth callback failed: missing state token")
-        return redirect(url_for("main.index", error="Invalid OAuth state"))
+        @self.bp.get("/callback")
+        def callback() -> WerkzeugResponse:
+            logger.info("OAuth callback initiated, client: %s", _client_key())
+            # ------------------
+            # callback rate limiter
+            if not callback_rate_limiter.allow(_client_key()):
+                flash("Too many login attempts", "warning")
+                logger.warning("OAuth callback rate limit exceeded, client: %s", _client_key())
+                return redirect(url_for("main.index", error="Too many login attempts"))
 
-    verified_state = verify_state_token(returned_state)
-    if verified_state != expected_state:
-        flash("OAuth state mismatch", "danger")
-        logger.warning("OAuth callback failed: state mismatch")
-        return redirect(url_for("main.index", error="oauth-state-mismatch"))
+            # ------------------
+            # verify state token
+            expected_state = session.pop(oauth_state_nonce, None)
+            returned_state = request.args.get("state")
+            if not expected_state or not returned_state:
+                flash("Invalid OAuth state", "danger")
+                logger.warning("OAuth callback failed: missing state token")
+                return redirect(url_for("main.index", error="Invalid OAuth state"))
 
-    # ------------------
-    # token data
-    raw_request_token = session.pop(request_token_key, None)
-    oauth_verifier = request.args.get("oauth_verifier")
-    if not raw_request_token or not oauth_verifier:
-        flash("Invalid OAuth verifier", "danger")
-        logger.warning("OAuth callback failed: missing request token or verifier")
-        return redirect(url_for("main.index", error="Invalid OAuth verifier"))
+            verified_state = verify_state_token(returned_state)
+            if verified_state != expected_state:
+                flash("OAuth state mismatch", "danger")
+                logger.warning("OAuth callback failed: state mismatch")
+                return redirect(url_for("main.index", error="oauth-state-mismatch"))
 
-    # ------------------
-    # RequestToken
-    try:
-        request_token = _load_request_token(raw_request_token)
-    except ValueError:
-        logger.exception("Invalid OAuth request token")
-        flash("Invalid OAuth request token", "danger")
-        return redirect(url_for("main.index", error="Invalid request token"))
+            # ------------------
+            # token data
+            raw_request_token = session.pop(request_token_key, None)
+            oauth_verifier = request.args.get("oauth_verifier")
+            if not raw_request_token or not oauth_verifier:
+                flash("Invalid OAuth verifier", "danger")
+                logger.warning("OAuth callback failed: missing request token or verifier")
+                return redirect(url_for("main.index", error="Invalid OAuth verifier"))
 
-    # ------------------
-    # access_token, identity
-    try:
-        query_string = urlencode(request.args)
-        user_record = complete_oauth_callback(request_token, query_string)
-    except OAuthIdentityError:
-        logger.exception("OAuth identity verification failed")
-        flash("Failed to verify OAuth identity", "danger")
-        return redirect(url_for("main.index"))
-    except OAuthCallbackError as exc:
-        logger.exception("OAuth callback failed: %s", exc)
-        flash(str(exc), exc.flash_category)
-        return redirect(url_for("main.index"))
+            # ------------------
+            # RequestToken
+            try:
+                request_token = _load_request_token(raw_request_token)
+            except ValueError:
+                logger.exception("Invalid OAuth request token")
+                flash("Invalid OAuth request token", "danger")
+                return redirect(url_for("main.index", error="Invalid request token"))
 
-    user_id = user_record.user_id
+            # ------------------
+            # access_token, identity
+            try:
+                query_string = urlencode(request.args)
+                user_record = complete_oauth_callback(request_token, query_string)
+            except OAuthIdentityError:
+                logger.exception("OAuth identity verification failed")
+                flash("Failed to verify OAuth identity", "danger")
+                return redirect(url_for("main.index"))
+            except OAuthCallbackError as exc:
+                logger.exception("OAuth callback failed: %s", exc)
+                flash(str(exc), exc.flash_category)
+                return redirect(url_for("main.index"))
 
-    # Set sessions
-    session["uid"] = user_id
-    session["username"] = user_record.username
+            user_id = user_record.user_id
 
-    # Set response and cookies
-    response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
+            # Set sessions
+            session["uid"] = user_id
+            session["username"] = user_record.username
 
-    _set_response_cookies(user_id, response)
+            # Set response and cookies
+            response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
 
-    # Cache in g for the remainder of THIS request only
-    g._current_user = user_record
+            _set_response_cookies(user_id, response)
 
-    return response
+            # Cache in g for the remainder of THIS request only
+            g._current_user = user_record
 
+            return response
 
-@bp_auth.get("/logout")
-def logout() -> WerkzeugResponse:
-    user_id = session.pop("uid", None)
-    session.pop(request_token_key, None)
-    session.pop(oauth_state_nonce, None)
-    session.pop("username", None)
+        @self.bp.get("/logout")
+        def logout() -> WerkzeugResponse:
+            user_id = session.pop("uid", None)
+            session.pop(request_token_key, None)
+            session.pop(oauth_state_nonce, None)
+            session.pop("username", None)
 
-    logger.info("Logout requested, user_id: %s", user_id)
+            logger.info("Logout requested, user_id: %s", user_id)
 
-    # extract user_id from signed cookie if needed
-    if user_id is None:
-        signed = request.cookies.get(settings.cookie.name)
-        if signed:
-            user_id = extract_user_id(signed)
-            logger.debug("Extracted user_id from cookie: %s", user_id)
+            # extract user_id from signed cookie if needed
+            if user_id is None:
+                signed = request.cookies.get(settings.cookie.name)
+                if signed:
+                    user_id = extract_user_id(signed)
+                    logger.debug("Extracted user_id from cookie: %s", user_id)
 
-    # delete user token if possible
-    if isinstance(user_id, int):
-        try:
-            delete_user_token(user_id)
-            flash("You have been logged out successfully.", "info")
-            logger.info("User token deleted for user_id: %s", user_id)
-        except Exception:
-            logger.exception("Failed to delete user token during logout")
-            flash("Error while clearing OAuth credentials.", "danger")
-    else:
-        flash("Session cleared.", "info")
+            # delete user token if possible
+            if isinstance(user_id, int):
+                try:
+                    delete_user_token(user_id)
+                    flash("You have been logged out successfully.", "info")
+                    logger.info("User token deleted for user_id: %s", user_id)
+                except Exception:
+                    logger.exception("Failed to delete user token during logout")
+                    flash("Error while clearing OAuth credentials.", "danger")
+            else:
+                flash("Session cleared.", "info")
 
-    response = make_response(redirect(url_for("main.index")))
-    response.delete_cookie(settings.cookie.name, path="/")
+            response = make_response(redirect(url_for("main.index")))
+            response.delete_cookie(settings.cookie.name, path="/")
 
-    g._current_user = None
-    return response
+            g._current_user = None
+            return response
 
 
 __all__ = [
-    "bp_auth",
+    "AuthRoutes",
 ]

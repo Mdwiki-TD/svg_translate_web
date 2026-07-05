@@ -1,15 +1,16 @@
 from unittest.mock import patch
 
 import pytest
-from flask import Flask
+from flask import Blueprint, Flask
 
-from src.main_app.public.main_routes.routes import bp_main
+from src.main_app.public.main_routes.routes import MainRoutes
 
 
 @pytest.fixture
 def app_main_mock():
     app = Flask(__name__)
-    app.register_blueprint(bp_main)
+    bp_main = Blueprint("main", __name__)
+    app.register_blueprint(MainRoutes(bp_main).bp)
     app.secret_key = "test"
     return app
 

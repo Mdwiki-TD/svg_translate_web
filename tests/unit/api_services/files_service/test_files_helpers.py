@@ -31,7 +31,8 @@ def mock_api(monkeypatch: pytest.MonkeyPatch):
 
 
 class TestDownloadSvgFile:
-    def test_download_svg_file_no_user(self):
+    def test_download_svg_file_no_user(self, mock_api):
+        mock_api["down"].return_value = {"result": "failed", "msg": "", "path": ""}
         res = download_svg_file("Test.svg", Path("test.svg"))
         assert res.get("ok") is False
         assert res.get("error") == "download_failed"

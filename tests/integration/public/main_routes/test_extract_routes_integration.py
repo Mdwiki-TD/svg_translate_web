@@ -7,12 +7,11 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from flask import Flask
 from pytest_mock import MockerFixture
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.public.main_routes import extract_routes
+from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
     app = create_app(TestingConfig)
     app.config["TESTING"] = True
-    yield app, app.test_client()
+    yield app
 
 
 @pytest.fixture
@@ -38,36 +37,33 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
     return captured
 
 
-def test_extract_get_empty_by_default(app_client: tuple[Flask, Any]) -> None:
+def test_extract_get_empty_by_default(app_client) -> None:
     """Test that the extract form input is empty by default on GET."""
-    app, client = app_client
+    client = app_client.test_client()
 
     response = client.get("/extract/")
     assert response.status_code == 200
-    # The form input should have value="" (empty) by default
     assert b'value=""' in response.data
 
 
-def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any]) -> None:
+def test_extract_get_restores_filename_from_session(app_client) -> None:
     """Test that filename is restored from session after OAuth redirect."""
-    app, client = app_client
+    client = app_client.test_client()
 
     with client.session_transaction() as sess:
-        sess[extract_routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
+        sess[EXTRACT_FILENAME_KEY] = "test_file.svg"
 
     response = client.get("/extract/")
     assert response.status_code == 200
-    # The form should have the filename pre-filled
     assert b'value="test_file.svg"' in response.data
 
 
 def test_extract_post_empty_filename_shows_error(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
 ) -> None:
     """Test that submitting an empty filename shows an error."""
-    app, _ = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -76,24 +72,23 @@ def test_extract_post_empty_filename_shows_error(
 
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", fake_flash)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": ""}):
-        result = extract_routes.extract_translations_post()
+    client = app_client.test_client()
+    response = client.post("/extract/", data={"filename": ""})
 
-    assert result == "rendered:extract/form.html"
+    assert response.status_code == 200
+    assert response.data.decode() == "rendered:extract/form.html"
     assert ("Please provide a file name", "danger") in flashed
 
 
 def test_extract_post_strips_file_prefix(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
-    mocker: MockerFixture,  # Add mocker
+    mocker: MockerFixture,
     tmp_path,
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
-    app, _ = app_client
 
-    # 1. Use mocker.patch for stronger assertions
     mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.download_one_file")
     mock_download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
 
@@ -104,35 +99,29 @@ def test_extract_post_strips_file_prefix(
     mocker.patch("src.main_app.public.main_routes.extract_routes.shutil.rmtree")
     mocker.patch("src.main_app.public.main_routes.extract_routes.flash")
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
-        extract_routes.extract_translations_post()
+    client = app_client.test_client()
+    client.post("/extract/", data={"filename": "File: Test.svg"})
 
-    # Assert that download was called with the stripped filename
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
 
     assert patch_render["context"]["filename"] == "File:Test.svg"
 
 
 def test_extract_post_download_failure(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test that download failure shows appropriate error."""
-    app, _ = app_client
 
     flashed: list[tuple[str, str]] = []
 
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    # Mock download_one_file to simulate failure
     def mock_download(*args, **kwargs):
         return {"result": "failed", "path": ""}
-
-    mock_temp_dir = MagicMock()
-    mock_temp_dir.exists.return_value = True
 
     def mock_mkdtemp():
         return str(tmp_path / "test_dir")
@@ -142,32 +131,30 @@ def test_extract_post_download_failure(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+    client = app_client.test_client()
+    response = client.post("/extract/", data={"filename": "Test.svg"})
 
-    assert result == "rendered:extract/form.html"
+    assert response.status_code == 200
+    assert response.data.decode() == "rendered:extract/form.html"
     assert any("Failed to download file" in msg for msg, cat in flashed)
 
 
 def test_extract_post_extraction_error(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test that extraction error shows appropriate error."""
-    app, _ = app_client
 
     flashed: list[tuple[str, str]] = []
 
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    # Mock download_one_file to simulate success
     def mock_download(*args, **kwargs):
         return {"result": "success", "path": str(tmp_path / "test.svg")}
 
-    # Mock extract to raise an exception
     def mock_extract(*args, **kwargs):
         raise ValueError("Invalid SVG format")
 
@@ -180,32 +167,30 @@ def test_extract_post_extraction_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+    client = app_client.test_client()
+    response = client.post("/extract/", data={"filename": "Test.svg"})
 
-    assert result == "rendered:extract/form.html"
+    assert response.status_code == 200
+    assert response.data.decode() == "rendered:extract/form.html"
     assert any("An error occurred while extracting translations" in msg for msg, cat in flashed)
 
 
 def test_extract_post_successful_extraction(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test successful extraction returns proper context."""
-    app, _ = app_client
 
     flashed: list[tuple[str, str]] = []
 
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    # Mock download_one_file to simulate success
     def mock_download(*args, **kwargs):
         return {"result": "success", "path": str(tmp_path / "test.svg")}
 
-    # Mock extract to return sample data
     sample_translations = {
         "new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}},
         "title": {"music in": {"ar": "الموسيقى في عام", "fr": "La musique en"}},
@@ -223,14 +208,14 @@ def test_extract_post_successful_extraction(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+    client = app_client.test_client()
+    response = client.post("/extract/", data={"filename": "Test.svg"})
 
-    assert result == "rendered:extract/result.html"
+    assert response.status_code == 200
+    assert response.data.decode() == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed
     assert patch_render["context"]["translations"] == sample_translations
     assert "translations_json" in patch_render["context"]
 
-    # Verify JSON is properly formatted
     json_data = json.loads(patch_render["context"]["translations_json"])
     assert json_data == sample_translations

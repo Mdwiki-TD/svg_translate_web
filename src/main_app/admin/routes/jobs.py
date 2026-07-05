@@ -11,7 +11,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...jobs_workers.objects import JobData
 from ...public.jobs_routes_utils import JobsBp
 from ..decorators import admin_required
@@ -72,13 +71,6 @@ class AdminJobsRoutes(JobsBp):
             return self.read_job_result_file(result_file, job_type)
 
 
-# Public API module
-jobs_module = AdminJobsRoutes(
-    bp=Blueprint("jobs", __name__, url_prefix="/jobs"),
-    jobs_data_infos=jobs_data_admins,
-    bp_name="admin.jobs",
-)
-
 __all__ = [
-    "jobs_module",
+    "AdminJobsRoutes",
 ]

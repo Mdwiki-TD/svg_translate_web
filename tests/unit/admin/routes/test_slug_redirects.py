@@ -61,14 +61,14 @@ class TestSlugRedirectsClass:
 
     def test_blueprint_properties(self):
         """SlugRedirects should create a Blueprint with the expected name and prefix."""
-        instance = SlugRedirects()
+        instance = SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
         assert isinstance(instance.bp, Blueprint)
         assert instance.bp.name == "slugredirects"
         assert instance.bp.url_prefix == "/slugredirects"
 
     def test_all_routes_registered(self):
         """SlugRedirects should register all 5 routes."""
-        instance = SlugRedirects()
+        instance = SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
         assert len(instance.bp.deferred_functions) == 5
 
 
@@ -88,7 +88,7 @@ class TestSlugRedirectsRoutes:
         app.config["TESTING"] = True
 
         admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-        admin_bp.register_blueprint(SlugRedirects().bp)
+        admin_bp.register_blueprint(SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
         app.register_blueprint(admin_bp)
 
         return app

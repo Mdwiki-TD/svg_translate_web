@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
 

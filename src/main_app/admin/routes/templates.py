@@ -215,8 +215,8 @@ def _edit_template_by_title(template_title: str) -> ResponseReturnValue:
 
 
 class Templates:
-    def __init__(self) -> None:
-        self.bp = Blueprint("templates", __name__, url_prefix="/templates")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -275,8 +275,6 @@ class Templates:
             return response
 
 
-templates_module = Templates()
-
 __all__ = [
-    "templates_module",
+    "Templates",
 ]

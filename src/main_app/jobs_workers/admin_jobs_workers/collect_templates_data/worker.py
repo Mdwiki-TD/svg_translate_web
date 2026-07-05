@@ -15,12 +15,9 @@ from mwclient.client import Site
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
 from ....db.models import TemplateRecord
 from ....db.services import (
-    add_template_data,
+    TemplateService,
     get_chart_by_slug,
-    get_template_by_title,
-    list_templates,
     list_templates_need_update,
-    update_template_data,
 )
 from ....db.templates_utils import extract_slug
 from ....utils.wikitext import (
@@ -98,6 +95,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject()
 
         self.args = args or {}
+        self.template_service = TemplateService()
         self.result.args = self.args
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
@@ -117,7 +115,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         """
         logger.info(f"Job {self.job_id}: Fetching templates from category")
 
-        templates: list[TemplateRecord] = list_templates()
+        templates: list[TemplateRecord] = self.template_service.list_templates()
         existing_titles = {t.title for t in templates}
 
         # Get templates from category
@@ -147,7 +145,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 status="",
             )
             try:
-                add_template_data({"title": title})
+                self.template_service.add_template_data({"title": title})
                 self.result.pages_added.append(tmp_info.to_dict())
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
             except ValueError as e:
@@ -352,7 +350,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         )
 
         try:
-            update_template_data(
+            self.template_service.update_template_data(
                 template.id,
                 template_data,
             )
@@ -409,7 +407,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
         """Process a single template by title."""
 
-        template: TemplateRecord = get_template_by_title(template_title)
+        template: TemplateRecord = self.template_service.get_template_by_title(template_title)
         if not template:
             logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
             self.result.summary.total = 0
@@ -442,7 +440,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             return self.result
 
         # Step 2: Re-fetch all templates (including newly added)
-        templates: list[TemplateRecord] = list_templates()
+        templates: list[TemplateRecord] = self.template_service.list_templates()
         self.result.summary.total = len(templates)
 
         if self.update_all:
@@ -511,7 +509,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             templates_to_update = list_templates_need_update()
             templates_to_update_titles = {x.template_title for x in templates_to_update}
 
-            templates: list[TemplateRecord] = list_templates()
+            templates: list[TemplateRecord] = self.template_service.list_templates()
             tmps_to_process = [x for x in templates if x.title in templates_to_update_titles]
             self.result.summary.total = len(tmps_to_process)
             return self.start_process(tmps_to_process)

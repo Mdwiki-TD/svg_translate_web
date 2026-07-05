@@ -164,6 +164,7 @@ class TestProcessOneItemWithTemplateData:
 
         w = CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
         w.site = MagicMock()
+        w.template_service = MagicMock()
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
             lambda title, site: MagicMock(get_text=MagicMock(return_value="wikitext")),
@@ -183,10 +184,6 @@ class TestProcessOneItemWithTemplateData:
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_template_source",
             lambda text, check_grapher=False: "src",
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
-            MagicMock(),
         )
         return w
 
@@ -208,10 +205,7 @@ class TestProcessOneItemWithTemplateData:
             slug="x",
             source="y",
         )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
-            MagicMock(),
-        )
+        worker_with_slug.template_service.update_template_data = MagicMock()
         result = worker_with_slug._process_one_item(template)
         assert result is True
 
@@ -257,10 +251,7 @@ class TestProcessOneItemWithTemplateData:
         assert len(worker.result.pages_failed) == 1
 
     def test_slug_updated_from_extracted(self, worker_with_slug, monkeypatch):
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
-            MagicMock(),
-        )
+        worker_with_slug.template_service.update_template_data = MagicMock()
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.CollectMainFilesWorker._load_slug",
             lambda self, title, slug, source: "new-slug",

@@ -146,7 +146,46 @@ def create_setting(
         return False
 
 
+class SettingsService:
+    def __init__(self) -> None:
+        pass
+
+    def list_settings(self) -> list[SettingRecord]:
+        return list_settings()
+
+    def get_all_settings_raw(self) -> list[dict[str, Any]]:
+        return get_all_settings_raw()
+
+    def get_all_settings_ready(self) -> dict[str, Any]:
+        return get_all_settings_ready()
+
+    def get_setting_by_key(self, key: str) -> SettingRecord:
+        return get_setting_by_key(key)
+
+    def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
+        return get_setting_by_id(setting_id)
+
+    def update_setting(
+        self,
+        key: str,
+        value: Any,
+        value_type: str = "string",
+        title: str | None = None,
+    ) -> bool:
+        return update_setting(key, value, value_type, title)
+
+    def create_setting(
+        self,
+        key: str,
+        title: str,
+        value_type: str = "boolean",
+        value: Any | None = None,
+    ) -> bool:
+        return create_setting(key, title, value_type, value)
+
+
 __all__ = [
+    "SettingsService",
     "list_settings",
     "get_setting_by_id",
     "get_setting_by_key",

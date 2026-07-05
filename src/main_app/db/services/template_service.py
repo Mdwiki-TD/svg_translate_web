@@ -118,7 +118,35 @@ def update_template_data(
     return template
 
 
+class TemplateService:
+    def __init__(self) -> None:
+        pass
+
+    def list_templates(self, limit: int | None = None) -> List[TemplateRecord]:
+        return list_templates(limit)
+
+    def list_templates_mismatched_years(self) -> List[TemplateRecord]:
+        return list_templates_mismatched_years()
+
+    def get_template(self, template_id: int) -> TemplateRecord:
+        return get_template(template_id)
+
+    def get_template_by_title(self, title: str) -> TemplateRecord:
+        return get_template_by_title(title)
+
+    def add_template_data(self, data: dict[str, Any]) -> TemplateRecord:
+        return add_template_data(data)
+
+    def update_template_data(
+        self,
+        template_id: int,
+        template_data: dict[str, str],
+    ) -> TemplateRecord | None:
+        return update_template_data(template_id, template_data)
+
+
 __all__ = [
+    "TemplateService",
     "get_template_by_title",
     "add_template_data",
     "update_template_data",
