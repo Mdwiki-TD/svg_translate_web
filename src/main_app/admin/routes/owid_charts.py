@@ -22,10 +22,10 @@ from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateRecord
 from ...db.services import delete_chart
 from ...db.services.owid_charts_service import (
-    list_charts,
     add_chart,
-    update_chart_data,
     get_chart_by_id,
+    list_charts,
+    update_chart_data,
 )
 from ...db.services.views_service import list_owid_charts_templates
 from ..decorators import admin_required

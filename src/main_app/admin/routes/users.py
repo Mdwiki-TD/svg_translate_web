@@ -17,8 +17,8 @@ from flask.typing import ResponseReturnValue
 
 from ...db.services import (
     list_users,
-    toggle_can_run_jobs,
     toggle_can_run_bg_jobs,
+    toggle_can_run_jobs,
 )
 from ..decorators import admin_required
 

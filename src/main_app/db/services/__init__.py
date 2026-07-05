@@ -79,8 +79,8 @@ from .users_service import (
     get_user,
     get_user_by_username,
     list_users,
-    toggle_can_run_jobs,
     toggle_can_run_bg_jobs,
+    toggle_can_run_jobs,
 )
 from .views_service import (
     ViewsService,
