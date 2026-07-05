@@ -38,20 +38,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemplateData:
-    id: int
-    title: str
-    main_file: str | None
-    last_world_file: str | None
-    last_world_year: int | None
-    slug: str
-    source: str
+    id: int = 0
+    title: str = ""
+    main_file: str | None = None
+    last_world_file: str | None = None
+    last_world_year: int | None = None
+    slug: str = ""
+    source: str = ""
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if value and key in ("last_world_file", "main_file"):
-                value = value.removeprefix("File:")
-            # if hasattr(self, key):
-            setattr(self, key, value)
+    def __post_init__(self) -> None:
+        if self.main_file:
+            self.main_file = self.main_file.removeprefix("File:")
+        if self.last_world_file:
+            self.last_world_file = self.last_world_file.removeprefix("File:")
 
 
 def slugify_title(title: str) -> str:
