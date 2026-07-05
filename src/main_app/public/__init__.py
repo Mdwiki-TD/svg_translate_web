@@ -28,7 +28,7 @@ def register_blueprints(app: Flask) -> None:
 
     # Public API module
     jobs_utils_module = UtilsJobsBp(
-        name="jobs_utils",
+        Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
     )
 
     app.register_blueprint(jobs_public_module.bp)
