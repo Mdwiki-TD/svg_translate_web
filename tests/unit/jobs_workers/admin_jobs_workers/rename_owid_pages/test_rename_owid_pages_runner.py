@@ -11,6 +11,9 @@ from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.runner impor
     rename_owid_pages_for_templates,
 )
 
+# ── Fixtures ──────────────────────────────────────────────────────────────────────
+
+
 @pytest.fixture
 def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock_class = MagicMock()

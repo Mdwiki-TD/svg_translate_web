@@ -19,18 +19,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker impor
 
 
 @pytest.fixture
-def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock_class = MagicMock()
-    _mock_instance = MagicMock()
-    _mock_class.return_value = _mock_instance
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.RenameOwidPagesWorker",
-        _mock_class,
-    )
-    return _mock_class
-
-
-@pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
     """Mock get_template_by_title and update_template_data."""
     mocks = {
