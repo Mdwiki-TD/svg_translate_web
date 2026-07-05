@@ -151,5 +151,5 @@ class TestExtractPost:
         mock_req = MagicMock()
         mock_req.form.get.return_value = "Test.svg"
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.request", mock_req)
-        result = extract_routes.extract_translations_post()
+        extract_routes.extract_translations_post()
         assert patch_render["context"]["languages"] == ["ar", "de", "fr"]

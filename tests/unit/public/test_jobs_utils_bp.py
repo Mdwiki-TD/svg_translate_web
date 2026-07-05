@@ -41,8 +41,7 @@ class TestServeCropFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.Path", lambda p: Path(p))
 
         bp = jobs_utils_module.bp
-        test_func = None
-        for rule in bp.deferred_functions:
+        for _rule in bp.deferred_functions:
             pass
 
     def test_compare_crop_files_renders(self, monkeypatch):
@@ -50,8 +49,7 @@ class TestServeCropFiles:
         from src.main_app.public.jobs_utils_bp import jobs_utils_module
 
         bp = jobs_utils_module.bp
-        test_func = None
-        for rule in bp.deferred_functions:
+        for _rule in bp.deferred_functions:
             pass
 
 

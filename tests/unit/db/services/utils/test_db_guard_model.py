@@ -141,7 +141,7 @@ class TestDbGuardEdgeCases:
 
     def test_with_msg_param(self):
         with patch("src.main_app.db.services.utils.db_guard_model.db") as mock_db:
-            with patch("src.main_app.db.services.utils.db_guard_model.logger") as mock_logger:
+            with patch("src.main_app.db.services.utils.db_guard_model.logger"):
 
                 @db_guard(default_return=None, msg="Custom error message")
                 def my_func():
