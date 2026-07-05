@@ -40,8 +40,22 @@ def sample_chart_record():
     )
 
 
+def _unwrap_admin_required(view_func):
+    """Unwrap the @admin_required decorator to reach the original closure."""
+    return view_func.__wrapped__
+
+
+def _patch_owid_charts_instance(flask_app, mock_service):
+    """Find the OwidChartsRoutes instance and replace its service with the mock."""
+    endpoint = "admin.owidcharts.add_chart"
+    view_func = flask_app.view_functions[endpoint]
+    inner_func = _unwrap_admin_required(view_func)
+    owid_charts_instance = inner_func.__closure__[0].cell_contents
+    owid_charts_instance.owid_charts_service = mock_service
+
+
 @pytest.fixture
-def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch):
+def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
     """Return a configured Flask test client with mocked OWID charts service."""
     admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
 
@@ -56,28 +70,30 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch):
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
+    _patch_owid_charts_instance(flask_app, mock_service)
+
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.owid_charts.list_owid_charts_templates",
+        MagicMock(return_value=[]),
+    )
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.owid_charts.delete_chart",
+        mock_service.delete_chart,
+    )
+
     yield flask_app.test_client()
 
 
 @pytest.fixture
-def mock_service(monkeypatch: pytest.MonkeyPatch):
-    """Return a configured Flask test client with mocked OWID charts service."""
+def mock_service():
+    """Return mock service objects for OWID charts."""
     mocks = MagicMock()
     mocks.list_charts = MagicMock(return_value=[])
     mocks.add_chart = MagicMock()
     mocks.update_chart_data = MagicMock()
     mocks.delete_chart = MagicMock()
     mocks.get_chart_by_id = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.OwidChartsService",
-        MagicMock(return_value=mocks),
-    )
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.delete_chart",
-        mocks.delete_chart,
-    )
-
-    yield mocks
+    return mocks
 
 
 class TestOwidChartsDashboard:
