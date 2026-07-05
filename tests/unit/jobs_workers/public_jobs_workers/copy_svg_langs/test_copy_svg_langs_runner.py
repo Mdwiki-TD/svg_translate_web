@@ -18,7 +18,7 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock_instance = MagicMock()
     _mock_class.return_value = _mock_instance
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.runner.CopySvgLangsWorker",
         _mock_class,
     )
     return _mock_class
