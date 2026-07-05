@@ -190,9 +190,8 @@ class TestUpdateChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.update_chart_data.side_effect = LookupError("not found")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_update_chart_data = MagicMock(side_effect=LookupError("not found"))
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mock_update_chart_data)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -210,9 +209,8 @@ class TestUpdateChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_record = MagicMock()
         mock_record.title = "T"
-        mock_svc = MagicMock()
-        mock_svc.update_chart_data.return_value = mock_record
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_update_chart_data = MagicMock(return_value=mock_record)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mock_update_chart_data)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -228,9 +226,8 @@ class TestUpdateChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.update_chart_data.return_value = None
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_update_chart_data = MagicMock(return_value=None)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mock_update_chart_data)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -246,9 +243,8 @@ class TestUpdateChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.update_chart_data.side_effect = LookupError("not found")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_update_chart_data = MagicMock(side_effect=LookupError("not found"))
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mock_update_chart_data)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", Mock(return_value="redirected"))
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: "/r")
@@ -265,10 +261,8 @@ class TestDeleteChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.delete_chart.return_value = True
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_svc.delete_chart)
+        mock_delete_chart = MagicMock(return_value=True)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -284,10 +278,8 @@ class TestDeleteChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.delete_chart.return_value = False
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_svc.delete_chart)
+        mock_delete_chart = MagicMock(return_value=False)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -303,10 +295,8 @@ class TestDeleteChart:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
-        mock_svc = MagicMock()
-        mock_svc.delete_chart.return_value = True
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_svc.delete_chart)
+        mock_delete_chart = MagicMock(return_value=True)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: f"rendered:{t}")
         result = _delete_chart(1)
@@ -316,18 +306,16 @@ class TestDeleteChart:
 class TestEditChart:
     def test_found(self, monkeypatch):
         mock_chart = MagicMock()
-        mock_svc = MagicMock()
-        mock_svc.get_chart_by_id.return_value = mock_chart
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_get_chart_by_id = MagicMock(return_value=mock_chart)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.get_chart_by_id", mock_get_chart_by_id)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: c)
         result = _edit_chart(1)
         assert result["chart"] == mock_chart
         assert result["error"] is None
 
     def test_not_found(self, monkeypatch):
-        mock_svc = MagicMock()
-        mock_svc.get_chart_by_id.side_effect = LookupError("not found")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_svc)
+        mock_get_chart_by_id = MagicMock(side_effect=LookupError("not found"))
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.get_chart_by_id", mock_get_chart_by_id)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: c)
         result = _edit_chart(999)
         assert result["chart"] is None
