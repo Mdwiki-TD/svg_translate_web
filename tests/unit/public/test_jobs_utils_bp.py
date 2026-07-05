@@ -25,9 +25,15 @@ class TestServeDownloadMainFile:
         mock_settings = MagicMock()
         mock_settings.paths.main_files_path = str(main_files)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.settings", mock_settings)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", lambda d, f: f"content:{f}")
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+        from werkzeug.wrappers import Response as WerkzeugResponse
+
+        def _fake_send(d, f):
+            resp = WerkzeugResponse(f"content:{f}", mimetype="image/svg+xml")
+            return resp
+
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", _fake_send)
         resp = mock_client.get("/jobs_utils/download_main_files/file/test.svg")
         assert resp.status_code == 200
 
@@ -72,6 +78,8 @@ class TestDownloadAllMainFiles:
         assert resp.status_code == 200
 
     def test_download_not_found(self, mock_client, monkeypatch):
+        admin_user = MagicMock(is_active_admin=True)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("Not found", 404)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
@@ -84,6 +92,8 @@ class TestDownloadAllMainFiles:
         mock_flash.assert_called_once_with("Not found", "warning")
 
     def test_download_error(self, mock_client, monkeypatch):
+        admin_user = MagicMock(is_active_admin=True)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("Error", 500)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
