@@ -10,7 +10,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services.files_service import upload_file
+from .....api_services.files_service import upload_file
 
 logger = logging.getLogger(__name__)
 

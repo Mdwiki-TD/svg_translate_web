@@ -1,7 +1,5 @@
 """ """
 
-"""
-
 from .crop_file import crop_svg_file
 from .crop_utils import generate_cropped_filename
 from .download import download_file_for_cropping
@@ -13,5 +11,3 @@ __all__ = [
     "upload_cropped_file",
     "crop_svg_file",
 ]
-
-"""
