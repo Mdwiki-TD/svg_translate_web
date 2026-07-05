@@ -21,7 +21,7 @@ def app_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret-key")
     app = create_app(TestingConfig)
     app.config["TESTING"] = True
-    yield app, app.test_client()
+    yield app
 
 
 @pytest.fixture
@@ -38,9 +38,9 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
     return captured
 
 
-def test_extract_get_empty_by_default(app_client: tuple[Flask, Any]) -> None:
+def test_extract_get_empty_by_default(app_client) -> None:
     """Test that the extract form input is empty by default on GET."""
-    app, client = app_client
+    client = app_client.test_client()
 
     response = client.get("/extract/")
     assert response.status_code == 200
@@ -48,9 +48,9 @@ def test_extract_get_empty_by_default(app_client: tuple[Flask, Any]) -> None:
     assert b'value=""' in response.data
 
 
-def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any]) -> None:
+def test_extract_get_restores_filename_from_session(app_client) -> None:
     """Test that filename is restored from session after OAuth redirect."""
-    app, client = app_client
+    client = app_client.test_client()
 
     with client.session_transaction() as sess:
         sess[extract_routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
@@ -62,12 +62,12 @@ def test_extract_get_restores_filename_from_session(app_client: tuple[Flask, Any
 
 
 def test_extract_post_empty_filename_shows_error(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
 ) -> None:
     """Test that submitting an empty filename shows an error."""
-    app, _ = app_client
+    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -84,14 +84,14 @@ def test_extract_post_empty_filename_shows_error(
 
 
 def test_extract_post_strips_file_prefix(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     mocker: MockerFixture,  # Add mocker
     tmp_path,
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
-    app, _ = app_client
+    app = app_client
 
     # 1. Use mocker.patch for stronger assertions
     mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.download_one_file")
@@ -114,13 +114,13 @@ def test_extract_post_strips_file_prefix(
 
 
 def test_extract_post_download_failure(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test that download failure shows appropriate error."""
-    app, _ = app_client
+    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -150,13 +150,13 @@ def test_extract_post_download_failure(
 
 
 def test_extract_post_extraction_error(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test that extraction error shows appropriate error."""
-    app, _ = app_client
+    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -188,13 +188,13 @@ def test_extract_post_extraction_error(
 
 
 def test_extract_post_successful_extraction(
-    app_client: tuple[Flask, Any],
+    app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
     tmp_path,
 ) -> None:
     """Test successful extraction returns proper context."""
-    app, _ = app_client
+    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
