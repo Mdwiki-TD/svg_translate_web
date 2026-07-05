@@ -38,5 +38,5 @@ def rename_owid_pages_for_templates(
 
 
 __all__ = [
-    "RenameOwidPagesWorker",
+    "rename_owid_pages_for_templates",
 ]
