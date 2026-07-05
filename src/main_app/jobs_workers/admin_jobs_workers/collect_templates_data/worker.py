@@ -205,7 +205,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return template_info
 
-    def _process_one_item(self, template: TemplateRecord) -> bool:
+    def _process_one_item(self, template: TemplateData) -> bool:
         self.result.summary.processed += 1
 
         template_info = self._load_temp_info(template)
@@ -456,9 +456,26 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         return self.start_process(tmps_to_process)
 
     def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataWorkerObject:
-        per_item = self.get_priority(len(tmps_to_process))
 
-        for n, template in enumerate(tmps_to_process, start=1):
+        # change TemplateRecord to TemplateData
+        # templates_data = [TemplateData(**x.to_dict()) for x in tmps_to_process]
+        templates_data = [
+            TemplateData(
+                id=x.id,
+                title=x.title,
+                main_file=x.main_file,
+                last_world_file=x.last_world_file,
+                last_world_year=x.last_world_year,
+                slug=x.slug,
+                source=x.source,
+            )
+            for x in tmps_to_process
+        ]
+
+        # Sort templates by priority
+        per_item = self.get_priority(len(templates_data))
+
+        for n, template in enumerate(templates_data, start=1):
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -467,7 +484,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-            logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
+            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_data)}: {template.title}")
 
             _updated = self._process_one_item(template)
 
