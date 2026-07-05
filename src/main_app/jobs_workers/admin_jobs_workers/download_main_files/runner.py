@@ -12,13 +12,13 @@ from typing import Any
 from flask import send_file
 
 from ....config import settings
-
 from .worker import DownloadMainFilesWorker
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
 
 logger = logging.getLogger(__name__)
+
 
 def create_main_files_zip() -> tuple[Any, int]:
     """
@@ -69,6 +69,7 @@ def download_main_files_for_templates(
     logger.info("Starting job %s: download main files for templates", job_id)
     worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
     worker.run()
+
 
 __all__ = [
     "download_main_files_for_templates",

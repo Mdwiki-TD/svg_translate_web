@@ -519,6 +519,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Default mode: process all templates
         return self.process_all()
 
+
 __all__ = [
     "CollectMainFilesWorker",
 ]

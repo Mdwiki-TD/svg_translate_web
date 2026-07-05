@@ -359,6 +359,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """Mark a step as skipped (result=None)."""
         file_info.steps[step] = {"result": None, "msg": reason}
 
+
 __all__ = [
     "CreateOwidPagesWorker",
 ]

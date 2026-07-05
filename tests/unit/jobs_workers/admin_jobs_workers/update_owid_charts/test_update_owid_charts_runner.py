@@ -9,6 +9,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.runner impo
     update_owid_charts_worker_entry,
 )
 
+
 class TestUpdateOwidChartsWorkerEntry:
     """Tests for update_owid_charts_worker_entry entry point."""
 
@@ -115,4 +116,3 @@ class TestUpdateOwidChartsWorkerEntry:
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None
-

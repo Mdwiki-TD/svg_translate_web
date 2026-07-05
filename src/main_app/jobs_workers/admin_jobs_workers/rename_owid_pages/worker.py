@@ -274,6 +274,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         except Exception as exc:
             logger.warning("Job %s: Failed to update DB title for '%s': %s", self.job_id, old_title, exc)
 
+
 __all__ = [
     "RenameOwidPagesWorker",
     "needs_rename",

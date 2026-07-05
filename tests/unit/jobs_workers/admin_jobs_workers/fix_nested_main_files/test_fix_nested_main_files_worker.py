@@ -10,6 +10,7 @@ from src.main_app.shared.fix_nested.worker import (
     VerificationResult,
 )
 
+
 def test_repair_nested_svg_tags_success(mock_fix_nested_services, tmp_path):
     """Test successful high-level orchestration for a single file."""
     filename = "Test.svg"

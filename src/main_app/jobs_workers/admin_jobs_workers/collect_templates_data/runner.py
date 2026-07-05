@@ -12,6 +12,7 @@ from .worker import CollectMainFilesWorker
 
 logger = logging.getLogger(__name__)
 
+
 def collect_templates_data_entry(
     *,
     job_id: int,

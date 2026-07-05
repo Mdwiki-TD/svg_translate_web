@@ -9,13 +9,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import (
-    crop_main_files_worker_entry,
     CropMainFilesWorkerObject,
+    crop_main_files_worker_entry,
 )
 
 # ---------------------------------------------------------------------------
 # Fixture for a completed result returned by process()
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_instance_class(monkeypatch):
@@ -24,16 +25,22 @@ def mock_instance_class(monkeypatch):
 
     _mock = MagicMock()
     _mock.return_value = mock_instance
-    monkeypatch.setattr("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.runner.CropMainFilesWorker", _mock)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.runner.CropMainFilesWorker", _mock
+    )
     return _mock
+
 
 @pytest.fixture
 def mock_process():
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.runner.CropMainFilesWorker.process") as mock:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.runner.CropMainFilesWorker.process"
+    ) as mock:
         mock.return_value = make_completed_result(
             {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
         )
         yield mock
+
 
 def make_completed_result(summary_overrides=None):
     """Return a standard completed-result object for use in mock process()."""
@@ -69,7 +76,6 @@ def test_crop_main_files_worker_entry_basic_flow(mock_base_worker, mock_process)
     final_call = mock_base_worker["update_job_status_with_retry"].call_args
     assert final_call[0][0] == 1
     assert final_call[0][1] == "completed"
-
 
 
 def test_crop_main_files_worker_entry_with_user(mock_base_worker, mock_process):
@@ -170,7 +176,6 @@ def test_crop_main_files_worker_entry_handles_save_failure(mock_base_worker, moc
     """Test that failures to save results are handled gracefully."""
     mock_base_worker["save_job_result_by_name"].side_effect = Exception("Disk full")
 
-
     # Should not raise exception
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -178,7 +183,6 @@ def test_crop_main_files_worker_entry_handles_save_failure(mock_base_worker, moc
 def test_crop_main_files_worker_entry_handles_status_update_failure(mock_base_worker, mock_process):
     """Test that failures to update status are handled gracefully."""
     mock_base_worker["update_job_status"].side_effect = LookupError("Job not found")
-
 
     # Should not raise exception
     crop_main_files_worker_entry(job_id=1, user=None)
@@ -195,7 +199,6 @@ def test_crop_main_files_worker_entry_generates_correct_result_file_name(mock_ba
 def test_crop_main_files_worker_entry_passes_result_file_to_process(mock_base_worker, mock_process):
     """Test that result_file is available on the worker."""
     mock_base_worker["save_job_result_by_name"].reset_mock()
-
 
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -280,6 +283,7 @@ def test_crop_main_files_worker_entry_multiple_jobs(mock_base_worker, mock_proce
     assert calls[1][0] == (2, "crop_main_files")
     assert calls[2][0] == (3, "crop_main_files")
 
+
 def test_crop_main_files_worker_entry_exception_includes_traceback_in_logs(mock_base_worker, mock_process):
     """Test that exceptions are logged with full traceback."""
     with patch("src.main_app.jobs_workers.base_worker.logger") as mock_logger:
@@ -316,6 +320,7 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_base_worker, mo
     crop_main_files_worker_entry(job_id=2, user=None)
 
     mock_process.assert_called_once()
+
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_instance_class, mock_base_worker):
     """Test that upload_limit is mapped to upload_limit in args."""

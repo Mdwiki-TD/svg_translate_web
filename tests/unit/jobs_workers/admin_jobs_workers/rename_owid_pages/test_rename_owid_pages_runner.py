@@ -25,6 +25,7 @@ def mock_worker_class(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return _mock_class
 
+
 class TestRenameOwidPagesForTemplatesEntryPoint:
     """Tests for the rename_owid_pages_for_templates entry point unified signature."""
 
@@ -72,4 +73,3 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
             user=None,
             cancel_event=None,
         )
-

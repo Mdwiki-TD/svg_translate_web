@@ -215,6 +215,7 @@ def test_download_main_files_handles_file_with_file_prefix(mock_services, tmp_pa
         passed_filename = _call["filename"]
         assert passed_filename == "Example.svg"
 
+
 def test_download_main_files_checks_if_file_exists(mock_services, tmp_path):
     """Test worker handles existing files (overwrites by design)."""
     with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:

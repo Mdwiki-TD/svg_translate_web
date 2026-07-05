@@ -12,6 +12,7 @@ from .worker import CreateOwidPagesWorker
 
 logger = logging.getLogger(__name__)
 
+
 def create_owid_pages_for_templates(
     *,
     job_id: int,

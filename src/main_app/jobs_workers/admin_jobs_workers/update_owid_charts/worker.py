@@ -328,7 +328,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return self.result
 
 
-
 __all__ = [
     "UpdateOwidChartsWorker",
 ]

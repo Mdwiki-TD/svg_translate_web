@@ -470,6 +470,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info("Job %s: Skipped upload for %s (upload disabled)", self.job_id, file_info.cropped_filename)
         file_info.cropped_filename = ""
 
+
 __all__ = [
     "CropMainFilesWorker",
 ]

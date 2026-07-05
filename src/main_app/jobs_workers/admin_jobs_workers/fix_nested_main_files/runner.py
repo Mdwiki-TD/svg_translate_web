@@ -12,6 +12,7 @@ from .worker import FixNestedMainFilesWorker
 
 logger = logging.getLogger(__name__)
 
+
 def fix_nested_main_files_for_templates(
     *,
     job_id: int,

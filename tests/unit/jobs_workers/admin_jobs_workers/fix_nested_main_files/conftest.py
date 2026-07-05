@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+
 @pytest.fixture
 def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by fix_nested_main_files worker."""
@@ -53,4 +54,3 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     )
 
     return mocks
-

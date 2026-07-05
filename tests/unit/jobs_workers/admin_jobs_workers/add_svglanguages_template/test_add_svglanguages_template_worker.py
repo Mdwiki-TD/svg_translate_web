@@ -503,4 +503,3 @@ class TestProcessMethod:
 
         # Should have processed only one template before cancellation
         assert call_count[0] == 1
-

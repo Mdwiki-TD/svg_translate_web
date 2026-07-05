@@ -53,6 +53,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 
     return mocks
 
+
 class TestAddSvgSVGLanguagesTemplateToTemplates:
     """Tests for the add_svglanguages_template_to_templates function."""
 

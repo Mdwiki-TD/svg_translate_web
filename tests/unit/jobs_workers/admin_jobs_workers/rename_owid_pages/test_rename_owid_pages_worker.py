@@ -379,6 +379,7 @@ class TestUpdateTemplateTitle:
 
         mock_db_services["update_template_data"].assert_not_called()
 
+
 # ── Edge Cases ─────────────────────────────────────────────────────────────────
 
 

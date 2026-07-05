@@ -23,6 +23,7 @@ from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 logger = logging.getLogger(__name__)
 
+
 def generate_main_files_zip(main_files_zip_name) -> Path:
     """
     Generate a zip archive of all files in the main_files_path directory.

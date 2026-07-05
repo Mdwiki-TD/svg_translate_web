@@ -78,7 +78,10 @@ def mock_run():
 
 @pytest.fixture
 def mock_init():
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.CreateOwidPagesWorker.__init__", return_value=None) as mock:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.CreateOwidPagesWorker.__init__",
+        return_value=None,
+    ) as mock:
         yield mock
 
 

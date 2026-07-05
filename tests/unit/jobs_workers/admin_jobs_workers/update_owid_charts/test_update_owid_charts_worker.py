@@ -132,6 +132,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 
         assert len(result) == 2
 
+
 class TestProcessChart:
     """Tests for _process_chart method."""
 

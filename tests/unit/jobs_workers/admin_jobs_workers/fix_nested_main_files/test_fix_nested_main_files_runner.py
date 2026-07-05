@@ -6,11 +6,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner import fix_nested_main_files_for_templates
+from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner import (
+    fix_nested_main_files_for_templates,
+)
 from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )
+
 
 def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
     """Test worker entry point when no templates exist."""
