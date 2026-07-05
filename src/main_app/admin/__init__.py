@@ -10,15 +10,18 @@ from .routes import (
     SettingsRoutes,
     Templates,
     UsersRoutes,
-    slug_redirects_module,
+    SlugRedirects,
 )
 
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 
-def register_bp_admin_blueprints(_bp) -> None:
-    _bp.register_blueprint(CoordinatorsRoutes().bp)
-    _bp.register_blueprint(UsersRoutes().bp)
-    _bp.register_blueprint(SettingsRoutes().bp)
+def register_bp_admin_blueprints(app: Flask) -> None:
+    bp_admin.register_blueprint(CoordinatorsRoutes().bp)
+    bp_admin.register_blueprint(UsersRoutes().bp)
+    bp_admin.register_blueprint(SettingsRoutes().bp)
+    bp_admin.register_blueprint(Templates().bp)
+    bp_admin.register_blueprint(OwidChartsRoutes().bp)
+    bp_admin.register_blueprint(SlugRedirects().bp)
 
     # Public API module
     jobs_module = AdminJobsRoutes(
@@ -27,13 +30,10 @@ def register_bp_admin_blueprints(_bp) -> None:
         bp_name="admin.jobs",
     )
 
-    _bp.register_blueprint(jobs_module.bp)
-    _bp.register_blueprint(Templates().bp)
-    _bp.register_blueprint(OwidChartsRoutes().bp)
-    _bp.register_blueprint(slug_redirects_module.bp)
+    bp_admin.register_blueprint(jobs_module.bp)
 
+    app.register_blueprint(bp_admin)
 
 __all__ = [
-    "bp_admin",
     "register_bp_admin_blueprints",
 ]
