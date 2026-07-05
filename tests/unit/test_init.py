@@ -43,6 +43,7 @@ def test_create_app_jinja_filter_registered(mock_environ):
 
 
 def test_create_app_error_handlers_registered(mock_environ):
+    # TODO: Weak assertion on error handler registration.
     app = create_app(TestingConfig)
     spec = app.error_handler_spec.get(None, {})
     assert 400 in spec or 404 in spec or 500 in spec

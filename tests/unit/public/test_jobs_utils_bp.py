@@ -22,17 +22,20 @@ class TestServeDownloadMainFile:
         main_files = tmp_path / "main_files"
         main_files.mkdir()
         (main_files / "test.svg").write_text("<svg/>")
-
         mock_settings = MagicMock()
         mock_settings.paths.main_files_path = str(main_files)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.settings", mock_settings)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", lambda d, f: f"content:{f}")
-
+        admin_user = MagicMock(is_active_admin=True)
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
         resp = mock_client.get("/jobs_utils/download_main_files/file/test.svg")
-        assert resp.status_code in (200, 302)
+        assert resp.status_code == 200
 
 
 class TestServeCropFiles:
+    """
+    TODO: These tests never exercise the routes they name. bp.deferred_functions is only iterated, so serve_crop_original_file and compare_crop_files are never called, and nothing is asserted about the File: stripping or template rendering behavior.
+    """
     def test_original_file_strips_file_prefix(self, monkeypatch):
         from src.main_app.public.jobs_utils_bp import jobs_utils_module
 
@@ -76,9 +79,21 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", mock_flash)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
-
         resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
         assert resp.status_code in (200, 302)
+        mock_flash.assert_called_once_with("Not found", "warning")
+
+    def test_download_error(self, mock_client, monkeypatch):
+        mock_zip = Mock()
+        mock_zip.return_value = ("Error", 500)
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
+        mock_flash = Mock()
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
+        resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
+        assert resp.status_code in (200, 302)
+        mock_flash.assert_called_once_with("Error", "danger")
 
     def test_download_error(self, mock_client, monkeypatch):
         mock_zip = Mock()

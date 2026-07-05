@@ -34,6 +34,7 @@ class TestExtractGet:
         session[extract_routes.EXTRACT_FILENAME_KEY] = "test.svg"
         result = extract_routes.extract_translations()
         assert "form" in result
+        assert patch_render["context"]["filename"] == "test.svg"
 
 
 class TestExtractPost:
