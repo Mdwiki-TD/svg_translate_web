@@ -130,6 +130,7 @@ class TestAddChart:
 
     def test_missing_slug(self, monkeypatch):
         self._setup_service(monkeypatch)
+        self._setup_request(monkeypatch, {"slug": "", "title": "T", "from_popup": "0"})
         _add_chart({"slug": "", "title": "T", "from_popup": "0"})
 
     def test_success(self, monkeypatch):
@@ -137,11 +138,13 @@ class TestAddChart:
         mock_record = MagicMock()
         mock_record.title = "T"
         mock_service.add_chart.return_value = mock_record
+        self._setup_request(monkeypatch, {"slug": "s", "title": "T", "from_popup": "0"})
         _add_chart({"slug": "s", "title": "T", "from_popup": "0"})
 
     def test_value_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.add_chart.side_effect = ValueError("error")
+        self._setup_request(monkeypatch, {"slug": "s", "title": "T", "from_popup": "0"})
         _add_chart({"slug": "s", "title": "T", "from_popup": "0"})
 
     def test_from_popup_error(self, monkeypatch):
@@ -181,11 +184,13 @@ class TestUpdateChart:
 
     def test_missing_slug(self, monkeypatch):
         self._setup_service(monkeypatch)
+        self._setup_request(monkeypatch, {"chart_id": "1", "slug": "", "title": "T"})
         _update_chart({"chart_id": "1", "slug": "", "title": "T"})
 
     def test_lookup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.update_chart_data.side_effect = LookupError("not found")
+        self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
         _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_success(self, monkeypatch):
@@ -193,11 +198,13 @@ class TestUpdateChart:
         mock_record = MagicMock()
         mock_record.title = "T"
         mock_service.update_chart_data.return_value = mock_record
+        self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
         _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_record_none(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.update_chart_data.return_value = None
+        self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
         _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_from_popup_error(self, monkeypatch):

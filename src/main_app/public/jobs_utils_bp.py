@@ -104,11 +104,6 @@ class UtilsJobsBp:
             )
 
 
-# Public API module
-jobs_utils_module = UtilsJobsBp(
-    name="jobs_utils",
-)
-
 __all__ = [
-    "jobs_utils_module",
+    "UtilsJobsBp",
 ]
