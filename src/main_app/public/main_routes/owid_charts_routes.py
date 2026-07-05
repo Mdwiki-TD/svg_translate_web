@@ -11,32 +11,37 @@ from flask import (
 
 from ...db.services import list_charts, list_published_charts
 
-bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owidcharts")
 logger = logging.getLogger(__name__)
 
 
-@bp_owid_charts.route("/", methods=["GET"])
-def index() -> str:
-    """Display a list of all published OWID charts."""
-    charts = list_published_charts()
-    all_charts = list_charts()
+class OwidChartsRoutes:
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
+        self._setup_routes()
 
-    logger.info(f"Public charts page: {len(charts)} published, {len(all_charts)} total")
+    def _setup_routes(self) -> None:
+        @self.bp.route("/", methods=["GET"])
+        def index() -> str:
+            """Display a list of all published OWID charts."""
+            charts = list_published_charts()
+            all_charts = list_charts()
 
-    for chart in charts:
-        logger.debug(f"  Published chart: {chart.slug} - {chart.title}")
+            logger.info(f"Public charts page: {len(charts)} published, {len(all_charts)} total")
 
-    return render_template("owid_charts/index.html", charts=charts)
+            for chart in charts:
+                logger.debug(f"  Published chart: {chart.slug} - {chart.title}")
+
+            return render_template("owid_charts/index.html", charts=charts)
 
 
-@bp_owid_charts.get("/all")
-def all_charts() -> str:
-    """Display ALL charts (including unpublished) for debugging."""
-    charts = list_charts()
-    logger.info(f"All charts page: {len(charts)} total charts")
-    return render_template("owid_charts/all_charts.html", charts=charts)
+        @self.bp.get("/all")
+        def all_charts() -> str:
+            """Display ALL charts (including unpublished) for debugging."""
+            charts = list_charts()
+            logger.info(f"All charts page: {len(charts)} total charts")
+            return render_template("owid_charts/all_charts.html", charts=charts)
 
 
 __all__ = [
-    "bp_owid_charts",
+    "OwidChartsRoutes",
 ]
