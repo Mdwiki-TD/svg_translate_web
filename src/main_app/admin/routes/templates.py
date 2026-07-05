@@ -275,8 +275,6 @@ class Templates:
             return response
 
 
-templates_module = Templates()
-
 __all__ = [
-    "templates_module",
+    "Templates",
 ]

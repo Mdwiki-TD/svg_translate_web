@@ -121,8 +121,6 @@ class SettingsRoutes:
             return redirect(url_for("admin.settings.dashboard"))
 
 
-settings_module = SettingsRoutes()
-
 __all__ = [
-    "settings_module",
+    "SettingsRoutes",
 ]

@@ -310,8 +310,6 @@ class OwidChartsRoutes(OwidCharts):
             return response
 
 
-owidcharts_module = OwidChartsRoutes()
-
 __all__ = [
-    "owidcharts_module",
+    "OwidChartsRoutes",
 ]

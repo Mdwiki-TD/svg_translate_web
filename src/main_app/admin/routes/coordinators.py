@@ -150,8 +150,6 @@ class CoordinatorsRoutes:
             return _delete_coordinator(coordinator_id)
 
 
-coordinators_module = CoordinatorsRoutes()
-
 __all__ = [
-    "coordinators_module",
+    "CoordinatorsRoutes",
 ]

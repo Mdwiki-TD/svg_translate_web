@@ -1,19 +1,19 @@
 """Admin blueprint package."""
 
-from .coordinators import coordinators_module
+from .coordinators import CoordinatorsRoutes
 from .jobs import jobs_module
-from .owid_charts import owidcharts_module
-from .settings import settings_module
+from .owid_charts import OwidChartsRoutes
+from .settings import SettingsRoutes
 from .slug_redirects import slug_redirects_module
-from .templates import templates_module
-from .users import users_module
+from .templates import Templates
+from .users import UsersRoutes
 
 __all__ = [
-    "coordinators_module",
+    "CoordinatorsRoutes",
     "jobs_module",
-    "owidcharts_module",
+    "OwidChartsRoutes",
     "slug_redirects_module",
-    "settings_module",
-    "templates_module",
-    "users_module",
+    "SettingsRoutes",
+    "Templates",
+    "UsersRoutes",
 ]

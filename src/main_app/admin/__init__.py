@@ -4,23 +4,23 @@ from flask import Blueprint
 
 from .admin_panel import bp_admin
 from .routes import (
-    coordinators_module,
+    CoordinatorsRoutes,
+    OwidChartsRoutes,
+    SettingsRoutes,
+    Templates,
+    UsersRoutes,
     jobs_module,
-    owidcharts_module,
-    settings_module,
     slug_redirects_module,
-    templates_module,
-    users_module,
 )
 
 
 def register_bp_admin_blueprints(_bp: Blueprint) -> None:
-    _bp.register_blueprint(coordinators_module.bp)
-    _bp.register_blueprint(users_module.bp)
-    _bp.register_blueprint(settings_module.bp)
+    _bp.register_blueprint(CoordinatorsRoutes().bp)
+    _bp.register_blueprint(UsersRoutes().bp)
+    _bp.register_blueprint(SettingsRoutes().bp)
     _bp.register_blueprint(jobs_module.bp)
-    _bp.register_blueprint(templates_module.bp)
-    _bp.register_blueprint(owidcharts_module.bp)
+    _bp.register_blueprint(Templates().bp)
+    _bp.register_blueprint(OwidChartsRoutes().bp)
     _bp.register_blueprint(slug_redirects_module.bp)
 
 

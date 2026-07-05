@@ -105,8 +105,6 @@ class UsersRoutes:
             return _update_can_run_bg_jobs(user_id, desired)
 
 
-users_module = UsersRoutes()
-
 __all__ = [
-    "users_module",
+    "UsersRoutes",
 ]
