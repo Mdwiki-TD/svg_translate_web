@@ -26,6 +26,38 @@ from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
+def get_charts_data(charts: List[OwidChartRecord]) -> List[dict[str, Any]]:
+
+    all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+
+    charts_temps = {c.chart_id: c for c in all_charts_templates}
+
+    charts_data: list[dict[str, Any]] = []
+    for chart in charts:
+        chart_data = {
+            "chart_id": chart.chart_id,
+            "slug": chart.slug,
+            "title": chart.title,
+            "has_map_tab": chart.has_map_tab,
+            "max_time": chart.max_time,
+            "min_time": chart.min_time,
+            "default_tab": chart.default_tab,
+            "is_published": chart.is_published,
+            "single_year_data": chart.single_year_data,
+            "len_years": chart.len_years,
+            "has_timeline": chart.has_timeline,
+            "template_id": None,
+            "template_title": None,
+        }
+        temp = charts_temps.get(chart.chart_id)
+        if temp:
+            chart_data["template_id"] = temp.template_id
+            chart_data["template_title"] = temp.template_title
+
+        charts_data.append(chart_data)
+    return charts_data
+
+
 
 class OwidCharts:
     def __init__(self) -> None:
@@ -42,36 +74,10 @@ class OwidCharts:
         try:
             charts: List[OwidChartRecord] = self.owid_charts_service.list_charts()
 
-            all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+            charts_data: list[dict[str, Any]] = get_charts_data(charts)
 
-            charts_temps = {c.chart_id: c for c in all_charts_templates}
-
-            if not charts:
+            if not charts_data:
                 return "No charts found to export.", 404
-
-            charts_data: list[dict[str, Any]] = []
-            for chart in charts:
-                chart_data = {
-                    "chart_id": chart.chart_id,
-                    "slug": chart.slug,
-                    "title": chart.title,
-                    "has_map_tab": chart.has_map_tab,
-                    "max_time": chart.max_time,
-                    "min_time": chart.min_time,
-                    "default_tab": chart.default_tab,
-                    "is_published": chart.is_published,
-                    "single_year_data": chart.single_year_data,
-                    "len_years": chart.len_years,
-                    "has_timeline": chart.has_timeline,
-                    "template_id": None,
-                    "template_title": None,
-                }
-                temp = charts_temps.get(chart.chart_id)
-                if temp:
-                    chart_data["template_id"] = temp.template_id
-                    chart_data["template_title"] = temp.template_title
-
-                charts_data.append(chart_data)
 
             json_content = json.dumps(charts_data, indent=2, ensure_ascii=False)
 
