@@ -6,13 +6,15 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, Mock
 
+from werkzeug.datastructures import ImmutableMultiDict
+
 from src.main_app.admin.routes.owid_charts import (
     OwidCharts,
 )
 
 
 def _add_chart(request_form):
-    return OwidCharts()._add_chart(request_form)
+    return OwidCharts()._add_chart(ImmutableMultiDict(request_form))
 
 
 def _delete_chart(chart_id: int, from_popup):
@@ -24,7 +26,7 @@ def _edit_chart(chart_id: int):
 
 
 def _update_chart(request_form):
-    return OwidCharts()._update_chart(request_form)
+    return OwidCharts()._update_chart(ImmutableMultiDict(request_form))
 
 
 def create_json_file():
