@@ -10,8 +10,10 @@ from src.main_app.admin.routes.owid_charts import (
     OwidCharts,
 )
 
+
 def _add_chart():
     return OwidCharts()._add_chart()
+
 
 def _delete_chart(chart_id: int):
     return OwidCharts()._delete_chart(chart_id)
