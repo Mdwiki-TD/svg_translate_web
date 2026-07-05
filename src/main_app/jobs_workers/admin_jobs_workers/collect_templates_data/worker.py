@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from dataclasses import dataclass
 from typing import Any
 
 from mwclient.client import Site
@@ -33,6 +34,24 @@ from ..slugs_helpers import check_slugs
 from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class TemplateData:
+    id: int
+    title: str
+    main_file: str | None
+    last_world_file: str | None
+    last_world_year: int | None
+    slug: str
+    source: str
+
+    def __init__(self, **kwargs: Any) -> None:
+        for key, value in kwargs.items():
+            if value and key in ("last_world_file", "main_file"):
+                value = value.removeprefix("File:")
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 def slugify_title(title: str) -> str:
@@ -176,10 +195,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             status="",
         )
         if template.main_file:
-            template_info.steps.main_file.value = template.main_file.removeprefix("File:")
+            template_info.steps.main_file.value = template.main_file
 
         if template.last_world_file:
-            template_info.steps.last_world_file.value = template.last_world_file.removeprefix("File:")
+            template_info.steps.last_world_file.value = template.last_world_file
 
         template_info.steps.source.value = template.source
         template_info.steps.slug.value = template.slug
@@ -216,18 +235,16 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # template_info step # 1 main_file
         try:
             # Extract main file using find_main_title
-            main_file = find_main_title(wikitext)
+            main_file = find_main_title(wikitext, remove_prefix=True)
             if not main_file:
                 raise Exception("Could not find main file")
-
-            main_file = main_file.removeprefix("File:")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
             main_file = None
             template_info.steps.main_file._update(result="failed", msg=str(e))
 
         if main_file:
-            if main_file != (template.main_file.removeprefix("File:") if template.main_file else ""):
+            if main_file != template.main_file:
                 # template_info.new_main_file = main_file
                 template_info.steps.main_file._update(result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
@@ -237,18 +254,16 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # ------------------
         # template_info step # 2 last_world_file
         try:
-            last_file = find_newest_world_file(wikitext)
+            last_file = find_newest_world_file(wikitext, remove_prefix=True)
             if not last_file:
                 raise Exception("Could not find newest world file")
-
-            last_file = last_file.removeprefix("File:")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting newest world file: {e}")
             last_file = None
             template_info.steps.last_world_file._update(result="failed", msg=str(e))
 
         if last_file:
-            if last_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
+            if last_file != template.last_world_file:
                 # template_info.last_world_file = last_world_file
                 template_info.steps.last_world_file._update(result="updated", new_value=last_file)
                 template_data["last_world_file"] = last_file
@@ -440,7 +455,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.start_process(tmps_to_process)
 
-    def start_process(self, tmps_to_process) -> CollectTemplatesDataWorkerObject:
+    def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataWorkerObject:
         per_item = self.get_priority(len(tmps_to_process))
 
         for n, template in enumerate(tmps_to_process, start=1):
