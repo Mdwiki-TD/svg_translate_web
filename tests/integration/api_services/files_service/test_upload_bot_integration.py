@@ -46,9 +46,9 @@ def make_upload_response(result: str = "success") -> dict:
 
 class TestUpload:
     def _make_uploader(self, site, tmp_file, new_file=False):
-        mock_page = MagicMock()
-        mock_page.exists = not new_file  # exists=True for update, False for new
-        site.pages.__getitem__.return_value = mock_page
+        mock_p = MagicMock()
+        mock_p.exists = not new_file  # exists=True for update, False for new
+        site.pages.__getitem__.return_value = mock_p
         return UploadFile("Test.jpg", tmp_file, site, new_file=new_file)
 
     def test_check_kwargs_fails_early(self, mock_site, tmp_file):

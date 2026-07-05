@@ -21,7 +21,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run):
         "generate_main_files_zip": MagicMock(),
         "create_commons_session": MagicMock(),
         "download_commons_file_core": MagicMock(return_value=b"svg-content"),
-        "before_run": MagicMock(return_value=True),
+        "before_run": mock_before_run,
     }
 
     # Mock template_service

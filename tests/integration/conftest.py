@@ -1,4 +1,6 @@
-"""conftest for the admin jobs management routes."""
+"""
+conftest for integration tests
+"""
 
 from __future__ import annotations
 

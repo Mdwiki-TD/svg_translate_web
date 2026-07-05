@@ -4,12 +4,22 @@
 
 {% block job_info_extra %}
 {% if result_data and result_data.args %}
+{% if result_data.args.list_titles %}
+<tr>
+    <th>Selection mode:</th>
+    <td>
+        {{ result_data.args.list_titles }}
+    </td>
+</tr>
+{% else %}
 <tr>
     <th>Update all data:</th>
     <td>
         {{ result_data.args.update_all }}
     </td>
 </tr>
+{% endif %}
+
 {% endif %}
 {% endblock %}
 
@@ -94,7 +104,7 @@
                         <th>Title</th>
                         <th><i class="bi bi-pencil me-3"></i></th>
                         <th>Oldest File</th>
-                        <th>Newest World File</th>
+                        <th>Newest File</th>
                         <th>Template year</th>
                         <th>Source</th>
                         <th>Slug</th>
