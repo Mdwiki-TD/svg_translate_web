@@ -20,22 +20,25 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "cancel_event": cancel_event,
         "list_templates": MagicMock(),
     }
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.list_templates",
-        mocks["list_templates"],
-    )
+
     # Mock update_template_data to set the cancel event
     mock_update_template = MagicMock()
-
-    # Should have processed only one template before stopping
-    # n=1: processes T1, updates template, sets cancel_event.
-    # n=2: checks cancel_event.is_set() -> True. Breaks.
 
     def side_effect(*args, **kwargs):
         cancel_event.set()
 
     mock_update_template.side_effect = side_effect
 
+    mock_template_service = MagicMock()
+    mock_template_service.list_templates = mocks["list_templates"]
+    mock_template_service.add_template_data = MagicMock()
+    mock_template_service.update_template_data = mock_update_template
+    mock_template_service.get_template_by_title = MagicMock()
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService",
+        MagicMock(return_value=mock_template_service),
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
         lambda title, site: MagicMock(get_text=MagicMock(return_value="some wikitext")),
@@ -49,19 +52,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         lambda x, remove_prefix=False: None,
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
-        mock_update_template,
-    )
-    # Mock get_category_members to return empty list (no new templates to add)
-    monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
         MagicMock(return_value=[]),
-    )
-
-    # Mock add_template_data to avoid database calls
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.add_template_data",
-        MagicMock(),
     )
 
     return mocks
