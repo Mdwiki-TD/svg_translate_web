@@ -189,13 +189,13 @@ class TestUsersRoutesClass:
     """Tests for the UsersRoutes class itself."""
 
     def test_blueprint_properties(self) -> None:
-        instance = UsersRoutes()
+        instance = UsersRoutes(Blueprint("users", __name__, url_prefix="/users"))
         assert isinstance(instance.bp, Blueprint)
         assert instance.bp.name == "users"
         assert instance.bp.url_prefix == "/users"
 
     def test_all_routes_registered(self) -> None:
-        instance = UsersRoutes()
+        instance = UsersRoutes(Blueprint("users", __name__, url_prefix="/users"))
         assert len(instance.bp.deferred_functions) == 3
 
 
@@ -214,7 +214,7 @@ class TestUsersRoutesRoutes:
         app.config["TESTING"] = True
 
         admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-        admin_bp.register_blueprint(UsersRoutes().bp)
+        admin_bp.register_blueprint(UsersRoutes(Blueprint("users", __name__, url_prefix="/users")).bp)
         app.register_blueprint(admin_bp)
 
         return app

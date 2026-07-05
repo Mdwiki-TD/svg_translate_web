@@ -15,14 +15,14 @@ class TestSettingsRoutesClass:
 
     def test_blueprint_properties(self):
         """SettingsRoutes should create a Blueprint with the expected name and prefix."""
-        instance = SettingsRoutes()
+        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
         assert isinstance(instance.bp, Blueprint)
         assert instance.bp.name == "settings"
         assert instance.bp.url_prefix == "/settings"
 
     def test_all_routes_registered(self):
         """SettingsRoutes should register all 3 routes."""
-        instance = SettingsRoutes()
+        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
         assert len(instance.bp.deferred_functions) == 3
 
 
@@ -42,7 +42,7 @@ class TestSettingsRoutesRoutes:
         app.config["TESTING"] = True
 
         admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-        admin_bp.register_blueprint(SettingsRoutes().bp)
+        admin_bp.register_blueprint(SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings")).bp)
         app.register_blueprint(admin_bp)
 
         return app
