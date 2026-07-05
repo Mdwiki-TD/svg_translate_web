@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker as collect_worker
+from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import runner as collect_runner
 
 
 @pytest.fixture(autouse=True)
@@ -75,7 +75,7 @@ def test_collect_templates_data_worker_cancellation(mock_services, mock_base_wor
     ]
     mock_services["list_templates"].return_value = templates
 
-    collect_worker.collect_templates_data_entry(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
+    collect_runner.collect_templates_data_entry(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
 
     result = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result.get("status") == "cancelled"
