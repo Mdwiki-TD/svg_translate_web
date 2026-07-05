@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import upload
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import upload
 
 
 def test_upload_cropped_file_success(tmp_path):

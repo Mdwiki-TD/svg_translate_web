@@ -5,7 +5,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
-from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import crop_file
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import crop_file
 
 
 def create_test_svg(include_footer: bool = True) -> str:
