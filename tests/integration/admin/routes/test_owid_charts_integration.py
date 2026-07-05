@@ -52,16 +52,23 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
     monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
 
-    mock_service = MagicMock()
-    mock_service.list_charts.return_value = []
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.owid_charts_service", mock_service)
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_service.delete_chart)
+    mocks = MagicMock()
+    mocks.list_charts = MagicMock(return_value=[])
+    mocks.add_chart = MagicMock()
+    mocks.update_chart_data = MagicMock()
+    mocks.delete_chart = MagicMock()
+    mocks.get_chart_by_id = MagicMock()
+    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_charts", mocks.list_charts)
+    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.add_chart", mocks.add_chart)
+    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mocks.update_chart_data)
+    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mocks.delete_chart)
+    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.get_chart_by_id", mocks.get_chart_by_id)
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
-    yield flask_app.test_client(), mock_service
+    yield flask_app.test_client(), mocks
 
 
 class TestOwidChartsDashboard:

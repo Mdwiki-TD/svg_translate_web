@@ -21,7 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateRecord
 from ...db.services import delete_chart
-from ...db.services import (
+from ...db.services.owid_charts_service import (
     list_charts,
     add_chart,
     update_chart_data,
