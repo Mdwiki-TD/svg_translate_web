@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 import threading
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -105,6 +106,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
     )
 
     return mocks
+
+
+
+def test_crop_main_files_worker_entry_started_at_timestamp(mock_base_worker):
+    """Test that started_at timestamp is set correctly."""
+    w = CropMainFilesWorker(job_id=1, user=None)
+    result = w.result
+    assert result.started_at is not None
+    datetime.fromisoformat(result.started_at)
 
 
 def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
