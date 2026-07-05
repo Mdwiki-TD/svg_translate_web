@@ -43,7 +43,6 @@ from .rate_limit import callback_rate_limiter, login_rate_limiter
 from .utils import load_logged_in_user
 
 logger = logging.getLogger(__name__)
-bp_auth = Blueprint("auth", __name__)
 
 oauth_state_nonce = settings.sessions.state_key
 request_token_key = settings.sessions.request_token_key
@@ -87,6 +86,8 @@ def _load_request_token(raw: Sequence[Any] | None) -> RequestToken:
 # Hooks
 # ---------------------------------------------------------
 
+
+bp_auth = Blueprint("auth", __name__)
 
 # Register the hook right after defining the blueprint
 @bp_auth.before_app_request
