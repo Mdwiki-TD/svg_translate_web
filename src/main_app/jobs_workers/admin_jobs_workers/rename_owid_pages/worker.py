@@ -274,33 +274,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         except Exception as exc:
             logger.warning("Job %s: Failed to update DB title for '%s': %s", self.job_id, old_title, exc)
 
-
-def rename_owid_pages_for_templates(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-) -> None:
-    """Background worker entry-point.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data
-        cancel_event: Threading event for cancellation
-        args: Optional arguments dict (unused, for unified signature)
-    """
-    logger.info("Starting job %s: rename OWID pages (capitalize first letter)", job_id)
-    worker = RenameOwidPagesWorker(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-    )
-    worker.run()
-
-
 __all__ = [
     "RenameOwidPagesWorker",
     "needs_rename",
-    "rename_owid_pages_for_templates",
 ]

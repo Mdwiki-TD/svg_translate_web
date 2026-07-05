@@ -18,7 +18,7 @@ from werkzeug.wrappers.response import Response
 
 from ..admin.decorators import admin_required
 from ..config import settings
-from ..jobs_workers.admin_jobs_workers.download_main_files.worker import create_main_files_zip
+from ..jobs_workers.admin_jobs_workers.download_main_files.runner import create_main_files_zip
 
 logger = logging.getLogger(__name__)
 
