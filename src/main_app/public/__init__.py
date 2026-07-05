@@ -17,10 +17,10 @@ from .public_jobs import PublicJobsRoutes
 
 
 def register_blueprints(app: Flask) -> None:
+    register_bp_admin_blueprints(bp_admin, jobs_data_admins)
+
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_auth)
-
-    register_bp_admin_blueprints(bp_admin, jobs_data_admins)
 
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_profile)
