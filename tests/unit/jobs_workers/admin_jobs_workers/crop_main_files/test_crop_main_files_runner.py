@@ -31,6 +31,9 @@ def mock_instance_class(monkeypatch):
 @pytest.fixture
 def mock_process():
     with patch.object(runner.CropMainFilesWorker, "process") as mock:
+        mock.return_value = make_completed_result(
+            {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
+        )
         yield mock
 
 def make_completed_result(summary_overrides=None):
@@ -154,9 +157,6 @@ def test_crop_main_files_worker_entry_saves_final_result(mock_base_worker, mock_
 
 def test_crop_main_files_worker_entry_updates_final_status(mock_base_worker, mock_process):
     """Test that final job status is updated."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -171,9 +171,6 @@ def test_crop_main_files_worker_entry_handles_save_failure(mock_base_worker, moc
     """Test that failures to save results are handled gracefully."""
     mock_base_worker["save_job_result_by_name"].side_effect = Exception("Disk full")
 
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     # Should not raise exception
     crop_main_files_worker_entry(job_id=1, user=None)
@@ -183,9 +180,6 @@ def test_crop_main_files_worker_entry_handles_status_update_failure(mock_base_wo
     """Test that failures to update status are handled gracefully."""
     mock_base_worker["update_job_status"].side_effect = LookupError("Job not found")
 
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     # Should not raise exception
     crop_main_files_worker_entry(job_id=1, user=None)
@@ -193,9 +187,6 @@ def test_crop_main_files_worker_entry_handles_status_update_failure(mock_base_wo
 
 def test_crop_main_files_worker_entry_generates_correct_result_file_name(mock_base_worker, mock_process):
     """Test that result file name is generated correctly."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -206,9 +197,6 @@ def test_crop_main_files_worker_entry_passes_result_file_to_process(mock_base_wo
     """Test that result_file is available on the worker."""
     mock_base_worker["save_job_result_by_name"].reset_mock()
 
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -274,9 +262,6 @@ def test_crop_main_files_worker_entry_different_exception_types(mock_base_worker
 
 def test_crop_main_files_worker_entry_upload_files_flag(mock_base_worker, mock_process):
     """Test that upload_files is True in the worker's process method."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=1, user=None)
 
@@ -285,9 +270,6 @@ def test_crop_main_files_worker_entry_upload_files_flag(mock_base_worker, mock_p
 
 def test_crop_main_files_worker_entry_multiple_jobs(mock_base_worker, mock_process):
     """Test running multiple jobs with different IDs."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=1, user=None)
     crop_main_files_worker_entry(job_id=2, user=None)
@@ -331,9 +313,6 @@ def test_crop_main_files_worker_entry_completed_status_default(mock_base_worker,
 
 def test_crop_main_files_worker_entry_accepts_args_keyword_param(mock_base_worker, mock_process):
     """Test that crop_main_files_worker_entry accepts args= keyword-only param (unified signature)."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     # Should not raise TypeError
     crop_main_files_worker_entry(job_id=1, user=None, args={"some_key": "value"})
@@ -361,9 +340,6 @@ def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_base
 
 def test_crop_main_files_worker_entry_args_defaults_to_none(mock_base_worker, mock_process):
     """Test that args defaults to None and entry point works without it."""
-    mock_process.return_value = make_completed_result(
-        {"total": 0, "processed": 0, "cropped": 0, "uploaded": 0, "failed": 0, "skipped": 0}
-    )
 
     crop_main_files_worker_entry(job_id=2, user=None)
 
