@@ -15,7 +15,11 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db.services import users_service
+from ...db.services import (
+    list_users,
+    toggle_can_run_jobs,
+    toggle_can_run_bg_jobs,
+)
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
@@ -24,7 +28,7 @@ logger = logging.getLogger(__name__)
 def _dashboard() -> str:
     """Render the user management dashboard."""
     try:
-        users = users_service.list_users()
+        users = list_users()
     except Exception as e:  # pragma: no cover - defensive guard
         logger.error(f"Error listing users: {e}")
         flash("Error listing users", "error")
@@ -43,7 +47,7 @@ def _update_can_run_jobs(user_id: int, desired: int) -> ResponseReturnValue:
     """Toggle the can_run_jobs column for a user."""
 
     try:
-        record = users_service.toggle_can_run_jobs(user_id, bool(desired))
+        record = toggle_can_run_jobs(user_id, bool(desired))
     except LookupError:
         logger.exception("Unable to update user permissions.")
         flash(f"User with id {user_id} was not found", "warning")
@@ -61,7 +65,7 @@ def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
     """Toggle the can_run_bg_jobs column for a user."""
 
     try:
-        record = users_service.toggle_can_run_bg_jobs(user_id, bool(desired))
+        record = toggle_can_run_bg_jobs(user_id, bool(desired))
     except LookupError:
         logger.exception("Unable to update user permissions.")
         flash(f"User with id {user_id} was not found", "warning")

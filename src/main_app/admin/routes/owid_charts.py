@@ -20,7 +20,13 @@ from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateRecord
-from ...db.services import delete_chart, owid_charts_service
+from ...db.services import delete_chart
+from ...db.services import (
+    list_charts,
+    add_chart,
+    update_chart_data,
+    get_chart_by_id,
+)
 from ...db.services.views_service import list_owid_charts_templates
 from ..decorators import admin_required
 
@@ -36,7 +42,7 @@ def create_json_file() -> Tuple[Any, int]:
         string with appropriate status code (404 for no charts, 500 for errors).
     """
     try:
-        charts: List[OwidChartRecord] = owid_charts_service.list_charts()
+        charts: List[OwidChartRecord] = list_charts()
 
         all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
@@ -115,7 +121,7 @@ def _add_chart() -> ResponseReturnValue:
 
     save_error = None
     try:
-        record = owid_charts_service.add_chart(
+        record = add_chart(
             slug=slug,
             title=title,
             has_map_tab=has_map_tab,
@@ -188,7 +194,7 @@ def _update_chart() -> ResponseReturnValue:
         "has_timeline": has_timeline,
     }
     try:
-        record = owid_charts_service.update_chart_data(
+        record = update_chart_data(
             chart_id=chart_id,
             chart_data=chart_data,
         )
@@ -239,7 +245,7 @@ def _delete_chart(chart_id: int) -> ResponseReturnValue:
 def _edit_chart(chart_id: int) -> ResponseReturnValue:
     """Render the edit chart popup page."""
     try:
-        chart = owid_charts_service.get_chart_by_id(chart_id)
+        chart = get_chart_by_id(chart_id)
     except LookupError:
         return render_template(
             "admins/owid_charts/edit.html",

@@ -79,6 +79,8 @@ from .users_service import (
     get_user,
     get_user_by_username,
     list_users,
+    toggle_can_run_jobs,
+    toggle_can_run_bg_jobs,
 )
 from .views_service import (
     ViewsService,
@@ -117,6 +119,8 @@ __all__ = [
     "get_user_token",
     "get_authenticated_user_token",
     "list_users",
+    "toggle_can_run_jobs",
+    "toggle_can_run_bg_jobs",
     # admin_service
     "list_coordinators",
     "is_active_coordinator",

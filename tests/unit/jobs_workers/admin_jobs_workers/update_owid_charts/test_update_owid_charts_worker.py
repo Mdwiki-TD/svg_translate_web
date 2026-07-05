@@ -206,8 +206,8 @@ class TestProcessChart:
 
         mock_service = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -270,8 +270,8 @@ class TestProcessChart:
 
         mock_service = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -337,8 +337,8 @@ class TestProcessChart:
         mock_service = MagicMock()
         mock_service.update_chart_data_with_retry.side_effect = Exception("DB error")
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -373,8 +373,8 @@ class TestProcessChart:
 
         mock_service = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -410,8 +410,8 @@ class TestProcessChart:
 
         mock_service = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -440,8 +440,8 @@ class TestProcess:
         mock_service = MagicMock()
         mock_service.list_charts.return_value = []
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
@@ -463,8 +463,8 @@ class TestProcess:
         )
         mock_service.list_charts.return_value = [chart]
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         mock_process_chart = MagicMock(return_value=True)
@@ -488,8 +488,8 @@ class TestProcess:
             MagicMock(chart_id=2, slug="chart-2"),
         ]
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         mock_is_cancelled = MagicMock(return_value=True)
@@ -511,8 +511,8 @@ class TestProcess:
         chart2 = MagicMock(chart_id=2, slug="chart-2")
         mock_service.list_charts.return_value = [chart1, chart2]
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.owid_charts_service",
-            mock_service,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
+            MagicMock(return_value=mock_service),
         )
 
         mock_process_chart = MagicMock(return_value=True)
