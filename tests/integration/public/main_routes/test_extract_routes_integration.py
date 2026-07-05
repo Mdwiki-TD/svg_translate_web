@@ -7,11 +7,17 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from flask import Blueprint
 from pytest_mock import MockerFixture
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.public.main_routes import extract_routes
+from src.main_app.public.main_routes.extract_routes import ExtractRoutes, EXTRACT_FILENAME_KEY
+
+
+@pytest.fixture
+def extract():
+    return ExtractRoutes(Blueprint("extract", __name__, url_prefix="/extract"))
 
 
 @pytest.fixture
@@ -52,7 +58,7 @@ def test_extract_get_restores_filename_from_session(app_client) -> None:
     client = app_client.test_client()
 
     with client.session_transaction() as sess:
-        sess[extract_routes.EXTRACT_FILENAME_KEY] = "test_file.svg"
+        sess[EXTRACT_FILENAME_KEY] = "test_file.svg"
 
     response = client.get("/extract/")
     assert response.status_code == 200
@@ -61,6 +67,7 @@ def test_extract_get_restores_filename_from_session(app_client) -> None:
 
 
 def test_extract_post_empty_filename_shows_error(
+    extract,
     app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
@@ -75,17 +82,18 @@ def test_extract_post_empty_filename_shows_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", fake_flash)
 
     with app_client.test_request_context("/extract/", method="POST", data={"filename": ""}):
-        result = extract_routes.extract_translations_post()
+        result = extract.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert ("Please provide a file name", "danger") in flashed
 
 
 def test_extract_post_strips_file_prefix(
+    extract,
     app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
-    mocker: MockerFixture,  # Add mocker
+    mocker: MockerFixture,
     tmp_path,
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
@@ -102,7 +110,7 @@ def test_extract_post_strips_file_prefix(
     mocker.patch("src.main_app.public.main_routes.extract_routes.flash")
 
     with app_client.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
-        extract_routes.extract_translations_post()
+        extract.extract_translations_post()
 
     # Assert that download was called with the stripped filename
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
@@ -111,6 +119,7 @@ def test_extract_post_strips_file_prefix(
 
 
 def test_extract_post_download_failure(
+    extract,
     app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
@@ -139,13 +148,14 @@ def test_extract_post_download_failure(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+        result = extract.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("Failed to download file" in msg for msg, cat in flashed)
 
 
 def test_extract_post_extraction_error(
+    extract,
     app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
@@ -176,13 +186,14 @@ def test_extract_post_extraction_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+        result = extract.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
     assert any("An error occurred while extracting translations" in msg for msg, cat in flashed)
 
 
 def test_extract_post_successful_extraction(
+    extract,
     app_client,
     monkeypatch: pytest.MonkeyPatch,
     patch_render: dict,
@@ -218,7 +229,7 @@ def test_extract_post_successful_extraction(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
-        result = extract_routes.extract_translations_post()
+        result = extract.extract_translations_post()
 
     assert result == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed

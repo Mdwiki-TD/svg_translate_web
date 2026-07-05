@@ -33,14 +33,12 @@ class OwidChartsRoutes:
 
             return render_template("owid_charts/index.html", charts=charts)
 
-
         @self.bp.get("/all")
         def all_charts() -> str:
             """Display ALL charts (including unpublished) for debugging."""
             charts = list_charts()
             logger.info(f"All charts page: {len(charts)} total charts")
             return render_template("owid_charts/all_charts.html", charts=charts)
-
 
 __all__ = [
     "OwidChartsRoutes",
