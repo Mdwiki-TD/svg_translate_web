@@ -58,11 +58,10 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
     mocks.update_chart_data = MagicMock()
     mocks.delete_chart = MagicMock()
     mocks.get_chart_by_id = MagicMock()
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.list_charts", mocks.list_charts)
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.add_chart", mocks.add_chart)
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.update_chart_data", mocks.update_chart_data)
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mocks.delete_chart)
-    monkeypatch.setattr("src.main_app.admin.routes.owid_charts.get_chart_by_id", mocks.get_chart_by_id)
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.owid_charts.OwidChartsService",
+        MagicMock(return_value=mocks),
+    )
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True
@@ -357,7 +356,7 @@ class TestDeleteChart:
     def test_delete_chart_success(self, owid_charts_admin_client, sample_chart_record):
         """Test deleting a chart successfully."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.delete_chart.return_value = sample_chart_record
+        mock_service.delete_chart.return_value = True
 
         response = flask_client.post("/admin/owidcharts/1/delete", follow_redirects=True)
 
@@ -367,7 +366,7 @@ class TestDeleteChart:
     def test_delete_chart_not_found(self, owid_charts_admin_client):
         """Test deleting a non-existent chart shows error."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.delete_chart.side_effect = LookupError("Chart not found")
+        mock_service.delete_chart.return_value = False
 
         response = flask_client.post("/admin/owidcharts/999/delete", follow_redirects=True)
 
@@ -376,7 +375,7 @@ class TestDeleteChart:
     def test_delete_chart_from_popup(self, owid_charts_admin_client, sample_chart_record):
         """Test deleting a chart from popup renders popup action."""
         flask_client, mock_service = owid_charts_admin_client
-        mock_service.delete_chart.return_value = sample_chart_record
+        mock_service.delete_chart.return_value = True
 
         response = flask_client.post(
             "/admin/owidcharts/1/delete",

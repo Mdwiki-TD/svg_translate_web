@@ -7,13 +7,26 @@ from __future__ import annotations
 from unittest.mock import MagicMock, Mock
 
 from src.main_app.admin.routes.owid_charts import (
-    _add_chart,
-    _add_chart_popup,
-    _delete_chart,
-    _edit_chart,
-    _update_chart,
-    create_json_file,
+    OwidCharts,
 )
+
+def _add_chart():
+    return OwidCharts()._add_chart()
+
+def _delete_chart(chart_id: int):
+    return OwidCharts()._delete_chart(chart_id)
+
+
+def _edit_chart(chart_id: int):
+    return OwidCharts()._edit_chart(chart_id)
+
+
+def _update_chart():
+    return OwidCharts()._update_chart()
+
+
+def create_json_file():
+    return OwidCharts().create_json_file()
 
 
 class TestCreateJsonFile:
@@ -87,13 +100,6 @@ class TestCreateJsonFile:
         data = j.loads(response.get_data())
         assert data[0]["template_id"] == 42
         assert data[0]["template_title"] == "Template:T"
-
-
-class TestAddChartPopup:
-    def test_renders(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t: f"rendered:{t}")
-        result = _add_chart_popup()
-        assert "add" in result
 
 
 class TestAddChart:
