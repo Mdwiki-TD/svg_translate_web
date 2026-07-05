@@ -7,8 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages import (
-    CreateOwidPagesWorker,
+from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.runner import (
     create_owid_pages_for_templates,
 )
 
@@ -72,14 +71,14 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 
 @pytest.fixture
 def mock_run():
-    with patch.object(CreateOwidPagesWorker, "run") as mock:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.CreateOwidPagesWorker.run") as mock:
         mock.return_value = {"status": "completed"}
         yield mock
 
 
 @pytest.fixture
 def mock_init():
-    with patch.object(CreateOwidPagesWorker, "__init__", return_value=None) as mock:
+    with patch("src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.CreateOwidPagesWorker.__init__", return_value=None) as mock:
         yield mock
 
 
