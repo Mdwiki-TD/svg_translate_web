@@ -255,8 +255,8 @@ class OwidCharts:
 
 
 class OwidChartsRoutes(OwidCharts):
-    def __init__(self) -> None:
-        self.bp = Blueprint("owidcharts", __name__, url_prefix="/owidcharts")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self.owid_charts_service = OwidChartsService()
         self._setup_routes()
 

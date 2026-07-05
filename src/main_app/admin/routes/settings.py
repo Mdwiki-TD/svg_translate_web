@@ -67,8 +67,8 @@ def settings_update_form(request_form) -> tuple[list[str], list[str]]:
 
 
 class SettingsRoutes:
-    def __init__(self) -> None:
-        self.bp = Blueprint("settings", __name__, url_prefix="/settings")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:

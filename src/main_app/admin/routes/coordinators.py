@@ -17,6 +17,7 @@ from flask.typing import ResponseReturnValue
 
 from ...db.exceptions import DuplicateUserError, UserNotFoundError
 from ...db.services import (
+    AdminService,
     add_coordinator,
     delete_coordinator,
     get_coordinator_by_id,
@@ -119,8 +120,8 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
 class CoordinatorsRoutes:
     """Jobs management routes."""
 
-    def __init__(self) -> None:
-        self.bp = Blueprint("coordinators", __name__, url_prefix="/coordinators")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:

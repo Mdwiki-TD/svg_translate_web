@@ -82,8 +82,8 @@ def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
 class UsersRoutes:
     """Jobs management routes."""
 
-    def __init__(self) -> None:
-        self.bp = Blueprint("users", __name__, url_prefix="/users")
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
         self._setup_routes()
 
     def _setup_routes(self) -> None:
