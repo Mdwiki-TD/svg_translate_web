@@ -50,8 +50,8 @@ class TemplateData:
         for key, value in kwargs.items():
             if value and key in ("last_world_file", "main_file"):
                 value = value.removeprefix("File:")
-            if hasattr(self, key):
-                setattr(self, key, value)
+            # if hasattr(self, key):
+            setattr(self, key, value)
 
 
 def slugify_title(title: str) -> str:
@@ -184,7 +184,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
 
-    def _load_temp_info(self, template: TemplateRecord) -> TemplateInfo:
+    def _load_temp_info(self, template: TemplateData) -> TemplateInfo:
         template_info = TemplateInfo(
             id=template.id,
             title=template.title,
