@@ -259,7 +259,7 @@ def test_collect_templates_data_processes_multiple_templates(mock_services):
             instance.get_text.return_value = None
         return instance
 
-    def find_main_title_side_effect(wikitext):
+    def find_main_title_side_effect(wikitext, remove_prefix=False):
         if "test1" in wikitext:
             return "test1.svg"
         elif "test3" in wikitext:

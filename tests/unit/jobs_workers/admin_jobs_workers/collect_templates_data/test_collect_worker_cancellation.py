@@ -42,11 +42,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
-        lambda x: "file.svg",
+        lambda x, remove_prefix=False: "file.svg",
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
-        lambda x: None,
+        lambda x, remove_prefix=False: None,
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
