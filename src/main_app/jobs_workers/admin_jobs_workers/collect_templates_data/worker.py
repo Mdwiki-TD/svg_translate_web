@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from dataclasses import dataclass
 from typing import Any
 
 from mwclient.client import Site
@@ -33,6 +34,23 @@ from ..slugs_helpers import check_slugs
 from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class TemplateData:
+    id: int = 0
+    title: str = ""
+    main_file: str | None = None
+    last_world_file: str | None = None
+    last_world_year: int | None = None
+    slug: str = ""
+    source: str = ""
+
+    def __post_init__(self) -> None:
+        if self.main_file:
+            self.main_file = self.main_file.removeprefix("File:")
+        if self.last_world_file:
+            self.last_world_file = self.last_world_file.removeprefix("File:")
 
 
 def slugify_title(title: str) -> str:
@@ -165,7 +183,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
 
-    def _load_temp_info(self, template: TemplateRecord) -> TemplateInfo:
+    def _load_temp_info(self, template: TemplateData) -> TemplateInfo:
         template_info = TemplateInfo(
             id=template.id,
             title=template.title,
@@ -176,17 +194,17 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             status="",
         )
         if template.main_file:
-            template_info.steps.main_file.value = template.main_file.removeprefix("File:")
+            template_info.steps.main_file.value = template.main_file
 
         if template.last_world_file:
-            template_info.steps.last_world_file.value = template.last_world_file.removeprefix("File:")
+            template_info.steps.last_world_file.value = template.last_world_file
 
         template_info.steps.source.value = template.source
         template_info.steps.slug.value = template.slug
 
         return template_info
 
-    def _process_one_item(self, template: TemplateRecord) -> bool:
+    def _process_one_item(self, template: TemplateData) -> bool:
         self.result.summary.processed += 1
 
         template_info = self._load_temp_info(template)
@@ -216,18 +234,16 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # template_info step # 1 main_file
         try:
             # Extract main file using find_main_title
-            main_file = find_main_title(wikitext)
+            main_file = find_main_title(wikitext, remove_prefix=True)
             if not main_file:
                 raise Exception("Could not find main file")
-
-            main_file = main_file.removeprefix("File:")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting main file: {e}")
             main_file = None
             template_info.steps.main_file._update(result="failed", msg=str(e))
 
         if main_file:
-            if main_file != (template.main_file.removeprefix("File:") if template.main_file else ""):
+            if main_file != template.main_file:
                 # template_info.new_main_file = main_file
                 template_info.steps.main_file._update(result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
@@ -237,18 +253,16 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # ------------------
         # template_info step # 2 last_world_file
         try:
-            last_file = find_newest_world_file(wikitext)
+            last_file = find_newest_world_file(wikitext, remove_prefix=True)
             if not last_file:
                 raise Exception("Could not find newest world file")
-
-            last_file = last_file.removeprefix("File:")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting newest world file: {e}")
             last_file = None
             template_info.steps.last_world_file._update(result="failed", msg=str(e))
 
         if last_file:
-            if last_file != (template.last_world_file.removeprefix("File:") if template.last_world_file else ""):
+            if last_file != template.last_world_file:
                 # template_info.last_world_file = last_world_file
                 template_info.steps.last_world_file._update(result="updated", new_value=last_file)
                 template_data["last_world_file"] = last_file
@@ -440,10 +454,27 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.start_process(tmps_to_process)
 
-    def start_process(self, tmps_to_process) -> CollectTemplatesDataWorkerObject:
-        per_item = self.get_priority(len(tmps_to_process))
+    def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataWorkerObject:
 
-        for n, template in enumerate(tmps_to_process, start=1):
+        # change TemplateRecord to TemplateData
+        # templates_data = [TemplateData(**x.to_dict()) for x in tmps_to_process]
+        templates_data = [
+            TemplateData(
+                id=x.id,
+                title=x.title,
+                main_file=x.main_file,
+                last_world_file=x.last_world_file,
+                last_world_year=x.last_world_year,
+                slug=x.slug,
+                source=x.source,
+            )
+            for x in tmps_to_process
+        ]
+
+        # Sort templates by priority
+        per_item = self.get_priority(len(templates_data))
+
+        for n, template in enumerate(templates_data, start=1):
             if self.is_cancelled():
                 logger.info(f"Job {self.job_id}: Cancellation detected, stopping.")
                 break
@@ -452,7 +483,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-            logger.info(f"Job {self.job_id}: Processing template {n}/{len(tmps_to_process)}: {template.title}")
+            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_data)}: {template.title}")
 
             _updated = self._process_one_item(template)
 
@@ -488,39 +519,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Default mode: process all templates
         return self.process_all()
 
-
-def collect_templates_data_entry(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-) -> None:
-    """
-    Background worker to collect templates data.
-
-    By default only processes templates missing data. Pass args={"update_all": "true"}
-    to re-fetch and update ALL templates.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data
-        cancel_event: Threading event for cancellation
-        args: Optional arguments dict. Supports:
-            - update_all: "true" to update all templates, not just those missing data.
-    """
-
-    logger.info(f"Starting job {job_id}: collect templates data")
-    worker = CollectMainFilesWorker(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
-    )
-    worker.run()
-
-
 __all__ = [
-    "collect_templates_data_entry",
     "CollectMainFilesWorker",
 ]

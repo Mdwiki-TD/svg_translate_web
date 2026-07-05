@@ -42,6 +42,7 @@ class TestServeCropFiles:
     """
     TODO: These tests never exercise the routes they name. bp.deferred_functions is only iterated, so serve_crop_original_file and compare_crop_files are never called, and nothing is asserted about the File: stripping or template rendering behavior.
     """
+
     def test_original_file_strips_file_prefix(self, monkeypatch):
         from src.main_app.public.jobs_utils_bp import jobs_utils_module
 

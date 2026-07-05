@@ -1,6 +1,6 @@
 from ..objects import JobData
 from .add_svglanguages_template import add_svglanguages_template_to_templates
-from .collect_templates_data.worker import collect_templates_data_entry
+from .collect_templates_data import collect_templates_data_entry
 from .create_owid_pages import create_owid_pages_for_templates
 from .crop_main_files import crop_main_files_worker_entry
 from .download_main_files.worker import download_main_files_for_templates

@@ -18,6 +18,7 @@ from src.main_app.db.services.admin_service import (
     set_coordinator_active,
 )
 
+
 class TestIsActiveCoordinator:
     def test_active_coordinator(self):
         mock_record = MagicMock()
