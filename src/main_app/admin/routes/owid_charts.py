@@ -26,6 +26,7 @@ from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
+
 def get_charts_data(charts: List[OwidChartRecord]) -> List[dict[str, Any]]:
 
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
@@ -56,7 +57,6 @@ def get_charts_data(charts: List[OwidChartRecord]) -> List[dict[str, Any]]:
 
         charts_data.append(chart_data)
     return charts_data
-
 
 
 class OwidCharts:
@@ -94,12 +94,12 @@ class OwidCharts:
             logger.exception("Failed to create JSON file.")
             return "Failed to create JSON file.", 500
 
-    def _add_chart(self) -> ResponseReturnValue:
+    def _add_chart(self, request_form) -> ResponseReturnValue:
         """Create a new chart from the submitted form data."""
-        from_popup = request.form.get("from_popup") == "1"
+        from_popup = request_form.get("from_popup") == "1"
 
-        slug = request.form.get("slug", "").strip()
-        title = request.form.get("title", "").strip()
+        slug = request_form.get("slug", "").strip()
+        title = request_form.get("title", "").strip()
 
         if not slug or not title:
             flash("Slug and Title are required.", "danger")
@@ -107,15 +107,15 @@ class OwidCharts:
                 return redirect(url_for("admin.owidcharts.add_chart"))
             return redirect(url_for("admin.owidcharts.dashboard"))
 
-        has_map_tab = 1 if request.form.get("has_map_tab") == "on" else 0
-        is_published = 1 if request.form.get("is_published") == "on" else 0
-        single_year_data = 1 if request.form.get("single_year_data") == "1" else 0
-        has_timeline = 1 if request.form.get("has_timeline") == "1" else 0
+        has_map_tab = 1 if request_form.get("has_map_tab") == "on" else 0
+        is_published = 1 if request_form.get("is_published") == "on" else 0
+        single_year_data = 1 if request_form.get("single_year_data") == "1" else 0
+        has_timeline = 1 if request_form.get("has_timeline") == "1" else 0
 
-        max_time = request.form.get("max_time", type=int)
-        min_time = request.form.get("min_time", type=int)
-        default_tab = request.form.get("default_tab", "").strip()
-        len_years = request.form.get("len_years", type=int)
+        max_time = request_form.get("max_time", type=int)
+        min_time = request_form.get("min_time", type=int)
+        default_tab = request_form.get("default_tab", "").strip()
+        len_years = request_form.get("len_years", type=int)
 
         save_error = None
         try:
@@ -153,14 +153,14 @@ class OwidCharts:
             return render_template("admins/popup_action.html")
         return redirect(url_for("admin.owidcharts.dashboard"))
 
-    def _update_chart(self) -> ResponseReturnValue:
+    def _update_chart(self, request_form) -> ResponseReturnValue:
         """Update a chart from the submitted form data."""
-        from_popup = request.form.get("from_popup") == "1"
+        from_popup = request_form.get("from_popup") == "1"
 
-        chart_id = request.form.get("chart_id", default=0, type=int)
+        chart_id = request_form.get("chart_id", default=0, type=int)
 
-        slug = request.form.get("slug", "").strip()
-        title = request.form.get("title", "").strip()
+        slug = request_form.get("slug", "").strip()
+        title = request_form.get("title", "").strip()
 
         if not slug or not title:
             flash("Slug and Title are required.", "danger")
@@ -168,14 +168,14 @@ class OwidCharts:
                 return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
             return redirect(url_for("admin.owidcharts.dashboard"))
 
-        has_map_tab = request.form.get("has_map_tab") == "on"
-        max_time = request.form.get("max_time", type=int)
-        min_time = request.form.get("min_time", type=int)
-        default_tab = request.form.get("default_tab", "").strip()
-        is_published = request.form.get("is_published") == "on"
-        single_year_data = request.form.get("single_year_data") == "1"
-        len_years = request.form.get("len_years", type=int)
-        has_timeline = request.form.get("has_timeline") == "1"
+        has_map_tab = request_form.get("has_map_tab") == "on"
+        max_time = request_form.get("max_time", type=int)
+        min_time = request_form.get("min_time", type=int)
+        default_tab = request_form.get("default_tab", "").strip()
+        is_published = request_form.get("is_published") == "on"
+        single_year_data = request_form.get("single_year_data") == "1"
+        len_years = request_form.get("len_years", type=int)
+        has_timeline = request_form.get("has_timeline") == "1"
 
         save_error = None
         chart_data = {
@@ -220,9 +220,8 @@ class OwidCharts:
             return render_template("admins/popup_action.html")
         return redirect(url_for("admin.owidcharts.dashboard"))
 
-    def _delete_chart(self, chart_id: int) -> ResponseReturnValue:
+    def _delete_chart(self, chart_id: int, from_popup: bool) -> ResponseReturnValue:
         """Remove a chart entirely."""
-        from_popup = request.form.get("from_popup") == "1"
 
         try:
             if delete_chart(chart_id):
@@ -277,7 +276,7 @@ class OwidChartsRoutes(OwidCharts):
         @self.bp.post("/add")
         @admin_required
         def add_chart() -> ResponseReturnValue:
-            return self._add_chart()
+            return self._add_chart(request.form)
 
         @self.bp.post("/update")
         @admin_required
@@ -291,12 +290,13 @@ class OwidChartsRoutes(OwidCharts):
                     return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
                 return redirect(url_for("admin.owidcharts.dashboard"))
 
-            return self._update_chart()
+            return self._update_chart(request.form)
 
         @self.bp.post("/<int:chart_id>/delete")
         @admin_required
         def delete_chart(chart_id: int) -> ResponseReturnValue:
-            return self._delete_chart(chart_id)
+            from_popup = request.form.get("from_popup") == "1"
+            return self._delete_chart(chart_id, from_popup)
 
         @self.bp.route("/<int:chart_id>/edit", methods=["GET"])
         @admin_required

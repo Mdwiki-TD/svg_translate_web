@@ -13,7 +13,7 @@ from src.main_app.api_services.files_service.files_helpers import (
 )
 
 
-@pytest.fixture#(autouse=True)
+@pytest.fixture
 def mock_api(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "down": MagicMock(),
