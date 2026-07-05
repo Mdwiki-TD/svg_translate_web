@@ -15,7 +15,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.runn
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
+def mock_add_svglanguages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by add_svglanguages_template worker."""
 
     _mock_class = MagicMock()
@@ -57,9 +57,9 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 class TestAddSvgSVGLanguagesTemplateToTemplates:
     """Tests for the add_svglanguages_template_to_templates function."""
 
-    def test_function_creates_and_runs_worker(self, mock_services):
+    def test_function_creates_and_runs_worker(self, mock_add_svglanguages_services):
         """Test that the function creates and runs a worker."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
 
         user = {"username": "test_user"}
@@ -70,9 +70,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_accepts_args_keyword_param(self, mock_services):
+    def test_function_accepts_args_keyword_param(self, mock_add_svglanguages_services):
         """Test that the entry point accepts args= keyword-only param (unified signature)."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
 
         # Should not raise TypeError; args is accepted but unused
@@ -80,9 +80,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
 
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_args_defaults_to_none(self, mock_services):
+    def test_function_args_defaults_to_none(self, mock_add_svglanguages_services):
         """Test that args defaults to None and the entry point works without it."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
         mock_worker_instance = mock_worker_class.return_value
 
         # Call with no args param at all
@@ -91,9 +91,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         mock_worker_class.assert_called_once_with(job_id=2, user=None, cancel_event=None, args=None)
         mock_worker_instance.run.assert_called_once()
 
-    def test_function_maps_limit_items(self, mock_services):
+    def test_function_maps_limit_items(self, mock_add_svglanguages_services):
         """Test that limit_items is mapped to limit_items in args."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
             job_id=1,
@@ -104,9 +104,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"]["limit_items"] == 10
 
-    def test_function_does_not_map_when_key_absent(self, mock_services):
+    def test_function_does_not_map_when_key_absent(self, mock_add_svglanguages_services):
         """Test that args are passed unchanged when limit_items is absent."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(
             job_id=1,
@@ -117,9 +117,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         call_kwargs = mock_worker_class.call_args.kwargs
         assert "limit_items" not in call_kwargs["args"]
 
-    def test_function_does_not_modify_args_when_args_is_none(self, mock_services):
+    def test_function_does_not_modify_args_when_args_is_none(self, mock_add_svglanguages_services):
         """Test that entry point works correctly when args is None."""
-        mock_worker_class = mock_services["AddSvgSVGLanguagesTemplate"]
+        mock_worker_class = mock_add_svglanguages_services["AddSvgSVGLanguagesTemplate"]
 
         add_svglanguages_template_to_templates(job_id=1, user=None, args=None)
 

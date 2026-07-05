@@ -227,75 +227,55 @@ def test_download_main_files_fatal_error_handling(mock_path, mock_base_worker, m
     )
 
 
-def test_download_main_files_saves_progress_periodically(mock_base_worker, mock_services, tmp_path):
+def test_download_main_files_saves_progress_periodically(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
     """Test that save_progress is called."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_instance = MagicMock()
-        mock_path.return_value = mock_instance
+    templates = [TemplateRecord(id=i, title=f"T{i}", main_file=f"f{i}.svg") for i in range(1, 5)]
+    mock_services.list_templates.return_value = templates
+    mock_services.download_file_from_commons.return_value = {"success": True}
 
-        templates = [TemplateRecord(id=i, title=f"T{i}", main_file=f"f{i}.svg") for i in range(1, 5)]
-        mock_services.list_templates.return_value = templates
-        mock_services.download_file_from_commons.return_value = {"success": True}
+    runner.download_main_files_for_templates(job_id=1, user=None)
 
-        runner.download_main_files_for_templates(job_id=1, user=None)
-
-        assert mock_base_worker["save_job_result_by_name"].call_count >= 2
+    assert mock_base_worker["save_job_result_by_name"].call_count >= 2
 
 
-def test_download_main_files_creates_output_directory(mock_services, tmp_path):
+def test_download_main_files_creates_output_directory(mock_path, mock_services: MockServices, tmp_path):
     """Test that the output directory is created if missing."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_instance = MagicMock()
-        mock_path.return_value = mock_instance
+    mock_services.list_templates.return_value = []
+    runner.download_main_files_for_templates(job_id=1, user=None)
 
-        mock_services.list_templates.return_value = []
-        runner.download_main_files_for_templates(job_id=1, user=None)
-
-        mock_instance.mkdir.assert_called()
+    mock_path.return_value.mkdir.assert_called()
 
 
-def test_download_main_files_generates_zip_on_completion(mock_services, tmp_path):
+def test_download_main_files_generates_zip_on_completion(mock_path, mock_services: MockServices, tmp_path):
     """Test that zip generation is triggered."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_instance = MagicMock()
-        mock_path.return_value = mock_instance
+    mock_services.list_templates.return_value = []
+    runner.download_main_files_for_templates(job_id=1, user=None)
 
-        mock_services.list_templates.return_value = []
-        runner.download_main_files_for_templates(job_id=1, user=None)
-
-        mock_services.generate_main_files_zip.assert_called_once()
+    mock_services.generate_main_files_zip.assert_called_once()
 
 
-def test_download_main_files_no_zip_on_failure(mock_services, tmp_path):
+def test_download_main_files_no_zip_on_failure(mock_path, mock_services: MockServices, tmp_path):
     """Test that zip generation is skipped if job is failed/cancelled."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_instance = MagicMock()
-        mock_path.return_value = mock_instance
+    mock_services.list_templates.side_effect = Exception("Fail")
 
-        mock_services.list_templates.side_effect = Exception("Fail")
-
-        runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(job_id=1, user=None)
 
     mock_services.generate_main_files_zip.assert_not_called()
 
 
-def test_download_main_files_for_templates_accepts_args_keyword_param(mock_services):
+def test_download_main_files_for_templates_accepts_args_keyword_param(mock_path, mock_services: MockServices):
     """Test entry point unified signature."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_path.return_value = MagicMock()
-        mock_services.list_templates.return_value = []
-        runner.download_main_files_for_templates(job_id=1, user=None, args={"some": "val"})
+    mock_services.list_templates.return_value = []
+    runner.download_main_files_for_templates(job_id=1, user=None, args={"some": "val"})
 
 
-def test_download_main_files_for_templates_args_defaults_to_none(mock_services):
+def test_download_main_files_for_templates_args_defaults_to_none(mock_path, mock_services: MockServices):
     """Test entry point works with default args."""
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.Path") as mock_path:
-        mock_path.return_value = MagicMock()
-        mock_services.list_templates.return_value = []
-        runner.download_main_files_for_templates(job_id=99, user=None)
+    mock_services.list_templates.return_value = []
+    runner.download_main_files_for_templates(job_id=99, user=None)
 
 
-def test_entry_point_maps_limit_items(mock_services):
+def test_entry_point_maps_limit_items(mock_services: MockServices):
     """Test that limit_items is mapped."""
     mock_services.list_templates.return_value = []
     with patch(
