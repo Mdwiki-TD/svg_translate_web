@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
@@ -128,7 +128,42 @@ def update_chart_data_with_retry(
     return _update_chart_data(chart_id, chart_data)
 
 
+class OwidChartsService:
+    def __init__(self) -> None:
+        pass
+
+    def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
+        return list_charts(limit)
+
+    def list_published_charts(self) -> list[OwidChartRecord]:
+        return list_published_charts()
+
+    def get_chart_by_id(self, chart_id: int) -> OwidChartRecord | None:
+        return get_chart_by_id(chart_id)
+
+    def get_chart_by_slug(self, slug: str) -> Optional[OwidChartRecord]:
+        return get_chart_by_slug(slug)
+
+    def add_chart(self, **chart_data: dict[str, Any]) -> OwidChartRecord:
+        return add_chart(**chart_data)
+
+    def update_chart_data(
+        self,
+        chart_id: int,
+        chart_data: dict[str, Any],
+    ) -> OwidChartRecord | None:
+        return update_chart_data(chart_id, chart_data)
+
+    def update_chart_data_with_retry(
+        self,
+        chart_id: int,
+        chart_data: dict[str, Any],
+    ) -> OwidChartRecord | None:
+        return update_chart_data_with_retry(chart_id, chart_data)
+
+
 __all__ = [
+    "OwidChartsService",
     "get_chart_by_id",
     "get_chart_by_slug",
     "add_chart",

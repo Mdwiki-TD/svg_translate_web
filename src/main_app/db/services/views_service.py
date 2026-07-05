@@ -24,7 +24,19 @@ def list_owid_charts_templates() -> List[OwidChartTemplateRecord]:
     return query.all()
 
 
+class ViewsService:
+    def __init__(self) -> None:
+        pass
+
+    def list_templates_need_update(self) -> List[TemplateNeedUpdateRecord]:
+        return list_templates_need_update()
+
+    def list_owid_charts_templates(self) -> List[OwidChartTemplateRecord]:
+        return list_owid_charts_templates()
+
+
 __all__ = [
+    "ViewsService",
     "list_templates_need_update",
     "list_owid_charts_templates",
 ]

@@ -110,7 +110,36 @@ def bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
         db.session.commit()
 
 
+class OwidSlugRedirectsService:
+    def __init__(self) -> None:
+        pass
+
+    def list_slug_redirects(
+        self, limit: int | None = None, offset: int | None = None
+    ) -> list[OwidSlugRedirectRecord]:
+        return list_slug_redirects(limit, offset)
+
+    def get_slug_redirect_by_id(self, redirect_id: int) -> OwidSlugRedirectRecord | None:
+        return get_slug_redirect_by_id(redirect_id)
+
+    def count_slug_redirects(self) -> int:
+        return count_slug_redirects()
+
+    def add_new_slug_redirect(self, slug: str, redirect_to: str) -> None:
+        return add_new_slug_redirect(slug, redirect_to)
+
+    def update_slug_redirect(self, redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
+        return update_slug_redirect(redirect_id, data)
+
+    def bulk_update_slug_redirects(self, redirect_ids: list[int], data: dict[str, Any]) -> None:
+        return bulk_update_slug_redirects(redirect_ids, data)
+
+    def bulk_delete_slug_redirects(self, redirect_ids: list[int]) -> None:
+        return bulk_delete_slug_redirects(redirect_ids)
+
+
 __all__ = [
+    "OwidSlugRedirectsService",
     "add_new_slug_redirect",
     "list_slug_redirects",
     "get_slug_redirect_by_id",

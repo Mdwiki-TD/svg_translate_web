@@ -118,7 +118,33 @@ def upsert_user_token(
     return orm_obj
 
 
+class UserTokenService:
+    def __init__(self) -> None:
+        pass
+
+    def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
+        return get_authenticated_user_token(user_id)
+
+    def get_user_token(self, user_id: str | int) -> Optional[UserTokenRecord]:
+        return get_user_token(user_id)
+
+    def create_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+        return create_user_token(user_id, access_key, access_secret)
+
+    def update_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
+        return update_user_token(user_id, access_key, access_secret)
+
+    def upsert_user_token(
+        self,
+        user_id: int,
+        access_key: str,
+        access_secret: str,
+    ) -> UserTokenRecord:
+        return upsert_user_token(user_id, access_key, access_secret)
+
+
 __all__ = [
+    "UserTokenService",
     "upsert_user_token",
     "get_user_token",
     "update_user_token",
