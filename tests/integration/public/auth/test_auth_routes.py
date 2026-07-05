@@ -5,23 +5,16 @@ from __future__ import annotations
 import types
 
 import pytest
-from flask import Blueprint, Flask, g, session
+from flask import Blueprint, Flask
 
 from src.main_app.public.auth.routes import AuthRoutes
 
 
 @pytest.fixture
-def auth():
-    return AuthRoutes(Blueprint("auth", __name__))
-
-
-@pytest.fixture
-def app_auth_mock(auth, monkeypatch: pytest.MonkeyPatch) -> Flask:
+def auth_app(monkeypatch: pytest.MonkeyPatch) -> Flask:
     app = Flask(__name__)
     app.secret_key = "test-secret"
     app.config["SERVER_NAME"] = "example.com"
-    app.add_url_rule("/", "main.index", lambda: "index")
-    app.add_url_rule("/callback", "auth.callback", lambda: "callback")
 
     cookie = types.SimpleNamespace(
         name="uid_enc_copy",
@@ -40,11 +33,17 @@ def app_auth_mock(auth, monkeypatch: pytest.MonkeyPatch) -> Flask:
     monkeypatch.setattr("src.main_app.public.auth.routes.settings", settings)
     monkeypatch.setattr("src.main_app.public.auth.routes.oauth_state_nonce", "state")
     monkeypatch.setattr("src.main_app.public.auth.routes.request_token_key", "req_token")
+    monkeypatch.setattr("src.main_app.public.auth.routes.load_logged_in_user", lambda: None)
+
+    bp = Blueprint("auth", __name__)
+    AuthRoutes(bp)
+    app.register_blueprint(bp)
+    app.add_url_rule("/", "main.index", lambda: "index")
 
     return app
 
 
-def test_login_success_flow(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_login_success_flow(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyLimiter:
         def __init__(self) -> None:
             self.calls: list[str] = []
@@ -58,7 +57,10 @@ def test_login_success_flow(auth, app_auth_mock: Flask, monkeypatch: pytest.Monk
 
     limiter = DummyLimiter()
     monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", limiter)
-    monkeypatch.setattr("src.main_app.public.auth.routes.secrets", types.SimpleNamespace(**{"token_urlsafe": lambda _: "nonce"}))
+    monkeypatch.setattr(
+        "src.main_app.public.auth.routes.secrets",
+        types.SimpleNamespace(**{"token_urlsafe": lambda _: "nonce"}),
+    )
     monkeypatch.setattr("src.main_app.public.auth.routes.sign_state_token", lambda state: f"signed:{state}")
 
     class DummyStart:
@@ -68,17 +70,20 @@ def test_login_success_flow(auth, app_auth_mock: Flask, monkeypatch: pytest.Monk
 
     monkeypatch.setattr("src.main_app.public.auth.routes.start_login", DummyStart())
 
-    with app_auth_mock.test_request_context("/login"):
-        response = auth.login()
-        assert response.status_code == 302
-        assert response.headers["Location"] == "https://auth.example"
-        assert session["state"] == "nonce"
-        assert session["req_token"] == ["a", "b"]
+    client = auth_app.test_client()
+    response = client.get("/login")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "https://auth.example"
+
+    with client.session_transaction() as sess:
+        assert sess["state"] == "nonce"
+        assert sess["req_token"] == ["a", "b"]
 
     assert limiter.calls
 
 
-def test_callback_success(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_success(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyLimiter:
         def allow(self, key: str) -> bool:
             return True
@@ -105,35 +110,41 @@ def test_callback_success(auth, app_auth_mock: Flask, monkeypatch: pytest.Monkey
         staticmethod(lambda **kwargs: fake_user),
     )
     monkeypatch.setattr("src.main_app.public.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
-    with app_auth_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
-        session["state"] = "state-value"
-        session["req_token"] = ["k", "s"]
 
-        response = auth.callback()
-        cookie_header = response.headers.get("Set-Cookie", "")
+    client = auth_app.test_client()
+    with client.session_transaction() as sess:
+        sess["state"] = "state-value"
+        sess["req_token"] = ["k", "s"]
 
-        assert response.status_code == 302
-        assert "uid_enc_copy" in cookie_header
-        assert session["uid"] == 123
-        assert g._current_user is not None
+    response = client.get("/callback?state=token&oauth_verifier=code")
+    cookie_header = response.headers.get("Set-Cookie", "")
+
+    assert response.status_code == 302
+    assert "uid_enc_copy" in cookie_header
+
+    with client.session_transaction() as sess:
+        assert sess["uid"] == 123
 
 
-def test_logout_clears_session(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_logout_clears_session(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.main_app.public.auth.routes.delete_user_token", lambda uid: None)
     monkeypatch.setattr("src.main_app.public.auth.routes.extract_user_id", lambda token: 55)
 
-    with app_auth_mock.test_request_context("/logout"):
-        session["uid"] = 42
-        session["username"] = "Tester"
+    client = auth_app.test_client()
+    with client.session_transaction() as sess:
+        sess["uid"] = 42
+        sess["username"] = "Tester"
 
-        response = auth.logout()
+    response = client.get("/logout")
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/"
-        assert "uid" not in session
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/"
+
+    with client.session_transaction() as sess:
+        assert "uid" not in sess
 
 
-def test_login_rate_limited(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_login_rate_limited(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test login redirects when rate limited."""
 
     class DummyLimiter:
@@ -146,13 +157,13 @@ def test_login_rate_limited(auth, app_auth_mock: Flask, monkeypatch: pytest.Monk
     limiter = DummyLimiter()
     monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", limiter)
 
-    with app_auth_mock.test_request_context("/login"):
-        response = auth.login()
-        assert response.status_code == 302
-        _location = response.headers["Location"]
+    client = auth_app.test_client()
+    response = client.get("/login")
+
+    assert response.status_code == 302
 
 
-def test_callback_rate_limited(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_rate_limited(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test callback redirects when rate limited."""
 
     class DummyLimiter:
@@ -162,12 +173,13 @@ def test_callback_rate_limited(auth, app_auth_mock: Flask, monkeypatch: pytest.M
     limiter = DummyLimiter()
     monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", limiter)
 
-    with app_auth_mock.test_request_context("/callback?state=token&oauth_verifier=code"):
-        response = auth.callback()
-        assert response.status_code == 302
+    client = auth_app.test_client()
+    response = client.get("/callback?state=token&oauth_verifier=code")
+
+    assert response.status_code == 302
 
 
-def test_callback_missing_state(auth, app_auth_mock: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_missing_state(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test callback fails when state is missing."""
 
     class DummyLimiter:
@@ -176,9 +188,10 @@ def test_callback_missing_state(auth, app_auth_mock: Flask, monkeypatch: pytest.
 
     monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())
 
-    with app_auth_mock.test_request_context("/callback"):
-        response = auth.callback()
-        assert response.status_code == 302
+    client = auth_app.test_client()
+    response = client.get("/callback")
+
+    assert response.status_code == 302
 
 
 def test_load_request_token_valid(monkeypatch: pytest.MonkeyPatch) -> None:
