@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app import create_app
+from src.main_app.admin.routes import owid_charts as owid_charts_module
 from src.main_app.config import TestingConfig
 from src.main_app.db.models import OwidChartRecord
 
@@ -62,10 +63,17 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, sample_chart_recor
         "src.main_app.admin.routes.owid_charts.OwidChartsService",
         MagicMock(return_value=mocks),
     )
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.owid_charts.delete_chart",
+        mocks.delete_chart,
+    )
 
     flask_app = create_app(TestingConfig)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
+
+    # Patch the existing module-level singleton's service instance
+    monkeypatch.setattr(owid_charts_module.owidcharts_module, "owid_charts_service", mocks)
 
     yield flask_app.test_client(), mocks
 
