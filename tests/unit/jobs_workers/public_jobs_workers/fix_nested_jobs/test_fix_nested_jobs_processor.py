@@ -12,14 +12,20 @@ from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import
 from src.main_app.shared.fix_nested.worker import VerificationResult
 
 
-def _make_processor(filename="File:test.svg", user=None, args=None, cancel_event=None):
+def _make_processor(
+    filename="File:test.svg",
+    user=None,
+    args=None,
+    cancel_event=None,
+    ) -> FixNestedJobsProcessor:
     """Factory for FixNestedJobsProcessor with sensible defaults."""
     if args is None:
-        args = {"filename": filename}
+        args = {"filename": filename, "upload": True}
+
     return FixNestedJobsProcessor(
         job_id=1,
         args=args,
-        user=user,
+        user=user or {"username": "testuser"},
         cancel_event=cancel_event,
     )
 

@@ -34,7 +34,7 @@ def _make_processor(
         args = {"filename": filename, "upload": True}
 
     return FixNestedJobsProcessor(
-        job_id=42,
+        job_id=1,
         args=args,
         user=user or {"username": "testuser"},
         cancel_event=cancel_event,
@@ -47,18 +47,14 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 
     mocks = {
         "save_job_result_by_name": MagicMock(),
-        "is_job_cancelled": MagicMock(),
         "download_svg_file": MagicMock(),
         "detect_nested_tags": MagicMock(),
         "fix_nested_tags": MagicMock(),
         "verify_fix": MagicMock(),
         "upload_fixed_svg": MagicMock(),
+        "is_job_cancelled": MagicMock(),
     }
 
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
-        mocks["is_job_cancelled"],
-    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mocks["save_job_result_by_name"],
@@ -82,6 +78,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
         mocks["upload_fixed_svg"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        mocks["is_job_cancelled"],
     )
 
     return mocks
