@@ -164,7 +164,6 @@ class TestAddChartPopup:
 
     def test_add_chart_popup_renders(self, mock_service, owid_charts_admin_client):
         """Test add chart popup renders."""
-        owid_charts_admin_client= owid_charts_admin_client
 
         response = owid_charts_admin_client.get("/admin/owidcharts/add")
 
@@ -196,7 +195,6 @@ class TestAddChart:
     def test_add_chart_missing_slug(self, mock_service, owid_charts_admin_client):
         """Test adding a chart without slug redirects with flash."""
 
-
         response = owid_charts_admin_client.post(
             "/admin/owidcharts/add",
             data={
@@ -211,8 +209,6 @@ class TestAddChart:
 
     def test_add_chart_missing_title(self, mock_service, owid_charts_admin_client):
         """Test adding a chart without title redirects with flash."""
-        owid_charts_admin_client= owid_charts_admin_client
-
         response = owid_charts_admin_client.post(
             "/admin/owidcharts/add",
             data={
@@ -296,7 +292,6 @@ class TestUpdateChart:
 
     def test_update_chart_missing_id(self, mock_service, owid_charts_admin_client):
         """Test updating without chart_id redirects."""
-        owid_charts_admin_client= owid_charts_admin_client
 
         response = owid_charts_admin_client.post(
             "/admin/owidcharts/update",
@@ -311,7 +306,6 @@ class TestUpdateChart:
 
     def test_update_chart_missing_slug(self, mock_service, owid_charts_admin_client):
         """Test updating without slug redirects with flash."""
-        owid_charts_admin_client= owid_charts_admin_client
 
         response = owid_charts_admin_client.post(
             "/admin/owidcharts/update",

@@ -7,7 +7,6 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from flask import Flask
 from pytest_mock import MockerFixture
 
 from src.main_app import create_app
@@ -67,7 +66,6 @@ def test_extract_post_empty_filename_shows_error(
     patch_render: dict,
 ) -> None:
     """Test that submitting an empty filename shows an error."""
-    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -76,7 +74,7 @@ def test_extract_post_empty_filename_shows_error(
 
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", fake_flash)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": ""}):
+    with app_client.test_request_context("/extract/", method="POST", data={"filename": ""}):
         result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
@@ -91,7 +89,6 @@ def test_extract_post_strips_file_prefix(
     tmp_path,
 ) -> None:
     """Test that 'File:' prefix is stripped from filename."""
-    app = app_client
 
     # 1. Use mocker.patch for stronger assertions
     mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.download_one_file")
@@ -104,7 +101,7 @@ def test_extract_post_strips_file_prefix(
     mocker.patch("src.main_app.public.main_routes.extract_routes.shutil.rmtree")
     mocker.patch("src.main_app.public.main_routes.extract_routes.flash")
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
+    with app_client.test_request_context("/extract/", method="POST", data={"filename": "File: Test.svg"}):
         extract_routes.extract_translations_post()
 
     # Assert that download was called with the stripped filename
@@ -120,7 +117,6 @@ def test_extract_post_download_failure(
     tmp_path,
 ) -> None:
     """Test that download failure shows appropriate error."""
-    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -142,7 +138,7 @@ def test_extract_post_download_failure(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
+    with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
@@ -156,7 +152,6 @@ def test_extract_post_extraction_error(
     tmp_path,
 ) -> None:
     """Test that extraction error shows appropriate error."""
-    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -180,7 +175,7 @@ def test_extract_post_extraction_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
+    with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/form.html"
@@ -194,7 +189,6 @@ def test_extract_post_successful_extraction(
     tmp_path,
 ) -> None:
     """Test successful extraction returns proper context."""
-    app = app_client
 
     flashed: list[tuple[str, str]] = []
 
@@ -223,7 +217,7 @@ def test_extract_post_successful_extraction(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
-    with app.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
+    with app_client.test_request_context("/extract/", method="POST", data={"filename": "Test.svg"}):
         result = extract_routes.extract_translations_post()
 
     assert result == "rendered:extract/result.html"
