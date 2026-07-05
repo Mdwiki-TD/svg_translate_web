@@ -95,7 +95,7 @@ class DeleteService:
     def __init__(self) -> None:
         pass
 
-    def delete_record_by_pk(self, model: Type[db.Model], pk_value: Any) -> bool:
+    def delete_record_by_pk(self, model: Type[db.Model], pk_value: Any) -> bool: # type: ignore
         return delete_record_by_pk(model, pk_value)
 
     def delete_user_token(self, user_id: int) -> bool:
