@@ -6,9 +6,9 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from flask import Flask
+from flask import Blueprint, Flask
 
-from src.main_app.public.profile import bp_profile
+from src.main_app.public.profile import ProfileRoutes
 
 
 class MockUser:
@@ -58,7 +58,8 @@ def app(tmp_path):
     (templates_dir / "profile.html").write_text(TEMPLATE_TEXT)
     app = Flask(__name__, template_folder=str(templates_dir))
     app.secret_key = "test"
-    app.register_blueprint(bp_profile)
+    bp_profile = Blueprint("profile", __name__, url_prefix="/profile")
+    app.register_blueprint(ProfileRoutes(bp_profile).bp)
     return app
 
 
