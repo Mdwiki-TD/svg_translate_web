@@ -74,7 +74,7 @@ def match_newest_world_file(text: str) -> str:
     return newest_world_file
 
 
-def find_newest_world_file(text: str) -> str | None:
+def find_newest_world_file(text: str, remove_prefix: bool = False) -> str | None:
     """ """
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
@@ -94,6 +94,9 @@ def find_newest_world_file(text: str) -> str | None:
 
         # break when match owidslidersrcs template
         break
+
+    if newest_world_file and remove_prefix:
+        newest_world_file = newest_world_file.removeprefix("File:")
 
     return newest_world_file
 

@@ -42,7 +42,7 @@ def match_main_title_from_url_new(text: str) -> str | None:
     return path
 
 
-def find_main_title_from_template(text: str):
+def find_main_title_from_template(text: str) -> str | None:
     # Parse the text using wikitextparser
     parsed = wtp.parse(text)
 
@@ -59,7 +59,7 @@ def find_main_title_from_template(text: str):
     return main_title
 
 
-def find_main_title_from_owidslidersrcs(text: str):
+def find_main_title_from_owidslidersrcs(text: str) -> str | None:
     """
     Example:
         ==Data==
@@ -91,7 +91,7 @@ def find_main_title_from_owidslidersrcs(text: str):
     return main_title
 
 
-def find_main_title(text: str):
+def find_main_title(text: str, remove_prefix: bool = False) -> str | None:
     main_title = (
         find_main_title_from_template(text)
         or match_main_title_from_url_new(text)
@@ -102,6 +102,8 @@ def find_main_title(text: str):
     if main_title:
         main_title = main_title.replace("_", " ").strip()
 
+    if main_title and remove_prefix:
+        main_title = main_title.removeprefix("File:")
     return main_title
 
 
