@@ -6,16 +6,8 @@ import threading
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import runner
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import CropMainFilesWorkerObject
-
-
-@pytest.fixture(autouse=True)
-def _mock(mock_before_run):
-    pass
-
 
 # ---------------------------------------------------------------------------
 # Fixture for a completed result returned by process()
