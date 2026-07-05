@@ -104,6 +104,7 @@ class TestLogout:
         with mock_client.session_transaction() as session:
             assert "uid" not in session
             assert "username" not in session
+
     def test_logout_no_uid(self, mock_client, monkeypatch):
         resp = mock_client.get("/logout")
         assert resp.status_code == 302

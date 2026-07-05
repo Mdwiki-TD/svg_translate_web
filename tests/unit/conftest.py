@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_before_run(monkeypatch: pytest.MonkeyPatch):
@@ -17,6 +17,7 @@ def mock_before_run(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
+
 
 @pytest.fixture
 def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
