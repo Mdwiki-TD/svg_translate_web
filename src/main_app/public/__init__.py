@@ -2,8 +2,6 @@
 
 from flask import Blueprint, Flask
 
-from ..admin import bp_admin, register_bp_admin_blueprints
-from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .api_routes import bp_api
 from .auth.routes import bp_auth
@@ -17,12 +15,8 @@ from .public_jobs import PublicJobsRoutes
 
 
 def register_blueprints(app: Flask) -> None:
-    register_bp_admin_blueprints(bp_admin, jobs_data_admins)
-
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_auth)
-
-    app.register_blueprint(bp_admin)
     app.register_blueprint(bp_profile)
 
     # Public API module

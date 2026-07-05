@@ -1,6 +1,6 @@
 """Admin blueprint package."""
 
-from flask import Blueprint
+from flask import Blueprint, Flask
 
 from .admin_panel import bp_admin
 from .routes import (
@@ -13,8 +13,9 @@ from .routes import (
     slug_redirects_module,
 )
 
+from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 
-def register_bp_admin_blueprints(_bp: Blueprint, jobs_data_admins) -> None:
+def register_bp_admin_blueprints(_bp) -> None:
     _bp.register_blueprint(CoordinatorsRoutes().bp)
     _bp.register_blueprint(UsersRoutes().bp)
     _bp.register_blueprint(SettingsRoutes().bp)

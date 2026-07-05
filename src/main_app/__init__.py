@@ -22,6 +22,7 @@ from .extensions import (
 )
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .public import register_blueprints
+from .admin import bp_admin, register_bp_admin_blueprints
 from .public.utils import context_data
 from .shared.core import CookieHeaderClient, filters
 
@@ -163,6 +164,8 @@ def create_app(config_class: Type) -> Flask:
 
     if db_is_ok:
         register_blueprints(app)
+        register_bp_admin_blueprints(bp_admin)
+        app.register_blueprint(bp_admin)
         register_cli_jobs(app)
     else:
 
