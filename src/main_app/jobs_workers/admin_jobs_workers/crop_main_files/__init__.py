@@ -7,6 +7,8 @@ from .upload import upload_cropped_file
 from .worker import CropMainFilesWorker
 from .runner import crop_main_files_worker_entry
 
+from .objects import CropMainFilesWorkerObject
+
 __all__ = [
     "CropMainFilesWorker",
     "crop_main_files_worker_entry",
@@ -14,4 +16,5 @@ __all__ = [
     "download_file_for_cropping",
     "upload_cropped_file",
     "crop_svg_file",
+    "CropMainFilesWorkerObject",
 ]
