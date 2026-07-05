@@ -1,11 +1,13 @@
 """ """
 
-from .crop_file import crop_svg_file
-from .crop_utils import generate_cropped_filename
-from .download import download_file_for_cropping
 from .objects import CropMainFilesWorkerObject
 from .runner import crop_main_files_worker_entry
-from .upload import upload_cropped_file
+from .steps import (
+    crop_svg_file,
+    download_file_for_cropping,
+    generate_cropped_filename,
+    upload_cropped_file,
+)
 from .worker import CropMainFilesWorker
 
 __all__ = [

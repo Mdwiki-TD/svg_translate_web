@@ -23,11 +23,11 @@ from ....utils.wikitext import (
     update_template_page_file_reference,
 )
 from ...base_worker import BaseObjectsJobWorker
-from .crop_file import crop_svg_file
-from .crop_utils import generate_cropped_filename
-from .download import download_file_for_cropping
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
-from .upload import upload_cropped_file
+from .steps.crop_file import crop_svg_file
+from .steps.crop_utils import generate_cropped_filename
+from .steps.download import download_file_for_cropping
+from .steps.upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
 

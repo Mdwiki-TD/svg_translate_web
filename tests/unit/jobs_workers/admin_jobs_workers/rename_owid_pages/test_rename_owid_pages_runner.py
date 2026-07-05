@@ -36,6 +36,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
             job_id=1,
             user={"username": "tester"},
             cancel_event=None,
+            args=None,
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -51,6 +52,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
             job_id=2,
             user=None,
             cancel_event=None,
+            args=None,
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -62,6 +64,7 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
             job_id=3,
             user=None,
             cancel_event=cancel_event,
+            args=None,
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -72,4 +75,5 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
             job_id=4,
             user=None,
             cancel_event=None,
+            args={"update_all": "true"},
         )

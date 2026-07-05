@@ -1,11 +1,11 @@
-"""Unit tests for crop_main_files.crop_file module."""
+"""Unit tests for crop_main_files.steps.crop_file module."""
 
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
-from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import crop_file
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import crop_file
 
 
 def create_test_svg(include_footer: bool = True) -> str:
@@ -265,7 +265,7 @@ def test_crop_svg_file_exception_handling(tmp_path):
 
     # Mock remove_footer_and_adjust_height to raise an exception
     with patch(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.crop_file.remove_footer_and_adjust_height"
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.crop_file.remove_footer_and_adjust_height"
     ) as mock_remove:
         mock_remove.side_effect = Exception("Test exception")
 
