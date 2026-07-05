@@ -44,7 +44,7 @@ def test_base_model_to_dict(mock_app: Flask) -> None:
         assert data["created_at"] == "2025-01-01T12:00:00"
 
 
-def test_base_model_to_dict():
+def test_base_model_to_dict1():
     """Test that to_dict serializes column values to a dictionary."""
     model = BaseModel()
     model.foo = "value1"

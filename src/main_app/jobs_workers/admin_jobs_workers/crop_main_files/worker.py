@@ -471,37 +471,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         file_info.cropped_filename = ""
 
 
-# ------------------------------------------------------------------
-# Backwards-compatible entry-point
-# ------------------------------------------------------------------
-
-
-def crop_main_files_worker_entry(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-) -> None:
-    """
-    Entry point for crop newest world files background job.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data for OAuth uploads
-        cancel_event: Threading event for cancellation
-        args: Optional arguments dict (unused, for unified signature)
-    """
-    worker = CropMainFilesWorker(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
-    )
-    worker.run()
-
-
 __all__ = [
-    "crop_main_files_worker_entry",
     "CropMainFilesWorker",
 ]

@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from flask import send_file
 
 from ....api_services import create_commons_session
 from ....config import settings
@@ -22,10 +21,45 @@ from ...base_worker import BaseObjectsJobWorker
 from .download_helper import download_file_from_commons
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
-# Zip file name constant
-MAIN_FILES_ZIP_NAME = "main_files.zip"
-
 logger = logging.getLogger(__name__)
+
+
+def generate_main_files_zip(main_files_zip_name) -> Path:
+    """
+    Generate a zip archive of all files in the main_files_path directory.
+
+    Creates the zip file on disk in the main_files_path directory.
+    Only includes actual files (not directories), excluding the zip file itself.
+
+    Returns:
+        Path: Path to the created zip file
+
+    Raises:
+        FileNotFoundError: If main_files_path directory does not exist
+        RuntimeError: If no files are found to zip
+    """
+    main_files_path = Path(settings.paths.main_files_path)
+
+    if not main_files_path.exists():
+        raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")
+
+    zip_file_path = main_files_path / main_files_zip_name
+
+    # Create the zip file
+    file_count = 0
+    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in main_files_path.iterdir():
+            if file_path.is_file() and file_path.name != main_files_zip_name:
+                zip_file.write(file_path, file_path.name)
+                file_count += 1
+
+    if file_count == 0:
+        # Remove empty zip file and raise error
+        zip_file_path.unlink(missing_ok=True)
+        raise RuntimeError("No files found to zip in main_files_path")
+
+    logger.info("Generated %s with %d files", zip_file_path, file_count)
+    return zip_file_path
 
 
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
@@ -46,6 +80,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.session: requests.Session | None = None
 
         self.args = args or {}
+        self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
 
@@ -159,7 +194,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         # Generate zip file after successful completion
         if self.result.status != "cancelled":
             try:
-                generate_main_files_zip()
+                generate_main_files_zip(self.main_files_zip_name)
                 logger.info("Job %s: Generated main_files.zip successfully", self.job_id)
             except Exception as e:
                 logger.exception("Job %s: Failed to generate main_files.zip: %s", self.job_id, e)
@@ -174,100 +209,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         return self.result
 
 
-def download_main_files_for_templates(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-) -> None:
-    """
-    Background worker to download main files for all templates.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data (not used for downloads, but kept for consistency)
-        cancel_event: Optional event to check for cancellation
-        args: Optional arguments dict (unused, for unified signature)
-    """
-    logger.info("Starting job %s: download main files for templates", job_id)
-
-    worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
-    worker.run()
-
-
-def generate_main_files_zip() -> Path:
-    """
-    Generate a zip archive of all files in the main_files_path directory.
-
-    Creates the zip file on disk in the main_files_path directory.
-    Only includes actual files (not directories), excluding the zip file itself.
-
-    Returns:
-        Path: Path to the created zip file
-
-    Raises:
-        FileNotFoundError: If main_files_path directory does not exist
-        RuntimeError: If no files are found to zip
-    """
-    main_files_path = Path(settings.paths.main_files_path)
-
-    if not main_files_path.exists():
-        raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")
-
-    zip_file_path = main_files_path / MAIN_FILES_ZIP_NAME
-
-    # Create the zip file
-    file_count = 0
-    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in main_files_path.iterdir():
-            if file_path.is_file() and file_path.name != MAIN_FILES_ZIP_NAME:
-                zip_file.write(file_path, file_path.name)
-                file_count += 1
-
-    if file_count == 0:
-        # Remove empty zip file and raise error
-        zip_file_path.unlink(missing_ok=True)
-        raise RuntimeError("No files found to zip in main_files_path")
-
-    logger.info("Generated %s with %d files", zip_file_path, file_count)
-    return zip_file_path
-
-
-def create_main_files_zip() -> tuple[Any, int]:
-    """
-    Serve the main files zip archive.
-
-    Checks for an existing zip file first. If it doesn't exist, returns an error.
-    The zip file should be generated automatically when a download job completes successfully.
-
-    Returns:
-        tuple: (send_file response or error message, status_code)
-    """
-    main_files_path = Path(settings.paths.main_files_path)
-    zip_file_path = main_files_path / MAIN_FILES_ZIP_NAME
-
-    if not main_files_path.exists():
-        return "Main files directory does not exist", 404
-
-    # Check if zip file exists
-    if not zip_file_path.exists():
-        return ("Zip file not found. Please run a 'Download Main Files' job first to generate the archive.", 404)
-
-    # Check if zip file is valid (not empty)
-    if zip_file_path.stat().st_size == 0:
-        return "Zip file is empty or corrupted. Please re-run the 'Download Main Files' job.", 500
-
-    return (
-        send_file(zip_file_path, mimetype="application/zip", as_attachment=True, download_name=MAIN_FILES_ZIP_NAME),
-        200,
-    )
-
-
 __all__ = [
-    "download_main_files_for_templates",
     "DownloadMainFilesWorker",
-    "create_main_files_zip",
-    "generate_main_files_zip",
-    "MAIN_FILES_ZIP_NAME",
 ]

@@ -199,7 +199,15 @@ class TestProcessOneItemWithTemplateData:
         return worker
 
     def test_updates_template_when_data_differs_from_template_data(self, worker_with_slug, monkeypatch):
-        template = TemplateData(id=1, title="T", main_file="old.svg", last_world_file="old_world.svg", last_world_year=2020, slug="x", source="y")
+        template = TemplateData(
+            id=1,
+            title="T",
+            main_file="old.svg",
+            last_world_file="old_world.svg",
+            last_world_year=2020,
+            slug="x",
+            source="y",
+        )
         monkeypatch.setattr(
             "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.update_template_data",
             MagicMock(),
@@ -257,6 +265,8 @@ class TestProcessOneItemWithTemplateData:
             "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.CollectMainFilesWorker._load_slug",
             lambda self, title, slug, source: "new-slug",
         )
-        template = TemplateData(id=1, title="T", main_file=None, last_world_file=None, last_world_year=None, slug="old-slug", source="")
+        template = TemplateData(
+            id=1, title="T", main_file=None, last_world_file=None, last_world_year=None, slug="old-slug", source=""
+        )
         result = worker_with_slug._process_one_item(template)
         assert result is True
