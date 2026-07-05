@@ -163,7 +163,7 @@ class TestCopySvgLangsWorkerProcess:
         assert result.errors[0].get("error") == "No authenticated user site available."
 
     def test_process_cancelled(self, mock_worker: CopySvgLangsWorker, mock_clients):
-        with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
+        with patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", return_value=True):
             result = mock_worker.process()
             assert result.stages.text.status == "cancelled"
 
@@ -581,7 +581,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
 
         with (
-            patch.object(CopySvgLangsWorker, "is_cancelled", side_effect=[False, False, True]),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", side_effect=[False, False, True]),
             patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file") as m_dl,
             patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.detect_nested_tags") as m_detect,
         ):
@@ -602,8 +602,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
 
         with (
-            patch.object(CopySvgLangsWorker, "is_cancelled", return_value=False),
-            patch.object(CopySvgLangsWorker, "check_cancel_db_periodic", return_value=True),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", return_value=False),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.check_cancel_db_periodic", return_value=True),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file",
                 return_value={"ok": True, "path": str(tmp_path / "test.svg")},
@@ -641,8 +641,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
 
         with (
-            patch.object(CopySvgLangsWorker, "is_cancelled", return_value=False),
-            patch.object(CopySvgLangsWorker, "check_cancel_db_periodic", return_value=False),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", return_value=False),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.check_cancel_db_periodic", return_value=False),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file",
                 return_value={"ok": True, "path": str(tmp_path / "test.svg")},
@@ -667,8 +667,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps["translations"].return_value = {"success": True, "translations": {"new": {"en": "Text"}}}
 
         with (
-            patch.object(CopySvgLangsWorker, "is_cancelled", return_value=False),
-            patch.object(CopySvgLangsWorker, "check_cancel_db_periodic", return_value=False),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", return_value=False),
+            patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.check_cancel_db_periodic", return_value=False),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_svg_file",
                 return_value={"ok": True, "path": str(tmp_path / "test.svg")},
@@ -691,7 +691,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 class TestCopySvgLangsWorkerStageMethods:
     def test_extract_titles_step_cancelled(self, mock_worker: CopySvgLangsWorker):
         mock_worker.text = "some text"
-        with patch.object(CopySvgLangsWorker, "is_cancelled", return_value=True):
+        with patch("src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.CopySvgLangsWorker.is_cancelled", return_value=True):
             result = mock_worker._extract_titles_step()
 
         assert result is False
@@ -781,7 +781,7 @@ class TestCopySvgLangsWorkerComputeOutputDir:
         assert mock_worker._compute_output_dir(None) is None
 
     def test_compute_output_dir_creates_dirs(self, mock_worker: CopySvgLangsWorker, tmp_path):
-        with patch.object(Path, "mkdir") as mock_mkdir:
+        with patch("pathlib.Path.mkdir") as mock_mkdir:
             mock_worker._compute_output_dir("File:Test File.svg")
 
             assert mock_mkdir.call_count == 3

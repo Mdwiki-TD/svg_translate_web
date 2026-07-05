@@ -33,6 +33,7 @@ def rename_owid_pages_for_templates(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
+        args=args,
     )
     worker.run()
 
