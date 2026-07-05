@@ -404,7 +404,7 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
     mock_services["find_main_title"].return_value = "test.svg"
 
     # Mock find_newest_world_file
-    mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
+    mock_find_last_world = MagicMock(return_value="test, World, 2021.svg")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         mock_find_last_world,
@@ -536,7 +536,7 @@ def test_collect_templates_data_only_last_world_file(mock_services, monkeypatch:
     mock_services["find_main_title"].return_value = None  # No main file
 
     # Mock find_newest_world_file
-    mock_find_last_world = MagicMock(return_value="File:test, World, 2021.svg")
+    mock_find_last_world = MagicMock(return_value="test, World, 2021.svg")
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
         mock_find_last_world,
