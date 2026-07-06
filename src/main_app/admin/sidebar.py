@@ -227,9 +227,9 @@ class Sidebar:
 
         active_group, active_id = self.get_the_active_group_and_sub()
 
-        for key, items in self.menu.items():
-            lis: list[Any] = []
-            key_id = key.lower().replace(" ", "_")
+        for group, items in self.menu.items():
+            sub_items: list[Any] = []
+            group_id = group.lower().replace(" ", "_")
             for item in items:
                 if item.disabled:
                     continue
@@ -238,34 +238,34 @@ class Sidebar:
 
                 link = generate_list_item(item)
 
-                lis.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
+                sub_items.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
 
-            if lis:
-                show = "show" if key == active_group else ""
-                expanded = "true" if key == active_group else "false"
-                icon = self.menu_icons.get(key, "")
+            if sub_items:
+                show = "show" if group == active_group else ""
+                expanded = "true" if group == active_group else "false"
+                icon = self.menu_icons.get(group, "")
                 icon_tag = f"<i class='bi {icon} me-1'></i>" if icon else ""
 
                 group_html = f"""
                     <li class="mb-1">
                         <button class="btn btn-toggle align-items-center rounded"
                                 data-bs-toggle="collapse"
-                                data-bs-target="#{key_id}-collapse"
+                                data-bs-target="#{group_id}-collapse"
                                 aria-expanded="{expanded}">
                             {icon_tag}
-                            <span class='hide-on-collapse-inline'>{key}</span>
+                            <span class='hide-on-collapse-inline'>{group}</span>
                         </button>
-                        <div class="collapse {show}" id="{key_id}-collapse">
+                        <div class="collapse {show}" id="{group_id}-collapse">
                             <div class="d-none d-md-inline">
                                 <!-- desktop -->
                                 <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                    {"".join(lis)}
+                                    {"".join(sub_items)}
                                 </ul>
                             </div>
                             <div class="d-inline d-md-none">
                                 <!-- mobile -->
                                 <ul class="navbar-nav flex-row flex-wrap btn-toggle-nav-mobile list-unstyled fw-normal pb-1 small">
-                                    {"".join(lis)}
+                                    {"".join(sub_items)}
                                 </ul>
                             </div>
                         </div>
