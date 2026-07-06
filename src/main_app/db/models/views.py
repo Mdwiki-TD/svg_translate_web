@@ -65,7 +65,7 @@ class TemplateNeedUpdateRecord(db.Model):
             "template_id": self.template_id,
             "template_title": self.template_title,
             "slug": self.slug,
-            "owid_variable_id": self.owid_variable_id,
+            "owid_variable_id": self.owid_variable_id or "",
             "max_time": self.max_time,
             "last_world_year": self.last_world_year,
             "difference": difference,

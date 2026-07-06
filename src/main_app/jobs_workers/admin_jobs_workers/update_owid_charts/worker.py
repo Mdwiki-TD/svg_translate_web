@@ -147,6 +147,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.owid_charts_service = OwidChartsService()
 
     def get_job_type(self) -> str:
+        """Return the job type identifier."""
         return "update_owid_charts"
 
     # ------------------------------------------------------------------
@@ -297,10 +298,38 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return charts
 
     # ------------------------------------------------------------------
-    # BaseObjectsJobWorker.process
+    # sub public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> UpdateOwidChartsWorkerObject:
+    def process_one(self, chart_id: int) -> UpdateOwidChartsWorkerObject:
+        chart = self.owid_charts_service.get_chart_by_id(chart_id)
+        if not chart:
+            logger.error(f"Job {self.job_id}: Chart '{chart_id}' not found")
+            self.result.summary.total = 0
+            self.result.status = "failed"
+            self.log_errors(f"Chart '{chart_id}' not found")
+            self.result.failed_charts.append(
+                {
+                    "status": "failed",
+                    "slug": chart_id,
+                    "error": "Chart not found",
+                }
+            )
+            return self.result
+
+        self.result.summary.total = 1
+        logger.info("Job %d: Processing %s", self.job_id, chart.slug)
+
+        _changed = self._process_chart(chart)
+
+        self._save_progress()
+
+        if self.result.status in ("pending", "running"):
+            self.result.status = "completed"
+
+        return self.result
+
+    def process_all(self) -> UpdateOwidChartsWorkerObject:
         charts = self._load_charts()
         total = len(charts)
 
@@ -327,6 +356,22 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             self.result.status = "completed"
 
         return self.result
+
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> UpdateOwidChartsWorkerObject:
+        """Execute the collection processing logic."""
+        if not self._check_site():
+            return self.result
+
+        # Single chart mode: if a chart_id arg is provided, process only that one
+        if self.args.get("chart_id"):
+            return self.process_one(self.args["chart_id"])
+
+        # Default mode: process all charts
+        return self.process_all()
 
 
 __all__ = [
