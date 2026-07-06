@@ -194,15 +194,15 @@ class Sidebar:
         active_id = 0
 
         for key, items in self.menu.items():
-            css_class_full = [item.href for item in items if self.path == item.href]
+            active_hrefs = [item.href for item in items if self.path == item.href]
             for item in items:
-                css_class = "active" if item.href in css_class_full else ""
+                css_class = "active" if item.href in active_hrefs else ""
                 if css_class:
                     active_id = item.id
                     active_group = key
                     break
 
-                elif not css_class_full:
+                elif not active_hrefs:
                     if self.path == item.href or (self.path and self.path.startswith(item.href)):
                         css_class = "active"
 
@@ -220,7 +220,16 @@ class Sidebar:
         return active_group, active_id
 
     def create_side(self) -> str:
-        """Generate sidebar HTML structure based on menu definitions."""
+        """Generate sidebar HTML structure based on menu definitions.
+
+        This method constructs a responsive sidebar with collapsible groups and
+        sub-items. It determines the active menu item to highlight it and expand
+        its parent group. The generated HTML includes separate structures for
+        desktop and mobile views using Bootstrap utility classes.
+
+        Returns:
+            str: A string containing the formatted HTML structure of the sidebar.
+        """
         sidebar = ["<ul class='list-unstyled'>"]
 
         # logger.debug(f"Generating sidebar for active_route='{active_route}'")
