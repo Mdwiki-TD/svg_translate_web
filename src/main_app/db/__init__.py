@@ -59,7 +59,7 @@ def create_views(_db: SQLAlchemy) -> None:
                 with conn.begin():
                     conn.execute(text(create_sql))
             except Exception:
-                logger.exception("Failed to create view %s", table.name)
+                logger.error("Failed to create view %s", table.name)
 
 
 def receive_connect(dbapi_conn, connection_record) -> None:
