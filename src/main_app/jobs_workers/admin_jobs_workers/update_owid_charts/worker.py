@@ -153,6 +153,33 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # Per-chart processing
     # ------------------------------------------------------------------
+    def _update(
+        self,
+        chart: OwidChartRecord,
+        data: dict[str, Any],
+        info: ChartUpdateInfo,
+    ):
+        try:
+            self.owid_charts_service.update_chart_data_with_retry(
+                chart.chart_id,
+                data,
+            )
+            info.status = "updated"
+            self.result.updated_charts.append(info.to_dict())
+            return True
+        except OperationalError as exc:
+            info.status = "failed"
+            info.error = str(exc)
+
+            if exc.code == 2006:
+                logger.error("Job %s: MySQL server has gone away", self.job_id)
+            else:
+                logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
+
+        except Exception as exc:
+            logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
+            info.status = "failed"
+            info.error = str(exc)
 
     def _process_chart(self, chart: OwidChartRecord) -> bool:
         self.result.summary.processed += 1
@@ -273,27 +300,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             )
             return False
 
-        try:
-            self.owid_charts_service.update_chart_data_with_retry(
-                chart.chart_id,
-                data,
-            )
-            info.status = "updated"
-            self.result.updated_charts.append(info.to_dict())
-            return True
-        except OperationalError as exc:
-            info.status = "failed"
-            info.error = str(exc)
-
-            if exc.code == 2006:
-                logger.error("Job %s: MySQL server has gone away", self.job_id)
-            else:
-                logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
-
-        except Exception as exc:
-            logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
-            info.status = "failed"
-            info.error = str(exc)
+        self._update(chart, data, info)
 
         self.result.failed_charts.append(info.to_dict())
         return False
