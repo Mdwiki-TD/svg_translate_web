@@ -208,6 +208,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                     "status": "skipped",
                     "slug": chart.slug,
                     "skip_reason": "not found",
+                    "status_404": 404,
                 }
             )
             return False

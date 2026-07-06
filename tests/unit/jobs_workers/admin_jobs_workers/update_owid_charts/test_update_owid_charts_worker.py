@@ -189,10 +189,11 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is False
-        assert len(worker.result.skipped_charts) == 1
-        assert worker.result.skipped_charts[0]["status"] == "skipped"
-        assert worker.result.skipped_charts[0]["skip_reason"] == "not found"
-        assert worker.result.skipped_charts[0]["slug"] == "test-chart"
+        assert len(worker.result.failed_charts) == 1
+        assert worker.result.failed_charts[0]["status"] == "skipped"
+        assert worker.result.failed_charts[0]["status_404"] == 404
+        assert worker.result.failed_charts[0]["skip_reason"] == "not found"
+        assert worker.result.failed_charts[0]["slug"] == "test-chart"
         mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
             1, {"status_404": 404}
         )
