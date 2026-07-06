@@ -172,6 +172,31 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 class TestProcessChart:
     """Tests for _process_chart method."""
 
+    def test_process_chart_404(self, mock_services: MockServices):
+        """When fetch_grapher_metadata returns 404 -> status 'skipped' with 'not found' reason."""
+        mock_services.fetch_grapher_metadata.return_value = (None, 404)
+
+        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        chart = OwidChartRecord(
+            chart_id=1,
+            slug="test-chart",
+            min_time=2000,
+            max_time=2020,
+            len_years=21,
+            owid_variable_id=None,
+        )
+
+        result = worker._process_chart(chart)
+
+        assert result is False
+        assert len(worker.result.skipped_charts) == 1
+        assert worker.result.skipped_charts[0]["status"] == "skipped"
+        assert worker.result.skipped_charts[0]["skip_reason"] == "not found"
+        assert worker.result.skipped_charts[0]["slug"] == "test-chart"
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
+            1, {"status": 404}
+        )
+
     def test_process_chart_metadata_none(self, mock_services: MockServices):
         """When fetch_grapher_metadata returns None -> status 'failed'."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
