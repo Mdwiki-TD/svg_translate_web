@@ -51,7 +51,7 @@ def create_views(_db: SQLAlchemy) -> None:
                 continue
 
             create_sql = table.info["create_query"]
-            if not table.info.get("repalce_the_view"):
+            if not table.info.get("replace_the_view"):
                 if table.name in existing_views:
                     continue
 
