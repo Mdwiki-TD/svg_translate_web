@@ -135,7 +135,7 @@ def setup_db(mock_app: Flask):
                     continue
 
                 if not table.info.get("create_query"):
-                    logging.warning("View %s has no create_query, skipping", table.name)
+                    logging.error("View %s has no create_query, skipping", table.name)
                     continue
 
                 if table.name in existing_views:
@@ -146,7 +146,7 @@ def setup_db(mock_app: Flask):
                     conn.commit()
                 except Exception:
                     conn.rollback()
-                    logging.exception("Failed to create view %s", table.name)
+                    logging.error("Failed to create view %s", table.name)
 
         yield
 
