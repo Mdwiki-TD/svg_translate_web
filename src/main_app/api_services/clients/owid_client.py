@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from typing import Any
 
 import requests
 
@@ -27,6 +28,19 @@ def _build_session() -> requests.Session:
         session.headers.update({"User-Agent": settings.other.user_agent})
         _thread_local.session = session
     return _thread_local.session
+
+
+def _fetch_grapher_metadata(slug: str) -> Any:
+    """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
+    session = _build_session()
+    url = METADATA_URL.format(slug=slug)
+    try:
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
+        return response.json(), response.status_code
+
+    except Exception as exc:
+        logger.warning(f"Failed to fetch metadata for '{slug}': {exc}")
+        return None, None
 
 
 def fetch_grapher_metadata(slug: str) -> dict | None:
@@ -62,5 +76,6 @@ def fetch_indicators_metadata(owid_variable_id: int) -> dict | None:
 
 __all__ = [
     "fetch_grapher_metadata",
+    "_fetch_grapher_metadata",
     "fetch_indicators_metadata",
 ]
