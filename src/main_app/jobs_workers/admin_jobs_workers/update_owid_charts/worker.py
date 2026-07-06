@@ -158,14 +158,13 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         chart: OwidChartRecord,
         data: dict[str, Any],
         info: ChartUpdateInfo,
-    ):
+    ) -> bool:
         try:
             self.owid_charts_service.update_chart_data_with_retry(
                 chart.chart_id,
                 data,
             )
             info.status = "updated"
-            self.result.updated_charts.append(info.to_dict())
             return True
         except OperationalError as exc:
             info.status = "failed"
@@ -180,6 +179,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
             info.status = "failed"
             info.error = str(exc)
+        return False
 
     def _process_chart(self, chart: OwidChartRecord) -> bool:
         self.result.summary.processed += 1
@@ -301,7 +301,10 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             )
             return False
 
-        self._update(chart, data, info)
+        updated = self._update(chart, data, info)
+        if updated:
+            self.result.updated_charts.append(info.to_dict())
+            return True
 
         self.result.failed_charts.append(info.to_dict())
         return False
