@@ -28,7 +28,7 @@ class TemplateNeedUpdateRecord(db.Model):
         {
             "info": {
                 "is_view": True,
-                "repalce_the_view": True,
+                "replace_the_view": True,
                 "create_query": """
                     CREATE OR REPLACE VIEW
                         templates_need_update AS
@@ -90,7 +90,7 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
         {
             "info": {
                 "is_view": True,
-                "repalce_the_view": True,
+                "replace_the_view": True,
                 "create_query": """
                     CREATE OR REPLACE VIEW
                         owid_charts_templates AS

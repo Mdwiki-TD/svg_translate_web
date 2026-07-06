@@ -199,23 +199,17 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         metadata, status_code = _fetch_grapher_metadata(chart.slug)
 
         if status_code == 404:
-            info.status = "skipped"
-            info.skip_reason = "not found"
-            info.status_404 = 404
             _ = self._update(chart, {"status_404": 404}, info)
             self.result.failed_charts.append(
                 {
-                    "status": "skipped",
+                    "status": "failed",
                     "slug": chart.slug,
-                    "skip_reason": "not found",
-                    "status_404": 404,
+                    "error": "Chart not found",
                 }
             )
             return False
 
         if metadata is None:
-            info.status = "failed"
-            info.error = "Could not fetch metadata JSON"
             self.result.failed_charts.append(
                 {
                     "status": "failed",
@@ -262,8 +256,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             parsed = _parse_timespan(timespan_raw)
             # here we set status to failed if no parsed and no owid_variable_id to update.
             if parsed is None and not data:
-                info.status = "failed"
-                info.error = f"Could not parse timespan: '{timespan_raw}'"
                 self.result.failed_charts.append(
                     {
                         "status": "failed",
