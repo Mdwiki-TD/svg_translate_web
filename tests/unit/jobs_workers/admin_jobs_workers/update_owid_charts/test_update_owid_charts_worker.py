@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,25 +12,36 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
     UpdateOwidChartsWorker,
 )
 
+_WORKER = "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker"
+
+
+@dataclass
+class MockServices:
+    check_slugs: MagicMock
+    fetch_grapher_metadata: MagicMock
+    owid_charts_service_class: MagicMock
+    owid_charts_service: MagicMock
+
 
 @pytest.fixture
-def mock_check_slugs(monkeypatch):
-    _mock = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.check_slugs",
-        _mock,
-    )
-    return _mock
+def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
+    """Bundle of mocked worker dependencies for update_owid_charts."""
+    mock_check_slugs = MagicMock()
+    monkeypatch.setattr(f"{_WORKER}.check_slugs", mock_check_slugs)
 
+    mock_fetch = MagicMock(return_value=None)
+    monkeypatch.setattr(f"{_WORKER}.fetch_grapher_metadata", mock_fetch)
 
-@pytest.fixture
-def mock_fetch(monkeypatch):
-    _mock = MagicMock(return_value=None)
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.fetch_grapher_metadata",
-        _mock,
+    mock_service = MagicMock()
+    mock_service_class = MagicMock(return_value=mock_service)
+    monkeypatch.setattr(f"{_WORKER}.OwidChartsService", mock_service_class)
+
+    return MockServices(
+        check_slugs=mock_check_slugs,
+        fetch_grapher_metadata=mock_fetch,
+        owid_charts_service_class=mock_service_class,
+        owid_charts_service=mock_service,
     )
-    return _mock
 
 
 class TestUpdateOwidChartsWorkerInitialization:
@@ -159,7 +171,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 class TestProcessChart:
     """Tests for _process_chart method."""
 
-    def test_process_chart_metadata_none(self, mock_fetch, monkeypatch):
+    def test_process_chart_metadata_none(self, mock_services: MockServices):
         """When fetch_grapher_metadata returns None -> status 'failed'."""
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -178,10 +190,10 @@ class TestProcessChart:
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "Could not fetch metadata JSON"
 
-    def test_process_chart_nothing_to_update(self, mock_fetch, mock_check_slugs):
+    def test_process_chart_nothing_to_update(self, mock_services: MockServices):
         """When metadata has no timespan AND no owidVariableId -> skipped."""
         metadata = {"columns": {"col1": {"some_key": "some_value"}}}
-        mock_fetch.return_value = metadata
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -200,16 +212,10 @@ class TestProcessChart:
         assert worker.result.skipped_charts[0]["status"] == "skipped"
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_owid_variable_id_update_only(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_owid_variable_id_update_only(self, mock_services: MockServices):
         """When only owid_variable_id changes -> calls update_chart_data_with_retry."""
         metadata = {"columns": {"col1": {"owidVariableId": 123}}}
-        mock_fetch.return_value = metadata
-
-        mock_service = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
-            MagicMock(return_value=mock_service),
-        )
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -224,13 +230,15 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data_with_retry.assert_called_once_with(1, {"owid_variable_id": 123})
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
+            1, {"owid_variable_id": 123}
+        )
         assert len(worker.result.updated_charts) == 1
 
-    def test_process_chart_parse_timespan_fails(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_parse_timespan_fails(self, mock_services: MockServices):
         """When timespan exists but cannot be parsed -> failed."""
         metadata = {"columns": {"col1": {"timespan": "invalid"}}}
-        mock_fetch.return_value = metadata
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -248,16 +256,10 @@ class TestProcessChart:
         assert len(worker.result.failed_charts) == 1
         assert "Could not parse timespan" in worker.result.failed_charts[0]["error"]
 
-    def test_process_chart_full_update(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_full_update(self, mock_services: MockServices):
         """When both timespan parsed and owid_variable_id changed -> full update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 123}}}
-        mock_fetch.return_value = metadata
-
-        mock_service = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
-            MagicMock(return_value=mock_service),
-        )
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -272,15 +274,15 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data_with_retry.assert_called_once_with(
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
             1,
             {"min_time": 2000, "max_time": 2020, "len_years": 21, "owid_variable_id": 123},
         )
 
-    def test_process_chart_no_change_timespan(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_no_change_timespan(self, mock_services: MockServices):
         """When timespan values match existing -> skipped."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
-        mock_fetch.return_value = metadata
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -298,17 +300,11 @@ class TestProcessChart:
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_db_update_exception(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_db_update_exception(self, mock_services: MockServices):
         """When update_chart_data_with_retry raises -> status failed."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
-        mock_fetch.return_value = metadata
-
-        mock_service = MagicMock()
-        mock_service.update_chart_data_with_retry.side_effect = Exception("DB error")
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
-            MagicMock(return_value=mock_service),
-        )
+        mock_services.fetch_grapher_metadata.return_value = metadata
+        mock_services.owid_charts_service.update_chart_data_with_retry.side_effect = Exception("DB error")
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -327,16 +323,10 @@ class TestProcessChart:
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "DB error"
 
-    def test_process_chart_timespan_no_owid_variable_id(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_timespan_no_owid_variable_id(self, mock_services: MockServices):
         """When owid_variable_id is None and chart has none -> no variable update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
-        mock_fetch.return_value = metadata
-
-        mock_service = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
-            MagicMock(return_value=mock_service),
-        )
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -351,21 +341,15 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is True
-        mock_service.update_chart_data_with_retry.assert_called_once_with(
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
             1,
             {"min_time": 2000, "max_time": 2020, "len_years": 21},
         )
 
-    def test_process_chart_owid_variable_id_same(self, mock_fetch, mock_check_slugs, monkeypatch):
+    def test_process_chart_owid_variable_id_same(self, mock_services: MockServices):
         """When owid_variable_id matches existing -> no update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 42}}}
-        mock_fetch.return_value = metadata
-
-        mock_service = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService",
-            MagicMock(return_value=mock_service),
-        )
+        mock_services.fetch_grapher_metadata.return_value = metadata
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         chart = OwidChartRecord(
@@ -380,7 +364,7 @@ class TestProcessChart:
         result = worker._process_chart(chart)
 
         assert result is False
-        mock_service.update_chart_data_with_retry.assert_not_called()
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
