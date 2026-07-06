@@ -34,9 +34,14 @@ def fetch_grapher_metadata(slug: str) -> dict | None:
     session = _build_session()
     url = METADATA_URL.format(slug=slug)
     try:
-        resp = session.get(url, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        return resp.json()
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
+        # If successful, return the text content immediately
+        if response.status_code == 200:
+            return response.json()
+
+        response.raise_for_status()
+        return response.json()
+
     except Exception as exc:
         logger.warning(f"Failed to fetch metadata for '{slug}': {exc}")
         return None
