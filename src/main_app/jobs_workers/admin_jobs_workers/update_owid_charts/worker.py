@@ -167,8 +167,20 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         )
 
         # 1 A). Fetch metadata
-        metadata = fetch_grapher_metadata(chart.slug)
-        # metadata, status_code = _fetch_grapher_metadata(chart.slug)
+        # metadata = fetch_grapher_metadata(chart.slug)
+        metadata, status_code = _fetch_grapher_metadata(chart.slug)
+        if status_code == 404:
+            info.status = "skipped"
+            info.skip_reason = "not found"
+            self.result.skipped_charts.append(
+                {
+                    "status": "skipped",
+                    "slug": chart.slug,
+                    "skip_reason": "not found",
+                }
+            )
+            return False
+
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
