@@ -75,10 +75,10 @@ class Sidebar:
         If no active group is determined after checking all items, it defaults to the first group in the menu.
 
         Returns:
-            tuple[str, int]: A tuple containing the active group key (str) and the active item ID (int).
+            tuple[str, str]: The active group key and the active item ID.
         """
         active_group = ""
-        active_id = 0
+        active_id = ""
 
         for key, items in self.menu.items():
             active_hrefs = [item.href for item in items if self.path == item.href]
