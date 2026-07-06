@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
+from src.main_app.db.models import OwidChartRecord
+
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
@@ -145,7 +149,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=2000,
@@ -175,7 +179,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=None,
@@ -211,7 +215,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=None,
@@ -240,7 +244,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=None,
@@ -275,7 +279,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=1990,
@@ -306,7 +310,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=2000,
@@ -342,7 +346,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=1990,
@@ -378,7 +382,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=1990,
@@ -415,7 +419,7 @@ class TestProcessChart:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=2000,
@@ -453,7 +457,7 @@ class TestProcess:
     def test_process_single_chart(self, monkeypatch):
         """When one chart processes successfully -> completed."""
         mock_service = MagicMock()
-        chart = MagicMock(
+        chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
             min_time=2000,
