@@ -207,6 +207,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                     "skip_reason": "not found",
                 }
             )
+            _ = self._update(chart, {"status": 404}, info)
             return False
 
         if metadata is None:
