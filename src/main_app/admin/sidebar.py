@@ -77,34 +77,21 @@ class Sidebar:
         Returns:
             tuple[str, str]: The active group key and the active item ID.
         """
-        active_group = ""
-        active_id = ""
-
+        # First pass: look for an exact match across all groups
         for key, items in self.menu.items():
-            active_hrefs = [item.href for item in items if self.path == item.href]
             for item in items:
-                css_class = "active" if item.href in active_hrefs else ""
-                if css_class:
-                    active_id = item.id
-                    active_group = key
-                    break
+                if self.path == item.href:
+                    return key, item.id
 
-                elif not active_hrefs:
-                    if self.path == item.href or (self.path and self.path.startswith(item.href)):
-                        css_class = "active"
+        # Second pass: fallback match (startswith or active_route)
+        for key, items in self.menu.items():
+            for item in items:
+                if (self.path and item.href and self.path.startswith(item.href)) or self.active_route == item.id:
+                    return key, item.id
 
-                    if not css_class and self.active_route == item.id:
-                        css_class = "active"
-
-                if css_class:
-                    active_group = key
-                    active_id = item.id
-                    break
-
-        if not active_group:
-            active_group = list(self.menu.keys())[0]
-
-        return active_group, active_id
+        # Default to the first group if no match is found
+        active_group = list(self.menu.keys())[0] if self.menu else ""
+        return active_group, ""
 
     def create_side(self) -> str:
         """Generate sidebar HTML structure based on menu definitions.
