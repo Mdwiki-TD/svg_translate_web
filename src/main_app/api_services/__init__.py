@@ -2,6 +2,7 @@
 
 from .category import get_category_members
 from .clients import (
+    _fetch_grapher_metadata,
     create_commons_session,
     download_commons_file_core,
     download_file_rate_limit,
@@ -24,6 +25,7 @@ from .query_api import (
 )
 
 __all__ = [
+    "_fetch_grapher_metadata",
     "download_svg_file",
     "upload_fixed_svg",
     "MwClientPage",

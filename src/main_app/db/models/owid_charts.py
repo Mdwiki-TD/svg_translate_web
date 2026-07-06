@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -28,6 +28,7 @@ class OwidChartRecord(db.Model):  # type: ignore
         `single_year_data` tinyint(1) DEFAULT 0,
         `len_years` int(11) DEFAULT NULL,
         `has_timeline` tinyint(1) DEFAULT 0,
+        `status_404` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         PRIMARY KEY (`chart_id`),
@@ -45,14 +46,15 @@ class OwidChartRecord(db.Model):  # type: ignore
     title: Mapped[str] = mapped_column(String(500), nullable=False)
 
     has_map_tab: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    max_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    min_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    default_tab: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    owid_variable_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    default_tab: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    owid_variable_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     single_year_data: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    len_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
+    status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
@@ -87,6 +89,7 @@ class OwidChartRecord(db.Model):  # type: ignore
             "single_year_data",
             "len_years",
             "has_timeline",
+            "status_404",
             "created_at",
             "updated_at",
         ]

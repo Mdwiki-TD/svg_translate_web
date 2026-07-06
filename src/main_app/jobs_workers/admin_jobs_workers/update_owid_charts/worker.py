@@ -25,7 +25,7 @@ from typing import Any
 
 from sqlalchemy.exc import OperationalError
 
-from ....api_services import fetch_grapher_metadata
+from ....api_services import _fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
@@ -90,6 +90,7 @@ class ChartUpdateInfo:
     slug: str
     status: str = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
+    status_404: int | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -147,11 +148,39 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.owid_charts_service = OwidChartsService()
 
     def get_job_type(self) -> str:
+        """Return the job type identifier."""
         return "update_owid_charts"
 
     # ------------------------------------------------------------------
     # Per-chart processing
     # ------------------------------------------------------------------
+    def _update(
+        self,
+        chart: OwidChartRecord,
+        data: dict[str, Any],
+        info: ChartUpdateInfo,
+    ) -> bool:
+        try:
+            self.owid_charts_service.update_chart_data_with_retry(
+                chart.chart_id,
+                data,
+            )
+            info.status = "updated"
+            return True
+        except OperationalError as exc:
+            info.status = "failed"
+            info.error = str(exc)
+
+            if exc.code == 2006:
+                logger.error("Job %s: MySQL server has gone away", self.job_id)
+            else:
+                logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
+
+        except Exception as exc:
+            logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
+            info.status = "failed"
+            info.error = str(exc)
+        return False
 
     def _process_chart(self, chart: OwidChartRecord) -> bool:
         self.result.summary.processed += 1
@@ -166,7 +195,24 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         )
 
         # 1 A). Fetch metadata
-        metadata = fetch_grapher_metadata(chart.slug)
+        # metadata = fetch_grapher_metadata(chart.slug)
+        metadata, status_code = _fetch_grapher_metadata(chart.slug)
+
+        if status_code == 404:
+            info.status = "skipped"
+            info.skip_reason = "not found"
+            info.status_404 = 404
+            _ = self._update(chart, {"status_404": 404}, info)
+            self.result.failed_charts.append(
+                {
+                    "status": "skipped",
+                    "slug": chart.slug,
+                    "skip_reason": "not found",
+                    "status_404": 404,
+                }
+            )
+            return False
+
         if metadata is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
@@ -259,27 +305,10 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             )
             return False
 
-        try:
-            self.owid_charts_service.update_chart_data_with_retry(
-                chart.chart_id,
-                data,
-            )
-            info.status = "updated"
+        updated = self._update(chart, data, info)
+        if updated:
             self.result.updated_charts.append(info.to_dict())
             return True
-        except OperationalError as exc:
-            info.status = "failed"
-            info.error = str(exc)
-
-            if exc.code == 2006:
-                logger.error("Job %s: MySQL server has gone away", self.job_id)
-            else:
-                logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
-
-        except Exception as exc:
-            logger.exception("Job %s: DB update failed for chart '%s'", self.job_id, chart.slug)
-            info.status = "failed"
-            info.error = str(exc)
 
         self.result.failed_charts.append(info.to_dict())
         return False
@@ -297,10 +326,38 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return charts
 
     # ------------------------------------------------------------------
-    # BaseObjectsJobWorker.process
+    # sub public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> UpdateOwidChartsWorkerObject:
+    def process_one(self, chart_id: int) -> UpdateOwidChartsWorkerObject:
+        chart = self.owid_charts_service.get_chart_by_id(chart_id)
+        if not chart:
+            logger.error(f"Job {self.job_id}: Chart '{chart_id}' not found")
+            self.result.summary.total = 0
+            self.result.status = "failed"
+            self.log_errors(f"Chart '{chart_id}' not found")
+            self.result.failed_charts.append(
+                {
+                    "status": "failed",
+                    "slug": chart_id,
+                    "error": "Chart not found",
+                }
+            )
+            return self.result
+
+        self.result.summary.total = 1
+        logger.info("Job %d: Processing %s", self.job_id, chart.slug)
+
+        _changed = self._process_chart(chart)
+
+        self._save_progress()
+
+        if self.result.status in ("pending", "running"):
+            self.result.status = "completed"
+
+        return self.result
+
+    def process_all(self) -> UpdateOwidChartsWorkerObject:
         charts = self._load_charts()
         total = len(charts)
 
@@ -327,6 +384,22 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             self.result.status = "completed"
 
         return self.result
+
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> UpdateOwidChartsWorkerObject:
+        """Execute the collection processing logic."""
+        if not self._check_site():
+            return self.result
+
+        # Single chart mode: if a chart_id arg is provided, process only that one
+        if self.args.get("chart_id"):
+            return self.process_one(self.args["chart_id"])
+
+        # Default mode: process all charts
+        return self.process_all()
 
 
 __all__ = [

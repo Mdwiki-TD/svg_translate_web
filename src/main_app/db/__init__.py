@@ -50,14 +50,16 @@ def create_views(_db: SQLAlchemy) -> None:
                 logger.warning("View %s has no create_query, skipping", table.name)
                 continue
 
-            if table.name in existing_views:
-                continue
+            create_sql = table.info["create_query"]
+            if not table.info.get("repalce_the_view"):
+                if table.name in existing_views:
+                    continue
+
             try:
                 with conn.begin():
-                    create_sql = table.info["create_query"]
                     conn.execute(text(create_sql))
             except Exception:
-                logger.exception("Failed to create view %s", table.name)
+                logger.error("Failed to create view %s", table.name)
 
 
 def receive_connect(dbapi_conn, connection_record) -> None:

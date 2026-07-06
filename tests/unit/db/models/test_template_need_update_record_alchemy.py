@@ -79,6 +79,7 @@ def test_template_need_update_record_to_dict():
     expected = {
         "template_id": 1,
         "template_title": "Test Template",
+        "owid_variable_id": "",
         "slug": "test-slug",
         "max_time": 2023,
         "last_world_year": 2020,
@@ -97,6 +98,7 @@ def test_template_need_update_record_to_dict_with_none_values():
     expected = {
         "template_id": 1,
         "template_title": None,
+        "owid_variable_id": "",
         "slug": None,
         "max_time": None,
         "last_world_year": None,

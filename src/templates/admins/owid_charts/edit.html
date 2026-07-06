@@ -1,15 +1,23 @@
 {% extends "admins/popup_action.html" %}
 {% block title %}Edit Chart · {{ tool_title }}{% endblock %}
+
 {% block popup_action_content %}
 
 {% if error %}
-<div class="alert alert-danger">
+<div class="alert alert-danger" role="alert">
     {{ error }}
 </div>
 {% elif chart %}
 <div class="card m-2">
     <div class="card-header">
-        <h5 class="mb-0">Edit Chart</h5>
+        <div class="d-flex flex-wrap gap-2 justify-content-between">
+            <span class="h5 mb-0">
+                Edit Chart:
+            </span>
+            <button type="submit" form="collectDataForm" class="btn btn-warning">
+                <i class="bi bi-arrow-repeat"></i> Update
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <form method="post" action="{{ url_for('admin.owidcharts.update_chart') }}">
@@ -93,7 +101,6 @@
             <input type="hidden" name="single_year_data" id="single_year_data_hidden"
                 value="{{ '1' if chart.single_year_data else '0' }}">
 
-
             {% if chart.template_title %}
             <div class="alert alert-info">
                 <strong>Linked Template:</strong>
@@ -113,7 +120,6 @@
             </div>
             {% endif %}
 
-
             <div class="row mb-3">
                 <div class="col-sm-6">
                     <button type="submit" class="btn btn-outline-primary w-100">
@@ -126,6 +132,12 @@
                     </button>
                 </div>
             </div>
+        </form>
+        <form id="collectDataForm" method="post"
+            action="{{ url_for('admin.jobs.start_job', job_type='update_owid_charts') }}" class="d-inline"
+            onsubmit="return confirm('Update chart data for chart:\n{{ chart.title }} (id: {{ chart.chart_id }})?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="chart_id" value="{{ chart.chart_id }}" />
         </form>
     </div>
 </div>

@@ -19,6 +19,7 @@ class TemplateNeedUpdateRecord(db.Model):
     template_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    owid_variable_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     max_time: Mapped[int | None] = mapped_column(nullable=True)
 
@@ -27,13 +28,15 @@ class TemplateNeedUpdateRecord(db.Model):
         {
             "info": {
                 "is_view": True,
+                "repalce_the_view": True,
                 "create_query": """
-                    CREATE VIEW
+                    CREATE OR REPLACE VIEW
                         templates_need_update AS
                     select
                         t.id AS template_id,
                         t.title AS template_title,
                         t.slug AS slug,
+                        c.owid_variable_id AS owid_variable_id,
                         c.max_time AS max_time,
                         t.last_world_year AS last_world_year
                     from
@@ -43,6 +46,7 @@ class TemplateNeedUpdateRecord(db.Model):
                         t.last_world_year < c.max_time
                         AND c.max_time <= YEAR(now())
                         and t.last_world_year is not null
+                        and c.status_404 is null
                     ;
                     """,
             }
@@ -62,6 +66,7 @@ class TemplateNeedUpdateRecord(db.Model):
             "template_id": self.template_id,
             "template_title": self.template_title,
             "slug": self.slug,
+            "owid_variable_id": self.owid_variable_id or "",
             "max_time": self.max_time,
             "last_world_year": self.last_world_year,
             "difference": difference,
@@ -85,8 +90,9 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
         {
             "info": {
                 "is_view": True,
+                "repalce_the_view": True,
                 "create_query": """
-                    CREATE VIEW
+                    CREATE OR REPLACE VIEW
                         owid_charts_templates AS
                     select
                         c.chart_id AS chart_id,

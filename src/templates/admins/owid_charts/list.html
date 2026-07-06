@@ -117,7 +117,7 @@
                                 <th scope="col" class="text-center">map</th>
                                 <th scope="col" class="text-center">timeline</th>
                                 <th scope="col" class="text-center">Years</th>
-                                <th scope="col">Published</th>
+                                <th scope="col">Status</th>
                                 <th scope="col">Template</th>
                                 <th scope="col">Edit</th>
                             </tr>
@@ -207,6 +207,7 @@
                 },
                 {
                     data: null,
+                    title: "Years",
                     render: function (data, type, row) {
                         if (row.has_timeline) {
                             let html = `${row.min_time} - ${row.max_time}`;
@@ -219,15 +220,15 @@
                     }
                 },
                 {
-                    data: "is_published",
+                    data: "status_404",
+                    title: "Status",
                     render: function (data, type, row) {
-                        return data
-                            ? '<span class="badge bg-success">Yes</span>'
-                            : '<span class="badge bg-secondary">No</span>';
+                        return data == 404 ? `<span class="badge bg-danger">${data}</span>` : data || '-';
                     }
                 },
                 {
                     data: "template_title",
+                    title: "Template",
                     render: function (data, type, row) {
                         if (!data) return '<span class="text-muted">-</span>';
                         return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data.replace('Template:', '')}</a>`;
