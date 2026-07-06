@@ -90,6 +90,7 @@ class ChartUpdateInfo:
     slug: str
     status: str = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
+    status_404: int | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -200,14 +201,15 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         if status_code == 404:
             info.status = "skipped"
             info.skip_reason = "not found"
-            self.result.skipped_charts.append(
+            info.status_404 = 404
+            _ = self._update(chart, {"status_404": 404}, info)
+            self.result.failed_charts.append(
                 {
                     "status": "skipped",
                     "slug": chart.slug,
                     "skip_reason": "not found",
                 }
             )
-            _ = self._update(chart, {"status_404": 404}, info)
             return False
 
         if metadata is None:
