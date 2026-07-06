@@ -447,7 +447,7 @@ class TestProcess:
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
 
-        assert result.status == "completed"
+        assert result.status == "failed"
         assert result.summary.total == 0
 
     def test_process_single_chart(self, monkeypatch):
@@ -474,7 +474,7 @@ class TestProcess:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        result = worker.process()
+        result = worker.process_all()
 
         mock_process_chart.assert_called_once_with(chart)
         assert result.status == "completed"
@@ -499,7 +499,7 @@ class TestProcess:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        result = worker.process()
+        result = worker.process_all()
 
         assert result.summary.total == 2
         assert result.summary.processed == 0
@@ -527,7 +527,7 @@ class TestProcess:
         )
 
         worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
-        result = worker.process()
+        result = worker.process_all()
 
         mock_process_chart.assert_called_once()
         assert result.summary.total == 2
