@@ -111,6 +111,10 @@
                 {
                     data: "owid_variable_id",
                     render: function (data, type, row) {
+                        // if data is null return ''
+                        if (!data) {
+                            return '-';
+                        }
                         return `<a href="https://api.ourworldindata.org/v1/indicators/${data}.metadata.json" target="_blank" rel="noopener noreferrer"><code>${data}</code></a>`;
                     }
                 }
