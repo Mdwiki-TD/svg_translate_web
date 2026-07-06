@@ -25,7 +25,7 @@ from typing import Any
 
 from sqlalchemy.exc import OperationalError
 
-from ....api_services import fetch_grapher_metadata, _fetch_grapher_metadata
+from ....api_services import _fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
