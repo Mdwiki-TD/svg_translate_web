@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -45,13 +45,13 @@ class OwidChartRecord(db.Model):  # type: ignore
     title: Mapped[str] = mapped_column(String(500), nullable=False)
 
     has_map_tab: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    max_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    min_time: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    default_tab: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    owid_variable_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    default_tab: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    owid_variable_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     single_year_data: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    len_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
 
     # Timestamps
