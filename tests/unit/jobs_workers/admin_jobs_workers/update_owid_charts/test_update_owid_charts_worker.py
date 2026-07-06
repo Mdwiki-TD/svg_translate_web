@@ -194,7 +194,7 @@ class TestProcessChart:
         assert worker.result.skipped_charts[0]["skip_reason"] == "not found"
         assert worker.result.skipped_charts[0]["slug"] == "test-chart"
         mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
-            1, {"status": 404}
+            1, {"status_404": 404}
         )
 
     def test_process_chart_metadata_none(self, mock_services: MockServices):

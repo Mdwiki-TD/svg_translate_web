@@ -46,6 +46,7 @@ class TemplateNeedUpdateRecord(db.Model):
                         t.last_world_year < c.max_time
                         AND c.max_time <= YEAR(now())
                         and t.last_world_year is not null
+                        and c.status_404 is null
                     ;
                     """,
             }

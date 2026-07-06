@@ -28,7 +28,7 @@ class OwidChartRecord(db.Model):  # type: ignore
         `single_year_data` tinyint(1) DEFAULT 0,
         `len_years` int(11) DEFAULT NULL,
         `has_timeline` tinyint(1) DEFAULT 0,
-        `status` int(11) DEFAULT NULL,
+        `status_404` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         PRIMARY KEY (`chart_id`),
@@ -54,7 +54,7 @@ class OwidChartRecord(db.Model):  # type: ignore
     single_year_data: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
@@ -89,7 +89,7 @@ class OwidChartRecord(db.Model):  # type: ignore
             "single_year_data",
             "len_years",
             "has_timeline",
-            "status",
+            "status_404",
             "created_at",
             "updated_at",
         ]
