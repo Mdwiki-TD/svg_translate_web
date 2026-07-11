@@ -27,15 +27,29 @@ class ApiRoutes:
         def templates_list():
             templates: list[TemplateRecord] = list_templates()
 
-            data = [t.to_dict() for t in templates]
+            data = []
+            with_main_file = 0
+            with_last_world_file = 0
+            with_last_world_year = 0
+            with_source = 0
 
-            total = len(templates)
+            for t in templates:
+                data.append(t.to_dict())
+                if t.main_file:
+                    with_main_file += 1
+                if t.last_world_file:
+                    with_last_world_file += 1
+                if t.last_world_year:
+                    with_last_world_year += 1
+                if t.source:
+                    with_source += 1
+
             summary = {
-                "total": total,
-                "with_main_file": sum(1 for t in templates if t.main_file),
-                "with_last_world_file": sum(1 for t in templates if t.last_world_file),
-                "with_last_world_year": sum(1 for t in templates if t.last_world_year),
-                "with_source": sum(1 for t in templates if t.source),
+                "total": len(templates),
+                "with_main_file": with_main_file,
+                "with_last_world_file": with_last_world_file,
+                "with_last_world_year": with_last_world_year,
+                "with_source": with_source,
             }
 
             return jsonify({"data": data, "summary": summary})
@@ -74,47 +88,51 @@ class ApiRoutes:
 
             charts_temps = {c.chart_id: c for c in all_charts_templates}
 
-            def get_tmp_title(chart_id):
-                chart_data = charts_temps.get(chart_id)
-                if chart_data:
-                    return chart_data.template_title
-                return None
-
-            if template_filter == "has_template":
-                charts = [c for c in all_charts if get_tmp_title(c.chart_id)]
-            elif template_filter == "no_template":
-                charts = [c for c in all_charts if not get_tmp_title(c.chart_id)]
-            else:
-                charts = all_charts
-
-            total = len(all_charts)
             summary = {
-                "total": total,
-                "published": {
-                    "with": sum(1 for c in all_charts if c.is_published),
-                    "without": sum(1 for c in all_charts if not c.is_published),
-                },
-                "template": {
-                    "with": sum(1 for c in all_charts if get_tmp_title(c.chart_id)),
-                    "without": sum(1 for c in all_charts if not get_tmp_title(c.chart_id)),
-                },
-                "map_tab": {
-                    "with": sum(1 for c in all_charts if c.has_map_tab),
-                    "without": sum(1 for c in all_charts if not c.has_map_tab),
-                },
-                "timeline": {
-                    "with": sum(1 for c in all_charts if c.has_timeline),
-                    "without": sum(1 for c in all_charts if not c.has_timeline),
-                },
+                "total": len(all_charts),
+                "published": {"with": 0, "without": 0},
+                "template": {"with": 0, "without": 0},
+                "map_tab": {"with": 0, "without": 0},
+                "timeline": {"with": 0, "without": 0},
             }
 
             data: list[dict[str, Any]] = []
-            for c in charts:
-                c_json = c.to_dict()
+            for c in all_charts:
+                # 1. Update summary
+                if c.is_published:
+                    summary["published"]["with"] += 1
+                else:
+                    summary["published"]["without"] += 1
+
                 temp = charts_temps.get(c.chart_id)
-                c_json["template_id"] = temp.template_id if temp else None
-                c_json["template_title"] = temp.template_title if temp else None
-                data.append(c_json)
+                has_template = temp and temp.template_title
+                if has_template:
+                    summary["template"]["with"] += 1
+                else:
+                    summary["template"]["without"] += 1
+
+                if c.has_map_tab:
+                    summary["map_tab"]["with"] += 1
+                else:
+                    summary["map_tab"]["without"] += 1
+
+                if c.has_timeline:
+                    summary["timeline"]["with"] += 1
+                else:
+                    summary["timeline"]["without"] += 1
+
+                # 2. Filtering and data enrichment
+                should_include = True
+                if template_filter == "has_template" and not has_template:
+                    should_include = False
+                elif template_filter == "no_template" and has_template:
+                    should_include = False
+
+                if should_include:
+                    c_json = c.to_dict()
+                    c_json["template_id"] = temp.template_id if temp else None
+                    c_json["template_title"] = temp.template_title if temp else None
+                    data.append(c_json)
 
             return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 
