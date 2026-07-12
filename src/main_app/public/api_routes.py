@@ -37,9 +37,9 @@ class ApiRoutes:
                 published_with += 1
 
             temp_rec = charts_temps.get(c.chart_id)
-            has_temp = bool(temp_rec.template_title) if temp_rec else False
+            has_template = bool(temp_rec.template_title) if temp_rec else False
 
-            if has_temp:
+            if has_template:
                 template_with += 1
 
             if c.has_map_tab:
@@ -50,9 +50,9 @@ class ApiRoutes:
             # Filtering and data enrichment
             include = True
             if template_filter == "has_template":
-                include = has_temp
+                include = has_template
             elif template_filter == "no_template":
-                include = not has_temp
+                include = not has_template
 
             if include:
                 c_json = c.to_dict()
@@ -86,10 +86,13 @@ class ApiRoutes:
                 data.append(t.to_dict())
                 if t.main_file:
                     with_main_file += 1
-                if t.last_world_file:
+
+                if t.last_world_file is not None:
                     with_last_world_file += 1
-                if t.last_world_year:
+
+                if t.last_world_year is not None:
                     with_last_world_year += 1
+
                 if t.source:
                     with_source += 1
 
