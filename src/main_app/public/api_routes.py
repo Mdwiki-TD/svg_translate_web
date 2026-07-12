@@ -25,25 +25,28 @@ class ApiRoutes:
     def make_charts_summary(self, all_charts, charts_temps, template_filter) -> dict[str, Any]:
         data: list[dict[str, Any]] = []
         total = len(all_charts)
-        pub_with = 0
-        temp_with = 0
-        map_with = 0
-        time_with = 0
+        published_with = 0
+        template_with = 0
+        map_tab_with = 0
+        timeline_with = 0
 
         # Single-pass loop to build data and collect summary statistics
         for c in all_charts:
+            # Update summary metrics
             if c.is_published:
-                pub_with += 1
+                published_with += 1
 
             temp_rec = charts_temps.get(c.chart_id)
-            has_temp = temp_rec is not None and temp_rec.template_title is not None
+            temp_title = temp_rec.template_title if temp_rec else None
+            has_temp = temp_title is not None
+
             if has_temp:
-                temp_with += 1
+                template_with += 1
 
             if c.has_map_tab:
-                map_with += 1
+                map_tab_with += 1
             if c.has_timeline:
-                time_with += 1
+                timeline_with += 1
 
             # Filtering and data enrichment
             include = True
@@ -55,15 +58,15 @@ class ApiRoutes:
             if include:
                 c_json = c.to_dict()
                 c_json["template_id"] = temp_rec.template_id if temp_rec else None
-                c_json["template_title"] = temp_rec.template_title if temp_rec else None
+                c_json["template_title"] = temp_title
                 data.append(c_json)
 
         summary = {
             "total": total,
-            "published": {"with": pub_with, "without": total - pub_with},
-            "template": {"with": temp_with, "without": total - temp_with},
-            "map_tab": {"with": map_with, "without": total - map_with},
-            "timeline": {"with": time_with, "without": total - time_with},
+            "published": {"with": published_with, "without": total - published_with},
+            "template": {"with": template_with, "without": total - template_with},
+            "map_tab": {"with": map_tab_with, "without": total - map_tab_with},
+            "timeline": {"with": timeline_with, "without": total - timeline_with},
         }
 
         return summary, data
