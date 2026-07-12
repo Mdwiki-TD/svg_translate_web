@@ -22,7 +22,12 @@ class ApiRoutes:
         self.bp = bp
         self._setup_routes()
 
-    def make_charts_summary(self, all_charts, charts_temps, template_filter) -> dict[str, Any]:
+    def make_charts_summary(
+        self,
+        all_charts: list[OwidChartRecord],
+        charts_temps: dict[int, OwidChartTemplateRecord],
+        template_filter: str,
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         data: list[dict[str, Any]] = []
         total = len(all_charts)
         published_with = 0
