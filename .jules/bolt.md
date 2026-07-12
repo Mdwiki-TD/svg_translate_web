@@ -1,0 +1,3 @@
+## 2025-05-15 - Single-pass loop optimization for API summaries
+**Learning:** In Flask API routes returning large datasets with multiple summary statistics (like `/templates` and `/owidcharts`), using multiple `sum(1 for ...)` or separate list comprehensions causes redundant O(N) passes. Consolidating these into a single `for` loop that builds the response list and increments counters simultaneously reduces CPU overhead and improves response times for large datasets.
+**Action:** Always look for patterns where a list is iterated multiple times for different metrics and consolidate into a single pass when the dataset can be large.
