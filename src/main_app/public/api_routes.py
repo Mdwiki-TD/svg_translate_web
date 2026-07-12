@@ -22,12 +22,6 @@ class ApiRoutes:
         self.bp = bp
         self._setup_routes()
 
-    def get_tmp_title(self, charts_temps, chart_id):
-        chart_data = charts_temps.get(chart_id)
-        if chart_data:
-            return chart_data.template_title
-        return None
-
     def make_charts_summary(self, all_charts, charts_temps, template_filter) -> dict[str, Any]:
         data: list[dict[str, Any]] = []
         total = len(all_charts)
