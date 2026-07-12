@@ -193,9 +193,7 @@ class TestProcessChart:
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "Chart not found"
         assert worker.result.failed_charts[0]["slug"] == "test-chart"
-        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
-            1, {"status_404": 404}
-        )
+        mock_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(1, {"status_404": 404})
 
     def test_process_chart_metadata_none(self, mock_services: MockServices):
         """When fetch_grapher_metadata returns None -> status 'failed'."""
