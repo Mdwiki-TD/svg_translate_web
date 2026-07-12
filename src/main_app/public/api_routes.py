@@ -37,8 +37,7 @@ class ApiRoutes:
                 published_with += 1
 
             temp_rec = charts_temps.get(c.chart_id)
-            temp_title = temp_rec.template_title if temp_rec else None
-            has_temp = temp_title is not None
+            has_temp = bool(temp_rec.template_title) if temp_rec else False
 
             if has_temp:
                 template_with += 1
@@ -58,7 +57,7 @@ class ApiRoutes:
             if include:
                 c_json = c.to_dict()
                 c_json["template_id"] = temp_rec.template_id if temp_rec else None
-                c_json["template_title"] = temp_title
+                c_json["template_title"] = temp_rec.template_title if temp_rec else None
                 data.append(c_json)
 
         summary = {
