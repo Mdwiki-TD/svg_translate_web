@@ -57,15 +57,31 @@ class ApiRoutes:
         def templates_list():
             templates: list[TemplateRecord] = list_templates()
 
-            data = [t.to_dict() for t in templates]
+            data: list[dict[str, Any]] = []
+            with_main_file = 0
+            with_last_world_file = 0
+            with_last_world_year = 0
+            with_source = 0
+
+            # Single-pass loop to build data and summary
+            for t in templates:
+                data.append(t.to_dict())
+                if t.main_file:
+                    with_main_file += 1
+                if t.last_world_file:
+                    with_last_world_file += 1
+                if t.last_world_year:
+                    with_last_world_year += 1
+                if t.source:
+                    with_source += 1
 
             total = len(templates)
             summary = {
                 "total": total,
-                "with_main_file": sum(1 for t in templates if t.main_file),
-                "with_last_world_file": sum(1 for t in templates if t.last_world_file),
-                "with_last_world_year": sum(1 for t in templates if t.last_world_year),
-                "with_source": sum(1 for t in templates if t.source),
+                "with_main_file": with_main_file,
+                "with_last_world_file": with_last_world_file,
+                "with_last_world_year": with_last_world_year,
+                "with_source": with_source,
             }
 
             return jsonify({"data": data, "summary": summary})
@@ -101,6 +117,7 @@ class ApiRoutes:
         def owid_charts_list(template_filter: str = ""):
             all_charts: list[OwidChartRecord] = list_charts()
             all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+
             charts_temps = {c.chart_id: c for c in all_charts_templates}
 
             if template_filter == "has_template":
