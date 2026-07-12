@@ -48,12 +48,10 @@ class ApiRoutes:
                 timeline_with += 1
 
             # Filtering and data enrichment
-            include = True
-            if template_filter == "has_template":
-                include = has_template
-            elif template_filter == "no_template":
-                include = not has_template
-
+            include = (
+                template_filter not in ("has_template", "no_template")
+                or (template_filter == "has_template") == has_template
+            )
             if include:
                 c_json = c.to_dict()
                 c_json["template_id"] = temp_rec.template_id if temp_rec else None
