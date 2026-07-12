@@ -28,7 +28,7 @@ class ApiRoutes:
             return chart_data.template_title
         return None
 
-    def make_charts_summary(self, all_charts, charts_temps) -> dict[str, Any]:
+    def make_charts_summary(self, all_charts, charts_temps, template_filter) -> dict[str, Any]:
         total = len(all_charts)
         summary = {
             "total": total,
@@ -50,7 +50,24 @@ class ApiRoutes:
             },
         }
 
-        return summary
+        if template_filter == "has_template":
+            charts = [c for c in all_charts if self.get_tmp_title(charts_temps, c.chart_id)]
+
+        elif template_filter == "no_template":
+            charts = [c for c in all_charts if not self.get_tmp_title(charts_temps, c.chart_id)]
+        else:
+            charts = all_charts
+
+        data: list[dict[str, Any]] = []
+
+        for c in charts:
+            c_json = c.to_dict()
+            temp = charts_temps.get(c.chart_id)
+            c_json["template_id"] = temp.template_id if temp else None
+            c_json["template_title"] = temp.template_title if temp else None
+            data.append(c_json)
+
+        return summary, data
 
     def _setup_routes(self) -> None:
         @self.bp.get("/templates")
@@ -120,24 +137,7 @@ class ApiRoutes:
 
             charts_temps = {c.chart_id: c for c in all_charts_templates}
 
-            if template_filter == "has_template":
-                charts = [c for c in all_charts if self.get_tmp_title(charts_temps, c.chart_id)]
-
-            elif template_filter == "no_template":
-                charts = [c for c in all_charts if not self.get_tmp_title(charts_temps, c.chart_id)]
-            else:
-                charts = all_charts
-
-            summary = self.make_charts_summary(all_charts, charts_temps)
-
-            data: list[dict[str, Any]] = []
-
-            for c in charts:
-                c_json = c.to_dict()
-                temp = charts_temps.get(c.chart_id)
-                c_json["template_id"] = temp.template_id if temp else None
-                c_json["template_title"] = temp.template_title if temp else None
-                data.append(c_json)
+            summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
 
             return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 
