@@ -22,20 +22,90 @@ class ApiRoutes:
         self.bp = bp
         self._setup_routes()
 
+    def make_charts_summary(
+        self,
+        all_charts: list[OwidChartRecord],
+        charts_temps: dict[int, OwidChartTemplateRecord],
+        template_filter: str,
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        data: list[dict[str, Any]] = []
+        total = len(all_charts)
+        published_with = 0
+        template_with = 0
+        map_tab_with = 0
+        timeline_with = 0
+
+        # Single-pass loop to build data and collect summary statistics
+        for c in all_charts:
+            # Update summary metrics
+            if c.is_published:
+                published_with += 1
+
+            temp_rec = charts_temps.get(c.chart_id)
+            has_template = bool(temp_rec.template_title) if temp_rec else False
+
+            if has_template:
+                template_with += 1
+
+            if c.has_map_tab:
+                map_tab_with += 1
+            if c.has_timeline:
+                timeline_with += 1
+
+            # Filtering and data enrichment
+            include = (
+                template_filter not in ("has_template", "no_template")
+                or (template_filter == "has_template") == has_template
+            )
+            if include:
+                c_json = c.to_dict()
+                c_json["template_id"] = temp_rec.template_id if temp_rec else None
+                c_json["template_title"] = temp_rec.template_title if temp_rec else None
+                data.append(c_json)
+
+        summary = {
+            "total": total,
+            "published": {"with": published_with, "without": total - published_with},
+            "template": {"with": template_with, "without": total - template_with},
+            "map_tab": {"with": map_tab_with, "without": total - map_tab_with},
+            "timeline": {"with": timeline_with, "without": total - timeline_with},
+        }
+
+        return summary, data
+
     def _setup_routes(self) -> None:
         @self.bp.get("/templates")
         def templates_list():
             templates: list[TemplateRecord] = list_templates()
 
-            data = [t.to_dict() for t in templates]
+            data: list[dict[str, Any]] = []
+            with_main_file = 0
+            with_last_world_file = 0
+            with_last_world_year = 0
+            with_source = 0
+
+            # Single-pass loop to build data and summary
+            for t in templates:
+                data.append(t.to_dict())
+                if t.main_file:
+                    with_main_file += 1
+
+                if t.last_world_file is not None:
+                    with_last_world_file += 1
+
+                if t.last_world_year is not None:
+                    with_last_world_year += 1
+
+                if t.source:
+                    with_source += 1
 
             total = len(templates)
             summary = {
                 "total": total,
-                "with_main_file": sum(1 for t in templates if t.main_file),
-                "with_last_world_file": sum(1 for t in templates if t.last_world_file),
-                "with_last_world_year": sum(1 for t in templates if t.last_world_year),
-                "with_source": sum(1 for t in templates if t.source),
+                "with_main_file": with_main_file,
+                "with_last_world_file": with_last_world_file,
+                "with_last_world_year": with_last_world_year,
+                "with_source": with_source,
             }
 
             return jsonify({"data": data, "summary": summary})
@@ -74,47 +144,7 @@ class ApiRoutes:
 
             charts_temps = {c.chart_id: c for c in all_charts_templates}
 
-            def get_tmp_title(chart_id):
-                chart_data = charts_temps.get(chart_id)
-                if chart_data:
-                    return chart_data.template_title
-                return None
-
-            if template_filter == "has_template":
-                charts = [c for c in all_charts if get_tmp_title(c.chart_id)]
-            elif template_filter == "no_template":
-                charts = [c for c in all_charts if not get_tmp_title(c.chart_id)]
-            else:
-                charts = all_charts
-
-            total = len(all_charts)
-            summary = {
-                "total": total,
-                "published": {
-                    "with": sum(1 for c in all_charts if c.is_published),
-                    "without": sum(1 for c in all_charts if not c.is_published),
-                },
-                "template": {
-                    "with": sum(1 for c in all_charts if get_tmp_title(c.chart_id)),
-                    "without": sum(1 for c in all_charts if not get_tmp_title(c.chart_id)),
-                },
-                "map_tab": {
-                    "with": sum(1 for c in all_charts if c.has_map_tab),
-                    "without": sum(1 for c in all_charts if not c.has_map_tab),
-                },
-                "timeline": {
-                    "with": sum(1 for c in all_charts if c.has_timeline),
-                    "without": sum(1 for c in all_charts if not c.has_timeline),
-                },
-            }
-
-            data: list[dict[str, Any]] = []
-            for c in charts:
-                c_json = c.to_dict()
-                temp = charts_temps.get(c.chart_id)
-                c_json["template_id"] = temp.template_id if temp else None
-                c_json["template_title"] = temp.template_title if temp else None
-                data.append(c_json)
+            summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
 
             return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 
