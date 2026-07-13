@@ -316,7 +316,9 @@ def test_delete_collect_templates_data_job(admin_jobs_client, mock_jobs_db, monk
 
     # Delete the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=False):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
 
@@ -336,7 +338,9 @@ def test_delete_fix_nested_main_files_job(admin_jobs_client, mock_jobs_db, monke
 
     # Delete the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=False):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
 
@@ -381,12 +385,16 @@ def test_delete_multiple_jobs(admin_jobs_client, mock_jobs_db):
     assert len(mock_jobs_db.list()) == 3
 
     # Delete first collect_templates_data job
-    response = admin_jobs_client.post(f"/adminpanel/jobs/collect_templates_data/{job1.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(
+        f"/adminpanel/jobs/collect_templates_data/{job1.id}/delete", follow_redirects=True
+    )
     assert response.status_code == 200
     assert len(mock_jobs_db.list()) == 2
 
     # Delete second collect_templates_data job
-    response = admin_jobs_client.post(f"/adminpanel/jobs/collect_templates_data/{job2.id}/delete", follow_redirects=True)
+    response = admin_jobs_client.post(
+        f"/adminpanel/jobs/collect_templates_data/{job2.id}/delete", follow_redirects=True
+    )
     assert response.status_code == 200
     assert len(mock_jobs_db.list()) == 1
 
@@ -408,7 +416,9 @@ def test_cancel_collect_templates_data_job(admin_jobs_client, mock_jobs_db, monk
 
     # Cancel the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=True):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/collect_templates_data/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/collect_templates_data/{job.id}/cancel", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
@@ -425,7 +435,9 @@ def test_cancel_fix_nested_main_files_job(admin_jobs_client, mock_jobs_db, monke
 
     # Cancel the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=True):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/fix_nested_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/fix_nested_main_files/{job.id}/cancel", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
@@ -605,7 +617,9 @@ def test_delete_download_main_files_job(admin_jobs_client, mock_jobs_db, monkeyp
 
     # Delete the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=False):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/download_main_files/{job.id}/delete", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/download_main_files/{job.id}/delete", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
 
@@ -625,7 +639,9 @@ def test_cancel_download_main_files_job(admin_jobs_client, mock_jobs_db, monkeyp
 
     # Cancel the job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=True):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
@@ -641,7 +657,9 @@ def test_cancel_job_not_running(admin_jobs_client, mock_jobs_db, monkeypatch):
 
     # Try to cancel a completed job
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=False):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
 
@@ -753,6 +771,8 @@ def test_cancel_already_cancelled_job(admin_jobs_client, mock_jobs_db, monkeypat
 
     # Try to cancel again
     with patch("src.main_app.public.jobs_routes_utils.cancel_job_worker", return_value=False):
-        response = admin_jobs_client.post(f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True)
+        response = admin_jobs_client.post(
+            f"/adminpanel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+        )
     assert response.status_code == 200
     mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")

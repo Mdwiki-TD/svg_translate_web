@@ -61,7 +61,9 @@ class TestGenerateListItem:
         assert "Home" in html
 
     def test_generate_list_item_basic(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/adminpanel/home", title="Home", icon=None, target=None, disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/adminpanel/home", title="Home", icon=None, target=None, disabled=False
+        )
         result = generate_list_item(item)
         assert "/adminpanel/home" in result
         assert "title='Home'" in result
