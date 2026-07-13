@@ -2,7 +2,7 @@ import json
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -15,7 +15,7 @@ if not output_dir.exists():
     print(f"Created directory: {output_dir}")
 
 
-def download_owid_grapher_metadata(limit: Optional[int] = None) -> None:
+def download_owid_grapher_metadata(limit: int | None = None) -> None:
     """
     Downloads grapher metadata from Our World in Data sitemap.
     :param limit: Maximum number of files to download (set to None for all)

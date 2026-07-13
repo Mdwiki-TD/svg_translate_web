@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
@@ -39,21 +39,21 @@ class Summary:
 
 @dataclass
 class WorkerObject:
-    note: Optional[str] = None
+    note: str | None = None
     status: str = "pending"
     job_id: int = 0
 
     started_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    completed_at: Optional[str] = None
-    cancelled_at: Optional[str] = None
-    last_update: Optional[str] = ""
-    failed_at: Optional[str] = None
+    completed_at: str | None = None
+    cancelled_at: str | None = None
+    last_update: str | None = ""
+    failed_at: str | None = None
 
     errors: list[dict[str, Any]] = field(default_factory=list)
     args: dict[str, Any] = field(default_factory=dict)
 
-    error: Optional[str] = None
-    error_type: Optional[str] = None
+    error: str | None = None
+    error_type: str | None = None
 
     def to_json(self) -> dict[str, Any]:
         """

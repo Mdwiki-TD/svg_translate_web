@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
 
@@ -34,7 +34,7 @@ class FileInfo:
 
 @dataclass
 class DownloadMainFilesWorkerObject(StandardAdminWorkerObject):
-    output_path: Optional[str] = None
+    output_path: str | None = None
     files_downloaded: list[dict[str, Any]] = field(default_factory=list)
     files_failed: list[dict[str, Any]] = field(default_factory=list)
 

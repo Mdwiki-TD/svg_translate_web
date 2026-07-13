@@ -5,7 +5,7 @@ Objects for fix_nested_jobs worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from ...base_worker import WorkerObject
 
@@ -60,9 +60,9 @@ class Stages:
 @dataclass
 class FileResult:
     status: str = "pending"
-    path: Optional[str] = None
-    error: Optional[str] = None
-    success: Optional[bool] = None
+    path: str | None = None
+    error: str | None = None
+    success: bool | None = None
     nested_tags_before: int = 0
     nested_tags: list[str] = field(default_factory=list)
     nested_tags_after: int = 0
@@ -71,11 +71,11 @@ class FileResult:
 
 @dataclass
 class FixNestedJobsWorkerObject(WorkerObject):
-    job_id: Optional[int] = None
+    job_id: int | None = None
     note: str = ""
     args: dict[str, Any] = field(default_factory=dict)
     summary: dict[str, Any] = field(default_factory=dict)
-    filename: Optional[str] = None
+    filename: str | None = None
     file_result: FileResult = field(default_factory=FileResult)
     stages: Stages = field(default_factory=Stages)
 

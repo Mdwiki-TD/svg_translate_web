@@ -7,7 +7,6 @@ Users table is the stable identity layer. Tokens are a child of users.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from ...extensions import db
 from ..exceptions import UserNotFoundError
