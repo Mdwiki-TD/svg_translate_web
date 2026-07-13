@@ -123,7 +123,7 @@ def test_admin_required_is_admin():
         return "success"
 
     # Mock user who is in the admin list
-    mock_user = MockUser(username="admin1", is_active_admin=True)
+    mock_user = MockUser(username="adminuser", is_active_admin=True)
 
     with (patch("src.main_app.admin.decorators.load_user", return_value=mock_user),):
         # The view should be executed and return its value
