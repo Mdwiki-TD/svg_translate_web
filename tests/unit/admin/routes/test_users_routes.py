@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/admin/routes/users.py."""
+"""Unit tests for src/main_app/adminpanel/routes/users.py."""
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ class TestUpdatePermissions:
             "src.main_app.admin.routes.users.flash",
             mock_flash,
         )
-        mock_url_for = MagicMock(return_value="/admin/users/")
+        mock_url_for = MagicMock(return_value="/adminpanel/users/")
         monkeypatch.setattr(
             "src.main_app.admin.routes.users.url_for",
             mock_url_for,
@@ -122,7 +122,7 @@ class TestUpdatePermissions:
 
         mock_flash.assert_called_once_with("User 'testuser' permissions updated.", "success")
         mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_redirect.assert_called_once_with("/admin/users/")
+        mock_redirect.assert_called_once_with("/adminpanel/users/")
         assert result == "redirect_response"
 
     def test_lookup_error(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
@@ -135,7 +135,7 @@ class TestUpdatePermissions:
             "src.main_app.admin.routes.users.flash",
             mock_flash,
         )
-        mock_url_for = MagicMock(return_value="/admin/users/")
+        mock_url_for = MagicMock(return_value="/adminpanel/users/")
         monkeypatch.setattr(
             "src.main_app.admin.routes.users.url_for",
             mock_url_for,
@@ -150,7 +150,7 @@ class TestUpdatePermissions:
 
         mock_flash.assert_called_once_with("User with id 999 was not found", "warning")
         mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_redirect.assert_called_once_with("/admin/users/")
+        mock_redirect.assert_called_once_with("/adminpanel/users/")
         assert result == "redirect_response"
 
     def test_generic_exception(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
@@ -163,7 +163,7 @@ class TestUpdatePermissions:
             "src.main_app.admin.routes.users.flash",
             mock_flash,
         )
-        mock_url_for = MagicMock(return_value="/admin/users/")
+        mock_url_for = MagicMock(return_value="/adminpanel/users/")
         monkeypatch.setattr(
             "src.main_app.admin.routes.users.url_for",
             mock_url_for,
@@ -181,7 +181,7 @@ class TestUpdatePermissions:
             "danger",
         )
         mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_redirect.assert_called_once_with("/admin/users/")
+        mock_redirect.assert_called_once_with("/adminpanel/users/")
         assert result == "redirect_response"
 
 
@@ -213,7 +213,7 @@ class TestUsersRoutesRoutes:
         app.secret_key = "test-secret"
         app.config["TESTING"] = True
 
-        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/admin")
+        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
         admin_bp.register_blueprint(UsersRoutes(Blueprint("users", __name__, url_prefix="/users")).bp)
         app.register_blueprint(admin_bp)
 
@@ -235,7 +235,7 @@ class TestUsersRoutesRoutes:
             mock_render,
         )
 
-        resp = client.get("/admin/users/")
+        resp = client.get("/adminpanel/users/")
 
         assert resp.status_code == 200
         mock_render.assert_called_once_with(
@@ -255,7 +255,7 @@ class TestUsersRoutesRoutes:
             mock_render,
         )
 
-        resp = client.get("/admin/users/")
+        resp = client.get("/adminpanel/users/")
 
         assert resp.status_code == 200
         mock_render.assert_called_once_with(
@@ -272,7 +272,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_jobs", data={"can_run_jobs": "1"})
+        resp = client.post("/adminpanel/users/1/can_run_jobs", data={"can_run_jobs": "1"})
 
         mock_toggle.assert_called_once_with(1, 1)
         assert resp.status_code == 302
@@ -285,7 +285,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_jobs", data={"can_run_jobs": "0"})
+        resp = client.post("/adminpanel/users/1/can_run_jobs", data={"can_run_jobs": "0"})
 
         mock_toggle.assert_called_once_with(1, 0)
         assert resp.status_code == 302
@@ -298,7 +298,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_jobs", data={})
+        resp = client.post("/adminpanel/users/1/can_run_jobs", data={})
 
         mock_toggle.assert_called_once_with(1, 0)
         assert resp.status_code == 302
@@ -311,7 +311,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_bg_jobs", data={"can_run_bg_jobs": "1"})
+        resp = client.post("/adminpanel/users/1/can_run_bg_jobs", data={"can_run_bg_jobs": "1"})
 
         mock_toggle.assert_called_once_with(1, 1)
         assert resp.status_code == 302
@@ -324,7 +324,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_bg_jobs", data={"can_run_bg_jobs": "0"})
+        resp = client.post("/adminpanel/users/1/can_run_bg_jobs", data={"can_run_bg_jobs": "0"})
 
         mock_toggle.assert_called_once_with(1, 0)
         assert resp.status_code == 302
@@ -337,7 +337,7 @@ class TestUsersRoutesRoutes:
             mock_toggle,
         )
 
-        resp = client.post("/admin/users/1/can_run_bg_jobs", data={})
+        resp = client.post("/adminpanel/users/1/can_run_bg_jobs", data={})
 
         mock_toggle.assert_called_once_with(1, 0)
         assert resp.status_code == 302

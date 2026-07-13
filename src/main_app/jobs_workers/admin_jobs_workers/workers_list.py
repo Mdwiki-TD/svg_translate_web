@@ -12,8 +12,8 @@ jobs_data_admins = {
     "collect_templates_data": JobData(
         job_type="collect_templates_data",
         job_name="Collect Templates data",
-        job_details_template="jobs_templates/admin/collect_templates_data/details.html",
-        job_list_template="jobs_templates/admin/collect_templates_data/list.html",
+        job_details_template="jobs_templates/admin_templates/collect_templates_data/details.html",
+        job_list_template="jobs_templates/admin_templates/collect_templates_data/list.html",
         job_callable=collect_templates_data_entry,
         job_args=[],
         start_confirm_message="This will start a background job to collect templates data for all templates that don't have one. Continue?",
@@ -21,8 +21,8 @@ jobs_data_admins = {
     "update_owid_charts": JobData(
         job_type="update_owid_charts",
         job_name="Update OWID Charts",
-        job_details_template="jobs_templates/admin/update_owid_charts/details.html",
-        job_list_template="jobs_templates/admin/update_owid_charts/list.html",
+        job_details_template="jobs_templates/admin_templates/update_owid_charts/details.html",
+        job_list_template="jobs_templates/admin_templates/update_owid_charts/list.html",
         job_callable=update_owid_charts_worker_entry,
         job_args=[
             {"key": "owid_charts_limit_items", "as": "limit_items"},
@@ -32,8 +32,8 @@ jobs_data_admins = {
     "crop_main_files": JobData(
         job_type="crop_main_files",
         job_name="Crop Newest World Files",
-        job_details_template="jobs_templates/admin/crop_main_files/details.html",
-        job_list_template="jobs_templates/admin/crop_main_files/list.html",
+        job_details_template="jobs_templates/admin_templates/crop_main_files/details.html",
+        job_list_template="jobs_templates/admin_templates/crop_main_files/list.html",
         job_callable=crop_main_files_worker_entry,
         job_args=[
             {"key": "crop_newest_upload_limit", "as": "upload_limit"},
@@ -43,8 +43,8 @@ jobs_data_admins = {
     "fix_nested_main_files": JobData(
         job_type="fix_nested_main_files",
         job_name="Fix Nested Main Files",
-        job_details_template="jobs_templates/admin/fix_nested_main_files/details.html",
-        job_list_template="jobs_templates/admin/fix_nested_main_files/list.html",
+        job_details_template="jobs_templates/admin_templates/fix_nested_main_files/details.html",
+        job_list_template="jobs_templates/admin_templates/fix_nested_main_files/list.html",
         job_callable=fix_nested_main_files_for_templates,
         job_args=[],
         start_confirm_message="This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?",
@@ -52,8 +52,8 @@ jobs_data_admins = {
     "create_owid_pages": JobData(
         job_type="create_owid_pages",
         job_name="Create OWID Pages",
-        job_details_template="jobs_templates/admin/create_owid_pages/details.html",
-        job_list_template="jobs_templates/admin/create_owid_pages/list.html",
+        job_details_template="jobs_templates/admin_templates/create_owid_pages/details.html",
+        job_list_template="jobs_templates/admin_templates/create_owid_pages/list.html",
         job_callable=create_owid_pages_for_templates,
         job_args=[
             {"key": "create_owid_pages_limit", "as": "limit_items"},
@@ -63,8 +63,8 @@ jobs_data_admins = {
     "rename_owid_pages": JobData(
         job_type="rename_owid_pages",
         job_name="Rename OWID Pages",
-        job_details_template="jobs_templates/admin/rename_owid_pages/details.html",
-        job_list_template="jobs_templates/admin/rename_owid_pages/list.html",
+        job_details_template="jobs_templates/admin_templates/rename_owid_pages/details.html",
+        job_list_template="jobs_templates/admin_templates/rename_owid_pages/list.html",
         job_callable=rename_owid_pages_for_templates,
         job_args=[],
         start_confirm_message='This will start a background job that renames every Template:OWID/* and OWID/* page whose first character after "OWID/" is lowercase. Continue?',
@@ -72,8 +72,8 @@ jobs_data_admins = {
     "add_svglanguages_template": JobData(
         job_type="add_svglanguages_template",
         job_name="Add {{SVGLanguages}}",
-        job_details_template="jobs_templates/admin/add_svglanguages_template/details.html",
-        job_list_template="jobs_templates/admin/add_svglanguages_template/list.html",
+        job_details_template="jobs_templates/admin_templates/add_svglanguages_template/details.html",
+        job_list_template="jobs_templates/admin_templates/add_svglanguages_template/list.html",
         job_callable=add_svglanguages_template_to_templates,
         job_args=[
             {"key": "add_svglanguages_limit_items", "as": "limit_items"},
@@ -83,8 +83,8 @@ jobs_data_admins = {
     "download_main_files": JobData(
         job_type="download_main_files",
         job_name="Download Main Files",
-        job_details_template="jobs_templates/admin/download_main_files/details.html",
-        job_list_template="jobs_templates/admin/download_main_files/list.html",
+        job_details_template="jobs_templates/admin_templates/download_main_files/details.html",
+        job_list_template="jobs_templates/admin_templates/download_main_files/list.html",
         job_callable=download_main_files_for_templates,
         job_args=[
             {"key": "download_main_files_limit_items", "as": "limit_items"},

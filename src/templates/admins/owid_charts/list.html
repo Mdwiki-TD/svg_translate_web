@@ -237,7 +237,7 @@
                 {
                     data: "chart_id",
                     render: function (data, type, row) {
-                        // const edit_url = `/admin/owidcharts/${data}/edit`;
+                        // const edit_url = `/adminpanel/owidcharts/${data}/edit`;
                         const base_url = "{{ url_for('adminpanel.owidcharts.edit_chart', chart_id='550000000055') }}";
                         const edit_url = base_url.replace('550000000055', data);
                         return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="${edit_url}" onclick="pup_window_new(this, 700, 650)"><i class="bi bi-pencil"></i> Edit</button>`;

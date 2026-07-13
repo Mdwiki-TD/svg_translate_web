@@ -210,7 +210,7 @@ def main() -> None:
             logger.info("Import completed successfully!")
             print("\n✓ All charts imported successfully!")
             print("\nView charts at:")
-            print("  - Admin:  http://localhost:5000/admin/owidcharts")
+            print("  - Admin:  http://localhost:5000/adminpanel/owidcharts")
             print("  - Public: http://localhost:5000/owidcharts/")
             print("  - Test:   http://localhost:5000/owidcharts/all")
 

@@ -10,4 +10,4 @@ def test_get_job_detail_url_public(mock_app):
 def test_get_job_detail_url_admin(mock_app):
     with mock_app.test_request_context():
         url = get_job_detail_url(1, "collect_templates_data")
-        assert "/admin/jobs/collect_templates_data/1" in url
+        assert "/adminpanel/jobs/collect_templates_data/1" in url

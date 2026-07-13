@@ -44,7 +44,7 @@ def test_add_template_persists_record_and_flashes_success(admin_jobs_client, job
 
     before = len(jobs_db.list())
     response = client.post(
-        "/admin/templates/add",
+        "/adminpanel/templates/add",
         data={"title": "New Template", "main_file": "new.svg"},
         follow_redirects=True,
     )
@@ -63,7 +63,7 @@ def test_update_template_mutates_store_and_flashes_success(admin_jobs_client, jo
     template_id = jobs_db.list()[0].id
 
     response = client.post(
-        "/admin/templates/update",
+        "/adminpanel/templates/update",
         data={"id": str(template_id), "title": "Existing Template", "main_file": "updated.svg"},
         follow_redirects=True,
     )
@@ -81,7 +81,7 @@ def test_delete_template_removes_record_and_flashes_success(admin_jobs_client, j
     template_id = jobs_db.list()[0].id
 
     response = client.post(
-        f"/admin/templates/{template_id}/delete",
+        f"/adminpanel/templates/{template_id}/delete",
         follow_redirects=True,
     )
 
@@ -96,7 +96,7 @@ def test_add_template_requires_title_and_preserves_store(admin_jobs_client, jobs
     before = snapshot(jobs_db.list())
 
     response = client.post(
-        "/admin/templates/add",
+        "/adminpanel/templates/add",
         data={"title": " ", "main_file": "ignored.svg"},
         follow_redirects=True,
     )
@@ -112,7 +112,7 @@ def test_update_template_requires_identifier(admin_jobs_client, jobs_db):
     before = snapshot(jobs_db.list())
 
     response = client.post(
-        "/admin/templates/update",
+        "/adminpanel/templates/update",
         data={"id": "", "title": "Existing Template", "main_file": "ignored.svg"},
         follow_redirects=True,
     )
@@ -129,7 +129,7 @@ def test_update_template_requires_title(admin_jobs_client, jobs_db):
     before = snapshot(jobs_db.list())
 
     response = client.post(
-        "/admin/templates/update",
+        "/adminpanel/templates/update",
         data={"id": str(template_id), "title": "   ", "main_file": "ignored.svg"},
         follow_redirects=True,
     )
