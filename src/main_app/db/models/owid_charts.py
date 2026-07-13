@@ -75,31 +75,23 @@ class OwidChartRecord(db.Model):  # type: ignore
 
     def to_dict(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
-        data: dict[str, Any] = {}
-        table_keys = [
-            "chart_id",
-            "slug",
-            "title",
-            "has_map_tab",
-            "max_time",
-            "min_time",
-            "default_tab",
-            "owid_variable_id",
-            "is_published",
-            "single_year_data",
-            "len_years",
-            "has_timeline",
-            "status_404",
-            "created_at",
-            "updated_at",
-        ]
-        for column in table_keys:
-            value = getattr(self, column)
-            if hasattr(value, "isoformat"):
-                value = value.isoformat()
-            data[column] = value
-
-        return data
+        return {
+            "chart_id": self.chart_id,
+            "slug": self.slug,
+            "title": self.title,
+            "has_map_tab": self.has_map_tab,
+            "max_time": self.max_time,
+            "min_time": self.min_time,
+            "default_tab": self.default_tab,
+            "owid_variable_id": self.owid_variable_id,
+            "is_published": self.is_published,
+            "single_year_data": self.single_year_data,
+            "len_years": self.len_years,
+            "has_timeline": self.has_timeline,
+            "status_404": self.status_404,
+            "created_at": self.created_at.isoformat() if hasattr(self.created_at, "isoformat") else self.created_at,
+            "updated_at": self.updated_at.isoformat() if hasattr(self.updated_at, "isoformat") else self.updated_at,
+        }
 
 
 __all__ = [

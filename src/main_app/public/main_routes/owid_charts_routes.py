@@ -9,7 +9,7 @@ from flask import (
     render_template,
 )
 
-from ...db.services import list_charts, list_published_charts
+from ...db.services import count_charts, list_charts, list_published_charts
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +24,13 @@ class OwidChartsRoutes:
         def index() -> str:
             """Display a list of all published OWID charts."""
             charts = list_published_charts()
-            all_charts = list_charts()
+            total_charts = count_charts()
 
-            logger.info(f"Public charts page: {len(charts)} published, {len(all_charts)} total")
+            logger.info(f"Public charts page: {len(charts)} published, {total_charts} total")
 
-            for chart in charts:
-                logger.debug(f"  Published chart: {chart.slug} - {chart.title}")
+            if logger.isEnabledFor(logging.DEBUG):
+                for chart in charts:
+                    logger.debug(f"  Published chart: {chart.slug} - {chart.title}")
 
             return render_template("owid_charts/index.html", charts=charts)
 

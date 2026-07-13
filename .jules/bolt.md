@@ -1,0 +1,3 @@
+## 2025-05-15 - Targeted Database Counting and Serialization Optimization
+**Learning:** Fetching all objects from the database just to get a count for logging (as seen in `owid_charts_routes.py`) is a significant bottleneck. Additionally, generic loop-based `to_dict` methods using `getattr` and `hasattr` are slower than explicit dictionary literals.
+**Action:** Use `db.session.query(func.count(Model.id)).scalar()` for record counts and use explicit dictionary construction in `to_dict` methods for high-frequency models. Always guard debug logging loops with `if logger.isEnabledFor(logging.DEBUG):`.

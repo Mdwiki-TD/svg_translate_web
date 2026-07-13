@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from sqlalchemy import func
+
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
 from .utils import db_guard_rollback, retry_on_db_disconnect
@@ -24,6 +26,13 @@ def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
         query = query.limit(limit)
 
     return query.all()
+
+
+def count_charts() -> int:
+    """
+    Return the total number of charts.
+    """
+    return db.session.query(func.count(OwidChartRecord.chart_id)).scalar()
 
 
 def list_published_charts() -> list[OwidChartRecord]:
@@ -135,6 +144,9 @@ class OwidChartsService:
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return list_charts(limit)
 
+    def count_charts(self) -> int:
+        return count_charts()
+
     def list_published_charts(self) -> list[OwidChartRecord]:
         return list_published_charts()
 
@@ -168,6 +180,7 @@ __all__ = [
     "get_chart_by_slug",
     "add_chart",
     "list_charts",
+    "count_charts",
     "list_published_charts",
     "update_chart_data",
     "update_chart_data_with_retry",

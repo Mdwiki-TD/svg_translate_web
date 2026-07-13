@@ -11,6 +11,7 @@ import pytest
 from src.main_app.db.services.delete_service import delete_chart
 from src.main_app.db.services.owid_charts_service import (
     add_chart,
+    count_charts,
     get_chart_by_id,
     get_chart_by_slug,
     list_charts,
@@ -56,6 +57,15 @@ def _mock_query_for_read(monkeypatch, **kwargs):
         lambda cls: mock_query,
     )
     return mock_query
+
+
+class TestCountCharts:
+    """Tests for count_charts function."""
+
+    def test_returns_count(self, monkeypatch):
+        """Return the total number of charts."""
+        _mock_query_for_read(monkeypatch, scalar=MagicMock(return_value=42))
+        assert count_charts() == 42
 
 
 class TestListCharts:
