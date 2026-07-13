@@ -47,7 +47,7 @@ def _unwrap_admin_required(view_func):
 
 def _patch_owid_charts_instance(flask_app, mock_service):
     """Find the OwidChartsRoutes instance and replace its service with the mock."""
-    endpoint = "admin.owidcharts.add_chart"
+    endpoint = "adminpanel.owidcharts.add_chart"
     view_func = flask_app.view_functions[endpoint]
     inner_func = _unwrap_admin_required(view_func)
     owid_charts_instance = inner_func.__closure__[0].cell_contents

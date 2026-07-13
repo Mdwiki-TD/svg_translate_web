@@ -87,7 +87,7 @@ class TestSlugRedirectsRoutes:
         app.secret_key = "test-secret"
         app.config["TESTING"] = True
 
-        admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/admin")
         admin_bp.register_blueprint(SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
         app.register_blueprint(admin_bp)
 

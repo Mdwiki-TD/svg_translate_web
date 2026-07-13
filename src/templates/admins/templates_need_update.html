@@ -3,7 +3,7 @@
 {% block admin_contents %}
 
 <form id="collectDataForm" method="post"
-    action="{{ url_for('admin.jobs.start_job', job_type='collect_templates_data') }}" class="d-inline"
+    action="{{ url_for('adminpanel.jobs.start_job', job_type='collect_templates_data') }}" class="d-inline"
     onsubmit="return confirm('Start collecting templates data for all templates need update?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <input type="hidden" name="list_titles" value="list_templates_need_update" />

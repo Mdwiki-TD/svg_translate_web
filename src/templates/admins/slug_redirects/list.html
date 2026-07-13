@@ -5,7 +5,7 @@
 {% set show_bluk_form = false %}
 
 {% macro render_bluk_form(table) %}
-<form id="bulkActionForm" action="{{ url_for('admin.slugredirects.bulk_action') }}" method="POST">
+<form id="bulkActionForm" action="{{ url_for('adminpanel.slugredirects.bulk_action') }}" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="d-flex justify-content-between mb-3">
         <div class="input-group" style="width: auto;">
@@ -73,11 +73,11 @@
             </td>
             <td class="text-center">
                 <button type="button" class="btn btn-outline-primary btn-sm"
-                    pup-target="{{ url_for('admin.slugredirects.edit_slug_redirect', redirect_id=record.id) }}"
+                    pup-target="{{ url_for('adminpanel.slugredirects.edit_slug_redirect', redirect_id=record.id) }}"
                     onclick="pup_window_new(this, 600, 400)">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <form action="{{ url_for('admin.slugredirects.delete_slug_redirect_data', redirect_id=record.id) }}"
+                <form action="{{ url_for('adminpanel.slugredirects.delete_slug_redirect_data', redirect_id=record.id) }}"
                     method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="btn btn-outline-danger btn-sm">

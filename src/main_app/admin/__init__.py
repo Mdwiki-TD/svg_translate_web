@@ -16,7 +16,7 @@ from .routes import (
 
 
 def register_bp_admin_blueprints(app: Flask) -> None:
-    bp_admin = Blueprint("admin", __name__, url_prefix="/admin")
+    bp_admin = Blueprint("adminpanel", __name__, url_prefix="/admin")
     admin_model = AdminPanel(bp_admin)  # noqa: F841
 
     bp_coords = Blueprint("coordinators", __name__, url_prefix="/coordinators")
@@ -33,7 +33,7 @@ def register_bp_admin_blueprints(app: Flask) -> None:
     jobs_module = AdminJobsRoutes(
         bp=Blueprint("jobs", __name__, url_prefix="/jobs"),
         jobs_data_infos=jobs_data_admins,
-        bp_name="admin.jobs",
+        bp_name="adminpanel.jobs",
     )
 
     bp_templates = Blueprint("templates", __name__, url_prefix="/templates")

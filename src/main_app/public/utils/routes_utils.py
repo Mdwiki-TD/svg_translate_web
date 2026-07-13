@@ -77,7 +77,7 @@ def get_job_detail_url(job_id: int, job_type: str) -> str:
     """Returns the correct job detail URL based on job type."""
     if job_type in jobs_data_public:
         return url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id)
-    return url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id)
+    return url_for("adminpanel.jobs.job_detail", job_type=job_type, job_id=job_id)
 
 
 __all__ = [

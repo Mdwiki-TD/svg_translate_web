@@ -30,7 +30,7 @@ def _safe_url_for(endpoint: str, fallback: str, **values) -> str:
 
 
 def job_list_url(job_type: str) -> str:
-    return _safe_url_for("admin.jobs.jobs_list", f"/admin/jobs/{job_type}", job_type=job_type)
+    return _safe_url_for("adminpanel.jobs.jobs_list", f"/admin/jobs/{job_type}", job_type=job_type)
 
 
 def generate_list_item(item: SidebarItem) -> str:
@@ -192,28 +192,30 @@ def load_menu() -> dict[str, list[SidebarItem]]:
             SidebarItem(
                 id="templates",
                 admin=1,
-                href=_safe_url_for("admin.templates.dashboard", "/admin/templates/"),
+                href=_safe_url_for("adminpanel.templates.dashboard", "/admin/templates/"),
                 title="Templates",
                 icon="bi-list-columns",
             ),
             SidebarItem(
                 id="templates_need_update",
                 admin=1,
-                href=_safe_url_for("admin.templates.templates_need_update", "/admin/templates/templates-need-update"),
+                href=_safe_url_for(
+                    "adminpanel.templates.templates_need_update", "/admin/templates/templates-need-update"
+                ),
                 title="Templates Need Update",
                 icon="bi-arrow-repeat",
             ),
             SidebarItem(
                 id="owid_charts",
                 admin=1,
-                href=_safe_url_for("admin.owidcharts.dashboard", "/admin/owidcharts/"),
+                href=_safe_url_for("adminpanel.owidcharts.dashboard", "/admin/owidcharts/"),
                 title="OWID Charts",
                 icon="bi-graph-up",
             ),
             SidebarItem(
                 id="slug_redirects",
                 admin=1,
-                href=_safe_url_for("admin.slugredirects.dashboard", "/admin/slugredirects/"),
+                href=_safe_url_for("adminpanel.slugredirects.dashboard", "/admin/slugredirects/"),
                 title="Slug Redirects",
                 icon="bi-arrow-right-circle",
             ),
@@ -222,14 +224,14 @@ def load_menu() -> dict[str, list[SidebarItem]]:
             SidebarItem(
                 id="admins",
                 admin=1,
-                href=_safe_url_for("admin.coordinators.dashboard", "/admin/coordinators/"),
+                href=_safe_url_for("adminpanel.coordinators.dashboard", "/admin/coordinators/"),
                 title="Coordinators",
                 icon="bi-person-gear",
             ),
             SidebarItem(
                 id="users",
                 admin=1,
-                href=_safe_url_for("admin.users.dashboard", "/admin/users/"),
+                href=_safe_url_for("adminpanel.users.dashboard", "/admin/users/"),
                 title="Users",
                 icon="bi-person",
             ),
@@ -301,7 +303,7 @@ def load_menu() -> dict[str, list[SidebarItem]]:
             SidebarItem(
                 id="settings",
                 admin=1,
-                href=_safe_url_for("admin.settings.dashboard", "/admin/settings/"),
+                href=_safe_url_for("adminpanel.settings.dashboard", "/admin/settings/"),
                 title="Settings",
                 icon="bi-gear",
             ),

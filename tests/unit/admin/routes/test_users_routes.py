@@ -121,7 +121,7 @@ class TestUpdatePermissions:
         result = self._call_target(toggle_func_name, 1, 1)
 
         mock_flash.assert_called_once_with("User 'testuser' permissions updated.", "success")
-        mock_url_for.assert_called_once_with("admin.users.dashboard")
+        mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
         mock_redirect.assert_called_once_with("/admin/users/")
         assert result == "redirect_response"
 
@@ -149,7 +149,7 @@ class TestUpdatePermissions:
         result = self._call_target(toggle_func_name, 999, 1)
 
         mock_flash.assert_called_once_with("User with id 999 was not found", "warning")
-        mock_url_for.assert_called_once_with("admin.users.dashboard")
+        mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
         mock_redirect.assert_called_once_with("/admin/users/")
         assert result == "redirect_response"
 
@@ -180,7 +180,7 @@ class TestUpdatePermissions:
             "Unable to update user permissions. Please try again.",
             "danger",
         )
-        mock_url_for.assert_called_once_with("admin.users.dashboard")
+        mock_url_for.assert_called_once_with("adminpanel.users.dashboard")
         mock_redirect.assert_called_once_with("/admin/users/")
         assert result == "redirect_response"
 
@@ -213,7 +213,7 @@ class TestUsersRoutesRoutes:
         app.secret_key = "test-secret"
         app.config["TESTING"] = True
 
-        admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/admin")
         admin_bp.register_blueprint(UsersRoutes(Blueprint("users", __name__, url_prefix="/users")).bp)
         app.register_blueprint(admin_bp)
 

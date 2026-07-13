@@ -21,7 +21,7 @@
             <a href="https://{{ wiki_domain }}/wiki/{{ template.title }}" target="_blank">{{ template.title }}</a>
         </div>
         <div class="card-body">
-            <form id="updateForm" method="post" action="{{ url_for('admin.templates.update_template') }}">
+            <form id="updateForm" method="post" action="{{ url_for('adminpanel.templates.update_template') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="id" value="{{ template.id }}" />
                 <input type="hidden" name="from_popup" value="1" />
@@ -63,14 +63,14 @@
             </form>
 
             <form id="deleteForm" method="post"
-                action="{{ url_for('admin.templates.delete_template', template_id=template.id) }}" class="d-inline"
+                action="{{ url_for('adminpanel.templates.delete_template', template_id=template.id) }}" class="d-inline"
                 onsubmit="return confirm('Are you sure you want to delete {{ template.title }}?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="from_popup" value="1" />
             </form>
 
             <form id="collectDataForm" method="post"
-                action="{{ url_for('admin.jobs.start_job', job_type='collect_templates_data') }}" class="d-inline"
+                action="{{ url_for('adminpanel.jobs.start_job', job_type='collect_templates_data') }}" class="d-inline"
                 onsubmit="return confirm('Start collecting templates data for {{ template.title }}?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="title" value="{{ template.title }}" />

@@ -54,7 +54,7 @@
                     </thead>
                     <tbody>
                         {% for job in recent_jobs %}
-                        {% set job_pb = 'public_jobs' if job.job_type in jobs_data_public else 'admin.jobs' %}
+                        {% set job_pb = 'public_jobs' if job.job_type in jobs_data_public else 'adminpanel.jobs' %}
                         <tr>
                             <td>{{ job.id }}</td>
                             <td>

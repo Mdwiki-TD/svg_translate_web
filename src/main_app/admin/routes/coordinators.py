@@ -55,7 +55,7 @@ def _add_coordinator() -> ResponseReturnValue:
     username = request.form.get("username", "").strip()
     if not username:
         flash("Username is required to add a coordinator.", "danger")
-        return redirect(url_for("admin.coordinators.dashboard"))
+        return redirect(url_for("adminpanel.coordinators.dashboard"))
 
     try:
         record = add_coordinator(username)
@@ -74,7 +74,7 @@ def _add_coordinator() -> ResponseReturnValue:
     else:
         flash(f"Coordinator '{record.username}' added.", "success")
 
-    return redirect(url_for("admin.coordinators.dashboard"))
+    return redirect(url_for("adminpanel.coordinators.dashboard"))
 
 
 def _set_record_active_status(coordinator_id: int, is_active: bool) -> ResponseReturnValue:
@@ -93,7 +93,7 @@ def _set_record_active_status(coordinator_id: int, is_active: bool) -> ResponseR
         state = "activated" if record.is_active else "deactivated"
         flash(f"Coordinator '{record.username}' {state}.", "success")
 
-    return redirect(url_for("admin.coordinators.dashboard"))
+    return redirect(url_for("adminpanel.coordinators.dashboard"))
 
 
 def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
@@ -113,7 +113,7 @@ def _delete_coordinator(coordinator_id: int) -> ResponseReturnValue:
     else:
         flash(f"Coordinator '{coordinator_id}' removed.", "success")
 
-    return redirect(url_for("admin.coordinators.dashboard"))
+    return redirect(url_for("adminpanel.coordinators.dashboard"))
 
 
 class CoordinatorsRoutes:

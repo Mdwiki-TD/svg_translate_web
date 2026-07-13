@@ -41,7 +41,7 @@ class TestSettingsRoutesRoutes:
         app.secret_key = "test-secret"
         app.config["TESTING"] = True
 
-        admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/admin")
         admin_bp.register_blueprint(SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings")).bp)
         app.register_blueprint(admin_bp)
 
