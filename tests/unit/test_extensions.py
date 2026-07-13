@@ -38,17 +38,17 @@ def test_base_model_to_dict(mock_app: Flask) -> None:
         now = datetime(2025, 1, 1, 12, 0, 0)
         obj = MockModel(id=1, name="test", created_at=now)
 
-        data = obj.to_dict()
+        data = obj.to_dict()  # type: ignore
         assert data["id"] == 1
         assert data["name"] == "test"
         assert data["created_at"] == "2025-01-01T12:00:00"
 
 
-def test_base_model_to_dict1():
+def test_base_model_to_dict2():
     """Test that to_dict serializes column values to a dictionary."""
     model = BaseModel()
-    model.foo = "value1"
-    model.bar = "value2"
+    model.foo = "value1"  # type: ignore
+    model.bar = "value2"  # type: ignore
 
     col1 = MagicMock()
     col1.name = "foo"
@@ -68,7 +68,7 @@ def test_base_model_to_dict_isoformat():
     """Test that datetime values are converted to ISO format in to_dict."""
     model = BaseModel()
     dt = datetime(2025, 10, 27, 4, 41, 7)
-    model.created_at = dt
+    model.created_at = dt  # type: ignore
 
     col = MagicMock()
     col.name = "created_at"
@@ -85,11 +85,11 @@ def test_base_model_to_dict_isoformat():
 def test_base_model_init_sets_kwargs():
     """Test that __init__ sets provided kwargs as instance attributes when the attribute exists."""
     model = BaseModel()
-    model.foo = "original"
+    model.foo = "original"  # type: ignore
 
     BaseModel.__init__(model, foo="updated", bar="new")
 
-    assert model.foo == "updated"
+    assert model.foo == "updated"  # type: ignore
     assert not hasattr(model, "bar")
 
 
