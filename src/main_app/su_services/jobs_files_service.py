@@ -7,7 +7,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from ..config import settings
 
@@ -26,12 +26,12 @@ def get_jobs_data_dir() -> Path:
     return jobs_dir
 
 
-def save_data(result_data: Dict[str, Any], filepath: Path) -> None:
+def save_data(result_data: dict[str, Any], filepath: Path) -> None:
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(result_data, f, indent=2, default=str, ensure_ascii=False)
 
 
-def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
+def save_job_result_by_name(filename: str, result_data: dict[str, Any]) -> Path:
     """Save job result to a JSON file and return the file path."""
     jobs_dir: Path = get_jobs_data_dir()
     # Use microseconds to avoid race conditions if multiple jobs complete simultaneously
@@ -41,7 +41,7 @@ def save_job_result_by_name(filename: str, result_data: Dict[str, Any]) -> Path:
     return filepath
 
 
-def load_job_result(result_file: str) -> Dict[str, Any] | None:
+def load_job_result(result_file: str) -> dict[str, Any] | None:
     """Load job result from a JSON file."""
     jobs_dir: Path = get_jobs_data_dir()
     result_file = jobs_dir / result_file  # type: ignore

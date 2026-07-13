@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, List, Tuple
+from typing import Any, Tuple
 
 from flask import (
     Blueprint,
@@ -40,7 +40,7 @@ def create_json_file() -> Tuple[Any, int]:
         string with appropriate status code (404 for no templates, 500 for errors).
     """
     try:
-        templates: List[TemplateRecord] = list_templates()
+        templates: list[TemplateRecord] = list_templates()
 
         if not templates:
             return "No templates found to export.", 404

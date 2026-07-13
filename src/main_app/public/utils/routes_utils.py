@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from flask import url_for
 
@@ -39,7 +39,7 @@ def context_data(
     }
 
 
-def load_auth_payload(user: Any | None) -> Dict[str, Any]:
+def load_auth_payload(user: Any | None) -> dict[str, Any]:
     if user and hasattr(user, "to_auth_payload"):
         return user.to_auth_payload()
     if user:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, List, Tuple
+from typing import Any, Tuple
 
 from flask import (
     Blueprint,
@@ -27,7 +27,7 @@ from ..decorators import admin_required
 logger = logging.getLogger(__name__)
 
 
-def get_charts_data(charts: List[OwidChartRecord]) -> List[dict[str, Any]]:
+def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
 
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
@@ -72,7 +72,7 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            charts: List[OwidChartRecord] = self.owid_charts_service.list_charts()
+            charts: list[OwidChartRecord] = self.owid_charts_service.list_charts()
 
             charts_data: list[dict[str, Any]] = get_charts_data(charts)
 
