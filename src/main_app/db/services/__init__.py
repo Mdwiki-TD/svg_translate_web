@@ -89,25 +89,15 @@ from .views_service import (
 )
 
 __all__ = [
-    # AdminService
     "AdminService",
-    # UsersService
-    "UsersService",
-    # UserTokenService
-    "UserTokenService",
-    # JobsService
-    "JobsService",
-    # SettingsService
-    "SettingsService",
-    # DeleteService
     "DeleteService",
-    # OwidChartsService
+    "JobsService",
     "OwidChartsService",
-    # OwidSlugRedirectsService
     "OwidSlugRedirectsService",
-    # TemplateService
+    "SettingsService",
     "TemplateService",
-    # ViewsService
+    "UsersService",
+    "UserTokenService",
     "ViewsService",
     # users_service
     "create_user",

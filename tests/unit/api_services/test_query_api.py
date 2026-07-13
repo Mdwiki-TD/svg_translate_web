@@ -39,6 +39,7 @@ class TestGetTemplatePages:
 
 class TestIsPagesExists:
     def test_existing_pages(self, mock_site):
+        # API returns pages as a dict keyed by pageid
         mock_site.get.return_value = {
             "query": {
                 "normalized": [{"from": "aspirin", "to": "Aspirin"}],
@@ -68,6 +69,7 @@ class TestIsPagesExists:
 
     def test_batching_over_50(self, mock_site):
         titles = [f"Page{i}" for i in range(55)]
+        # First batch returns dict of 50 pages, second batch returns dict of 5
         pages_batch1 = {str(i): {"pageid": i, "ns": 0, "title": f"Page{i}"} for i in range(50)}
         pages_batch2 = {str(i): {"pageid": i, "ns": 0, "title": f"Page{i}"} for i in range(50, 55)}
         mock_site.get.side_effect = [

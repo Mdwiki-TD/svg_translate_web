@@ -17,7 +17,6 @@ from flask.typing import ResponseReturnValue
 
 from ...db.exceptions import DuplicateUserError, UserNotFoundError
 from ...db.services import (
-    AdminService,
     add_coordinator,
     delete_coordinator,
     get_coordinator_by_id,
