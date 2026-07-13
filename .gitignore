@@ -30,3 +30,4 @@ run_tests.py
 **/__pycache__/**
 /.commandcode
 errors.log
+/src/templates/admin/admin

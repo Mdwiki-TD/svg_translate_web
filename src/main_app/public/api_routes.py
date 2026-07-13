@@ -5,7 +5,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
-from ..db.models import OwidChartRecord, OwidChartTemplateRecord, TemplateRecord
+from ..db.models import OwidChartRecord, OwidChartTemplateView, TemplateRecord
 from ..db.services import (
     list_charts,
     list_owid_charts_templates,
@@ -25,7 +25,7 @@ class ApiRoutes:
     def make_charts_summary(
         self,
         all_charts: list[OwidChartRecord],
-        charts_temps: dict[int, OwidChartTemplateRecord],
+        charts_temps: dict[int, OwidChartTemplateView],
         template_filter: str,
     ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         data: list[dict[str, Any]] = []
@@ -131,7 +131,7 @@ class ApiRoutes:
 
         @self.bp.get("/charts_templates")
         def charts_templates():
-            all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+            all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
 
             data = [c.to_dict() for c in all_charts_templates if c.template_id]
             return jsonify(data)
@@ -140,7 +140,7 @@ class ApiRoutes:
         @self.bp.get("/owidcharts/<string:template_filter>")
         def owid_charts_list(template_filter: str = ""):
             all_charts: list[OwidChartRecord] = list_charts()
-            all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+            all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
 
             charts_temps = {c.chart_id: c for c in all_charts_templates}
 
