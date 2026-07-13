@@ -12,7 +12,7 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            {{ form_start_job(url_for('admin.jobs.start_job', job_type=job_type), start_confirm_message) }}
+            {{ form_start_job(url_for('adminpanel.jobs.start_job', job_type=job_type), start_confirm_message) }}
             {% endif %}
         </div>
     </div>
@@ -49,14 +49,14 @@
                                 <div class="btn-group d-inline nowrap-text">
                                     {% if job.status | is_job_running %}
                                     {{ form_cancel_job(url_for(
-                                        'admin.jobs.cancel_job',
+                                        'adminpanel.jobs.cancel_job',
                                         job_type=job_type,
                                         job_id=job.id),
                                         btn_class='btn btn-warning btn-sm') }}
                                     {% endif %}
                                 </div>
                                 <div class="btn-group d-inline nowrap-text">
-                                    <a href="{{ url_for('admin.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
+                                    <a href="{{ url_for('adminpanel.jobs.job_detail', job_type=job_type, job_id=job.id) }}"
                                         class="btn btn-outline-primary btn-sm nowrap-text">
                                         <i class="bi bi-eye"></i> Details
                                     </a>

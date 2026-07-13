@@ -200,6 +200,3 @@ class TestDashboard:
         assert "&#39;job_type_1&#39;" in body
         assert "&#39;job_type_2&#39;" in body
         assert "jobs_data_public=[&#39;job_type_1&#39;" in body
-
-
-__all__ = []

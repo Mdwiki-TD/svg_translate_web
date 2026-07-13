@@ -5,7 +5,7 @@ Objects for copy_svg_langs worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
 
@@ -48,9 +48,9 @@ class Stages:
 
 @dataclass
 class StepResult:
-    result: Optional[bool] = None
+    result: bool | None = None
     msg: str = ""
-    details: Optional[dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
 
 @dataclass
@@ -64,15 +64,15 @@ class FileSteps:
 @dataclass
 class FilesProcessedItem:
     title: str
-    file_path: Optional[str] = None
+    file_path: str | None = None
     status: str = "pending"
-    error: Optional[str] = None
+    error: str | None = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
 
 
 @dataclass
 class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
-    title: Optional[str] = None
+    title: str | None = None
     stages: Stages = field(default_factory=Stages)
     files_processed: list[FilesProcessedItem] = field(default_factory=list)
     files_success: list[FilesProcessedItem] = field(default_factory=list)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import mwclient
 import mwclient.errors
@@ -23,7 +23,7 @@ class MwClientPage:
         self.title: str = title
         self.site: Site = site
         self.load_page_error: str = ""
-        self.page: Optional[Page] = None
+        self.page: Page | None = None
 
     # ------------------------------------------------------------------
     # Core operations

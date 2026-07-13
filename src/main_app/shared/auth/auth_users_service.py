@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from ...db.models import UserRecord
 from ...db.services import (
@@ -25,7 +24,7 @@ class AuthUserService:
         username: str,
         access_key: str,
         access_secret: str,
-    ) -> Optional[CurrentUser]:
+    ) -> CurrentUser | None:
         """Upsert OAuth credentials and return a CurrentUser composite."""
         username = (username or "").strip()
         if not username:
@@ -34,10 +33,10 @@ class AuthUserService:
 
         try:
             # Ensure user identity row exists
-            user: Optional[UserRecord] = get_user_by_username(username)
+            user: UserRecord | None = get_user_by_username(username)
 
             if not user:
-                user: Optional[UserRecord] = create_user(username)
+                user: UserRecord | None = create_user(username)
 
             if not user:
                 return None
@@ -82,7 +81,7 @@ class AuthUserService:
         )
 
     @staticmethod
-    def get_authenticated_user(user_id: int) -> Optional[CurrentUser]:
+    def get_authenticated_user(user_id: int) -> CurrentUser | None:
         """Fetch the CurrentUser composite for session restoration."""
         try:
             token = get_authenticated_user_token(user_id)

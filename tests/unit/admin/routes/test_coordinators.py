@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/admin/routes/coordinators.py module.
+Unit tests for src/main_app/adminpanel/routes/coordinators.py module.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from src.main_app.db.exceptions import DuplicateUserError, UserNotFoundError
 @pytest.mark.usefixtures("mock_app")
 class TestCoordinatorRoutes:
     def test_dashboard_requires_auth(self, mock_client):
-        resp = mock_client.get("/admin/coordinators/")
+        resp = mock_client.get("/adminpanel/coordinators/")
         assert resp.status_code == 302
 
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 
 from sqlalchemy import String, cast, func, select
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_templates(limit: int | None = None) -> List[TemplateRecord]:
+def list_templates(limit: int | None = None) -> list[TemplateRecord]:
     """Return all templates"""
     query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
     if limit is not None:
@@ -24,7 +24,7 @@ def list_templates(limit: int | None = None) -> List[TemplateRecord]:
     return query.all()
 
 
-def list_templates_mismatched_years() -> List[TemplateRecord]:
+def list_templates_mismatched_years() -> list[TemplateRecord]:
     """
     Fetches all template records where the 'last_world_file'
     does not contain the 'last_world_year', resolving collation conflicts.
@@ -122,10 +122,10 @@ class TemplateService:
     def __init__(self) -> None:
         pass
 
-    def list_templates(self, limit: int | None = None) -> List[TemplateRecord]:
+    def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
         return list_templates(limit)
 
-    def list_templates_mismatched_years(self) -> List[TemplateRecord]:
+    def list_templates_mismatched_years(self) -> list[TemplateRecord]:
         return list_templates_mismatched_years()
 
     def get_template(self, template_id: int) -> TemplateRecord:

@@ -25,17 +25,11 @@ def register_blueprints(app: Flask) -> None:
         bp_name="public_jobs",
     )
 
-    bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owidcharts")
-    owid_charts_model = OwidChartsRoutes(bp_owid_charts)
-
-    # Public API module
+    # jobs_utils module
     jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
 
-    bp_auth = Blueprint("auth", __name__)
-    auth_model = AuthRoutes(bp_auth)
-
-    bp_profile = Blueprint("profile", __name__, url_prefix="/profile")
-    profile_model = ProfileRoutes(bp_profile)
+    bp_owid_charts = Blueprint("owid_charts", __name__, url_prefix="/owidcharts")
+    owid_charts_model = OwidChartsRoutes(bp_owid_charts)
 
     bp_explorer = Blueprint("explorer", __name__, url_prefix="/explorer")
     explorer_model = ExplorerRoutes(bp_explorer)
@@ -45,6 +39,12 @@ def register_blueprints(app: Flask) -> None:
 
     bp_api = Blueprint("api", __name__, url_prefix="/api")
     api_model = ApiRoutes(bp_api)
+
+    bp_auth = Blueprint("auth", __name__)
+    auth_model = AuthRoutes(bp_auth)
+
+    bp_profile = Blueprint("profile", __name__, url_prefix="/profile")
+    profile_model = ProfileRoutes(bp_profile)
 
     app.register_blueprint(auth_model.bp)
     app.register_blueprint(profile_model.bp)

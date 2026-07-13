@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def verify_required_fields(required_fields: Dict[str, Any]) -> List[str]:
+def verify_required_fields(required_fields: dict[str, Any]) -> list[str]:
     """
     Verify that all required fields in a dictionary have truthy values.
 

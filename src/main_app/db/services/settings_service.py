@@ -67,7 +67,7 @@ def get_all_settings_ready() -> dict[str, Any]:
     return records
 
 
-def get_setting_by_key(key: str) -> SettingRecord:
+def get_setting_by_key(key: str) -> SettingRecord | None:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 

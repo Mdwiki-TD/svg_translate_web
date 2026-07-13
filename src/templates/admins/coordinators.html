@@ -3,7 +3,7 @@
 {% block title %}Coordinators · {{ tool_title }}{% endblock %}
 
 {%- macro update_active_form(coordinator) -%}
-{% set endpoint_target = 'admin.coordinators.deactivate' if coordinator.is_active else 'admin.coordinators.activate' %}
+{% set endpoint_target = 'adminpanel.coordinators.deactivate' if coordinator.is_active else 'adminpanel.coordinators.activate' %}
 <form method="post" action="{{ url_for(endpoint_target, coordinator_id=coordinator.id) }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="form-check form-switch d-inline-flex align-items-center">
@@ -16,7 +16,7 @@
 {%- endmacro -%}
 
 {%- macro delete_coordinator_form(coordinator) -%}
-<form method="post" action="{{ url_for('admin.coordinators.delete', coordinator_id=coordinator.id) }}" class="d-inline"
+<form method="post" action="{{ url_for('adminpanel.coordinators.delete', coordinator_id=coordinator.id) }}" class="d-inline"
     onsubmit="return confirm('Remove {{ coordinator.username }} from coordinators?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -62,7 +62,7 @@
 
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <form method="post" action="{{ url_for('admin.coordinators.add') }}" class="row g-2 align-items-end">
+                <form method="post" action="{{ url_for('adminpanel.coordinators.add') }}" class="row g-2 align-items-end">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="col-sm-8 col-md-6 col-lg-4">
                         <label class="form-label" for="new-coordinator-username">Add coordinator</label>

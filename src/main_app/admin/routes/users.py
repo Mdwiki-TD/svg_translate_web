@@ -58,7 +58,7 @@ def _update_can_run_jobs(user_id: int, desired: int) -> ResponseReturnValue:
         flash(f"User '{record.username}' permissions updated.", "success")
         logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
 
-    return redirect(url_for("admin.users.dashboard"))
+    return redirect(url_for("adminpanel.users.dashboard"))
 
 
 def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
@@ -76,7 +76,7 @@ def _update_can_run_bg_jobs(user_id: int, desired: int) -> ResponseReturnValue:
         flash(f"User '{record.username}' permissions updated.", "success")
         logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
-    return redirect(url_for("admin.users.dashboard"))
+    return redirect(url_for("adminpanel.users.dashboard"))
 
 
 class UsersRoutes:

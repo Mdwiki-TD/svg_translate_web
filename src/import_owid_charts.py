@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -39,7 +39,7 @@ def parse_int(value: str) -> int | None:
         return None
 
 
-def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
+def read_csv_file(file_path: str) -> list[dict[str, Any]]:
     """Read CSV file and return list of chart data dictionaries."""
     charts: list[Any] = []
 
@@ -77,7 +77,7 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     return charts
 
 
-def import_charts_to_db(charts: List[Dict[str, Any]]) -> tuple[int, int, int]:
+def import_charts_to_db(charts: list[dict[str, Any]]) -> tuple[int, int, int]:
     """
     Import charts into the database.
 
@@ -210,7 +210,7 @@ def main() -> None:
             logger.info("Import completed successfully!")
             print("\n✓ All charts imported successfully!")
             print("\nView charts at:")
-            print("  - Admin:  http://localhost:5000/admin/owidcharts")
+            print("  - Admin:  http://localhost:5000/adminpanel/owidcharts")
             print("  - Public: http://localhost:5000/owidcharts/")
             print("  - Test:   http://localhost:5000/owidcharts/all")
 

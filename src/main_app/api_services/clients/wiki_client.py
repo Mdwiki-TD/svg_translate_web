@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from mwclient.client import Site
@@ -52,7 +52,7 @@ def get_cronjob_site(domain: str | None = None) -> Site | None:
     return site
 
 
-def _get_user_site(user: Dict[str, Any] | None) -> Site | None:
+def _get_user_site(user: dict[str, Any] | None) -> Site | None:
     if user is None:
         return None
 
@@ -90,7 +90,7 @@ def _get_user_site(user: Dict[str, Any] | None) -> Site | None:
     return site
 
 
-def get_user_site(user: Dict[str, Any] | None) -> Site | None:
+def get_user_site(user: dict[str, Any] | None) -> Site | None:
     is_cron_job = os.getenv("CRON_JOB", "false").lower() == "true"
     if is_cron_job or (user and user.get("username") == "Background job"):
         return get_cronjob_site()

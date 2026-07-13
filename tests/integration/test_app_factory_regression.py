@@ -40,7 +40,7 @@ def test_create_app_registers_blueprints(mock_environ):
         "main",
         "public_jobs",
         "explorer",
-        "admin",
+        "adminpanel",
         "auth",
         "extract",
     ]

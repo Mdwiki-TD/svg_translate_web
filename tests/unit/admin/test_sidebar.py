@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/public/admin/sidebar.py."""
+"""Unit tests for src/main_app/public/adminpanel/sidebar.py."""
 
 from __future__ import annotations
 
@@ -61,9 +61,11 @@ class TestGenerateListItem:
         assert "Home" in html
 
     def test_generate_list_item_basic(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/admin/home", title="Home", icon=None, target=None, disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/adminpanel/home", title="Home", icon=None, target=None, disabled=False
+        )
         result = generate_list_item(item)
-        assert "/admin/home" in result
+        assert "/adminpanel/home" in result
         assert "title='Home'" in result
         assert "<i class" not in result
         assert "target=" not in result
@@ -71,10 +73,10 @@ class TestGenerateListItem:
 
     def test_generate_list_item_with_icon(self) -> None:
         item = SidebarItem(
-            id="home", admin=0, href="/admin/home", title="Home", icon="bi-house", target=None, disabled=False
+            id="home", admin=0, href="/adminpanel/home", title="Home", icon="bi-house", target=None, disabled=False
         )
         result = generate_list_item(item)
-        assert "/admin/home" in result
+        assert "/adminpanel/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target=" not in result
@@ -147,14 +149,14 @@ class TestCreateSide:
         """Test that sidebar contains Collect Templates data job link."""
         result = create_side("collect_templates_data")
         assert "Collect Templates data" in result
-        assert "/admin/jobs/collect_templates_data" in result
+        assert "/adminpanel/jobs/collect_templates_data" in result
         assert "bi-kanban" in result
 
     def test_sidebar_contains_fix_nested_main_files_job_link(self) -> None:
         """Test that sidebar contains Fix Nested Main Files job link."""
         result = create_side("fix_nested_main_files")
         assert "Fix Nested Main Files" in result
-        assert "/admin/jobs/fix_nested_main_files" in result
+        assert "/adminpanel/jobs/fix_nested_main_files" in result
         assert "bi-tools" in result
 
     def test_sidebar_marks_collect_templates_data_as_active(self) -> None:

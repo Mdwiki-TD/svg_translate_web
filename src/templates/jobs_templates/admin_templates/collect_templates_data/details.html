@@ -1,4 +1,4 @@
-{% extends "jobs_templates/admin/base_details.html" %}
+{% extends "jobs_templates/admin_templates/base_details.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
@@ -123,7 +123,7 @@
                         </td>
                         <td>
                             <a type="button" class="btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('admin.templates.edit_by_title', template_title=template.title) }}"
+                                pup-target="{{ url_for('adminpanel.templates.edit_by_title', template_title=template.title) }}"
                                 onclick="pup_window_new(this, 600, 600)">
                                 <i class="bi bi-pencil"></i>
                             </a>

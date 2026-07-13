@@ -31,9 +31,10 @@ def retry_on_db_disconnect(
                 try:
                     return func(*args, **kwargs)
                 except OperationalError as exc:
-                    code = exc.code
+                    orig_exc = getattr(exc, "orig", None)
+                    dbapi_code = orig_exc.args[0] if orig_exc and getattr(orig_exc, "args", None) else None
                     is_disconnect = (
-                        code == 2006
+                        dbapi_code == 2006
                         or "server has gone away" in str(exc)
                         or getattr(exc, "connection_invalidated", False)
                     )

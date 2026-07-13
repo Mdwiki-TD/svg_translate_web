@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from CopySVGTranslation import inject
 
@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class InjectResult:
-    result: Optional[bool] = None
-    msg: Optional[str] = None
-    new_languages: Optional[int] = None
-    updated_translations: Optional[int] = None
+    result: bool | None = None
+    msg: str | None = None
+    new_languages: int | None = None
+    updated_translations: int | None = None
 
 
 def start_injects(

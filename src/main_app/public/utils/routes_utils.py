@@ -1,8 +1,7 @@
-#
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from flask import url_for
 
@@ -40,7 +39,7 @@ def context_data(
     }
 
 
-def load_auth_payload(user: Any | None) -> Dict[str, Any]:
+def load_auth_payload(user: Any | None) -> dict[str, Any]:
     if user and hasattr(user, "to_auth_payload"):
         return user.to_auth_payload()
     if user:
@@ -78,7 +77,7 @@ def get_job_detail_url(job_id: int, job_type: str) -> str:
     """Returns the correct job detail URL based on job type."""
     if job_type in jobs_data_public:
         return url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id)
-    return url_for("admin.jobs.job_detail", job_type=job_type, job_id=job_id)
+    return url_for("adminpanel.jobs.job_detail", job_type=job_type, job_id=job_id)
 
 
 __all__ = [

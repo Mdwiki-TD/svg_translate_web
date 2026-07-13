@@ -1,4 +1,4 @@
-"""Tests for src/main_app/admin/routes/slug_redirects.py."""
+"""Tests for src/main_app/adminpanel/routes/slug_redirects.py."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ class TestSlugRedirectsRoutes:
         app.secret_key = "test-secret"
         app.config["TESTING"] = True
 
-        admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
         admin_bp.register_blueprint(SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
         app.register_blueprint(admin_bp)
 
@@ -115,7 +115,7 @@ class TestSlugRedirectsRoutes:
             mock_render,
         )
 
-        resp = client.get("/admin/slugredirects/")
+        resp = client.get("/adminpanel/slugredirects/")
 
         assert resp.status_code == 200
         mock_render.assert_called_once_with(
@@ -141,7 +141,7 @@ class TestSlugRedirectsRoutes:
             mock_render,
         )
 
-        resp = client.get("/admin/slugredirects/1/edit")
+        resp = client.get("/adminpanel/slugredirects/1/edit")
 
         assert resp.status_code == 200
         mock_render.assert_called_once_with("admins/slug_redirects/edit.html", record=record, error=None)
@@ -158,7 +158,7 @@ class TestSlugRedirectsRoutes:
             mock_render,
         )
 
-        resp = client.get("/admin/slugredirects/999/edit")
+        resp = client.get("/adminpanel/slugredirects/999/edit")
 
         assert resp.status_code == 200
         mock_render.assert_called_once_with(
@@ -178,7 +178,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/update",
+            "/adminpanel/slugredirects/update",
             data={"id": 1, "should_be_replaced": "on"},
         )
 
@@ -194,7 +194,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/update",
+            "/adminpanel/slugredirects/update",
             data={"should_be_replaced": "on"},
         )
 
@@ -210,7 +210,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/update",
+            "/adminpanel/slugredirects/update",
             data={"id": 999, "should_be_replaced": "on"},
         )
 
@@ -231,7 +231,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/update",
+            "/adminpanel/slugredirects/update",
             data={"id": 1, "should_be_replaced": "on", "from_popup": "1"},
         )
 
@@ -249,7 +249,7 @@ class TestSlugRedirectsRoutes:
             mock_delete,
         )
 
-        resp = client.post("/admin/slugredirects/1/delete")
+        resp = client.post("/adminpanel/slugredirects/1/delete")
 
         mock_delete.assert_called_once_with(1)
         assert resp.status_code == 302
@@ -262,7 +262,7 @@ class TestSlugRedirectsRoutes:
             mock_delete,
         )
 
-        resp = client.post("/admin/slugredirects/999/delete")
+        resp = client.post("/adminpanel/slugredirects/999/delete")
 
         mock_delete.assert_called_once_with(999)
         assert resp.status_code == 302
@@ -278,7 +278,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "mark_replace", "selected_ids": [1, 2, 3]},
         )
 
@@ -294,7 +294,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "mark_no_replace", "selected_ids": [1]},
         )
 
@@ -310,7 +310,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "delete", "selected_ids": [1, 2]},
         )
 
@@ -331,7 +331,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "invalid", "selected_ids": [1]},
         )
 
@@ -348,7 +348,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "mark_replace"},
         )
 
@@ -364,7 +364,7 @@ class TestSlugRedirectsRoutes:
         )
 
         resp = client.post(
-            "/admin/slugredirects/bulk_action",
+            "/adminpanel/slugredirects/bulk_action",
             data={"action": "mark_replace", "selected_ids": [1]},
         )
 

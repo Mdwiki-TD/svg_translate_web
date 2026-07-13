@@ -10,10 +10,10 @@ from .users import UsersRoutes
 
 __all__ = [
     "CoordinatorsRoutes",
+    "UsersRoutes",
+    "SettingsRoutes",
     "AdminJobsRoutes",
     "OwidChartsRoutes",
     "SlugRedirects",
-    "SettingsRoutes",
     "Templates",
-    "UsersRoutes",
 ]

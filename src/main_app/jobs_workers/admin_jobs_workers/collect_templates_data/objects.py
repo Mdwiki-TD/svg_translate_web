@@ -5,7 +5,7 @@ Objects for collect_templates_data worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
 
@@ -16,7 +16,7 @@ class StepResult:
     "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
     """
 
-    result: Optional[bool | str] = None
+    result: bool | str | None = None
     value: str = ""
     new_value: str = ""
     msg: str = ""

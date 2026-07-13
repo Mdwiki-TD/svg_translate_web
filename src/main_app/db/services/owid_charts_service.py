@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
@@ -58,7 +58,7 @@ def get_chart_by_id(chart_id: int) -> OwidChartRecord | None:
     return records
 
 
-def get_chart_by_slug(slug: str) -> Optional[OwidChartRecord]:
+def get_chart_by_slug(slug: str) -> OwidChartRecord | None:
     """
     Fetch a single chart by slug.
 
@@ -141,7 +141,7 @@ class OwidChartsService:
     def get_chart_by_id(self, chart_id: int) -> OwidChartRecord | None:
         return get_chart_by_id(chart_id)
 
-    def get_chart_by_slug(self, slug: str) -> Optional[OwidChartRecord]:
+    def get_chart_by_slug(self, slug: str) -> OwidChartRecord | None:
         return get_chart_by_slug(slug)
 
     def add_chart(self, **chart_data: Any) -> OwidChartRecord:

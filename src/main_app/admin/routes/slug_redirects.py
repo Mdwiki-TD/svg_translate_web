@@ -80,7 +80,7 @@ class SlugRedirects:
 
             if not redirect_id:
                 flash("Redirect ID is required.", "danger")
-                return redirect(url_for("admin.slugredirects.dashboard"))
+                return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
             if update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced}):
                 flash("Slug redirect updated.", "success")
@@ -89,7 +89,7 @@ class SlugRedirects:
 
             if from_popup:
                 return render_template("admins/popup_action.html")
-            return redirect(url_for("admin.slugredirects.dashboard"))
+            return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
         @self.bp.post("/<int:redirect_id>/delete")
         @admin_required
@@ -98,7 +98,7 @@ class SlugRedirects:
                 flash("Slug redirect deleted.", "success")
             else:
                 flash("Slug redirect not found.", "danger")
-            return redirect(url_for("admin.slugredirects.dashboard"))
+            return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
         @self.bp.post("/bulk_action")
         @admin_required
@@ -108,7 +108,7 @@ class SlugRedirects:
 
             if not selected_ids:
                 flash("No items selected.", "warning")
-                return redirect(url_for("admin.slugredirects.dashboard"))
+                return redirect(url_for("adminpanel.slugredirects.dashboard"))
             try:
                 if action == "mark_replace":
                     bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
@@ -125,7 +125,7 @@ class SlugRedirects:
                 logger.error("Error in bulk action")
                 flash("An error occurred.", "danger")
 
-            return redirect(url_for("admin.slugredirects.dashboard"))
+            return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
 
 __all__ = [

@@ -1,7 +1,17 @@
-{% extends "jobs_templates/admin/base_details.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
+{% extends "jobs_templates/admin_templates/base_details.html" %}
+{% from "_macros.html" import card_header, stats_card, render_step %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
+{% block job_info_extra %}
+{% if result_data and result_data.args %}
+<tr>
+    <th>Update all pages:</th>
+    <td>
+        {{ result_data.args.update_all }}
+    </td>
+</tr>
+{% endif %}
+{% endblock %}
 {# Processed files or pages fallback #}
 {% set _processed = result_data.files_processed or result_data.pages_processed or [] %}
 
@@ -9,11 +19,11 @@
 {% set skipped_pages = result_data.pages_skipped or (_processed | selectattr("status", "equalto", "skipped") | list) %}
 {% set failed_pages = result_data.pages_failed or (_processed | selectattr("status", "equalto", "failed") | list) %}
 
-{% set uploaded_pages = result_data.pages_uploaded or (_processed | selectattr("status", "equalto", "uploaded") | list) %}
+{% set created_pages = result_data.pages_created or (_processed | selectattr("status", "equalto", "created") | list) %}
 {% set updated_pages = result_data.pages_updated or (_processed | selectattr("status", "equalto", "updated") | list) %}
 
 {# Filter out any items that match the three statuses above #}
-{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success", "uploaded", "updated"]) | list %}
+{% set files_processed = _processed | rejectattr("status", "in", ["skipped", "failed", "success", "created", "updated"]) | list %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -23,7 +33,7 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Uploaded', ( uploaded_pages | length ) or result_data.summary.uploaded, "success", "") }}
+                {{ stats_card('Created', ( created_pages | length ) or result_data.summary.created, "success", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Updated', ( updated_pages | length ) or result_data.summary.updated, "info", "") }}
@@ -56,54 +66,35 @@
                     <tr>
                         <th>#</th>
                         <th>Template</th>
-                        <th>File</th>
-                        <th>Cropped</th>
-                        <th>Compare</th>
-                        <th>Download</th>
-                        <th>Crop</th>
-                        <th>Upload</th>
-                        <th title="Add Template:Image extracted to original file">
-                            Update File
-                        </th>
-                        <th>Update Template</th>
+                        <th>New Page</th>
+                        <th>Load Text</th>
+                        <th>Generate Text</th>
                         <th>Update Page</th>
+                        <th>Create Page</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for file in data %}
+                    {% for item in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
-                        <td style="width: 30%;">
-                            <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}" target="_blank"
+                        <td>
+                            <a href="https://commons.wikimedia.org/wiki/{{ item.template_title }}" target="_blank"
                                 rel="noopener noreferrer">
-                                {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
+                                {{ item.template_title | replace("Template:OWID/", "", 1) }}
                             </a>
                         </td>
                         <td>
-                            {{ commons_file_link(file.original_file, label="File") }}
+                            {% if item.new_page_title %}
+                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_page_title }}" target="_blank"
+                                rel="noopener noreferrer">
+                                OWID Page
+                            </a>
+                            {% else %} - {% endif %}
                         </td>
-                        <td>
-                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                            {{ commons_file_link(file.cropped_filename, label="Cropped") }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                            <a href="{{ url_for('jobs_utils.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
-                                target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
-                            {% endif %}
-                        </td>
-                        {% set step_keys = [
-                            'download',
-                            'crop',
-                            'upload_cropped',
-                            'update_original',
-                            'update_template',
-                            'update_page'
-                        ] %}
+                        {% set step_keys = [ 'load_template_text', 'create_new_text', 'update_text', 'create_new_page' ] %}
                         {% for step_key in step_keys %}
                         <td>
-                            {% set step = file.steps.get(step_key) if file.steps else None %}
+                            {% set step = item.steps.get(step_key) if item.steps else None %}
                             {{ render_step(step) }}
                         </td>
                         {% endfor %}
@@ -117,9 +108,9 @@
 {% endif %}
 {%- endmacro -%}
 
-<!-- Uploaded -->
-{% if uploaded_pages %}
-{{ pages_table(uploaded_pages, 'Uploaded') }}
+<!-- Created -->
+{% if created_pages %}
+{{ pages_table(created_pages, 'Created') }}
 {% endif %}
 
 <!-- Updated -->

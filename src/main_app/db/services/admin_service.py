@@ -7,7 +7,6 @@ SQLAlchemy-based service for managing coordinators.
 from __future__ import annotations
 
 import logging
-from typing import List
 
 from sqlalchemy.exc import IntegrityError
 
@@ -35,7 +34,7 @@ def is_active_coordinator(username: str) -> bool:
     return False
 
 
-def list_coordinators() -> List[AdminUserRecord]:
+def list_coordinators() -> list[AdminUserRecord]:
     """
     Return all coordinators from the database.
 
@@ -102,7 +101,7 @@ class AdminService:
     def is_active_coordinator(self, username: str) -> bool:
         return is_active_coordinator(username)
 
-    def list_coordinators(self) -> List[AdminUserRecord]:
+    def list_coordinators(self) -> list[AdminUserRecord]:
         return list_coordinators()
 
     def get_coordinator_by_id(self, coordinator_id: int) -> AdminUserRecord:

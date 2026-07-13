@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict
 
 import requests
 
@@ -23,7 +22,7 @@ def download_one_file(
     i: int,
     session: requests.Session | None = None,
     overwrite: bool = False,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 
     Parameters:

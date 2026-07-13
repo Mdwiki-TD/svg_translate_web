@@ -44,7 +44,6 @@ def fake_db(monkeypatch):
 
 
 class TestRetryOnDbDisconnect:
-
     def test_returns_value_on_success_without_retry(self, fake_db):
         func = MagicMock(return_value="ok", __name__="fake_job_function")
         wrapped = retry_on_db_disconnect()(func)

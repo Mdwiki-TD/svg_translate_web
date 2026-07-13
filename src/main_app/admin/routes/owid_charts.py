@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, List, Tuple
+from typing import Any, Tuple
 
 from flask import (
     Blueprint,
@@ -27,7 +27,7 @@ from ..decorators import admin_required
 logger = logging.getLogger(__name__)
 
 
-def get_charts_data(charts: List[OwidChartRecord]) -> List[dict[str, Any]]:
+def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
 
     all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
 
@@ -72,7 +72,7 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            charts: List[OwidChartRecord] = self.owid_charts_service.list_charts()
+            charts: list[OwidChartRecord] = self.owid_charts_service.list_charts()
 
             charts_data: list[dict[str, Any]] = get_charts_data(charts)
 
@@ -104,8 +104,8 @@ class OwidCharts:
         if not slug or not title:
             flash("Slug and Title are required.", "danger")
             if from_popup:
-                return redirect(url_for("admin.owidcharts.add_chart_popup"))
-            return redirect(url_for("admin.owidcharts.dashboard"))
+                return redirect(url_for("adminpanel.owidcharts.add_chart_popup"))
+            return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
         has_map_tab = 1 if request_form.get("has_map_tab") == "on" else 0
         is_published = 1 if request_form.get("is_published") == "on" else 0
@@ -147,11 +147,11 @@ class OwidCharts:
             flash(f"Chart '{record.title}' added.", "success")
 
         if from_popup and save_error:
-            return redirect(url_for("admin.owidcharts.add_chart_popup"))
+            return redirect(url_for("adminpanel.owidcharts.add_chart_popup"))
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.owidcharts.dashboard"))
+        return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
     def _update_chart(self, request_form) -> ResponseReturnValue:
         """Update a chart from the submitted form data."""
@@ -165,8 +165,8 @@ class OwidCharts:
         if not slug or not title:
             flash("Slug and Title are required.", "danger")
             if from_popup:
-                return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
-            return redirect(url_for("admin.owidcharts.dashboard"))
+                return redirect(url_for("adminpanel.owidcharts.edit_chart", chart_id=chart_id))
+            return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
         has_map_tab = request_form.get("has_map_tab") == "on"
         max_time = request_form.get("max_time", type=int)
@@ -214,11 +214,11 @@ class OwidCharts:
                 flash(f"Chart '{chart_id}' not found.", "warning")
 
         if from_popup and save_error:
-            return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
+            return redirect(url_for("adminpanel.owidcharts.edit_chart", chart_id=chart_id))
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.owidcharts.dashboard"))
+        return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
     def _delete_chart(self, chart_id: int, from_popup: bool) -> ResponseReturnValue:
         """Remove a chart entirely."""
@@ -234,7 +234,7 @@ class OwidCharts:
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.owidcharts.dashboard"))
+        return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
     def _edit_chart(self, chart_id: int) -> ResponseReturnValue:
         """Render the edit chart popup page."""
@@ -286,8 +286,8 @@ class OwidChartsRoutes(OwidCharts):
             if not chart_id:
                 flash("Chart ID is required.", "danger")
                 if from_popup:
-                    return redirect(url_for("admin.owidcharts.edit_chart", chart_id=chart_id))
-                return redirect(url_for("admin.owidcharts.dashboard"))
+                    return redirect(url_for("adminpanel.owidcharts.edit_chart", chart_id=chart_id))
+                return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
             return self._update_chart(request.form)
 
@@ -310,7 +310,7 @@ class OwidChartsRoutes(OwidCharts):
 
             if status_code != 200:
                 flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.owidcharts.dashboard"))
+                return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
             return response
 

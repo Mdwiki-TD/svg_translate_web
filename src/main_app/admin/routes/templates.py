@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, List, Tuple
+from typing import Any, Tuple
 
 from flask import (
     Blueprint,
@@ -40,7 +40,7 @@ def create_json_file() -> Tuple[Any, int]:
         string with appropriate status code (404 for no templates, 500 for errors).
     """
     try:
-        templates: List[TemplateRecord] = list_templates()
+        templates: list[TemplateRecord] = list_templates()
 
         if not templates:
             return "No templates found to export.", 404
@@ -81,7 +81,7 @@ def _add_template() -> ResponseReturnValue:
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title is required to add a template.", "danger")
-        return redirect(url_for("admin.templates.dashboard"))
+        return redirect(url_for("adminpanel.templates.dashboard"))
 
     main_file = request.form.get("main_file", "").strip()
     last_world_file = request.form.get("last_world_file", "").strip()
@@ -107,7 +107,7 @@ def _add_template() -> ResponseReturnValue:
     else:
         flash(f"Template '{record.title}' added.", "success")
 
-    return redirect(url_for("admin.templates.dashboard"))
+    return redirect(url_for("adminpanel.templates.dashboard"))
 
 
 def _update_template() -> ResponseReturnValue:
@@ -119,14 +119,14 @@ def _update_template() -> ResponseReturnValue:
         flash("Template ID is required to update a template.", "danger")
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.templates.dashboard"))
+        return redirect(url_for("adminpanel.templates.dashboard"))
 
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title is required to update a template.", "danger")
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("admin.templates.dashboard"))
+        return redirect(url_for("adminpanel.templates.dashboard"))
 
     main_file = request.form.get("main_file") or None
     last_world_file = request.form.get("last_world_file") or None
@@ -153,7 +153,7 @@ def _update_template() -> ResponseReturnValue:
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.templates.dashboard"))
+    return redirect(url_for("adminpanel.templates.dashboard"))
 
 
 def _delete_template(template_id: int) -> ResponseReturnValue:
@@ -175,7 +175,7 @@ def _delete_template(template_id: int) -> ResponseReturnValue:
 
     if from_popup:
         return render_template("admins/popup_action.html")
-    return redirect(url_for("admin.templates.dashboard"))
+    return redirect(url_for("adminpanel.templates.dashboard"))
 
 
 def _edit_template(template_id: int) -> ResponseReturnValue:
@@ -270,7 +270,7 @@ class Templates:
             # If the response is an error message (not a file), flash it and redirect
             if status_code != 200:
                 flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("admin.templates.dashboard"))
+                return redirect(url_for("adminpanel.templates.dashboard"))
 
             return response
 
