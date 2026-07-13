@@ -34,10 +34,10 @@ class AuthUserService:
 
         try:
             # Ensure user identity row exists
-            user: Optional[UserRecord] = get_user_by_username(username)
+            user: UserRecord | None = get_user_by_username(username)
 
             if not user:
-                user: Optional[UserRecord] = create_user(username)
+                user: UserRecord | None = create_user(username)
 
             if not user:
                 return None

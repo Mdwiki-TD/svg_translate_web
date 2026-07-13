@@ -23,14 +23,14 @@ def list_users() -> list[UserRecord]:
     return db.session.query(UserRecord).all()
 
 
-def get_user(user_id: int) -> Optional[UserRecord]:
+def get_user(user_id: int) -> UserRecord | None:
     """Fetch a user by user_id."""
     if not user_id:
         return None
     return db.session.query(UserRecord).filter(UserRecord.user_id == int(user_id)).first()
 
 
-def get_user_by_username(username: str) -> Optional[UserRecord]:
+def get_user_by_username(username: str) -> UserRecord | None:
     """Fetch a user by username."""
     username = (username or "").strip()
     if not username:
@@ -99,10 +99,10 @@ class UsersService:
     def list_users(self) -> list[UserRecord]:
         return list_users()
 
-    def get_user(self, user_id: int) -> Optional[UserRecord]:
+    def get_user(self, user_id: int) -> UserRecord | None:
         return get_user(user_id)
 
-    def get_user_by_username(self, username: str) -> Optional[UserRecord]:
+    def get_user_by_username(self, username: str) -> UserRecord | None:
         return get_user_by_username(username)
 
     def create_user(self, username: str) -> UserRecord:
