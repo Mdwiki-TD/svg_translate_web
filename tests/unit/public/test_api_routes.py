@@ -182,19 +182,16 @@ class TestOwidChartsList:
         chart1 = _make_chart_mock(chart_id=1, slug="s1", is_published=True, has_map_tab=True, has_timeline=True)
         chart2 = _make_chart_mock(chart_id=2, slug="s2", is_published=False, has_map_tab=False, has_timeline=False)
         chart3 = _make_chart_mock(chart_id=3, slug="s3", is_published=True, has_map_tab=False, has_timeline=True)
-        self.charts = [chart1, chart2, chart3]
 
-        ct1 = _make_chart_template_mock(chart_id=1, template_id=10, template_title="T1")
-        ct3 = _make_chart_template_mock(chart_id=3, template_id=None, template_title=None)
-        self.chart_templates = [ct1, ct3]
+        self.results = [
+            (chart1, 10, "T1"),
+            (chart2, None, None),
+            (chart3, None, None),
+        ]
 
         monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_charts",
-            lambda: self.charts,
-        )
-        monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_owid_charts_templates",
-            lambda: self.chart_templates,
+            "src.main_app.public.api_routes.list_charts_with_templates",
+            lambda: self.results,
         )
 
     def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:

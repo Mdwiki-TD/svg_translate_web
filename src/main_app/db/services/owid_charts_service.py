@@ -7,6 +7,7 @@ from sqlalchemy import func
 
 from ...extensions import db
 from ..models.owid_charts import OwidChartRecord
+from ..models.templates import TemplateRecord
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,22 @@ def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
     if limit is not None:
         query = query.limit(limit)
 
+    return query.all()
+
+
+def list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str | None]]:
+    """
+    Return all charts joined with their templates (id and title).
+    """
+    query = (
+        db.session.query(
+            OwidChartRecord,
+            TemplateRecord.id,
+            TemplateRecord.title,
+        )
+        .outerjoin(TemplateRecord, OwidChartRecord.slug == TemplateRecord.slug)
+        .order_by(OwidChartRecord.chart_id.asc())
+    )
     return query.all()
 
 
@@ -144,6 +161,9 @@ class OwidChartsService:
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return list_charts(limit)
 
+    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
+        return list_charts_with_templates()
+
     def count_charts(self) -> int:
         return count_charts()
 
@@ -180,6 +200,7 @@ __all__ = [
     "get_chart_by_slug",
     "add_chart",
     "list_charts",
+    "list_charts_with_templates",
     "count_charts",
     "list_published_charts",
     "update_chart_data",

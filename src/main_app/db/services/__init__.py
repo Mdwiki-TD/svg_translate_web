@@ -37,6 +37,7 @@ from .owid_charts_service import (
     get_chart_by_id,
     get_chart_by_slug,
     list_charts,
+    list_charts_with_templates,
     list_published_charts,
     update_chart_data,
 )
@@ -150,6 +151,7 @@ __all__ = [
     "add_chart",
     "update_chart_data",
     "list_charts",
+    "list_charts_with_templates",
     "count_charts",
     "list_published_charts",
     # owid_slug_redirects_service
