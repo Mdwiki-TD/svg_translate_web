@@ -22,6 +22,7 @@ def create_tables(_db: SQLAlchemy) -> None:
     except SQLAlchemyError as exc:
         raise DatabaseInitError(f"Failed to create tables: {exc}") from exc
 
+
 def create_views(_db: SQLAlchemy) -> None:
     from sqlalchemy import inspect as sa_inspect
 
@@ -52,6 +53,7 @@ def create_views(_db: SQLAlchemy) -> None:
                     conn.execute(text(create_sql))
             except Exception:
                 logger.error("Failed to create view %s", table.name)
+
 
 __all__ = [
     "create_views",

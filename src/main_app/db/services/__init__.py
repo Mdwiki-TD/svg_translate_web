@@ -33,6 +33,7 @@ from .jobs_service import (
 from .owid_charts_service import (
     OwidChartsService,
     add_chart,
+    count_charts,
     get_chart_by_id,
     get_chart_by_slug,
     list_charts,
@@ -149,6 +150,7 @@ __all__ = [
     "add_chart",
     "update_chart_data",
     "list_charts",
+    "count_charts",
     "list_published_charts",
     # owid_slug_redirects_service
     "add_new_slug_redirect",
