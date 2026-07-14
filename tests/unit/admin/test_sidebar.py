@@ -138,8 +138,8 @@ class TestCreateSide:
     def test_sidebar_contains_jobs_section(self) -> None:
         """Test that sidebar contains the Jobs section."""
         result = create_side("collect_templates_data")
-        assert "DB jobs" in result
-        assert "Files jobs" in result
+        assert "DB Jobs" in result
+        assert "Files Jobs" in result
         assert "OWID Templates/Pages" in result
         assert "bi-database-fill" in result
         assert "bi-files" in result

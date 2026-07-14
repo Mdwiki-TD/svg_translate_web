@@ -9,7 +9,6 @@ don't leak across tests.
 
 from __future__ import annotations
 
-import logging
 import os
 import secrets
 import sys
@@ -47,6 +46,7 @@ if sys:
     os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
     os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
     os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
+
     os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
     os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
@@ -58,9 +58,17 @@ if sys:
     if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
         sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
 
+    # Get the project root directory (parent of pytests folder)
+    project_root = Path(__file__).parent.parent
+
+    # Add python_src to sys.path so we can import from 'src' as a package
+    python_src_path = project_root  # / "python_src"
+    sys.path.insert(0, str(python_src_path))
+
 # Import after environment setup
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
+from src.main_app.db.create_helper import create_tables, create_views
 from src.main_app.extensions import db as _db
 
 
@@ -93,8 +101,14 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
 
 @pytest.fixture
 def mock_client(mock_app: Flask) -> FlaskClient:
-    """Fresh test client per test."""
+    """Create a test client for the app.
 
+    Args:
+        mock_app: The Flask application fixture.
+
+    Returns:
+        Test client for making HTTP requests.
+    """
     return mock_app.test_client()
 
 
@@ -121,32 +135,8 @@ def setup_db(mock_app: Flask):
     The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
     with mock_app.app_context():
-        # Create only real tables; skip view-backed mapped classes
-        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables, checkfirst=True)
-
-        from sqlalchemy import inspect as sa_inspect
-
-        existing_views = set(sa_inspect(_db.engine).get_view_names())
-        # Create views manually (SQLite-compatible CREATE VIEW)
-        with _db.engine.connect() as conn:
-            for table in _db.metadata.tables.values():
-                if not table.info.get("is_view"):
-                    continue
-
-                if not table.info.get("create_query"):
-                    logging.error("View %s has no create_query, skipping", table.name)
-                    continue
-
-                if table.name in existing_views:
-                    continue
-                try:
-                    create_sql = table.info["create_query"]
-                    conn.execute(text(create_sql))
-                    conn.commit()
-                except Exception:
-                    conn.rollback()
-                    logging.error("Failed to create view %s", table.name)
+        create_tables(_db)
+        create_views(_db)
 
         yield
 

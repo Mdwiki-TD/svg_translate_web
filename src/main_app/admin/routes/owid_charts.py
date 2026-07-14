@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Tuple
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -19,7 +19,7 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord
-from ...db.models.views import OwidChartTemplateRecord
+from ...db.models.views import OwidChartTemplateView
 from ...db.services import OwidChartsService, delete_chart
 from ...db.services.views_service import list_owid_charts_templates
 from ..decorators import admin_required
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
 
-    all_charts_templates: list[OwidChartTemplateRecord] = list_owid_charts_templates()
+    all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
 
     charts_temps = {c.chart_id: c for c in all_charts_templates}
 
@@ -63,7 +63,7 @@ class OwidCharts:
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
 
-    def create_json_file(self) -> Tuple[Any, int]:
+    def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all charts data.
 
         Returns:

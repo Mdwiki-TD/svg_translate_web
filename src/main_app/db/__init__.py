@@ -5,9 +5,9 @@ import sqlite3
 from typing import Any
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import event, text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import event
 
+from .create_helper import create_tables, create_views
 from .exceptions import DatabaseInitError
 
 logger = logging.getLogger(__name__)
@@ -22,44 +22,6 @@ def _enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -
     except sqlite3.DatabaseError as exc:
         logger.exception("Failed to enable SQLite foreign keys")
         raise DatabaseInitError("Failed to enable SQLite foreign key enforcement") from exc
-
-
-def create_tables(_db: SQLAlchemy) -> None:
-    real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-    try:
-        _db.metadata.create_all(
-            _db.engine,
-            tables=real_tables,
-            checkfirst=True,
-        )
-    except SQLAlchemyError as exc:
-        raise DatabaseInitError(f"Failed to create tables: {exc}") from exc
-
-
-def create_views(_db: SQLAlchemy) -> None:
-    from sqlalchemy import inspect as sa_inspect
-
-    existing_views = set(sa_inspect(_db.engine).get_view_names())
-    # Create views manually (SQLite-compatible CREATE VIEW)
-    with _db.engine.connect() as conn:
-        for table in _db.metadata.tables.values():
-            if not table.info.get("is_view"):
-                continue
-
-            if not table.info.get("create_query"):
-                logger.warning("View %s has no create_query, skipping", table.name)
-                continue
-
-            create_sql = table.info["create_query"]
-            if not table.info.get("replace_the_view"):
-                if table.name in existing_views:
-                    continue
-
-            try:
-                with conn.begin():
-                    conn.execute(text(create_sql))
-            except Exception:
-                logger.error("Failed to create view %s", table.name)
 
 
 def receive_connect(dbapi_conn, connection_record) -> None:

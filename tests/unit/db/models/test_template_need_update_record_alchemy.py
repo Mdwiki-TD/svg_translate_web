@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from src.main_app.db.models.views import TemplateNeedUpdateRecord
+from src.main_app.db.models.views import TemplateNeedUpdateView
 
 
 def test_template_need_update_record_initialization():
-    """Test TemplateNeedUpdateRecord initialization with required fields."""
-    rec = TemplateNeedUpdateRecord(template_id=1)
+    """Test TemplateNeedUpdateView initialization with required fields."""
+    rec = TemplateNeedUpdateView(template_id=1)
 
     assert rec.template_id == 1
     assert rec.template_title is None
@@ -16,8 +16,8 @@ def test_template_need_update_record_initialization():
 
 
 def test_template_need_update_record_with_all_fields():
-    """Test TemplateNeedUpdateRecord initialization with all fields."""
-    rec = TemplateNeedUpdateRecord(
+    """Test TemplateNeedUpdateView initialization with all fields."""
+    rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2023, last_world_year=2020
     )
 
@@ -31,7 +31,7 @@ def test_template_need_update_record_with_all_fields():
 
 def test_template_need_update_record_difference_calculation():
     """Test difference calculation when both years are present."""
-    rec = TemplateNeedUpdateRecord(
+    rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2025, last_world_year=2020
     )
 
@@ -41,19 +41,19 @@ def test_template_need_update_record_difference_calculation():
 def test_template_need_update_record_difference_none_when_missing_years():
     """Test difference is None when either year is missing."""
     # Missing max_time
-    rec1 = TemplateNeedUpdateRecord(
+    rec1 = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=None, last_world_year=2020
     )
     assert rec1.to_dict()["difference"] == 0
 
     # Missing last_world_year
-    rec2 = TemplateNeedUpdateRecord(
+    rec2 = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2025, last_world_year=None
     )
     assert rec2.to_dict()["difference"] == 0
 
     # Both missing
-    rec3 = TemplateNeedUpdateRecord(
+    rec3 = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=None, last_world_year=None
     )
     assert rec3.to_dict()["difference"] == 0
@@ -61,7 +61,7 @@ def test_template_need_update_record_difference_none_when_missing_years():
 
 def test_template_need_update_record_difference_with_zero_values():
     """Test difference calculation with zero values."""
-    rec = TemplateNeedUpdateRecord(
+    rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=0, last_world_year=0
     )
 
@@ -70,7 +70,7 @@ def test_template_need_update_record_difference_with_zero_values():
 
 def test_template_need_update_record_to_dict():
     """Test conversion to dictionary."""
-    rec = TemplateNeedUpdateRecord(
+    rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2023, last_world_year=2020
     )
 
@@ -91,7 +91,7 @@ def test_template_need_update_record_to_dict():
 
 def test_template_need_update_record_to_dict_with_none_values():
     """Test conversion to dictionary with None values."""
-    rec = TemplateNeedUpdateRecord(template_id=1, template_title=None, slug=None, max_time=None, last_world_year=None)
+    rec = TemplateNeedUpdateView(template_id=1, template_title=None, slug=None, max_time=None, last_world_year=None)
 
     result = rec.to_dict()
 
@@ -110,7 +110,7 @@ def test_template_need_update_record_to_dict_with_none_values():
 
 def test_template_need_update_record_negative_difference():
     """Test negative difference when template year is greater than chart year."""
-    rec = TemplateNeedUpdateRecord(
+    rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2020, last_world_year=2023
     )
 

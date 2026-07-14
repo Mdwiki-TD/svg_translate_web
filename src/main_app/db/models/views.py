@@ -11,7 +11,7 @@ from ...extensions import db
 logger = logging.getLogger(__name__)
 
 
-class TemplateNeedUpdateRecord(db.Model):
+class TemplateNeedUpdateView(db.Model):
     """ """
 
     __tablename__ = "templates_need_update"
@@ -30,8 +30,7 @@ class TemplateNeedUpdateRecord(db.Model):
                 "is_view": True,
                 "replace_the_view": True,
                 "create_query": """
-                    CREATE OR REPLACE VIEW
-                        templates_need_update AS
+                    CREATE VIEW templates_need_update AS
                     select
                         t.id AS template_id,
                         t.title AS template_title,
@@ -48,7 +47,7 @@ class TemplateNeedUpdateRecord(db.Model):
                         and t.last_world_year is not null
                         and c.status_404 is null
                     ;
-                    """,
+                """,
             }
         },
     )
@@ -73,7 +72,7 @@ class TemplateNeedUpdateRecord(db.Model):
         }
 
 
-class OwidChartTemplateRecord(db.Model):  # type: ignore
+class OwidChartTemplateView(db.Model):  # type: ignore
     """
     Represents a database view joining charts and templates.
     Handles extended template metadata and manual runtime overrides.
@@ -92,8 +91,7 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
                 "is_view": True,
                 "replace_the_view": True,
                 "create_query": """
-                    CREATE OR REPLACE VIEW
-                        owid_charts_templates AS
+                    CREATE VIEW owid_charts_templates AS
                     select
                         c.chart_id AS chart_id,
                         t.id AS template_id,
@@ -101,7 +99,7 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
                     from owid_charts c
                         left join templates t on t.slug = c.slug
                     ;
-                    """,
+                """,
             }
         },
     )
@@ -120,6 +118,6 @@ class OwidChartTemplateRecord(db.Model):  # type: ignore
 
 
 __all__ = [
-    "TemplateNeedUpdateRecord",
-    "OwidChartTemplateRecord",
+    "TemplateNeedUpdateView",
+    "OwidChartTemplateView",
 ]

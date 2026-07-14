@@ -8,7 +8,6 @@ import pytest
 
 from src.main_app.api_services.clients.owid_client import (
     _fetch_grapher_metadata,
-    fetch_grapher_metadata,
 )
 
 pytestmark = pytest.mark.network

@@ -348,7 +348,6 @@ def test_collect_templates_data_with_last_world_file(mock_services, monkeypatch:
 
 def test_collect_templates_data_cancellation_during_template_addition(mock_services):
     """Test cancellation during template addition phase."""
-    import threading
 
     cancel_event = threading.Event()
     cancel_event.set()  # Cancel immediately
@@ -368,7 +367,6 @@ def test_collect_templates_data_cancellation_during_template_addition(mock_servi
 
 def test_collect_templates_data_cancellation_during_processing(mock_services):
     """Test cancellation during template processing phase."""
-    import threading
 
     cancel_event = threading.Event()
 
@@ -621,7 +619,6 @@ def test_collect_templates_data_entry_update_all_case_insensitive(mock_services,
 
 def test_collect_templates_data_entry_cancel_event_is_keyword_only(mock_services):
     """Test that cancel_event is keyword-only in collect_templates_data_entry."""
-    import threading
 
     cancel_event = threading.Event()
     mock_services["get_category_members"].return_value = []

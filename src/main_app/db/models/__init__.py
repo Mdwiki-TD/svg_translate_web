@@ -5,8 +5,8 @@ from .settings import SettingRecord
 from .templates import TemplateRecord
 from .users import AdminUserRecord, UserRecord, UserTokenRecord
 from .views import (
-    OwidChartTemplateRecord,
-    TemplateNeedUpdateRecord,
+    OwidChartTemplateView,
+    TemplateNeedUpdateView,
 )
 
 __all__ = [
@@ -18,6 +18,6 @@ __all__ = [
     "OwidSlugRedirectRecord",
     "SettingRecord",
     "TemplateRecord",
-    "TemplateNeedUpdateRecord",
-    "OwidChartTemplateRecord",
+    "TemplateNeedUpdateView",
+    "OwidChartTemplateView",
 ]
