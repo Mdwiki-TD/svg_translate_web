@@ -2,6 +2,4 @@
 
 from __future__ import annotations
 
-
-
 from src.main_app.public.main_routes.owid_charts_routes import OwidChartsRoutes  # noqa: F401
