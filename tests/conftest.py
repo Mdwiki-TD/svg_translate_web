@@ -9,7 +9,6 @@ don't leak across tests.
 
 from __future__ import annotations
 
-import logging
 import os
 import secrets
 import sys
@@ -69,8 +68,8 @@ if sys:
 # Import after environment setup
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
+from src.main_app.db.create_helper import create_tables, create_views
 from src.main_app.extensions import db as _db
-from src.main_app.db.create_helper import create_views, create_tables
 
 
 @pytest.fixture(autouse=True)

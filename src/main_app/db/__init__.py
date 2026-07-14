@@ -6,8 +6,8 @@ from typing import Any
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event
-from .create_helper import create_tables, create_views
 
+from .create_helper import create_tables, create_views
 from .exceptions import DatabaseInitError
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ def _enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -
     except sqlite3.DatabaseError as exc:
         logger.exception("Failed to enable SQLite foreign keys")
         raise DatabaseInitError("Failed to enable SQLite foreign key enforcement") from exc
+
 
 def receive_connect(dbapi_conn, connection_record) -> None:
     logger.debug("New connection established")

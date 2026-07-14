@@ -59,7 +59,7 @@ def test_login_success_flow(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", limiter)
     monkeypatch.setattr(
         "src.main_app.public.auth.routes.secrets",
-        types.SimpleNamespace(**{"token_urlsafe": lambda _: "nonce"}),
+        types.SimpleNamespace(token_urlsafe=lambda _: "nonce"),
     )
     monkeypatch.setattr("src.main_app.public.auth.routes.sign_state_token", lambda state: f"signed:{state}")
 

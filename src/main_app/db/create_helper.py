@@ -10,6 +10,7 @@ from .exceptions import DatabaseInitError
 
 logger = logging.getLogger(__name__)
 
+
 def create_tables(_db: SQLAlchemy) -> None:
     real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
     try:
@@ -51,6 +52,7 @@ def create_views(_db: SQLAlchemy) -> None:
                     conn.execute(text(create_sql))
             except Exception:
                 logger.error("Failed to create view %s", table.name)
+
 
 __all__ = [
     "create_views",

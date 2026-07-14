@@ -4,7 +4,7 @@ Tests for TemplateData usage in the collect_templates_data worker.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -210,7 +210,6 @@ class TestProcessOneItemWithTemplateData:
         assert result is True
 
     def test_skips_template_when_all_data_matches(self, worker_with_slug):
-        import threading
 
         template = TemplateData(
             id=1,
