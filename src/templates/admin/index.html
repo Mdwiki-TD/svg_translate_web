@@ -1,4 +1,31 @@
-{% extends 'admin/master.html' %}
+{% import 'admin/layout.html' as layout with context -%}
+{% import 'admin/static.html' as admin_static with context %}
 
-{% block body %}
+{% extends "base.html" %}
+
+{% block title %}Admins{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-desktop.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-mobile.css') }}">
+{% endblock %}
+
+{% block content_fluid %}
+{% include 'admin/base.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            {% block page_title %}
+            <h4 class="mb-4">
+                {{ layout.menu_icon(admin_view.menu) }}
+                {{ admin_view.name }}
+            </h4>
+            {% endblock  %}
+        </div>
+        <div class="card-body">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+</div>
 {% endblock %}

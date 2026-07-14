@@ -18,19 +18,28 @@ from ..db.models import (
 )
 
 
-class MyView(BaseView):
-    @expose("/")
-    def index(self):
-        return "Hello World!"
-
+class WrapModelView(ModelView):
+    form_excluded_columns = ('created_at', 'token')
+    column_display_actions: bool = True
+    action_disallowed_list = ['delete']
+    page_size: int = 50
+    edit_modal: bool = True
+    create_modal: bool = True
+    can_view_details: bool = True
 
 def add_admin_dashboard(app: Flask, _db) -> None:
     # Initialize Admin and add views
     theme = Bootstrap4Theme(
-        # base_template="admin/index.html",
-        swatch="default",
+        base_template="admin/index.html",
+        swatch="cerulean",
+        fluid=True,
     )
-    admin = Admin(app, name="microblog", theme=theme)
+    admin = Admin(
+        app,
+        name="microblog",
+        theme=theme,
+        endpoint=None,
+    )
 
     admin.add_category(
         name="Main",
@@ -40,10 +49,10 @@ def add_admin_dashboard(app: Flask, _db) -> None:
     )
 
     main_models = [
-        ModelView(TemplateRecord, _db, category="Main"),
-        ModelView(TemplateNeedUpdateView, _db, name="Templates Need Update", category="Main"),
-        ModelView(OwidChartRecord, _db, category="Main", name="OWID Charts"),
-        ModelView(OwidSlugRedirectRecord, _db, category="Main"),
+        WrapModelView(TemplateRecord, _db, category="Main"),
+        WrapModelView(TemplateNeedUpdateView, _db, name="Templates Need Update", category="Main"),
+        WrapModelView(OwidChartRecord, _db, category="Main", name="OWID Charts"),
+        WrapModelView(OwidSlugRedirectRecord, _db, category="Main"),
     ]
     admin.add_views(*main_models)
 
@@ -55,33 +64,25 @@ def add_admin_dashboard(app: Flask, _db) -> None:
     )
 
     users_models = [
-        ModelView(AdminUserRecord, _db, category="Users"),
-        ModelView(UserRecord, _db, category="Users"),
+        WrapModelView(AdminUserRecord, _db, category="Users"),
+        WrapModelView(UserRecord, _db, category="Users"),
     ]
 
     admin.add_views(*users_models)
 
     all_models = [
-        ModelView(JobRecord, _db),
-        ModelView(SettingRecord, _db),
+        WrapModelView(JobRecord, _db),
+        WrapModelView(SettingRecord, _db),
     ]
     admin.add_views(*all_models)
 
     admin.add_view(
-        ModelView(
+        WrapModelView(
             OwidChartTemplateView,
             _db,
             # name="Templates Need Update",
         )
     )
-
-    """
-    admin.add_view(
-        MyView(
-            name='My View', menu_icon_type='glyph', menu_icon_value='glyphicon-home', category="category"
-        )
-    )
-    """
 
 
 __all__ = [
