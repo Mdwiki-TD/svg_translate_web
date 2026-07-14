@@ -98,7 +98,7 @@ class Sidebar:
                     return group.title, item.id
 
         # Default to the first group if no match is found
-        active_group = [x.title for x in self.menu][0] if self.menu else ""
+        active_group = self.menu[0].title if self.menu else ""
         return active_group, ""
 
     def create_side(self) -> str:
