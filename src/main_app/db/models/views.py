@@ -29,27 +29,8 @@ class TemplateNeedUpdateView(db.Model):
             "info": {
                 "is_view": True,
                 "replace_the_view": True,
-                "create_query_sqlite3": """
-                    CREATE VIEW IF NOT EXISTS templates_need_update AS
-                    select
-                        t.id AS template_id,
-                        t.title AS template_title,
-                        t.slug AS slug,
-                        c.owid_variable_id AS owid_variable_id,
-                        c.max_time AS max_time,
-                        t.last_world_year AS last_world_year
-                    from
-                        owid_charts c
-                        join templates t on t.slug = c.slug
-                    where
-                        t.last_world_year < c.max_time
-                        AND c.max_time <= YEAR(now())
-                        and t.last_world_year is not null
-                        and c.status_404 is null
-                    ;
-                """,
                 "create_query": """
-                    CREATE OR REPLACE VIEW templates_need_update AS
+                    CREATE VIEW templates_need_update AS
                     select
                         t.id AS template_id,
                         t.title AS template_title,
@@ -109,18 +90,8 @@ class OwidChartTemplateView(db.Model):  # type: ignore
             "info": {
                 "is_view": True,
                 "replace_the_view": True,
-                "create_query_sqlite3": """
-                    CREATE VIEW IF NOT EXISTS owid_charts_templates AS
-                    select
-                        c.chart_id AS chart_id,
-                        t.id AS template_id,
-                        t.title AS template_title
-                    from owid_charts c
-                        left join templates t on t.slug = c.slug
-                    ;
-                """,
                 "create_query": """
-                    CREATE OR REPLACE VIEW owid_charts_templates AS
+                    CREATE VIEW owid_charts_templates AS
                     select
                         c.chart_id AS chart_id,
                         t.id AS template_id,

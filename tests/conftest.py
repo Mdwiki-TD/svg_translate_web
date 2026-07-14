@@ -70,6 +70,7 @@ if sys:
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
+from src.main_app.db.create_helper import create_views, create_tables
 
 
 @pytest.fixture(autouse=True)
@@ -135,36 +136,8 @@ def setup_db(mock_app: Flask):
     The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
     with mock_app.app_context():
-        # Create only real tables; skip view-backed mapped classes
-        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables, checkfirst=True)
-
-        from sqlalchemy import inspect as sa_inspect
-
-        existing_views = set(sa_inspect(_db.engine).get_view_names())
-        # Create views manually (SQLite-compatible CREATE VIEW)
-
-        with _db.engine.connect() as conn:
-
-            for table in _db.metadata.tables.values():
-                if not table.info.get("is_view"):
-                    continue
-
-                create_sql = table.info.get("create_query_sqlite3") or table.info.get("create_query")
-
-                if not create_sql:
-                    logging.error("View %s has no create_query, skipping", table.name)
-                    continue
-
-                if table.name in existing_views:
-                    continue
-
-                try:
-                    conn.execute(text(create_sql))
-                    conn.commit()
-                except Exception:
-                    conn.rollback()
-                    logging.error("Failed to create view %s", table.name)
+        create_tables(_db)
+        create_views(_db)
 
         yield
 
