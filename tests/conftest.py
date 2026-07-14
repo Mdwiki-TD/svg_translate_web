@@ -47,6 +47,7 @@ if sys:
     os.environ.setdefault("OAUTH_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
     os.environ.setdefault("OAUTH_CONSUMER_KEY", "test-consumer-key")
     os.environ.setdefault("OAUTH_CONSUMER_SECRET", "test-consumer-secret")
+
     os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
     os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
@@ -57,6 +58,13 @@ if sys:
     )
     if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
         sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
+
+    # Get the project root directory (parent of pytests folder)
+    project_root = Path(__file__).parent.parent
+
+    # Add python_src to sys.path so we can import from 'src' as a package
+    python_src_path = project_root  # / "python_src"
+    sys.path.insert(0, str(python_src_path))
 
 # Import after environment setup
 from src.main_app import create_app
@@ -93,8 +101,14 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
 
 @pytest.fixture
 def mock_client(mock_app: Flask) -> FlaskClient:
-    """Fresh test client per test."""
+    """Create a test client for the app.
 
+    Args:
+        mock_app: The Flask application fixture.
+
+    Returns:
+        Test client for making HTTP requests.
+    """
     return mock_app.test_client()
 
 
@@ -129,19 +143,23 @@ def setup_db(mock_app: Flask):
 
         existing_views = set(sa_inspect(_db.engine).get_view_names())
         # Create views manually (SQLite-compatible CREATE VIEW)
+
         with _db.engine.connect() as conn:
+
             for table in _db.metadata.tables.values():
                 if not table.info.get("is_view"):
                     continue
 
-                if not table.info.get("create_query"):
+                create_sql = table.info.get("create_query_sqlite3") or table.info.get("create_query")
+
+                if not create_sql:
                     logging.error("View %s has no create_query, skipping", table.name)
                     continue
 
                 if table.name in existing_views:
                     continue
+
                 try:
-                    create_sql = table.info["create_query"]
                     conn.execute(text(create_sql))
                     conn.commit()
                 except Exception:
