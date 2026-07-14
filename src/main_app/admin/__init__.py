@@ -4,6 +4,7 @@ from flask import Blueprint, Flask
 
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from .admin_panel import AdminPanel
+from .flask_admin_panel import add_admin_dashboard
 from .routes import (
     AdminJobsRoutes,
     CoordinatorsRoutes,
@@ -59,5 +60,6 @@ def register_bp_admin_blueprints(app: Flask) -> None:
 
 
 __all__ = [
+    "add_admin_dashboard",
     "register_bp_admin_blueprints",
 ]
