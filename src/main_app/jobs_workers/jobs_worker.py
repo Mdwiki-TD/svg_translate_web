@@ -65,7 +65,7 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict:
 
 def _runner(
     job_id: int,
-    user: dict[str, Any] | None,
+    user: dict[str, Any],
     cancel_event: threading.Event,
     target_func: Any,
     flask_app: Flask,

@@ -159,7 +159,7 @@ class SettingsService:
     def get_all_settings_ready(self) -> dict[str, Any]:
         return get_all_settings_ready()
 
-    def get_setting_by_key(self, key: str) -> SettingRecord:
+    def get_setting_by_key(self, key: str) -> SettingRecord | None:
         return get_setting_by_key(key)
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:

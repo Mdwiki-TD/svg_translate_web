@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Tuple
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -63,7 +63,7 @@ class OwidCharts:
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
 
-    def create_json_file(self) -> Tuple[Any, int]:
+    def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all charts data.
 
         Returns:

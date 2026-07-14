@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Tuple
+from typing import Any
 
 from flask import (
     Blueprint,
@@ -31,7 +31,7 @@ from ..decorators import admin_required
 logger = logging.getLogger(__name__)
 
 
-def create_json_file() -> Tuple[Any, int]:
+def create_json_file() -> tuple[Any, int]:
     """Create a JSON file containing all templates data.
 
     Returns:

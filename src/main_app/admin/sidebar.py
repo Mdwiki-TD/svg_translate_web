@@ -16,8 +16,8 @@ class SidebarGroup:
 
     id: str
     title: str
-    icon: str | None = None
-    items: list[SidebarItem] | None = None
+    items: list[SidebarItem]
+    icon: str
 
 
 @dataclass

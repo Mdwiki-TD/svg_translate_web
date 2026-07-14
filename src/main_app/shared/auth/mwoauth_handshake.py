@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Tuple
+from typing import Any
 
 import mwoauth
 from flask import url_for
@@ -36,7 +36,7 @@ def get_handshaker() -> Handshaker:
     )
 
 
-def start_login(state_token: str) -> Tuple[str, Any]:
+def start_login(state_token: str) -> tuple[str, Any]:
     """Begin the OAuth login process and return the redirect URL and request token."""
     logger.debug("Starting OAuth login with state_token")
     callback_url = url_for("auth.callback", _external=True, state=state_token)
@@ -47,7 +47,7 @@ def start_login(state_token: str) -> Tuple[str, Any]:
     return redirect_url, request_token
 
 
-def complete_login(request_token: object, query_string: str) -> Tuple[str, dict[str, Any]]:
+def complete_login(request_token: object, query_string: str) -> tuple[str, dict[str, Any]]:
     """Complete the OAuth login flow and return the access token and user identity."""
     logger.debug("Completing OAuth login with query_string")
     handshaker = get_handshaker()
