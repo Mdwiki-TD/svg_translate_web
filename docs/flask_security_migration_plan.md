@@ -174,8 +174,8 @@ import uuid
 # Association table for User and Role models
 roles_users = db.Table(
     "roles_users",
-    db.Column("user_id", db.Integer(), db.ForeignKey("users.user_id", ondelete="CASCADE")),
-    db.Column("role_id", db.Integer(), db.ForeignKey("roles.id", ondelete="CASCADE")),
+    db.Column("user_id", db.Integer(), db.ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True),
+    db.Column("role_id", db.Integer(), db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
 )
 
 class RoleRecord(db.Model, RoleMixin):
@@ -216,7 +216,7 @@ class UserRecord(db.Model, UserMixin):
 ##### 3. Initialize Flask-Security-Too in Extensions
 ```python
 # src/main_app/extensions/__init__.py
-from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security import Security
 
 # Instantiate Security extension
 security = Security()
@@ -252,9 +252,10 @@ class Config:
 ##### 5. Initialize inside App Factory
 ```python
 # src/main_app/__init__.py
+# src/main_app/__init__.py
+from flask_security import SQLAlchemyUserDatastore
 from .extensions import security
 from .db.models.users import UserRecord, RoleRecord
-
 def create_app(config_class: Type) -> Flask:
     # ... standard setup ...
     _db.init_app(app)
@@ -530,11 +531,12 @@ Instead of relying on a manually populated global context variable `g._current_u
      ```python
      from flask_security import login_user
 
-     def test_admin_route_as_admin(client, app, user_datastore):
-         with app.test_request_context():
-             admin_user = user_datastore.find_user(username="AdminUser")
-             login_user(admin_user)
-             # execute client tests...
+     def test_admin_route_as_admin(client, user_datastore):
+         admin_user = user_datastore.find_user(username="AdminUser")
+         with client.session_transaction() as sess:
+             sess["_user_id"] = str(admin_user.id)
+             sess["_fresh"] = True
+         # execute client tests...
      ```
 2. **Integration Testing:**
    - Execute a series of unauthorized requests checking that `401` or `403` responses are consistently generated.
