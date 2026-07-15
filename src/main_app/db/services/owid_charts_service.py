@@ -39,7 +39,10 @@ def list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str 
             TemplateRecord.id,
             TemplateRecord.title,
         )
-        .outerjoin(TemplateRecord, OwidChartRecord.slug == TemplateRecord.slug)
+        .outerjoin(
+            TemplateRecord,
+            (OwidChartRecord.slug == TemplateRecord.slug) & (OwidChartRecord.slug != ""),
+        )
         .order_by(OwidChartRecord.chart_id.asc())
     )
     return query.all()
