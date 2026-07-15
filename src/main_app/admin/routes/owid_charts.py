@@ -72,9 +72,26 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            charts: list[OwidChartRecord] = self.owid_charts_service.list_charts()
+            charts_with_templates = self.owid_charts_service.list_charts_with_templates()
 
-            charts_data: list[dict[str, Any]] = get_charts_data(charts)
+            charts_data: list[dict[str, Any]] = []
+            for chart, temp_id, temp_title in charts_with_templates:
+                chart_data = {
+                    "chart_id": chart.chart_id,
+                    "slug": chart.slug,
+                    "title": chart.title,
+                    "has_map_tab": chart.has_map_tab,
+                    "max_time": chart.max_time,
+                    "min_time": chart.min_time,
+                    "default_tab": chart.default_tab,
+                    "is_published": chart.is_published,
+                    "single_year_data": chart.single_year_data,
+                    "len_years": chart.len_years,
+                    "has_timeline": chart.has_timeline,
+                    "template_id": temp_id,
+                    "template_title": temp_title,
+                }
+                charts_data.append(chart_data)
 
             if not charts_data:
                 return "No charts found to export.", 404

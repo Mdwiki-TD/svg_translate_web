@@ -15,6 +15,7 @@ from src.main_app.db.services.owid_charts_service import (
     get_chart_by_id,
     get_chart_by_slug,
     list_charts,
+    list_charts_with_templates,
     list_published_charts,
     update_chart_data,
 )
@@ -66,6 +67,33 @@ class TestCountCharts:
         """Return the total number of charts."""
         _mock_query_for_read(monkeypatch, scalar=MagicMock(return_value=42))
         assert count_charts() == 42
+
+
+class TestListChartsWithTemplates:
+    """Tests for list_charts_with_templates function."""
+
+    def test_returns_charts_with_templates(self, monkeypatch):
+        """Return charts and template metadata via outerjoin mock."""
+        mock_chart = MagicMock()
+        mock_chart.slug = "chart-slug"
+
+        # mock db.session.query to return a mock query that can be chained
+        mock_query = MagicMock()
+        mock_query.outerjoin.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = [(mock_chart, 123, "Template Title")]
+
+        monkeypatch.setattr(
+            "src.main_app.db.services.owid_charts_service.db.session.query",
+            lambda *args: mock_query,
+        )
+
+        result = list_charts_with_templates()
+        assert len(result) == 1
+        chart, temp_id, temp_title = result[0]
+        assert chart is mock_chart
+        assert temp_id == 123
+        assert temp_title == "Template Title"
 
 
 class TestListCharts:

@@ -188,13 +188,20 @@ class TestOwidChartsList:
         ct3 = _make_chart_template_mock(chart_id=3, template_id=None, template_title=None)
         self.chart_templates = [ct1, ct3]
 
+        # For list_charts_with_templates, map each chart to its corresponding template_id/title
+        def fake_list_charts_with_templates():
+            temps_map = {ct.chart_id: ct for ct in self.chart_templates}
+            result = []
+            for c in self.charts:
+                temp = temps_map.get(c.chart_id)
+                temp_id = temp.template_id if temp else None
+                temp_title = temp.template_title if temp else None
+                result.append((c, temp_id, temp_title))
+            return result
+
         monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_charts",
-            lambda: self.charts,
-        )
-        monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_owid_charts_templates",
-            lambda: self.chart_templates,
+            "src.main_app.public.api_routes.list_charts_with_templates",
+            fake_list_charts_with_templates,
         )
 
     def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:

@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify
 from ..db.models import OwidChartRecord, OwidChartTemplateView, TemplateRecord
 from ..db.services import (
     list_charts,
+    list_charts_with_templates,
     list_owid_charts_templates,
     list_templates,
     list_templates_mismatched_years,
@@ -24,25 +25,23 @@ class ApiRoutes:
 
     def make_charts_summary(
         self,
-        all_charts: list[OwidChartRecord],
-        charts_temps: dict[int, OwidChartTemplateView],
+        charts_with_templates: list[tuple[OwidChartRecord, int | None, str | None]],
         template_filter: str,
     ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         data: list[dict[str, Any]] = []
-        total = len(all_charts)
+        total = len(charts_with_templates)
         published_with = 0
         template_with = 0
         map_tab_with = 0
         timeline_with = 0
 
         # Single-pass loop to build data and collect summary statistics
-        for c in all_charts:
+        for c, temp_id, temp_title in charts_with_templates:
             # Update summary metrics
             if c.is_published:
                 published_with += 1
 
-            temp_rec = charts_temps.get(c.chart_id)
-            has_template = bool(temp_rec.template_title) if temp_rec else False
+            has_template = bool(temp_title)
 
             if has_template:
                 template_with += 1
@@ -59,8 +58,8 @@ class ApiRoutes:
             )
             if include:
                 c_json = c.to_dict()
-                c_json["template_id"] = temp_rec.template_id if temp_rec else None
-                c_json["template_title"] = temp_rec.template_title if temp_rec else None
+                c_json["template_id"] = temp_id
+                c_json["template_title"] = temp_title
                 data.append(c_json)
 
         summary = {
@@ -139,12 +138,9 @@ class ApiRoutes:
         @self.bp.get("/owidcharts/")
         @self.bp.get("/owidcharts/<string:template_filter>")
         def owid_charts_list(template_filter: str = ""):
-            all_charts: list[OwidChartRecord] = list_charts()
-            all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
+            charts_with_templates = list_charts_with_templates()
 
-            charts_temps = {c.chart_id: c for c in all_charts_templates}
-
-            summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
+            summary, data = self.make_charts_summary(charts_with_templates, template_filter)
 
             return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 

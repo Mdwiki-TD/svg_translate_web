@@ -89,6 +89,11 @@ def mock_service():
     """Return mock service objects for OWID charts."""
     mocks = MagicMock()
     mocks.list_charts = MagicMock(return_value=[])
+
+    def fake_list_charts_with_templates():
+        return [(chart, None, None) for chart in mocks.list_charts()]
+
+    mocks.list_charts_with_templates = MagicMock(side_effect=fake_list_charts_with_templates)
     mocks.add_chart = MagicMock()
     mocks.update_chart_data = MagicMock()
     mocks.delete_chart = MagicMock()
