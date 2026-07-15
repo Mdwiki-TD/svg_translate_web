@@ -40,7 +40,7 @@ class ApiRoutes:
             if c.is_published:
                 published_with += 1
 
-            has_template = bool(t_title)
+            has_template = t_id is not None
 
             if has_template:
                 template_with += 1
