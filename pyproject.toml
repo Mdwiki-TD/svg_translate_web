@@ -185,6 +185,7 @@ venvPath = "."
 venv = ".venv"
 
 # Fine-tune specific warning rules
+reportPossiblyUnboundVariable = true
 reportMissingTypeStubs = false
 reportGeneralTypeIssues = false
 reportUnknownMemberType = false
@@ -212,8 +213,6 @@ reportOptionalMemberAccess = "warning"
 reportCallIssue = "warning"
 reportOptionalSubscript = "warning"
 
-
-# -----
 reportAbstractUsage = false
 reportAssertAlwaysTrue = false
 reportAssertTypeFailure = false
@@ -244,7 +243,6 @@ reportOptionalContextManager = false
 reportOptionalIterable = false
 reportOptionalOperand = false
 reportOverlappingOverload = false
-reportPossiblyUnboundVariable = false
 reportPrivateImportUsage = false
 reportPrivateUsage = false
 reportPropertyTypeMismatch = false
