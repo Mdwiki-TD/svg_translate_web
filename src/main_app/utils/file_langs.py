@@ -162,7 +162,8 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
         session = create_commons_session(settings.other.user_agent)
 
     # Normalize file name by stripping leading "File:" prefix
-    normalized_name = file_name.strip().removeprefix("file:")
+    stripped_name = file_name.strip()
+    normalized_name = stripped_name[5:] if stripped_name.lower().startswith("file:") else stripped_name
 
     # Define API endpoint and parameters
     url = "https://commons.wikimedia.org/w/api.php"
