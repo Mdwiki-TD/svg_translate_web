@@ -167,8 +167,8 @@ def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     old_cats = extract_categories(text)
 
     if not old_cats:
-        # TODO: we should insert the new categories to the text
-        return text
+        categories_str = "\n".join([f"[[{cat_str}]]" for cat_str in cats_list])
+        return f"{text}\n{categories_str}"
 
     new_cats = [
         create_category_link_from_str(f"[[{cat_str}]]")
