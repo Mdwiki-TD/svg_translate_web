@@ -156,7 +156,7 @@ def sort_categories(wikitext: str) -> str:
     return new_wikitext
 
 
-def get_missing_categories_list(cats_list: list[str], text: str) -> str:
+def get_missing_categories_list(cats_list: list[str], text: str) -> list[str]:
     if not text:
         return []
 
@@ -174,12 +174,11 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> str:
     # Return only the categories from base_categories that aren't already in target_categories
     missing_categories = [cat for cat in new_cats if cat.target not in target_targets]
 
-    # If no missing categories are found, return the text as is
+    # If no missing categories are found, return an empty list
     if not missing_categories:
         return []
 
     return [cat.link.string for cat in missing_categories]
-
 
 def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     """

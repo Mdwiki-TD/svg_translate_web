@@ -281,18 +281,17 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         Uses ``merge_categories_into_text`` which handles deduplication via
         case-insensitive comparison.  Falls back to manual append when the page
-        has no existing categories (known limitation of the merge function).
+        """Merge candidate categories into page text, skipping those already present.
+
+        Uses ``get_missing_categories_list`` which handles deduplication via
+        case-insensitive comparison, then manually appends missing ones.
 
         Returns:
             List of ``[[Category:…]]`` strings that were actually added
             (empty list means nothing to do).
         """
         candidate_names = info._categories
-        original_text = info._text
-        if not original_text:
-            # skip
-            self._fail(info, "check_existing", f"No text found for {info.page_title}")
-            return []
+        original_text = info._text or ""
 
         new_categories = get_missing_categories_list(candidate_names, original_text)
         if not new_categories:
