@@ -166,10 +166,7 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> str:
     if not old_cats:
         return [f"[[{cat_str}]]" for cat_str in cats_list]
 
-    new_cats = [
-        create_category_link_from_str(f"[[{cat_str}]]")
-        for cat_str in cats_list
-    ]
+    new_cats = [create_category_link_from_str(f"[[{cat_str}]]") for cat_str in cats_list]
 
     # Using a set for target_targets improves lookup performance to O(1)
     target_targets = {cat.target for cat in old_cats}
@@ -182,6 +179,7 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> str:
         return []
 
     return [cat.link.string for cat in missing_categories]
+
 
 def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     """
@@ -202,5 +200,6 @@ def merge_categories_into_text(cats_list: list[str], text: str) -> str:
 
 __all__ = [
     "merge_categories",
+    "get_missing_categories_list",
     "merge_categories_into_text",
 ]

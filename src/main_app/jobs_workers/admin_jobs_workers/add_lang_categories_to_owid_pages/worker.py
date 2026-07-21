@@ -12,15 +12,16 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any
 
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....utils.file_langs import get_file_languages
-from ....utils.wikitext.categories_utils import merge_categories_into_text
+from ....utils.wikitext.categories_utils import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
 from .objects import AddLangCategoriesWorkerObject
 from .utils import (
@@ -227,6 +228,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
     def _step_extract_file_name(self, info: PageInfo) -> bool:
         """Extract SVG file name from the Translate link. Returns True on success."""
+        if not info._text:
+            self._fail(info, "extract_file_name", f"No text found for {info.page_title}")
+            return False
+
         file_name = extract_svg_file_name(info._text or "")
         if not file_name:
             self._fail(info, "extract_file_name", f"No Translate link found in {info.page_title}")
@@ -279,20 +284,21 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             (empty list means nothing to do).
         """
         candidate_names = info._categories
-        original_text = info._text or ""
+        original_text = info._text
 
-        # Use merge_categories_into_text for deduplication
-        merged_text = merge_categories_into_text(candidate_names, original_text)
-
-        # Fallback: if page has no existing categories, merge_categories_into_text
-        # returns text unchanged — manually append in that case
-        if merged_text == original_text:
+        new_categories = get_missing_categories_list(candidate_names, original_text)
+        if not new_categories:
             info.steps["check_existing"] = {
                 "result": None,
                 "msg": "Skipped — all language categories already exist",
             }
             info.status = "skipped"
             return []
+
+        missing_categories_str = "\n".join(new_categories)
+
+        # Append the missing categories to the end of the new text
+        merged_text = f"{original_text}\n{missing_categories_str}"
 
         info._text = merged_text
         info.steps["check_existing"] = {
@@ -304,8 +310,14 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     def _step_save_page(self, info: PageInfo, page: MwClientPage, new_categories: list[str]) -> bool:
         """Save the page with the already-merged text. Returns True on success."""
         cat_summary = ", ".join(new_categories)
+
+        text = info._text
+        if not text:
+            self._fail(info, "save_page", f"No text to save for {info.page_title}")
+            return False
+
         res = page.edit(
-            info._text or "",
+            text,
             summary=f"Adding language categories: {cat_summary}",
         )
 

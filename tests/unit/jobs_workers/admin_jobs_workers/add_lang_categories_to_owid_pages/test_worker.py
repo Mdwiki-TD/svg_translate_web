@@ -347,7 +347,6 @@ class TestStepSavePage:
 
 class TestProcessOneItem:
     def test_success_flow(self, mock_lang_worker, mock_lang_categories_services):
-        mock_page = MagicMock()
 
         def mock_load(info, page):
             info._text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
@@ -362,16 +361,13 @@ class TestProcessOneItem:
             return True
 
         def mock_build(info):
-            info._new_text = "Category:English-language SVG\nCategory:Arabic-language SVG"
+            info._categories = ["Category:English-language SVG", "Category:Arabic-language SVG"]
             return True
 
         mock_lang_worker._step_load_page_text = MagicMock(side_effect=mock_load)
         mock_lang_worker._step_extract_file_name = MagicMock(side_effect=mock_extract)
         mock_lang_worker._step_get_languages = MagicMock(side_effect=mock_get_langs)
         mock_lang_worker._step_build_categories = MagicMock(side_effect=mock_build)
-        mock_lang_worker._step_check_existing = MagicMock(
-            return_value=["[[Category:English-language SVG]]", "[[Category:Arabic-language SVG]]"]
-        )
         mock_lang_worker._step_save_page = MagicMock(return_value=True)
 
         result = mock_lang_worker._process_one_item("OWID/test")
@@ -418,7 +414,7 @@ class TestProcessOneItem:
             return True
 
         def mock_build(info):
-            info._new_text = "Category:English-language SVG"
+            info._categories = ["Category:English-language SVG"]
             return True
 
         mock_lang_worker._step_load_page_text = MagicMock(side_effect=mock_load)

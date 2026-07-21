@@ -77,6 +77,7 @@ def test_full_pipeline_2() -> None:
 
     assert result.strip() == expected_text.strip()
 
+
 class TestMergeCategoriesIntoText:
     """Tests for merge_categories_into_text function."""
 
@@ -109,9 +110,7 @@ class TestMergeCategoriesIntoText:
     def test_appends_only_missing_when_mixed(self):
         """When some categories exist and some don't, only the missing ones are appended."""
         text = "Content\n[[Category:Cat1| ]]\n[[category:Cat2]]"
-        result = merge_categories_into_text(
-            ["Category:Cat1", "Category:Cat3", "Category:Cat4"], text
-        )
+        result = merge_categories_into_text(["Category:Cat1", "Category:Cat3", "Category:Cat4"], text)
         # Cat1 already present — should not appear a second time
         assert result.count("Category:Cat1") == 1
         # Cat3 and Cat4 should be appended
