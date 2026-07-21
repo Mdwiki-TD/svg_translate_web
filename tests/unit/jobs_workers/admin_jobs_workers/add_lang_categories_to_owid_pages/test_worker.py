@@ -212,6 +212,36 @@ class TestStepGetLanguages:
 
         assert result is False
 
+    def test_failure_on_english_only(self, mock_lang_worker, mock_lang_categories_services):
+        mock_lang_categories_services["get_file_languages"].return_value = {
+            "error": None,
+            "langs": ["en"],
+        }
+
+        info = PageInfo(page_title="OWID/test")
+        info.svg_file = "test.svg"
+
+        result = mock_lang_worker._step_get_languages(info)
+
+        assert result is False
+        assert info.status == "failed"
+        assert info.error == "No non-English languages found"
+
+    def test_success_on_english_plus_other(self, mock_lang_worker, mock_lang_categories_services):
+        """English alongside other languages should still succeed."""
+        mock_lang_categories_services["get_file_languages"].return_value = {
+            "error": None,
+            "langs": ["en", "fr"],
+        }
+
+        info = PageInfo(page_title="OWID/test")
+        info.svg_file = "test.svg"
+
+        result = mock_lang_worker._step_get_languages(info)
+
+        assert result is True
+        assert info.lang_codes == ["en", "fr"]
+
 
 # ── Step: build_categories ────────────────────────────────────────────────
 
