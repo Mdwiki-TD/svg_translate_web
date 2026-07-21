@@ -281,27 +281,12 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         candidate_names = info._categories
         original_text = info._text or ""
 
-        # Wrap each "Category:XXX" as "[[Category:XXX]]" for comparison/reporting
-        wrapped = [f"[[{name}]]" for name in candidate_names]
-
         # Use merge_categories_into_text for deduplication
         merged_text = merge_categories_into_text(candidate_names, original_text)
 
         # Fallback: if page has no existing categories, merge_categories_into_text
         # returns text unchanged — manually append in that case
         if merged_text == original_text:
-            if not wrapped:
-                info.steps["check_existing"] = {"result": None, "msg": "Skipped — no candidate categories"}
-                info.status = "skipped"
-                return []
-            if not original_text.endswith("\n"):
-                merged_text = original_text + "\n"
-            merged_text += "\n".join(wrapped) + "\n"
-
-        # Determine which wrapped categories are new (for reporting)
-        new_categories = [w for w in wrapped if w not in original_text]
-
-        if not new_categories:
             info.steps["check_existing"] = {
                 "result": None,
                 "msg": "Skipped — all language categories already exist",
