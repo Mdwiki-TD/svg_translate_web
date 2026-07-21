@@ -125,7 +125,7 @@ def lang_code_category(langcode: str) -> str:
         "yi": "Yiddish-language SVG",
         "yo": "Yoruba-language SVG",
         "zh": "Chinese-language SVG",
-        "zu": "Zulu-language SVG"
+        "zu": "Zulu-language SVG",
     }
     return data.get(langcode)
 
