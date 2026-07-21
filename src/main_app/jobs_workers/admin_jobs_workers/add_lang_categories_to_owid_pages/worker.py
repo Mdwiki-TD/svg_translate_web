@@ -263,7 +263,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             "msg": f"Built {len(categories)} candidate category name(s)",
             "categories": categories,
         }
-        # Store bare category names temporarily in _new_text for use in next step
+        # Store bare category names temporarily in _categories for use in next step
         info._categories = categories
         return True
 
@@ -309,7 +309,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             info.status = "skipped"
             return []
 
-        info._new_text = merged_text
+        info._text = merged_text
         info.steps["check_existing"] = {
             "result": True,
             "msg": f"{len(new_categories)} new category line(s) to add",
@@ -320,7 +320,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         """Save the page with the already-merged text. Returns True on success."""
         cat_summary = ", ".join(new_categories)
         res = page.edit(
-            info._new_text or "",
+            info._text or "",
             summary=f"Adding language categories: {cat_summary}",
         )
 

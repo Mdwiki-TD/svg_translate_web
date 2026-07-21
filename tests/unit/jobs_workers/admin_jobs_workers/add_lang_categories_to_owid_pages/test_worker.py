@@ -34,7 +34,7 @@ class TestPageInfo:
         assert info.status == "pending"
         assert info.error is None
         assert info._text is None
-        assert info._new_text is None
+        assert info._categories == []
 
     def test_page_info_steps_initialized(self):
         info = PageInfo(page_title="OWID/test_page")
@@ -225,9 +225,9 @@ class TestStepBuildCategories:
 
         assert result is True
         # build_category_names returns "Category:XXX" (no [[...]] wrapper)
-        assert "Category:English-language SVG" in (info._new_text or "")
-        assert "Category:Arabic-language SVG" in (info._new_text or "")
-        assert "[[Category:" not in (info._new_text or "")
+        assert "Category:English-language SVG" in info._categories
+        assert "Category:Arabic-language SVG" in info._categories
+        assert not any("[[Category:" in c for c in info._categories)
 
     def test_failure_on_no_recognised_codes(self, mock_lang_worker):
         info = PageInfo(page_title="OWID/test")
