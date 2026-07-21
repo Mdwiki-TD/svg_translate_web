@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.utils import (
-    add_categories_to_text,
-    build_category_lines,
     extract_svg_file_name,
-    get_existing_lang_categories,
+    build_category_names,
 )
 
 
@@ -56,10 +54,10 @@ class TestExtractSvgFileName:
 
 
 class TestBuildCategoryLines:
-    """Tests for build_category_lines function."""
+    """Tests for build_category_names function."""
 
     def test_builds_categories_for_known_codes(self):
-        result = build_category_lines(["en", "ar", "ja"])
+        result = build_category_names(["en", "ar", "ja"])
         assert result == [
             "[[Category:English-language SVG]]",
             "[[Category:Arabic-language SVG]]",
@@ -67,22 +65,22 @@ class TestBuildCategoryLines:
         ]
 
     def test_skips_unknown_codes(self):
-        result = build_category_lines(["en", "zzz_unknown", "ar"])
+        result = build_category_names(["en", "zzz_unknown", "ar"])
         assert result == [
             "[[Category:English-language SVG]]",
             "[[Category:Arabic-language SVG]]",
         ]
 
     def test_returns_empty_for_all_unknown_codes(self):
-        result = build_category_lines(["zzz", "yyy"])
+        result = build_category_names(["zzz", "yyy"])
         assert result == []
 
     def test_returns_empty_for_empty_list(self):
-        result = build_category_lines([])
+        result = build_category_names([])
         assert result == []
 
     def test_single_code(self):
-        result = build_category_lines(["fr"])
+        result = build_category_names(["fr"])
         assert result == ["[[Category:French-language SVG]]"]
 
 

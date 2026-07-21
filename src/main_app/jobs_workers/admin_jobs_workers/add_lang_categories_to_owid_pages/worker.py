@@ -20,13 +20,12 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....utils.file_langs import get_file_languages
+from ....utils.wikitext.categories_utils import merge_categories_into_text
 from ...base_worker import BaseObjectsJobWorker
 from .objects import AddLangCategoriesWorkerObject
 from .utils import (
-    add_categories_to_text,
-    build_category_lines,
+    build_category_names,
     extract_svg_file_name,
-    get_existing_lang_categories,
 )
 
 logger = logging.getLogger(__name__)
@@ -253,29 +252,53 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         return True
 
     def _step_build_categories(self, info: PageInfo) -> bool:
-        """Build category lines from language codes. Returns False if no valid codes."""
-        categories = build_category_lines(info.lang_codes)
+        """Build category names from language codes. Returns False if no valid codes."""
+        categories = build_category_names(info.lang_codes)
         if not categories:
             self._fail(info, "build_categories", f"No recognised language codes in {info.lang_codes}")
             return False
 
         info.steps["build_categories"] = {
             "result": True,
-            "msg": f"Built {len(categories)} candidate category line(s)",
+            "msg": f"Built {len(categories)} candidate category name(s)",
         }
-        # Store candidate categories temporarily in _new_text for use in next step
+        # Store bare category names temporarily in _new_text for use in next step
         info._new_text = "\n".join(categories)
         return True
 
     def _step_check_existing(self, info: PageInfo) -> list[str]:
-        """Remove categories that already exist on the page.
+        """Merge candidate categories into page text, skipping those already present.
+
+        Uses ``merge_categories_into_text`` which handles deduplication via
+        case-insensitive comparison.  Falls back to manual append when the page
+        has no existing categories (known limitation of the merge function).
 
         Returns:
-            List of new category lines to add (empty list means nothing to do).
+            List of ``[[Category:…]]`` strings that were actually added
+            (empty list means nothing to do).
         """
-        existing = get_existing_lang_categories(info._text or "")
-        candidate_lines = (info._new_text or "").splitlines()
-        new_categories = [c for c in candidate_lines if c and c not in existing]
+        candidate_names = (info._new_text or "").splitlines()
+        original_text = info._text or ""
+
+        # Use merge_categories_into_text for deduplication
+        merged_text = merge_categories_into_text(candidate_names, original_text)
+
+        # Fallback: if page has no existing categories, merge_categories_into_text
+        # returns text unchanged — manually append in that case
+        if merged_text == original_text:
+            wrapped = [f"[[Category:{name}]]" for name in candidate_names]
+            if not wrapped:
+                info.steps["check_existing"] = {"result": None, "msg": "Skipped — no candidate categories"}
+                info.status = "skipped"
+                return []
+            if not original_text.endswith("\n"):
+                merged_text = original_text + "\n"
+            merged_text += "\n".join(wrapped) + "\n"
+
+        # Determine which wrapped categories are new (for reporting)
+        new_categories = [
+            f"[[Category:{name}]]" for name in candidate_names if f"[[Category:{name}]]" not in original_text
+        ]
 
         if not new_categories:
             info.steps["check_existing"] = {
@@ -285,6 +308,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             info.status = "skipped"
             return []
 
+        info._new_text = merged_text
         info.steps["check_existing"] = {
             "result": True,
             "msg": f"{len(new_categories)} new category line(s) to add",
@@ -292,12 +316,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         return new_categories
 
     def _step_save_page(self, info: PageInfo, page: MwClientPage, new_categories: list[str]) -> bool:
-        """Append new categories to the page and save. Returns True on success."""
-        info._new_text = add_categories_to_text(info._text or "", new_categories)
-
+        """Save the page with the already-merged text. Returns True on success."""
         cat_summary = ", ".join(new_categories)
         res = page.edit(
-            info._new_text,
+            info._new_text or "",
             summary=f"Adding language categories: {cat_summary}",
         )
 
