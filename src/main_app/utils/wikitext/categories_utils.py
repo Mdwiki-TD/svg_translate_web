@@ -156,19 +156,15 @@ def sort_categories(wikitext: str) -> str:
     return new_wikitext
 
 
-def merge_categories_into_text(cats_list: list[str], text: str) -> str:
-    """
-    Appends categories found in old_text to new_text if they are not already present.
-    """
+def get_missing_categories_list(cats_list: list[str], text: str) -> str:
     if not text:
-        return text
+        return []
 
     # Parse categories from both versions of the text
     old_cats = extract_categories(text)
 
     if not old_cats:
-        categories_str = "\n".join([f"[[{cat_str}]]" for cat_str in cats_list])
-        return f"{text}\n{categories_str}"
+        return [f"[[{cat_str}]]" for cat_str in cats_list]
 
     new_cats = [
         create_category_link_from_str(f"[[{cat_str}]]")
@@ -183,10 +179,22 @@ def merge_categories_into_text(cats_list: list[str], text: str) -> str:
 
     # If no missing categories are found, return the text as is
     if not missing_categories:
+        return []
+
+    return [cat.link.string for cat in missing_categories]
+
+def merge_categories_into_text(cats_list: list[str], text: str) -> str:
+    """
+    Appends categories found in old_text to new_text if they are not already present.
+    """
+    missing_categories_list = get_missing_categories_list(cats_list, text)
+
+    # If no missing categories are found, return the text as is
+    if not missing_categories_list:
         return text
 
     # Convert the missing CategoryLink objects back to their string representation
-    missing_categories_str = "\n".join([cat.link.string for cat in missing_categories])
+    missing_categories_str = "\n".join(missing_categories_list)
 
     # Append the missing categories to the end of the new text
     return f"{text}\n{missing_categories_str}"
