@@ -110,6 +110,7 @@ def merge_categories(old_text: str, new_text: str) -> str:
     old_cats = extract_categories(old_text)
 
     if not old_cats:
+        # TODO: we should insert the new categories to the text
         return new_text
 
     new_cats = extract_categories(new_text)
@@ -166,6 +167,7 @@ def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     old_cats = extract_categories(text)
 
     if not old_cats:
+        # TODO: we should insert the new categories to the text
         return text
 
     new_cats = [
