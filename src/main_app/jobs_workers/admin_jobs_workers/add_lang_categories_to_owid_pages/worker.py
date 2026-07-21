@@ -278,7 +278,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             List of ``[[Category:…]]`` strings that were actually added
             (empty list means nothing to do).
         """
-        candidate_names = (info._new_text or "").splitlines()
+        candidate_names = info._categories
         original_text = info._text or ""
 
         # Wrap each "Category:XXX" as "[[Category:XXX]]" for comparison/reporting
