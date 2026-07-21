@@ -92,7 +92,7 @@ class TestMergeCategoriesIntoText:
         """When text has no existing categories, the function returns it unchanged (known TODO)."""
         text = "Some article content without categories."
         result = merge_categories_into_text(["Category:Cat1"], text)
-        assert result == text
+        assert result == f"{text}\n[[Category:Cat1]]"
 
     def test_appends_missing_category(self):
         """A category not already in the text should be appended."""
