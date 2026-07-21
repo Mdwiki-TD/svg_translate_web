@@ -252,6 +252,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             self._fail(info, "get_languages", error or "No languages returned")
             return False
 
+        if len(langs) == 1 and langs[0] == "en":
+            self._fail(info, "get_languages", "No non-English languages found")
+            return False
+
         info.lang_codes = langs
         info.steps["get_languages"] = {"result": True, "msg": f"Found {len(langs)} language(s): {', '.join(langs)}"}
         return True
