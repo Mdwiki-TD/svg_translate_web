@@ -57,7 +57,7 @@ class PageInfo:
 
     # Internal temporary state
     _text: str | None = None
-    _new_text: str | None = None
+    _categories: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -264,7 +264,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             "categories": categories,
         }
         # Store bare category names temporarily in _new_text for use in next step
-        info._new_text = "\n".join(categories)
+        info._categories = categories
         return True
 
     def _step_check_existing(self, info: PageInfo) -> list[str]:
