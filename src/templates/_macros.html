@@ -50,9 +50,9 @@
 {% with messages = get_flashed_messages(with_categories=True) %}
 {% if messages %}
 <div class="container">
-    {% set bs_class = {'message':'info','warning':'warning','danger':'danger','error':'danger','success':'success','info':'info'}.get(category, 'info') %}
     <div class="alert-stack mb-4">
         {% for category, message in messages %}
+        {% set bs_class = {'message':'info','warning':'warning','danger':'danger','error':'danger','success':'success','info':'info'}.get(category.lower(), 'info') %}
         <div class="alert alert-{{ bs_class }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -222,8 +222,7 @@
 {# Auto-refresh toggle for running jobs #}
 {% macro auto_refresh_status() -%}
 <div class="form-check form-switch mt-2">
-    <input class="form-check-input" type="checkbox" id="auto-refresh-toggle"
-        onchange="toggleAutoRefresh()">
+    <input class="form-check-input" type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()">
     <label class="form-check-label" for="auto-refresh-toggle">
         <i class="bi bi-arrow-repeat" id="auto-refresh-indicator"></i>
         Auto Refresh
