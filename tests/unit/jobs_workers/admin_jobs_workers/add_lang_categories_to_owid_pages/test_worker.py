@@ -224,8 +224,10 @@ class TestStepBuildCategories:
         result = mock_lang_worker._step_build_categories(info)
 
         assert result is True
-        assert "[[Category:English-language SVG]]" in (info._new_text or "")
-        assert "[[Category:Arabic-language SVG]]" in (info._new_text or "")
+        # build_category_names returns bare names (no [[Category:]] wrapper)
+        assert "English-language SVG" in (info._new_text or "")
+        assert "Arabic-language SVG" in (info._new_text or "")
+        assert "[[Category:" not in (info._new_text or "")
 
     def test_failure_on_no_recognised_codes(self, mock_lang_worker):
         info = PageInfo(page_title="OWID/test")
@@ -249,31 +251,52 @@ class TestStepBuildCategories:
 
 
 class TestStepCheckExisting:
-    def test_all_categories_are_new(self, mock_lang_worker):
+    def test_all_categories_are_new_with_existing_cats_on_page(self, mock_lang_worker):
+        """Page has categories but none match candidates — all are added via merge_categories_into_text."""
         info = PageInfo(page_title="OWID/test")
-        info._text = "Some page content without categories"
-        info._new_text = "[[Category:English-language SVG]]\n[[Category:Japanese-language SVG]]"
+        info._text = "Content\n[[Category:Other category]]"
+        info._new_text = "English-language SVG\nJapanese-language SVG"
 
         result = mock_lang_worker._step_check_existing(info)
 
         assert len(result) == 2
         assert "[[Category:English-language SVG]]" in result
         assert "[[Category:Japanese-language SVG]]" in result
+        # _new_text should now contain the merged result
+        assert "[[Category:English-language SVG]]" in (info._new_text or "")
+        assert "[[Category:Japanese-language SVG]]" in (info._new_text or "")
+
+    def test_all_categories_are_new_no_existing_cats_fallback(self, mock_lang_worker):
+        """Page has no categories — triggers the manual-append fallback."""
+        info = PageInfo(page_title="OWID/test")
+        info._text = "Some page content without categories"
+        info._new_text = "English-language SVG\nJapanese-language SVG"
+
+        result = mock_lang_worker._step_check_existing(info)
+
+        assert len(result) == 2
+        assert "[[Category:English-language SVG]]" in result
+        assert "[[Category:Japanese-language SVG]]" in result
+        assert "[[Category:English-language SVG]]" in (info._new_text or "")
 
     def test_some_categories_already_exist(self, mock_lang_worker):
+        """Page already has one candidate — only the missing one is returned."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Content\n[[Category:English-language SVG]]"
-        info._new_text = "[[Category:English-language SVG]]\n[[Category:Japanese-language SVG]]"
+        info._new_text = "English-language SVG\nJapanese-language SVG"
 
         result = mock_lang_worker._step_check_existing(info)
 
         assert len(result) == 1
         assert "[[Category:Japanese-language SVG]]" in result
+        # English should not be duplicated in merged text
+        assert (info._new_text or "").count("English-language SVG") == 1
 
     def test_all_categories_already_exist(self, mock_lang_worker):
+        """All candidates present — returns empty list, marks as skipped."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Content\n[[Category:English-language SVG]]\n[[Category:Japanese-language SVG]]"
-        info._new_text = "[[Category:English-language SVG]]\n[[Category:Japanese-language SVG]]"
+        info._new_text = "English-language SVG\nJapanese-language SVG"
 
         result = mock_lang_worker._step_check_existing(info)
 
@@ -290,7 +313,8 @@ class TestStepSavePage:
         mock_page.edit.return_value = {"success": True, "newrevid": 12345}
 
         info = PageInfo(page_title="OWID/test")
-        info._text = "original"
+        # _new_text is the already-merged result from _step_check_existing
+        info._new_text = "original\n[[Category:English-language SVG]]"
         new_cats = ["[[Category:English-language SVG]]"]
 
         result = mock_lang_worker._step_save_page(info, mock_page, new_cats)
@@ -299,13 +323,16 @@ class TestStepSavePage:
         assert mock_lang_worker.result.summary.success == 1
         assert info.steps["save_page"]["result"] is True
         mock_page.edit.assert_called_once()
+        # Verify the merged text was passed to edit
+        call_args = mock_page.edit.call_args
+        assert call_args[0][0] == "original\n[[Category:English-language SVG]]"
 
     def test_failure(self, mock_lang_worker):
         mock_page = MagicMock()
         mock_page.edit.return_value = {"success": False, "error": "API error"}
 
         info = PageInfo(page_title="OWID/test")
-        info._text = "original"
+        info._new_text = "original\n[[Category:English-language SVG]]"
         new_cats = ["[[Category:English-language SVG]]"]
 
         result = mock_lang_worker._step_save_page(info, mock_page, new_cats)
@@ -335,7 +362,7 @@ class TestProcessOneItem:
             return True
 
         def mock_build(info):
-            info._new_text = "[[Category:English-language SVG]]\n[[Category:Arabic-language SVG]]"
+            info._new_text = "English-language SVG\nArabic-language SVG"
             return True
 
         mock_lang_worker._step_load_page_text = MagicMock(side_effect=mock_load)
@@ -391,7 +418,7 @@ class TestProcessOneItem:
             return True
 
         def mock_build(info):
-            info._new_text = "[[Category:English-language SVG]]"
+            info._new_text = "English-language SVG"
             return True
 
         mock_lang_worker._step_load_page_text = MagicMock(side_effect=mock_load)

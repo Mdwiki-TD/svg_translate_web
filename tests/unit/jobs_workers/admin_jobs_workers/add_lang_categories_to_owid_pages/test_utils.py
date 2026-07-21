@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.utils import (
-    extract_svg_file_name,
     build_category_names,
+    extract_svg_file_name,
 )
 
 
@@ -53,22 +53,22 @@ class TestExtractSvgFileName:
         assert extract_svg_file_name(wikitext) == "my_chart.svg"
 
 
-class TestBuildCategoryLines:
+class TestBuildCategoryNames:
     """Tests for build_category_names function."""
 
     def test_builds_categories_for_known_codes(self):
         result = build_category_names(["en", "ar", "ja"])
         assert result == [
-            "[[Category:English-language SVG]]",
-            "[[Category:Arabic-language SVG]]",
-            "[[Category:Japanese-language SVG]]",
+            "English-language SVG",
+            "Arabic-language SVG",
+            "Japanese-language SVG",
         ]
 
     def test_skips_unknown_codes(self):
         result = build_category_names(["en", "zzz_unknown", "ar"])
         assert result == [
-            "[[Category:English-language SVG]]",
-            "[[Category:Arabic-language SVG]]",
+            "English-language SVG",
+            "Arabic-language SVG",
         ]
 
     def test_returns_empty_for_all_unknown_codes(self):
@@ -81,81 +81,4 @@ class TestBuildCategoryLines:
 
     def test_single_code(self):
         result = build_category_names(["fr"])
-        assert result == ["[[Category:French-language SVG]]"]
-
-
-class TestGetExistingLangCategories:
-    """Tests for get_existing_lang_categories function."""
-
-    def test_finds_existing_categories(self):
-        text = """
-Some page content
-[[Category:English-language SVG|test]]
-[[Category:Japanese-language SVG]]
-[[Category:Other category]]
-        """
-        result = get_existing_lang_categories(text)
-        assert result == {
-            "[[Category:English-language SVG]]",
-            "[[Category:Japanese-language SVG]]",
-        }
-
-    def test_returns_empty_when_no_lang_categories(self):
-        text = """
-Some page content
-[[Category:Other category]]
-[[Category:Another category]]
-        """
-        assert get_existing_lang_categories(text) == set()
-
-    def test_returns_empty_for_empty_text(self):
-        assert get_existing_lang_categories("") == set()
-
-    def test_case_insensitive_matching(self):
-        text = "[[Category:english-language svg]]"
-        result = get_existing_lang_categories(text)
-        assert len(result) == 1
-
-
-class TestAddCategoriesToText:
-    """Tests for add_categories_to_text function."""
-
-    def test_appends_categories_to_text(self):
-        text = "Some page content"
-        categories = ["[[Category:English-language SVG]]", "[[Category:Japanese-language SVG]]"]
-        result = add_categories_to_text(text, categories)
-
-        assert "[[Category:English-language SVG]]" in result
-        assert "[[Category:Japanese-language SVG]]" in result
-        assert result.startswith("Some page content\n")
-
-    def test_appends_with_trailing_newline(self):
-        text = "Some page content\n"
-        categories = ["[[Category:English-language SVG]]"]
-        result = add_categories_to_text(text, categories)
-
-        assert result == "Some page content\n[[Category:English-language SVG]]\n"
-
-    def test_returns_original_text_when_no_categories(self):
-        text = "Some page content\n"
-        result = add_categories_to_text(text, [])
-        assert result == text
-
-    def test_adds_newline_before_categories_if_missing(self):
-        text = "content without trailing newline"
-        categories = ["[[Category:English-language SVG]]"]
-        result = add_categories_to_text(text, categories)
-
-        assert result == "content without trailing newline\n[[Category:English-language SVG]]\n"
-
-    def test_multiple_categories_on_separate_lines(self):
-        text = "content\n"
-        categories = [
-            "[[Category:English-language SVG]]",
-            "[[Category:Arabic-language SVG]]",
-            "[[Category:Japanese-language SVG]]",
-        ]
-        result = add_categories_to_text(text, categories)
-
-        expected = "content\n[[Category:English-language SVG]]\n[[Category:Arabic-language SVG]]\n[[Category:Japanese-language SVG]]\n"
-        assert result == expected
+        assert result == ["French-language SVG"]
