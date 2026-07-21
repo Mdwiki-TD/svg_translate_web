@@ -155,6 +155,41 @@ def sort_categories(wikitext: str) -> str:
     return new_wikitext
 
 
+def merge_categories_into_text(cats_list: list[str], text: str) -> str:
+    """
+    Appends categories found in old_text to new_text if they are not already present.
+    """
+    if not text:
+        return text
+
+    # Parse categories from both versions of the text
+    old_cats = extract_categories(text)
+
+    if not old_cats:
+        return text
+
+    new_cats = [
+        create_category_link_from_str(f"[[{cat_str}]]")
+        for cat_str in cats_list
+    ]
+
+    # Using a set for target_targets improves lookup performance to O(1)
+    target_targets = {cat.target for cat in old_cats}
+
+    # Return only the categories from base_categories that aren't already in target_categories
+    missing_categories = [cat for cat in new_cats if cat.target not in target_targets]
+
+    # If no missing categories are found, return the text as is
+    if not missing_categories:
+        return text
+
+    # Convert the missing CategoryLink objects back to their string representation
+    missing_categories_str = "\n".join([cat.link.string for cat in missing_categories])
+
+    # Append the missing categories to the end of the new text
+    return f"{text}\n{missing_categories_str}"
+
+
 __all__ = [
     "merge_categories",
 ]
