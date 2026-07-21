@@ -59,16 +59,16 @@ class TestBuildCategoryNames:
     def test_builds_categories_for_known_codes(self):
         result = build_category_names(["en", "ar", "ja"])
         assert result == [
-            "English-language SVG",
-            "Arabic-language SVG",
-            "Japanese-language SVG",
+            "Category:English-language SVG",
+            "Category:Arabic-language SVG",
+            "Category:Japanese-language SVG",
         ]
 
     def test_skips_unknown_codes(self):
         result = build_category_names(["en", "zzz_unknown", "ar"])
         assert result == [
-            "English-language SVG",
-            "Arabic-language SVG",
+            "Category:English-language SVG",
+            "Category:Arabic-language SVG",
         ]
 
     def test_returns_empty_for_all_unknown_codes(self):
@@ -81,4 +81,4 @@ class TestBuildCategoryNames:
 
     def test_single_code(self):
         result = build_category_names(["fr"])
-        assert result == ["French-language SVG"]
+        assert result == ["Category:French-language SVG"]

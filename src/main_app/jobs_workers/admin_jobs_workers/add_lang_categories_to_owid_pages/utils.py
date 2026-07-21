@@ -30,20 +30,21 @@ def extract_svg_file_name(text: str) -> str | None:
 
 
 def build_category_names(lang_codes: list[str]) -> list[str]:
-    """Convert language codes to bare ``Category:XXX-language SVG`` names.
+    """Convert language codes to ``Category:XXX-language SVG`` names.
 
     Args:
         lang_codes: List of Wikimedia language codes (e.g. ``["en", "ja", "ar"]``).
 
     Returns:
-        List of category name strings (without ``[[...]]`` wrapper).
+        List of ``Category:…`` strings (without ``[[…]]`` wrapper), suitable for
+        passing directly to ``merge_categories_into_text``.
         Codes that ``lang_code_category()`` does not recognise are silently skipped.
     """
     categories: list[str] = []
     for code in lang_codes:
         cat = lang_code_category(code)
         if cat:
-            categories.append(cat)
+            categories.append(f"Category:{cat}")
     return categories
 
 
