@@ -192,4 +192,5 @@ def merge_categories_into_text(cats_list: list[str], text: str) -> str:
 
 __all__ = [
     "merge_categories",
+    "merge_categories_into_text",
 ]

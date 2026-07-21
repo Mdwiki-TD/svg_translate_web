@@ -9,6 +9,7 @@ from src.main_app.utils.wikitext.categories_utils import (
     extract_categories,
     find_missing_categories,
     merge_categories,
+    merge_categories_into_text,
 )
 
 
@@ -75,3 +76,6 @@ def test_full_pipeline_2() -> None:
     expected_text = """[[Category:Cat1]][[Category:Cat2]]\n[[Category:Cat3 | test ]]"""
 
     assert result.strip() == expected_text.strip()
+
+class TestMergeCategoriesIntoText:
+    """Tests for merge_categories_into_text function."""
