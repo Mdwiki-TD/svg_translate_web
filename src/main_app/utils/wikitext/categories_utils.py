@@ -55,7 +55,7 @@ def create_category_link_from_str(str_link: str) -> CategoryLink:
     link = WikiLink(str_link)
 
     # clean target
-    target = link.target.strip().replace("_", " ")
+    target = link.target.strip().replace("_", " ").split("#")[0]
     target = capitalize_category(target)
 
     return CategoryLink(link=link, target=target)
