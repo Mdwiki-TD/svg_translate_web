@@ -92,7 +92,7 @@ class TestGetExistingLangCategories:
     def test_finds_existing_categories(self):
         text = """
 Some page content
-[[Category:English-language SVG]]
+[[Category:English-language SVG|test]]
 [[Category:Japanese-language SVG]]
 [[Category:Other category]]
         """
