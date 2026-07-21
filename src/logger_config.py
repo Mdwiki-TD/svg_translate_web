@@ -50,7 +50,7 @@ def setup_logging(
     if use_colorlog:
         console_formatter = colorlog.ColoredFormatter(
             # Standard format: Time - Name - Level - [File:Line] - Message
-            fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(filename)s:%(lineno)d] - %(message)s",
+            fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s",
             datefmt="%H:%M:%S",
             log_colors={
                 "DEBUG": "cyan",
@@ -63,7 +63,7 @@ def setup_logging(
     else:
         console_formatter = logging.Formatter(
             # Standard format: Time - Name - Level - [File:Line] - Message
-            fmt="%(asctime)s - %(name)s - %(levelname)-s - [%(filename)s:%(lineno)d] - %(message)s",
+            fmt="%(asctime)s - %(name)s - %(levelname)-s - [%(funcName)s:%(lineno)d] - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
