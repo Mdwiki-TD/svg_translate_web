@@ -133,12 +133,27 @@ def lang_code_category(langcode: str) -> str | None:
     return LANG_CODE_CATEGORY_MAP.get(langcode)
 
 
+import logging
+from typing import Any
+
+import requests
+
+from ..api_services import create_commons_session
+from ..config import settings
+
+logger = logging.getLogger(__name__)
+
+
 def get_file_languages(file_name: str, session: requests.Session | None = None) -> dict[str, Any]:
     """
-    Extracts available SVG translation languages for a given Commons file.
+    Extract available SVG translation languages for a given Commons file.
 
-    :param file_name: Name of the file on Wikimedia Commons.
-    :return: Dictionary containing 'error' message (if any) and 'langs' list.
+    Args:
+        file_name: Name of the file on Wikimedia Commons.
+        session: Optional pre-configured requests session.
+
+    Returns:
+        Dictionary containing an 'error' message (if any) and a 'langs' list.
     """
     if not file_name:
 
@@ -165,6 +180,7 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
         response.raise_for_status()
         data = response.json()
     except requests.RequestException as err:
+        logger.exception("Commons API request failed for %s", file_name)
         return {"error": f"API error: {err}", "langs": None}
 
     pages = data.get("query", {}).get("pages", [])
