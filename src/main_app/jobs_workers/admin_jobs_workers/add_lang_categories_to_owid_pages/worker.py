@@ -289,6 +289,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         """
         candidate_names = info._categories
         original_text = info._text
+        if not original_text:
+            # skip
+            self._fail(info, "check_existing", f"No text found for {info.page_title}")
+            return []
 
         new_categories = get_missing_categories_list(candidate_names, original_text)
         if not new_categories:
