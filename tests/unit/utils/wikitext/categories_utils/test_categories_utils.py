@@ -88,8 +88,7 @@ class TestMergeCategoriesIntoText:
         """None text should be returned as-is (falsy guard)."""
         assert merge_categories_into_text(["Category:Cat1"], None) is None  # type: ignore[arg-type]
 
-    def test_returns_text_unchanged_when_text_has_no_categories(self):
-        """When text has no existing categories, the function returns it unchanged (known TODO)."""
+    def test_when_text_has_no_categories(self):
         text = "Some article content without categories."
         result = merge_categories_into_text(["Category:Cat1"], text)
         assert result == f"{text}\n[[Category:Cat1]]"
