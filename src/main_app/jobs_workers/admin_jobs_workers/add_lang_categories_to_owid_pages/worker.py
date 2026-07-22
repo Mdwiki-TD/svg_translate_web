@@ -281,10 +281,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         Uses ``merge_categories_into_text`` which handles deduplication via
         case-insensitive comparison.  Falls back to manual append when the page
-        """Merge candidate categories into page text, skipping those already present.
-
-        Uses ``get_missing_categories_list`` which handles deduplication via
-        case-insensitive comparison, then manually appends missing ones.
 
         Returns:
             List of ``[[Category:…]]`` strings that were actually added
