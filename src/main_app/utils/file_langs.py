@@ -204,7 +204,11 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
         return {"error": f"Metadata array empty for {page.get('title')}", "langs": None}
 
     # Convert list of dicts [{'name': ..., 'value': ...}] into a single dictionary
-    meta = {item["name"]: item["value"] for item in metadata if isinstance(item, dict) and "name" in item and "value" in item}
+    meta = {
+        item["name"]: item["value"]
+        for item in metadata
+        if isinstance(item, dict) and "name" in item and "value" in item
+    }
 
     translations = meta.get("translations", [])
 

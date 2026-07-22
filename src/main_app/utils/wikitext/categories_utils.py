@@ -180,6 +180,7 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> list[str]:
 
     return [cat.link.string for cat in missing_categories]
 
+
 def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     """
     Appends categories found in old_text to new_text if they are not already present.
