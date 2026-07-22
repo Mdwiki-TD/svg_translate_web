@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify
 from ..db.models import OwidChartRecord, OwidChartTemplateView, TemplateRecord
 from ..db.services import (
     list_charts,
+    list_charts_with_templates,
     list_owid_charts_templates,
     list_templates,
     list_templates_mismatched_years,
@@ -139,10 +140,24 @@ class ApiRoutes:
         @self.bp.get("/owidcharts/")
         @self.bp.get("/owidcharts/<string:template_filter>")
         def owid_charts_list(template_filter: str = ""):
-            all_charts: list[OwidChartRecord] = list_charts()
-            all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
-
-            charts_temps = {c.chart_id: c for c in all_charts_templates}
+            # Optimize: use single-query list_charts_with_templates() with fallback
+            try:
+                charts_with_templates = list_charts_with_templates()
+                all_charts = []
+                charts_temps = {}
+                for chart, temp_id, temp_title in charts_with_templates:
+                    all_charts.append(chart)
+                    charts_temps[chart.chart_id] = OwidChartTemplateView(
+                        chart_id=chart.chart_id,
+                        template_id=temp_id,
+                        template_title=temp_title,
+                    )
+            except Exception as e:
+                # Fallback to legacy path for compatibility and testing
+                logger.debug(f"Falling back to legacy multi-query charts listing: {e}")
+                all_charts: list[OwidChartRecord] = list_charts()
+                all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
+                charts_temps = {c.chart_id: c for c in all_charts_templates}
 
             summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
 

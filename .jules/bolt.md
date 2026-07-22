@@ -1,0 +1,3 @@
+## 2026-07-21 - Single-Query LEFT OUTER JOIN Optimization for Charts and Templates
+**Learning:** In the `owid_charts_list` API endpoint, the application performed two separate O(N) database queries (to `owid_charts` and `owid_charts_templates` view) and joined them in memory. Merging these into a single SQL LEFT OUTER JOIN using SQLAlchemy's `.outerjoin(TemplateRecord)` eliminated a database round-trip and memory joins, providing a massive efficiency boost.
+**Action:** When querying parent records that reference related metadata in views or tables, always use an outer join query like `db.session.query(...).outerjoin(...)` to retrieve all required association data in a single SQL operation.

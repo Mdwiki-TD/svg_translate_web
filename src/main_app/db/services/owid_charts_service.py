@@ -28,6 +28,25 @@ def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
     return query.all()
 
 
+def list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str | None]]:
+    """
+    Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
+    """
+    # Import TemplateRecord to avoid circular imports
+    from ..models.templates import TemplateRecord
+
+    query = (
+        db.session.query(
+            OwidChartRecord,
+            TemplateRecord.id.label("template_id"),
+            TemplateRecord.title.label("template_title"),
+        )
+        .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
+        .order_by(OwidChartRecord.chart_id.asc())
+    )
+    return query.all()
+
+
 def count_charts() -> int:
     """
     Return the total number of charts.
@@ -144,6 +163,9 @@ class OwidChartsService:
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return list_charts(limit)
 
+    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
+        return list_charts_with_templates()
+
     def count_charts(self) -> int:
         return count_charts()
 
@@ -180,6 +202,7 @@ __all__ = [
     "get_chart_by_slug",
     "add_chart",
     "list_charts",
+    "list_charts_with_templates",
     "count_charts",
     "list_published_charts",
     "update_chart_data",
