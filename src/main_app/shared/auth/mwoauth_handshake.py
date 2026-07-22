@@ -7,6 +7,7 @@ from typing import Any
 
 import mwoauth
 from flask import url_for
+from mwoauth import AccessToken
 from mwoauth.handshaker import Handshaker
 
 from ...config import settings
@@ -47,11 +48,11 @@ def start_login(state_token: str) -> tuple[str, Any]:
     return redirect_url, request_token
 
 
-def complete_login(request_token: object, query_string: str) -> tuple[str, dict[str, Any]]:
+def complete_login(request_token: object, query_string: str) -> tuple[AccessToken | Any, dict[str, Any]]:
     """Complete the OAuth login flow and return the access token and user identity."""
     logger.debug("Completing OAuth login with query_string")
     handshaker = get_handshaker()
-    access_token: mwoauth.AccessToken = handshaker.complete(request_token, query_string)
+    access_token: AccessToken = handshaker.complete(request_token, query_string)
     logger.info("OAuth access token obtained")
     try:
         identity: dict[str, Any] = handshaker.identify(access_token)

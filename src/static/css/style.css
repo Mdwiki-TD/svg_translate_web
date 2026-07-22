@@ -64,6 +64,13 @@ a {
     }
 }
 
+.table_text_left > tbody > tr > th,
+.table_text_left > tbody > tr > td,
+.table_text_left > thead > tr > td,
+.table_text_left > thead > tr > th {
+    text-align: left !important;
+}
+
 /* Auto-refresh toggle */
 .cursor-pointer {
     cursor: pointer;
